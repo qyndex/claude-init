@@ -428,19 +428,19 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
       accept: bash .claude/scripts/validate.sh
       owner: implementer
 
-- [b] T-057 | spec:001 | phase:7 | priority: cleanup | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-056 | parallel: yes | est: 5m
+- [s] T-057 | spec:001 | phase:7 | priority: cleanup | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-056 | parallel: yes | est: 5m
   summary: Run paired 8-hour autopilot regression — baseline (pre-phase1 checkout) vs hardened (post-phase6) with identical canonical overnight prompt; compute .classifier_deny_count diff; assert hardened count <= 2x baseline
   files: verify/2026-05-29-phase7-regression
   accept: bash .claude/scripts/local-overnight-build.sh --regression-pair --baseline-ref pre-phase1 --hardened-ref HEAD --out verify/2026-05-29-phase7-regression
-  owner: implementer
-  blocked: OPERATOR-ONLY. (1) needs two real 8-hour autopilot runs (~16h compute, live Claude sessions / Cloud Routine, real spend) — not runnable from an interactive session; (2) local-overnight-build.sh has no --regression-pair flag yet (would be a sizable sub-feature to build); (3) the pre-phase1 baseline is now tagged (git tag pre-phase1 → 780fa60) so the baseline-ref resolves. Operator: build the --regression-pair driver, then schedule the paired run overnight.
+  owner: operator
+  skipped: OPERATOR-ONLY — requires ~16h live Cloud Routine paired run + --regression-pair driver (not yet built). pre-phase1 tag (780fa60) is in place. Build the driver and schedule separately.
 
-- [b] T-058 | spec:001 | phase:7 | priority: cleanup | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-057 | parallel: no | est: 4m
+- [s] T-058 | spec:001 | phase:7 | priority: cleanup | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-057 | parallel: no | est: 4m
   summary: Emit verify/2026-05-29-phase7-regression/REPORT.md with classifier-deny counts, operator-intervention totals, AC-by-AC coverage table, and rollback recommendation if hardened > 2x baseline (auto_rollback_threshold.custom)
   files: verify/2026-05-29-phase7-regression/REPORT.md
   accept: test -f verify/2026-05-29-phase7-regression/REPORT.md && grep -qE 'classifier_deny_count|operator-intervention' verify/2026-05-29-phase7-regression/REPORT.md
-  owner: implementer
-  blocked: depends on T-057 output (the paired-regression run). Unblocks automatically once T-057 produces verify/2026-05-29-phase7-regression/; then emit the AC-by-AC + classifier-deny REPORT.md.
+  owner: operator
+  skipped: downstream of T-057; unblocks automatically once T-057 produces verify/2026-05-29-phase7-regression/.
 
 ## Spec 001 critical path
 
