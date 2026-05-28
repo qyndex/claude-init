@@ -184,7 +184,7 @@ Every subagent ends its final message with a fenced NEXUS YAML block per [.claud
 
 The block is what allows: parent → child digest, coordinator → merge-decision, findings-to-tasks → TASKS.md auto-population, Langfuse → cost attribution.
 
-## XVII. `<issue_projection>` (Round 11)
+## XVI. `<issue_projection>` (Round 11)
 
 **`tasks/TASKS.md` is the SOLE source of truth for task state.** GitHub Issues are a **write-only projection** of *specs* (one issue per spec; phases as sub-issues; atomic tasks as a checklist inside). Lifecycle TODO→DOING→DONE→SHIPPED on a Projects v2 board, driven by PR/deploy events + flag-at-100%.
 
@@ -192,7 +192,7 @@ The block is what allows: parent → child digest, coordinator → merge-decisio
 - **Human board moves are advisory** — the projector re-asserts TASKS.md state + comments; the ledger always wins.
 - **Sync only at network boundaries** (PR-time, coordinator merge, `/issues sync`) — never in the autonomous inner loop. Setup + mapping: [docs/ISSUE-LIFECYCLE.md](../docs/ISSUE-LIFECYCLE.md).
 
-## XV. Where to Look Next
+## XVII. Where to Look Next
 
 - [docs/AUTOPILOT.md](../docs/AUTOPILOT.md) — overnight runs
 - [docs/PARALLEL-SWARM.md](../docs/PARALLEL-SWARM.md) — feature-stream fleet
