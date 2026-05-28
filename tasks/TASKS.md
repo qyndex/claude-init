@@ -85,7 +85,7 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
       accept: bash -n .claude/scripts/test/pre-edit-constitution-guard.sh && grep -q 'permissionDecision' .claude/scripts/test/pre-edit-constitution-guard.sh && grep -q 'FORCE_CONSTITUTION_EDIT' .claude/scripts/test/pre-edit-constitution-guard.sh
       owner: implementer
 
-- [ ] T-002 | spec:001 | phase:1 | priority: security | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-001 | parallel: no | est: 5m
+- [x] T-002 | spec:001 | phase:1 | priority: security | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-001 | parallel: no | est: 5m | completed: 2026-05-29
       summary: Implement pre-edit-constitution-guard.sh hook (PreToolUse:Write|Edit|NotebookEdit) — deny-list glob match, FORCE_CONSTITUTION_EDIT escape hatch, append constitution-write-attempts.log, emit JSON permissionDecision deny, latency <50ms
       files: .claude/hooks/pre-edit-constitution-guard.sh
       accept: bash -n .claude/hooks/pre-edit-constitution-guard.sh && test -x .claude/hooks/pre-edit-constitution-guard.sh && bash .claude/scripts/test/pre-edit-constitution-guard.sh
@@ -177,8 +177,8 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
       accept: bash -n .claude/scripts/test/oq-aging.sh && grep -q 'OQ-' .claude/scripts/test/oq-aging.sh
       owner: implementer
 
-- [ ] T-017 | spec:001 | phase:2 | priority: P1-spec | created: 2026-05-29 | last*touched: 2026-05-29 | deps: T-016 | parallel: no | est: 5m
-      summary: Implement oq-aging.sh — scan specs/active/\**/\_.md for [OQ-N] items >7d old, append RESOLVE: P1-spec task per item with last_touched + back-link, idempotent (skip if already appended), uses with_tasks_lock
+- [ ] T-017 | spec:001 | phase:2 | priority: P1-spec | created: 2026-05-29 | last\*touched: 2026-05-29 | deps: T-016 | parallel: no | est: 5m
+      summary: Implement oq-aging.sh — scan specs/active/\*\*/\_.md for [OQ-N] items >7d old, append RESOLVE: P1-spec task per item with last_touched + back-link, idempotent (skip if already appended), uses with_tasks_lock
       files: .claude/scripts/oq-aging.sh
       accept: test -x .claude/scripts/oq-aging.sh && bash -n .claude/scripts/oq-aging.sh && bash .claude/scripts/test/oq-aging.sh
       owner: implementer
@@ -248,8 +248,8 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
       accept: bash -n .claude/scripts/test/check-model-consistency.sh && grep -q 'model-consistency' .claude/scripts/test/check-model-consistency.sh
       owner: implementer
 
-- [ ] T-028 | spec:001 | phase:4 | priority: normal | created: 2026-05-29 | last*touched: 2026-05-29 | deps: T-027 | parallel: no | est: 5m
-      summary: Implement check-model-consistency.sh — parse §V table from .claude/CLAUDE.md, walk .claude/agents/**/\*.md, .claude/skills/**/SKILL.md, .claude/routines/\**/\_.yml, docs/AUTOPILOT.md, docs/ARCHITECTURE.md; verify every model: matches; honor ignore marker
+- [ ] T-028 | spec:001 | phase:4 | priority: normal | created: 2026-05-29 | last\*touched: 2026-05-29 | deps: T-027 | parallel: no | est: 5m
+      summary: Implement check-model-consistency.sh — parse §V table from .claude/CLAUDE.md, walk .claude/agents/**/\*.md, .claude/skills/**/SKILL.md, .claude/routines/\*\*/\_.yml, docs/AUTOPILOT.md, docs/ARCHITECTURE.md; verify every model: matches; honor ignore marker
       files: .claude/scripts/check-model-consistency.sh
       accept: test -x .claude/scripts/check-model-consistency.sh && bash .claude/scripts/test/check-model-consistency.sh
       owner: implementer
