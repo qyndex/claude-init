@@ -91,7 +91,7 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
       accept: bash -n .claude/hooks/pre-edit-constitution-guard.sh && test -x .claude/hooks/pre-edit-constitution-guard.sh && bash .claude/scripts/test/pre-edit-constitution-guard.sh
       owner: implementer
 
-- [ ] T-003 | spec:001 | phase:1 | priority: security | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-002 | parallel: no | est: 3m
+- [x] T-003 | spec:001 | phase:1 | priority: security | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-002 | parallel: no | est: 3m | completed: 2026-05-29
       summary: Register pre-edit-constitution-guard.sh in settings.json under PreToolUse:Write|Edit|NotebookEdit matcher block — positioned BEFORE pre-write-secret-scan.sh in the chain
       files: .claude/settings.json
       accept: jq -e '.hooks.PreToolUse[] | select(.matcher == "Write|Edit|NotebookEdit" or .matcher == "Write|Edit") | .hooks[] | select(.command | test("pre-edit-constitution-guard"))' .claude/settings.json

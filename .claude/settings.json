@@ -66,24 +66,57 @@
       "WebFetch(domain:apify.com)",
       "WebFetch(domain:docs.apify.com)",
 
-      "Bash(ls:*)", "Bash(pwd)", "Bash(echo:*)", "Bash(date:*)",
-      "Bash(which:*)", "Bash(whoami)", "Bash(uname:*)",
-      "Bash(file:*)", "Bash(stat:*)", "Bash(head:*)", "Bash(tail:*)",
-      "Bash(wc:*)", "Bash(tree:*)", "Bash(find:*)", "Bash(rg:*)",
-      "Bash(fd:*)", "Bash(jq:*)", "Bash(yq:*)", "Bash(sed -n:*)",
-      "Bash(diff:*)", "Bash(sort:*)", "Bash(uniq:*)", "Bash(cut:*)",
-      "Bash(awk:*)", "Bash(mkdir -p:*)", "Bash(touch:*)", "Bash(cp:*)",
+      "Bash(ls:*)",
+      "Bash(pwd)",
+      "Bash(echo:*)",
+      "Bash(date:*)",
+      "Bash(which:*)",
+      "Bash(whoami)",
+      "Bash(uname:*)",
+      "Bash(file:*)",
+      "Bash(stat:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(wc:*)",
+      "Bash(tree:*)",
+      "Bash(find:*)",
+      "Bash(rg:*)",
+      "Bash(fd:*)",
+      "Bash(jq:*)",
+      "Bash(yq:*)",
+      "Bash(sed -n:*)",
+      "Bash(diff:*)",
+      "Bash(sort:*)",
+      "Bash(uniq:*)",
+      "Bash(cut:*)",
+      "Bash(awk:*)",
+      "Bash(mkdir -p:*)",
+      "Bash(touch:*)",
+      "Bash(cp:*)",
       "Bash(mv:*)",
 
-      "Bash(git status:*)", "Bash(git diff:*)", "Bash(git log:*)",
-      "Bash(git show:*)", "Bash(git branch:*)", "Bash(git remote:*)",
-      "Bash(git rev-parse:*)", "Bash(git ls-files:*)", "Bash(git fetch:*)",
-      "Bash(git stash list)", "Bash(git add:*)", "Bash(git commit:*)",
-      "Bash(git checkout:*)", "Bash(git switch:*)",
-      "Bash(git merge --no-ff:*)", "Bash(git rebase --continue)",
-      "Bash(git rebase --abort)", "Bash(git pull:*)",
-      "Bash(git push origin HEAD)", "Bash(git push -u origin:*)",
-      "Bash(git worktree:*)", "Bash(git tag:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git branch:*)",
+      "Bash(git remote:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(git ls-files:*)",
+      "Bash(git fetch:*)",
+      "Bash(git stash list)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git checkout:*)",
+      "Bash(git switch:*)",
+      "Bash(git merge --no-ff:*)",
+      "Bash(git rebase --continue)",
+      "Bash(git rebase --abort)",
+      "Bash(git pull:*)",
+      "Bash(git push origin HEAD)",
+      "Bash(git push -u origin:*)",
+      "Bash(git worktree:*)",
+      "Bash(git tag:*)",
 
       "Bash(claude -w:*)",
       "Bash(claude --worktree:*)",
@@ -104,49 +137,96 @@
       "Bash(claude --version)",
       "Bash(claude --help:*)",
 
-      "Bash(gh pr view:*)", "Bash(gh pr list:*)", "Bash(gh pr diff:*)",
-      "Bash(gh pr checks:*)", "Bash(gh pr comment:*)", "Bash(gh pr create:*)",
-      "Bash(gh pr ready:*)", "Bash(gh pr edit:*)",
-      "Bash(gh issue view:*)", "Bash(gh issue list:*)",
-      "Bash(gh issue create:*)", "Bash(gh issue comment:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh pr list:*)",
+      "Bash(gh pr diff:*)",
+      "Bash(gh pr checks:*)",
+      "Bash(gh pr comment:*)",
+      "Bash(gh pr create:*)",
+      "Bash(gh pr ready:*)",
+      "Bash(gh pr edit:*)",
+      "Bash(gh issue view:*)",
+      "Bash(gh issue list:*)",
+      "Bash(gh issue create:*)",
+      "Bash(gh issue comment:*)",
       "Bash(gh issue edit:*)",
-      "Bash(gh run list:*)", "Bash(gh run view:*)", "Bash(gh run watch:*)",
-      "Bash(gh api:*)", "Bash(gh workflow:*)",
-      "Bash(gh release view:*)", "Bash(gh release list:*)",
+      "Bash(gh run list:*)",
+      "Bash(gh run view:*)",
+      "Bash(gh run watch:*)",
+      "Bash(gh api:*)",
+      "Bash(gh workflow:*)",
+      "Bash(gh release view:*)",
+      "Bash(gh release list:*)",
       "Bash(gh search:*)",
       "Bash(gh skill:*)",
 
-      "Bash(npm test:*)", "Bash(npm run *)", "Bash(npm ci)",
+      "Bash(npm test:*)",
+      "Bash(npm run *)",
+      "Bash(npm ci)",
       "Bash(npm install:*)",
-      "Bash(pnpm test:*)", "Bash(pnpm run *)", "Bash(pnpm install:*)",
-      "Bash(pnpm i)", "Bash(pnpm exec:*)",
-      "Bash(yarn test:*)", "Bash(yarn install)",
-      "Bash(bun test:*)", "Bash(bun run:*)", "Bash(bun install)",
-      "Bash(bunx:*)", "Bash(npx:*)", "Bash(pnpx:*)",
+      "Bash(pnpm test:*)",
+      "Bash(pnpm run *)",
+      "Bash(pnpm install:*)",
+      "Bash(pnpm i)",
+      "Bash(pnpm exec:*)",
+      "Bash(yarn test:*)",
+      "Bash(yarn install)",
+      "Bash(bun test:*)",
+      "Bash(bun run:*)",
+      "Bash(bun install)",
+      "Bash(bunx:*)",
+      "Bash(npx:*)",
+      "Bash(pnpx:*)",
 
-      "Bash(pytest:*)", "Bash(python -m pytest:*)", "Bash(python -m:*)",
-      "Bash(uv run:*)", "Bash(uv sync)", "Bash(uv pip:*)", "Bash(uvx:*)",
-      "Bash(poetry run:*)", "Bash(poetry install)",
-      "Bash(ruff:*)", "Bash(mypy:*)", "Bash(pyright:*)", "Bash(black:*)",
+      "Bash(pytest:*)",
+      "Bash(python -m pytest:*)",
+      "Bash(python -m:*)",
+      "Bash(uv run:*)",
+      "Bash(uv sync)",
+      "Bash(uv pip:*)",
+      "Bash(uvx:*)",
+      "Bash(poetry run:*)",
+      "Bash(poetry install)",
+      "Bash(ruff:*)",
+      "Bash(mypy:*)",
+      "Bash(pyright:*)",
+      "Bash(black:*)",
 
-      "Bash(cargo test:*)", "Bash(cargo build:*)", "Bash(cargo check:*)",
-      "Bash(cargo clippy:*)", "Bash(cargo fmt:*)", "Bash(cargo nextest:*)",
+      "Bash(cargo test:*)",
+      "Bash(cargo build:*)",
+      "Bash(cargo check:*)",
+      "Bash(cargo clippy:*)",
+      "Bash(cargo fmt:*)",
+      "Bash(cargo nextest:*)",
 
-      "Bash(go test:*)", "Bash(go build:*)", "Bash(go vet:*)",
-      "Bash(go mod:*)", "Bash(gofmt:*)", "Bash(golangci-lint:*)",
+      "Bash(go test:*)",
+      "Bash(go build:*)",
+      "Bash(go vet:*)",
+      "Bash(go mod:*)",
+      "Bash(gofmt:*)",
+      "Bash(golangci-lint:*)",
 
-      "Bash(make:*)", "Bash(just:*)", "Bash(task:*)",
+      "Bash(make:*)",
+      "Bash(just:*)",
+      "Bash(task:*)",
 
-      "Bash(docker build:*)", "Bash(docker compose up:*)",
-      "Bash(docker compose down)", "Bash(docker compose logs:*)",
-      "Bash(docker compose ps)", "Bash(docker ps)",
-      "Bash(docker logs:*)", "Bash(docker run --rm:*)", "Bash(docker buildx:*)",
+      "Bash(docker build:*)",
+      "Bash(docker compose up:*)",
+      "Bash(docker compose down)",
+      "Bash(docker compose logs:*)",
+      "Bash(docker compose ps)",
+      "Bash(docker ps)",
+      "Bash(docker logs:*)",
+      "Bash(docker run --rm:*)",
+      "Bash(docker buildx:*)",
 
       "Bash(semgrep:*)",
       "Bash(gitleaks:*)",
       "Bash(playwright:*)",
 
-      "Bash(curl -s:*)", "Bash(curl -I:*)", "Bash(http :*)",
+      "Bash(curl -s:*)",
+      "Bash(curl -I:*)",
+      "Bash(http :*)",
 
       "Bash(apify:*)",
       "Bash(playwright:*)",
@@ -187,21 +267,44 @@
     ],
 
     "deny": [
-      "Read(./.env)", "Read(./.env.*)", "Read(**/.env)", "Read(**/.env.*)",
-      "Read(**/*.pem)", "Read(**/*.key)", "Read(**/*_rsa)",
-      "Read(**/id_rsa*)", "Read(**/*credentials*)", "Read(**/secrets/**)",
-      "Read(**/*.tfvars)", "Read(**/known_hosts)",
-      "Read(**/.aws/credentials)", "Read(**/.ssh/**)", "Read(**/.gnupg/**)",
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)",
+      "Read(**/*_rsa)",
+      "Read(**/id_rsa*)",
+      "Read(**/*credentials*)",
+      "Read(**/secrets/**)",
+      "Read(**/*.tfvars)",
+      "Read(**/known_hosts)",
+      "Read(**/.aws/credentials)",
+      "Read(**/.ssh/**)",
+      "Read(**/.gnupg/**)",
 
-      "Write(./.env)", "Write(./.env.*)", "Write(**/.env)", "Write(**/.env.*)",
-      "Write(**/*.pem)", "Write(**/*.key)", "Write(**/id_rsa*)", "Write(**/*_rsa)",
-      "Write(**/*.tfvars)", "Write(**/*.tfstate)", "Write(**/*credentials*)",
-      "Write(**/.ssh/**)", "Write(**/.gnupg/**)",
+      "Write(./.env)",
+      "Write(./.env.*)",
+      "Write(**/.env)",
+      "Write(**/.env.*)",
+      "Write(**/*.pem)",
+      "Write(**/*.key)",
+      "Write(**/id_rsa*)",
+      "Write(**/*_rsa)",
+      "Write(**/*.tfvars)",
+      "Write(**/*.tfstate)",
+      "Write(**/*credentials*)",
+      "Write(**/.ssh/**)",
+      "Write(**/.gnupg/**)",
 
-      "Bash(rm -rf /)", "Bash(rm -rf ~)", "Bash(rm -rf ~/*)",
-      "Bash(rm -rf $HOME)", "Bash(rm -rf /*)",
+      "Bash(rm -rf /)",
+      "Bash(rm -rf ~)",
+      "Bash(rm -rf ~/*)",
+      "Bash(rm -rf $HOME)",
+      "Bash(rm -rf /*)",
       "Bash(sudo rm:*)",
-      "Bash(dd if=:*)", "Bash(mkfs:*)",
+      "Bash(dd if=:*)",
+      "Bash(mkfs:*)",
       "Bash(git push --force origin main)",
       "Bash(git push -f origin main)",
       "Bash(git push --force origin master)",
@@ -291,18 +394,42 @@
       {
         "matcher": "startup|resume",
         "hooks": [
-          { "type": "command", "command": "bash .claude/hooks/session-start.sh", "timeout": 30 },
-          { "type": "command", "command": "bash .claude/hooks/session-start-context.sh", "timeout": 15 }
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/session-start.sh",
+            "timeout": 30
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/session-start-context.sh",
+            "timeout": 15
+          }
         ]
       }
     ],
     "UserPromptSubmit": [
       {
         "hooks": [
-          { "type": "command", "command": "bash .claude/hooks/user-prompt-context.sh", "timeout": 10 },
-          { "type": "command", "command": "bash .claude/hooks/workflow-state.sh", "timeout": 10 },
-          { "type": "command", "command": "bash .claude/hooks/skill-router.sh", "timeout": 10 },
-          { "type": "command", "command": "bash .claude/hooks/session-heartbeat.sh", "timeout": 5 }
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/user-prompt-context.sh",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/workflow-state.sh",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/skill-router.sh",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/session-heartbeat.sh",
+            "timeout": 5
+          }
         ]
       }
     ],
@@ -310,21 +437,44 @@
       {
         "matcher": "Bash",
         "hooks": [
-          { "type": "command", "command": "bash .claude/hooks/pre-bash-guard.sh" },
-          { "type": "command", "command": "bash .claude/hooks/pre-spawn-cost-gate.sh", "timeout": 10 },
-          { "type": "command", "command": "bash .claude/hooks/pre-bash-dep-freshness.sh", "timeout": 15 }
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/pre-bash-guard.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/pre-spawn-cost-gate.sh",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/pre-bash-dep-freshness.sh",
+            "timeout": 15
+          }
         ]
       },
       {
-        "matcher": "Write|Edit",
+        "matcher": "Write|Edit|NotebookEdit",
         "hooks": [
-          { "type": "command", "command": "bash .claude/hooks/pre-write-secret-scan.sh" }
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/pre-edit-constitution-guard.sh",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/pre-write-secret-scan.sh"
+          }
         ]
       },
       {
         "matcher": "Agent|Task",
         "hooks": [
-          { "type": "command", "command": "bash .claude/hooks/subagent-context.sh", "timeout": 10 }
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/subagent-context.sh",
+            "timeout": 10
+          }
         ]
       }
     ],
@@ -332,16 +482,32 @@
       {
         "matcher": "Write|Edit",
         "hooks": [
-          { "type": "command", "command": "bash .claude/hooks/post-write-format.sh" },
-          { "type": "command", "command": "bash .claude/hooks/instinct-observer.sh" },
-          { "type": "command", "command": "bash .claude/hooks/post-write-roadmap.sh", "timeout": 5 }
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/post-write-format.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/instinct-observer.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/post-write-roadmap.sh",
+            "timeout": 5
+          }
         ]
       },
       {
         "matcher": "Bash",
         "hooks": [
-          { "type": "command", "command": "bash .claude/hooks/post-bash-log.sh" },
-          { "type": "command", "command": "bash .claude/hooks/instinct-observer.sh" }
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/post-bash-log.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/instinct-observer.sh"
+          }
         ]
       }
     ],
@@ -349,15 +515,26 @@
       {
         "hooks": [
           { "type": "command", "command": "bash .claude/hooks/stop-verify.sh" },
-          { "type": "command", "command": "bash .claude/hooks/auto-dream-check.sh", "timeout": 30 },
-          { "type": "command", "command": "bash .claude/hooks/task-signature-detector.sh", "timeout": 10 }
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/auto-dream-check.sh",
+            "timeout": 30
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/task-signature-detector.sh",
+            "timeout": 10
+          }
         ]
       }
     ],
     "SubagentStop": [
       {
         "hooks": [
-          { "type": "command", "command": "bash .claude/hooks/subagent-stop.sh" }
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/subagent-stop.sh"
+          }
         ]
       }
     ],
@@ -365,7 +542,11 @@
       {
         "matcher": "auto|manual",
         "hooks": [
-          { "type": "command", "command": "bash .claude/hooks/pre-compact-witness.sh", "timeout": 60 }
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/pre-compact-witness.sh",
+            "timeout": 60
+          }
         ]
       }
     ],
