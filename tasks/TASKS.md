@@ -210,31 +210,31 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
       accept: test -f .github/workflows/silent-failure-audit.yml && grep -q 'lint-silent-failures.sh' .github/workflows/silent-failure-audit.yml
       owner: implementer
 
-- [ ] T-022 | spec:001 | phase:3 | priority: P1-spec | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-020 | parallel: no | est: 5m
+- [x] T-022 | spec:001 | phase:3 | priority: P1-spec | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-020 | parallel: no | est: 5m | completed: 2026-05-29
       summary: One-time sweep — annotate every existing intentional silent-error pattern in .claude/scripts and .claude/hooks with # JUSTIFIED: <reason> within 3 lines; ensure lint-silent-failures.sh now emits unjustified == 0
       files: .claude/scripts, .claude/hooks
       accept: bash .claude/scripts/lint-silent-failures.sh && jq -e '.unjustified == 0' .claude/state/silent-failure-audit.json
       owner: implementer
 
-- [ ] T-023 | spec:001 | phase:3 | priority: P1-spec | created: 2026-05-29 | last_touched: 2026-05-29 | parallel: yes | est: 4m
+- [x] T-023 | spec:001 | phase:3 | priority: P1-spec | created: 2026-05-29 | last_touched: 2026-05-29 | parallel: yes | est: 4m | completed: 2026-05-29
       summary: Write test for gc-tasks/gc-verify/gc-logs — seed tasks/TASKS.md >2000 lines + old verify/ dirs >30d + .log files >50MB, assert each script moves/rotates correctly and is idempotent
       files: .claude/scripts/test/gc-suite.sh
       accept: bash -n .claude/scripts/test/gc-suite.sh && grep -cE 'gc-tasks|gc-verify|gc-logs' .claude/scripts/test/gc-suite.sh | awk '{exit ($1 < 3)}'
       owner: implementer
 
-- [ ] T-024 | spec:001 | phase:3 | priority: P1-spec | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-023 | parallel: no | est: 5m
+- [x] T-024 | spec:001 | phase:3 | priority: P1-spec | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-023 | parallel: no | est: 5m | completed: 2026-05-29
       summary: Implement gc-tasks.sh + gc-verify.sh + gc-logs.sh — task archival >2000 lines moving [x]/[s] >30d into tasks/archive/TASKS-YYYY-MM.md; verify/ dirs >30d moved to verify/archive then pruned after 60d; .log files >50MB rotated to .log.1..5 with truncation; all idempotent
       files: .claude/scripts/gc-tasks.sh, .claude/scripts/gc-verify.sh, .claude/scripts/gc-logs.sh
       accept: test -x .claude/scripts/gc-tasks.sh && test -x .claude/scripts/gc-verify.sh && test -x .claude/scripts/gc-logs.sh && bash .claude/scripts/test/gc-suite.sh
       owner: implementer
 
-- [ ] T-025 | spec:001 | phase:3 | priority: P1-spec | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-024 | parallel: yes | est: 3m
+- [x] T-025 | spec:001 | phase:3 | priority: P1-spec | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-024 | parallel: yes | est: 3m | completed: 2026-05-29
       summary: Wire gc-nightly.yml routine — schedule nightly, chain gc-tasks/gc-verify/gc-logs (or chain into existing dream-cron.yml)
       files: .claude/routines/gc-nightly.yml
       accept: test -f .claude/routines/gc-nightly.yml && grep -qE 'gc-tasks|gc-verify|gc-logs' .claude/routines/gc-nightly.yml
       owner: implementer
 
-- [ ] T-026 | spec:001 | phase:3 | priority: P1-spec | created: 2026-05-29 | last*touched: 2026-05-29 | parallel: no | est: 4m
+- [x] T-026 | spec:001 | phase:3 | priority: P1-spec | created: 2026-05-29 | last*touched: 2026-05-29 | parallel: no | est: 4m | completed: 2026-05-29
       summary: Modify pre-bash-dep-freshness.sh to fail CLOSED (emit permissionDecision ask) when api.osv.dev or registry returns network error (non-2xx, DNS failure, timeout); CLAUDE_CODE_AUTO_MODE=1 contexts accept ask after 5s classifier delay; add inline test that exercises a simulated network failure
       files: .claude/hooks/pre-bash-dep-freshness.sh, .claude/scripts/test/pre-bash-dep-freshness.sh
       accept: bash -n .claude/hooks/pre-bash-dep-freshness.sh && grep -qE 'permissionDecision.\_ask|permissionDecision":[[:space:]]*"ask' .claude/hooks/pre-bash-dep-freshness.sh && bash .claude/scripts/test/pre-bash-dep-freshness.sh

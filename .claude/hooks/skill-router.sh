@@ -9,6 +9,7 @@
 set -uo pipefail
 
 input=$(cat)
+# JUSTIFIED: jq stderr suppressed — malformed hook stdin yields empty prompt, handled by the [ -z ] guard below
 prompt=$(printf '%s' "$input" | jq -r '.prompt // .user_prompt // ""' 2>/dev/null | tr '[:upper:]' '[:lower:]')
 
 [ -z "$prompt" ] && exit 0

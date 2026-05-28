@@ -25,6 +25,7 @@ if [ ! -x "$DREAM_SCRIPT" ]; then
   warn "dream-trigger.sh missing or not executable at $DREAM_SCRIPT — fix before relying on the cron"
 fi
 
+# JUSTIFIED: CLI error output discarded — the exit status still routes to ok/warn below, so a failure is surfaced to the operator, not hidden
 claude -p --bare "Create a scheduled task named 'dream-cron' with cron '0 3 * * *' timezone 'local' that runs: bash $DREAM_SCRIPT. Use the prompt from .claude/routines/dream-cron.yml." 2>/dev/null \
   && ok "dream-cron registered" \
   || warn "dream-cron registration may have failed — verify via 'claude' then '/tasks list'"
@@ -41,6 +42,7 @@ fi
 # The local script itself checks and exits silently if Cloud ran first.
 
 if [ "${INSTALL_LOCAL_BUILD_BACKSTOP:-yes}" = "yes" ]; then
+  # JUSTIFIED: CLI error output discarded — the exit status still routes to ok/warn below, so a failure is surfaced to the operator, not hidden
   claude -p --bare "Create a scheduled task named 'overnight-build-backstop' with cron '30 23 * * *' timezone 'local' that runs: bash $LOCAL_BUILD_SCRIPT. The script self-checks if Cloud Routine already ran and exits silently if so." 2>/dev/null \
     && ok "overnight-build-backstop registered (fires 23:30 only if Cloud routine missed)" \
     || warn "backstop registration may have failed — verify via 'claude' then '/tasks list'"
@@ -50,6 +52,7 @@ fi
 
 step "Installing cost-report (daily aggregator)"
 COST_SCRIPT="$ROOT/.claude/scripts/cost-report.sh"
+# JUSTIFIED: CLI error output discarded — the exit status still routes to ok/warn below, so a failure is surfaced to the operator, not hidden
 claude -p --bare "Create a scheduled task named 'cost-report' with cron '0 6 * * *' timezone 'local' that runs: bash $COST_SCRIPT month. Writes to .claude/hooks/.log/cost-summary.json. Read by pre-spawn-cost-gate hook." 2>/dev/null \
   && ok "cost-report registered" \
   || warn "cost-report registration may have failed"

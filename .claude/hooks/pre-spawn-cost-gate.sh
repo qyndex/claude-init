@@ -10,6 +10,7 @@
 set -uo pipefail
 
 input=$(cat)
+# JUSTIFIED: jq error muted — malformed hook stdin yields empty tool_name, which falls through all gates to the default exit 0 (allow)
 tool_name=$(printf '%s' "$input" | jq -r '.tool_name // ""' 2>/dev/null)
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
@@ -19,6 +20,7 @@ SUMMARY_FILE="$ROOT/.claude/hooks/.log/cost-summary.json"
 # Fires on Agent or Task tool calls. We don't BLOCK on size — large reviews are
 # real — but emit a warning that bubbles into the transcript.
 if [ "$tool_name" = "Agent" ] || [ "$tool_name" = "Task" ]; then
+  # JUSTIFIED: jq error muted — absent prompt yields empty, sizing to 0 bytes which passes under every threshold (no false block)
   prompt=$(printf '%s' "$input" | jq -r '.tool_input.prompt // ""' 2>/dev/null)
   prompt_bytes=$(printf '%s' "$prompt" | wc -c | tr -d ' ')
 
@@ -43,6 +45,7 @@ EOF
     # Detect inline file contents heuristically: contiguous lines look like
     # source code or markdown headers with consistent indentation.
     inline_hint=""
+    # JUSTIFIED: grep errors muted on both arms — these are purely a heuristic hint enrichment; a no-match (exit 1) simply leaves inline_hint empty and the warning still fires
     if printf '%s' "$prompt" | grep -qE '^[a-zA-Z0-9_/.-]+\.(py|ts|tsx|js|jsx|md|go|rs|java|kt|sql)$' 2>/dev/null \
       || printf '%s' "$prompt" | grep -qE '^(```|---$)' 2>/dev/null; then
       inline_hint=" Detected probable inlined file content — replace with file paths."
@@ -71,6 +74,7 @@ esac
 
 # Round 5 D10: synchronous refresh (was background+disown — race condition).
 # We need a current summary before deciding.
+# JUSTIFIED: best-effort cost-summary refresh — if the report script fails the [ ! -f "$SUMMARY_FILE" ] check below catches the stale/missing summary and degrades to an "ask" decision rather than crashing the gate
 bash "$ROOT/.claude/scripts/cost-report.sh" month >/dev/null 2>&1 || true
 
 if [ ! -f "$SUMMARY_FILE" ]; then
@@ -87,8 +91,11 @@ EOF
   exit 0
 fi
 
+# JUSTIFIED: jq error muted — a corrupt summary yields empty pct; the `${pct:-0}` defaults below treat that as 0% used, the fail-open spend posture (gate only blocks at proven ≥100%)
 pct=$(jq -r .pct_used "$SUMMARY_FILE" 2>/dev/null | cut -d. -f1)
+# JUSTIFIED: jq error muted — total_usd is only interpolated into the human reason string; an empty value degrades the message, not the decision
 total=$(jq -r .total_usd "$SUMMARY_FILE" 2>/dev/null)
+# JUSTIFIED: jq error muted — cap is only interpolated into the human reason string; an empty value degrades the message, not the decision
 cap=$(jq -r .monthly_cap_usd "$SUMMARY_FILE" 2>/dev/null)
 
 if [ "${pct:-0}" -ge 100 ]; then

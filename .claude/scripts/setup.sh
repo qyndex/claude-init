@@ -25,6 +25,7 @@ ok "core tools detected"
 step "Brownfield collision guard (Round 14)"
 # If this repo already has a NON-factory CLAUDE.md, greenfield setup would clobber/half-merge it.
 # Redirect to the adoption flow instead. Override with FORCE_GREENFIELD=1.
+# JUSTIFIED: the muted grep just classifies the existing CLAUDE.md; a non-match (factory marker absent) is exactly the brownfield case we want to catch
 if [ -f .claude/CLAUDE.md ] && ! grep -q "Karpathy's Four Principles" .claude/CLAUDE.md 2>/dev/null && [ "${FORCE_GREENFIELD:-0}" != "1" ]; then
   warn "Detected a non-factory .claude/CLAUDE.md — this looks like a BROWNFIELD repo."
   note "Don't run greenfield setup over it. Reconcile first, then adopt:"
@@ -44,6 +45,7 @@ else
 fi
 
 step "Making scripts and hooks executable"
+# JUSTIFIED: the redirect and fallback tolerate a glob that matches nothing (e.g. no .claude/skills/*.sh in a fresh install); chmod of the dirs that DO exist still runs
 chmod +x .claude/hooks/*.sh .claude/statuslines/*.sh .claude/scripts/*.sh .claude/skills/*.sh 2>/dev/null || true
 ok "scripts chmod +x"
 
@@ -59,6 +61,7 @@ ok "runtime directories ready"
 step "Creating .gitignore entries"
 ensure_ignore() {
   local p="$1"
+  # JUSTIFIED: the muted grep tests whether the ignore entry already exists; a non-match (or absent .gitignore) is the trigger to append it, which is intended
   if [ ! -f .gitignore ] || ! grep -qxF "$p" .gitignore 2>/dev/null; then
     printf '%s\n' "$p" >> .gitignore
     ok "added '$p' to .gitignore"

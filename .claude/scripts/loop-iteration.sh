@@ -48,6 +48,7 @@ if [ "$branch" = "main" ] || [ "$branch" = "master" ]; then
 fi
 
 # Pick next unblocked task
+# JUSTIFIED: the redirect drops grep stderr when TASKS.md is absent and the fallback yields empty on no-match (grep exit 1) — an empty next_task is handled by the "no pending tasks" stop below
 next_task=$(grep -m1 '^- \[ \]' tasks/TASKS.md 2>/dev/null | head -1 || true)
 if [ -z "$next_task" ]; then
   echo "$ts STOP no pending tasks" >> "$iter_log"

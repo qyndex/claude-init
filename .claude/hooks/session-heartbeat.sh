@@ -24,8 +24,11 @@ session_id="${CLAUDE_SESSION_ID:-pid-$PPID}"
 prev_turn=0
 prev_started_at=""
 if [ -f "$state_file" ]; then
+  # JUSTIFIED: jq error muted + fallback — a partially-written heartbeat file yields 0, correctly restarting the turn counter rather than crashing the per-turn hook
   prev_turn=$(jq -r '.turn_count // 0' "$state_file" 2>/dev/null || echo 0)
+  # JUSTIFIED: jq error muted + empty fallback — a corrupt file yields empty start time, recomputed fresh below; never fatal to the hook
   prev_started_at=$(jq -r '.started_at // ""' "$state_file" 2>/dev/null || echo "")
+  # JUSTIFIED: jq error muted + empty fallback — empty session id forces the "new session" branch below, the safe default on a corrupt file
   prev_session=$(jq -r '.session_id // ""' "$state_file" 2>/dev/null || echo "")
   # If session_id changed, treat as new session
   if [ "$prev_session" != "$session_id" ]; then
@@ -42,7 +45,9 @@ branch="unknown"
 cwd_val="$(pwd)"
 uncommitted=0
 if git rev-parse --git-dir >/dev/null 2>&1; then
+  # JUSTIFIED: git error muted — a detached HEAD has no symbolic ref; "detached" is the intended recorded value
   branch=$(git symbolic-ref --short HEAD 2>/dev/null || echo "detached")
+  # JUSTIFIED: git error muted — inside the rev-parse success branch; any residual noise just yields a 0 uncommitted count for the heartbeat
   uncommitted=$(git status --porcelain 2>/dev/null | wc -l | tr -d ' ')
 fi
 
@@ -65,6 +70,7 @@ jq -nc \
     cwd: $cwd,
     turn_count: $turn_count,
     uncommitted: $uncommitted
+  # JUSTIFIED: jq + mv errors muted — the heartbeat is a per-turn side effect; a transient write failure must never block the user's prompt, and the next turn simply re-writes it
   }' > "$tmp" 2>/dev/null && mv "$tmp" "$state_file" 2>/dev/null
 
 # This hook does not emit additionalContext — it's purely a side effect.

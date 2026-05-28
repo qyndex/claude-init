@@ -6,7 +6,9 @@ set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$ROOT"
 
+# JUSTIFIED: detect-stacks failure/absence is non-fatal — the fallback yields an empty stack set and typecheck then finds nothing to check
 stacks_json=$(bash .claude/scripts/detect-stacks.sh 2>/dev/null || echo '{"stacks":[]}')
+# JUSTIFIED: the redirect mutes jq when stacks_json lacks a .stacks key; an empty list is the correct "no stacks detected" outcome
 stacks=$(echo "$stacks_json" | jq -r '.stacks[]' 2>/dev/null)
 
 if [ -z "$stacks" ]; then

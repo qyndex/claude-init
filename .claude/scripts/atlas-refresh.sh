@@ -15,11 +15,13 @@ ATLAS=".claude/memory/atlas"
 mkdir -p "$ATLAS"
 
 now_iso=$(date -Iseconds)
+# JUSTIFIED: git rev-parse stderr suppressed — a non-git dir falls through to the "no-git" literal
 git_sha=$(git rev-parse HEAD 2>/dev/null || echo "no-git")
 
 # ─── Detect languages ───────────────────────────────────────────────────
 langs=()
 [ -f package.json ] && {
+  # JUSTIFIED: find stderr suppressed — permission-denied subtrees are skipped; grep -q decides presence
   if find . -maxdepth 3 -name '*.ts' -o -name 'tsconfig.json' 2>/dev/null | grep -q .; then
     langs+=("typescript")
   else
@@ -35,6 +37,7 @@ langs=()
 # ─── Detect web framework ───────────────────────────────────────────────
 web_fw="unknown"
 if [ -f next.config.js ] || [ -f next.config.mjs ] || [ -f next.config.ts ]; then
+  # JUSTIFIED: find stderr suppressed — permission-denied subtrees are skipped; grep -q decides App-Router presence
   if [ -d app ] || find . -maxdepth 3 -name 'app' -type d -not -path '*/node_modules/*' -print -quit 2>/dev/null | grep -q .; then
     web_fw="Next.js (App Router)"
   else
@@ -57,25 +60,30 @@ fi
 # ─── Detect API framework ───────────────────────────────────────────────
 api_fw="unknown"
 if [ -f package.json ]; then
+  # JUSTIFIED: grep stderr suppressed across this block — a missing dependency name is a non-match, the documented "framework not present" case
   if grep -q '"@trpc/server"' package.json 2>/dev/null; then api_fw="tRPC"
   elif grep -q '"@nestjs/core"' package.json 2>/dev/null; then api_fw="NestJS"
   elif grep -q '"fastify"' package.json 2>/dev/null; then api_fw="Fastify"
+  # JUSTIFIED: grep error output discarded — an absent dependency is a non-match, the documented "framework not present" case
   elif grep -q '"express"' package.json 2>/dev/null; then api_fw="Express"
   elif grep -q '"hono"' package.json 2>/dev/null; then api_fw="Hono"
   fi
 fi
 if [ -f pyproject.toml ]; then
+  # JUSTIFIED: grep stderr suppressed — a missing dependency name is a non-match, the documented "framework not present" case
   if grep -q 'fastapi' pyproject.toml 2>/dev/null; then api_fw="FastAPI"
   elif grep -q '"django"' pyproject.toml 2>/dev/null; then api_fw="Django"
   elif grep -q '"flask"' pyproject.toml 2>/dev/null; then api_fw="Flask"
   fi
 fi
 if [ -f go.mod ]; then
+  # JUSTIFIED: grep stderr suppressed — a missing require line is a non-match, the documented "framework not present" case
   if grep -q 'gin-gonic/gin' go.mod 2>/dev/null; then api_fw="Gin"
   elif grep -q 'gofiber/fiber' go.mod 2>/dev/null; then api_fw="Fiber"
   fi
 fi
 if [ -f Cargo.toml ]; then
+  # JUSTIFIED: grep stderr suppressed — a missing crate dependency is a non-match, the documented "framework not present" case
   if grep -q '^axum' Cargo.toml 2>/dev/null; then api_fw="Axum"
   elif grep -q '^actix-web' Cargo.toml 2>/dev/null; then api_fw="Actix"
   fi
@@ -85,7 +93,9 @@ fi
 orm="none"
 [ -f prisma/schema.prisma ] && orm="Prisma"
 [ -f drizzle.config.ts ] || [ -f drizzle.config.mjs ] && orm="Drizzle"
+# JUSTIFIED: grep stderr suppressed — silences "No such file" when package.json is absent; a non-match leaves orm unchanged
 grep -q '^typeorm' package.json 2>/dev/null && orm="TypeORM"
+# JUSTIFIED: grep stderr suppressed — silences "No such file" when pyproject.toml/requirements.txt are absent; non-match leaves orm unchanged
 grep -q 'sqlalchemy' pyproject.toml requirements.txt 2>/dev/null && orm="SQLAlchemy"
 [ -f alembic.ini ] && orm="Alembic"
 
@@ -102,6 +112,7 @@ tests=()
 [ -f jest.config.ts ] || [ -f jest.config.js ] && tests+=("jest")
 [ -f playwright.config.ts ] || [ -f playwright.config.js ] && tests+=("playwright")
 [ -f cypress.config.ts ] && tests+=("cypress")
+# JUSTIFIED: grep stderr suppressed — silences "No such file" when pyproject.toml is absent; non-match means pytest not configured
 [ -f pytest.ini ] || grep -q '^\[tool.pytest' pyproject.toml 2>/dev/null && tests+=("pytest")
 [ -f go.mod ] && tests+=("go test")
 [ -f Cargo.toml ] && tests+=("cargo test")
@@ -154,6 +165,7 @@ tests=()
   echo
   echo "**Last updated**: $now_iso"
   echo
+  # JUSTIFIED: ls stderr suppressed — an empty repo with no subdirectories yields no output and the loop simply skips
   for d in $(ls -d */ 2>/dev/null | head -20); do
     d_clean="${d%/}"
     # Skip noise
@@ -188,6 +200,7 @@ tests=()
       pivots) desc="strategic pivot manifests (Round 7 B)" ;;
       verify) desc="verification artifacts (screenshots, reports)" ;;
     esac
+    # JUSTIFIED: find stderr suppressed — permission-denied entries are excluded from the count, which is a display-only file tally
     file_count=$(find "$d_clean" -type f 2>/dev/null | wc -l | tr -d ' ')
     echo "- **$d_clean/** ($file_count files) — $desc"
   done
@@ -208,6 +221,7 @@ tests=()
   for f in prisma/schema.prisma drizzle.config.ts alembic.ini; do
     [ -f "$f" ] && echo "- \`$f\`"
   done
+  # JUSTIFIED: find stderr suppressed — permission-denied subtrees are skipped; an empty result means no migrations dir, handled by the -n test below
   migrations_dir=$(find . -maxdepth 3 -name 'migrations' -type d -not -path '*/node_modules/*' 2>/dev/null | head -1)
   [ -n "$migrations_dir" ] && echo "- Migrations: \`$migrations_dir\`"
   echo

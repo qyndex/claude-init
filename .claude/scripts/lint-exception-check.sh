@@ -16,6 +16,7 @@ HEAD="${2:-HEAD}"
 patterns='eslint-disable|@ts-ignore|@ts-expect-error|@ts-nocheck|# noqa|# type: ignore|# nosec|# pragma: no cover|#\[allow\(|//[[:space:]]*nolint|//nolint:|//gocover:ignore|LINT-DISABLE-OK'
 
 # Files changed in the diff
+# JUSTIFIED: git stderr suppressed — an unresolvable BASE/HEAD ref yields no files; the [ -z "$files" ] guard below treats that as "nothing changed" and exits 0
 files=$(git diff --name-only "$BASE...$HEAD" -- '*.ts' '*.tsx' '*.js' '*.jsx' '*.py' '*.rs' '*.go' '*.java' 2>/dev/null)
 
 if [ -z "$files" ]; then
@@ -24,6 +25,7 @@ if [ -z "$files" ]; then
 fi
 
 # Find new disable lines (lines starting with + that match patterns)
+# JUSTIFIED: git stderr + grep non-match suppressed — no added disable lines makes the grep exit 1; empty $new_disables is the clean case, handled by [ -z "$new_disables" ] below
 new_disables=$(git diff "$BASE...$HEAD" -- '*.ts' '*.tsx' '*.js' '*.jsx' '*.py' '*.rs' '*.go' '*.java' 2>/dev/null \
   | grep -E "^\+[^+]" \
   | grep -E "$patterns" || true)

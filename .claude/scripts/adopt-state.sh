@@ -34,12 +34,14 @@ phase_name() { case "$1" in
   3) echo "import" ;; 4) echo "baseline" ;; 5) echo "backlog" ;; 6) echo "handoff" ;;
   *) echo "unknown" ;; esac; }
 
+# JUSTIFIED: shift with no positional args errors on some shells; the redirect and fallback keep the script running when invoked with only a subcommand and no further args
 cmd="${1:-show}"; shift 2>/dev/null || true
 
 case "$cmd" in
   init)
     mkdir -p "$STATE_DIR"
     repo="${1:-$ROOT}"
+    # JUSTIFIED: the redirect drops jq stderr on a malformed STATE.json — a non-"complete" result (including empty) correctly treats an unreadable state as an in-progress adoption and aborts
     if [ -f "$STATE" ] && [ "$(jq -r '.status' "$STATE" 2>/dev/null)" != "complete" ]; then
       echo "adopt-state: an adoption is already in progress (phase $(jq -r .phase "$STATE")). 'show' to inspect."; exit 1
     fi
@@ -48,6 +50,7 @@ case "$cmd" in
     echo "✓ adoption initialized for $repo (phase 0)"
     ;;
   show)    [ -f "$STATE" ] && cat "$STATE" || { echo "no adoption in progress (.claude/state/adopt/STATE.json absent)"; exit 1; } ;;
+  # JUSTIFIED: the fallback prints phase 0 when no state file exists — the documented sentinel for "no adoption started", so callers parsing the phase number get a valid value
   phase)   [ -f "$STATE" ] && jq -r '.phase' "$STATE" || echo 0 ;;
   status)  [ -f "$STATE" ] && jq -r '.status' "$STATE" || echo "none" ;;
   set)

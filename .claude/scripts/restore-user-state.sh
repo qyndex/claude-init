@@ -38,6 +38,7 @@ if [ ! -f "$archive" ]; then
   echo "restore: archive not found: $archive" >&2
   echo
   echo "Available archives:"
+  # JUSTIFIED: ls stderr suppressed — the glob may match nothing when no mirror exists; "(none)" is the intended user-facing fallback
   ls -1 .claude/.user-state-mirror/*.tar.gz 2>/dev/null | sed 's|^|  |' || echo "  (none)"
   exit 1
 fi
@@ -59,6 +60,7 @@ else
   tmp=$(mktemp -d)
   tar -C "$tmp" -xzf "$archive"
   if [ -d "$tmp/$src_slug" ]; then
+    # JUSTIFIED: mv stderr suppressed — the glob warns on a dotfile-only extract; the [ -d ] guard already confirmed the source, and the final "restored to $dst" line is the user's confirmation
     mv "$tmp/$src_slug"/* "$dst/" 2>/dev/null
   fi
   rm -rf "$tmp"
@@ -67,12 +69,14 @@ fi
 # Restore todos if present
 if [ -f "$todos_archive" ]; then
   mkdir -p "$HOME/.claude/tasks"
+  # JUSTIFIED: best-effort todos restore — a corrupt/partial todos archive must not abort the primary session-state restore that already succeeded above
   tar -C "$HOME/.claude/tasks" -xzf "$todos_archive" 2>/dev/null || true
   echo "  ✓ restored TodoWrite items"
 fi
 
 # Manifest age check
 if [ -f "$manifest" ]; then
+  # JUSTIFIED: the redirect drops jq stderr on a malformed manifest — an empty mirrored_at just prints a blank age line, which is purely informational
   mirrored_at=$(jq -r .mirrored_at "$manifest" 2>/dev/null)
   echo "  mirrored: $mirrored_at"
 fi

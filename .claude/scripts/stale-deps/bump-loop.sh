@@ -43,7 +43,9 @@ while IFS= read -r entry; do
   echo "→ Bumping $pkg: $from → $to ($kind) has_vuln=$has_vuln"
 
   # Create worktree
+  # JUSTIFIED: a fetch failure (offline or no remote) is non-fatal — the worktree add below proceeds from whatever ref is local
   git fetch origin main >/dev/null 2>&1 || true
+  # JUSTIFIED: first form creates a fresh branch worktree; when that branch already exists it errors and the second form reuses it, so muting the first attempt's noise is deliberate
   git worktree add -b "$branch" "$wt" origin/main 2>/dev/null || git worktree add "$wt" "$branch" 2>/dev/null
 
   pushd "$wt" >/dev/null || { escalated=$((escalated + 1)); continue; }
@@ -76,7 +78,9 @@ while IFS= read -r entry; do
   if [ "$bump_ok" != "1" ]; then
     echo "  ✗ bump failed; escalating"
     popd >/dev/null
+    # JUSTIFIED: best-effort cleanup of the failed worktree; if it was never created the remove is a harmless no-op
     git worktree remove --force "$wt" 2>/dev/null
+    # JUSTIFIED: escalation issue is advisory — a gh outage or missing auth must not abort the loop over remaining candidates; the counter still records the escalation
     gh issue create --title "auto-bump escalated: $pkg $from → $to" \
       --body "Bump command failed in worktree. Stack=$STACK kind=$kind vulns=$osv_ids" \
       --label "auto-bump,auto-bump:escalated" >/dev/null 2>&1 || true
@@ -101,6 +105,7 @@ Confidence:    high
 Scope-risk:    localized" >/dev/null 2>&1
 
     git push -u origin "$branch" >/dev/null 2>&1
+    # JUSTIFIED: the branch is already pushed; a PR-create failure (e.g. PR already open) shouldn't abort the loop, and shipped is still counted
     gh pr create --title "chore(deps): bump $pkg $from → $to" \
       --body "Auto-bump from daily-stale-deps.yml. Kind: $kind. $([ "$has_vuln" = "true" ] && echo "Fixes vulns: $osv_ids")" \
       --label "auto-bump,$label" >/dev/null 2>&1 || true
@@ -138,6 +143,7 @@ Scope-risk:    localized
 Not-tested:    edge cases beyond the bump-affected paths" >/dev/null 2>&1
 
       git push -u origin "$branch" >/dev/null 2>&1
+      # JUSTIFIED: branch already pushed; a PR-create failure on the mediated path is non-fatal and the mediated counter is still recorded
       gh pr create --title "chore(deps)!: bump $pkg $from → $to with code-fix" \
         --body "Auto-bump from daily-stale-deps.yml. Required claude mediation to resolve breaking changes." \
         --label "auto-bump,auto-bump:$kind,auto-bump:mediated" >/dev/null 2>&1 || true
@@ -150,7 +156,9 @@ Not-tested:    edge cases beyond the bump-affected paths" >/dev/null 2>&1
   # Escalate
   echo "  ✗ unresolved; escalating"
   popd >/dev/null
+  # JUSTIFIED: best-effort teardown of the unresolved worktree; a no-op if it is already gone
   git worktree remove --force "$wt" 2>/dev/null
+  # JUSTIFIED: the escalation issue is advisory — a gh failure must not abort processing of later candidates, and the escalated counter still records it
   gh issue create --title "auto-bump escalated: $pkg $from → $to (mediation failed)" \
     --body "Stack=$STACK kind=$kind vulns=$osv_ids — claude mediation could not resolve. Human review needed." \
     --label "auto-bump,auto-bump:escalated" >/dev/null 2>&1 || true

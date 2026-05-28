@@ -30,6 +30,7 @@ if [ "$CLEAN" = "1" ]; then
   echo "  ✓ removed .claude/memory/.cache/current-session.json"
   echo
   echo "  WIP commits on current branch (review before discarding):"
+  # JUSTIFIED: git log — 2>/dev/null hides errors on a repo with no commits yet; no WIP commits just prints nothing under the heading
   git log --grep='^WIP:' --oneline -10 2>/dev/null | sed 's/^/    /'
   echo
   echo "  To discard WIP commits: git reset --keep HEAD~<N>"
@@ -48,10 +49,15 @@ echo
 
 # ─── Heartbeat check: was the last session killed? ──────────────────────
 if [ -f .claude/memory/.cache/current-session.json ]; then
+  # JUSTIFIED: reading fields from the heartbeat JSON guarded by the enclosing [ -f ]; 2>/dev/null guards a partially-written file from a killed session — a missing field just prints blank in the triage summary
   last_session=$(jq -r '.session_id' .claude/memory/.cache/current-session.json 2>/dev/null)
+  # JUSTIFIED: same heartbeat read — tolerant of a truncated file; blank field is acceptable in the human-facing summary
   last_heartbeat=$(jq -r '.last_heartbeat_at' .claude/memory/.cache/current-session.json 2>/dev/null)
+  # JUSTIFIED: same heartbeat read — tolerant of a truncated file written by an abruptly-killed session
   turn_count=$(jq -r '.turn_count' .claude/memory/.cache/current-session.json 2>/dev/null)
+  # JUSTIFIED: same heartbeat read — tolerant of a truncated file; the value is only used in informational echoes
   uncommitted=$(jq -r '.uncommitted' .claude/memory/.cache/current-session.json 2>/dev/null)
+  # JUSTIFIED: same heartbeat read — tolerant of a truncated file; blank branch is acceptable in the summary
   branch=$(jq -r '.branch' .claude/memory/.cache/current-session.json 2>/dev/null)
 
   echo "⚠ STALE HEARTBEAT — previous session was killed (no graceful exit)"
@@ -71,21 +77,28 @@ fi
 echo "→ Recent sessions for this project"
 if [ -d "$sessions_dir" ]; then
   count=0
+  # JUSTIFIED: ls glob — 2>/dev/null hides "no match" when the session dir has no .jsonl files; the loop then simply does not iterate
   for jsonl in $(ls -t "$sessions_dir"/*.jsonl 2>/dev/null | head -5); do
     sid=$(basename "$jsonl" .jsonl)
     [ -n "$TARGET" ] && [ "$sid" != "$TARGET" ] && continue
 
+    # JUSTIFIED: BSD/GNU stat portability — BSD `-f` form tried first, GNU `-c` form is the 2>/dev/null fallback; one always succeeds for an existing file
     mtime=$(stat -f '%Sm' -t '%Y-%m-%d %H:%M' "$jsonl" 2>/dev/null || stat -c '%y' "$jsonl" 2>/dev/null | cut -c-16)
+    # JUSTIFIED: BSD/GNU stat portability — BSD `-f %z` tried first, GNU `-c %s` is the fallback for the file size
     size=$(stat -f '%z' "$jsonl" 2>/dev/null || stat -c '%s' "$jsonl" 2>/dev/null)
+    # JUSTIFIED: wc on a file from the `ls -t` glob that is guaranteed to exist; 2>/dev/null guards a file removed mid-loop, yielding an empty turn count
     turns=$(wc -l < "$jsonl" 2>/dev/null | tr -d ' ')
 
     # Pull last user message + last assistant action (heuristic from JSONL)
+    # JUSTIFIED: best-effort heuristic over JSONL — 2>/dev/null hides jq parse errors on non-uniform session lines; an empty result just omits the "last Q" hint
     last_user=$(jq -r 'select(.role == "user") | .content' "$jsonl" 2>/dev/null | tail -1 | head -c 80)
+    # JUSTIFIED: best-effort heuristic — same as above; missing tool_name just omits the "last tool" hint
     last_tool=$(jq -r 'select(.tool_name) | .tool_name' "$jsonl" 2>/dev/null | tail -1)
 
     count=$((count + 1))
     echo
     echo "  [$count] session: $sid"
+    # JUSTIFIED: numfmt is GNU-only — 2>/dev/null + `|| echo "${size}B"` fall back to raw bytes on macOS where numfmt is absent
     echo "      mtime:  $mtime ($(numfmt --to=iec --suffix=B "$size" 2>/dev/null || echo "${size}B"))"
     echo "      turns:  $turns"
     [ -n "$last_user" ] && echo "      last Q: $last_user..."

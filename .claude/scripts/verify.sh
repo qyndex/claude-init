@@ -55,7 +55,9 @@ if [ -f package.json ]; then
     if $PM run "$cov_script" 2>&1 | tee /tmp/coverage.out > /dev/null; then
       # Parse coverage from common formats. Try v8/istanbul JSON summary if exists.
       if [ -f coverage/coverage-summary.json ]; then
+        # JUSTIFIED: jq error muted + 0 fallback — a malformed summary yields 0, which correctly fails the line-coverage gate rather than crashing it
         line_pct=$(jq -r '.total.lines.pct' coverage/coverage-summary.json 2>/dev/null || echo 0)
+        # JUSTIFIED: jq error muted + 0 fallback — same rationale for branch coverage; 0 fails the gate safely
         branch_pct=$(jq -r '.total.branches.pct' coverage/coverage-summary.json 2>/dev/null || echo 0)
         line_int=${line_pct%.*}
         branch_int=${branch_pct%.*}
@@ -80,6 +82,7 @@ fi
 if [ -f pyproject.toml ]; then
   step "Python project detected"
   command -v ruff >/dev/null && { ruff check . && ok_msg "ruff" || { fail_msg "ruff"; fails=$((fails+1)); } ; }
+  # JUSTIFIED: trailing fallback absorbs the `command -v mypy` miss — when mypy is not installed the whole guarded clause is skipped without the absence being mistaken for a tool failure; a present-but-failing mypy still increments fails inside the braces
   command -v mypy >/dev/null && { mypy . && ok_msg "mypy" || { fail_msg "mypy"; fails=$((fails+1)); } ; } || true
   if [ -d tests ]; then
     uv run pytest -q && ok_msg "pytest" || { fail_msg "pytest"; fails=$((fails+1)); }
@@ -87,7 +90,9 @@ if [ -f pyproject.toml ]; then
 
   if [ "${SKIP_COVERAGE:-0}" != "1" ] && [ -d tests ]; then
     step "Coverage gate (min line=${COVERAGE_MIN_LINE}%)"
+    # JUSTIFIED: coverage tool errors muted — the && chain already gates on success; a failing run skips the whole block rather than parsing a bad report
     if uv run coverage run -m pytest -q 2>/dev/null && uv run coverage report --format=json -o /tmp/coverage.json 2>/dev/null; then
+      # JUSTIFIED: jq error muted + 0 fallback — a malformed coverage.json yields 0, which correctly fails the gate rather than crashing it
       pct=$(jq -r '.totals.percent_covered' /tmp/coverage.json 2>/dev/null || echo 0)
       pct_int=${pct%.*}
       if [ "${pct_int:-0}" -lt "$COVERAGE_MIN_LINE" ]; then
@@ -115,6 +120,7 @@ if [ -f go.mod ]; then
 
   if [ "${SKIP_COVERAGE:-0}" != "1" ]; then
     step "Coverage gate (min ${COVERAGE_MIN_LINE}%)"
+    # JUSTIFIED: go test error muted + 0 fallback — a package with no tests prints to stderr; the awk averages only real "coverage:" lines and 0 is the correct floor when none exist
     pct=$(go test -cover ./... 2>/dev/null | awk '/coverage:/{sum += $2; count++} END {if(count>0) print sum/count}' | tr -d '%' || echo 0)
     pct_int=${pct%.*}
     if [ "${pct_int:-0}" -lt "$COVERAGE_MIN_LINE" ]; then
@@ -145,14 +151,17 @@ if [ -f tasks/TASKS.md ] && [ "${SKIP_TDD_LEDGER:-0}" != "1" ]; then
   # For each completed task, confirm a red.log + green.log exist somewhere under verify/
   while IFS= read -r task_id; do
     [ -z "$task_id" ] && continue
+    # JUSTIFIED: find error muted — an absent verify/ dir means the red.log genuinely does not exist; grep -q "no match" is the intended ledger-gate failure trigger
     if ! find verify -path "*/${task_id}/red.log" 2>/dev/null | grep -q . ; then
       fail_msg "task $task_id marked [x] but no red.log (TDD red phase not captured)"
       ledger_fails=$((ledger_fails+1))
     fi
+    # JUSTIFIED: find error muted — same rationale; an absent green.log is the intended ledger-gate failure trigger
     if ! find verify -path "*/${task_id}/green.log" 2>/dev/null | grep -q . ; then
       fail_msg "task $task_id marked [x] but no green.log"
       ledger_fails=$((ledger_fails+1))
     fi
+  # JUSTIFIED: grep error muted — a missing tasks/TASKS.md yields no completed task ids, so the loop runs zero times (nothing to gate)
   done < <(grep -oE '^- \[x\] T-[0-9]+' tasks/TASKS.md 2>/dev/null | grep -oE 'T-[0-9]+')
   if [ "$ledger_fails" -eq 0 ]; then
     ok_msg "all completed tasks have red→green ledger"
@@ -194,6 +203,7 @@ if [ -s "$CHAR_MANIFEST" ] && [ "${SKIP_CHAR_GATE:-0}" != "1" ] && grep -qvE '^[
     elif git rev-parse --verify -q main >/dev/null 2>&1; then BASE="main"
     else BASE="HEAD~1"; fi
   fi
+  # JUSTIFIED: git errors muted + grep fallback — an unresolvable BASE or empty diff yields no changed files; the empty-then-loop body simply iterates zero times, the correct "nothing to gate" behaviour
   changed=$( { git diff --name-only "${BASE}...HEAD" 2>/dev/null; git diff --name-only 2>/dev/null; git diff --cached --name-only 2>/dev/null; } | sort -u | grep -vE '^[[:space:]]*$' || true)
   char_fails=0
   while IFS= read -r glob; do
@@ -206,6 +216,7 @@ if [ -s "$CHAR_MANIFEST" ] && [ "${SKIP_CHAR_GATE:-0}" != "1" ] && grep -qvE '^[
       case "$f" in
         $glob)
           base=$(basename "$f"); base="${base%.*}"
+          # JUSTIFIED: find error muted — unreadable subdirs emit noise; grep -q decides presence and "no match" is the intended trigger for the gate failure below
           if ! find . -type d -name node_modules -prune -o -type f \
                \( -iname "*${base}*characterization*" -o -iname "*characterization*${base}*" \) -print 2>/dev/null | grep -q .; then
             fail_msg "legacy edit '$f' (flagged in uncharacterized-paths.txt) has no characterization test — sprout/characterize first (override: SKIP_CHAR_GATE=1)"

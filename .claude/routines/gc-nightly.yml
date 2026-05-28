@@ -1,0 +1,38 @@
+# GC Nightly — bound the artifacts that grow over multi-month autonomous runs
+#
+# Chains the three GC scripts so TASKS.md, verify/ evidence, and hook logs never
+# grow unbounded across weeks-to-months of unattended operation (Spec 001 Phase 3).
+#
+# Configure as a Desktop scheduled task. Install via:
+#   bash .claude/scripts/install-overnight-tasks.sh
+
+name: gc-nightly
+
+description: Nightly archival of old tasks, verify evidence, and oversized logs.
+
+schedule:
+  cron: "30 2 * * *"
+  timezone: "local"
+
+surface: desktop # local file maintenance only
+
+permission_mode: auto
+
+model: claude-haiku-4-5 # deterministic script runs; no reasoning needed
+
+budgets:
+  max_wall_clock_minutes: 10
+  max_budget_usd: 1
+
+prompt: |
+  Run the nightly garbage-collection suite — these are deterministic scripts, not
+  reasoning tasks. Run each and report what it archived/rotated:
+
+  1. bash .claude/scripts/gc-tasks.sh    # archive old [x]/[s] tasks when TASKS.md > cap
+  2. bash .claude/scripts/gc-verify.sh   # archive verify/ dirs > 30d, prune archived > 60d
+  3. bash .claude/scripts/gc-logs.sh     # rotate .log files > 50MB into .log.1..5
+
+  All three are idempotent and safe to re-run. tasks/TASKS.md remains the sole
+  source of truth — archived tasks move to tasks/archive/TASKS-YYYY-MM.md, they
+  are not deleted. If any script exits non-zero, surface the error; do not retry
+  blindly. Report a one-line summary per script.

@@ -14,7 +14,9 @@ now_epoch=$(date +%s)
 
 # Read state
 if [ -f "$state_file" ]; then
+  # JUSTIFIED: jq error output discarded — a corrupt state file yields jq's empty output; the // 0 default plus the else-branch keep last_run/session_count well-defined
   last_run=$(jq -r '.last_run_epoch // 0' "$state_file" 2>/dev/null)
+  # JUSTIFIED: jq error output discarded — same; a corrupt state file degrades to a session_count of 0 rather than crashing the Stop hook
   session_count=$(jq -r '.session_count // 0' "$state_file" 2>/dev/null)
 else
   last_run=0
@@ -49,7 +51,9 @@ fi
 # a second dream would silently overwrite the first one's proposal, dropping
 # the human-review gate. Now the operator MUST clear the queue via /dream-review
 # (approve OR discard) before a new dream can run.
+# JUSTIFIED: ls error output discarded — an unreadable proposed dir yields empty output, treated as "no pending proposals", which safely allows the dream to proceed
 if [ -d .claude/memory.proposed ] && [ "$(ls -A .claude/memory.proposed 2>/dev/null)" ]; then
+  # JUSTIFIED: jq error output discarded — a corrupt state file degrades awaiting_review to empty (not "true"), so the review gate fails open and the dream proceeds
   awaiting_review=$(jq -r '.awaiting_review // false' "$state_file" 2>/dev/null)
   if [ "$awaiting_review" = "true" ]; then
     echo "[$(date -Iseconds)] dream skipped: .claude/memory.proposed/ awaiting review (run /dream-review)" \
@@ -68,6 +72,7 @@ echo "$$" > "$lock_file"
 # the Round 4 audit flagged was missing.
 if command -v claude >/dev/null 2>&1; then
   # Mirror canonical → proposed for the dream to mutate
+  # JUSTIFIED: rm error output discarded — clearing the prior mirror is best-effort cleanup; the dir may legitimately not exist before the cp below recreates it
   rm -rf .claude/memory.proposed 2>/dev/null
   cp -r .claude/memory .claude/memory.proposed
 

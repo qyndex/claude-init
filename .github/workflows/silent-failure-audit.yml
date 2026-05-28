@@ -1,0 +1,39 @@
+name: Silent Failure Audit
+
+# Fails the PR if any silent-error pattern (|| true, || echo 0, 2>/dev/null,
+# set -uo pipefail without -e) in .claude/scripts or .claude/hooks lacks a
+# nearby `# JUSTIFIED:` annotation (Spec 001 AC-8).
+#
+# Uses only static commands — no ${{ github.event.* }} interpolation — so it is
+# not exposed to workflow-injection via untrusted PR/issue text.
+
+on:
+  pull_request:
+    paths:
+      - ".claude/scripts/**"
+      - ".claude/hooks/**"
+  push:
+    branches: [main]
+    paths:
+      - ".claude/scripts/**"
+      - ".claude/hooks/**"
+
+permissions:
+  contents: read
+
+jobs:
+  silent-failure-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run silent-failure lint
+        run: |
+          bash .claude/scripts/lint-silent-failures.sh
+
+      - name: Surface the audit report on failure
+        if: failure()
+        run: |
+          echo "Unjustified silent-error patterns found. Each must be fixed or"
+          echo "annotated with '# JUSTIFIED: <reason>' within 3 lines. Report:"
+          jq '.findings[] | select(.justified | not)' .claude/state/silent-failure-audit.json || true

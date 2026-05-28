@@ -14,6 +14,7 @@ if [ -z "$base" ]; then
   exit 1
 fi
 
+# JUSTIFIED: grep -c exits 1 when zero WIP commits match; under set -e the `|| echo 0` makes "none" a clean count, handled by the == "0" branch below
 wip_count=$(git log --oneline "${base}..HEAD" | grep -c '^[0-9a-f]\+ WIP:' || echo 0)
 if [ "$wip_count" = "0" ]; then
   echo "No WIP commits to squash."

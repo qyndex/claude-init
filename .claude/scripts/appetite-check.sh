@@ -50,6 +50,7 @@ for init in initiatives/active/*.md; do
     *)  appetite_days=42 ;;  # default 6w
   esac
 
+  # JUSTIFIED: GNU/BSD date portability — GNU form tried first, BSD form is the fallback, and the final 0 sentinel marks an unparseable declared_at that the next line skips
   declared_epoch=$(date -d "$declared_at" +%s 2>/dev/null || date -j -f '%Y-%m-%d' "$declared_at" +%s 2>/dev/null || echo 0)
   [ "$declared_epoch" = "0" ] && continue
 
@@ -61,6 +62,7 @@ for init in initiatives/active/*.md; do
   spent="?"
   spent_pct="?"
   if [ -f .claude/hooks/.log/cost-summary.json ] && command -v jq >/dev/null 2>&1; then
+    # JUSTIFIED: cost read guarded by the enclosing [ -f ] + command -v jq; the in-query // 0 defaults a never-billed initiative, the redirect only drops noise on a torn write
     spent=$(jq -r --arg id "$id" '.by_initiative[$id] // 0' .claude/hooks/.log/cost-summary.json 2>/dev/null)
     if [ -n "$budget" ] && [ "$budget" -gt 0 ]; then
       spent_pct=$(awk "BEGIN { printf \"%.0f\", ($spent / $budget) * 100 }")
@@ -69,10 +71,12 @@ for init in initiatives/active/*.md; do
 
   # Worst pct across time + spend dimensions
   worst_pct="$elapsed_pct"
+  # JUSTIFIED: the redirect guards the numeric compare against a non-integer worst_pct; the leading "?" check already gates spent_pct, this is defense for worst_pct
   if [ "$spent_pct" != "?" ] && [ "$spent_pct" -gt "$worst_pct" ] 2>/dev/null; then
     worst_pct="$spent_pct"
   fi
 
+  # JUSTIFIED: the redirect suppresses the "integer expression expected" message when worst_pct is the "?" sentinel (spend unknown); the test then fails closed, skipping the breach branch
   if [ "$worst_pct" -ge 100 ] 2>/dev/null; then
     # BREACH — write audit + task
     breach_file="$AUDIT_DIR/appetite-breach-${id}-$(date +%Y-%m-%d).md"
@@ -109,11 +113,13 @@ EOF
 )
         tasks_append_active "$entry"
       }
+      # JUSTIFIED: appending the breach task is best-effort surfacing; the fallback keeps a lock contention from aborting the daily run — the audit file is already written and the next run retries
       with_tasks_lock _append_breach_task || true
     fi
     breaches=$((breaches + 1))
     echo "  BREACH: $id at ${worst_pct}%"
 
+  # JUSTIFIED: the redirect suppresses the "integer expression expected" message when worst_pct is the "?" sentinel; the test fails closed, skipping the warning branch
   elif [ "$worst_pct" -ge 50 ] 2>/dev/null; then
     # WARN — write audit
     warn_file="$AUDIT_DIR/appetite-warning-${id}-$(date +%Y-%m-%d).md"

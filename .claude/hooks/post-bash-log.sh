@@ -36,6 +36,7 @@ if printf '%s' "$combined" | grep -qE 'rate[_ -]?limit|HTTP 429|"status":[[:spac
       command: $cmd,
       exit_code: $exit_code,
       retry_after_s: $retry_after
+    # JUSTIFIED: the redirect drops jq stderr — the ratelimit log is best-effort telemetry; a write failure must never abort the PostToolUse hook
     }' >> .claude/hooks/.log/ratelimit.jsonl 2>/dev/null
 
   # Also surface in the bash.log with a flag

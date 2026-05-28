@@ -47,6 +47,7 @@ while IFS= read -r contract; do
       file=$(echo "$contract" | cut -d: -f3)
       symbol=$(echo "$contract" | cut -d: -f4)
       if [ -f "$file" ]; then
+        # JUSTIFIED: grep error output discarded — a binary/unreadable file is a non-match, correctly routed to the MISSING branch below
         if grep -qE "(export.*${symbol}|^${symbol}|def ${symbol}|fn ${symbol})" "$file" 2>/dev/null; then
           echo "  ✓ exported_symbol $symbol in $file"
         else
@@ -61,6 +62,7 @@ while IFS= read -r contract; do
     http_route)
       method=$(echo "$contract" | cut -d: -f2)
       route=$(echo "$contract" | cut -d: -f3-)
+      # JUSTIFIED: grep error output discarded — an absent src/ tree is a non-match, correctly routed to the MISSING branch below
       if grep -rqE "(${method}.*['\"]${route}['\"]|@(${method}|route)\\(['\"]${route})" src/ 2>/dev/null; then
         echo "  ✓ http_route $method $route"
       else
@@ -71,6 +73,7 @@ while IFS= read -r contract; do
     db_column)
       table=$(echo "$contract" | cut -d: -f2)
       column=$(echo "$contract" | cut -d: -f3)
+      # JUSTIFIED: grep error output discarded — absent migrations/ or db/ trees are a non-match, correctly routed to the MISSING branch below
       if grep -rqE "(ALTER TABLE ${table}.*${column}|CREATE TABLE.*${table}.*${column}|${column}.*${table})" migrations/ db/ 2>/dev/null; then
         echo "  ✓ db_column ${table}.${column}"
       else
@@ -80,6 +83,7 @@ while IFS= read -r contract; do
       ;;
     flag)
       flag_name=$(echo "$contract" | cut -d: -f2)
+      # JUSTIFIED: grep error output discarded — an absent flags registry or src/ tree is a non-match, correctly routed to the MISSING branch below
       if grep -rqE "['\"]${flag_name}['\"]" .claude/memory/flags/ src/ 2>/dev/null; then
         echo "  ✓ flag $flag_name"
       else

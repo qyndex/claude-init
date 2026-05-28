@@ -27,6 +27,7 @@ today_epoch=$(date +%s)
 # date_to_epoch <YYYY-MM-DD> — portable (BSD + GNU); prints epoch or empty.
 date_to_epoch() {
   local d="$1"
+  # JUSTIFIED: BSD/GNU date portability — BSD form tried first, GNU form is the fallback; the trailing no-op makes the helper print empty for an unparseable date, the documented contract callers check
   date -j -f %Y-%m-%d "$d" +%s 2>/dev/null || date -d "$d" +%s 2>/dev/null || true
 }
 
@@ -61,6 +62,7 @@ while IFS= read -r spec; do
     [ "$age_days" -gt "$OQ_AGE_DAYS" ] || continue
 
     # Idempotency: skip if a RESOLVE task for this spec+OQ already exists.
+    # JUSTIFIED: presence probe — the redirect tolerates a missing TASKS_FILE on a fresh repo; absence correctly means "not yet escalated" so we proceed to append
     if grep -qE "RESOLVE: .*${spec_id}.* ${oq}\b" "$TASKS_FILE" 2>/dev/null; then
       continue
     fi
@@ -73,7 +75,9 @@ while IFS= read -r spec; do
 
     _append() { tasks_append_active "$entry"; }
     with_tasks_lock _append
+    # JUSTIFIED: grep feed over the spec — the redirect guards a file removed mid-walk; no OQ lines means the inner loop simply does not iterate
   done < <(grep -nE '\[OQ-[0-9]+' "$spec" 2>/dev/null)
+  # JUSTIFIED: find feed — the redirect tolerates a missing SPECS_DIR (already guarded by [ -d ] above); an empty result means no specs to scan
 done < <(find "$SPECS_DIR" -type f -name '*.md' 2>/dev/null)
 
 exit 0

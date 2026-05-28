@@ -27,6 +27,7 @@ for spec in specs/active/*.md specs/archive/*/*.md specs/archive/*.md; do
   id="$(basename "$spec" .md)"
   num="${id%%-*}"   # numeric spec id used in TASKS.md as spec:<num>
   # Find the spec's accept: command from TASKS.md (first task for this spec).
+  # JUSTIFIED: the muted grep tolerates a missing TASKS.md or no matching task; an empty accept_cmd is handled by the skip immediately below
   accept_cmd="$(grep -A6 "spec:${num}\b" tasks/TASKS.md 2>/dev/null | grep -m1 'accept:' | sed 's/.*accept:[[:space:]]*//')"
   [ -z "$accept_cmd" ] && continue
   checked=$((checked + 1))

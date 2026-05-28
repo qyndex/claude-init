@@ -11,6 +11,7 @@
 set -uo pipefail
 INTO="$(pwd)"
 [ "${1:-}" = "--into" ] && INTO="${2:-$(pwd)}"
+# JUSTIFIED: the redirect hides the shell's own cd error so the `||` branch prints a friendlier message and exits; failure is explicitly handled, not swallowed
 cd "$INTO" 2>/dev/null || { echo "cannot cd into $INTO"; exit 1; }
 
 # ── Detect stack facts (quick heuristics; refine against atlas STRUCTURE.md) ──
@@ -27,6 +28,7 @@ fi
 if [ -f pyproject.toml ] || [ -f requirements.txt ] || [ -f setup.py ]; then
   lang="${lang:+$lang, }Python"; [ -z "$pm" ] && pm="pip/uv"
   [ -z "$testcmd" ] && testcmd="pytest"
+  # JUSTIFIED: heuristic probe for a ruff config; -qs + the redirect mean a missing/ruff-less pyproject just leaves lintcmd unset for the (fill in) default below
   grep -rqs "ruff" pyproject.toml 2>/dev/null && lintcmd="ruff check ."
 fi
 [ -f go.mod ]     && { lang="${lang:+$lang, }Go";   testcmd="${testcmd:-go test ./...}"; lintcmd="${lintcmd:-go vet ./...}"; }
@@ -36,6 +38,7 @@ fi
 [ -z "$testcmd" ] && testcmd="(fill in the project's test command)"
 [ -z "$lintcmd" ] && lintcmd="(fill in)"
 
+# JUSTIFIED: the redirect hides "no such directory" for whichever doc dirs are absent in this repo; the fallback yields an empty list when no ADRs exist (handled by the emit_section default)
 adr_list="$(find docs adr decisions .claude/memory/decisions -type f \( -iname '*adr*' -o -iname '*decision*' \) 2>/dev/null | grep -v brownfield-backup | head -15 || true)"
 MARKER="<!-- factory-adoption:conventions -->"
 
@@ -59,6 +62,7 @@ emit_section() {
 
 # AGENTS.md — augment (idempotent), never clobber an existing one.
 if [ -f AGENTS.md ]; then
+    # JUSTIFIED: marker probe guarded by the enclosing [ -f AGENTS.md ]; the redirect is defensive against a race-deleted file — absence then takes the augment branch
   if grep -qF "$MARKER" AGENTS.md 2>/dev/null; then
     echo "  AGENTS.md already has the conventions section — left as-is."
   else

@@ -48,8 +48,10 @@ if _open_hotfix_exists "$FP"; then
 fi
 
 # ─── Guard 3: cooldown (suppress flapping) ──────────────────────────────
+# JUSTIFIED: the redirect drops grep stderr when TASKS.md is absent — an empty last skips the cooldown check entirely, which is the correct behaviour for a never-seen fingerprint
 last=$(grep -A8 "fingerprint: ${FP}" tasks/TASKS.md 2>/dev/null | grep -m1 'last_touched:' | grep -oE '[0-9T:+-]+' | head -1)
 if [ -n "$last" ]; then
+  # JUSTIFIED: GNU and BSD date parse timestamps with different flags — the redirects let each form fail quietly and the final fallback yields epoch 0, which the guard below treats as "unparseable, skip cooldown"
   last_epoch=$(date -d "$last" +%s 2>/dev/null || date -j -f '%Y-%m-%dT%H:%M:%S%z' "$last" +%s 2>/dev/null || echo 0)
   if [ "$last_epoch" -gt 0 ]; then
     age_min=$(( ( $(date +%s) - last_epoch ) / 60 ))

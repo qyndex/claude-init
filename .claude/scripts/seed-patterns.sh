@@ -23,6 +23,7 @@ fi
 
 # Resolve stacks
 if [ "$stack" = "auto" ]; then
+  # JUSTIFIED: the redirect drops detect-stacks stderr — an empty result yields no pattern folders below, so seeding simply does nothing rather than aborting on an undetectable stack
   stacks_json=$(bash .claude/scripts/detect-stacks.sh 2>/dev/null)
   echo "Detected: $stacks_json"
   # Map detected → pattern folders
@@ -52,6 +53,8 @@ write_pattern() {
     return
   fi
 
+  # JUSTIFIED: the redirect and fallback yield "unowned" when no git user is configured — the owner field is cosmetic provenance and must not break seeding
+  owner_name="$(git config user.name 2>/dev/null || echo unowned)"
   cat > "$path" <<EOF
 ---
 name: $slug
@@ -61,7 +64,7 @@ metadata:
   stack: $stack_dir
 slug: $slug
 status: established
-Owner: "@$(git config user.name 2>/dev/null || echo unowned)"
+Owner: "@$owner_name"
 written_by: seed-patterns
 written_at: $(date -I)
 last_verified: $(date -I)
@@ -386,6 +389,7 @@ if [ "$seeded" -gt 0 ]; then
     name=$(basename "$f" .md)
     stack_dir=$(basename "$(dirname "$f")")
     desc=$(grep -E '^description:' "$f" | head -1 | sed 's/description:[[:space:]]*//' | head -c 80)
+    # JUSTIFIED: the muted grep tests whether the pattern is already indexed; a non-match (or absent MEMORY.md) is the trigger to append the index line, which is the intended behavior
     grep -q "$name" .claude/memory/MEMORY.md 2>/dev/null || \
       echo "- [$stack_dir/$name]($(echo "$f" | sed 's|^\.claude/memory/||')) — $desc" >> .claude/memory/MEMORY.md
   done

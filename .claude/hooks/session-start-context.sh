@@ -13,9 +13,11 @@ ctx_parts=()
 # session-end.sh deletes .claude/memory/.cache/current-session.json on graceful
 # exit. If it exists at SessionStart, the previous session was KILLED.
 if [ -f .claude/memory/.cache/current-session.json ]; then
+  # JUSTIFIED: reads from a session JSON that may be partially written by a killed session; jq's // defaults plus suppression mean a truncated file degrades to "unknown"/0 rather than aborting the killed-session warning
   killed_id=$(jq -r '.session_id // "unknown"' .claude/memory/.cache/current-session.json 2>/dev/null)
   killed_branch=$(jq -r '.branch // "unknown"' .claude/memory/.cache/current-session.json 2>/dev/null)
   killed_turns=$(jq -r '.turn_count // 0' .claude/memory/.cache/current-session.json 2>/dev/null)
+  # JUSTIFIED: same partially-written session JSON — // default + suppression degrade a truncated file to 0 uncommitted rather than aborting
   killed_uncommitted=$(jq -r '.uncommitted // 0' .claude/memory/.cache/current-session.json 2>/dev/null)
   ctx_parts+=("⚠ KILLED-SESSION: previous session ($killed_id) on $killed_branch was terminated abnormally after $killed_turns turns with $killed_uncommitted uncommitted files. Run \`bash .claude/scripts/resume-or-restart.sh\` to triage.")
 fi
@@ -34,10 +36,12 @@ fi
 # ─── In-flight brief from prior session-end (highest priority) ──────────
 # Round 6 B: hard cap at 7d age — older briefs are stale and misleading.
 if [ -f .claude/memory/in-flight.md ]; then
+  # JUSTIFIED: GNU-vs-BSD stat probe — the unsupported flag form errors silently; final `|| echo 0` treats an unstat-able brief as epoch 0 (very old) so it is flagged stale rather than crashing
   age_mins=$(( ( $(date +%s) - $(stat -f %m .claude/memory/in-flight.md 2>/dev/null || stat -c %Y .claude/memory/in-flight.md 2>/dev/null || echo 0) ) / 60 ))
   age_days=$(( age_mins / 1440 ))
   if [ "$age_days" -gt 7 ]; then
     # Rename so we don't keep injecting stale content
+    # JUSTIFIED: best-effort rename of a stale brief; if a same-day stale file already exists the mv may fail and that is harmless — the warning context is still emitted
     mv .claude/memory/in-flight.md ".claude/memory/in-flight.stale-$(date +%Y%m%d).md" 2>/dev/null || true
     ctx_parts+=("⚠ STALE-INFLIGHT: previous in-flight brief was ${age_days}d old; renamed to .claude/memory/in-flight.stale-*.md. Review manually before trusting.")
   else
@@ -48,6 +52,7 @@ fi
 # ─── Last compaction witness brief ──────────────────────────────────────
 # Show whenever it exists. No 24h filter — a longer-gap project still benefits from
 # knowing the last decision context. Stale briefs are flagged with an age hint.
+# JUSTIFIED: no checkpoint glob match makes `ls` error to /dev/null and yields empty (no brief to show); the stat probe below is GNU-vs-BSD fallback, defaulting to epoch 0 so an unstat-able file just reads as old
 last_brief=$(ls -t .claude/memory/.cache/checkpoints/*.md 2>/dev/null | head -1 || echo "")
 if [ -n "$last_brief" ]; then
   age_days=$(( ( $(date +%s) - $(stat -f %m "$last_brief" 2>/dev/null || stat -c %Y "$last_brief" 2>/dev/null || echo 0) ) / 86400 ))
@@ -60,6 +65,7 @@ fi
 
 # ─── Active instincts ───────────────────────────────────────────────────
 if [ -f .claude/memory/instincts/active.yml ]; then
+  # JUSTIFIED: grep -c returns 0 with exit 1 when no instincts match — both the suppression and the `|| echo 0` resolve to a valid "zero active instincts" count
   instinct_count=$(grep -c '^- id:' .claude/memory/instincts/active.yml 2>/dev/null || echo 0)
   if [ "$instinct_count" -gt 0 ]; then
     ctx_parts+=("Active instincts: $instinct_count (see .claude/memory/instincts/active.yml).")
@@ -68,6 +74,7 @@ fi
 
 # ─── Top 3 unblocked tasks ──────────────────────────────────────────────
 if [ -f tasks/TASKS.md ]; then
+  # JUSTIFIED: optional task peek — no pending tasks (grep exits 1) is a valid state, yields empty and the next-tasks line is simply omitted
   next_tasks=$(grep -m3 '^- \[ \]' tasks/TASKS.md 2>/dev/null | sed 's/^- \[ \] *//' | head -3 | tr '\n' '|' || echo "")
   if [ -n "$next_tasks" ]; then
     ctx_parts+=("Next tasks: $next_tasks")
@@ -76,12 +83,14 @@ fi
 
 # ─── Dream state ────────────────────────────────────────────────────────
 if [ -f .claude/memory/.cache/.dream-state.json ]; then
+  # JUSTIFIED: optional dream-state read — a corrupt cache yields empty, only affects an informational "Last dream:" line
   last_dream=$(jq -r '.last_run // "never"' .claude/memory/.cache/.dream-state.json 2>/dev/null)
   ctx_parts+=("Last dream: $last_dream")
 fi
 
 # ─── Memory pressure ────────────────────────────────────────────────────
 if [ -f .claude/memory/MEMORY.md ]; then
+  # JUSTIFIED: best-effort line count guarded by the -f test above; an unreadable file falls back to 0, which simply skips the over-budget warning
   mem_lines=$(wc -l < .claude/memory/MEMORY.md 2>/dev/null || echo 0)
   if [ "$mem_lines" -gt 200 ]; then
     ctx_parts+=("⚠ MEMORY.md is ${mem_lines} lines (cap=200) — run \`.claude/scripts/memory-gc.sh enforce\`.")
@@ -91,20 +100,24 @@ fi
 # ─── Round 8 C: Repo Atlas pointer ──────────────────────────────────────
 # Inject a 1-line atlas summary so agents know the stack without re-discovering.
 if [ -f .claude/memory/atlas/manifest.json ] && command -v jq >/dev/null 2>&1; then
+  # JUSTIFIED: optional atlas-manifest field reads — a missing key/malformed manifest yields empty, surfaced as a "stale" hint, never an error
   atlas_updated=$(jq -r .updated_at .claude/memory/atlas/manifest.json 2>/dev/null)
   atlas_sha=$(jq -r .git_sha .claude/memory/atlas/manifest.json 2>/dev/null)
   atlas_web=$(jq -r .frameworks.web .claude/memory/atlas/manifest.json 2>/dev/null)
+  # JUSTIFIED: optional atlas-manifest field reads — a missing key/malformed manifest yields empty, surfaced as a "stale" hint, never an error
   atlas_api=$(jq -r .frameworks.api .claude/memory/atlas/manifest.json 2>/dev/null)
   atlas_orm=$(jq -r .frameworks.orm .claude/memory/atlas/manifest.json 2>/dev/null)
 
   # Compute age
   if [ -n "$atlas_updated" ]; then
+    # JUSTIFIED: GNU vs BSD date probe — whichever flag form is unsupported errors silently; the final `|| echo 0` makes an unparseable timestamp read as epoch 0 (very old), which correctly trips the staleness path below
     age_days=$(( ( $(date +%s) - $(date -d "$atlas_updated" +%s 2>/dev/null || date -j -f '%Y-%m-%dT%H:%M:%S%z' "${atlas_updated%%+*}" +%s 2>/dev/null || echo 0) ) / 86400 ))
   else
     age_days=99
   fi
 
   # Check stale vs current
+  # JUSTIFIED: git rev-parse fails outside a repo / before first commit — empty SHA is fine, it only feeds an advisory staleness hint
   current_sha=$(git rev-parse HEAD 2>/dev/null || echo "")
   stale_reason=""
   [ "$age_days" -gt 7 ] && stale_reason="atlas >7d old"
@@ -144,6 +157,7 @@ fi
 # ─── ADR re-verification backlog ────────────────────────────────────────
 if [ -d .claude/memory/decisions ]; then
   # Count ADRs >12mo with no last_verified
+  # JUSTIFIED: find suppresses traversal warnings on a sparse decisions tree; xargs grep -L returns empty when no files match — wc -l then yields 0, a valid "no stale ADRs" count
   stale_adrs=$(find .claude/memory/decisions -name '*.md' -mtime +365 2>/dev/null | \
     xargs grep -L '^- \*\*last_verified\*\*:' 2>/dev/null | wc -l | tr -d ' ')
   if [ "$stale_adrs" -gt 0 ]; then
@@ -155,6 +169,7 @@ fi
 # If we've hit rate-limit in the last hour, surface a warning so the operator
 # knows the slowness isn't us — and considers throttling concurrency.
 if [ -f .claude/hooks/.log/ratelimit.jsonl ]; then
+  # JUSTIFIED: GNU date form is tried first and its error muted on BSD, where the second form (the fallback after the operator) computes the cutoff instead
   recent_limits=$(awk -v cutoff="$(date -u -d '1 hour ago' -Iseconds 2>/dev/null || date -u -v -1H -Iseconds)" \
     '$0 ~ /"kind":"rate_limit"/ && $0 ~ /"ts":"/ {
       if (match($0, /"ts":"([^"]+)"/, m) && m[1] >= cutoff) c++
@@ -168,6 +183,7 @@ fi
 # claude --bg sessions can die silently on network outage. Surface a hint
 # if fleet.json claims running streams but their process IDs are gone.
 if [ -f .swarms/coordinator/fleet.json ] && command -v jq >/dev/null 2>&1; then
+  # JUSTIFIED: optional fleet read — a malformed/empty fleet.json yields empty, defaulted to 0 via ${running_count:-0} below
   running_count=$(jq -r '[.fleet[] | select(.status == "running")] | length' .swarms/coordinator/fleet.json 2>/dev/null)
   if [ "${running_count:-0}" -gt 0 ]; then
     ctx_parts+=("${running_count} swarm stream(s) marked running in fleet.json. Verify with \`claude agents --json\`; if stale, run /swarm:status.")

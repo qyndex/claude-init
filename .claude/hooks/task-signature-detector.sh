@@ -25,6 +25,7 @@ TODAY=$(date +%Y-%m-%d)
 COUNTER=".claude/memory/.cache/sig-detector-count-${TODAY}"
 mkdir -p "$(dirname "$COUNTER")"
 
+# JUSTIFIED: cat error output discarded and the fallback 0 covers it — a missing counter file means no candidates emitted today yet, so 0 is the correct seed
 today_count=$(cat "$COUNTER" 2>/dev/null || echo 0)
 [ "$today_count" -ge 5 ] && exit 0
 
@@ -65,10 +66,12 @@ emitted=0
 while IFS= read -r sig; do
   [ -z "$sig" ] && continue
   # Hash the signature
+  # JUSTIFIED: md5 error output discarded — BSD `md5` is absent on Linux, so we fall through to `md5sum`; the chain ends with a 0 literal so a hash is always produced
   sig_hash=$(printf '%s' "$sig" | md5 2>/dev/null || printf '%s' "$sig" | md5sum | cut -d' ' -f1 || echo "0")
   sig_hash="${sig_hash:0:8}"
 
   # Skip if already a candidate today
+  # JUSTIFIED: grep error output discarded — a non-match (this signature is new today) is the normal case and correctly proceeds to emit
   if [ -f "$CANDIDATES" ] && grep -q "\"sig_hash\":\"$sig_hash\"" "$CANDIDATES" 2>/dev/null; then
     continue
   fi
@@ -89,6 +92,7 @@ while IFS= read -r sig; do
       sig_hash: $hash,
       suggested_slug: $slug,
       source: "task-signature-detector"
+      # JUSTIFIED: jq error output discarded — appending a candidate is best-effort in this Stop hook; a write hiccup must not fail the user's stop, the counter just won't advance
     }' >> "$CANDIDATES" 2>/dev/null
 
   emitted=$((emitted + 1))

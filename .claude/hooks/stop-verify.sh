@@ -8,12 +8,14 @@ if ! git rev-parse --git-dir >/dev/null 2>&1; then
   exit 0
 fi
 
+# JUSTIFIED: the redirect drops git stderr when not in a repo — guarded by the rev-parse check above, an empty result yields dirty=0 and a clean early exit
 dirty=$(git status --porcelain 2>/dev/null | wc -l | tr -d ' ')
 if [ "$dirty" -eq 0 ]; then
   exit 0
 fi
 
 # Check if any production files changed
+# JUSTIFIED: the redirect drops git diff stderr and the fallback yields empty when grep matches nothing (exit 1) — empty prod_changed correctly means "no prod files touched" and triggers a clean exit
 prod_changed=$(git diff --name-only HEAD 2>/dev/null | grep -Ev '^(specs/|plans/|tasks/|docs/|.claude/|.github/|verify/|README|CHANGELOG)' | head -5 || true)
 
 if [ -z "$prod_changed" ]; then
@@ -23,6 +25,7 @@ fi
 # Check if a recent verify report exists
 recent_verify=""
 if [ -d verify ]; then
+  # JUSTIFIED: the redirect drops find stderr and the fallback yields empty if find errors or matches nothing — empty recent_verify correctly emits the "no recent verification" block
   recent_verify=$(find verify -name 'REPORT.md' -mtime -1 -print 2>/dev/null | head -1 || true)
 fi
 

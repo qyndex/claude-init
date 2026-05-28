@@ -45,9 +45,12 @@ fi
 TOKENS="unknown"
 USD="unknown"
 if command -v npx >/dev/null 2>&1; then
+  # JUSTIFIED: ccusage error output discarded — when the tool is absent or errors, usage is empty and the -n guard leaves TOKENS/USD as "unknown"
   usage=$(npx --no-install ccusage blocks --json 2>/dev/null | tail -1)
   if [ -n "$usage" ]; then
+    # JUSTIFIED: jq error output discarded — unparseable usage falls through to the "unknown" literal for the report field
     TOKENS=$(printf '%s' "$usage" | jq -r '.total_tokens // "unknown"' 2>/dev/null || echo "unknown")
+    # JUSTIFIED: jq error output discarded — unparseable usage falls through to the "unknown" literal for the report field
     USD=$(printf '%s' "$usage" | jq -r '.total_cost_usd // "unknown"' 2>/dev/null || echo "unknown")
   fi
 fi
@@ -55,6 +58,7 @@ fi
 # Dream state
 DREAM_TIME="not run"
 if [ -f .claude/memory/.cache/.dream-state.json ]; then
+  # JUSTIFIED: jq error output discarded — a malformed dream-state file falls through to the "not run" literal shown in the report
   DREAM_TIME=$(jq -r '.last_run_epoch // 0 | strftime("%Y-%m-%dT%H:%M:%SZ")' .claude/memory/.cache/.dream-state.json 2>/dev/null || echo "not run")
 fi
 
@@ -85,6 +89,7 @@ sed \
   echo
   echo "## Per-stream handoffs (auto-appended)"
   echo
+  # JUSTIFIED: ls error output discarded — when no handoff files exist the glob is empty and the loop simply appends no per-stream sections
   for handoff in $(ls -t .swarms/streams/*/handoff-final-*.md 2>/dev/null); do
     echo "### $(basename "$(dirname "$handoff")")"
     echo

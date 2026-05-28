@@ -13,6 +13,7 @@
 #   .claude/state/adopt/coverage-baseline.txt       raw coverage attempt output
 #   .claude/memory/atlas/*                    via atlas-refresh.sh
 #
+# JUSTIFIED: literal pattern string in this header comment, not a real silent failure
 # Every external probe is best-effort (|| true) so one missing tool never aborts the scan.
 
 set -uo pipefail
@@ -34,6 +35,7 @@ if [ -f .claude/scripts/atlas-refresh.sh ]; then
 fi
 stacks="unknown"
 if [ -f .claude/scripts/detect-stacks.sh ]; then
+  # JUSTIFIED: detect-stacks stderr suppressed — a probe failure falls through to the empty-object literal, which downstream renders as "unknown"
   stacks="$(bash .claude/scripts/detect-stacks.sh 2>/dev/null || echo '{}')"
 fi
 
@@ -41,10 +43,12 @@ fi
 : > "$HOTSPOTS"
 if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   # churn = how many commits touched the file; complexity ~ LOC. score = churn*loc.
+  # JUSTIFIED: git log stderr suppressed — a shallow/empty history yields no file list and the pipeline produces an empty hotspots file, the documented degraded case
   git log --pretty=format: --name-only 2>/dev/null \
     | grep -aE "$SRC_RE" | grep -avE "$EXCLUDE_RE" | sort | uniq -c | sort -rn | head -60 \
   | while read -r churn path; do
       [ -f "$path" ] || continue
+      # JUSTIFIED: grep -cve counts non-blank lines; stderr suppressed and || echo 0 covers an unreadable file so its LOC proxy is 0 rather than aborting the scan
       loc=$(grep -cve '^[[:space:]]*$' "$path" 2>/dev/null || echo 0)
       printf '%s|%s|%s|%s\n' "$(( churn * loc ))" "$churn" "$loc" "$path"
     done | sort -t'|' -k1 -rn | head -20 > "$HOTSPOTS"
@@ -80,6 +84,7 @@ fi
 # ─── 5. Security snapshot (best-effort, read-only) ────────────────────────
 sec_out="(semgrep not available)"
 if command -v semgrep >/dev/null 2>&1; then
+  # JUSTIFIED: semgrep/jq stderr suppressed — a scan error or unparseable output falls through to the "?" literal, a read-only best-effort snapshot
   sec_count=$(semgrep --config auto --quiet --json 2>/dev/null | jq '.results | length' 2>/dev/null || echo "?")
   sec_out="semgrep --config auto found ${sec_count} finding(s) (review before clearing false positives)."
 fi
@@ -89,6 +94,7 @@ command -v gitleaks >/dev/null 2>&1 && secrets_out="run \`gitleaks detect\` — 
 # ─── 6. Coverage baseline (best-effort — records the floor we must not drop below) ──
 : > "$COV"
 cov_summary="not captured (run the repo's own coverage command and record manually)"
+# JUSTIFIED: grep stderr suppressed and || true — a missing STACK.md or no test-runner match leaves test_fw empty, the documented "no test signal" case
 test_fw="$(grep -iE 'jest|vitest|pytest|go test|cargo test|mocha|rspec' .claude/memory/atlas/STACK.md 2>/dev/null | head -1 || true)"
 [ -n "$test_fw" ] && echo "detected test signal: $test_fw" >> "$COV"
 echo "(coverage not auto-run — repo-specific; capture with the project's coverage command and paste here)" >> "$COV"
@@ -100,6 +106,9 @@ if [ -s "$HOTSPOTS" ]; then
 else
   hotspot_table="_$hotspot_note_"
 fi
+
+# JUSTIFIED: grep stderr suppressed and || true — UNCHAR exists (just written); exit 1 only means every line is a comment, so an empty manifest body is correct
+manifest_globs="$(grep -vE '^[[:space:]]*#' "$UNCHAR" 2>/dev/null || true)"
 
 cat > "$REPORT" <<EOF
 # Adoption Report — $(basename "$ROOT") — $(date +%Y-%m-%d)
@@ -136,7 +145,7 @@ $(cat "$COV")
 ## Legacy-safety manifest (.claude/state/adopt/uncharacterized-paths.txt)
 These globs are OFF-LIMITS to autonomous modification until characterized:
 \`\`\`
-$(grep -vE '^[[:space:]]*#' "$UNCHAR" 2>/dev/null || true)
+$manifest_globs
 \`\`\`
 
 ## Existing \`.claude/\` collision map
@@ -162,7 +171,9 @@ EOF
 
 # ─── 8. Advance state (self-initialize — this is the first phase) ─────────
 if [ -f .claude/scripts/adopt-state.sh ]; then
+  # JUSTIFIED: adopt-state output+stderr suppressed and || true — state-file init is best-effort; a failure here must not abort the read-only report that already wrote successfully
   [ -f "$STATE_DIR/STATE.json" ] || bash .claude/scripts/adopt-state.sh init "$ROOT" >/dev/null 2>&1 || true
+  # JUSTIFIED: same — advancing the phase marker is best-effort and must not fail the archaeology run
   bash .claude/scripts/adopt-state.sh set 1 archaeology >/dev/null 2>&1 || true
 fi
 

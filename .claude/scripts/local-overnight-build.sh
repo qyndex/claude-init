@@ -37,13 +37,16 @@ mkdir -p .claude/state
 _age_min() {  # whole minutes since file $1 was modified; 999999 if absent
   local m
   [ -f "$1" ] || { echo 999999; return; }
+  # JUSTIFIED: BSD/GNU stat portability — BSD form tried first, GNU form is the fallback; the trailing 0 sentinel only triggers if both fail, yielding a huge age that reads as "stale"
   m=$(stat -f %m "$1" 2>/dev/null || stat -c %Y "$1" 2>/dev/null || echo 0)
   echo $(( ($(date +%s) - m) / 60 ))
 }
 
 # (1) Local run-lock — fresh (<6h) + holder alive means a local build is underway.
 if [ -f "$RUN_LOCK" ]; then
+  # JUSTIFIED: reading the pid out of the lock guarded by the enclosing [ -f ]; the redirect tolerates a malformed lock — an empty pid falls through to the liveness check below
   lock_pid=$(awk -F= '/^pid=/{print $2}' "$RUN_LOCK" 2>/dev/null)
+  # JUSTIFIED: kill -0 is a liveness probe, not a signal; the redirect hides "no such process" — a dead holder means non-zero, so we reclaim the stale lock rather than exit
   if [ "$(_age_min "$RUN_LOCK")" -lt 360 ] && { [ -z "$lock_pid" ] || kill -0 "$lock_pid" 2>/dev/null; }; then
     step "A local overnight run is already active tonight (lock $RUN_LOCK, pid ${lock_pid:-?}). Backstop exits."
     exit 0
@@ -70,6 +73,7 @@ fi
 if ! command -v claude >/dev/null 2>&1; then
   step "claude CLI not found — abort"; exit 1
 fi
+# JUSTIFIED: cleanliness probe — the redirect tolerates running outside a git repo; empty output there reads as "clean" and the build proceeds, matching the dirty-tree guard's intent
 if [ -n "$(git status --porcelain 2>/dev/null)" ]; then
   step "git tree dirty — abort (commit/stash before nightly)"; exit 1
 fi
@@ -81,6 +85,7 @@ trap 'rm -f "'"$RUN_LOCK"'"' EXIT
 
 # Create a dated branch we can push to
 step "Creating branch $branch"
+# JUSTIFIED: create-or-checkout idiom — the redirect hides the "branch already exists" error so the `||` switches to the existing dated branch on a re-fire
 git switch -c "$branch" 2>/dev/null || git switch "$branch"
 
 # Prompt body — same intent as routines/overnight-build.yml

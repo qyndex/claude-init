@@ -35,6 +35,7 @@ if [ "$mode" = "report" ]; then
     insummary && /^[[:space:]]+summary:/ { print "    " $0; insummary=0 }
     /^- \[/ && !/^- \[!\]/ { insummary=0 }
   ' tasks/TASKS.md
+  # JUSTIFIED: the fallback yields a zero count when grep finds no failed-task markers (exit 1) — reporting zero failed tasks is the correct outcome, not an abort
   n="$(grep -cE '^- \[!\]' tasks/TASKS.md || echo 0)"
   echo
   echo "$n failed task(s). Retry one with: bash .claude/scripts/requeue-failed.sh --reset <T-id>"

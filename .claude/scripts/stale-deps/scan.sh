@@ -21,6 +21,7 @@ OUT="/tmp/candidates-${STACK}.json"
 case "$STACK" in
   npm|typescript)
     if [ ! -f package.json ]; then echo '[]' > "$OUT"; exit 0; fi
+    # JUSTIFIED: the redirect hides npm's noise; npm outdated exits non-zero precisely WHEN packages are outdated, so its JSON on stdout is exactly what jq must process here
     npm outdated --json 2>/dev/null | jq --argjson maj "$INCLUDE_MAJORS" '
       to_entries | map({
         pkg: .key,
@@ -38,6 +39,7 @@ case "$STACK" in
     ;;
   python|pypi)
     if [ ! -f pyproject.toml ] && [ ! -f requirements.txt ]; then echo '[]' > "$OUT"; exit 0; fi
+    # JUSTIFIED: the redirect hides pip's deprecation/resolver warnings on stderr; jq parses the JSON array on stdout, and no outdated packages yields an empty list
     pip list --outdated --format=json 2>/dev/null | jq --argjson maj "$INCLUDE_MAJORS" '
       map({
         pkg: .name, from: .version, to: .latest_version,
@@ -51,6 +53,7 @@ case "$STACK" in
     ;;
   rust|crates)
     if [ ! -f Cargo.toml ]; then echo '[]' > "$OUT"; exit 0; fi
+    # JUSTIFIED: the redirect hides cargo's progress chatter on stderr; jq consumes the JSON report on stdout, and an empty report yields an empty candidate list
     cargo outdated --format json 2>/dev/null | jq --argjson maj "$INCLUDE_MAJORS" '
       .dependencies // [] | map({
         pkg: .name, from: .project, to: .latest,
@@ -62,6 +65,7 @@ case "$STACK" in
     ;;
   go)
     if [ ! -f go.mod ]; then echo '[]' > "$OUT"; exit 0; fi
+    # JUSTIFIED: the redirect hides go's per-module resolution warnings on a partial module graph; jq still parses the valid JSON objects on stdout into the candidate list
     go list -u -m -json all 2>/dev/null | jq -s --argjson maj "$INCLUDE_MAJORS" '
       [.[] | select(.Update) | {
         pkg: .Path, from: .Version, to: .Update.Version,
@@ -89,10 +93,10 @@ if command -v jq >/dev/null && [ -s "$OUT" ]; then
     eco_name="$STACK"
     case "$STACK" in npm|typescript) eco_name="npm" ;; python|pypi) eco_name="PyPI" ;; rust|crates) eco_name="crates.io" ;; go) eco_name="Go" ;; esac
 
+    # JUSTIFIED: OSV is best-effort enrichment; the redirect tolerates an offline/rate-limited query — an empty response leaves the candidate unmarked (has_vuln stays false)
     osv=$(curl -fsSL -X POST "https://api.osv.dev/v1/query" \
       -H "Content-Type: application/json" \
-      -d "{\"package\":{\"name\":\"$pkg\",\"ecosystem\":\"$eco_name\"},\"version\":\"$from\"}" \
-      2>/dev/null)
+      -d "{\"package\":{\"name\":\"$pkg\",\"ecosystem\":\"$eco_name\"},\"version\":\"$from\"}" 2>/dev/null)
 
     vulns=$(echo "$osv" | jq -r '.vulns // [] | length')
     if [ "${vulns:-0}" -gt 0 ]; then

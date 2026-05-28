@@ -38,6 +38,7 @@ fi
 # as type:hotfix issues (a hotfix has no originating spec file).
 if [ "$target" = "HOTFIX" ]; then
   # Find hotfix tasks in TASKS.md without a hotfix_issue yet, create write-only issues
+  # JUSTIFIED: awk over TASKS.md — the redirect tolerates a missing ledger file; no HOTFIX-tagged tasks means the while loop simply does not iterate
   awk '/^- \[/{t=$0} /spec:HOTFIX/{print t}' tasks/TASKS.md 2>/dev/null | while IFS= read -r task_line; do
     tid=$(echo "$task_line" | grep -oE 'T-[0-9]+')
     # summary is the next line after the task marker
@@ -46,12 +47,15 @@ if [ "$target" = "HOTFIX" ]; then
     # Skip if already projected
     if grep -A8 "$tid" tasks/TASKS.md | grep -q 'hotfix_issue: #'; then continue; fi
     if [ "$DRY_RUN" = "1" ]; then echo "[dry-run] would create hotfix issue for $tid ($summary)"; continue; fi
+    # JUSTIFIED: the redirect hides gh stderr; an empty url on failure yields an empty num that the `[ -n "$num" ]` guard below catches, so the loop just moves on
     url=$(gh issue create --title "[hotfix] $summary" \
       --body "Auto-projected hotfix for ledger task $tid (fingerprint $fp). Source of truth: tasks/TASKS.md. Enters board at DOING." \
       --label "type:hotfix,status:doing,priority:hotfix" 2>/dev/null)
     num=$(echo "$url" | grep -oE '[0-9]+$')
     if [ -n "$num" ]; then
+      # JUSTIFIED: gh repo lookup — the redirect tolerates an unconfigured remote; an empty repo just skips the optional type PATCH below
       repo=$(gh repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null)
+      # JUSTIFIED: setting the hotfix issue type is best-effort cosmetic metadata; the fallback keeps a repo without issue-types configured from aborting the projection
       gh api "repos/${repo}/issues/${num}" -X PATCH -f type='Bug' >/dev/null 2>&1 || true
       # Write the issue number back into the task block (write-only)
       sed -i.bak "/$tid/,/hotfix_issue:/ s|hotfix_issue: <set by tasks-to-issues.sh projector>|hotfix_issue: #${num}|" tasks/TASKS.md && rm -f tasks/TASKS.md.bak
@@ -103,12 +107,15 @@ project_one() {
         printf "- [%s] %s — %s\n", checked, tid, sumline
       }
     }
+  # JUSTIFIED: awk over TASKS.md — 2>/dev/null tolerates a missing file; an empty checklist is handled by the placeholder default on the next line
   ' tasks/TASKS.md 2>/dev/null)
   [ -z "$checklist" ] && checklist="_(no tasks projected yet — planner has not decomposed this spec)_"
 
   # Count for lifecycle hint
   local total done
+  # JUSTIFIED: grep -c counting checklist rows; grep exits 1 on zero matches, so `|| echo 0` defaults the count for an empty checklist (value only feeds a display string)
   total=$(echo "$checklist" | grep -c '^- \[' || echo 0)
+  # JUSTIFIED: grep -c counting completed rows; `|| echo 0` defaults the count when no task is done yet (display-only "$done / $total")
   done=$(echo "$checklist" | grep -c '^- \[x\]' || echo 0)
 
   # Body (regenerated WHOLE — idempotent)
@@ -148,11 +155,14 @@ EOF
       || echo "  ✗ failed to update #$issue_num"
   else
     # Create new — set type via gh api (gh issue create has no --type)
+    # JUSTIFIED: 2>/dev/null hides gh's stderr; the empty new_url on failure is detected by the `[ -n "$new_num" ]` guard below, which reports the failure explicitly
     new_url=$(gh issue create --title "$title" --body "$body" --label "type:feature,status:todo" 2>/dev/null)
     new_num=$(echo "$new_url" | grep -oE '[0-9]+$')
     if [ -n "$new_num" ]; then
       # Set the issue type (Feature) via REST
+      # JUSTIFIED: gh repo lookup — 2>/dev/null tolerates a detached/unconfigured remote; an empty repo just skips the optional type PATCH below
       repo=$(gh repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null)
+      # JUSTIFIED: setting issue type is best-effort cosmetic metadata; `|| true` + 2>&1 keep a repo without issue-types configured from failing the projection
       gh api "repos/${repo}/issues/${new_num}" -X PATCH -f type='Feature' >/dev/null 2>&1 || true
       # Store the issue number back into the spec frontmatter
       if grep -q '^github_issue:' "$spec"; then

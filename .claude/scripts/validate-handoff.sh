@@ -52,6 +52,7 @@ issues=0
 # Try yq for proper parse
 if command -v yq >/dev/null 2>&1; then
   for field in "${required_fields[@]}"; do
+    # JUSTIFIED: the redirect mutes yq on a malformed handoff; a null/empty val is caught explicitly on the next line and reported as a missing field
     val=$(yq eval ".$field // null" "$SOURCE" 2>/dev/null)
     if [ "$val" = "null" ] || [ -z "$val" ]; then
       echo "✗ missing required field: $field"
@@ -59,12 +60,14 @@ if command -v yq >/dev/null 2>&1; then
     fi
   done
 
+  # JUSTIFIED: the redirect mutes yq when .status is absent/malformed; an empty status skips the validity check below, which is the intended optional-field behavior
   status=$(yq eval '.status // ""' "$SOURCE" 2>/dev/null)
   if [ -n "$status" ] && ! echo "$valid_statuses" | grep -qw "$status"; then
     echo "✗ invalid status: '$status' (must be: $valid_statuses)"
     issues=$((issues + 1))
   fi
 
+  # JUSTIFIED: the redirect mutes yq when .confidence is absent/malformed; an empty value skips the validity check, the intended optional-field behavior
   confidence=$(yq eval '.confidence // ""' "$SOURCE" 2>/dev/null)
   if [ -n "$confidence" ] && ! echo "$valid_confidences" | grep -qw "$confidence"; then
     echo "✗ invalid confidence: '$confidence' (must be: $valid_confidences)"
@@ -73,6 +76,7 @@ if command -v yq >/dev/null 2>&1; then
 
   # If status=qa_pass, evidence_paths must be populated
   if [ "$status" = "qa_pass" ]; then
+    # JUSTIFIED: the redirect mutes yq when evidence_paths is absent; the ${paths_count:-0} default below treats that as zero, which fails the qa_pass requirement as intended
     paths_count=$(yq eval '.evidence_paths | length' "$SOURCE" 2>/dev/null)
     if [ "${paths_count:-0}" -eq 0 ]; then
       echo "✗ status=qa_pass requires evidence_paths to be populated"

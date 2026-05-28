@@ -14,6 +14,7 @@ cd "$ROOT"
 
 BASE="${1:-main}"
 
+# JUSTIFIED: git diff error output discarded — when BASE is unknown (e.g. shallow clone) we fall back to git ls-files so the whole tree is checked rather than aborting
 changed=$(git diff --name-only "$BASE...HEAD" 2>/dev/null || git ls-files)
 [ -z "$changed" ] && { echo "no changes"; exit 0; }
 
@@ -34,6 +35,7 @@ for f in $changed; do
     api_changed=$((api_changed + 1))
     base=$(basename "$f" | sed -E 's/\.[a-z]+$//')
     # Look for *.integration.test.* anywhere in the repo
+    # JUSTIFIED: find error output discarded — permission-denied subtrees are skipped; grep -q decides presence, and "no match" correctly flags the missing test
     if ! find . -name "${base}.integration.test.*" -not -path '*/node_modules/*' -print -quit 2>/dev/null | grep -q .; then
       echo "  ✗ API file $f lacks ${base}.integration.test.*"
       missing=$((missing + 1))
@@ -44,6 +46,7 @@ for f in $changed; do
   if echo "$f" | grep -qE '/(repositories|dao|queries|repos)/'; then
     db_changed=$((db_changed + 1))
     base=$(basename "$f" | sed -E 's/\.[a-z]+$//')
+    # JUSTIFIED: find error output discarded — permission-denied subtrees are skipped; grep -q decides presence, and "no match" correctly flags the missing test
     if ! find . -name "${base}.integration.test.*" -not -path '*/node_modules/*' -print -quit 2>/dev/null | grep -q .; then
       echo "  ✗ DB file $f lacks ${base}.integration.test.*"
       missing=$((missing + 1))

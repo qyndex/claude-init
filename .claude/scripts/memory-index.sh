@@ -38,6 +38,7 @@ extract_field() {
 extract_paths_touched() {
   # Grep paths mentioned in the body (lines with file:// or src/ or src/**/ patterns)
   local file="$1"
+  # JUSTIFIED: a memory file with no code-path mentions makes grep exit 1 — the pipeline then produces an empty JSON array via jq, the correct "no paths_touched" value
   grep -oE '`[a-zA-Z0-9_./-]+\.(ts|tsx|js|jsx|py|go|rs|java|kt|sql|md|yml|yaml|json)`' "$file" 2>/dev/null \
     | sed 's/`//g' \
     | sort -u \
@@ -49,6 +50,7 @@ extract_refs() {
   # Find references to other memory items (ADR-XXXX, [[name]] wikilinks)
   local file="$1"
   {
+    # JUSTIFIED: a file with no ADR-refs / wikilinks makes both greps exit 1 — the group then yields an empty refs array via jq, the correct "no references" value
     grep -oE 'ADR-[0-9]+' "$file" 2>/dev/null
     grep -oE '\[\[[a-z0-9-]+\]\]' "$file" 2>/dev/null | sed 's/\[\[//;s/\]\]//'
   } | sort -u | jq -R . | jq -sc .
@@ -85,6 +87,7 @@ build_entry() {
   local recurred_at=$(extract_field "$file" "recurred_at")
   local paths_touched=$(extract_paths_touched "$file")
   local refs=$(extract_refs "$file")
+  # JUSTIFIED: GNU-vs-BSD stat probe — whichever flag form the platform rejects is muted; the surviving form supplies mtime, and a vanished file leaves it empty (indexed as 0 downstream)
   local mtime=$(stat -f %m "$file" 2>/dev/null || stat -c %Y "$file" 2>/dev/null)
 
   jq -nc \
@@ -122,6 +125,7 @@ build_entry() {
 }
 
 cmd="${1:-help}"
+# JUSTIFIED: when invoked with no args the shift has nothing to drop and exits non-zero — harmless, the fallback keeps the script going to the help case
 shift || true
 
 case "$cmd" in
@@ -140,11 +144,12 @@ case "$cmd" in
       -not -name '0000-template.md' \
       -not -path '*/.cache/*' \
       -not -path '*/audits/*' \
-      -type f -print0 2>/dev/null)
+      -type f -print0 2>/dev/null) # JUSTIFIED: mutes find traversal warnings on a sparse memory tree; an empty set just means zero artifacts to index
 
     # Now walk forward refs to populate back_refs (second pass)
     if [ "$count" -gt 0 ]; then
       tmp=$(mktemp)
+      # JUSTIFIED: muting parse noise here is safe — a freshly written index with no refs yields an empty refs file and the back_ref pass simply does nothing
       jq -c '. as $entry | .refs[] | select(. != null) | {target: ., source: $entry.id}' "$INDEX" 2>/dev/null > "$tmp.refs"
 
       while IFS= read -r line; do
@@ -181,6 +186,7 @@ case "$cmd" in
     id=$(echo "$entry" | jq -r .id)
     # Remove old entry, append new
     tmp=$(mktemp)
+    # JUSTIFIED: filters the prior entry for this id out of the index; a missing or single-line index makes grep find nothing and exit non-zero, so the fallback keeps the temp file empty and the fresh entry is appended below
     grep -v "\"id\":\"$id\"" "$INDEX" 2>/dev/null > "$tmp" || true
     echo "$entry" >> "$tmp"
     mv "$tmp" "$INDEX"
@@ -206,6 +212,7 @@ case "$cmd" in
       esac
     done
 
+    # JUSTIFIED: a query against an index with no matching entries should print nothing rather than emit jq filter noise to the user
     jq -c "$filter" "$INDEX" 2>/dev/null
     ;;
 
@@ -218,6 +225,7 @@ case "$cmd" in
     while IFS= read -r entry; do
       id=$(echo "$entry" | jq -r .id)
       for ref in $(echo "$entry" | jq -r '.refs[]'); do
+        # JUSTIFIED: a ref pointing at an absent target yields no back_refs and exit non-zero — empty is the intended value, the symmetry check below then reports the asymmetry
         target_back_refs=$(jq -r --arg t "$ref" 'select(.id == $t or (.id | endswith($t))) | .back_refs[]' "$INDEX" 2>/dev/null)
         if ! echo "$target_back_refs" | grep -q "^${id}$"; then
           echo "⚠ $id → $ref but $ref does not back-ref $id"

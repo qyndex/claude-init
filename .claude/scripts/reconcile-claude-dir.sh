@@ -23,6 +23,7 @@ esac; done
 
 [ -z "$FROM" ] && { echo "usage: reconcile-claude-dir.sh --from <factory-clone-dir> [--into <repo>] [--dry-run]"; exit 1; }
 [ -d "$FROM/.claude" ] || { echo "no .claude/ found in factory dir: $FROM"; exit 1; }
+# JUSTIFIED: a non-existent target makes cd fail; the muted system message is replaced by the clearer fallback error and a hard exit, so this never proceeds in the wrong directory
 cd "$INTO" 2>/dev/null || { echo "cannot cd into target: $INTO"; exit 1; }
 
 ts="$(date +%Y%m%d-%H%M%S)"
@@ -44,11 +45,13 @@ fi
 
 echo "→ Existing .claude/ found in $INTO — reconciling (3 buckets, never silent-merge)."
 run "mkdir -p '$BK'"
+# JUSTIFIED: recursive backup of regular files into the just-created backup dir; the muted stream + fallback swallow only per-entry warnings (sockets, perm-odd state files) so a cosmetic copy gripe doesn't abort adoption — regular files are still backed up, preserving reversibility
 run "cp -R .claude/. '$BK/' 2>/dev/null || true"
 echo "  backed up your original .claude/ → $BK"
 
 # Preserve their CLAUDE.md if it is NOT already the factory's (signature check).
 conflict_claude=""
+# JUSTIFIED: the redirect drops grep stderr — only the match status is wanted, and a non-match (no factory signature) correctly triggers preservation of the user's existing CLAUDE.md
 if [ -f .claude/CLAUDE.md ] && ! grep -q "Karpathy's Four Principles" .claude/CLAUDE.md 2>/dev/null; then
   run "cp .claude/CLAUDE.md .claude/CLAUDE.md.brownfield-orig"
   conflict_claude=1
@@ -56,6 +59,7 @@ if [ -f .claude/CLAUDE.md ] && ! grep -q "Karpathy's Four Principles" .claude/CL
 fi
 # Preserve their settings.json (custom permissions) before the factory's overwrites it.
 conflict_settings=""
+# JUSTIFIED: the redirect drops grep stderr — only the match status is wanted, and a non-match (no factory marker) correctly triggers preservation of the user's existing settings.json
 if [ -f .claude/settings.json ] && ! grep -q "disableBypassPermissionsMode" .claude/settings.json 2>/dev/null; then
   run "cp .claude/settings.json .claude/settings.json.brownfield-orig"
   conflict_settings=1

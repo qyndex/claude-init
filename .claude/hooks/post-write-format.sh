@@ -21,29 +21,35 @@ case "$ext" in
     if command -v prettier >/dev/null 2>&1; then
       prettier --write --log-level error "$path" 2>>.claude/hooks/.log/format.log || log "prettier failed on $path"
     elif command -v npx >/dev/null 2>&1; then
+      # JUSTIFIED: || true — this is a non-blocking format hook; a prettier failure (e.g. unparseable file) must never fail the user's Write
       npx --no-install prettier --write --log-level error "$path" 2>>.claude/hooks/.log/format.log || true
     fi
     ;;
   py)
     if command -v ruff >/dev/null 2>&1; then
       ruff format "$path" 2>>.claude/hooks/.log/format.log || log "ruff format failed on $path"
+      # JUSTIFIED: || true — autofix is non-blocking; unfixable lint (e.g. syntax error) must not fail the user's Write
       ruff check --fix --quiet "$path" 2>>.claude/hooks/.log/format.log || true
     elif command -v black >/dev/null 2>&1; then
+      # JUSTIFIED: || true — non-blocking format hook; a black failure on an unparseable file must not fail the user's Write
       black --quiet "$path" 2>>.claude/hooks/.log/format.log || true
     fi
     ;;
   rs)
     if command -v rustfmt >/dev/null 2>&1; then
+      # JUSTIFIED: || true — non-blocking format hook; a rustfmt parse failure must not fail the user's Write
       rustfmt "$path" 2>>.claude/hooks/.log/format.log || true
     fi
     ;;
   go)
     if command -v gofmt >/dev/null 2>&1; then
+      # JUSTIFIED: || true — non-blocking format hook; a gofmt parse failure must not fail the user's Write
       gofmt -w "$path" 2>>.claude/hooks/.log/format.log || true
     fi
     ;;
   sh|bash)
     if command -v shfmt >/dev/null 2>&1; then
+      # JUSTIFIED: || true — non-blocking format hook; an shfmt parse failure must not fail the user's Write
       shfmt -w "$path" 2>>.claude/hooks/.log/format.log || true
     fi
     ;;
@@ -52,6 +58,7 @@ esac
 # Round 5 C1: maintain typed memory index on writes to .claude/memory/**
 case "$path" in
   .claude/memory/*.md|.claude/memory/*/*.md)
+    # JUSTIFIED: || true — index maintenance is a side effect; its failure must not fail the user's Write to memory
     bash .claude/scripts/memory-index.sh touch "$path" 2>>.claude/hooks/.log/format.log || true
     ;;
 esac
@@ -68,6 +75,7 @@ esac
 # Round 9 F: regen skill registry when any SKILL.md changes.
 case "$path" in
   .claude/skills/*/SKILL.md)
+    # JUSTIFIED: || true — registry regen is a side effect; its failure must not fail the user's Write to a SKILL.md
     bash .claude/scripts/regen-skill-registry.sh >/dev/null 2>&1 || true
     ;;
 esac

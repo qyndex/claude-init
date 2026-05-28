@@ -33,6 +33,7 @@ tar -C "$HOME/.claude/projects" \
     --exclude='*/telemetry/*' \
     --exclude='*/ide/*' \
     --exclude='*/stats-cache.json' \
+    `# JUSTIFIED: tar stderr suppressed — "file changed as we read it" on live session files is benign for a best-effort snapshot; the archive is still usable` \
     -czf "$dst_file" "$slug" 2>/dev/null
 
 # Include any todos referencing this project's session ids (best-effort)
@@ -41,17 +42,21 @@ if [ -d "$HOME/.claude/tasks" ]; then
   for j in "$HOME"/.claude/tasks/*.json; do
     [ -f "$j" ] || continue
     # Heuristic: copy todos modified in the last 7 days
+    # JUSTIFIED: find stderr suppressed — a file vanishing mid-loop (concurrent session) is benign; empty result just skips the copy
     if [ "$(find "$j" -mtime -7 -print 2>/dev/null)" ]; then
       cp "$j" "$todos_tmp/"
     fi
   done
+  # JUSTIFIED: ls stderr suppressed — empty/absent temp dir yields empty, correctly treated as "no todos to archive"
   if [ -n "$(ls -A "$todos_tmp" 2>/dev/null)" ]; then
+    # JUSTIFIED: tar stderr suppressed — best-effort todos snapshot; a packaging hiccup must not fail the SessionEnd mirror
     tar -C "$todos_tmp" -czf "${dst_dir}/${slug}-todos.tar.gz" . 2>/dev/null
   fi
   rm -rf "$todos_tmp"
 fi
 
 # Manifest for restore-user-state.sh to know what's in the archive
+# JUSTIFIED: du stderr suppressed — purely cosmetic size string for the manifest; an empty value is harmless
 size_h=$(du -h "$dst_file" 2>/dev/null | cut -f1)
 cat > "${dst_dir}/${slug}.manifest.json" <<EOF
 {

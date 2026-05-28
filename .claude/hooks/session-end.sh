@@ -29,6 +29,7 @@ emit_ccusage() {
     printf '%s' "$raw" | jq -c \
       --arg init "$init_tag" \
       --arg spec "$spec_tag" \
+      # JUSTIFIED: jq error muted — non-JSON ccusage output is passed through unmodified by the else-branch; merge failure shouldn't crash usage capture
       '. + {initiative: $init, spec: $spec}' 2>/dev/null
   else
     printf '%s\n' "$raw"
@@ -36,9 +37,11 @@ emit_ccusage() {
 }
 
 if command -v ccusage >/dev/null 2>&1; then
+  # JUSTIFIED: ccusage error muted + empty fallback — token telemetry is optional; a failed/absent ccusage just yields empty raw, skipped by the [ -n "$raw" ] guard
   raw=$(ccusage blocks --json 2>/dev/null || echo "")
   [ -n "$raw" ] && emit_ccusage "$raw" >> .claude/hooks/.log/usage.jsonl
 elif command -v npx >/dev/null 2>&1; then
+  # JUSTIFIED: npx ccusage error muted + empty fallback — same optional-telemetry contract; empty raw is skipped by the guard
   raw=$(npx --no-install ccusage blocks --json 2>/dev/null || echo "")
   [ -n "$raw" ] && emit_ccusage "$raw" >> .claude/hooks/.log/usage.jsonl
 fi
@@ -62,8 +65,10 @@ in_flight=".claude/memory/in-flight.md"
   # Git: uncommitted work?
   if git rev-parse --git-dir >/dev/null 2>&1; then
     echo "## Git state"
+    # JUSTIFIED: git error muted — a detached HEAD has no ref name; "unknown" is the documented brief fallback
     branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo unknown)
     echo "- branch: \`$branch\`"
+    # JUSTIFIED: git error muted — inside the rev-parse success branch; residual noise just yields an empty dirty list (treated as clean)
     dirty=$(git status --porcelain 2>/dev/null | head -20)
     if [ -n "$dirty" ]; then
       echo "- dirty (top 20 entries):"
@@ -73,6 +78,7 @@ in_flight=".claude/memory/in-flight.md"
     else
       echo "- working tree: clean"
     fi
+    # JUSTIFIED: git error muted — a branch with no upstream (@{u}) is expected locally; an empty result correctly omits the unpushed section
     unpushed=$(git log @{u}..HEAD --oneline 2>/dev/null | head -5)
     if [ -n "$unpushed" ]; then
       echo "- unpushed commits:"
@@ -96,6 +102,7 @@ in_flight=".claude/memory/in-flight.md"
   # Specs: in review or draft
   if [ -d specs/active ]; then
     echo "## Specs in draft/review"
+    # JUSTIFIED: grep error muted — an empty specs/active (no glob match) is normal; "_(none)_" is the intended brief fallback
     grep -lE '^status: (draft|review)' specs/active/*.md 2>/dev/null | head -5 || echo "_(none)_"
     echo
   fi
@@ -103,17 +110,20 @@ in_flight=".claude/memory/in-flight.md"
   # Swarms: any active streams?
   if [ -d .swarms/streams ]; then
     echo "## Active swarm streams"
+    # JUSTIFIED: ls error muted — an empty streams dir is normal; "_(none)_" is the intended brief fallback
     ls -1 .swarms/streams/ 2>/dev/null | head -10 || echo "_(none)_"
     echo
   fi
 
   # Recently touched files (last 30 min)
   echo "## Files touched in last 30 min"
+  # JUSTIFIED: find error muted — unreadable subdirs during the walk emit noise that would corrupt the markdown brief; the file list is best-effort
   find . -path './.git' -prune -o -type f -mmin -30 -not -path './.claude/hooks/.log/*' -not -path './node_modules/*' -print 2>/dev/null | head -15
   echo
 
   echo "---"
   echo "_Cleared at the start of the next session by session-start-context.sh after it loads this brief._"
+# JUSTIFIED: the brief-writing block's stderr is muted — a transient write failure must not abort SessionEnd; the [ -f .tmp ] guard below handles a missing file
 } > "$in_flight.tmp" 2>/dev/null
 
 # Hard 200-line cap so a long session can't poison the next session's context.
@@ -126,12 +136,19 @@ fi
 # Also emit structured session-recent.json — single source of truth that future
 # tooling (Graphify, /context-pack, etc.) can query without parsing markdown.
 if command -v jq >/dev/null 2>&1 && git rev-parse --git-dir >/dev/null 2>&1; then
+  # JUSTIFIED: git error muted — a detached HEAD has no ref name; "unknown" is the documented cache fallback
   branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo unknown)
+  # JUSTIFIED: git error muted — already inside the rev-parse success branch; any residual noise just yields a 0 count
   dirty_count=$(git status --porcelain 2>/dev/null | wc -l | tr -d ' ')
+  # JUSTIFIED: git error muted — no upstream configured (@{u}) is expected on local branches; 0 unpushed is correct then
   unpushed_count=$(git log @{u}..HEAD --oneline 2>/dev/null | wc -l | tr -d ' ')
+  # JUSTIFIED: grep -c exits 1 with stderr when no in-progress tasks match; muted + fallback so an empty backlog records 0
   in_progress=$(grep -cE '^- \[~\]' tasks/TASKS.md 2>/dev/null || echo 0)
+  # JUSTIFIED: grep -c exits 1 with stderr when no blocked tasks match; muted + fallback so none records 0
   blocked=$(grep -cE '^- \[b\]' tasks/TASKS.md 2>/dev/null || echo 0)
+  # JUSTIFIED: ls + grep errors muted — no specs/active glob match means 0 drafts, the correct cache value
   drafts=$(ls specs/active/*.md 2>/dev/null | xargs grep -lE '^status: draft' 2>/dev/null | wc -l | tr -d ' ')
+  # JUSTIFIED: ls error muted — absent streams dir means 0 active streams, the correct cache value
   streams=$(ls -1 .swarms/streams/ 2>/dev/null | wc -l | tr -d ' ')
 
   jq -nc \
@@ -149,13 +166,16 @@ if command -v jq >/dev/null 2>&1 && git rev-parse --git-dir >/dev/null 2>&1; the
       tasks: {in_progress: $in_progress, blocked: $blocked},
       specs: {drafts: $drafts},
       swarm_streams: $streams
+    # JUSTIFIED: the redirect drops jq stderr — the session-recent cache is advisory; a write hiccup must not fail the SessionEnd hook
     }' > "$session_recent" 2>/dev/null
 fi
 
 # Round 6 B: snapshot ~/.claude/projects/<slug>/ into the repo so subscription
 # switches / home-dir wipes / new-machine clones are recoverable.
 # Best-effort, non-blocking.
+# JUSTIFIED: backgrounded best-effort mirror at exit — its stderr is irrelevant to the closing session and must not delay shutdown
 bash .claude/scripts/mirror-user-state.sh 2>/dev/null &
+# JUSTIFIED: guards disown on shells lacking the builtin; a non-job-control shell simply skips detaching, which is harmless at exit
 disown 2>/dev/null || true
 
 exit 0

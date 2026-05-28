@@ -36,12 +36,14 @@ while IFS= read -r f; do
   echo "$base" | grep -qE "$allowlist" && continue
 
   # Find read-state patterns, excluding prose/prohibition + markdown bullet/quote lines
+  # JUSTIFIED: grep stderr suppressed + `|| true` — a clean file (no forbidden pattern) makes the pipeline exit 1; empty $hits is the pass case, verified by the [ -n "$hits" ] check
   hits=$(grep -nE "$read_patterns" "$f" 2>/dev/null | grep -vE "$prohibition" | grep -vE '^[0-9]+:[[:space:]]*(>|#|-|\*|//)' || true)
   if [ -n "$hits" ]; then
     echo "✗ $f reads task/issue state from GitHub (authority inversion):"
     echo "$hits" | sed 's/^/    /'
     violations=$((violations + 1))
   fi
+# JUSTIFIED: find stderr suppressed — a scanned dir (e.g. .github/workflows) may be absent in a partial checkout; missing dirs simply contribute no files to scan
 done < <(find .claude/scripts .claude/hooks .claude/agents .github/workflows -type f \( -name '*.sh' -o -name '*.md' -o -name '*.yml' \) 2>/dev/null)
 
 if [ "$violations" -gt 0 ]; then

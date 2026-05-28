@@ -53,6 +53,7 @@ escalate() {
   local reason="$1" code="${2:-1}"
   log "ESCALATE: $reason (exit $code)"
   if [ -f "$FLEET" ]; then
+    # JUSTIFIED: jq stderr suppressed and || true — best-effort fleet-status write inside escalate(); a failure must not mask the original blocking failure we're about to exit on
     jq --arg s "$STREAM" --arg r "$reason" \
        '.fleet[$s].status = "blocked" | .fleet[$s].blocked_reason = $r | .fleet[$s].blocked_at = (now|todate)' \
        "$FLEET" > "${FLEET}.tmp" 2>/dev/null && mv "${FLEET}.tmp" "$FLEET" || true
@@ -62,6 +63,7 @@ escalate() {
   if [ -f tasks/TASKS.md ] && [ -x .claude/scripts/findings-to-tasks.sh ]; then
     local tf; tf="$(mktemp)"
     echo "- [ ] verified-merge blocked for stream $STREAM: $reason — triage $LOG (owner: @oncall)" > "$tf"
+    # JUSTIFIED: || true — queuing the triage task is best-effort surfacing inside escalate(); its failure must not prevent the exit that propagates the real blocking code
     bash .claude/scripts/findings-to-tasks.sh "$tf" --priority incident-followup --source "verified-merge:$STREAM" >/dev/null 2>&1 || true
     rm -f "$tf"
   fi
@@ -82,6 +84,7 @@ git -C "$WORKTREE" fetch origin main >> "$LOG" 2>&1
 
 if [ "$DRY_RUN" = "0" ]; then
   if ! git -C "$WORKTREE" rebase origin/main >> "$LOG" 2>&1; then
+    # JUSTIFIED: || true — the rebase already failed; aborting is cleanup and may itself report "no rebase in progress", which is harmless before we escalate
     git -C "$WORKTREE" rebase --abort >> "$LOG" 2>&1 || true
     escalate "rebase onto main failed — likely textual conflict; human required" 10
   fi
@@ -93,8 +96,10 @@ if [ "$DRY_RUN" = "0" ]; then
     sib_branch=$(jq -r --arg s "$sib" '.fleet[$s].branch // ""' "$FLEET")
     [ -z "$sib_branch" ] && continue
     log "  rebasing onto $sib_branch"
+    # JUSTIFIED: || true — sibling fetch is best-effort; if the ref is already local the rebase below still proceeds, and a fetch miss surfaces as a rebase failure handled next
     git -C "$WORKTREE" fetch origin "$sib_branch" >> "$LOG" 2>&1 || true
     if ! git -C "$WORKTREE" rebase "origin/$sib_branch" >> "$LOG" 2>&1; then
+      # JUSTIFIED: || true — rebase already failed; aborting is cleanup that may report "no rebase in progress", harmless before escalate
       git -C "$WORKTREE" rebase --abort >> "$LOG" 2>&1 || true
       escalate "rebase onto sibling $sib_branch failed" 11
     fi
@@ -136,6 +141,7 @@ Then re-run verify.sh. If verify still fails, exit non-zero — do NOT push brok
       --max-budget-usd 2 \
       --permission-mode auto \
       --append-system-prompt "$mediation_prompt" \
+      # JUSTIFIED: || true — a non-zero from the mediation agent is intentionally tolerated; the authoritative gate is the verify.sh re-run immediately below, which escalates on failure
       "Fix the integration failure for stream $STREAM" >> "$LOG" 2>&1) || true
 
     # Re-run verify
@@ -170,6 +176,7 @@ if [ "$DRY_RUN" = "1" ]; then
   log "  dry-run: would re-verify main and auto-revert on failure"
 else
   git checkout main >> "$LOG" 2>&1
+  # JUSTIFIED: || true — pull is best-effort (may be offline or up-to-date); we still post-merge-verify the local main below, which is the real gate
   git pull >> "$LOG" 2>&1 || true
 
   if ! bash .claude/scripts/verify.sh >> "$LOG" 2>&1; then
@@ -187,6 +194,7 @@ else
         --append-system-prompt "Post-merge verify failed on main after merging stream $STREAM. \
 Read the failure in $LOG, identify the issue, propose minimal fix, commit, push, open PR. \
 Do NOT auto-merge." \
+        # JUSTIFIED: || true — the auto-fix agent's exit is non-authoritative; main is already reverted+safe and the agent only opens a PR for human review, so its failure must not abort cleanup
         "Investigate the post-merge failure" >> "$LOG" 2>&1 || true
       git checkout main >> "$LOG" 2>&1
     fi

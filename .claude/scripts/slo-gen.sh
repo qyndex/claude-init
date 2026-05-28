@@ -27,6 +27,7 @@ sloth_spec="deploy/.sloth-spec.yaml"
 
 {
   echo "version: prometheus/v1"
+  # JUSTIFIED: slo.yml may be absent — the muted grep plus the fallback default the service name to "app" rather than failing SLO generation
   echo "service: \"$(grep -m1 '^service:' slo.yml 2>/dev/null | sed 's/service:[[:space:]]*//' || echo app)\""
   echo "slos:"
   # Parse services from slo.yml. Expected shape:

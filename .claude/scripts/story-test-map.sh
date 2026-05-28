@@ -61,7 +61,9 @@ for spec in specs/active/*.md; do
     total=$((total + 1))
 
     # Match any file matching e2e/<spec-id>/* OR e2e/spec-<id>/*
+    # JUSTIFIED: the muted find tolerates a missing e2e/ tree; no matches means this story has no E2E test, which the caller reports as a gap
     test_files=$(find e2e -path "e2e/${spec_id}*/*" -name '*.spec.*' 2>/dev/null | head -3)
+    # JUSTIFIED: same — the muted find tolerates a missing e2e/ tree; the two find results concatenate and emptiness signals a missing E2E test
     test_files=$(find e2e -path "e2e/spec-${spec_id}*/*" -name '*.spec.*' 2>/dev/null | head -3)$test_files
 
     story_short=$(echo "$story_line" | sed 's/^- *//' | head -c 80)

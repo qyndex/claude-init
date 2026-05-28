@@ -79,6 +79,7 @@ EOF
     mkdir -p "$archive_root/decisions" "$archive_root/incidents" "$archive_root/patterns"
 
     for dir in decisions incidents patterns; do
+      # JUSTIFIED: the redirect drops find stderr when a memory subdir does not exist — the loop then archives nothing for that category, which is correct
       find ".claude/memory/$dir" -name '*.md' -mtime +365 2>/dev/null | while read f; do
         mv "$f" "$archive_root/$dir/"
         echo "Archived $f"

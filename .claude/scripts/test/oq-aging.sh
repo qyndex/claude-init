@@ -33,6 +33,7 @@ cat >"$TASKS_FILE" <<'EOF'
 ## Backlog
 EOF
 
+# JUSTIFIED: BSD/GNU date portability in the fixture — BSD form first, GNU form the fallback; one always succeeds
 old_date="$(date -v-8d +%Y-%m-%d 2>/dev/null || date -d '8 days ago' +%Y-%m-%d)"
 new_date="$(date +%Y-%m-%d)"
 

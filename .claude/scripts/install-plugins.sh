@@ -26,6 +26,7 @@ CRITICAL_FAILURES=0
 step "Adding marketplaces"
 add_marketplace() {
   local mkt="$1"
+  # JUSTIFIED: the redirect drops CLI chatter — a non-zero exit (already-added or transient fetch failure) is non-fatal and handled by the warn branch below
   if claude -p "/plugin marketplace add $mkt" --bare 2>/dev/null; then
     ok "$mkt"
   else
@@ -42,6 +43,7 @@ add_marketplace "alexgreensh/token-optimizer"
 step "Installing CORE plugins (failure here is fatal)"
 core_install() {
   local plugin="$1"
+  # JUSTIFIED: the redirect drops CLI chatter only — the exit status is still honoured: a failure here routes to fail() which aborts, so this core install error is never silently swallowed
   if claude -p "/plugin install $plugin" --bare 2>/dev/null; then
     ok "$plugin"
   else
@@ -53,6 +55,7 @@ core_install "superpowers@superpowers-marketplace"
 step "Installing recommended plugins (failures here are non-fatal)"
 optional_install() {
   local plugin="$1"
+  # JUSTIFIED: the redirect drops CLI chatter — a non-zero exit (already-installed or transient fetch failure) is non-fatal for an optional plugin and handled by the warn branch below
   if claude -p "/plugin install $plugin" --bare 2>/dev/null; then
     ok "$plugin"
   else
@@ -78,6 +81,7 @@ done
 step "Installing Tier 3 memory (optional — claude-mem worker)"
 if [ "${INSTALL_CLAUDE_MEM:-yes}" = "yes" ]; then
   if command -v npx >/dev/null 2>&1; then
+    # JUSTIFIED: the redirect drops npx output — claude-mem is an optional Tier-3 component; a non-zero exit is non-fatal and surfaced by the warn branch below
     if npx -y claude-mem install 2>/dev/null; then
       ok "claude-mem worker installed (port 37777)"
     else
@@ -89,6 +93,7 @@ if [ "${INSTALL_CLAUDE_MEM:-yes}" = "yes" ]; then
 fi
 
 step "Verifying installed set"
+# JUSTIFIED: the redirect drops CLI chatter — this is a best-effort summary listing at the end of the run; a non-zero exit just prints nothing and the script still completes
 claude -p "/plugin list" --bare 2>/dev/null | head -50
 
 step "Done"

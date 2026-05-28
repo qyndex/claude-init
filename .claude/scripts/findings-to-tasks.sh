@@ -75,11 +75,13 @@ _process_findings() {
     text=$(echo "$line" | sed -E 's/^- \[[ x]\] *//;s/  +/ /g')
     [ -z "$text" ] && continue
 
+    # JUSTIFIED: the fallback yields empty when no owner tag is present (grep exit 1) — the next line substitutes DEFAULT_OWNER, so an unowned finding still gets a task
     owner=$(echo "$text" | grep -oE 'owner: @[a-zA-Z0-9_-]+' | sed 's/owner: //' || true)
     [ -z "$owner" ] && owner="$DEFAULT_OWNER"
     summary=$(echo "$text" | sed -E 's/ *\(owner:[^)]*\)//;s/ *— owner:.*$//' | head -c 200)
 
     # Idempotent skip if summary already in TASKS.md (also dedups within this batch)
+    # JUSTIFIED: the redirect drops grep stderr when TASKS.md is absent — a non-zero (no-match) exit correctly falls through to create the task rather than skipping it
     if grep -qF "summary: $summary" tasks/TASKS.md 2>/dev/null; then
       skipped=$((skipped + 1))
       continue
@@ -106,6 +108,7 @@ EOF
       tasks_append_active "$entry"
     fi
     created=$((created + 1))
+    # JUSTIFIED: the redirect drops grep stderr if the input file is missing — the loop then reads nothing and the run reports zero findings created
   done < <(grep -E '^[- ]*\[ \]' "$INPUT" 2>/dev/null)
 }
 

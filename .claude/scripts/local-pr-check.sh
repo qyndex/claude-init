@@ -86,6 +86,12 @@ echo
 echo "─────────────────────────────────────"
 printf '✓ pass=%d  ✗ fail=%d  ⊘ skip=%d\n' "$PASS" "$FAIL" "$SKIP"
 
+# Resolve git identity outside the JSON heredoc so the comments below stay valid shell.
+# JUSTIFIED: git stderr suppressed — outside a repo / before first commit rev-parse fails, "unknown" is the documented report fallback
+GIT_SHA="$(git rev-parse HEAD 2>/dev/null || echo unknown)"
+# JUSTIFIED: git stderr suppressed — detached/unborn branch yields no name, "unknown" is the documented report fallback
+GIT_BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo unknown)"
+
 cat > "$SUMMARY" <<EOF
 {
   "started_at": "$START_TS",
@@ -94,8 +100,8 @@ cat > "$SUMMARY" <<EOF
   "pass": $PASS,
   "fail": $FAIL,
   "skip": $SKIP,
-  "git_sha": "$(git rev-parse HEAD 2>/dev/null || echo unknown)",
-  "git_branch": "$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo unknown)"
+  "git_sha": "$GIT_SHA",
+  "git_branch": "$GIT_BRANCH"
 }
 EOF
 

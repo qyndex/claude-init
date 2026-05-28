@@ -90,6 +90,7 @@ EOF
   fi
 
   # Find any handoff-<ts>.yaml or .md file the subagent may have written
+  # JUSTIFIED: the redirect drops find stderr when .swarms or the reference log is absent — an empty handoff_path just leaves the digest field blank
   handoff_path=$(find .swarms -name 'handoff-*.yaml' -o -name 'handoff-*.md' -newer .claude/hooks/.log/subagent.log -type f 2>/dev/null | head -1)
   rm -f "$tmp_msg"
 fi
@@ -99,10 +100,12 @@ worktree_diff=""
 if [ "$agent_type" = "feature-stream" ]; then
   # Look up worktree from fleet.json by session_id
   if [ -f .swarms/coordinator/fleet.json ] && command -v jq >/dev/null 2>&1; then
+    # JUSTIFIED: the redirect drops jq stderr on a malformed fleet.json — an empty worktree fails the guard below and skips the diff surface
     worktree=$(jq -r --arg sid "$session_id" \
       '.fleet | to_entries[] | select(.value.sessionId == $sid) | .value.worktree' \
       .swarms/coordinator/fleet.json 2>/dev/null | head -1)
     if [ -n "$worktree" ] && [ -d "$worktree" ]; then
+      # JUSTIFIED: the redirect drops git diff stderr if the worktree has no main ref — an empty diff just leaves the worktree_diff digest field blank
       worktree_diff=$(cd "$worktree" && git diff --name-only main...HEAD 2>/dev/null | head -10 | tr '\n' ',' | sed 's/,$//')
     fi
   fi
@@ -129,6 +132,7 @@ jq -nc \
     worktree_diff: ($worktree_diff | split(",") | map(select(length > 0))),
     followup_tasks_count: $followup_count,
     blockers_count: $blockers_count
+    # JUSTIFIED: the redirect drops jq stderr — the subagent event log is best-effort telemetry; a write failure must never abort the SubagentStop hook
   }' >> .claude/hooks/.log/subagent.jsonl 2>/dev/null
 
 # ─── Round 6 C: surface digest back to parent ───────────────────────────

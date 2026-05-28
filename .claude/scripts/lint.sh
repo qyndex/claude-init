@@ -12,7 +12,9 @@ set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$ROOT"
 
+# JUSTIFIED: the redirect and fallback yield an empty stacks object if detection errors — the empty-stacks guard below then refuses a silent pass and exits 1, so a detection failure is surfaced, not hidden
 stacks_json=$(bash .claude/scripts/detect-stacks.sh 2>/dev/null || echo '{"stacks":[]}')
+# JUSTIFIED: the redirect drops jq stderr on malformed detection output — an empty stacks list is caught by the refuse-silent-pass guard below
 stacks=$(echo "$stacks_json" | jq -r '.stacks[]' 2>/dev/null)
 
 if [ -z "$stacks" ]; then

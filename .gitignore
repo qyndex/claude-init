@@ -119,3 +119,5 @@ logs/
 # Temporary
 tmp/
 .tmp/
+.claude/state/silent-failure-audit.json
+.claude/state/sweep-remaining.tsv

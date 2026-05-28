@@ -16,10 +16,12 @@ MODE="${1:-changed}"   # changed | --all
 
 # Find test files
 if [ "$MODE" = "--all" ]; then
+  # JUSTIFIED: find error output discarded — permission-denied subtrees are skipped; the resulting test-file list is still complete for what's readable
   test_files=$(find . \( -name '*.test.*' -o -name '*.spec.*' -o -name 'test_*.py' -o -name '*_test.go' -o -name '*_test.rs' \) \
     -not -path '*/node_modules/*' -not -path '*/.git/*' -not -path '*/dist/*' -not -path '*/target/*' 2>/dev/null)
 else
   base="${BASE_REF:-main}"
+  # JUSTIFIED: git diff error output discarded and the grep no-match tolerated — an unknown base or a diff with no test files yields an empty list, handled by the -z guard below
   test_files=$(git diff --name-only "$base...HEAD" 2>/dev/null | grep -E '\.(test|spec)\.|test_.*\.py$|_test\.(go|rs)$' || true)
 fi
 

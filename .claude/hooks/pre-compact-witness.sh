@@ -63,6 +63,7 @@ No preamble. Just the brief.'
   nohup bash -c "
     tmp=\"${brief_file}.tmp\"
     set -uo pipefail
+    # JUSTIFIED: best-effort witness generation in a detached background job — a vanished transcript or timed-out/absent claude CLI yields an empty brief; the `if [ -n "$brief" ]` check below handles that without overwriting the synchronous git snapshot
     brief=\$(tail -200 '$transcript_path' 2>/dev/null | \\
             timeout 120 claude -p --bare --append-system-prompt \"$witness_prompt\" \\
               'Write the recovery brief now based on the transcript I just gave you.' 2>/dev/null || echo '')
@@ -77,12 +78,15 @@ No preamble. Just the brief.'
         echo '## Fallback git snapshot'
         echo
         echo '### Branch'
+        # JUSTIFIED: detached HEAD / non-repo — "detached" is the intended fallback for the snapshot header
         git symbolic-ref --short HEAD 2>/dev/null || echo detached
         echo
         echo '### Uncommitted'
+        # JUSTIFIED: snapshot is best-effort context; outside a repo git status fails and an empty section is acceptable
         git status --short 2>/dev/null || true
         echo
         echo '### Recent commits'
+        # JUSTIFIED: a repo with no commits / no git makes log fail — an empty commit section is fine for a recovery hint
         git log --oneline -10 2>/dev/null || true
       } > \"\$tmp\" && mv \"\$tmp\" '$brief_file'
       echo '$(date -Iseconds) wrote brief for $session_id' >> '$log_file'
@@ -104,19 +108,24 @@ fi
   echo "## Synchronous git snapshot (immediate)"
   echo
   echo "### Branch"
+  # JUSTIFIED: detached HEAD / non-repo — "detached" is the intended snapshot value
   git symbolic-ref --short HEAD 2>/dev/null || echo "detached"
   echo
   echo "### Uncommitted (status)"
+  # JUSTIFIED: synchronous best-effort snapshot; outside a repo git status fails and an empty section is acceptable
   git status --short 2>/dev/null || true
   echo
   echo "### Recent commits (10)"
+  # JUSTIFIED: no-commit repo / no git makes log fail — empty commit section is fine for the immediate post-compact hint
   git log --oneline -10 2>/dev/null || true
   echo
   echo "### Active spec/plan"
+  # JUSTIFIED: no active spec/plan yet makes the glob fail — "none" is the intended sentinel in the snapshot
   ls -t specs/active/*.md 2>/dev/null | head -1 || echo "none"
   ls -t plans/active/*.md 2>/dev/null | head -1 || echo "none"
   echo
   echo "_(Async witness brief overwrites this file with the full 6-section recovery brief in 60-120s.)_"
+# JUSTIFIED: appends the snapshot to a brief file we just created in a mkdir'd dir; suppressing append errors keeps PreCompact from failing the compaction over a non-critical log write
 } >> "$brief_file" 2>/dev/null
 
 # Round 5 D2: cap the synchronous snapshot at 200 lines so a busy repo (huge git

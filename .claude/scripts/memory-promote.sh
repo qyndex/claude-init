@@ -54,10 +54,12 @@ declare -i promoted=0 demoted=0 quarantined=0 stale_flagged=0
     [ "$status" = "emerging" ] || continue
 
     # Read verified_in_commits from the file directly (not all in index)
+    # JUSTIFIED: a pattern file with no verified_in_commits field makes grep exit non-zero — counting to 0 is the correct "not yet promotable" outcome, not a failure
     commits_count=$(grep -oE 'verified_in_commits:\s*\[[^]]*\]' "$path" 2>/dev/null | \
       grep -oE '[a-f0-9]{7,40}' | wc -l | tr -d ' ')
 
     # Count distinct module prefixes from paths_touched
+    # JUSTIFIED: an entry with an empty paths_touched array yields no output from jq — zero distinct modules is the correct value and blocks promotion, as intended
     distinct_mods=$(echo "$entry" | jq -r '.paths_touched[]' 2>/dev/null | \
       awk -F'/' '{print $1"/"$2}' | sort -u | wc -l | tr -d ' ')
 
@@ -90,6 +92,7 @@ declare -i promoted=0 demoted=0 quarantined=0 stale_flagged=0
     [ -z "$check_date" ] || [ "$check_date" = "null" ] && check_date="$created"
     [ -z "$check_date" ] || [ "$check_date" = "null" ] && continue
 
+    # JUSTIFIED: GNU date form tried first then the BSD form; an unparseable date falls to epoch 0, and the guard below ignores 0 so a malformed date never gets stale-flagged
     check_epoch=$(date -d "$check_date" +%s 2>/dev/null || date -j -f '%Y-%m-%d' "$check_date" +%s 2>/dev/null || echo 0)
     if [ "$check_epoch" -gt 0 ] && [ "$check_epoch" -lt "$YEAR_AGO_EPOCH" ]; then
       echo "- $id (last touched $check_date, owners: ${owners:-unowned})"
@@ -105,6 +108,7 @@ declare -i promoted=0 demoted=0 quarantined=0 stale_flagged=0
     [ -f "$f" ] || continue
     case "$f" in *0000-template.md) continue ;; esac
 
+    # JUSTIFIED: a pattern file without a recurred_anti field makes grep find nothing and exit non-zero — defaulting to 0 keeps it out of quarantine, the intended behavior
     recurred=$(grep -oE 'recurred_anti:\s*[0-9]+' "$f" 2>/dev/null | head -1 | grep -oE '[0-9]+$' || echo 0)
     if [ "$recurred" -ge 3 ]; then
       id=$(basename "$f" .md)

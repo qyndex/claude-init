@@ -23,6 +23,7 @@ while IFS= read -r id; do
   [ -f ".semgrep/learned/${id}.yml" ] && continue   # rule already drafted — loop closed
   echo "- [ ] Run /codify-rule ${id} — incident recurred >=2x with no .semgrep/learned rule yet (owner: @security-team)" >> "$findings"
   count=$((count + 1))
+# JUSTIFIED: the redirects drop stderr from the query helper and jq when the memory index is empty or absent — the loop then iterates over nothing and the backstop reports zero findings
 done < <(bash .claude/scripts/memory-index.sh query --type incident --recurred 2>/dev/null | jq -r '.id // empty' 2>/dev/null)
 
 if [ "$count" -gt 0 ]; then

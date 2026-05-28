@@ -28,6 +28,7 @@ closed_count=0
 for fb in "$active"/FB-*.md; do
   [ -f "$fb" ] || continue
   # Match spec_refs containing the full id OR the numeric prefix (handles [042] / [042-slug]).
+  # JUSTIFIED: grep stderr suppressed — a feedback file with no spec_refs line is a normal non-match, skipped silently
   if grep -qE "^spec_refs:.*(\b${spec_id}\b|\b${num}\b)" "$fb" 2>/dev/null; then
     sed -i.bak -E "s/^status:.*/status: shipped/" "$fb" && rm -f "${fb}.bak"
     printf '\n_Shipped via spec %s on %s._\n' "$spec_id" "$(date +%Y-%m-%d)" >> "$fb"

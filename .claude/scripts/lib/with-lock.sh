@@ -28,6 +28,7 @@ LOCK_WAIT_S="${LOCK_WAIT_S:-30}"      # give up acquiring after this many second
 
 # _lock_mtime <path> — epoch seconds of last modification (portable: GNU + BSD stat).
 _lock_mtime() {
+  # JUSTIFIED: GNU-vs-BSD stat probe — the platform-unsupported flag form is muted and the surviving form returns mtime; a vanished lockdir falls to 0, which the caller treats as "lock disappeared, retry" rather than infinitely old
   stat -f %m "$1" 2>/dev/null || stat -c %Y "$1" 2>/dev/null || echo 0
 }
 
@@ -35,12 +36,16 @@ _lock_mtime() {
 with_lock() {
   local name="$1"; shift
   local lockdir="${LOCK_STATE_DIR}/${name}.lock"
+  # JUSTIFIED: ensure the parent state dir exists; if it already does the create is a harmless no-op and a transient error here is recovered by the atomic lock-dir create below
   mkdir -p "${LOCK_STATE_DIR}" 2>/dev/null || true
 
   local waited=0 owner_pid mt age reclaim
+  # JUSTIFIED: this IS the lock — the directory create is atomic; a failure means the lock is held, which is exactly the loop condition, so its expected error must be muted, not handled
   while ! mkdir "$lockdir" 2>/dev/null; do
+    # JUSTIFIED: the holder may not have written its pid file yet (acquire race) — an unreadable pid reads as empty, routed to the age-based stale check below
     owner_pid="$(cat "$lockdir/pid" 2>/dev/null || echo "")"
     reclaim=""
+    # JUSTIFIED: liveness probe of the holder pid — a non-zero exit means the process is gone, which the dead-PID branch below reclaims; the muted error is the signal, not a fault
     if [ -n "$owner_pid" ] && kill -0 "$owner_pid" 2>/dev/null; then
       reclaim=""                                  # live local holder — wait, NEVER reclaim
     elif [ -n "$owner_pid" ]; then

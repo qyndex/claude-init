@@ -31,6 +31,7 @@ fi
 
 # Daily budget check
 today=$(date +%Y-%m-%d)
+# JUSTIFIED: the redirect drops grep stderr when the spend log does not yet exist — no matching lines make jq sum to 0, correctly meaning zero spent today
 today_spent=$(grep "\"date\":\"$today\"" "$LOG" 2>/dev/null | jq -s '[.[].cost] | add // 0')
 projected=$(awk "BEGIN { print $today_spent + $EST_COST }")
 

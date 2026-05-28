@@ -25,8 +25,10 @@ CHECK_ONLY=0
 
 # Resolve spec
 if [ "$target" = "latest" ]; then
+  # JUSTIFIED: the redirect drops the glob's no-match error — an empty spec is caught by the existence check below which exits with a clear message
   spec=$(ls -t specs/active/*.md 2>/dev/null | head -1)
 else
+  # JUSTIFIED: the redirect drops the glob's no-match error — an empty spec is caught by the existence check below which exits with a clear message
   spec=$(ls specs/active/${target}*.md 2>/dev/null | head -1)
 fi
 [ -z "$spec" ] && { echo "Spec not found: $target"; exit 1; }
@@ -41,6 +43,7 @@ echo "→ Collecting evidence for spec $spec_id ($slug)"
 # ─── 1. Parse acceptance criteria ───────────────────────────────────────
 ac_block=$(awk '/^## Acceptance criteria/,/^## [^A]/' "$spec")
 ac_ids=$(echo "$ac_block" | grep -oE 'AC-[0-9]+' | sort -u)
+# JUSTIFIED: the fallback yields a zero count when grep matches no AC lines (exit 1) — a spec with no acceptance criteria correctly reports zero rather than aborting under pipefail
 ac_count=$(echo "$ac_ids" | grep -c . || echo 0)
 
 # ─── 2. Run the journey via the playwright rig (unless check-only) ──────
@@ -48,6 +51,7 @@ results_json="$date_dir/results.json"
 if [ "$CHECK_ONLY" = "0" ]; then
   if [ -f playwright.config.ts ] && [ -d "e2e/$spec_id" ]; then
     echo "  Running journey: VERIFY_FEATURE=$slug npx playwright test e2e/$spec_id"
+    # JUSTIFIED: the fallback lets the script continue past a failing journey run — the AC-proven verdict is computed from results.json in step 4, so a non-zero exit here is captured there, not swallowed
     VERIFY_FEATURE="$slug" npx playwright test "e2e/$spec_id" 2>&1 | tail -20 || true
   else
     echo "  ⚠ No playwright.config.ts or e2e/$spec_id/ — install rig (templates/evidence/) + write AC-tagged tests"
@@ -73,6 +77,7 @@ smoke_max_exit=0
 ac_proven=0
 ac_unproven=()
 if [ -f "$results_json" ]; then
+  # JUSTIFIED: the fallback keeps match_out as captured output even if spec-match exits non-zero — each AC is then individually checked against it below, so a tool error degrades to "unproven", never a crash
   match_out=$(bash .claude/scripts/spec-match.sh "$spec_id" "$results_json" 2>&1 || true)
   for ac in $ac_ids; do
     if echo "$match_out" | grep -qE "✓ $ac"; then
@@ -90,7 +95,9 @@ fi
 cov_line="?"
 cov_branch="?"
 [ -f coverage/coverage-summary.json ] && {
+  # JUSTIFIED: the redirect and fallback yield "?" when the coverage summary is malformed — coverage is informational in the evidence bundle and a parse failure must not block evidence collection
   cov_line=$(jq -r '.total.lines.pct' coverage/coverage-summary.json 2>/dev/null || echo "?")
+  # JUSTIFIED: same — a malformed coverage summary degrades the branch figure to "?" rather than aborting the bundle
   cov_branch=$(jq -r '.total.branches.pct' coverage/coverage-summary.json 2>/dev/null || echo "?")
 }
 
@@ -100,6 +107,7 @@ verdict="PASS"
 [ "$smoke_max_exit" -ne 0 ] && verdict="FAIL"
 
 # ─── 7. Emit evidence.json ──────────────────────────────────────────────
+# JUSTIFIED: the redirect and fallback emit an empty JSON array when there are no unproven ACs (grep exits 1 on empty input) — the valid default keeps evidence.json well-formed
 unproven_json=$(printf '%s\n' "${ac_unproven[@]+"${ac_unproven[@]}"}" | grep . | jq -R . | jq -sc . 2>/dev/null || echo '[]')
 jq -nc \
   --arg spec "$spec_id" \
@@ -117,8 +125,10 @@ jq -nc \
 # ─── 8. Emit pr-body.md ─────────────────────────────────────────────────
 {
   echo "## Evidence Bundle — Spec $spec_id ($slug)"
+  # JUSTIFIED: the redirect and fallback print "unknown" outside a git repo — the commit ref is cosmetic provenance in the PR body and its absence must not break bundle generation
   echo "Spec: \`$spec\` · Commit: \`$(git rev-parse --short HEAD 2>/dev/null || echo unknown)\`"
   # Round 11 D: link the projected spec issue for traceability + lifecycle automation
+  # JUSTIFIED: the redirect drops awk stderr if the spec is unreadable — an empty gh_issue simply skips the "Closes #" line below
   gh_issue=$(awk '/^github_issue:/{print $2}' "$spec" 2>/dev/null)
   if [ -n "$gh_issue" ]; then
     echo
@@ -132,6 +142,7 @@ jq -nc \
     if printf '%s\n' "${ac_unproven[@]+"${ac_unproven[@]}"}" | grep -qx "$ac"; then
       echo "| $ac | — | ✗ UNPROVEN |"
     else
+      # JUSTIFIED: the redirect drops grep stderr when e2e/ or tests/ is absent — an empty test_file falls back to the "tagged test" label via the default expansion below
       test_file=$(grep -rl "@$ac\|$ac" e2e/ tests/ 2>/dev/null | head -1)
       echo "| $ac | ${test_file:-tagged test} | ✓ PASS |"
     fi
@@ -143,12 +154,14 @@ jq -nc \
   echo '```'
   echo
   echo "### Visual proof"
+  # JUSTIFIED: the redirect drops the glob's no-match error — wc then counts zero, correctly reporting no screenshots captured
   shot_count=$(ls "$date_dir/screenshots/"*.png 2>/dev/null | wc -l | tr -d ' ')
   echo "$shot_count screenshot(s) captured under \`$date_dir/screenshots/\` (named by AC)."
   [ -f "$date_dir/video.webm" ] && echo "Journey video: \`$date_dir/video.webm\` (CI artifact)."
   [ -f "$date_dir/trace.zip" ] && echo "Playwright trace: \`$date_dir/trace.zip\` → trace.playwright.dev"
   echo
   echo "### API traces"
+  # JUSTIFIED: the redirect drops the glob's no-match error — wc then counts zero, correctly reporting no API trace files
   api_count=$(ls "$date_dir/traces/"*.json 2>/dev/null | wc -l | tr -d ' ')
   echo "$api_count API trace file(s) under \`$date_dir/traces/\`; full HAR at \`$date_dir/network.har\`."
   echo

@@ -46,18 +46,23 @@ for line in "${stacks[@]}"; do
   echo "- $line" >> "$report"
 done
 
+# JUSTIFIED: gh may be unavailable/unauthenticated — the muted call plus the fallback embeds a "gh unavailable" note in the report rather than aborting the rollup
+open_prs="$(gh pr list --label 'auto-bump' --limit 20 2>/dev/null || echo 'gh unavailable')"
+# JUSTIFIED: same — a muted gh call with a fallback keeps the report generating when gh is absent
+open_issues="$(gh issue list --label 'auto-bump:escalated' --limit 10 2>/dev/null || echo 'gh unavailable')"
+
 cat >> "$report" <<EOF
 
 ## Open PRs
 
 \`\`\`
-$(gh pr list --label 'auto-bump' --limit 20 2>/dev/null || echo 'gh unavailable')
+$open_prs
 \`\`\`
 
 ## Open issues (escalations)
 
 \`\`\`
-$(gh issue list --label 'auto-bump:escalated' --limit 10 2>/dev/null || echo 'gh unavailable')
+$open_issues
 \`\`\`
 
 ## Next steps

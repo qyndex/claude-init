@@ -44,6 +44,7 @@ if command -v jq >/dev/null; then
     else
       fail "invalid JSON: $f"
     fi
+    # JUSTIFIED: find -print0 feed — 2>/dev/null hides "no such directory" for any absent path arg; absent paths contribute no JSON files to validate
   done < <(find .claude .github .swarms .mcp.json -name '*.json' -type f -not -path '*/.cache/*' -print0 2>/dev/null)
   ok "validated $json_count JSON files"
 else
@@ -55,8 +56,10 @@ echo
 echo "[frontmatter]"
 has_yaml=0
 if command -v python3 >/dev/null; then
+  # JUSTIFIED: capability probe for the yaml module — non-zero/import error just means "not available", handled by the elif + regex fallback
   if python3 -c "import yaml" 2>/dev/null; then
     has_yaml=1
+  # JUSTIFIED: optional pyyaml bootstrap — 2>/dev/null on both halves; failure just means we fall through to the regex fallback (warned later), not an error
   elif python3 -m pip install --quiet --user pyyaml 2>/dev/null && python3 -c "import yaml" 2>/dev/null; then
     has_yaml=1
   fi
@@ -65,11 +68,13 @@ fi
 fm_count=0
 fm_bad=0
 while IFS= read -r -d '' f; do
+  # JUSTIFIED: head probe for a leading frontmatter fence — 2>/dev/null guards a file that vanished mid-walk; no fence means skip, the intended path
   if head -1 "$f" 2>/dev/null | grep -q '^---$'; then
     fm_count=$((fm_count+1))
     fm=$(awk '/^---$/{c++; next} c==1{print}' "$f")
 
     if [ "$has_yaml" = "1" ]; then
+      # JUSTIFIED: 2>/dev/null hides the python traceback on a malformed block; the non-zero exit is what we act on (the "bad YAML" fail below)
       if ! echo "$fm" | python3 -c "import sys, yaml; yaml.safe_load(sys.stdin.read())" 2>/dev/null; then
         fail "bad YAML frontmatter: $f"
         fm_bad=$((fm_bad+1))
@@ -116,6 +121,7 @@ while IFS= read -r -d '' f; do
         ;;
     esac
   fi
+# JUSTIFIED: find -print0 feed — 2>/dev/null hides "no such directory" for any absent template dir; absent dirs contribute no files to validate
 done < <(find .claude specs/templates plans/templates initiatives/templates -name '*.md' -type f -print0 2>/dev/null)
 
 if [ "$has_yaml" = "0" ]; then
@@ -140,13 +146,16 @@ while IFS= read -r -d '' f; do
         ;;
     esac
   fi
+# JUSTIFIED: find -print0 feed — 2>/dev/null hides "no such directory" for any absent dir; an absent dir simply contributes no files to check
 done < <(find .claude/hooks .claude/statuslines .claude/scripts -name '*.sh' -type f -print0 2>/dev/null)
+# JUSTIFIED: find|wc count — 2>/dev/null hides "no such directory"; absent dirs contribute 0 to the reported shell-file count
 sh_count=$(find .claude/hooks .claude/statuslines .claude/scripts -name '*.sh' -type f 2>/dev/null | wc -l | tr -d ' ')
 ok "$sh_count shell files checked"
 echo
 
 # ─── 5. Agents must be in expected dirs ─────────────────────────────────
 echo "[agents]"
+# JUSTIFIED: find|wc count — 2>/dev/null hides "no such directory"; a missing dir yields 0, which the next line reports as "too few agents"
 agent_count=$(find .claude/agents -name '*.md' -type f 2>/dev/null | wc -l | tr -d ' ')
 if [ "$agent_count" -lt 5 ]; then
   fail "only $agent_count agents found — expected at least 5"
@@ -156,6 +165,7 @@ fi
 
 # Core agents that ARE required by name (the workflow won't function without these)
 for core_agent in architect planner implementer reviewer verifier; do
+  # JUSTIFIED: find presence probe — 2>/dev/null hides "no such directory"; an empty result correctly triggers the "core agent missing" fail
   if find .claude/agents -name "${core_agent}.md" -type f 2>/dev/null | grep -q .; then
     :  # silent
   else
@@ -166,6 +176,7 @@ echo
 
 # ─── 6. Skills directory ────────────────────────────────────────────────
 echo "[skills]"
+# JUSTIFIED: find|wc count — 2>/dev/null hides "no such directory"; a repo without skills yields 0, reported as informational
 skill_count=$(find .claude/skills -name 'SKILL.md' -type f 2>/dev/null | wc -l | tr -d ' ')
 ok "$skill_count project-specific skills"
 note "(plugin-installed skills validated by \`/plugin list\`, not here)"
@@ -173,6 +184,7 @@ echo
 
 # ─── 7. Commands directory ──────────────────────────────────────────────
 echo "[commands]"
+# JUSTIFIED: find|wc count — 2>/dev/null hides "no such directory"; a repo without commands yields 0, reported as informational
 cmd_count=$(find .claude/commands -name '*.md' -type f 2>/dev/null | wc -l | tr -d ' ')
 ok "$cmd_count commands discovered"
 echo
@@ -182,6 +194,7 @@ echo "[hooks]"
 # Pull hook references from settings.json — if it references one, it must exist
 if [ -f .claude/settings.json ] && command -v jq >/dev/null; then
   # Extract every "command" path that ends in .sh
+  # JUSTIFIED: jq read of settings.json — 2>/dev/null drops the duplicate parse error already reported by [json]; the in-query // empty handles missing keys
   referenced_hooks=$(jq -r '..|.command? // empty | select(type=="string")' .claude/settings.json 2>/dev/null \
     | grep -oE '\.claude/hooks/[a-zA-Z0-9_-]+\.sh' | sort -u)
   for hook_path in $referenced_hooks; do
@@ -196,9 +209,11 @@ if [ -f .claude/settings.json ] && command -v jq >/dev/null; then
 fi
 
 # Also: every hook on disk should appear in settings.json (otherwise dead code)
+# JUSTIFIED: find probe — 2>/dev/null hides "no such directory" so a repo without hooks yields an empty list instead of an error
 on_disk=$(find .claude/hooks -name '*.sh' -type f 2>/dev/null | sort)
 for h in $on_disk; do
   hname=$(basename "$h")
+  # JUSTIFIED: grep -q presence probe — 2>/dev/null hides "no such file" on a fresh repo; absence then correctly warns the hook is unreferenced
   if ! grep -q "$hname" .claude/settings.json 2>/dev/null; then
     warn "hook on disk but not referenced in settings.json: $hname"
   fi
@@ -275,6 +290,7 @@ if [ -f tasks/TASKS.md ]; then
         bad_accept=$((bad_accept+1))
       fi
     fi
+    # JUSTIFIED: grep over TASKS.md — 2>/dev/null swallows the "no such file" case; a missing/empty file yields zero loop iterations, the intended no-op
   done < <(grep -E '^\s*accept:' tasks/TASKS.md 2>/dev/null)
   [ "$bad_accept" -eq 0 ] && ok "all task accept: commands look like real verifications"
 fi
@@ -294,6 +310,7 @@ done
 
 # Memory budget enforcement
 if [ -f .claude/memory/MEMORY.md ]; then
+  # JUSTIFIED: wc on a file guarded by the enclosing [ -f ]; `|| echo 0` is a belt-and-braces default so the -gt comparison never sees an empty string
   mem_lines=$(wc -l < .claude/memory/MEMORY.md 2>/dev/null || echo 0)
   if [ "$mem_lines" -gt 200 ]; then
     warn "MEMORY.md is $mem_lines lines (cap=200) — run \`.claude/scripts/memory-gc.sh enforce\`"
@@ -307,6 +324,7 @@ echo
 echo "[security]"
 if command -v jq >/dev/null && [ -f .claude/settings.json ]; then
   # disableBypassPermissionsMode must be "disable" (string, not bool); lives under .permissions
+  # JUSTIFIED: jq has a // "unset" fallback in-query, so 2>/dev/null only drops the duplicate stderr on a malformed file already flagged by [json]
   bypass=$(jq -r '.permissions.disableBypassPermissionsMode // .disableBypassPermissionsMode // "unset"' .claude/settings.json 2>/dev/null)
   if [ "$bypass" = "disable" ]; then
     ok "disableBypassPermissionsMode: disable"
@@ -315,6 +333,7 @@ if command -v jq >/dev/null && [ -f .claude/settings.json ]; then
   fi
 
   # No `Bash(env)` in allow
+  # JUSTIFIED: jq read of settings.json — 2>/dev/null hides parse errors already surfaced by the [json] section; grep -q drives the check
   if jq -r '.permissions.allow[]?' .claude/settings.json 2>/dev/null | grep -qE '^Bash\(env(\s|\)|:)'; then
     fail "Bash(env) is in allow list — env exfil risk"
   else
@@ -322,6 +341,7 @@ if command -v jq >/dev/null && [ -f .claude/settings.json ]; then
   fi
 
   # No bare Bash(claude:*)
+  # JUSTIFIED: jq read of settings.json — 2>/dev/null hides parse errors that the [json] section already reports; grep -q drives the check
   if jq -r '.permissions.allow[]?' .claude/settings.json 2>/dev/null | grep -qE '^Bash\(claude:\*\)$'; then
     fail "Bash(claude:*) catch-all in allow — should enumerate subcommands"
   else
@@ -333,7 +353,9 @@ echo
 # ─── 14. MCP version pinning ────────────────────────────────────────────
 echo "[mcp]"
 if [ -f .mcp.json ] && command -v jq >/dev/null; then
+  # JUSTIFIED: jq on .mcp.json — suppress parse noise; `|| true` keeps an empty grep result from tripping pipefail (no matching pin is the normal case)
   pkgs=$(jq -r '.mcpServers[]?.args[]? // empty' .mcp.json 2>/dev/null | grep -oE '@[a-zA-Z0-9_/.-]+@[a-zA-Z0-9.-]+' || true)
+  # JUSTIFIED: jq read; `|| true` because grep exits 1 when there are no @latest pins, which is the desired (clean) outcome
   unpinned=$(jq -r '.mcpServers[]?.args[]? // empty' .mcp.json 2>/dev/null | grep -E '@latest' || true)
   if [ -n "$unpinned" ]; then
     warn "MCP packages pinned to @latest (supply-chain risk):"

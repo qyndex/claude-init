@@ -53,6 +53,7 @@ fi
 if ! bash .claude/scripts/validate.sh >/dev/null 2>&1; then
   echo "validate.sh failed — fix harness state before dispatching"; exit 1
 fi
+# JUSTIFIED: git stderr suppressed — outside a repo status yields empty, treated as "nothing to commit" and dispatch proceeds
 if [ -n "$(git status --porcelain 2>/dev/null)" ]; then
   echo "git status not clean — commit or stash before dispatching"
   exit 1
@@ -161,6 +162,7 @@ for s in "${to_dispatch[@]}"; do
        --max-turns "$MAX_TURNS" \
        --max-budget-usd "$BUDGET" \
        --output-format stream-json \
+       `# JUSTIFIED: claude --bg stderr suppressed — a failed spawn yields empty session_id, caught by the [ -z "$sid" ] guard below` \
        -p "Begin stream $s. Read .swarms/streams/$s/brief.md and execute." 2>/dev/null | jq -r '.session_id // empty' | head -1)
 
   if [ -z "$sid" ]; then

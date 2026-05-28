@@ -37,6 +37,7 @@ fi
 # ─── 2. List scheduled tasks ────────────────────────────────────────────
 echo
 echo "[Scheduled tasks]"
+# JUSTIFIED: find stderr suppressed — pause-flags dir may not exist yet on first pivot; empty result correctly counts as 0 flagged tasks
 scheduled=$(find .claude/state/pause-flags -name '*.flag' 2>/dev/null | wc -l | tr -d ' ')
 echo "  $scheduled tasks currently flagged paused"
 echo "  Run \`claude\` and use /tasks list to enumerate all registered tasks"
@@ -70,9 +71,11 @@ if [ -n "$running" ]; then
       (
         cd ".claude/worktrees/$s"
         if git log --oneline -5 --grep='^WIP:' >/dev/null 2>&1; then
+          # JUSTIFIED: git stderr suppressed — a worktree with no `main` ref or no WIP commits yields empty; counts as 0 and the >0 branch is skipped
           wip_count=$(git log --oneline --grep='^WIP:' main..HEAD 2>/dev/null | wc -l | tr -d ' ')
           if [ "$wip_count" -gt 0 ]; then
             echo "    squashing $wip_count WIP commits with PIVOT-STOPPED marker"
+            # JUSTIFIED: best-effort WIP squash during pivot halt — a squash failure (e.g. dirty index) must not abort stopping the remaining streams; the WIPs stay intact and recoverable
             bash "$ROOT/.claude/scripts/squash-wip.sh" "PIVOT-STOPPED($reason): squash of $wip_count WIPs" 2>/dev/null || true
           fi
         fi

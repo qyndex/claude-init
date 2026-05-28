@@ -33,12 +33,14 @@ with_tasks_lock() { with_lock "tasks" "$@"; }
 # (any state, Active + Archive) so ids are never reused. MUST run inside the lock.
 tasks_next_id() {
   local n
+  # JUSTIFIED: the redirect drops grep stderr when TASKS.md does not yet exist — an empty result makes ${n:-0}+1 yield id 1, the correct first id for a fresh ledger
   n="$(grep -oE '^- \[.\] T-[0-9]+' "${TASKS_FILE}" 2>/dev/null | grep -oE '[0-9]+' | sort -n | tail -1)"
   echo $(( ${n:-0} + 1 ))
 }
 
 # tasks_id_exists <n> — true if T-<n> already exists as a task marker (dup guard).
 tasks_id_exists() {
+  # JUSTIFIED: the redirect drops grep stderr when TASKS.md is absent — a non-zero (no-match) exit correctly reports the id as not existing, which is true for a missing ledger
   grep -qE "^- \[.\] T-${1}([^0-9]|\$)" "${TASKS_FILE}" 2>/dev/null
 }
 

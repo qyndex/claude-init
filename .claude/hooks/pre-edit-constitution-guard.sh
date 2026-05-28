@@ -25,6 +25,7 @@ if [ "${FORCE_CONSTITUTION_EDIT:-0}" = "1" ]; then
 fi
 
 # Read PreToolUse JSON payload from stdin.
+# JUSTIFIED: cat stderr suppressed and || true — an empty/closed stdin yields an empty payload, handled by the -z guard below; the hook must fail open, not crash the tool chain
 payload=$(cat 2>/dev/null || true)
 if [ -z "$payload" ]; then
   exit 0
@@ -33,6 +34,7 @@ fi
 # Extract file_path (jq if available; fall back to grep on the JSON).
 file_path=""
 if command -v jq >/dev/null 2>&1; then
+  # JUSTIFIED: jq stderr suppressed — malformed JSON yields an empty file_path and falls back to the grep extractor below; the guard must not abort on bad input
   file_path=$(printf '%s' "$payload" | jq -r '.tool_input.file_path // .tool_input.notebook_path // empty' 2>/dev/null)
 fi
 if [ -z "$file_path" ]; then
@@ -44,6 +46,7 @@ if [ -z "$file_path" ]; then
 fi
 
 # Normalize to repo-relative — strip the absolute prefix if present.
+# JUSTIFIED: cd error output discarded — if the dir is unreachable ROOT becomes empty and rel stays the raw path, which is still matched against the deny-list
 ROOT="$(cd "$(dirname "$0")/../.." 2>/dev/null && pwd || echo "")"
 rel="$file_path"
 if [ -n "$ROOT" ]; then
@@ -68,7 +71,9 @@ esac
 
 if [ "$deny" = "1" ]; then
   # Audit-log the attempt before denying.
+  # JUSTIFIED: mkdir error output discarded — the log dir usually exists; a creation failure must not stop the deny path that follows
   mkdir -p .claude/hooks/.log 2>/dev/null
+  # JUSTIFIED: append error output discarded and tolerated — best-effort audit line; an unwritable log must never prevent the security deny below
   printf '%s\t%s\t%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "constitution-write-attempt" "$rel" \
     >> .claude/hooks/.log/constitution-write-attempts.log 2>/dev/null || true
 

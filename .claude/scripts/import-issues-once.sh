@@ -38,6 +38,7 @@ command -v jq >/dev/null 2>&1 || { echo "import-issues-once: jq required"; exit 
 now="$(date -Iseconds)"
 
 # ── OPEN issues → pending tasks (under the TASKS.md lock) ─────────────────
+# JUSTIFIED: gh error muted + empty-array fallback — an unauthenticated/offline gh yields an empty backlog to import, the documented contract for this one-time migration (no tasks created, sentinel still written)
 open_json="$(gh issue list --state open --json number,title,labels --limit "$LIMIT" 2>/dev/null || echo '[]')"
 open_count="$(echo "$open_json" | jq 'length')"
 imported_open=0
@@ -49,8 +50,10 @@ _import_open() {
     [ -z "$row" ] && continue
     num="$(echo "$row" | jq -r '.number')"
     title="$(echo "$row" | jq -r '.title' | head -c 180)"
+    # JUSTIFIED: jq error muted — an issue with no labels array yields empty labels, which the conditional in the printf below treats as "omit labels line"
     labels="$(echo "$row" | jq -r '[.labels[].name] | join(",")' 2>/dev/null)"
     # dedup: skip if this issue was already imported
+    # JUSTIFIED: grep error muted — an absent tasks/TASKS.md (first-ever import) is a non-match, so the issue is correctly imported rather than skipped
     grep -q "imported_from_issue: #${num}\b" tasks/TASKS.md 2>/dev/null && continue
     entry=$(printf -- '- [ ] T-%s  | priority: normal  | created: %s  | last_touched: %s\n  summary: %s\n  files: <tbd>\n  accept: <human decision required — triage this imported issue>\n  owner: @unassigned\n  source: github-issue-#%s\n  imported_from_issue: #%s%s' \
       "$next_id" "$now" "$now" "$title" "$num" "$num" "$([ -n "$labels" ] && printf '\n  labels: %s' "$labels")")
@@ -68,6 +71,7 @@ fi
 
 # ── CLOSED issues → memory history (NOT tasks) ───────────────────────────
 HIST=".claude/memory/imported-issues-closed.md"
+# JUSTIFIED: gh error muted + empty-array fallback — an offline gh yields no closed-issue history to record, the documented contract for this one-time migration
 closed_json="$(gh issue list --state closed --json number,title,closedAt --limit "$LIMIT" 2>/dev/null || echo '[]')"
 closed_count="$(echo "$closed_json" | jq 'length')"
 if [ "$DRY" = 1 ]; then
@@ -78,6 +82,7 @@ else
     printf 'Closed issues from the brownfield repo, imported once at adoption as HISTORY (not backlog).\n\n'
     echo "$closed_json" | jq -r '.[] | "- #\(.number) \(.title) (closed \(.closedAt // "?"))"'
   } > "$HIST"
+  # JUSTIFIED: best-effort memory reindex — the closed-issue history file is already written; a reindex failure must not abort the migration or block sentinel creation
   [ -f .claude/scripts/memory-index.sh ] && bash .claude/scripts/memory-index.sh backfill >/dev/null 2>&1 || true
 fi
 
@@ -86,6 +91,7 @@ if [ "$DRY" = 0 ]; then
   printf '%s — imported %s open → tasks, %s closed → history\n' "$now" "${imported_open:-0}" "$closed_count" > "$SENTINEL"
   echo "✓ Imported ${imported_open:-0} open issue(s) → tasks/TASKS.md, $closed_count closed → $HIST"
   echo "  Sentinel written: $SENTINEL (commit it). Future issue traffic is WRITE-ONLY via tasks-to-issues.sh."
+  # JUSTIFIED: best-effort adoption-phase bump — the import + sentinel already succeeded; a phase-tracker failure must not undo a completed one-time migration
   [ -f .claude/scripts/adopt-state.sh ] && bash .claude/scripts/adopt-state.sh set 3 import >/dev/null 2>&1 || true
 else
   echo "[dry-run] no sentinel written; no state change"
