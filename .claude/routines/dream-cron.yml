@@ -1,0 +1,59 @@
+# Dream Cron — backstop memory consolidation
+#
+# Runs daily at 03:00 local time as a safety net in case the Stop hook didn't
+# trigger /dream (e.g., the dev didn't have 5+ sessions that day but memory still
+# needs consolidating).
+#
+# Configure as a Desktop scheduled task (not a Cloud Routine — local memory only).
+# Install via:  bash .claude/scripts/install-overnight-tasks.sh
+
+name: dream-cron
+
+description: Nightly memory consolidation backstop at 03:00 local time.
+
+schedule:
+  cron: "0 3 * * *"
+  timezone: "local"
+
+surface: desktop                # mcp__scheduled-tasks (local), not Routines
+
+permission_mode: auto
+# Auto Mode + hooks. Even though /dream only touches .claude/memory/ files
+# (a low-risk write set), we use Auto Mode for consistency with overnight-build.
+
+model: claude-sonnet-4-6        # consolidation is summarization work; Sonnet suffices
+
+budgets:
+  max_wall_clock_minutes: 15
+  max_budget_usd: 1
+
+prompt: |
+  Run the dream skill. If less than 24h since last /dream, exit immediately.
+
+  Round 5: skip entirely if .claude/memory.proposed/ has unreviewed changes
+  (operator must clear via /dream-review first).
+
+  Otherwise:
+  1. Read .claude/memory/ topic files and .claude/memory/.cache/checkpoints/ since last dream
+  2. Dedupe, compress, absolutize relative dates
+  3. Enforce 200-line cap on .claude/memory/MEMORY.md
+  4. Move processed checkpoints to .claude/memory/.cache/archive/YYYY-MM/
+  5. Update .claude/memory/.cache/.dream-state.json
+
+  6. Round 5 C4: run nightly mechanical promotion/decay:
+     bash .claude/scripts/memory-promote.sh
+     This promotes patterns (emerging → established), flags stale ADRs, and
+     quarantines patterns with recurred_anti ≥ 3.
+
+  7. Round 5 E10: run negative-outcome learning to surface routing suggestions:
+     bash .claude/scripts/learn-from-success.sh
+
+  8. Round 13 Fix 3: codify-rule backstop — queue a security task for any incident that
+     recurred >=2x but still has no .semgrep/learned rule:
+     bash .claude/scripts/codify-rule-backstop.sh
+
+  9. Round 13 Fix 3: WEEKLY spec-drift scan (Mondays only — re-running every shipped
+     spec's accept: command nightly is wasteful). Drift becomes spec-drift tasks:
+     if [ "$(date +%u)" = "1" ]; then bash .claude/scripts/spec-drift-scan.sh; fi
+
+  Exit cleanly. No PR. No commits (unless modifying .claude/memory/ which is fine).

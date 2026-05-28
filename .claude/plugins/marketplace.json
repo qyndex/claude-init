@@ -1,0 +1,208 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "_comment": "Curated marketplaces and the plugins we install from each. After cloning this repo, run `bash .claude/scripts/install-plugins.sh` to bulk-install the recommended set, or manually `/plugin marketplace add` + `/plugin install`. Per Claude Code v2.1.x — plugins update automatically and are sandboxed.",
+
+  "marketplaces": [
+    {
+      "name": "claude-plugins-official",
+      "owner": "anthropics",
+      "repo": "claude-plugins-official",
+      "url": "https://github.com/anthropics/claude-plugins-official",
+      "description": "Anthropic's official plugin marketplace. 150+ vetted plugins, auto-update enabled.",
+      "install": "/plugin marketplace add anthropics/claude-plugins-official"
+    },
+    {
+      "name": "claude-plugins-community",
+      "owner": "anthropics",
+      "repo": "claude-plugins-community",
+      "url": "https://github.com/anthropics/claude-plugins-community",
+      "description": "Anthropic-curated community plugins. Auto security-scanned, pinned to SHAs.",
+      "install": "/plugin marketplace add anthropics/claude-plugins-community"
+    },
+    {
+      "name": "superpowers-marketplace",
+      "owner": "obra",
+      "repo": "superpowers-marketplace",
+      "url": "https://github.com/obra/superpowers-marketplace",
+      "description": "Jesse Vincent's curated marketplace. Pairs with the Superpowers skill framework (TDD, debugging, verification, plans, code review, parallel agents, git worktrees).",
+      "install": "/plugin marketplace add obra/superpowers-marketplace"
+    },
+    {
+      "name": "wshobson-agents",
+      "owner": "wshobson",
+      "repo": "agents",
+      "url": "https://github.com/wshobson/agents",
+      "description": "Cross-harness marketplace: 83 plugins, 191 agents, 155 skills, 102 commands. Tiered model assignment.",
+      "install": "/plugin marketplace add wshobson/agents"
+    },
+    {
+      "name": "dream-skill",
+      "owner": "grandamenium",
+      "repo": "dream-skill",
+      "url": "https://github.com/grandamenium/dream-skill",
+      "description": "Overnight memory consolidation skill — REM-sleep-style 4-phase pass (orient → gather → consolidate → prune). 24h auto-trigger via Stop hook.",
+      "install": "/plugin marketplace add grandamenium/dream-skill"
+    },
+    {
+      "name": "token-optimizer",
+      "owner": "alexgreensh",
+      "repo": "token-optimizer",
+      "url": "https://github.com/alexgreensh/token-optimizer",
+      "description": "Cost-reducer plugin v5.7.0. 141 tests, 5 lifecycle hooks, live dashboard, auto-checkpoint + restore across compactions, zero deps, zero telemetry.",
+      "install": "/plugin marketplace add alexgreensh/token-optimizer"
+    },
+    {
+      "name": "claude-mem",
+      "owner": "thedotmack",
+      "repo": "claude-mem",
+      "url": "https://github.com/thedotmack/claude-mem",
+      "description": "Tier 3 episodic memory — hybrid SQLite + ChromaDB + 3-layer MCP search. Worker on localhost:37777. Install via `npx claude-mem install`.",
+      "install": "npx claude-mem install"
+    }
+  ],
+
+  "recommended_plugins": [
+    {
+      "name": "superpowers",
+      "marketplace": "superpowers-marketplace",
+      "why": "Core agentic discipline — TDD, brainstorming, writing-plans, executing-plans, systematic-debugging, verification-before-completion, subagent-driven-development, dispatching-parallel-agents, using-git-worktrees, finishing-a-development-branch, requesting-code-review, receiving-code-review, writing-skills. Single highest-leverage install.",
+      "install": "/plugin install superpowers@superpowers-marketplace"
+    },
+    {
+      "name": "skill-creator",
+      "marketplace": "claude-plugins-official",
+      "why": "Official Anthropic meta-skill for authoring skills with eval loop. Use when extending this harness with new skills.",
+      "install": "/plugin install skill-creator@claude-plugins-official"
+    },
+    {
+      "name": "mcp-builder",
+      "marketplace": "claude-plugins-official",
+      "why": "Official 4-phase MCP server creation: Research → Design → Implement → Validate. Use when building a new MCP server.",
+      "install": "/plugin install mcp-builder@claude-plugins-official"
+    },
+    {
+      "name": "frontend-design",
+      "marketplace": "claude-plugins-official",
+      "why": "Forces distinctive design direction (brutal-minimal / maximalist / retro-futuristic / etc.) before coding. Bans AI-slop aesthetics (Inter, purple-on-white gradients, generic Space Grotesk).",
+      "install": "/plugin install frontend-design@claude-plugins-official"
+    },
+    {
+      "name": "webapp-testing",
+      "marketplace": "claude-plugins-official",
+      "why": "Python Playwright scripts + with_server.py multi-server lifecycle helper. Pairs with .claude/skills/browser-e2e (MCP-driven) for full coverage.",
+      "install": "/plugin install webapp-testing@claude-plugins-official"
+    },
+    {
+      "name": "doc-coauthoring",
+      "marketplace": "claude-plugins-official",
+      "why": "Official Anthropic doc generator. Replaces hand-rolled doc skills; pairs with the doc-writer agent.",
+      "install": "/plugin install doc-coauthoring@claude-plugins-official"
+    },
+    {
+      "name": "chrome-devtools-mcp",
+      "marketplace": "claude-plugins-official",
+      "why": "Official Chrome DevTools MCP wrapper — debugging, network, performance, Lighthouse.",
+      "install": "/plugin install chrome-devtools-mcp@claude-plugins-official"
+    },
+    {
+      "name": "playwright",
+      "marketplace": "claude-plugins-official",
+      "why": "Official Playwright MCP — browser-driven E2E via accessibility snapshots and deterministic refs.",
+      "install": "/plugin install playwright@claude-plugins-official"
+    },
+    {
+      "name": "github",
+      "marketplace": "claude-plugins-official",
+      "why": "Official GitHub MCP plugin — issues, PRs, code search, Actions.",
+      "install": "/plugin install github@claude-plugins-official"
+    },
+    {
+      "name": "sentry",
+      "marketplace": "claude-plugins-official",
+      "why": "Official Sentry MCP plugin with the sentry-mcp subagent.",
+      "install": "/plugin install sentry@claude-plugins-official"
+    },
+    {
+      "name": "dream",
+      "marketplace": "dream-skill",
+      "why": "Auto-consolidate memory overnight. 4-phase pass keeps MEMORY.md under 200 lines. Wired to Stop hook for 24h cadence.",
+      "install": "/plugin install dream@dream-skill"
+    },
+    {
+      "name": "token-optimizer",
+      "marketplace": "token-optimizer",
+      "why": "Cost reducer with live dashboard, compaction-survival checkpoints, command-output compression.",
+      "install": "/plugin install token-optimizer@token-optimizer"
+    }
+  ],
+
+  "optional_plugins": [
+    {
+      "name": "spec-kit",
+      "marketplace": "claude-plugins-community",
+      "why": "GitHub's spec-driven workflow. Aligns with this harness's eight phases. Install if you want the canonical /speckit.* commands alongside our /specify, /plan, etc.",
+      "install": "/plugin install spec-kit@claude-plugins-community"
+    },
+    {
+      "name": "designer-skills",
+      "marketplace": "wshobson-agents",
+      "why": "Owl-Listener designer-skills — 91 skills across 9 design plugins. Install if you ship a frontend.",
+      "install": "/plugin install designer-skills@wshobson-agents"
+    },
+    {
+      "name": "marketing-skills",
+      "marketplace": "wshobson-agents",
+      "why": "Corey Haines's 41 marketing skills with cross-references. Vertical-specific.",
+      "install": "/plugin install marketing-skills@wshobson-agents"
+    },
+    {
+      "name": "web-scraper",
+      "marketplace": "wshobson-agents",
+      "why": "yfe404/web-scraper — auto-picks strategy and scaffolds Apify Actors in TypeScript (Crawlee under the hood).",
+      "install": "/plugin install web-scraper@wshobson-agents"
+    }
+  ],
+
+  "skip_list": [
+    {
+      "name": "ui-ux-pro-max-skill",
+      "url": "https://github.com/nextlevelbuilder/ui-ux-pro-max-skill",
+      "reason": "Heavyweight mega-skill (161 rules + 67 styles). Anthropic's frontend-design is leaner and ships with the official marketplace."
+    },
+    {
+      "name": "pop-auto-docs",
+      "url": "https://claudskills.com/skills/pop-auto-docs/",
+      "reason": "Redundant with doc-coauthoring (official)."
+    },
+    {
+      "name": "ruflo",
+      "url": "https://github.com/ruvnet/ruflo",
+      "reason": "Hive-mind / byzantine-consensus theater. Performative cosplay around shared-memory writes. Skip wholesale; cherry-pick patterns only if needed."
+    },
+    {
+      "name": "everything-claude-code / ECC",
+      "url": "https://github.com/affaan-m/ECC",
+      "reason": "3946 files, 246 skills, 14 IDE mirror dirs, 1.5KB inline node bootstrap per hook. Kitchen-sink. Borrow patterns (instinct/context-budget/prompt-defense) but don't install."
+    },
+    {
+      "name": "openclaw",
+      "url": "https://github.com/openclaw/openclaw",
+      "reason": "Multi-channel personal assistant gateway — wrong layer for coding orchestration."
+    },
+    {
+      "name": "hermes-agent (nousresearch)",
+      "url": "https://github.com/nousresearch/hermes-agent",
+      "reason": "Competitor agent runtime, not a Claude Code plugin. Conceptually note s6-overlay supervision in RESEARCH.md only."
+    },
+    {
+      "name": "oh-my-claudecode (OMC)",
+      "url": "https://github.com/yeachan-heo/oh-my-claudecode",
+      "reason": "Heavy abstraction that replaces Claude Code semantics with its own. Borrow patterns (XML CLAUDE.md tags, git trailers, keyword-detector) but don't install the framework."
+    },
+    {
+      "name": "caveman",
+      "url": "https://github.com/JuliusBrussee/caveman",
+      "reason": "Meme skill. We already have a Concise output style that achieves the same brevity without the bit. Borrow the auto-clarity escape-hatch pattern in our skill-writing template."
+    }
+  ]
+}

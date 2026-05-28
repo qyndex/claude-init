@@ -1,0 +1,88 @@
+name: E2E on Preview Deploy
+
+# Triggers Playwright E2E against a preview deployment.
+# Listens for the deployment_status event and runs only on success.
+
+on:
+  deployment_status:
+
+permissions:
+  contents: read
+  deployments: read
+  pull-requests: write
+
+jobs:
+  e2e:
+    if: github.event.deployment_status.state == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PLAYWRIGHT_BASE_URL: ${{ github.event.deployment_status.target_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with: { node-version-file: 'package.json' }
+
+      - name: Install deps
+        run: |
+          if [ -f pnpm-lock.yaml ]; then
+            corepack enable && pnpm install --frozen-lockfile
+          elif [ -f yarn.lock ]; then
+            yarn install --frozen-lockfile
+          else
+            npm ci
+          fi
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright E2E
+        run: npx playwright test
+        env:
+          CI: true
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
+
+      - name: Upload evidence bundle (Round 10 C — heavy binaries)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verify-evidence
+          path: verify/
+          retention-days: 90
+
+      - name: Comment PR with E2E status
+        if: always()
+        uses: actions/github-script@v7
+        env:
+          STATUS: ${{ job.status }}
+          PREVIEW_URL: ${{ github.event.deployment_status.target_url }}
+        with:
+          script: |
+            const status = process.env.STATUS;
+            const url = process.env.PREVIEW_URL;
+            const emoji = status === 'success' ? 'PASS' : 'FAIL';
+            // Find associated PR via deployment
+            const deploys = await github.rest.repos.listDeployments({
+              owner: context.repo.owner, repo: context.repo.repo,
+              sha: context.payload.deployment.sha
+            });
+            const prs = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+              owner: context.repo.owner, repo: context.repo.repo,
+              commit_sha: context.payload.deployment.sha
+            });
+            if (!prs.data.length) return;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prs.data[0].number,
+              body: '**E2E on preview**: ' + emoji + '\nPreview: ' + url
+            });

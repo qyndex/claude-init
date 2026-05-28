@@ -1,0 +1,110 @@
+name: Issue lifecycle
+
+# Round 11 C. Moves the spec issue's Projects v2 Status as work progresses:
+#   PR opened             -> DOING
+#   PR merged             -> DONE
+#   flag@100 / deploy ok  -> SHIPPED
+#
+# Explicit updateProjectV2ItemFieldValue mutation (built-in Projects automations
+# are UI-only; PR->status propagation is indirect — we drive it deterministically).
+# Option IDs come from repo variables (see docs/ISSUE-LIFECYCLE.md).
+#
+# Security: all event-supplied data (PR body) flows via env vars, never
+# interpolated into run: blocks.
+
+on:
+  pull_request:
+    types: [opened, reopened, closed]
+  deployment_status:
+  issues:
+    types: [labeled]            # Round 12: type:hotfix enters at DOING on creation
+  repository_dispatch:
+    types: [flag-shipped]
+
+permissions:
+  contents: read
+  pull-requests: read
+  repository-projects: write
+
+jobs:
+  move-status:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.PROJECT_PAT || secrets.GITHUB_TOKEN }}
+      PROJECT_ID: ${{ vars.PROJECT_ID }}
+      STATUS_FIELD_ID: ${{ vars.STATUS_FIELD_ID }}
+      STATUS_DOING: ${{ vars.STATUS_DOING }}
+      STATUS_DONE: ${{ vars.STATUS_DONE }}
+      STATUS_SHIPPED: ${{ vars.STATUS_SHIPPED }}
+      EVENT: ${{ github.event_name }}
+      ACTION: ${{ github.event.action }}
+      MERGED: ${{ github.event.pull_request.merged }}
+      PR_BODY: ${{ github.event.pull_request.body }}
+      DEPLOY_STATE: ${{ github.event.deployment_status.state }}
+      DISPATCH_ISSUE: ${{ github.event.client_payload.issue_number }}
+      REPO: ${{ github.repository }}
+    steps:
+      - name: Resolve target status
+        id: target
+        run: |
+          status=""
+          if [ "$EVENT" = "pull_request" ]; then
+            if [ "$ACTION" = "closed" ] && [ "$MERGED" = "true" ]; then
+              status="$STATUS_DONE"
+            elif [ "$ACTION" = "opened" ] || [ "$ACTION" = "reopened" ]; then
+              status="$STATUS_DOING"
+            fi
+          elif [ "$EVENT" = "deployment_status" ] && [ "$DEPLOY_STATE" = "success" ]; then
+            status="$STATUS_SHIPPED"
+          elif [ "$EVENT" = "repository_dispatch" ]; then
+            status="$STATUS_SHIPPED"
+          fi
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          [ -z "$status" ] && echo "No transition for this event." || true
+
+      - name: Find linked spec issue
+        id: issue
+        if: ${{ steps.target.outputs.status != '' }}
+        run: |
+          issue=""
+          if [ -n "${DISPATCH_ISSUE:-}" ]; then
+            issue="$DISPATCH_ISSUE"
+          else
+            issue=$(printf '%s' "$PR_BODY" | grep -oiE '(closes|fixes|resolves|part of) #[0-9]+' | grep -oE '[0-9]+' | head -1)
+          fi
+          echo "issue=$issue" >> "$GITHUB_OUTPUT"
+          [ -z "$issue" ] && echo "No linked spec issue." || true
+
+      - name: Move project item
+        if: ${{ steps.target.outputs.status != '' && steps.issue.outputs.issue != '' }}
+        env:
+          TARGET_STATUS: ${{ steps.target.outputs.status }}
+          ISSUE_NUM: ${{ steps.issue.outputs.issue }}
+        run: |
+          owner="${REPO%/*}"; name="${REPO#*/}"
+          item_id=$(gh api graphql -f query='
+            query($owner:String!,$name:String!,$num:Int!){
+              repository(owner:$owner,name:$name){
+                issue(number:$num){ projectItems(first:10){ nodes { id project { id } } } }
+              }
+            }' -F owner="$owner" -F name="$name" -F num="$ISSUE_NUM" \
+            --jq ".data.repository.issue.projectItems.nodes[] | select(.project.id==\"$PROJECT_ID\") | .id")
+
+          if [ -z "$item_id" ]; then
+            content_id=$(gh api "repos/$REPO/issues/$ISSUE_NUM" --jq .node_id)
+            item_id=$(gh api graphql -f query='
+              mutation($project:ID!,$content:ID!){
+                addProjectV2ItemById(input:{projectId:$project contentId:$content}){ item { id } }
+              }' -F project="$PROJECT_ID" -F content="$content_id" \
+              --jq '.data.addProjectV2ItemById.item.id')
+          fi
+
+          gh api graphql -f query='
+            mutation($project:ID!,$item:ID!,$field:ID!,$opt:String!){
+              updateProjectV2ItemFieldValue(input:{
+                projectId:$project itemId:$item fieldId:$field
+                value:{ singleSelectOptionId:$opt }
+              }){ projectV2Item { id } }
+            }' -F project="$PROJECT_ID" -F item="$item_id" -F field="$STATUS_FIELD_ID" -F opt="$TARGET_STATUS"
+
+          echo "Issue #$ISSUE_NUM -> $TARGET_STATUS"

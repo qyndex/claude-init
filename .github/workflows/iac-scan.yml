@@ -1,0 +1,59 @@
+name: IaC security scan
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '**/*.tf'
+      - '**/Dockerfile*'
+      - '**/*.sh'
+      - '**/*.sql'
+      - 'infra/**'
+
+permissions:
+  contents: read
+
+jobs:
+  terraform:
+    if: ${{ hashFiles('**/*.tf') != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+      - run: terraform fmt -check -recursive
+      - uses: terraform-linters/setup-tflint@v4
+      - run: tflint --recursive
+      - uses: bridgecrewio/checkov-action@master
+        with:
+          framework: terraform
+          soft_fail: false
+      - uses: aquasecurity/tfsec-action@v1.0.3
+
+  docker:
+    if: ${{ hashFiles('**/Dockerfile*') != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile
+          ignore: DL3008
+
+  shell:
+    if: ${{ hashFiles('**/*.sh') != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ludeeus/action-shellcheck@master
+        with:
+          severity: warning
+          ignore_paths: node_modules
+
+  sql:
+    if: ${{ hashFiles('**/*.sql') != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          pip install --quiet sqlfluff
+          sqlfluff lint --dialect=ansi .

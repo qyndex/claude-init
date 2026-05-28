@@ -1,0 +1,51 @@
+name: Hotfix
+description: A live production failure auto-triaged from an alert. Normally created write-only by the projector — do not hand-file unless a human caught the prod issue first.
+title: "[hotfix] "
+type: Bug
+labels: ["type:hotfix", "status:doing", "priority:hotfix"]
+projects: ["OWNER/PROJECT_NUMBER"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        > **Auto-created** by the prod→hotfix pipeline (Round 12). The factory has
+        > already queued a `priority: hotfix` task at the TOP of `tasks/TASKS.md`
+        > and spawned a fix session. This issue is the write-only projection.
+        > Enters the board at **DOING** (a hotfix is never "someday").
+  - type: input
+    id: fingerprint
+    attributes:
+      label: Sentry fingerprint (dedup key)
+      placeholder: a3b7c9d1
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options: ["SEV1 (total outage / data loss)", "SEV2 (major degradation)"]
+    validations:
+      required: true
+  - type: input
+    id: sentry
+    attributes:
+      label: Sentry permalink
+      placeholder: https://sentry.io/organizations/.../issues/...
+  - type: input
+    id: task
+    attributes:
+      label: Ledger task
+      description: The T-id in tasks/TASKS.md (the source of truth)
+      placeholder: T-512
+  - type: textarea
+    id: blast
+    attributes:
+      label: Blast radius
+      description: Customer impact, affected surface, revenue at risk
+  - type: markdown
+    attributes:
+      value: |
+        **Autonomy boundary**: the factory diagnoses + fixes + opens a PR with the
+        evidence bundle. A **human reviews + merges** — prod changes are never
+        auto-merged. SEV1 also pages a human IC in parallel (incident-response.md).
+        Hotfixes skip the gradual flag ramp (emergency 100% + auto-rollback ON).

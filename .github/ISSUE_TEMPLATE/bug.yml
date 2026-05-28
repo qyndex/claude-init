@@ -1,0 +1,41 @@
+name: Bug
+description: Something is broken in prod or dev. Routes to the debugger 4-phase loop.
+title: "[bug] "
+type: Bug
+labels: ["type:bug", "status:todo"]
+projects: ["OWNER/PROJECT_NUMBER"]
+body:
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Exact steps + environment + version. Minimal repro preferred.
+      placeholder: |
+        1. ...
+        2. ...
+        Environment: node 22, macOS, prod
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected vs actual
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options: ["S1 (prod down / data loss)", "S2 (major degradation)", "S3 (minor)", "S4 (cosmetic)"]
+    validations:
+      required: true
+  - type: input
+    id: affected_paths
+    attributes:
+      label: Affected paths (for incident/pattern memory)
+      placeholder: src/auth/login.ts
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Logs, stack trace, screenshot, Sentry fingerprint

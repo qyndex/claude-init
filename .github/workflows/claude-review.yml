@@ -1,0 +1,45 @@
+name: Claude PR Review
+
+# Automated code review on every PR. Posts inline comments grouped by severity.
+# Uses anthropics/claude-code-action@v1 in headless mode.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  review:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Run Claude code-reviewer
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          model: claude-opus-4-7
+          mode: review
+          prompt: |
+            You are the reviewer agent (.claude/agents/quality/reviewer.md).
+            Review the PR diff for: correctness, edge cases, idiomatic style, naming,
+            comments, tests, performance, backward-compat, dead code.
+
+            Multi-pass:
+            1. Read the diff.
+            2. Read the full surrounding code for each hunk.
+            3. Form findings, severity-tagged (blocker/high/medium/low/nit).
+            4. Re-verify each finding by re-reading the relevant path — suppress false positives.
+            5. Post the surviving findings as inline review comments.
+
+            Block the PR (--request-changes) if any blocker or high remains.

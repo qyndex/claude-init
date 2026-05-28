@@ -1,0 +1,80 @@
+name: Mutation testing critical paths
+
+# Round 10 A. The only real defense against assertion-rich-but-meaningless tests.
+# Runs on PRs touching critical_paths (conventions.yml). Mutates changed files;
+# fails if mutation score < critical_mutation_target.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "**/auth/**"
+      - "**/payments/**"
+      - "**/security/**"
+      - "**/billing/**"
+      - "**/crypto/**"
+
+permissions:
+  contents: read
+
+jobs:
+  detect:
+    runs-on: ubuntu-latest
+    outputs:
+      stacks: ${{ steps.scan.outputs.stacks }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: scan
+        run: |
+          stacks=$(bash .claude/scripts/detect-stacks.sh | jq -c '.stacks')
+          echo "stacks=$stacks" >> "$GITHUB_OUTPUT"
+
+  mutate:
+    needs: detect
+    if: ${{ needs.detect.outputs.stacks != '[]' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      STACK_NAME: ${{ matrix.stack }}
+      TARGET: "70"
+    strategy:
+      fail-fast: false
+      matrix:
+        stack: ${{ fromJson(needs.detect.outputs.stacks) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Mutation test changed critical files
+        run: |
+          changed=$(git diff --name-only origin/main...HEAD | grep -E '/(auth|payments|security|billing|crypto)/' || true)
+          if [ -z "$changed" ]; then
+            echo "No critical-path files changed for $STACK_NAME — skipping"
+            exit 0
+          fi
+          echo "Critical files changed:"
+          echo "$changed"
+
+          case "$STACK_NAME" in
+            typescript|npm)
+              files=$(echo "$changed" | grep -E '\.(ts|tsx|js)$' | paste -sd, -)
+              [ -z "$files" ] && exit 0
+              npx --yes stryker run --mutate "$files" --thresholds.break "$TARGET"
+              ;;
+            python|pypi)
+              pip install --quiet mutmut
+              for f in $(echo "$changed" | grep '\.py$'); do
+                mutmut run --paths-to-mutate "$f" || true
+              done
+              survived=$(mutmut results 2>/dev/null | grep -c 'survived' || echo 0)
+              if [ "$survived" -gt 0 ]; then echo "$survived mutants survived"; exit 1; fi
+              echo "no survivors"
+              ;;
+            rust|crates)
+              cargo install --quiet cargo-mutants
+              cargo mutants --in-diff <(git diff origin/main...HEAD)
+              ;;
+            *)
+              echo "No mutation tool for $STACK_NAME — skipping (not a gate failure)"
+              ;;
+          esac

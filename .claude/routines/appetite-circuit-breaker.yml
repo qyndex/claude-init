@@ -1,0 +1,48 @@
+# Appetite circuit-breaker — Round 7 B (Shape Up primitive).
+#
+# Fires daily at 09:00 local. Reads every initiative's appetite frontmatter +
+# elapsed time + sunk cost from cost-report.sh; surfaces "we're past the appetite,
+# decide" banners.
+#
+# Default action at 100% per Round 7 user pick: SURFACE FOR REVIEW (not auto-kill).
+# Operator runs /pivot drop|pause|supersede or explicitly extends with justification.
+
+name: appetite-circuit-breaker
+description: Surface initiatives that hit 50% or 100% of declared appetite.
+schedule:
+  cron: "0 9 * * *"
+  timezone: "local"
+
+surface: desktop                # local scheduled task (not Cloud Routine)
+
+permission_mode: auto
+model: claude-sonnet-4-6
+
+budgets:
+  max_wall_clock_minutes: 10
+  max_budget_usd: 0.50          # tiny — read + write, no agent spawn
+
+prompt: |
+  Run the appetite check:
+
+  bash .claude/scripts/appetite-check.sh
+
+  This script:
+  1. Reads every initiatives/active/*.md
+  2. For each, computes:
+     - elapsed = (today - declared_at) / appetite.time
+     - spent = cost-report.sh --by-initiative <id> (Round 7 E)
+     - spent_pct = spent / appetite.budget_usd
+  3. For each initiative at 50% on either dimension:
+     - Writes .claude/memory/audits/appetite-warning-<id>-<date>.md
+     - Adds a [ ] line to tasks/TASKS.md with priority=normal
+       summary: "Convergence check for initiative <id>: appetite 50% — uphill or downhill?"
+  4. For each initiative at 100% on either dimension:
+     - Writes .claude/memory/audits/appetite-breach-<id>-<date>.md
+     - Adds a [!] line to tasks/TASKS.md with priority=incident-followup
+       summary: "Initiative <id> hit appetite. Decide: /pivot drop|pause|supersede or extend with justification."
+     - Surfaces in OVERNIGHT_REPORT.md if Cloud Routine has run that night
+
+  Do NOT auto-supersede. Do NOT auto-kill. Default per Round 7 user pick = surface for review.
+
+  Exit cleanly. No PR. No commits.

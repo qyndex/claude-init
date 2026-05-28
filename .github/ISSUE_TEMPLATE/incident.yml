@@ -1,0 +1,43 @@
+name: Incident
+description: A production failure. Opens the incident-response playbook; links to a post-mortem.
+title: "[incident] "
+type: Bug
+labels: ["type:incident", "status:doing", "priority:incident-followup"]
+projects: ["OWNER/PROJECT_NUMBER"]
+body:
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options: ["SEV1 (total outage / data loss)", "SEV2 (major degradation)", "SEV3 (partial / single-tenant)", "SEV4 (minor)"]
+    validations:
+      required: true
+  - type: input
+    id: opened
+    attributes:
+      label: Opened at (ISO)
+      placeholder: 2026-05-28T14:03:00Z
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: Customer impact
+      description: Who/how many affected, which surface, revenue at risk
+    validations:
+      required: true
+  - type: input
+    id: ic
+    attributes:
+      label: Incident commander
+      placeholder: "@handle"
+    validations:
+      required: true
+  - type: textarea
+    id: timeline
+    attributes:
+      label: Timeline (running log)
+      description: Append as the incident evolves. Becomes the post-mortem skeleton.
+  - type: markdown
+    attributes:
+      value: "On close: run `/incident-end` → writes `.claude/memory/post-mortems/` + parses action items into TASKS.md (priority: incident-followup)."

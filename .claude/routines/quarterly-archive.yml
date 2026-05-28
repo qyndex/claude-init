@@ -1,0 +1,176 @@
+# Quarterly archive routine
+# Fires the first Monday of every quarter at 02:00 local time.
+# Moves shipped specs/plans/initiatives + completed tasks to dated quarterly archives.
+#
+# This keeps the active directories small (fast greps, clean readbacks for agents)
+# while preserving the audit trail (git history + dated archive files).
+#
+# Run via: `claude routine run quarterly-archive`
+# Or schedule: `claude routine schedule quarterly-archive` (uses the `cron` field below)
+
+name: quarterly-archive
+description: Move shipped artifacts to quarterly archives. Keeps active dirs lean.
+schedule: routine
+cron: "0 2 1-7 1,4,7,10 1"   # 02:00 on the first Mon of Jan/Apr/Jul/Oct
+permission_mode: auto
+
+steps:
+  - name: Compute quarter label
+    run: |
+      year=$(date +%Y)
+      month=$(date +%m)
+      case "$month" in
+        01|02|03) q="${year}-Q1" ;;
+        04|05|06) q="${year}-Q2" ;;
+        07|08|09) q="${year}-Q3" ;;
+        10|11|12) q="${year}-Q4" ;;
+      esac
+      # We're archiving the *previous* quarter, so step one back
+      case "$q" in
+        ${year}-Q1) prev_q="$((year - 1))-Q4" ;;
+        ${year}-Q2) prev_q="${year}-Q1" ;;
+        ${year}-Q3) prev_q="${year}-Q2" ;;
+        ${year}-Q4) prev_q="${year}-Q3" ;;
+      esac
+      echo "Archiving prev quarter: $prev_q" | tee -a .claude/hooks/.log/quarterly-archive.log
+      echo "PREV_Q=$prev_q" >> "$GITHUB_ENV" 2>/dev/null || echo "$prev_q" > /tmp/prev_q
+
+  - name: Archive shipped specs
+    run: |
+      prev_q=$(cat /tmp/prev_q 2>/dev/null || echo "$(date +%Y)-Q0")
+      mkdir -p "specs/archive/$prev_q"
+      moved=0
+      for spec in specs/active/*.md; do
+        [ -f "$spec" ] || continue
+        if grep -qE '^status: (shipped|superseded|abandoned)' "$spec"; then
+          # Only move if shipped >30 days ago, so recent specs stay reachable
+          updated=$(grep -E '^updated:' "$spec" | head -1 | sed 's/updated: //' | tr -d ' ')
+          if [ -n "$updated" ]; then
+            age_days=$(( ( $(date +%s) - $(date -d "$updated" +%s 2>/dev/null || date -j -f '%Y-%m-%d' "$updated" +%s 2>/dev/null || echo 0) ) / 86400 ))
+            if [ "$age_days" -gt 30 ]; then
+              mv "$spec" "specs/archive/$prev_q/"
+              moved=$((moved + 1))
+            fi
+          fi
+        fi
+      done
+      echo "Archived $moved specs to specs/archive/$prev_q/"
+
+  - name: Archive completed plans
+    run: |
+      prev_q=$(cat /tmp/prev_q 2>/dev/null || echo "$(date +%Y)-Q0")
+      mkdir -p "plans/archive/$prev_q"
+      moved=0
+      for plan in plans/active/*.md; do
+        [ -f "$plan" ] || continue
+        if grep -qE '^status: (shipped|completed|abandoned)' "$plan"; then
+          mv "$plan" "plans/archive/$prev_q/"
+          moved=$((moved + 1))
+        fi
+      done
+      echo "Archived $moved plans"
+
+  - name: Archive closed initiatives (Round 7 D — refuses abandoned without post-mortem)
+    run: |
+      prev_q=$(cat /tmp/prev_q 2>/dev/null || echo "$(date +%Y)-Q0")
+      mkdir -p "initiatives/archive/$prev_q"
+      moved=0
+      blocked=0
+      for init in initiatives/active/*.md; do
+        [ -f "$init" ] || continue
+        status=$(grep -E '^status:' "$init" | head -1 | sed 's/status:[[:space:]]*//' | sed 's/[[:space:]]*#.*$//' | tr -d ' "')
+        case "$status" in
+          shipped|completed|cancelled|superseded)
+            mv "$init" "initiatives/archive/$prev_q/"
+            moved=$((moved + 1))
+            ;;
+          abandoned|dropped)
+            # Round 7 D enforcement, tightened Round 13 Fix 3: must have a SUBSTANTIVE
+            # post-mortem before archive. A one-line skip-stub no longer satisfies the
+            # gate — the post-mortem must EITHER carry real content (≥ 20 lines, i.e. a
+            # genuine extractor output) OR declare an explicit reviewed override
+            # (`reviewed_by:` naming a human who is not the author). This stops the
+            # "echo 'no learnings' > stub.md" bypass that defeated the whole point.
+            id=$(grep -E '^id:' "$init" | head -1 | sed 's/id:[[:space:]]*//' | tr -d ' "')
+            post_mortem=$(ls .claude/memory/post-mortems/${id}-*.md 2>/dev/null | head -1)
+            if [ -z "$post_mortem" ]; then
+              echo "  ✗ BLOCKED: $init is $status without a post-mortem"
+              echo "     Run /abandon $id to generate one."
+              blocked=$((blocked + 1))
+            elif [ "$(grep -cvE '^[[:space:]]*$' "$post_mortem")" -lt 20 ] && ! grep -qE '^reviewed_by:[[:space:]]*\S' "$post_mortem"; then
+              echo "  ✗ BLOCKED: $init has only a stub post-mortem ($post_mortem)"
+              echo "     A skip requires a reviewed override: add 'reviewed_by: <human>' + 'override_reason: <text>'."
+              blocked=$((blocked + 1))
+            else
+              mv "$init" "initiatives/archive/$prev_q/"
+              moved=$((moved + 1))
+            fi
+            ;;
+        esac
+      done
+      echo "Archived $moved initiatives ($blocked blocked pending post-mortem)"
+
+  - name: Roll TASKS.md archive section if file is huge
+    run: |
+      if [ -f tasks/TASKS.md ]; then
+        lines=$(wc -l < tasks/TASKS.md)
+        if [ "$lines" -gt 2000 ]; then
+          prev_q=$(cat /tmp/prev_q 2>/dev/null || echo "$(date +%Y)-Q0")
+          mkdir -p tasks/archive
+          # Cut the Archive section out into its own file
+          awk '/^## Archive$/{flag=1; next} flag' tasks/TASKS.md > "tasks/archive/TASKS-$prev_q.md"
+          # Truncate the original to just Active
+          awk '/^## Archive$/{exit} {print}' tasks/TASKS.md > /tmp/tasks.tmp
+          {
+            cat /tmp/tasks.tmp
+            echo "## Archive"
+            echo
+            echo "Older completed tasks live in tasks/archive/. Most recent quarter: tasks/archive/TASKS-$prev_q.md"
+          } > tasks/TASKS.md
+          echo "Rolled TASKS.md (was $lines lines) into tasks/archive/TASKS-$prev_q.md"
+        fi
+      fi
+
+  - name: Run memory-gc enforcement
+    run: |
+      if [ -x .claude/scripts/memory-gc.sh ]; then
+        .claude/scripts/memory-gc.sh enforce
+      fi
+
+  - name: Run ADR re-verification audit
+    run: |
+      # Run /adr-walk in verify mode; output to a dated incident-style report
+      if [ -f .claude/commands/adr-walk.md ]; then
+        date_label=$(date +%Y-%m-%d)
+        mkdir -p .claude/memory/audits
+        bash <(awk '/^```bash$/,/^```$/' .claude/commands/adr-walk.md | grep -v '^```') \
+          > ".claude/memory/audits/adr-walk-$date_label.md" 2>&1 || true
+        echo "ADR walk written to .claude/memory/audits/adr-walk-$date_label.md"
+      fi
+
+  - name: Surface report
+    run: |
+      prev_q=$(cat /tmp/prev_q 2>/dev/null || echo "$(date +%Y)-Q0")
+      report=".claude/memory/audits/quarterly-archive-$prev_q.md"
+      {
+        echo "# Quarterly archive: $prev_q"
+        echo
+        echo "Run: $(date -Iseconds)"
+        echo
+        echo "## Counts"
+        echo "- Specs archived: $(ls specs/archive/$prev_q/*.md 2>/dev/null | wc -l | tr -d ' ')"
+        echo "- Plans archived: $(ls plans/archive/$prev_q/*.md 2>/dev/null | wc -l | tr -d ' ')"
+        echo "- Initiatives archived: $(ls initiatives/archive/$prev_q/*.md 2>/dev/null | wc -l | tr -d ' ')"
+        echo
+        echo "## ADR re-verification backlog"
+        find .claude/memory/decisions -name '*.md' -mtime +365 2>/dev/null | xargs grep -L '^- \*\*last_verified\*\*:' 2>/dev/null | head -10
+        echo
+        echo "## Stale flags (>90d at 100%, candidates for cleanup)"
+        # Heuristic — replace with real flag provider query
+        grep -rEl 'flag.*100\.0\b|rollout.*100\.0\b' .claude/memory/flags/ 2>/dev/null | head -10 || echo "_(no flag registry yet)_"
+      } > "$report"
+      echo "Report written to $report"
+
+on_failure:
+  - notify: "@oncall"
+  - retain_log: true

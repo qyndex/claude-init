@@ -1,0 +1,66 @@
+# OpenTelemetry Collector — Round 12 A.
+# Copy into shipped projects as deploy/otel-collector.yaml. Vendor-neutral:
+# the app emits OTLP → this collector → swappable backends (env-var driven).
+#
+# The shipped app sets OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317.
+# Swap a backend by changing only the exporters block — app code never changes.
+
+receivers:
+  otlp:
+    protocols:
+      grpc: { endpoint: 0.0.0.0:4317 }
+      http: { endpoint: 0.0.0.0:4318 }
+
+processors:
+  batch:
+    timeout: 5s
+    send_batch_size: 1024
+  # Round 12 D correlation: stamp every span/metric/log with the release + spec
+  resource:
+    attributes:
+      - { key: service.version, value: "${env:RELEASE_SHA}", action: upsert }
+      - { key: deployment.environment, value: "${env:DEPLOY_ENV}", action: upsert }
+      - { key: spec.id, value: "${env:SPEC_ID}", action: upsert }
+  # Drop high-cardinality noise before it hits the backend (cost control)
+  tail_sampling:
+    decision_wait: 10s
+    policies:
+      - name: errors-always
+        type: status_code
+        status_code: { status_codes: [ERROR] }
+      - name: slow-always
+        type: latency
+        latency: { threshold_ms: 1000 }
+      - name: baseline-10pct
+        type: probabilistic
+        probabilistic: { sampling_percentage: 10 }
+
+exporters:
+  # ─── Traces → Tempo (OSS default). Swap to Honeycomb/Datadog via env. ───
+  otlp/tempo:
+    endpoint: "${env:TEMPO_ENDPOINT:-tempo:4317}"
+    tls: { insecure: true }
+  # ─── Metrics → Prometheus remote-write ───
+  prometheusremotewrite:
+    endpoint: "${env:PROM_REMOTE_WRITE:-http://prometheus:9090/api/v1/write}"
+    resource_to_telemetry_conversion: { enabled: true }
+  # ─── Logs → Loki ───
+  otlphttp/loki:
+    endpoint: "${env:LOKI_ENDPOINT:-http://loki:3100/otlp}"
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [resource, tail_sampling, batch]
+      exporters: [otlp/tempo]
+    metrics:
+      receivers: [otlp]
+      processors: [resource, batch]
+      exporters: [prometheusremotewrite]
+    logs:
+      receivers: [otlp]
+      processors: [resource, batch]
+      exporters: [otlphttp/loki]
+  telemetry:
+    logs: { level: warn }

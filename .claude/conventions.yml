@@ -1,0 +1,100 @@
+# Project conventions — Round 8 C + E.
+#
+# Hand-edited ONCE per project. Agents read this to learn:
+#   - Where things live (overrides the path-scoped rules' default globs)
+#   - Which paths are auto-generated (exempt from lint + coverage)
+#   - Exception policy (when can a lint disable be allowed?)
+#
+# Update when you reorganize the codebase or adopt a new framework.
+
+# ─── Path conventions ──────────────────────────────────────────────────
+# Agents prefer these over the generic `.claude/rules/*.md` globs.
+# Edit the values to match THIS repo's actual layout.
+paths:
+  # Web / UI
+  components_dir: src/web/components
+  pages_dir: src/web/app          # Next.js App Router; use src/web/pages for Pages Router
+  styles_dir: src/web/styles
+
+  # Backend / API
+  api_handlers_dir: src/api/v1
+  services_dir: src/services
+  models_dir: src/models
+
+  # Data / DB
+  migrations_dir: db/migrations
+  schema_file: prisma/schema.prisma  # or drizzle/schema.ts, or alembic/env.py, etc.
+  seeds_dir: db/seeds
+
+  # Tests
+  unit_tests_co_located: true       # Foo.tsx next to Foo.test.tsx
+  integration_tests_dir: tests/integration
+  e2e_tests_dir: e2e
+
+  # Infra
+  iac_dir: infra
+  ci_workflows: .github/workflows
+
+# ─── Generated paths (exempt from lint + coverage) ─────────────────────
+generated_paths:
+  - "**/__generated__/**"
+  - "**/*.gen.ts"
+  - "**/*.gen.go"
+  - "**/*_pb.go"
+  - "**/*_pb2.py"
+  - "**/openapi-client/**"
+  - "**/graphql/generated/**"
+  - "**/.next/**"
+  - "**/dist/**"
+  - "**/build/**"
+  - "**/target/**"
+  - "**/node_modules/**"
+  - "**/.terraform/**"
+
+# ─── Exception policy ──────────────────────────────────────────────────
+# Lint disables and type ignores are allowed only with structured justification.
+# Enforced by .github/workflows/lint-exception-audit.yml.
+exception_policy:
+  require_markers:
+    - JUSTIFICATION   # "Why is this disable necessary?"
+    - ISSUE           # "ISSUE: #123" — open GitHub issue tracking removal
+  marker_window_lines: 3   # markers must appear within 3 lines of the disable
+  review_cadence: quarterly  # /debt list disables runs each quarter
+  security_disables_require_adr: true  # # nosec / # noqa: S* / security-* need ADR
+
+  # Patterns matched as "disables"
+  disable_patterns:
+    typescript: ['eslint-disable', '@ts-ignore', '@ts-expect-error', '@ts-nocheck']
+    python: ['# noqa', '# type: ignore', '# nosec', '# pragma: no cover']
+    rust: ['#\[allow\(', '//\s*nolint']
+    go: ['//nolint:', '//nolintlint:', '//gocover:ignore']
+    generic: ['LINT-DISABLE-OK']
+
+# ─── Stack-specific strict-mode defaults ───────────────────────────────
+strict_defaults:
+  typescript:
+    tsconfig:
+      strict: true
+      noUncheckedIndexedAccess: true
+      noImplicitOverride: true
+      exactOptionalPropertyTypes: true
+    eslint_max_warnings: 0
+  python:
+    mypy_strict: true
+    ruff_select: ["E", "F", "W", "B", "UP", "SIM", "RUF", "S", "N", "ANN"]
+  rust:
+    clippy_pedantic: true
+    deny_unsafe_code: true   # override with #[allow(unsafe_code)] + ADR
+  go:
+    golangci_lint_enable: [gocritic, staticcheck, gosec, revive, errcheck]
+
+# ─── Critical paths (extra scrutiny) ───────────────────────────────────
+# Stricter coverage + mutation testing + ADR required for changes.
+critical_paths:
+  - "**/auth/**"
+  - "**/payments/**"
+  - "**/security/**"
+  - "**/billing/**"
+  - "**/crypto/**"
+critical_coverage_target: 95   # vs 90 default; Round 8 D
+critical_mutation_target: 70   # only critical paths get mutation testing

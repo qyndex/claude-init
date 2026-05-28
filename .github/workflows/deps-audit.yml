@@ -1,0 +1,67 @@
+name: Deps audit per-stack
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'package.json'
+      - 'package-lock.json'
+      - 'pnpm-lock.yaml'
+      - 'yarn.lock'
+      - 'requirements*.txt'
+      - 'pyproject.toml'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'go.mod'
+      - 'go.sum'
+
+permissions:
+  contents: read
+
+jobs:
+  detect:
+    runs-on: ubuntu-latest
+    outputs:
+      stacks: ${{ steps.scan.outputs.stacks }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: scan
+        run: |
+          stacks=$(bash .claude/scripts/detect-stacks.sh | jq -c '.stacks')
+          echo "stacks=$stacks" >> "$GITHUB_OUTPUT"
+
+  audit:
+    needs: detect
+    if: ${{ needs.detect.outputs.stacks != '[]' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        stack: ${{ fromJson(needs.detect.outputs.stacks) }}
+    runs-on: ubuntu-latest
+    env:
+      STACK_NAME: ${{ matrix.stack }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Per-stack vulnerability audit
+        run: |
+          case "$STACK_NAME" in
+            typescript|npm)
+              if [ -f pnpm-lock.yaml ]; then
+                pnpm audit --audit-level=high
+              elif [ -f package-lock.json ]; then
+                npm audit --omit=dev --audit-level=high
+              fi
+              ;;
+            python|pypi)
+              pip install --quiet pip-audit
+              pip-audit --strict
+              ;;
+            rust|crates)
+              cargo install --quiet cargo-audit
+              cargo audit -D warnings
+              ;;
+            go)
+              go install golang.org/x/vuln/cmd/govulncheck@latest
+              govulncheck ./...
+              ;;
+          esac

@@ -1,0 +1,58 @@
+# Hotfix Sentry poll — Round 12 B (PRIMARY ingestion, no always-on server).
+#
+# Polls Sentry every 10 min for new high-severity unresolved issues; runs the
+# dedup+insert flow (hotfix-to-task.sh) → top-of-queue task + write-only hotfix
+# issue → autonomous fix. The repository_dispatch fallback (hotfix-ingest.yml)
+# handles true-SEV1 sub-10-min cases.
+#
+# Configure as a Cloud Routine (claude.ai/code/routines) — uses the sentry MCP.
+
+name: hotfix-sentry-poll
+description: Poll Sentry every 10 min; triage SEV1/SEV2 prod errors into hotfix tasks.
+
+schedule:
+  cron: "*/10 * * * *"
+  timezone: "Etc/UTC"
+
+permission_mode: auto
+model: claude-sonnet-4-6
+
+budgets:
+  max_wall_clock_minutes: 8
+  max_budget_usd: 1
+
+connectors:
+  - github
+  - sentry
+
+env:
+  ENABLE_TOOL_SEARCH: "true"
+
+prompt: |
+  Poll production error tracking for new hotfix candidates. Do NOT fix anything
+  in this routine — only TRIAGE (open the hotfix issue + queue the task). The
+  fix is spawned separately by hotfix-ingest.yml.
+
+  STEPS:
+  1. Query the Sentry MCP for issues matching:
+     - level in [fatal, error]
+     - is:unresolved
+     - firstSeen within the last 10 minutes
+     - priority/severity in [SEV1, SEV2]   (SEV3/4 are NOT auto-triaged — they batch into weekly /triage)
+  2. For EACH qualifying issue, call:
+       bash .claude/scripts/hotfix-to-task.sh "<sentry-fingerprint>" "<SEV1|SEV2>" "<title>" "<permalink>"
+     The script applies dedup guards (one open hotfix per fingerprint, cooldown,
+     severity threshold) reading tasks/TASKS.md — it will no-op if a hotfix for
+     that fingerprint already exists. This is safe to run every 10 min.
+  3. For each NEW hotfix task created, fire the fix pipeline:
+       gh api repos/:owner/:repo/dispatches -f event_type=prod-alert \
+         -F client_payload[source]=sentry-poll \
+         -F client_payload[fingerprint]="<fp>" \
+         -F client_payload[severity]="<sev>" \
+         -F client_payload[task_id]="<T-NNN>"
+  4. Exit cleanly. No PR, no fix — that's hotfix-ingest.yml's job.
+
+  HARD RULES:
+  - Never READ task state from GitHub issues (Round 11 — TASKS.md is authority).
+  - Never fix in this routine — triage only.
+  - Respect dedup: hotfix-to-task.sh is the single guard; trust its no-op.

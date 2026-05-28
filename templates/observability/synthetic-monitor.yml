@@ -1,0 +1,49 @@
+# Synthetic prod monitor — Round 12 A. Copy to .github/workflows/synthetic-monitor.yml
+# in shipped projects. Runs the critical user journey against PROD every 5 min from
+# outside; a failure fires the same hotfix pipeline a Sentry alert does.
+
+name: Synthetic monitor (prod)
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  journey:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      PROD_URL: ${{ vars.PROD_URL }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version-file: package.json }
+      - run: npx playwright install --with-deps chromium
+      - name: Run critical journey against prod
+        id: journey
+        run: |
+          # Runs e2e tests tagged @synthetic against PROD (read-only journey only)
+          PLAYWRIGHT_BASE_URL="$PROD_URL" npx playwright test --grep @synthetic
+      - name: On failure — fire the hotfix pipeline
+        if: failure()
+        run: |
+          # Synthetic failure = a SEV1/SEV2 prod symptom. Dispatch the hotfix ingest.
+          gh api "repos/${GITHUB_REPOSITORY}/dispatches" \
+            -f event_type=prod-alert \
+            -F "client_payload[source]=synthetic" \
+            -F "client_payload[severity]=SEV2" \
+            -F "client_payload[fingerprint]=synthetic-$(echo "$PROD_URL" | md5sum | cut -c1-8)" \
+            -F "client_payload[title]=Synthetic journey failed against prod"
+      - name: Heartbeat (push success metric)
+        if: success()
+        run: |
+          # Push a heartbeat so absence-of-heartbeat also alerts (dead-man's switch)
+          if [ -n "${{ vars.PUSHGATEWAY_URL }}" ]; then
+            echo "synthetic_journey_success 1" | \
+              curl -s --data-binary @- "${{ vars.PUSHGATEWAY_URL }}/metrics/job/synthetic/instance/prod" || true
+          fi

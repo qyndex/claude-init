@@ -1,0 +1,25 @@
+{
+  "_doc": "Stream task state. Updated by feature-stream agent throughout execution. Read by coordinator for status. Schema from fengshao1227/ccg-workflow.",
+
+  "id": "feat-{{ STREAM_ID }}",
+  "branch": "{{ BRANCH }}",
+  "worktree": ".claude/worktrees/{{ STREAM_ID }}",
+  "status": "pending",
+  "strategy": "guided-develop",
+  "currentPhase": "phase-0",
+  "gate": "spec",
+  "taskIds": ["T-{{ ID_A }}", "T-{{ ID_B }}"],
+  "spawned_at": "{{ ISO_TIMESTAMP }}",
+  "last_checkpoint": null,
+  "qa_attempts": 0,
+  "completed_taskIds": [],
+  "escalated_taskIds": [],
+  "budget": {
+    "max_turns": 200,
+    "max_budget_usd": 5,
+    "turns_used": 0,
+    "usd_used": 0
+  },
+  "files_owned": [],
+  "files_shared": []
+}

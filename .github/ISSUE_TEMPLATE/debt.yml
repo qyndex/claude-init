@@ -1,0 +1,31 @@
+name: Tech debt
+description: A known shortcut with an SLA. Mirrors a [!]/[s] entry in the debt register.
+title: "[debt] "
+type: Task
+labels: ["type:debt", "status:todo", "priority:debt"]
+projects: ["OWNER/PROJECT_NUMBER"]
+body:
+  - type: textarea
+    id: shortcut
+    attributes:
+      label: The shortcut taken
+      description: What we did instead of the right thing, and why it was acceptable then
+    validations:
+      required: true
+  - type: textarea
+    id: cost
+    attributes:
+      label: Carrying cost
+      description: What this costs us until paid down (velocity, risk, on-call burden)
+    validations:
+      required: true
+  - type: dropdown
+    id: sla
+    attributes:
+      label: SLA
+      options: ["this-sprint", "next-quarter", "accept-as-permanent", "revisit-in-90-days"]
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: "Tracked by `/debt` register. Items >90 days without a decision are SLA breaches — `/debt triage` surfaces them."

@@ -1,0 +1,37 @@
+name: Spike / Research
+description: A time-boxed investigation to reduce uncertainty before committing to a spec. Routes to the researcher agent.
+title: "[spike] "
+type: Task
+labels: ["type:spike", "status:todo"]
+projects: ["OWNER/PROJECT_NUMBER"]
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: Question to answer
+      description: The specific decision this spike unblocks
+    validations:
+      required: true
+  - type: input
+    id: timebox
+    attributes:
+      label: Time-box
+      placeholder: 2 days
+    validations:
+      required: true
+  - type: textarea
+    id: options
+    attributes:
+      label: Candidate options
+      description: 2-5 candidates to compare (drives researcher fan-out)
+  - type: input
+    id: deliverable
+    attributes:
+      label: Deliverable
+      description: Where the answer lands
+      placeholder: docs/research/2026-05-28-cache-libs.md
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: "Outcome: either a recommendation (→ spec) OR 'unanswerable with current evidence'. A spike is DONE when the brief exists, not when code ships."

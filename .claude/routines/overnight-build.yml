@@ -1,0 +1,191 @@
+# Overnight Build Routine — Cloud (claude.ai/code/routines)
+#
+# This file is a TEMPLATE for the Cloud Routine you configure once at:
+#   https://claude.ai/code/routines
+#
+# Copy the values below into the routine creation form. It is NOT directly
+# executable — Anthropic infra reads the routine config from your account.
+#
+# Documentation: https://code.claude.com/docs/en/routines
+
+# ─── UI field mapping (claude.ai/code/routines form) ────────────────────────
+# YAML key                  →  Routine creation form field
+# name                      →  "Name"
+# description               →  "Description"
+# schedule.cron             →  "Schedule" (cron format)
+# schedule.timezone         →  "Timezone"
+# repo.url                  →  "Repository URL"
+# repo.branch               →  "Base branch"
+# permission_mode           →  "Permission mode" (radio: default / acceptEdits / auto / bypassPermissions)
+# model                     →  "Model"
+# fallback_model            →  "Fallback model" (advanced settings)
+# effort_level              →  "Effort"
+# budgets.*                 →  "Budgets" section (separate inputs)
+# connectors                →  "Connectors" checklist
+# env                       →  "Environment variables" key-value editor
+# branch_permission.pattern →  "Branch restriction"
+# prompt                    →  "Prompt" (multi-line textarea — paste the entire `prompt: |` block)
+
+name: overnight-build
+
+description: >
+  Nightly autonomous build cycle. Picks up unblocked tasks from tasks/TASKS.md,
+  runs strict TDD via /verify-loop, ships completed work to claude/overnight-<date>
+  PRs. Runs /dream at end to consolidate memory.
+
+schedule:
+  cron: "0 23 * * *"        # 23:00 daily — 1 hour minimum interval enforced by Routines
+  timezone: "Etc/UTC"        # set to your team's standup TZ if you prefer
+
+repo:
+  url: ""                    # paste your GitHub repo URL
+  branch: main               # base branch to clone from
+
+permission_mode: auto
+# Anthropic Auto Mode: Sonnet 4.6 classifier reviews every tool call and
+# approves/denies without user prompts. Two layers of safety:
+#   1. PreToolUse hooks (.claude/hooks/) fire FIRST and hard-block destructive
+#      ops via exit code 2 — pattern-matched (rm -rf, force-push, secrets, etc.)
+#   2. Classifier catches novel/ambiguous patterns the hooks miss.
+# bypassPermissions is NOT used — the ~200-500ms classifier latency is worth
+# the safety margin for an unattended overnight run.
+
+# Round 5 D1 + D9: inverted — Sonnet is the primary, Opus is the fallback. Strict-TDD
+# flow is mostly mechanical; Sonnet handles it. Opus only invoked when Sonnet flags
+# a hard-thinking gate (architect / debugger explicit deep mode).
+model: claude-sonnet-4-6
+fallback_model: claude-opus-4-7
+effort_level: medium
+
+budgets:
+  # Wall clock: 480 min (8h) = full 23:00 → 07:00 window. Single-stream worst-case
+  # hits the 8h cap; multi-stream cumulative work via /swarm:plan inside the prompt.
+  max_wall_clock_minutes: 480
+  max_budget_usd: 30                # hard cap on Anthropic spend per run
+  max_turns: 600                    # matches 8h budget
+
+# Round 5 D9: explicit pre-flight cost gate. Before any task work, the routine
+# must check that monthly spend is under cap. If over, abort with a single PR
+# explaining why — do not silently consume the nightly $30.
+pre_flight:
+  - name: "Run-start marker (double-run guard — Round 13 Fix 2)"
+    run: |
+      # Drop a marker branch at t=0 so the local backstop (local-overnight-build.sh)
+      # can detect "cloud already running tonight" via `git ls-remote claude/overnight-<date>*`
+      # BEFORE the first task PR exists — closing the 23:00→23:30 concurrent-run window.
+      b="claude/overnight-$(date +%Y-%m-%d)"
+      git switch -c "$b" 2>/dev/null || git switch "$b"
+      git commit --allow-empty -m "chore(overnight): run-start marker $(date -Iseconds)"
+      git push -u origin "$b" 2>/dev/null || true
+      git switch "$(git rev-parse --abbrev-ref HEAD@{-1} 2>/dev/null || echo main)" 2>/dev/null || git switch main
+
+  - name: "Pivot-pending skip check"
+    run: |
+      # Round 7 E: /pivot stop writes .claude/state/skip-overnight-<date>
+      # to halt unattended work while the operator decides a pivot direction.
+      skip_file=".claude/state/skip-overnight-$(date +%Y-%m-%d)"
+      if [ -f "$skip_file" ]; then
+        reason=$(cat "$skip_file")
+        echo "ABORT: pivot stop flag set ($skip_file) — reason: $reason"
+        echo "Cloud Routine skipped at operator request — pivot pending: $reason" > OVERNIGHT_REPORT.md
+        exit 1
+      fi
+
+  - name: "Brownfield characterization guard (Round 14)"
+    run: |
+      # If this repo was adopted and still has uncharacterized legacy zones, the autopilot
+      # must NOT touch them. This step is visibility-only; the hard enforcement is the
+      # per-task skip (autopilot Phase 0) + the verify.sh characterization gate.
+      manifest=".claude/state/adopt/uncharacterized-paths.txt"
+      if [ -s "$manifest" ] && grep -qvE '^[[:space:]]*(#|$)' "$manifest"; then
+        {
+          echo "## Brownfield adoption incomplete — uncharacterized legacy paths remain:"
+          grep -vE '^[[:space:]]*(#|$)' "$manifest"
+          echo "Autopilot will SKIP tasks touching these paths until a characterization test exists (verify.sh enforces)."
+        } | tee -a OVERNIGHT_REPORT.md
+      fi
+
+  - name: "Monthly cap check"
+    run: |
+      bash .claude/scripts/cost-report.sh month
+      remaining=$(jq -r '(.monthly_cap_usd - .total_usd)' .claude/hooks/.log/cost-summary.json 2>/dev/null || echo 0)
+      if [ "$(printf '%.0f' "$remaining")" -lt 30 ]; then
+        echo "ABORT: monthly cost cap leaves only \$${remaining} headroom; this run would risk overshoot."
+        echo "Raise CLAUDE_MONTHLY_CAP_USD or wait until reset." > OVERNIGHT_REPORT.md
+        exit 1
+      fi
+
+connectors:
+  # Enable only what's actually needed; each connector adds network surface area.
+  - github                          # required for PR creation
+  - slack                           # for morning ping (optional)
+  # - apify                          # only if scraping
+  # - sentry                         # only if checking observability
+  # - linear                         # only if reading backlog from Linear
+
+env:
+  ENABLE_TOOL_SEARCH: "true"
+  CLAUDE_CODE_AUTO_COMPACT_WINDOW: "400000"
+  CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: "1"
+
+branch_permission:
+  pattern: "claude/overnight-*"     # routine can only push to these branches
+
+prompt: |
+  You are running an unattended overnight build.
+
+  PROCESS:
+  1. Read tasks/TASKS.md. Identify all unblocked tasks (no missing deps, status pending).
+  2. Invoke .claude/skills/verify-loop/SKILL.md.
+  3. For each unblocked task, execute the autopilot 5-phase flow:
+     - Phase 0 spec expansion (skip if spec has open [OQ] — log and move on)
+     - Phase 1 micro-plan
+     - Phase 2 TDD execution
+     - Phase 3 QA loops (max 5; abort on same-error 3x)
+     - Phase 4 multi-perspective validation (lint + typecheck + security + UI if applicable)
+     - Phase 5 squash WIP commits + Conventional Commit + NEXUS handoff
+  4. After each completed task, open a PR on branch claude/overnight-$(date +%Y-%m-%d)-T-<id>
+     with the NEXUS-format body from the handoff file.
+  5. Stop when ANY of:
+     - No more unblocked tasks
+     - 04:30 wall clock
+     - 3 consecutive task ESCALATIONs
+     - Any security gate hard-fails
+
+  EVIDENCE GATE (per task, mandatory):
+  - Task's accept: command exits 0
+  - bash .claude/scripts/verify.sh exits 0
+  - For UI changes: anthropics/webapp-testing skill captures screenshots to verify/<date>/
+  - For auth/data/network/dep changes: semgrep + codeql + dep-audit clean
+
+  TOOLS:
+  - playwright-skill / chrome-devtools-mcp / Claude in Chrome for browser verification
+  - semgrep mcp for SAST
+  - gh CLI for PR / issue / CI watching
+  - Apify MCP if any task needs scraping (deferred until needed via Tool Search)
+
+  CHECKPOINT DISCIPLINE:
+  - Use .claude/skills/wip-checkpoint after every meaningful decision (every 5-15 min)
+  - WIP commits filter-squashed at PR time (per .claude/scripts/squash-wip.sh)
+
+  END OF RUN:
+  1. Invoke the dream skill — consolidate .claude/memory/ and .claude/memory/.cache/checkpoints/
+  2. Write OVERNIGHT_REPORT.md at repo root in NEXUS handoff format:
+     - Tasks shipped (with PR URLs)
+     - Tasks aborted/escalated (with reasons + last 3 attempts)
+     - Decisions made (commit SHA citations)
+     - Open questions for human review
+     - Token + time spent
+  3. Slack ping (if connector enabled): "Overnight run: <N> shipped, <M> open, <K> escalated. See OVERNIGHT_REPORT.md"
+
+  HARD RULES:
+  - Auto Mode is ON — Sonnet 4.6 classifier on every tool call; hooks still fire FIRST
+  - Never push to main or master; only to claude/overnight-* branches
+  - Never auto-merge; humans review PRs
+  - Never auto-modify a path listed in .claude/state/adopt/uncharacterized-paths.txt — if a
+    task needs it, STOP that task, log "ADOPT-BLOCKED", and require a characterization test
+    first (Feathers sprout/wrap). "No tests = no writes" on adopted legacy.
+  - Never commit .env, secrets, or anything blocked by pre-write-secret-scan
+  - Cite every non-obvious decision to a doc URL or file:line
+  - If the classifier ever denies a tool call you need, do NOT retry to bypass — log it
+    to OVERNIGHT_REPORT.md as ESCALATION and move on

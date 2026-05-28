@@ -1,0 +1,23 @@
+name: No issue-authority inversion
+
+# Round 11 E — load-bearing safety guardrail. Fails the build if code reads
+# task state back from GitHub (which would invert authority + put a network
+# dependency in the autonomous offline loop). See docs/ISSUE-LIFECYCLE.md.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".claude/**"
+      - ".github/workflows/**"
+
+permissions:
+  contents: read
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Forbid task-state reads from GitHub
+        run: bash .claude/scripts/check-no-issue-authority.sh

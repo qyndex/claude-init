@@ -1,0 +1,37 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule: { interval: "weekly" }
+    groups:
+      actions:
+        patterns: ["*"]
+
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule: { interval: "weekly" }
+    open-pull-requests-limit: 5
+    groups:
+      types:
+        patterns: ["@types/*"]
+      eslint:
+        patterns: ["eslint*", "@eslint/*"]
+      testing:
+        patterns: ["vitest*", "@vitest/*", "playwright*", "@playwright/*"]
+
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule: { interval: "weekly" }
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: "cargo"
+    directory: "/"
+    schedule: { interval: "weekly" }
+
+  - package-ecosystem: "gomod"
+    directory: "/"
+    schedule: { interval: "weekly" }
+
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule: { interval: "weekly" }

@@ -1,0 +1,129 @@
+name: CI
+
+# Stack-agnostic CI scaffold. Auto-detects the project's package manager.
+# Customize per project.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  detect:
+    runs-on: ubuntu-latest
+    outputs:
+      stack: ${{ steps.detect.outputs.stack }}
+      pm: ${{ steps.detect.outputs.pm }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: detect
+        run: |
+          set -e
+          stack=unknown; pm=unknown
+          if [ -f pnpm-lock.yaml ]; then stack=node; pm=pnpm
+          elif [ -f package-lock.json ]; then stack=node; pm=npm
+          elif [ -f yarn.lock ]; then stack=node; pm=yarn
+          elif [ -f bun.lock ]; then stack=node; pm=bun
+          elif [ -f uv.lock ]; then stack=python; pm=uv
+          elif [ -f poetry.lock ]; then stack=python; pm=poetry
+          elif [ -f Cargo.lock ]; then stack=rust; pm=cargo
+          elif [ -f go.sum ]; then stack=go; pm=gomod
+          fi
+          echo "stack=$stack" >> "$GITHUB_OUTPUT"
+          echo "pm=$pm" >> "$GITHUB_OUTPUT"
+          echo "Detected stack=$stack pm=$pm"
+
+  lint-test:
+    needs: detect
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        if: needs.detect.outputs.stack == 'node'
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: package.json
+
+      - name: Setup pnpm
+        if: needs.detect.outputs.pm == 'pnpm'
+        uses: pnpm/action-setup@v3
+        with: { run_install: false }
+
+      - name: Setup Python
+        if: needs.detect.outputs.stack == 'python'
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: pyproject.toml
+
+      - name: Setup uv
+        if: needs.detect.outputs.pm == 'uv'
+        uses: astral-sh/setup-uv@v3
+
+      - name: Setup Rust
+        if: needs.detect.outputs.stack == 'rust'
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup Go
+        if: needs.detect.outputs.stack == 'go'
+        uses: actions/setup-go@v5
+        with: { go-version-file: go.mod }
+
+      - name: Install
+        env:
+          PM: ${{ needs.detect.outputs.pm }}
+          STACK: ${{ needs.detect.outputs.stack }}
+        run: |
+          set -e
+          case "$STACK" in
+            node)
+              case "$PM" in
+                pnpm) pnpm install --frozen-lockfile ;;
+                yarn) yarn install --frozen-lockfile ;;
+                bun)  bun install --frozen-lockfile ;;
+                *)    npm ci ;;
+              esac
+              ;;
+            python)
+              case "$PM" in
+                uv) uv sync --all-extras ;;
+                poetry) poetry install ;;
+                *) pip install -r requirements.txt ;;
+              esac
+              ;;
+          esac
+
+      - name: Lint
+        run: bash .claude/scripts/lint.sh
+
+      - name: Typecheck
+        run: bash .claude/scripts/typecheck.sh
+
+      - name: Unit tests
+        run: bash .claude/scripts/test-unit.sh
+
+      - name: Integration tests
+        run: bash .claude/scripts/test-integration.sh
+        continue-on-error: true
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: |
+            coverage/
+            .coverage
+            target/coverage/
+          if-no-files-found: ignore

@@ -1,0 +1,108 @@
+name: Daily stale-deps autofix
+
+# Round 8 B. Runs at 01:00 UTC — 7h before daily-batch (08:00) so successful bumps
+# land green checks before merge-gate's 30h window, AND deconflicted from dream-cron
+# (03:00) which also commits to the repo; two repo-mutating jobs at the same minute
+# raced on push (Round 13 Fix 2 — cron stagger).
+
+on:
+  schedule:
+    - cron: "0 1 * * *"
+  workflow_dispatch:
+    inputs:
+      max_candidates:
+        description: "Max bumps per stack"
+        type: string
+        default: "5"
+      include_majors:
+        description: "Attempt major-version bumps"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  detect:
+    runs-on: ubuntu-latest
+    outputs:
+      stacks: ${{ steps.scan.outputs.stacks }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: scan
+        run: |
+          stacks=$(bash .claude/scripts/detect-stacks.sh | jq -c '.stacks')
+          echo "stacks=$stacks" >> "$GITHUB_OUTPUT"
+          echo "Detected stacks: $stacks"
+
+  bump:
+    needs: detect
+    if: ${{ needs.detect.outputs.stacks != '[]' }}
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        stack: ${{ fromJson(needs.detect.outputs.stacks) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      MAX_CANDIDATES: ${{ inputs.max_candidates || '5' }}
+      INCLUDE_MAJORS: ${{ inputs.include_majors || 'false' }}
+      STACK_NAME: ${{ matrix.stack }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install claude CLI
+        run: command -v claude || npm i -g @anthropic-ai/claude-code
+      - name: Setup stack-specific tooling
+        run: |
+          case "$STACK_NAME" in
+            typescript|npm) npm i -g pnpm yarn 2>/dev/null || true ;;
+            python|pypi) pip install --upgrade pip uv pip-audit 2>/dev/null || true ;;
+            rust|crates) cargo install --quiet cargo-outdated cargo-audit 2>/dev/null || true ;;
+            go) go install golang.org/x/vuln/cmd/govulncheck@latest 2>/dev/null || true ;;
+          esac
+      - name: Scan candidates
+        run: |
+          flag=""
+          if [ "$INCLUDE_MAJORS" = "true" ]; then flag="--include-majors"; fi
+          bash .claude/scripts/stale-deps/scan.sh "$STACK_NAME" $flag
+      - name: Bump + autofix loop
+        run: bash .claude/scripts/stale-deps/bump-loop.sh "$STACK_NAME"
+      - name: Upload per-stack artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stale-deps-${{ matrix.stack }}
+          path: /tmp/bump-results-${{ matrix.stack }}
+          retention-days: 14
+
+  rollup:
+    needs: bump
+    if: always()
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: /tmp/all-artifacts
+      - name: Aggregate
+        run: |
+          mkdir -p /tmp/bump-results-aggregated
+          find /tmp/all-artifacts -name summary.json -exec cp -t /tmp/bump-results-aggregated/ {} +
+          bash .claude/scripts/stale-deps/rollup.sh
+      - name: Commit rollup report
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .claude/memory/audits/stale-deps-*.md
+          git diff --cached --quiet || git commit -m "chore(deps): stale-deps rollup $(date +%Y-%m-%d)"
+          git push 2>/dev/null || true

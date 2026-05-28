@@ -1,0 +1,55 @@
+# Alertmanager routing — Round 12 A. Copy to deploy/alertmanager.yaml in shipped
+# projects. Routes SLO burn-rate + synthetic alerts by severity:
+#   severity:page  → PagerDuty (wake someone) + repository_dispatch → hotfix pipeline
+#   severity:ticket→ Slack #incidents (no page)
+#
+# The repository_dispatch webhook is the bridge from "alert fired" to "factory
+# opens a hotfix" — it's how the no-always-on-server factory receives prod alerts.
+
+global:
+  resolve_timeout: 5m
+  pagerduty_url: https://events.pagerduty.com/v2/enqueue
+
+route:
+  receiver: slack-warn
+  group_by: [alertname, service]
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  routes:
+    - matchers: [severity="page"]
+      receiver: page-and-hotfix
+      continue: true        # also page AND trigger the factory
+    - matchers: [severity="ticket"]
+      receiver: slack-warn
+
+receivers:
+  - name: page-and-hotfix
+    pagerduty_configs:
+      - routing_key: "${PAGERDUTY_ROUTING_KEY}"
+        severity: critical
+        description: "{{ .CommonAnnotations.summary }}"
+        details:
+          runbook: "{{ .CommonAnnotations.runbook }}"
+          service: "{{ .CommonLabels.service }}"
+    webhook_configs:
+      # Bridge to the factory: GitHub repository_dispatch → hotfix-ingest.yml
+      - url: "https://api.github.com/repos/${GH_REPO}/dispatches"
+        http_config:
+          authorization: { type: token, credentials: "${GH_DISPATCH_PAT}" }
+        # Alertmanager sends its own JSON; a tiny relay (or GitHub's webhook proxy)
+        # maps it to {event_type: prod-alert, client_payload: {...}}. See
+        # docs/PROD-OBSERVABILITY.md for the relay snippet (Alertmanager → dispatch).
+
+  - name: slack-warn
+    slack_configs:
+      - api_url: "${SLACK_WEBHOOK_URL}"
+        channel: "#incidents"
+        title: "{{ .CommonAnnotations.summary }}"
+        text: "Runbook: {{ .CommonAnnotations.runbook }} · severity: ticket"
+
+inhibit_rules:
+  # A page suppresses the ticket for the same alert (don't double-notify)
+  - source_matchers: [severity="page"]
+    target_matchers: [severity="ticket"]
+    equal: [alertname, service]

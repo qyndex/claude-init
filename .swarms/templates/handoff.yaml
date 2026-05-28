@@ -1,0 +1,110 @@
+# NEXUS handoff schema v1.0 — Round 6 D
+#
+# Every subagent ends its final message with a fenced block containing this YAML.
+# subagent-stop.sh parses it; coordinator reads `status` for QA-PASS detection;
+# follow-up tasks are auto-appended to TASKS.md via findings-to-tasks.sh.
+#
+# Validate locally:  bash .claude/scripts/validate-handoff.sh <path-to-yaml>
+#
+# Enforcement:
+#   - HARD (exit 2 on missing/malformed): feature-stream, coordinator
+#   - SOFT (warn, accept): architect, planner, implementer, reviewer, verifier,
+#                          security, debugger, researcher, doc-writer, tester
+#
+# Markdown-readable render: see .claude/skills/handoff/SKILL.md
+
+schema_version: "1.0"
+
+# ─── identity (required) ────────────────────────────────────────────────
+task_id: T-042                       # null if exploratory
+parent_session_id: sess_abc123
+subagent_id: sess_xyz789
+subagent_name: researcher            # architect|planner|implementer|reviewer|verifier|security|debugger|researcher|doc-writer|release|tester|feature-stream
+stream_id: feat-001                  # required only inside a swarm; null otherwise
+started_at: 2026-05-28T09:14:22Z
+finished_at: 2026-05-28T09:47:11Z
+
+# ─── outcome (required) ─────────────────────────────────────────────────
+status: completed                    # completed | qa_pass | qa_fail | escalated | blocked | aborted
+attempt: 1
+max_attempts: 3
+confidence: high                     # high | medium | low
+handoff_to: parent                   # parent | <agent_name> | human
+
+# ─── summary (required) ─────────────────────────────────────────────────
+summary: "Selected ioredis over node-redis; integration cost ~40 LOC."
+recommendation: "Adopt ioredis in plans/active/001."   # optional, agent-specific
+
+# ─── artifacts (required; lists may be empty) ───────────────────────────
+artifacts_created:
+  - path: docs/research/2026-05-28-cache-libs.md
+    kind: research_brief
+files_modified:
+  - path: src/cache/redis.ts
+    lines: "12-47, 89-91"
+    reason: "added connection pool guard per spec AC-3"
+files_read_but_not_modified:
+  - src/cache/memcached.ts
+
+# ─── decisions + provenance ─────────────────────────────────────────────
+decisions_made:
+  - decision: "Use ioredis instead of node-redis"
+    rationale: "active maintenance, native cluster support"
+    citations:
+      - https://github.com/redis/ioredis (2026-05-12)
+      - .claude/memory/decisions/0014-cache-driver.md
+    commit: 7a3f2b1
+adrs_referenced:
+  - .claude/memory/decisions/0014-cache-driver.md
+patterns_referenced:
+  - .claude/memory/patterns/connection-pool.md
+incidents_referenced: []
+rejected_hypotheses:                 # debugger especially
+  - "Race condition on socket close" — disproved by single-threaded repro
+auto_fixed:                          # implementer especially
+  - lint:no-unused-vars × 3
+  - prettier formatting × 7 files
+
+# ─── verification (required when status=qa_pass) ───────────────────────
+tests_added:
+  - name: "test_pool_exhaustion"
+    file: tests/cache/test_pool.ts:42
+    type: unit
+evidence_paths:
+  - verify/2026-05-28-cache/screenshot-01.png
+  - verify/2026-05-28-cache/REPORT.md
+verification_commands:
+  - command: "pnpm test src/cache"
+    exit_code: 0
+    coverage_line: 87.3
+    coverage_branch: 74.1
+
+# ─── problems (required; lists may be empty) ────────────────────────────
+blockers_encountered:
+  - description: "semgrep MCP unreachable"
+    status: resolved                 # resolved | pending | escalated
+    resolution: "fell back to local semgrep CLI"
+open_questions:
+  - id: OQ-3
+    text: "Should we evict on TTL or LRU?"
+    blocks: false
+followup_tasks:                      # findings-to-tasks.sh appends to TASKS.md
+  - summary: "Benchmark ioredis vs node-redis under 10K conn load"
+    priority: normal
+    deps: [T-042]
+
+# ─── resource accounting ────────────────────────────────────────────────
+tokens_used: 184300
+cost_usd: 2.41
+turns_used: 47
+turns_max: 50
+tool_calls:
+  bash: 18
+  read: 31
+  edit: 9
+  web_fetch: 4
+hook_blocks: []                      # anything pre-bash-guard refused — signals brief ambiguity
+classifier_denials: []
+mcp_servers_used:
+  - semgrep
+  - graphify

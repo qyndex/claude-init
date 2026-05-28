@@ -1,0 +1,13 @@
+# CODEOWNERS — automatic reviewer assignment.
+# Edit per project. Each path matches the GitHub gitignore-style pattern.
+
+# Default: a placeholder. Replace with your team.
+*       @your-org/engineering
+
+# The agent harness itself — protect changes
+/.claude/             @your-org/engineering @your-org/staff
+/.mcp.json            @your-org/engineering @your-org/staff
+/.github/workflows/   @your-org/engineering @your-org/staff
+/specs/               @your-org/engineering @your-org/product
+/plans/               @your-org/engineering
+/docs/                @your-org/engineering @your-org/docs

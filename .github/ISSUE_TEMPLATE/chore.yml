@@ -1,0 +1,26 @@
+name: Chore
+description: Maintenance with no user-facing behavior change — dep bumps, config, CI, refactors. (Auto-bump PRs already open their own; file one for manual chores.)
+title: "[chore] "
+type: Task
+labels: ["type:chore", "status:todo"]
+projects: ["OWNER/PROJECT_NUMBER"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What + why
+      description: The maintenance task and the reason now
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Kind
+      options: ["dependency-bump", "config", "ci", "refactor", "tooling", "docs", "cleanup"]
+    validations:
+      required: true
+  - type: input
+    id: risk
+    attributes:
+      label: Blast radius
+      placeholder: localized | broad

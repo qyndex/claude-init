@@ -1,0 +1,88 @@
+# Service Level Objectives — declarative root.
+# Per-service SLOs that the verifier, release agent, and CI gates read.
+# Reference: https://sre.google/workbook/implementing-slos/
+
+services:
+  # T1 — mission-critical (auth, payments, core API)
+  # T2 — important (most product services)
+  # T3 — internal-only (admin tools, internal APIs)
+
+  example-service:
+    tier: T1
+    owner: "@team-checkout"
+    on_call_rotation: "@checkout-oncall"
+    runbook: docs/runbooks/example-service.md
+
+    slis:
+      availability:
+        target: 99.95
+        window: 30d
+        budget_burn_alerts:
+          - { name: "fast burn",  factor: 14.4, window: "1h",   page: true  }
+          - { name: "slow burn",  factor: 6,    window: "6h",   page: true  }
+          - { name: "trickle",    factor: 1,    window: "30d",  page: false }
+      latency:
+        p50_target_ms: 50
+        p95_target_ms: 200
+        p99_target_ms: 500
+        window: "5m"
+        breach_alert: ">= 2x for 10m"
+      error_rate:
+        target_pct: 0.1
+        window: "5m"
+        breach_alert: ">= 0.5% for 5m"
+
+    auto_rollback:
+      enabled: true
+      thresholds:
+        - { metric: "error_rate", op: ">=", value: 1.0, window: "5m" }
+        - { metric: "p95_latency_ratio", op: ">=", value: 2.0, window: "10m" }
+
+    deploy:
+      progressive: true
+      stages:
+        - { pct: 1,   wait: "10m" }
+        - { pct: 10,  wait: "30m" }
+        - { pct: 50,  wait: "1h"  }
+        - { pct: 100, wait: "0"   }
+
+  # Internal tool — relaxed gates
+  example-admin:
+    tier: T3
+    owner: "@team-platform"
+    runbook: docs/runbooks/example-admin.md
+    slis:
+      availability:
+        target: 99.5
+        window: 30d
+      latency:
+        p95_target_ms: 1000
+        window: "5m"
+      error_rate:
+        target_pct: 1.0
+        window: "5m"
+    auto_rollback:
+      enabled: false  # T3 — relaxed
+    deploy:
+      progressive: false  # T3 can ship at 100% directly
+
+# Defaults that apply when a spec declares service_tier but no per-service entry
+defaults:
+  T1:
+    availability_target: 99.95
+    p95_target_ms: 200
+    error_rate_target_pct: 0.1
+    auto_rollback: true
+    progressive_deploy: true
+  T2:
+    availability_target: 99.9
+    p95_target_ms: 500
+    error_rate_target_pct: 0.5
+    auto_rollback: true
+    progressive_deploy: true
+  T3:
+    availability_target: 99.5
+    p95_target_ms: 2000
+    error_rate_target_pct: 2.0
+    auto_rollback: false
+    progressive_deploy: false

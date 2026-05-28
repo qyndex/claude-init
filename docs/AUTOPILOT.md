@@ -1,0 +1,168 @@
+# Autopilot — overnight unattended builds
+
+> Configure once. Wake up to shipped features. Context stays clean via auto-dream.
+
+## Prerequisites — read first
+
+Before reading further, confirm you have these. **Skipping this section will cost 20+ minutes of frustration when configuration fails halfway through.**
+
+| Requirement | Why | How |
+|---|---|---|
+| **Anthropic Build plan or higher** | Cloud Routines require this — Pro doesn't have them | Upgrade at https://claude.com/plans |
+| **Claude.ai login** (not just API key) | Routines run on Anthropic infra, authenticated via OAuth | `claude login` |
+| **GitHub OAuth connector** in claude.ai | The routine opens PRs via GitHub on your behalf | Settings → Connections → GitHub |
+| **Branch protection on `main`** | Routine pushes to `claude/overnight-*` and merges via PR; main must require reviews + status checks | `gh api repos/:owner/:repo/rulesets --method POST --input .github/rulesets/main-protection.json` |
+| **At least one CI run on `main`** | Required-check names must exist before you can reference them in the ruleset | Trigger via empty commit + push |
+| **`ANTHROPIC_API_KEY` in GitHub Secrets** | Used by the claude-code-action workflows | `gh secret set ANTHROPIC_API_KEY` |
+
+If any of these aren't set up yet, do them now — it's faster than debugging a failed first run.
+
+## What this gives you
+
+- **23:00 daily** — a fresh Cloud sandbox spins up
+- Picks unblocked tasks from `tasks/TASKS.md`
+- Runs strict TDD per task via `/verify-loop` (autopilot skill inside)
+- Verification gate refuses to mark "done" without evidence
+- Self-heal on failures (max 3 attempts → escalate)
+- WIP-checkpoint every 5-15 min — crash-safe
+- Opens one PR per task on `claude/overnight-<date>-T-<id>`
+- `/dream` consolidates memory before exit
+- `OVERNIGHT_REPORT.md` at repo root summarizing everything
+- Slack ping with one-screen summary (if connector enabled)
+
+## The architecture
+
+```
+23:00 ┌─────────────────────────────────────────────────┐
+      │  CLOUD ROUTINE fires on Anthropic infra         │
+      │  ───────────────────────────────────────────    │
+      │  Fresh git clone in disposable sandbox          │
+      │  Auto Mode ON (Sonnet 4.6 classifier per call)  │
+      │  PreToolUse hooks fire FIRST — exit 2 blocks    │
+      │  Two safety layers; zero user prompts           │
+      └────────────────────┬────────────────────────────┘
+                           │
+                           ▼
+                  /verify-loop skill
+                           │
+        ┌──────────────────┴──────────────────┐
+        │                                     │
+        ▼                                     ▼
+   per task:                       at end (any stop):
+   - autopilot 5 phases            - /dream skill
+   - verify-before-completion      - OVERNIGHT_REPORT.md
+   - self-heal max 3               - PRs opened
+   - WIP checkpoints               - Slack ping
+   - PR on completion              - exit cleanly
+```
+
+## Setup (one-time, ~10 minutes)
+
+### 1. Configure Cloud Routine
+
+Go to **https://claude.ai/code/routines** → New Routine.
+
+Open `.claude/routines/overnight-build.yml` and paste each field into the form:
+
+- **Name**: `overnight-build`
+- **Schedule**: `0 23 * * *` UTC (adjust TZ)
+- **Repo URL**: your GitHub repo
+- **Branch base**: `main`
+- **Permission mode**: `auto` (Sonnet 4.6 classifier — no user prompts, no bypass)
+- **Model**: `claude-opus-4-7` (fallback Sonnet 4.6)
+- **Budgets**: 330 min wall-clock, $30 USD, 400 turns
+- **Connectors**: GitHub (required) + Slack (recommended)
+- **Branch permission**: `claude/overnight-*` (the routine can only push here)
+- **Env**:
+  - `ENABLE_TOOL_SEARCH=true`
+  - `CLAUDE_CODE_AUTO_COMPACT_WINDOW=400000`
+- **Prompt body**: copy the multi-line `prompt:` from the YAML file
+
+### 2. Test with "Run now"
+
+Click "Run now" on the routine. Watch for ~10 minutes:
+
+- A new session should appear in your Claude.ai sidebar
+- `claude agents` from your local repo (next morning) should show the run's daughter sessions
+- After completion, `OVERNIGHT_REPORT.md` should appear at repo root in a PR
+
+### 3. Wire local backstop (Desktop dream-cron at 03:00)
+
+For nights when the Cloud Routine doesn't run (Anthropic outage, expired auth, etc.):
+
+```bash
+bash .claude/scripts/install-overnight-tasks.sh
+```
+
+This installs a local Desktop scheduled task that runs `/dream` at 03:00 daily.
+
+### 4. Slack ping (optional)
+
+In the routine config, enable the Slack connector. The autopilot prompt already includes the ping instruction. You'll get a single message at end-of-run.
+
+## Permission model — Auto Mode + Hooks (two safety layers, zero prompts)
+
+| Surface | Mode | Why safe |
+|---|---|---|
+| Cloud Routine sandbox (11 PM) | `auto` | Sonnet 4.6 classifier reviews every tool call. PreToolUse hooks fire FIRST (exit 2) hard-blocking `rm -rf`, force-push to main, secrets, `DROP TABLE`. Two layers, no prompts. Disposable sandbox means even a slip can't reach your laptop. |
+| Your laptop interactive | `acceptEdits` | Standard. Asks for any unknown command. Use `/fewer-permission-prompts` (Boris #81) to tune from transcripts. |
+| Local `--bg` sessions | `auto` | Anthropic classifier on every tool call. Runs in worktree. Same as Cloud but on your machine. |
+| Desktop scheduled task (3 AM dream) | `auto` | Even though /dream only touches `.claude/memory/`, we use Auto Mode for consistency. |
+| CI containers (Docker, single-use) | `bypassPermissions` | Only context where bypass is appropriate — ephemeral container, container exit destroys all state. |
+
+**Why Auto Mode over bypassPermissions:** The classifier catches things the hook denylist might miss (novel injection vectors, unfamiliar dangerous combos like `chmod 777 ~/.ssh/`). Latency cost is ~200-500ms per tool call, negligible for an overnight run. `disableBypassPermissionsMode: true` is set in `settings.json` to prevent accidental bypass.
+
+**Order of safety checks (in any mode):**
+1. PreToolUse hook (`.claude/hooks/pre-bash-guard.sh`, `.claude/hooks/pre-write-secret-scan.sh`) → exit 2 hard-blocks
+2. settings.json `deny` list → matched patterns blocked
+3. (Auto Mode only) Sonnet 4.6 classifier → reviews remaining calls
+4. (other modes only) User prompt
+5. Tool executes
+
+## Branch-protection guard rails
+
+Set these on your GitHub repo before relying on autopilot:
+
+- **Required reviews**: 1 human OR Claude code-reviewer + Claude security-reviewer (via `.github/workflows/`)
+- **Required status checks**: `ci`, `claude-code-review`, `claude-code-security-review`, `e2e-preview`
+- **Restrict push to default**: no one pushes directly to `main`
+- **Branch-name pattern protection**: `main`/`master` are protected; `claude/overnight-*` is allowed for PRs only
+
+The routine cannot bypass these because GitHub enforces them at the API layer.
+
+## What goes wrong (and how to debug)
+
+| Symptom | Likely cause | Fix |
+|---|---|---|
+| Routine doesn't fire at 23:00 | TZ misconfigured | Check routine schedule TZ in claude.ai UI |
+| Routine fires but exits in 30 seconds | Permission hooks blocked something Phase 0 needed | Check `.claude/hooks/.log/` in the resumed session; widen hook allowlist or relax the offending guard |
+| Routine runs but no PRs | `gh` auth missing inside Routine | Re-link GitHub connector in claude.ai → Routines → settings |
+| `OVERNIGHT_REPORT.md` missing | Run hit budget cap before end | Increase `max_wall_clock_minutes` or trim task scope per night |
+| Same task escalates every night | Underlying spec ambiguous or test broken | Open the spec, run `/clarify`, fix `[OQ]` items, mark task `pending` again |
+| `/dream` didn't run | Stop hook missed it OR cron-backstop also failed | Manually invoke `/dream` next session; check `.claude/memory/.cache/.dream-state.json` |
+
+## Sample morning routine (your habit)
+
+1. ☕
+2. Open Slack → read the autopilot ping ("3 shipped, 1 escalated")
+3. Open repo → read `OVERNIGHT_REPORT.md` (one screen)
+4. Open PRs tab → review each `claude/overnight-*` PR
+5. Merge what looks good (CI is already green from claude-review + claude-security)
+6. For the 1 escalated task: open the spec, address the diagnosed issue, mark `pending`
+7. Total time: 15-30 minutes
+
+## What it costs
+
+A typical 4-hour overnight run:
+- **Tokens**: 1-3M total (Opus 4.7 ~1M, Sonnet 4.6 ~1.5M, Haiku 4.5 ~0.5M for subagents)
+- **USD**: $15-30 per run (cap at $30 in the routine config)
+- **Anthropic plan**: Build plan or higher (Routines require Claude.ai login, not raw API key)
+
+## References
+
+- Cloud Routines: https://code.claude.com/docs/en/routines
+- Desktop scheduled tasks: https://code.claude.com/docs/en/desktop-scheduled-tasks
+- /loop: https://code.claude.com/docs/en/scheduled-tasks
+- mvara-ai/precompact-hook (witness brief pattern)
+- grandamenium/dream-skill (consolidation pattern)
+- obra/superpowers/skills/verification-before-completion (the gate)

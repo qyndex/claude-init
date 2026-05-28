@@ -1,0 +1,33 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "release-type": "node",
+  "bump-minor-pre-major": true,
+  "bump-patch-for-minor-pre-major": true,
+  "changelog-sections": [
+    { "type": "feat",     "section": "Features" },
+    { "type": "fix",      "section": "Bug Fixes" },
+    { "type": "perf",     "section": "Performance" },
+    { "type": "revert",   "section": "Reverts" },
+    { "type": "refactor", "section": "Refactor" },
+    { "type": "docs",     "section": "Documentation" },
+    { "type": "chore",    "section": "Chores", "hidden": false },
+    { "type": "test",     "section": "Tests", "hidden": true },
+    { "type": "build",    "section": "Build", "hidden": true },
+    { "type": "ci",       "section": "CI", "hidden": true }
+  ],
+  "packages": {
+    ".": {
+      "release-type": "node",
+      "package-name": "@your-org/your-repo",
+      "include-component-in-tag": false
+    }
+  },
+  "_doc_monorepo": "For a monorepo, replace `packages` with one entry per package:",
+  "_doc_example_monorepo": {
+    "packages": {
+      "packages/api":      { "release-type": "node", "package-name": "@your-org/api" },
+      "packages/web":      { "release-type": "node", "package-name": "@your-org/web" },
+      "packages/sdk":      { "release-type": "node", "package-name": "@your-org/sdk" }
+    }
+  }
+}

@@ -1,0 +1,121 @@
+# Claude Code per-user settings (overrides team-shared settings.json)
+.claude/settings.local.json
+.claude/hooks/.log/
+
+# Round 10 B: verify/ evidence — commit the lightweight, reviewable trail
+# (EVIDENCE.md, results.json, per-AC screenshots, API-trace JSON, red/green ledger)
+# so the operator sees proof in the PR diff and it survives worktree teardown.
+# CI-artifact the heavy binaries instead of bloating the repo.
+verify/**/*.webm
+verify/**/*.zip
+verify/**/network.har
+verify/**/html-report/
+verify/**/test-results/
+.claude/state/image-spend.jsonl
+
+# Round 13 Fix 2: runtime concurrency state — lock dirs (with-lock.sh) + the
+# overnight run-lock (local-overnight-build.sh). Machine-written, never committed.
+.claude/state/locks/
+.claude/state/overnight-*.run
+
+# Per-developer auto-memory (Claude Code v2.1.59+ writes to ~/.claude/projects/...)
+# nothing to gitignore here
+
+# Swarm runtime state — coordinator fleet + per-stream working files dirty the tree
+# on every dispatch. Templates and decisions.log are tracked; runtime state is not.
+.swarms/coordinator/fleet.json
+.swarms/coordinator/workflow-state.json
+.swarms/streams/*
+!.swarms/streams/.gitkeep
+
+# Auto-managed memory scratchpads — short-term, machine-written
+.claude/memories/.*
+.claude/memories/checkpoints/
+.claude/memories/active/
+.claude/memories/archive/
+.claude/memories/instincts/observations.jsonl
+
+# Native worktrees (created by `claude -w <name>`)
+.claude/worktrees/
+
+# Overnight reports
+OVERNIGHT_REPORT.md
+overnight-report-*.md
+
+# Secrets / env
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*_rsa
+id_rsa*
+*credentials*
+*.tfvars
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.npm
+.yarn-integrity
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+dist/
+build/
+
+# Rust
+target/
+Cargo.lock.bak
+
+# Go
+*.test
+*.prof
+vendor/
+
+# Build outputs
+dist/
+build/
+out/
+.next/
+.nuxt/
+.cache/
+.parcel-cache/
+.turbo/
+
+# Editor / OS
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Test / coverage
+coverage/
+playwright-report/
+test-results/
+
+# Logs
+*.log
+logs/
+
+# Temporary
+tmp/
+.tmp/

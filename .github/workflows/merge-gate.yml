@@ -1,0 +1,66 @@
+name: Merge gate
+
+# Round 5 B: required check on PRs to main. Passes only if the most recent
+# daily-batch succeeded within the last 30 hours.
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+  checks: write
+
+jobs:
+  check-daily-batch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify daily-batch is recent and green
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          most_recent=$(gh run list \
+            --workflow="daily-batch.yml" \
+            --limit 1 \
+            --json status,conclusion,createdAt,htmlUrl \
+            --jq '.[0]')
+
+          if [ -z "$most_recent" ] || [ "$most_recent" = "null" ]; then
+            echo "::warning::No daily-batch runs yet. First-run allowance."
+            exit 0
+          fi
+
+          status=$(echo "$most_recent" | jq -r '.status')
+          conclusion=$(echo "$most_recent" | jq -r '.conclusion // "in_progress"')
+          created=$(echo "$most_recent" | jq -r '.createdAt')
+          url=$(echo "$most_recent" | jq -r '.htmlUrl')
+
+          created_epoch=$(date -d "$created" +%s 2>/dev/null || date -j -f '%Y-%m-%dT%H:%M:%SZ' "$created" +%s 2>/dev/null || echo 0)
+          age_hours=$(( ($(date +%s) - created_epoch) / 3600 ))
+
+          echo "Daily-batch: status=$status conclusion=$conclusion age=${age_hours}h url=$url"
+
+          if [ "$conclusion" = "success" ] && [ "$age_hours" -le 30 ]; then
+            exit 0
+          fi
+          if [ "$conclusion" = "failure" ]; then
+            echo "::error::Most recent daily-batch failed. Merge blocked. See $url and any open claude/daily-autofix-* PRs."
+            exit 1
+          fi
+          if [ "$age_hours" -gt 30 ]; then
+            echo "::error::Daily-batch is ${age_hours}h old. Trigger a manual run via workflow_dispatch."
+            exit 1
+          fi
+          if [ "$status" = "in_progress" ]; then
+            echo "::warning::Daily-batch in progress. Re-run this check when it completes."
+            exit 0
+          fi
+          echo "::error::Unexpected daily-batch state"
+          exit 1

@@ -1,0 +1,77 @@
+name: Daily batch failure - autofix PR
+
+# When daily-batch fails, spawn a claude --bg session to investigate and open
+# a fix PR. Block manual merges until the next daily-batch passes (merge-gate.yml).
+#
+# Permission discipline: this workflow runs against main but only opens a PR
+# (claude/daily-autofix-<date>). Never auto-merges. Requires a human approver.
+
+on:
+  workflow_run:
+    workflows: ["Daily batch (8am UTC)"]
+    types: [completed]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  autofix:
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      RUN_ID: ${{ github.event.workflow_run.id }}
+      RUN_URL: ${{ github.event.workflow_run.html_url }}
+      HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.HEAD_SHA }}
+          fetch-depth: 0
+
+      - name: Install claude CLI
+        run: |
+          if ! command -v claude >/dev/null; then
+            npm install -g @anthropic-ai/claude-code
+          fi
+
+      - name: Download daily-batch logs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p /tmp/daily-logs
+          gh run download "$RUN_ID" --dir /tmp/daily-logs || true
+          ls -la /tmp/daily-logs
+
+      - name: Spawn claude --bg to investigate + fix
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          RUN_URL_E: ${{ env.RUN_URL }}
+          DATE_LABEL: $(date +%Y-%m-%d)
+        run: |
+          # All inputs passed as env vars; never interpolated into shell strings.
+          date_label=$(date +%Y-%m-%d)
+          branch="claude/daily-autofix-$date_label"
+          git checkout -b "$branch"
+
+          prompt_body="Investigate the daily batch failure logged at /tmp/daily-logs/. The failing run URL is in env var RUN_URL_E. Identify the root cause, propose minimal fixes, apply them, commit with a Conventional Commit message, push, and open a PR. Do NOT auto-merge."
+
+          claude -p --output-format stream-json \
+            --max-budget-usd 5 \
+            --max-turns 80 \
+            --append-system-prompt "$prompt_body" \
+            "Investigate the daily batch failure and open a fix PR" || echo "claude session ended; check PR"
+
+      - name: Surface autofix as an issue
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_URL_BODY: ${{ env.RUN_URL }}
+        run: |
+          date_label=$(date +%Y-%m-%d)
+          gh issue create \
+            --title "Daily batch failed $date_label - autofix attempt logged" \
+            --body "Daily batch failed. Autofix attempted via claude --bg. See run: $RUN_URL_BODY. Merge-gate now blocks PR merges until the next daily passes." \
+            --label "ci,daily-autofix" || true

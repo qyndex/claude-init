@@ -1,0 +1,60 @@
+name: Harness Validate
+
+# Lints the .claude/ folder itself. Catches malformed YAML frontmatter, broken
+# JSON, bad hook scripts, and missing executable bits.
+
+on:
+  pull_request:
+    paths:
+      - ".claude/**"
+      - ".mcp.json"
+      - ".github/workflows/**"
+  push:
+    branches: [main]
+    paths:
+      - ".claude/**"
+      - ".mcp.json"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate JSON files
+        run: |
+          set -e
+          for f in $(find .claude .github .mcp.json -name '*.json' -type f 2>/dev/null); do
+            echo "Checking $f"
+            jq -e . "$f" > /dev/null
+          done
+
+      - name: Validate YAML frontmatter in skills/agents/commands
+        run: |
+          set -e
+          pip install pyyaml --quiet
+          for f in $(find .claude/skills .claude/agents .claude/commands -name '*.md' -type f 2>/dev/null); do
+            if head -1 "$f" | grep -q '^---$'; then
+              fm=$(awk '/^---$/{c++; next} c==1{print}' "$f")
+              echo "$fm" | python3 -c "import sys, yaml; yaml.safe_load(sys.stdin.read())" || { echo "Bad frontmatter in $f"; exit 1; }
+            fi
+          done
+
+      - name: Validate hook scripts are executable
+        run: |
+          set -e
+          for f in .claude/hooks/*.sh; do
+            test -x "$f" || { echo "$f is not executable"; exit 1; }
+          done
+
+      - name: Shellcheck on hooks
+        uses: ludeeus/action-shellcheck@master
+        with:
+          scandir: .claude/hooks
+
+      - name: Verify CLAUDE.md exists
+        run: |
+          test -f .claude/CLAUDE.md || test -f CLAUDE.md || { echo "No CLAUDE.md found"; exit 1; }

@@ -1,0 +1,73 @@
+name: CodeQL
+
+# Deep static analysis for security.
+#
+# Round 5 B: moved off per-PR to the daily 8am batch (.github/workflows/daily-batch.yml)
+# for cost-effectiveness. Local mirror at .claude/scripts/local-pr-check.sh --heavy.
+# This workflow is now invoked by the daily batch or run manually.
+#
+# https://codeql.github.com/
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+  security-events: write
+
+jobs:
+  analyze:
+    name: Analyze
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ["javascript-typescript", "python", "go", "ruby", "java-kotlin"]
+        # Trim per project: keep only the languages actually present.
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detect language presence
+        id: detect
+        run: |
+          set -e
+          present=true
+          case "${{ matrix.language }}" in
+            "javascript-typescript")
+              if [ ! -f package.json ] && [ -z "$(find . -name '*.ts' -o -name '*.tsx' -o -name '*.js' -o -name '*.jsx' -not -path '*/node_modules/*' 2>/dev/null | head -1)" ]; then present=false; fi
+              ;;
+            "python")
+              if [ ! -f pyproject.toml ] && [ ! -f setup.py ] && [ ! -f requirements.txt ]; then present=false; fi
+              ;;
+            "go")
+              if [ ! -f go.mod ]; then present=false; fi
+              ;;
+            "ruby")
+              if [ ! -f Gemfile ]; then present=false; fi
+              ;;
+            "java-kotlin")
+              if [ ! -f pom.xml ] && [ ! -f build.gradle ] && [ ! -f build.gradle.kts ]; then present=false; fi
+              ;;
+          esac
+          echo "present=$present" >> "$GITHUB_OUTPUT"
+
+      - name: Initialize CodeQL
+        if: steps.detect.outputs.present == 'true'
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-extended
+
+      - name: Autobuild
+        if: steps.detect.outputs.present == 'true'
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform analysis
+        if: steps.detect.outputs.present == 'true'
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"

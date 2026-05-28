@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+# PostToolUse hook for Write|Edit. Auto-formats the file based on extension.
+# Best-effort; never blocks. Logs to .claude/hooks/.log/format.log.
+
+set -uo pipefail
+
+input=$(cat)
+path=$(printf '%s' "$input" | jq -r '.tool_input.file_path // .tool_input.path // ""')
+
+if [ -z "$path" ] || [ ! -f "$path" ]; then
+  exit 0
+fi
+
+mkdir -p .claude/hooks/.log
+log() { printf '%s %s\n' "$(date -Iseconds)" "$*" >> .claude/hooks/.log/format.log; }
+
+ext="${path##*.}"
+
+case "$ext" in
+  ts|tsx|js|jsx|mjs|cjs|json|md|mdx|yaml|yml|css|scss|html)
+    if command -v prettier >/dev/null 2>&1; then
+      prettier --write --log-level error "$path" 2>>.claude/hooks/.log/format.log || log "prettier failed on $path"
+    elif command -v npx >/dev/null 2>&1; then
+      npx --no-install prettier --write --log-level error "$path" 2>>.claude/hooks/.log/format.log || true
+    fi
+    ;;
+  py)
+    if command -v ruff >/dev/null 2>&1; then
+      ruff format "$path" 2>>.claude/hooks/.log/format.log || log "ruff format failed on $path"
+      ruff check --fix --quiet "$path" 2>>.claude/hooks/.log/format.log || true
+    elif command -v black >/dev/null 2>&1; then
+      black --quiet "$path" 2>>.claude/hooks/.log/format.log || true
+    fi
+    ;;
+  rs)
+    if command -v rustfmt >/dev/null 2>&1; then
+      rustfmt "$path" 2>>.claude/hooks/.log/format.log || true
+    fi
+    ;;
+  go)
+    if command -v gofmt >/dev/null 2>&1; then
+      gofmt -w "$path" 2>>.claude/hooks/.log/format.log || true
+    fi
+    ;;
+  sh|bash)
+    if command -v shfmt >/dev/null 2>&1; then
+      shfmt -w "$path" 2>>.claude/hooks/.log/format.log || true
+    fi
+    ;;
+esac
+
+# Round 5 C1: maintain typed memory index on writes to .claude/memory/**
+case "$path" in
+  .claude/memory/*.md|.claude/memory/*/*.md)
+    bash .claude/scripts/memory-index.sh touch "$path" 2>>.claude/hooks/.log/format.log || true
+    ;;
+esac
+
+# Round 8 C: mark atlas dirty when watched files change so session-start
+# surfaces the staleness banner without waiting for the nightly refresh.
+case "$path" in
+  package.json|pnpm-lock.yaml|yarn.lock|tsconfig.json|next.config.*|pyproject.toml|requirements*.txt|Cargo.toml|Cargo.lock|go.mod|go.sum|prisma/schema.prisma|drizzle.config.*|turbo.json|nx.json|pnpm-workspace.yaml)
+    mkdir -p .claude/memory/atlas
+    touch .claude/memory/atlas/.dirty
+    ;;
+esac
+
+# Round 9 F: regen skill registry when any SKILL.md changes.
+case "$path" in
+  .claude/skills/*/SKILL.md)
+    bash .claude/scripts/regen-skill-registry.sh >/dev/null 2>&1 || true
+    ;;
+esac
+
+exit 0

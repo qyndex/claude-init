@@ -1,0 +1,79 @@
+name: Canary Deploy
+
+# Progressive deploy gate. Runs after build, before full rollout.
+# Reads slo.yml for per-service tier; T1 services require progressive deploy.
+
+on:
+  workflow_dispatch:
+    inputs:
+      service:
+        description: 'Service name (matches slo.yml entry)'
+        required: true
+      sha:
+        description: 'Commit SHA to canary'
+        required: true
+
+permissions:
+  contents: read
+  deployments: write
+
+jobs:
+  canary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Parse SLO for service
+        env:
+          SERVICE: ${{ inputs.service }}
+        run: |
+          # Read slo.yml for the service tier + auto_rollback thresholds
+          tier=$(yq ".services.\"$SERVICE\".tier // .defaults.T2.tier" slo.yml)
+          rollback_enabled=$(yq ".services.\"$SERVICE\".auto_rollback.enabled // .defaults.T2.auto_rollback" slo.yml)
+          echo "tier=$tier" >> "$GITHUB_OUTPUT"
+          echo "rollback=$rollback_enabled" >> "$GITHUB_OUTPUT"
+
+      - name: Canary at 1%
+        env:
+          SERVICE: ${{ inputs.service }}
+          SHA: ${{ inputs.sha }}
+        run: |
+          echo "Deploying $SERVICE@$SHA to 1% of traffic"
+          # Provider-specific: Argo Rollouts / Flagger / AWS CodeDeploy
+          # kubectl argo rollouts set image $SERVICE $SERVICE=$IMAGE
+          # kubectl argo rollouts promote $SERVICE --percentage=1
+          echo "Waiting 10 min for canary metrics..."
+          sleep 600
+
+      - name: Watch SLO burn during canary
+        env:
+          PROM_URL: ${{ vars.PROM_URL }}
+          SERVICE: ${{ vars.CANARY_SERVICE }}
+        run: |
+          # Round 12 A: real burn-rate query (was an echo placeholder).
+          if [ -z "${PROM_URL:-}" ]; then
+            echo "::warning::PROM_URL not set — canary SLO watch skipped. Set repo var PROM_URL."
+            exit 0
+          fi
+          err=$(curl -sG "$PROM_URL/api/v1/query" \
+            --data-urlencode "query=sum(rate(http_requests_total{service=\"$SERVICE\",code=~\"5..\"}[10m])) / sum(rate(http_requests_total{service=\"$SERVICE\"}[10m]))" \
+            | jq -r '.data.result[0].value[1] // "0"')
+          threshold="0.0144"   # slo.yml fast-burn page threshold (14.4x of 0.1% budget)
+          echo "canary error_rate=$err threshold=$threshold"
+          if awk "BEGIN{exit !($err > $threshold)}"; then
+            echo "::error::SLO burn breach during canary ($err > $threshold) — auto-rollback"
+            exit 1
+          fi
+          echo "Canary within SLO budget."
+
+      - name: Promote to 10%
+        run: |
+          echo "Canary green; promoting to 10%"
+          # kubectl argo rollouts promote $SERVICE --percentage=10
+          sleep 1800
+
+      - name: Promote to 50%, then 100%
+        run: |
+          echo "Promoting to 50% → 100%"
+          # Final ramp; monitor at each step

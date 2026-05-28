@@ -1,0 +1,34 @@
+name: DORA metrics
+
+on:
+  schedule:
+    - cron: "0 10 1 * *"
+  workflow_dispatch:
+    inputs:
+      period:
+        description: "Period (day|week|month|quarter)"
+        type: string
+        default: "month"
+
+permissions:
+  contents: write
+
+jobs:
+  emit:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      PERIOD: ${{ inputs.period || 'month' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Compute + emit
+        run: bash .claude/scripts/dora-metrics.sh "$PERIOD"
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .claude/memory/dora/
+          git diff --cached --quiet || git commit -m "chore(dora): metrics for $(date +%Y-%m)"
+          git push 2>/dev/null || true

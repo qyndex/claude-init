@@ -1,0 +1,47 @@
+name: Perf Budget
+
+# Enforces commit-time performance budgets per slo.yml.
+# For frontend: bundle size + Lighthouse.
+# For backend: k6 quick-load test against staging.
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  bundle-budget:
+    if: ${{ hashFiles('package.json') != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version-file: 'package.json' }
+      - run: |
+          if [ -f pnpm-lock.yaml ]; then corepack enable && pnpm install --frozen-lockfile && pnpm build
+          else npm ci && npm run build
+          fi
+      - name: Bundle size check
+        run: |
+          # Largest JS bundle must be < 200KB gzipped per slo.yml T1 default
+          max_kb=200
+          actual=$(find dist build .next/static -name '*.js' 2>/dev/null | xargs -I{} sh -c 'gzip -c "{}" | wc -c' | sort -n | tail -1)
+          actual_kb=$((actual / 1024))
+          echo "Largest bundle: ${actual_kb}KB (max: ${max_kb}KB)"
+          if [ "$actual_kb" -gt "$max_kb" ]; then
+            echo "::error::Bundle size ${actual_kb}KB exceeds budget ${max_kb}KB"
+            exit 1
+          fi
+
+  api-perf:
+    if: ${{ hashFiles('pyproject.toml') != '' || hashFiles('go.mod') != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          # k6 quick load test against staging endpoint
+          # configure per project; this is the template
+          echo "Stub: configure k6 script per service in perf/"

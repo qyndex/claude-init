@@ -1,0 +1,35 @@
+# Repo Atlas refresh — Round 8 C.
+# Refreshes .claude/memory/atlas/ nightly so agents always start from current
+# framework + structure facts, not training-cutoff memory.
+
+name: atlas-refresh
+description: Nightly refresh of the codebase atlas (stack, structure, known entries).
+schedule:
+  cron: "0 4 * * *"
+  timezone: "local"
+
+surface: desktop
+permission_mode: auto
+model: claude-sonnet-4-6
+
+budgets:
+  max_wall_clock_minutes: 5
+  max_budget_usd: 0.20
+
+prompt: |
+  Refresh the repo atlas:
+
+  bash .claude/scripts/atlas-refresh.sh
+
+  This script scans the repo, detects frameworks/ORMs/test runners, and emits:
+    - .claude/memory/atlas/STACK.md
+    - .claude/memory/atlas/STRUCTURE.md
+    - .claude/memory/atlas/KNOWN_ENTRIES.md
+    - .claude/memory/atlas/manifest.json
+    - .claude/memory/atlas/.updated
+
+  Then commit if changed (best-effort, ignore failure):
+    git add .claude/memory/atlas/
+    git diff --cached --quiet || git commit -m "chore(atlas): nightly refresh"
+
+  Exit cleanly.

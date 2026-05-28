@@ -1,0 +1,50 @@
+name: Feature
+description: A new capability tied to a spec. Projected from specs/active/ by tasks-to-issues.sh.
+title: "[feat] "
+type: Feature
+labels: ["type:feature", "status:todo"]
+projects: ["OWNER/PROJECT_NUMBER"]   # ← set in docs/ISSUE-LIFECYCLE.md setup
+body:
+  - type: markdown
+    attributes:
+      value: |
+        > Most feature issues are **auto-projected** from `specs/active/<id>.md` by
+        > `.claude/scripts/tasks-to-issues.sh`. Hand-file one only for work that
+        > does not yet have a spec — the projector will then attach it.
+  - type: input
+    id: spec
+    attributes:
+      label: Spec
+      description: Path to the spec (or "needs spec")
+      placeholder: specs/active/042-checkout-v2.md
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem statement
+      description: Who is affected, what's broken/missing, why it matters
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Testable, observable. Numbered AC-1, AC-2… (mirrors the spec)
+      placeholder: |
+        - AC-1: ...
+        - AC-2: ...
+    validations:
+      required: true
+  - type: input
+    id: initiative
+    attributes:
+      label: Parent initiative (optional)
+      placeholder: INIT-007
+  - type: dropdown
+    id: tier
+    attributes:
+      label: Service tier
+      options: ["T1 (mission-critical)", "T2 (important)", "T3 (internal-only)"]
+    validations:
+      required: true

@@ -1,0 +1,41 @@
+name: License Check
+
+# Enforce license allowlist on dependencies. Fails CI on a non-allowlisted license.
+# Configure allowlist in .github/license-allowlist.json.
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  licenses-node:
+    if: ${{ hashFiles('package.json') != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version-file: 'package.json' }
+      - name: Install deps
+        run: |
+          if [ -f pnpm-lock.yaml ]; then corepack enable && pnpm install --frozen-lockfile
+          else npm ci
+          fi
+      - name: Check licenses
+        run: |
+          npx license-checker --production --onlyAllow "MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC;CC0-1.0;CC-BY-4.0;Unlicense;0BSD;Python-2.0" \
+            --excludePackages "$(node -p "require('./package.json').name")"
+
+  licenses-python:
+    if: ${{ hashFiles('pyproject.toml') != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version-file: 'pyproject.toml' }
+      - run: pip install pip-licenses
+      - run: |
+          pip install -e . 2>/dev/null || pip install -r requirements.txt
+          pip-licenses --allow-only="MIT License;Apache Software License;BSD License;Python Software Foundation License;ISC License (ISCL);Apache License 2.0"

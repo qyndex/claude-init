@@ -1,0 +1,41 @@
+name: Commitlint
+
+# Enforce Conventional Commits format on all commits.
+# Required by release-please for auto-CHANGELOG; mandated by CLAUDE.md §VI.
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  commitlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with: { node-version: '22' }
+
+      - name: Install commitlint
+        run: |
+          npm install -g @commitlint/cli @commitlint/config-conventional
+
+      - name: Validate commits in PR
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          npx commitlint --from "$BASE" --to "$HEAD" --extends '@commitlint/config-conventional'
+
+      - name: Validate PR title (also must be Conventional Commits — for squash-merge)
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          echo "$TITLE" | npx commitlint --extends '@commitlint/config-conventional'

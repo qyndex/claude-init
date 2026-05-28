@@ -1,0 +1,34 @@
+name: Task
+description: A standalone unit of work NOT under a spec. (Spec tasks live in TASKS.md + render as a checklist inside the spec issue — do not file those here.)
+title: "[task] "
+type: Task
+labels: ["type:task", "status:todo"]
+projects: ["OWNER/PROJECT_NUMBER"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        > **Most tasks belong in `tasks/TASKS.md`**, not here — they appear as a
+        > checklist inside their spec's issue, projected one-way. File a standalone
+        > Task issue only for chores with no spec (infra, tooling, one-off cleanup).
+  - type: textarea
+    id: description
+    attributes:
+      label: What needs doing
+    validations:
+      required: true
+  - type: input
+    id: accept
+    attributes:
+      label: Acceptance command
+      description: Shell command that exits 0 when done (must be a real test/verify, not echo)
+      placeholder: pnpm test src/foo
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options: ["incident-followup", "security", "P1", "debt", "normal", "cleanup", "deprecation"]
+    validations:
+      required: true
