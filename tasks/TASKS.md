@@ -97,7 +97,7 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
       accept: jq -e '.hooks.PreToolUse[] | select(.matcher == "Write|Edit|NotebookEdit" or .matcher == "Write|Edit") | .hooks[] | select(.command | test("pre-edit-constitution-guard"))' .claude/settings.json
       owner: implementer
 
-- [ ] T-004 | spec:001 | phase:1 | priority: security | created: 2026-05-29 | last*touched: 2026-05-29 | parallel: yes | est: 5m
+- [x] T-004 | spec:001 | phase:1 | priority: security | created: 2026-05-29 | last*touched: 2026-05-29 | parallel: yes | est: 5m | completed: 2026-05-29
       summary: Write 15-class bypass regression test for pre-bash-guard.sh — exercise command-substitution, backtick, process-substitution, env-var indirection, no-space -c/-e, IFS poisoning, heredoc-piped-to-shell, base64 printf variant, and 7 others from spec AC-2; expect all 15 to be rejected
       files: .claude/scripts/test/pre-bash-guard-bypass.sh
       accept: bash -n .claude/scripts/test/pre-bash-guard-bypass.sh && grep -cE 'BYPASS*[0-9]+' .claude/scripts/test/pre-bash-guard-bypass.sh | awk '{exit ($1 < 15)}'
