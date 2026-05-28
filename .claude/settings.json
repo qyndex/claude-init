@@ -320,31 +320,33 @@
       "Bash(DROP DATABASE:*)",
       "Bash(DROP TABLE:*)",
       "Bash(TRUNCATE TABLE:*)"
-    ]
-  },
+    ],
 
-  "sandbox": {
-    "enabled": false,
-    "filesystem": {
-      "allowRead": ["${CLAUDE_PROJECT_DIR}/**", "~/.claude/**"],
-      "allowWrite": ["${CLAUDE_PROJECT_DIR}/**"],
-      "denyRead": [
-        "${CLAUDE_PROJECT_DIR}/.env*",
-        "${CLAUDE_PROJECT_DIR}/**/secrets/**"
-      ]
-    },
-    "network": {
-      "allowedDomains": [
-        "api.anthropic.com",
-        "code.claude.com",
-        "github.com",
-        "api.github.com",
-        "registry.npmjs.org",
-        "pypi.org",
-        "crates.io",
-        "mcp.apify.com",
-        "mcp.sentry.dev"
-      ]
+    "sandbox": {
+      "_comment": "enabled:false keeps interactive local sessions unsandboxed (acceptEdits default). enabledWhen forces the sandbox ON for auto/background/Cloud-Routine sessions where no human reviews tool calls. Local override: set permissions.sandbox.enabled in .claude/settings.local.json (gitignored). allowedDomains is the network egress catalogue for sandboxed runs.",
+      "enabled": false,
+      "enabledWhen": "permissionMode == 'auto'",
+      "filesystem": {
+        "allowRead": ["${CLAUDE_PROJECT_DIR}/**", "~/.claude/**"],
+        "allowWrite": ["${CLAUDE_PROJECT_DIR}/**"],
+        "denyRead": [
+          "${CLAUDE_PROJECT_DIR}/.env*",
+          "${CLAUDE_PROJECT_DIR}/**/secrets/**"
+        ]
+      },
+      "network": {
+        "allowedDomains": [
+          "api.anthropic.com",
+          "code.claude.com",
+          "github.com",
+          "api.github.com",
+          "registry.npmjs.org",
+          "pypi.org",
+          "crates.io",
+          "mcp.apify.com",
+          "mcp.sentry.dev"
+        ]
+      }
     }
   },
 

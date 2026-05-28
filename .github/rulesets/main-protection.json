@@ -31,7 +31,8 @@
           { "context": "lint-test" },
           { "context": "review" },
           { "context": "security-review" },
-          { "context": "harness-validate" }
+          { "context": "harness-validate" },
+          { "context": "evidence-gate" }
         ]
       }
     },

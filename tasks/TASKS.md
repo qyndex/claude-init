@@ -97,10 +97,10 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
       accept: jq -e '.hooks.PreToolUse[] | select(.matcher == "Write|Edit|NotebookEdit" or .matcher == "Write|Edit") | .hooks[] | select(.command | test("pre-edit-constitution-guard"))' .claude/settings.json
       owner: implementer
 
-- [x] T-004 | spec:001 | phase:1 | priority: security | created: 2026-05-29 | last*touched: 2026-05-29 | parallel: yes | est: 5m | completed: 2026-05-29
+- [x] T-004 | spec:001 | phase:1 | priority: security | created: 2026-05-29 | last\*touched: 2026-05-29 | parallel: yes | est: 5m | completed: 2026-05-29
       summary: Write 15-class bypass regression test for pre-bash-guard.sh — exercise command-substitution, backtick, process-substitution, env-var indirection, no-space -c/-e, IFS poisoning, heredoc-piped-to-shell, base64 printf variant, and 7 others from spec AC-2; expect all 15 to be rejected
       files: .claude/scripts/test/pre-bash-guard-bypass.sh
-      accept: bash -n .claude/scripts/test/pre-bash-guard-bypass.sh && grep -cE 'BYPASS*[0-9]+' .claude/scripts/test/pre-bash-guard-bypass.sh | awk '{exit ($1 < 15)}'
+      accept: bash -n .claude/scripts/test/pre-bash-guard-bypass.sh && grep -cE 'BYPASS-?[0-9]+' .claude/scripts/test/pre-bash-guard-bypass.sh | awk '{exit ($1 < 15)}'
       owner: implementer
 
 - [x] T-005 | spec:001 | phase:1 | priority: security | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-004 | parallel: no | est: 5m | completed: 2026-05-29
@@ -109,19 +109,19 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
       accept: bash .claude/scripts/test/pre-bash-guard-bypass.sh
       owner: implementer
 
-- [ ] T-006 | spec:001 | phase:1 | priority: security | created: 2026-05-29 | last*touched: 2026-05-29 | parallel: yes | est: 4m
+- [x] T-006 | spec:001 | phase:1 | priority: security | created: 2026-05-29 | last\*touched: 2026-05-29 | parallel: yes | est: 4m | completed: 2026-05-29
       summary: Write security-invariants.sh baseline with first 4 invariant tests (constitution write-protect, bash-guard bypass coverage, evidence-gate ruleset presence, sandbox enabled in auto mode) — scaffold extended in Phase 6 to cover all of §VII/§X
       files: .claude/scripts/test/security-invariants.sh
-      accept: bash -n .claude/scripts/test/security-invariants.sh && grep -cE 'INVARIANT*[0-9]+' .claude/scripts/test/security-invariants.sh | awk '{exit ($1 < 4)}'
+      accept: bash -n .claude/scripts/test/security-invariants.sh && grep -cE 'INVARIANT-?[0-9]+' .claude/scripts/test/security-invariants.sh | awk '{exit ($1 < 4)}'
       owner: implementer
 
-- [ ] T-007 | spec:001 | phase:1 | priority: security | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-002, T-005 | parallel: no | est: 3m
+- [x] T-007 | spec:001 | phase:1 | priority: security | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-002, T-005 | parallel: no | est: 3m | completed: 2026-05-29
       summary: Wire evidence-gate as required check in main-protection.json ruleset — add {"context":"evidence-gate"} to required_status_checks.required_checks
       files: .github/rulesets/main-protection.json
       accept: jq -e '.rules[] | select(.type == "required_status_checks") | .parameters.required_status_checks[]?.context // .parameters.required_checks[]?.context' .github/rulesets/main-protection.json | grep -q evidence-gate
       owner: implementer
 
-- [ ] T-008 | spec:001 | phase:1 | priority: security | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-006 | parallel: no | est: 4m
+- [x] T-008 | spec:001 | phase:1 | priority: security | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-006 | parallel: no | est: 4m | completed: 2026-05-29
       summary: Enable sandbox.enabled:true in settings.json gated on permissionMode auto — preserve interactive local override via settings.local.json comment guide; document allowedDomains catalogue
       files: .claude/settings.json
       accept: jq -e '.permissions.sandbox.enabled == true or (.permissions.sandbox.enabledWhen // "" | test("auto"))' .claude/settings.json
@@ -414,10 +414,10 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
       accept: test -f .github/workflows/doc-claims-audit.yml && grep -q 'audit-doc-claims.sh' .github/workflows/doc-claims-audit.yml
       owner: implementer
 
-- [ ] T-055 | spec:001 | phase:6 | priority: P1-spec | created: 2026-05-29 | last*touched: 2026-05-29 | deps: T-006 | parallel: yes | est: 5m
+- [ ] T-055 | spec:001 | phase:6 | priority: P1-spec | created: 2026-05-29 | last\*touched: 2026-05-29 | deps: T-006 | parallel: yes | est: 5m
       summary: Complete security-invariants.sh — add tests for every remaining invariant in .claude/CLAUDE.md §VII + §X and root CLAUDE.md "Security invariants" (secrets deny-list, disableBypassPermissionsMode, MCP version pinning, gitleaks present, destructive op blocks, sandbox in auto, evidence-gate required)
       files: .claude/scripts/test/security-invariants.sh
-      accept: bash .claude/scripts/test/security-invariants.sh && grep -cE 'INVARIANT*[0-9]+' .claude/scripts/test/security-invariants.sh | awk '{exit ($1 < 10)}'
+      accept: bash .claude/scripts/test/security-invariants.sh && grep -cE 'INVARIANT-?[0-9]+' .claude/scripts/test/security-invariants.sh | awk '{exit ($1 < 10)}'
       owner: implementer
 
 #### Phase 7 — Regression safety + observation (AC-26..AC-27)
