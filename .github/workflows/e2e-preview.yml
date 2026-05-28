@@ -19,10 +19,10 @@ jobs:
     env:
       PLAYWRIGHT_BASE_URL: ${{ github.event.deployment_status.target_url }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with: { node-version-file: 'package.json' }
 
       - name: Install deps
@@ -45,7 +45,7 @@ jobs:
 
       - name: Upload report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-report
           path: playwright-report/
@@ -53,7 +53,7 @@ jobs:
 
       - name: Upload evidence bundle (Round 10 C — heavy binaries)
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: verify-evidence
           path: verify/
@@ -61,7 +61,7 @@ jobs:
 
       - name: Comment PR with E2E status
         if: always()
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         env:
           STATUS: ${{ job.status }}
           PREVIEW_URL: ${{ github.event.deployment_status.target_url }}
