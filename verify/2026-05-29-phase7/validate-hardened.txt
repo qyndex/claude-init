@@ -1,0 +1,73 @@
+→ Validating .claude/ harness
+
+[core]
+  ✓ .claude/CLAUDE.md
+  ✓ .claude/settings.json
+  ✓ .mcp.json
+  ✓ .claude/VERSION
+
+[json]
+  ✓ validated 17 JSON files
+
+[frontmatter]
+  ⚠ python3+pyyaml not available — used regex fallback for YAML
+  ✓ validated 183 frontmatter blocks (0 bad)
+
+[executables]
+  ✓ 112 shell files checked
+
+[agents]
+  ✓ 18 agents discovered
+
+[skills]
+  ✓ 54 project-specific skills
+  ℹ (plugin-installed skills validated by `/plugin list`, not here)
+
+[commands]
+  ✓ 56 commands discovered
+
+[hooks]
+  ✓ 22 referenced hooks present
+
+[autopilot]
+  ✓ overnight-build.yml
+  ✓ dream-cron.yml
+  ✓ quarterly-archive.yml
+  ✓ overnight-report.md
+  ✓ AUTOPILOT.md
+  ✓ PARALLEL-SWARM.md
+
+[swarm]
+  ✓ fleet.json
+  ✓ decisions.log
+  ✓ brief.md
+  ✓ analysis.md
+  ✓ task.json
+
+[scaffold]
+  ✓ spec.md
+  ✓ plan.md
+  ✓ initiative.md
+  ✓ TASKS.md
+  ✓ OKRs.md
+  ✓ roadmap.md
+  ✓ slo.yml
+  ✓ all task accept: commands look like real verifications
+
+[memory]
+  ✓ MEMORY.md
+  ✓ 0000-template.md
+  ✓ 0000-template.md
+  ✓ REGISTRY.md
+  ✓ MEMORY.md within budget (      50/200 lines)
+
+[security]
+  ✓ disableBypassPermissionsMode: disable
+  ✓ no Bash(env) in allow
+  ✓ no Bash(claude:*) catch-all
+
+[mcp]
+  ✓ no @latest pins in .mcp.json
+
+─────────────────────────────────────
+✓ all checks passed (with 1 warnings)

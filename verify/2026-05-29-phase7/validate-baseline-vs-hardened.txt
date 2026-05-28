@@ -1,0 +1,25 @@
+7,9c7,10
+<   ✓ 17 agents discovered
+<   ✓ 21 referenced hooks present
+<   ✓ 53 project-specific skills
+---
+>   ✓ 112 shell files checked
+>   ✓ 18 agents discovered
+>   ✓ 22 referenced hooks present
+>   ✓ 54 project-specific skills
+11d11
+<   ✓ 87 shell files checked
+21a22
+>   ✓ decisions.log
+23a25
+>   ✓ fleet.json
+36,40c38,40
+<   ✓ validated 180 frontmatter blocks (0 bad)
+<   ✓ validated 8 JSON files
+<   ✗ missing .swarms/coordinator/decisions.log
+<   ✗ missing .swarms/coordinator/fleet.json
+< ✗ 2 failures, 1 warnings
+---
+>   ✓ validated 17 JSON files
+>   ✓ validated 183 frontmatter blocks (0 bad)
+> ✓ all checks passed (with 1 warnings)
