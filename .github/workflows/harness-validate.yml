@@ -58,3 +58,18 @@ jobs:
       - name: Verify CLAUDE.md exists
         run: |
           test -f .claude/CLAUDE.md || test -f CLAUDE.md || { echo "No CLAUDE.md found"; exit 1; }
+
+      - name: Validate loop-control state (consecutive-aborts schema)
+        run: |
+          # The consecutive-aborts.json state file must conform to its schema and
+          # the loop-control state machine + OQ-aging tests must pass.
+          state=.claude/state/consecutive-aborts.json
+          schema=.claude/templates/consecutive-aborts.schema.json
+          test -f "$state" && test -f "$schema"
+          # Every required schema key must be present in the committed state file.
+          for key in $(jq -r '.required[]' "$schema"); do
+            jq -e "has(\"$key\")" "$state" >/dev/null || { echo "consecutive-aborts.json missing required key: $key"; exit 1; }
+          done
+          jq -e '.count >= 0 and (.last_pivot_attempt | type == "number")' "$state" >/dev/null
+          bash .claude/scripts/test/loop-control.sh
+          bash .claude/scripts/test/oq-aging.sh

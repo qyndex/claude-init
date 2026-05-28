@@ -1,0 +1,36 @@
+# OQ-aging — escalate silently-skipped open questions
+#
+# Runs daily. Scans specs/active for [OQ-N] items older than 7 days and appends a
+# P1-spec RESOLVE task to tasks/TASKS.md for each, so OQ-blocked specs surface for
+# operator triage instead of accumulating invisibly (Spec 001 AC-5).
+#
+# Configure as a Desktop scheduled task. Install via:
+#   bash .claude/scripts/install-overnight-tasks.sh
+
+name: oq-aging
+
+description: Daily escalation of open questions older than 7 days to P1-spec triage tasks.
+
+schedule:
+  cron: "0 6 * * *"
+  timezone: "local"
+
+surface: desktop # local file mutation only (tasks/TASKS.md)
+
+permission_mode: auto
+
+model: claude-haiku-4-5 # deterministic script run; no reasoning needed
+
+budgets:
+  max_wall_clock_minutes: 5
+  max_budget_usd: 1
+
+prompt: |
+  Run the OQ-aging routine — this is a deterministic script, not a reasoning task.
+
+  1. Execute: bash .claude/scripts/oq-aging.sh
+  2. The script scans specs/active/**/*.md for [OQ-N] items in specs older than
+     7 days and appends a P1-spec RESOLVE task to tasks/TASKS.md for each (idempotent,
+     via the with_tasks_lock library — never appends a duplicate).
+  3. Report how many new RESOLVE tasks were appended. Do not edit any spec.
+  4. If the script exits non-zero, surface the error; do not retry blindly.

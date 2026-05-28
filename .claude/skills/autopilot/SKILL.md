@@ -49,9 +49,34 @@ Disciplined autonomous execution. Inspired by OMC's `skills/autopilot/SKILL.md`.
   - Loop.
 - Hard cap: 5 QA iterations per task. After 5, ABORT regardless.
 
+## Phase 3.5 — PIVOT tier (deterministic, not LLM-judged)
+
+The consecutive-abort count is **not** something you track by reading the
+transcript — it is owned by `loop-iteration.sh` + `.claude/state/consecutive-aborts.json`
+(the state machine from spec 001 AC-5). After each task you MUST report the outcome:
+
+```bash
+bash .claude/scripts/loop-iteration.sh record T-<id> abort      # task hit [!]
+bash .claude/scripts/loop-iteration.sh record T-<id> progress   # task hit [x]
+```
+
+The loop then decides the tier deterministically:
+
+- **1st abort** → re-attempt normally (self-heal).
+- **2nd consecutive abort of the SAME task** → the loop emits `PIVOT T-<id>`. Do
+  NOT retry the same approach. Delegate to the `researcher` agent using
+  `.claude/templates/pivot-prompt.md`; adopt its rank-1 alternative, then re-attempt.
+- **3rd consecutive abort (count ≥ 3)** → the loop exits 2 with
+  `consecutive-abort cap reached` and halts. A human resets the state (or a `[x]`
+  progress clears it) before the loop resumes.
+
+This replaces any LLM-side strike-counting: the cap is enforced by the state file,
+so it survives compaction, restarts, and context loss.
+
 ## Phase 4 — Multi-perspective validation
 
 After QA passes:
+
 - Run broader test suite (`bash .claude/scripts/verify.sh`).
 - Run linter + typechecker.
 - Run security scan if diff touches auth/data/network/deps.
@@ -71,13 +96,14 @@ After QA passes:
 - No more unblocked tasks
 - Wall-clock budget exceeded (default: 4 hours from start)
 - Token budget exceeded
-- 3 consecutive task ABORTs (Phase 3 maxed out)
+- 3 consecutive task ABORTs (enforced by the Phase 3.5 state machine — `loop-iteration.sh` exits 2 at the cap)
 - Any security check fails on the diff
 - User sends `/stop` or interrupts
 
 ## Output
 
 At end of run:
+
 - `OVERNIGHT_REPORT.md` at repo root with NEXUS format
 - One PR per completed task on `claude/auto-<date>-<task>` branches
 - Updated `tasks/TASKS.md`

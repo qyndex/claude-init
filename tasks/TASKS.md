@@ -141,49 +141,49 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
 
 #### Phase 2 — Loop correctness (AC-5..AC-7)
 
-- [ ] T-011 | spec:001 | phase:2 | priority: P1-spec | created: 2026-05-29 | last_touched: 2026-05-29 | parallel: yes | est: 4m
+- [x] T-011 | spec:001 | phase:2 | priority: P1-spec | created: 2026-05-29 | last_touched: 2026-05-29 | parallel: yes | est: 4m | completed: 2026-05-29
       summary: Write test for consecutive-aborts counter state machine — fresh state inits to count:0, increment on [!] write, reset on [x] write, hard-stop on count>=3; uses temp state file via STATE_FILE override
       files: .claude/scripts/test/loop-control.sh
       accept: bash -n .claude/scripts/test/loop-control.sh && grep -q 'consecutive-aborts' .claude/scripts/test/loop-control.sh
       owner: implementer
 
-- [ ] T-012 | spec:001 | phase:2 | priority: P1-spec | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-011 | parallel: no | est: 4m
+- [x] T-012 | spec:001 | phase:2 | priority: P1-spec | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-011 | parallel: no | est: 4m | completed: 2026-05-29
       summary: Create consecutive-aborts.json schema + initial empty state file (count:0, last_task:null, last_error_hash:null, last_pivot_attempt:0, updated:iso); add JSON Schema validator at templates/consecutive-aborts.schema.json
       files: .claude/state/consecutive-aborts.json, .claude/templates/consecutive-aborts.schema.json
       accept: jq -e '.count == 0 and (.last_pivot_attempt | type == "number")' .claude/state/consecutive-aborts.json && jq -e '.properties.count.type == "integer"' .claude/templates/consecutive-aborts.schema.json
       owner: implementer
 
-- [ ] T-013 | spec:001 | phase:2 | priority: P1-spec | created: 2026-05-29 | last_touched: 2026-05-29 | parallel: yes | est: 3m
+- [x] T-013 | spec:001 | phase:2 | priority: P1-spec | created: 2026-05-29 | last_touched: 2026-05-29 | parallel: yes | est: 3m | completed: 2026-05-29
       summary: Author pivot-prompt.md template — researcher subagent prompt instructing alternative-approach generation, ≤2 alternatives, returns <alternative> block
       files: .claude/templates/pivot-prompt.md
       accept: test -f .claude/templates/pivot-prompt.md && grep -qE '<alternative>|alternative approach' .claude/templates/pivot-prompt.md
       owner: implementer
 
-- [ ] T-014 | spec:001 | phase:2 | priority: P1-spec | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-012, T-013 | parallel: no | est: 5m
+- [x] T-014 | spec:001 | phase:2 | priority: P1-spec | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-012, T-013 | parallel: no | est: 5m | completed: 2026-05-29
       summary: Extend loop-iteration.sh — read/write consecutive-aborts.json via write_atomic, increment on [!], zero on [x], spawn researcher on 2nd same-task abort with pivot-prompt.md, hard-stop on count>=3 with explicit "consecutive-abort cap reached" message; new exit codes (0/1/2)
       files: .claude/scripts/loop-iteration.sh
       accept: bash -n .claude/scripts/loop-iteration.sh && grep -qE 'consecutive-aborts\.json|consecutive-abort cap reached' .claude/scripts/loop-iteration.sh && bash .claude/scripts/test/loop-control.sh
       owner: implementer
 
-- [ ] T-015 | spec:001 | phase:2 | priority: P1-spec | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-014 | parallel: yes | est: 3m
+- [x] T-015 | spec:001 | phase:2 | priority: P1-spec | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-014 | parallel: yes | est: 3m | completed: 2026-05-29
       summary: Update autopilot SKILL.md — add explicit Phase 3.5 PIVOT tier section, remove LLM-only 3-strike rule prose (delegated to loop-iteration.sh)
       files: .claude/skills/autopilot/SKILL.md
       accept: grep -qE 'PIVOT tier|Phase 3\.5' .claude/skills/autopilot/SKILL.md && ! grep -qE '^\- LLM enforces 3-strike' .claude/skills/autopilot/SKILL.md
       owner: implementer
 
-- [ ] T-016 | spec:001 | phase:2 | priority: P1-spec | created: 2026-05-29 | last_touched: 2026-05-29 | parallel: yes | est: 4m
+- [x] T-016 | spec:001 | phase:2 | priority: P1-spec | created: 2026-05-29 | last_touched: 2026-05-29 | parallel: yes | est: 4m | completed: 2026-05-29
       summary: Write test for oq-aging.sh — seed an [OQ-1] item in a spec with backdated created:>7d, run script, assert P1-spec task appears in tasks/TASKS.md with last_touched and back-link
       files: .claude/scripts/test/oq-aging.sh
       accept: bash -n .claude/scripts/test/oq-aging.sh && grep -q 'OQ-' .claude/scripts/test/oq-aging.sh
       owner: implementer
 
-- [ ] T-017 | spec:001 | phase:2 | priority: P1-spec | created: 2026-05-29 | last\*touched: 2026-05-29 | deps: T-016 | parallel: no | est: 5m
+- [x] T-017 | spec:001 | phase:2 | priority: P1-spec | created: 2026-05-29 | last\*touched: 2026-05-29 | deps: T-016 | parallel: no | est: 5m | completed: 2026-05-29
       summary: Implement oq-aging.sh — scan specs/active/\*\*/\_.md for [OQ-N] items >7d old, append RESOLVE: P1-spec task per item with last_touched + back-link, idempotent (skip if already appended), uses with_tasks_lock
       files: .claude/scripts/oq-aging.sh
       accept: test -x .claude/scripts/oq-aging.sh && bash -n .claude/scripts/oq-aging.sh && bash .claude/scripts/test/oq-aging.sh
       owner: implementer
 
-- [ ] T-018 | spec:001 | phase:2 | priority: P1-spec | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-017 | parallel: yes | est: 3m
+- [x] T-018 | spec:001 | phase:2 | priority: P1-spec | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-017 | parallel: yes | est: 3m | completed: 2026-05-29
       summary: Wire oq-aging.yml daily routine — schedule daily, invoke .claude/scripts/oq-aging.sh; add harness-validate.yml step that confirms consecutive-aborts.json schema validates
       files: .claude/routines/oq-aging.yml, .github/workflows/harness-validate.yml
       accept: test -f .claude/routines/oq-aging.yml && grep -q 'oq-aging.sh' .claude/routines/oq-aging.yml && grep -q 'consecutive-aborts' .github/workflows/harness-validate.yml
