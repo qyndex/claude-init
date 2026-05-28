@@ -19,6 +19,9 @@ set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$ROOT"
 
+# shellcheck source=lib/atomic-write.sh
+. "$ROOT/.claude/scripts/lib/atomic-write.sh"
+
 target="${1:-latest}"
 CHECK_ONLY=0
 [ "${2:-}" = "--check-only" ] && CHECK_ONLY=1
@@ -120,7 +123,7 @@ jq -nc \
   --arg verdict "$verdict" \
   '{spec: $spec, ac_total: $ac_total, ac_proven: $ac_proven, ac_unproven: $ac_unproven,
     smoke_exit_max: $smoke_exit, coverage: {line: $cov_line, branch: $cov_branch}, verdict: $verdict}' \
-  > "$date_dir/evidence.json"
+  | replace_atomic "$date_dir/evidence.json"
 
 # ─── 8. Emit pr-body.md ─────────────────────────────────────────────────
 {

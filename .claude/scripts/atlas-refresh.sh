@@ -11,6 +11,9 @@ set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$ROOT"
 
+# shellcheck source=lib/atomic-write.sh
+. "$ROOT/.claude/scripts/lib/atomic-write.sh"
+
 ATLAS=".claude/memory/atlas"
 mkdir -p "$ATLAS"
 
@@ -260,7 +263,7 @@ jq -nc \
     monorepo_tool: $mono,
     test_frameworks: $tests,
     primary_stack: $primary
-  }' > "$ATLAS/manifest.json"
+  }' | replace_atomic "$ATLAS/manifest.json"
 
 # ─── Write .updated marker ─────────────────────────────────────────────
 cat > "$ATLAS/.updated" <<EOF

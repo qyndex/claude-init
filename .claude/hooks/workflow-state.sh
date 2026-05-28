@@ -4,6 +4,9 @@
 
 set -uo pipefail
 
+# shellcheck source=../scripts/lib/atomic-write.sh
+. "$(cd "$(dirname "$0")/../scripts/lib" && pwd)/atomic-write.sh"
+
 mkdir -p .claude/hooks/.log .swarms/coordinator
 state_file=".swarms/coordinator/workflow-state.json"
 
@@ -17,7 +20,7 @@ phase=""
 next_task=""
 if ! git rev-parse --git-dir >/dev/null 2>&1; then
   # Not a git repo — write a valid no-op state and exit cleanly
-  printf '{"phase":null,"next":null,"streak":0,"warned_at":0}' > "$state_file"
+  replace_atomic "$state_file" '{"phase":null,"next":null,"streak":0,"warned_at":0}'
   printf '{"hookSpecificOutput":{"hookEventName":"UserPromptSubmit","additionalContext":""}}\n'
   exit 0
 fi
@@ -66,11 +69,12 @@ fi
 
 # Persist
 # JUSTIFIED: jq -R only JSON-string-escapes a value; if jq is somehow unavailable the `|| echo '""'` writes an empty JSON string, keeping the state file valid JSON rather than emitting a raw unescaped value
-printf '{"phase":%s,"next":%s,"streak":%d,"warned_at":%d}' \
+state_json=$(printf '{"phase":%s,"next":%s,"streak":%d,"warned_at":%d}' \
   "$(printf '%s' "$phase" | jq -R . 2>/dev/null || echo '""')" \
   "$(printf '%s' "$next_task" | jq -R . 2>/dev/null || echo '""')" \
   "$streak" \
-  "$warned_at" > "$state_file"
+  "$warned_at")
+replace_atomic "$state_file" "$state_json"
 
 # Round 5 D5: emit full BREAK-LOOP block ONCE per stuck-phase, not every turn.
 # Previously re-emitted ~150 tokens every turn during loops — exactly when the
@@ -80,11 +84,12 @@ if [ "$streak" -ge 3 ] && [ "$warned_at" = "0" ]; then
   ctx="$ctx <warn>LOOP DETECTED: phase=\"$phase\" repeated $streak turns. BREAK-LOOP PROTOCOL: (1) /rewind to drop the last failed approach; (2) try a different angle — re-read the spec, ask the user a sharpening question; (3) if 2 doesn't unblock, invoke .claude/skills/self-heal (debugger → implementer); (4) if 3 cycles fail, escalate — mark task [!] in tasks/TASKS.md and surface in handoff.</warn>"
   # Mark warned so subsequent turns in this loop are quiet
   # JUSTIFIED: same JSON-string escaping of phase/next — `|| echo '""'` keeps the persisted warned-state valid JSON even with jq absent
-  printf '{"phase":%s,"next":%s,"streak":%d,"warned_at":%d}' \
+  warned_json=$(printf '{"phase":%s,"next":%s,"streak":%d,"warned_at":%d}' \
     "$(printf '%s' "$phase" | jq -R . 2>/dev/null || echo '""')" \
     "$(printf '%s' "$next_task" | jq -R . 2>/dev/null || echo '""')" \
     "$streak" \
-    "$streak" > "$state_file"
+    "$streak")
+  replace_atomic "$state_file" "$warned_json"
 elif [ "$streak" -ge 3 ]; then
   # Already warned this phase — short reminder only, no full protocol
   ctx="$ctx <warn>still stuck (streak=$streak); see BREAK-LOOP above</warn>"

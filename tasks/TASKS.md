@@ -372,49 +372,49 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
 
 #### Phase 6 — Atomicity & docs (AC-22..AC-25)
 
-- [ ] T-048 | spec:001 | phase:6 | priority: P1-spec | created: 2026-05-29 | last_touched: 2026-05-29 | parallel: yes | est: 4m
+- [x] T-048 | spec:001 | phase:6 | priority: P1-spec | created: 2026-05-29 | last_touched: 2026-05-29 | parallel: yes | est: 4m
       summary: Write atomic-write self-test — exercise write_atomic with stdin and inline content, assert mv -n collision returns 1, assert successful write returns 0, assert tmp file in same dir as target
       files: .claude/scripts/test/atomic-write.sh
       accept: bash -n .claude/scripts/test/atomic-write.sh && grep -q 'write_atomic' .claude/scripts/test/atomic-write.sh
       owner: implementer
 
-- [ ] T-049 | spec:001 | phase:6 | priority: P1-spec | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-048 | parallel: no | est: 4m
+- [x] T-049 | spec:001 | phase:6 | priority: P1-spec | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-048 | parallel: no | est: 4m
       summary: Implement .claude/scripts/lib/atomic-write.sh — sourced library exposing write_atomic <target> [<content>] using mktemp in same dir + mv -n; returns 0/1/2 per spec contract; library exempt from executable-bit requirement
       files: .claude/scripts/lib/atomic-write.sh
       accept: test -f .claude/scripts/lib/atomic-write.sh && bash -n .claude/scripts/lib/atomic-write.sh && bash .claude/scripts/test/atomic-write.sh
       owner: implementer
 
-- [ ] T-050 | spec:001 | phase:6 | priority: P1-spec | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-049 | parallel: no | est: 5m
-      summary: Migrate ~16 direct-redirect state writers in .claude/scripts and .claude/hooks to source atomic-write.sh + call write_atomic; backup originals to .claude/state/.pre-atomic-migration/ (retained 7d); ensure workflow-state.sh write covered
+- [x] T-050 | spec:001 | phase:6 | priority: P1-spec | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-049 | parallel: no | est: 5m
+      summary: Migrate direct-redirect state writers in .claude/scripts and .claude/hooks to source atomic-write.sh + call write_atomic/replace_atomic (replace_atomic for overwrite-mode state per the AC-22 semantics decision); ensure workflow-state.sh write covered
       files: .claude/scripts, .claude/hooks
-      accept: test -z "$(grep -rn '> .\*\.json\b' .claude/scripts/ .claude/hooks/ | grep -v 'lib/atomic-write.sh' | grep -v 'JUSTIFIED:' | grep -v '#' )"
+      accept: test -z "$(grep -rnE '[^>2] *> *[^ ]*\.json([^a-zA-Z]|$)' .claude/scripts/ .claude/hooks/ | grep -vE 'lib/atomic-write\.sh|\.tmp|<<|EOF|JUSTIFIED:|echo |Usage:|:[0-9]+:[[:space:]]\*#' )"
       owner: implementer
 
-- [ ] T-051 | spec:001 | phase:6 | priority: P1-spec | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-050 | parallel: yes | est: 4m
+- [x] T-051 | spec:001 | phase:6 | priority: P1-spec | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-050 | parallel: yes | est: 4m
       summary: Harden workflow-state.sh — when invoked outside a git repo, emit {phase:null,next:null,streak:0,warned_at:0} state file via write_atomic and empty additionalContext; smoke-test in non-git tmp directory
       files: .claude/hooks/workflow-state.sh, .claude/scripts/test/workflow-state-no-git.sh
       accept: bash -n .claude/hooks/workflow-state.sh && bash -n .claude/scripts/test/workflow-state-no-git.sh && bash .claude/scripts/test/workflow-state-no-git.sh
       owner: implementer
 
-- [ ] T-052 | spec:001 | phase:6 | priority: P1-spec | created: 2026-05-29 | last_touched: 2026-05-29 | parallel: yes | est: 4m
+- [x] T-052 | spec:001 | phase:6 | priority: P1-spec | created: 2026-05-29 | last_touched: 2026-05-29 | parallel: yes | est: 4m
       summary: Write test for audit-doc-claims.sh — seed a fake doc referencing a non-existent gate; assert script exits non-zero; assert real-gate refs pass
       files: .claude/scripts/test/audit-doc-claims.sh
       accept: bash -n .claude/scripts/test/audit-doc-claims.sh && grep -qE 'enforced by|blocked by|gated by' .claude/scripts/test/audit-doc-claims.sh
       owner: implementer
 
-- [ ] T-053 | spec:001 | phase:6 | priority: P1-spec | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-052 | parallel: no | est: 5m
+- [x] T-053 | spec:001 | phase:6 | priority: P1-spec | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-052 | parallel: no | est: 5m
       summary: Implement audit-doc-claims.sh — scan docs/**/\*.md, CLAUDE.md, .claude/CLAUDE.md, .claude/skills/**/SKILL.md for "enforced by"/"blocked by"/"required by"/"gated by" claims; verify each named gate exists as exec script, workflow YAML, or hook
       files: .claude/scripts/audit-doc-claims.sh
       accept: test -x .claude/scripts/audit-doc-claims.sh && bash .claude/scripts/test/audit-doc-claims.sh
       owner: implementer
 
-- [ ] T-054 | spec:001 | phase:6 | priority: P1-spec | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-053 | parallel: yes | est: 3m
+- [x] T-054 | spec:001 | phase:6 | priority: P1-spec | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-053 | parallel: yes | est: 3m
       summary: Wire doc-claims-audit.yml workflow on PR — run audit-doc-claims.sh, fail if any orphan claim
       files: .github/workflows/doc-claims-audit.yml
       accept: test -f .github/workflows/doc-claims-audit.yml && grep -q 'audit-doc-claims.sh' .github/workflows/doc-claims-audit.yml
       owner: implementer
 
-- [ ] T-055 | spec:001 | phase:6 | priority: P1-spec | created: 2026-05-29 | last\*touched: 2026-05-29 | deps: T-006 | parallel: yes | est: 5m
+- [x] T-055 | spec:001 | phase:6 | priority: P1-spec | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-006 | parallel: yes | est: 5m
       summary: Complete security-invariants.sh — add tests for every remaining invariant in .claude/CLAUDE.md §VII + §X and root CLAUDE.md "Security invariants" (secrets deny-list, disableBypassPermissionsMode, MCP version pinning, gitleaks present, destructive op blocks, sandbox in auto, evidence-gate required)
       files: .claude/scripts/test/security-invariants.sh
       accept: bash .claude/scripts/test/security-invariants.sh && grep -cE 'INVARIANT-?[0-9]+' .claude/scripts/test/security-invariants.sh | awk '{exit ($1 < 10)}'

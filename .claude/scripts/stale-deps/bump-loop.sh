@@ -13,6 +13,9 @@
 
 set -uo pipefail
 
+# shellcheck source=../lib/atomic-write.sh
+. "$(cd "$(dirname "$0")/../lib" && pwd)/atomic-write.sh"
+
 STACK="${1:?stack required}"
 MAX_CANDIDATES="${MAX_CANDIDATES:-5}"
 CANDIDATES_FILE="/tmp/candidates-${STACK}.json"
@@ -169,4 +172,4 @@ echo
 echo "bump-loop for $STACK: shipped=$shipped mediated=$mediated escalated=$escalated"
 jq -nc --argjson shipped "$shipped" --argjson mediated "$mediated" --argjson escalated "$escalated" \
   '{stack: "'"$STACK"'", shipped: $shipped, mediated: $mediated, escalated: $escalated}' \
-  > "$results_dir/summary.json"
+  | replace_atomic "$results_dir/summary.json"

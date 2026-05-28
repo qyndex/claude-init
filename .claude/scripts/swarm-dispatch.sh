@@ -7,6 +7,9 @@ set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$ROOT"
 
+# shellcheck source=lib/atomic-write.sh
+. "$ROOT/.claude/scripts/lib/atomic-write.sh"
+
 DRY_RUN=0
 ONLY=""
 BUDGET=5
@@ -59,8 +62,8 @@ if [ -n "$(git status --porcelain 2>/dev/null)" ]; then
   exit 1
 fi
 if [ ! -s .swarms/coordinator/fleet.json ]; then
-  echo '{"_doc":"reset on first dispatch","_schema_version":1,"last_updated":null,"fleet":{}}' \
-    > .swarms/coordinator/fleet.json
+  replace_atomic .swarms/coordinator/fleet.json \
+    '{"_doc":"reset on first dispatch","_schema_version":1,"last_updated":null,"fleet":{}}'
 fi
 
 # Build the candidate list — all stream dirs with a brief.md
