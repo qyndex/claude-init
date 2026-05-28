@@ -103,7 +103,7 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
       accept: bash -n .claude/scripts/test/pre-bash-guard-bypass.sh && grep -cE 'BYPASS*[0-9]+' .claude/scripts/test/pre-bash-guard-bypass.sh | awk '{exit ($1 < 15)}'
       owner: implementer
 
-- [ ] T-005 | spec:001 | phase:1 | priority: security | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-004 | parallel: no | est: 5m
+- [x] T-005 | spec:001 | phase:1 | priority: security | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-004 | parallel: no | est: 5m | completed: 2026-05-29
       summary: Rewrite pre-bash-guard.sh pre-pass — reject $(…), backticks, <(…), >(…), env-var indirection at command head, collapse whitespace before pattern match; preserve existing 30+ patterns; p95 <100ms
       files: .claude/hooks/pre-bash-guard.sh
       accept: bash .claude/scripts/test/pre-bash-guard-bypass.sh

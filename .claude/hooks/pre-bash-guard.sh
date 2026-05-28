@@ -43,15 +43,23 @@ deny_patterns=(
   # Indirect execution paths
   'base64 +(-d|--decode) +.* *\| *(sh|bash|zsh)'
   'echo +.* *\| *base64 +-d *\| *(sh|bash|zsh)'
-  'python3? +-c +'
-  'perl +-e +'
-  'node +-e +'
-  'ruby +-e +'
-  'bash +<\('
-  'sh +<\('
+  # Interpreter inline-code execution. The code may follow -c/-e with or without
+  # a space and with or without an opening quote (python -c"..." is as dangerous
+  # as python -c "...").
+  'python3? +-c *["'"'"' ]'
+  'perl +-e *["'"'"' ]'
+  'node +-e *["'"'"' ]'
+  'ruby +-e *["'"'"' ]'
+  # Process substitution as a code source, regardless of the head command
+  # (bash/sh/dot/source/zsh all execute it).
+  '(^| )(\.|source|bash|sh|zsh) +<\('
   'eval +'
   'exec +'
   'source +/dev/stdin'
+  # Decode-then-pipe-to-shell variants beyond base64 (hex via xxd / printf).
+  'xxd +(-r|-p|-rp|-r -p|-p -r).* *\| *(sh|bash|zsh)'
+  'printf +.* *\| *(sh|bash|zsh)'
+  'openssl +(base64|enc) +.*(-d|-base64).* *\| *(sh|bash|zsh)'
   # Git force-push to main/master
   'git +push +(--force|--force-with-lease *|-f) +origin +(main|master|HEAD:main|HEAD:master)'
   'git +(commit|push) +.*--no-verify'
@@ -68,6 +76,32 @@ deny_patterns=(
   'chmod +(-R +)?a\+w +(/|~|\$HOME)'
   'chown +-R +.* +(/|~|\$HOME)'
 )
+
+# Pre-pass: command/process substitution that wraps a dangerous payload.
+# `bash -c "$(curl …)"`, `echo $(curl …|bash)`, `echo \`curl …\`` and
+# `<(curl …)` all smuggle a network-fetch-then-execute past the per-segment
+# split (the substitution body is one segment but the sink is outside it).
+# We deny when a $(…), `…`, or <(…) body contains a fetch or shell invocation.
+subst_sink_patterns=(
+  '\$\([^)]*(curl|wget|fetch)'
+  '`[^`]*(curl|wget|fetch)'
+  '<\([^)]*(curl|wget|fetch)'
+  '\$\([^)]*(curl|wget)[^)]*\|[^)]*(sh|bash|zsh)'
+)
+for pattern in "${subst_sink_patterns[@]}"; do
+  if [[ "$cmd_normalized" =~ $pattern ]]; then
+    cat <<EOF
+{
+  "hookSpecificOutput": {
+    "hookEventName": "PreToolUse",
+    "permissionDecision": "deny",
+    "permissionDecisionReason": "Blocked by .claude/hooks/pre-bash-guard.sh: command/process substitution smuggles a network-fetch-or-shell payload (pattern /$pattern/). Run it interactively if intended."
+  }
+}
+EOF
+    exit 0
+  fi
+done
 
 # Split the command on chaining delimiters (;, &&, ||, |) so each segment is
 # checked independently. This catches `git status; rm -rf ~/proj` even though
