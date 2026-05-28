@@ -44,7 +44,7 @@ if command -v jq >/dev/null; then
     else
       fail "invalid JSON: $f"
     fi
-  done < <(find .claude .github .swarms .mcp.json -name '*.json' -type f -print0 2>/dev/null)
+  done < <(find .claude .github .swarms .mcp.json -name '*.json' -type f -not -path '*/.cache/*' -print0 2>/dev/null)
   ok "validated $json_count JSON files"
 else
   warn "jq not installed — JSON files not validated"

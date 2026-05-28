@@ -127,13 +127,13 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
       accept: jq -e '.permissions.sandbox.enabled == true or (.permissions.sandbox.enabledWhen // "" | test("auto"))' .claude/settings.json
       owner: implementer
 
-- [ ] T-009 | spec:001 | phase:1 | priority: security | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-002, T-005, T-007, T-008 | parallel: no | est: 3m
+- [x] T-009 | spec:001 | phase:1 | priority: security | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-002, T-005, T-007, T-008 | parallel: no | est: 3m | completed: 2026-05-29
       summary: Update docs/PLAYBOOK.md — add "How to legitimately edit constitution-class files" section covering FORCE_CONSTITUTION_EDIT escape hatch and out-of-Claude editor workflow
       files: docs/PLAYBOOK.md
       accept: grep -qE 'FORCE_CONSTITUTION_EDIT|legitimately edit constitution' docs/PLAYBOOK.md
       owner: implementer
 
-- [ ] T-010 | spec:001 | phase:1 | priority: security | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-002, T-003, T-005, T-006, T-007, T-008 | parallel: no | est: 3m
+- [x] T-010 | spec:001 | phase:1 | priority: security | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-002, T-003, T-005, T-006, T-007, T-008 | parallel: no | est: 3m | completed: 2026-05-29
       summary: Phase 1 exit gate — run validate.sh + security-invariants.sh + pre-bash-guard-bypass.sh + pre-edit-constitution-guard.sh; confirm all pass
       files: .claude/scripts/validate.sh
       accept: bash .claude/scripts/test/pre-bash-guard-bypass.sh && bash .claude/scripts/test/security-invariants.sh && bash .claude/scripts/test/pre-edit-constitution-guard.sh && bash .claude/scripts/validate.sh

@@ -99,6 +99,7 @@ In Claude Code:
 ```
 
 The loop walks `tasks/TASKS.md`, one task per iteration with fresh context. Stops on:
+
 - Budget reached
 - 2 consecutive iterations with no diff
 - 2 consecutive verify failures
@@ -194,7 +195,13 @@ git merge --squash --no-commit  # to inspect what got done
    ```
 4. For PreToolUse hooks that block: emit JSON to stdout:
    ```json
-   {"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "deny", "permissionDecisionReason": "..."}}
+   {
+     "hookSpecificOutput": {
+       "hookEventName": "PreToolUse",
+       "permissionDecision": "deny",
+       "permissionDecisionReason": "..."
+     }
+   }
    ```
 5. Test by running the hook manually with sample stdin
 
@@ -216,10 +223,42 @@ gh pr checks <pr>                # CI checks
 ```
 
 Common blockers:
+
 - **Lint/typecheck failing** → run locally, fix, push
 - **Security review flagged a high** → address with implementer, push
 - **No verify report** → run `/verify`
 - **Branch protection** → confirm secrets + ruleset configured
+
+## Legitimately edit constitution-class files
+
+`.claude/CLAUDE.md` (and other constitution-class files) are protected from agent
+writes by **two independent layers** — so a normal Claude edit will be refused:
+
+1. **Hook layer** — `.claude/hooks/pre-edit-constitution-guard.sh` denies the Edit
+   (PreToolUse, exit 2) unless `FORCE_CONSTITUTION_EDIT=1` is set in the shell.
+2. **Auto Mode classifier** — independently treats any write to the constitution as
+   self-modification and hard-blocks it; this layer does **not** honor the env var.
+
+The env-var escape hatch lifts only the hook, not the classifier. So to make a
+deliberate, operator-owned change to the constitution, edit it **outside Claude**:
+
+```bash
+# Recommended: a one-shot human edit, then commit yourself.
+$EDITOR .claude/CLAUDE.md
+git add .claude/CLAUDE.md
+git commit -m "docs(constitution): <what changed and why>"
+```
+
+```bash
+# Scripted operator edit (still you, not the agent). The env var documents intent
+# and satisfies the hook for any tooling that respects it.
+FORCE_CONSTITUTION_EDIT=1 sed -i '' 's/old/new/' .claude/CLAUDE.md
+```
+
+Why this is intentional: the constitution is the agent's operating law. An agent that
+can rewrite its own law can rationalize around every other guardrail. Editing it is a
+human act, gated behind a deliberate out-of-band step — never something the autopilot
+loop can reach. See `.claude/memory/incidents/2026-05-28-sec-constitution-unprotected.md`.
 
 ## Reset the harness state (start clean)
 

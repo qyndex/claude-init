@@ -31,10 +31,13 @@ run_case() {
 
   payload=$(printf '{"hook_event_name":"PreToolUse","tool_name":"Edit","tool_input":{"file_path":"%s","new_string":"x"},"session_id":"test-session"}' "$file_path")
 
+  # Clear an inherited FORCE_CONSTITUTION_EDIT so the deny cases test the guard's
+  # real behavior even when an operator has the escape hatch set in their shell.
+  # The escape-hatch case re-sets it explicitly via env_prefix.
   if [ -n "$env_prefix" ]; then
-    out=$(printf '%s' "$payload" | env $env_prefix bash "$HOOK" 2>&1)
+    out=$(printf '%s' "$payload" | env -u FORCE_CONSTITUTION_EDIT $env_prefix bash "$HOOK" 2>&1)
   else
-    out=$(printf '%s' "$payload" | bash "$HOOK" 2>&1)
+    out=$(printf '%s' "$payload" | env -u FORCE_CONSTITUTION_EDIT bash "$HOOK" 2>&1)
   fi
   exit_code=$?
 
