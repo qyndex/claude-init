@@ -192,19 +192,19 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
 
 #### Phase 3 — Operational (AC-8..AC-10)
 
-- [ ] T-019 | spec:001 | phase:3 | priority: P1-spec | created: 2026-05-29 | last_touched: 2026-05-29 | parallel: yes | est: 4m
+- [x] T-019 | spec:001 | phase:3 | priority: P1-spec | created: 2026-05-29 | last_touched: 2026-05-29 | parallel: yes | est: 4m
       summary: Write test for lint-silent-failures.sh — seed fixtures with || true, 2>/dev/null, set -uo pipefail (no -e), and # JUSTIFIED: annotations; assert unjustified count surfaced correctly
       files: .claude/scripts/test/lint-silent-failures.sh
       accept: bash -n .claude/scripts/test/lint-silent-failures.sh && grep -q 'JUSTIFIED' .claude/scripts/test/lint-silent-failures.sh
       owner: implementer
 
-- [ ] T-020 | spec:001 | phase:3 | priority: P1-spec | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-019 | parallel: no | est: 5m
+- [x] T-020 | spec:001 | phase:3 | priority: P1-spec | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-019 | parallel: no | est: 5m
       summary: Implement lint-silent-failures.sh — grep .claude/scripts and .claude/hooks for silent-error patterns, emit .claude/state/silent-failure-audit.json with {path,line,pattern,justified,justification}, exit non-zero when any unjustified
       files: .claude/scripts/lint-silent-failures.sh
       accept: test -x .claude/scripts/lint-silent-failures.sh && bash .claude/scripts/test/lint-silent-failures.sh
       owner: implementer
 
-- [ ] T-021 | spec:001 | phase:3 | priority: P1-spec | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-020 | parallel: yes | est: 3m
+- [x] T-021 | spec:001 | phase:3 | priority: P1-spec | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-020 | parallel: yes | est: 3m
       summary: Wire silent-failure-audit.yml workflow — run lint-silent-failures.sh on PR, fail if .unjustified > 0
       files: .github/workflows/silent-failure-audit.yml
       accept: test -f .github/workflows/silent-failure-audit.yml && grep -q 'lint-silent-failures.sh' .github/workflows/silent-failure-audit.yml
