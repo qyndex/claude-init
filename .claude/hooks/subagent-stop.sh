@@ -109,6 +109,28 @@ if [ "$agent_type" = "feature-stream" ]; then
       worktree_diff=$(cd "$worktree" && git diff --name-only main...HEAD 2>/dev/null | head -10 | tr '\n' ',' | sed 's/,$//')
     fi
   fi
+
+  # ─── Spec 001 AC-17: emit lane.finished when a swarm stream stops ───────
+  # Derive the stream id from the worktree branch (feat-<N>); fall back to the
+  # worktree dir basename. The coordinator tails .swarms/events/<id>.jsonl and
+  # treats lane.finished as the signal a stream is ready for a merge decision.
+  lane_stream_id=""
+  if [ -n "${worktree:-}" ] && [ -d "$worktree" ]; then
+    # JUSTIFIED: the redirect drops git stderr if the worktree has no branch — the basename fallback still yields a usable stream id
+    lane_stream_id=$(cd "$worktree" && git rev-parse --abbrev-ref HEAD 2>/dev/null | grep -oE '^feat-[a-z0-9-]+' || true)
+    [ -z "$lane_stream_id" ] && lane_stream_id=$(basename "$worktree")
+  fi
+  if [ -n "$lane_stream_id" ]; then
+    mkdir -p .swarms/events
+    fin_json=$(jq -nc \
+      --arg ts "$ts" \
+      --arg sid "$lane_stream_id" \
+      --arg status "${status:-unknown}" \
+      --arg session_id "$session_id" \
+      '{ts: $ts, stream_id: $sid, event: "lane.finished", payload: {status: $status, session_id: $session_id}}')
+    # JUSTIFIED: the redirect drops write stderr — lane telemetry is best-effort; a write failure must never abort the SubagentStop hook
+    printf '%s\n' "$fin_json" >> ".swarms/events/${lane_stream_id}.jsonl" 2>/dev/null
+  fi
 fi
 
 # ─── Emit structured event ──────────────────────────────────────────────

@@ -20,6 +20,20 @@ COVERAGE_CRITICAL_LINE="${COVERAGE_CRITICAL_LINE:-95}"
 step() { printf '\n→ %s\n' "$*"; }
 fail_msg() { printf '  ✗ %s\n' "$*"; }
 ok_msg() { printf '  ✓ %s\n' "$*"; }
+warn_msg() { printf '  ⚠ %s\n' "$*"; }
+
+# ─── Branch freshness preflight (Spec 001 AC-19) ──────────────────────────────
+# First step: advisory-only. Warns if the branch has drifted far from main.
+# Never increments $fails — a stale branch shouldn't block verification, only
+# nudge a rebase. Honors SKIP_BRANCH_CHECK=1 (set in CI).
+step "Branch freshness"
+# JUSTIFIED: 2>/dev/null + || true keep this advisory preflight from ever aborting verify — branch-freshness is non-blocking by design (AC-19); an empty bf_out simply means "fresh"
+bf_out="$(bash "$ROOT/.claude/scripts/branch-freshness.sh" 2>/dev/null || true)"
+if [ -n "$bf_out" ]; then
+  warn_msg "$bf_out"
+else
+  ok_msg "branch fresh against main"
+fi
 
 # ─── Node / TypeScript ────────────────────────────────────────────────────────
 if [ -f package.json ]; then

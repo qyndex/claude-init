@@ -65,6 +65,7 @@ declare_map() { :; }
 routing="$(parse_routing)"
 
 expected_tier() { # expected_tier <agent-name> → tier or empty
+  # JUSTIFIED: read || true — when awk emits no line (agent not in §V) read exits 1; that empty $t is the intended "unknown tier" signal, normalized below
   printf '%s\n' "$routing" | awk -F'\t' -v n="$1" '$1==n {print $2; exit}' | { read -r t || true; normalize_tier "$t"; }
 }
 
@@ -87,6 +88,7 @@ while IFS= read -r f; do
     echo "✗ $f: model '$declared' (→$got) but §V assigns '$name' to $want"
     issues=$((issues + 1))
   fi
+# JUSTIFIED: find 2>/dev/null — hides "no such directory" if .claude/agents is absent; an empty result means zero agents to check, not an error
 done < <(find "$AGENTS_DIR" -type f -name '*.md' 2>/dev/null)
 
 if [ "$issues" -gt 0 ]; then

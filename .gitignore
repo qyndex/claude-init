@@ -27,6 +27,11 @@ verify/**/test-results/
 .swarms/coordinator/workflow-state.json
 .swarms/streams/*
 !.swarms/streams/.gitkeep
+# Typed lane events (JSONL) emitted per swarm stream — runtime telemetry (AC-17)
+.swarms/events/
+
+# Workspace-fingerprinted session heartbeats — per-worktree runtime state (AC-18)
+.claude/sessions/
 
 # Auto-managed memory scratchpads — short-term, machine-written
 .claude/memories/.*

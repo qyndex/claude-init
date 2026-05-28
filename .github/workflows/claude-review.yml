@@ -43,3 +43,38 @@ jobs:
             5. Post the surviving findings as inline review comments.
 
             Block the PR (--request-changes) if any blocker or high remains.
+
+  # Spec 001 AC-20: anti-slop triage as an additional reviewer pass. Skips PRs
+  # labelled `human-author` (a human explicitly owns it). For the first 30 days
+  # this pass is ADVISORY — it comments its triage class but never requests
+  # changes — so the team can calibrate the eight-class taxonomy before it gates.
+  anti-slop-triage:
+    if: >-
+      github.event.pull_request.draft == false &&
+      !contains(github.event.pull_request.labels.*.name, 'human-author')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Run anti-slop-reviewer (advisory)
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          model: claude-sonnet-4-6
+          mode: review
+          prompt: |
+            You are the anti-slop-reviewer agent
+            (.claude/agents/quality/anti-slop-reviewer.md). Triage this PR into
+            exactly one of the eight classes: actionable-bug, actionable-docs,
+            actionable-feature, duplicate, spam, generated-slop,
+            security-sensitive, not-reproducible.
+
+            ADVISORY MODE (first 30 days): post a single summary comment stating
+            the triage class and a one-line rationale. Do NOT request changes and
+            do NOT block — this pass is calibration-only for now. If the class is
+            `security-sensitive`, recommend routing to the security agent.

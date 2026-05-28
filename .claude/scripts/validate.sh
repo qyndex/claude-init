@@ -10,6 +10,55 @@ set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$ROOT"
 
+# ─── Spec 001 AC-21: --json structured report ───────────────────────────
+# Back-compat is absolute: default (no-flag) mode is byte-for-byte unchanged.
+# --json re-runs the SAME checks via the text path, then parses the human
+# output (category headers + ✓/✗/⚠ lines) into a structured report. Parsing
+# the text output — rather than instrumenting every ok/fail/warn call site —
+# keeps the 350-line body untouched and the two modes provably in lock-step.
+if [ "${1:-}" = "--json" ]; then
+  self="$ROOT/.claude/scripts/validate.sh"
+  # JUSTIFIED: 2>/dev/null drops the text run's stderr — we parse only stdout into JSON; the real exit status is captured in text_rc and re-raised below
+  text_out="$(bash "$self" 2>/dev/null)"; text_rc=$?
+  # JUSTIFIED: 2>/dev/null on the GNU date probe — the `||` fallback to a POSIX UTC format handles BSD date, so a failure here is expected and recovered, not silent
+  gen_at="$(date -Iseconds 2>/dev/null || date -u +%Y-%m-%dT%H:%M:%SZ)"
+  # Pre-translate the UTF-8 status glyphs (✓ ✗ ⚠) into ASCII sentinels with a
+  # byte-wise sed (LC_ALL=C) so BSD awk never has to decode multibyte input —
+  # then parse the ASCII tags. This sidesteps "multibyte conversion failure"
+  # on locales where awk would otherwise choke on the glyphs.
+  printf '%s\n' "$text_out" \
+    | LC_ALL=C sed -e 's/^  ✓ /@OK@/' -e 's/^  ✗ /@FAIL@/' -e 's/^  ⚠ /@WARN@/' \
+    | LC_ALL=C awk -v gen_at="$gen_at" '
+    function flush() {
+      if (cat == "") return
+      printf "%s{\"name\":%s,\"status\":%s,\"checked\":%d,\"failures\":[%s],\"warnings\":[%s]}",
+             (started ? "," : ""), q(cat), q(status()), checked, fjoin, wjoin
+      started = 1
+    }
+    function status() { return (nfail > 0 ? "fail" : (nwarn > 0 ? "warn" : "pass")) }
+    function q(s) { gsub(/\\/, "\\\\", s); gsub(/"/, "\\\"", s); return "\"" s "\"" }
+    function additem(arr, val) { return (arr == "" ? q(val) : arr "," q(val)) }
+    BEGIN { print "{\"schema_version\":1,\"generated_at\":" q(gen_at) ",\"categories\":["
+            cat=""; started=0 }
+    /^\[.*\]$/ {
+      flush()
+      cat = substr($0, 2, length($0) - 2)
+      checked = 0; nfail = 0; nwarn = 0; fjoin = ""; wjoin = ""
+      next
+    }
+    /^@OK@/   { if (cat != "") checked++ ; tpass++ ; next }
+    /^@FAIL@/ { if (cat != "") { nfail++; fjoin = additem(fjoin, substr($0, 7)) } ; tfail++ ; next }
+    /^@WARN@/ { if (cat != "") { nwarn++; wjoin = additem(wjoin, substr($0, 7)) } ; twarn++ ; next }
+    END {
+      flush()
+      overall = (tfail > 0 ? "fail" : (twarn > 0 ? "warn" : "pass"))
+      printf "],\"summary\":{\"passed\":%d,\"warned\":%d,\"failed\":%d,\"overall\":%s}}\n",
+             tpass, twarn, tfail, "\"" overall "\""
+    }
+  '
+  exit "$text_rc"
+fi
+
 fails=0
 warns=0
 fail() { printf '  ✗ %s\n' "$*"; fails=$((fails+1)); }

@@ -20,6 +20,25 @@ tmp="${state_file}.tmp"
 # Fall back to PPID-based marker for older versions.
 session_id="${CLAUDE_SESSION_ID:-pid-$PPID}"
 
+# ─── Spec 001 AC-18: workspace-fingerprinted session namespace ───────────
+# Two parallel worktree sessions share .claude/memory/.cache/ — their session
+# files collide. Derive a stable 16-char fingerprint from the resolved cwd and
+# namespace per-workspace writes under .claude/sessions/<fp>/ so concurrent
+# worktrees never clobber each other. Portable: prefer md5sum (GNU), fall back
+# to md5 (BSD/macOS).
+workspace_path="$(pwd -P)"
+if command -v md5sum >/dev/null 2>&1; then
+  WORKSPACE_FP="$(printf '%s' "$workspace_path" | md5sum | cut -c1-16)"
+elif command -v md5 >/dev/null 2>&1; then
+  WORKSPACE_FP="$(printf '%s' "$workspace_path" | md5 | cut -c1-16)"
+else
+  # Last-resort fallback: cksum is in POSIX. Not cryptographic, but a stable
+  # per-path token is all we need for namespacing.
+  WORKSPACE_FP="$(printf '%s' "$workspace_path" | cksum | cut -d' ' -f1)"
+fi
+session_dir=".claude/sessions/${WORKSPACE_FP}"
+mkdir -p "$session_dir"
+
 # Read previous state to compute turn count
 prev_turn=0
 prev_started_at=""
@@ -52,7 +71,7 @@ if git rev-parse --git-dir >/dev/null 2>&1; then
 fi
 
 # Atomic write
-jq -nc \
+heartbeat_json=$(jq -nc \
   --arg session_id "$session_id" \
   --arg pid "$PPID" \
   --arg started_at "$started_at" \
@@ -70,8 +89,54 @@ jq -nc \
     cwd: $cwd,
     turn_count: $turn_count,
     uncommitted: $uncommitted
-  # JUSTIFIED: jq + mv errors muted — the heartbeat is a per-turn side effect; a transient write failure must never block the user's prompt, and the next turn simply re-writes it
-  }' > "$tmp" 2>/dev/null && mv "$tmp" "$state_file" 2>/dev/null
+  }')
+# JUSTIFIED: write + mv errors muted — the heartbeat is a per-turn side effect; a transient write failure must never block the prompt, and the next turn simply re-writes it
+printf '%s\n' "$heartbeat_json" > "$tmp" 2>/dev/null && mv "$tmp" "$state_file" 2>/dev/null
+
+# Workspace-namespaced mirror — concurrent worktree sessions write here without
+# colliding (AC-18). The legacy current-session.json above is retained for the
+# session-start/session-end crash-recovery contract.
+# JUSTIFIED: cp error muted — the fingerprinted mirror is best-effort; a write failure must never block the user's prompt
+cp "$state_file" "${session_dir}/current-session.json" 2>/dev/null || true
+
+# ─── Spec 001 AC-16: worker state machine for swarm streams ──────────────
+# Inside a swarm stream (worktree branch feat-<N>) advance the stream's
+# state file at .swarms/streams/<id>/state.json. The full lifecycle is:
+#   spawning → trust_required → ready_for_prompt → prompt_accepted →
+#   running → finished | failed
+# The coordinator sets the early states at spawn and gates prompt dispatch on
+# ready_for_prompt; once prompts are flowing the heartbeat marks `running`.
+# JUSTIFIED: grep || true — a non-feat branch yields an empty stream_id, which the guard below treats as "not a swarm stream" and skips emission (grep exit 1 is expected, not an error)
+stream_id="$(printf '%s' "$branch" | grep -oE '^feat-[a-z0-9-]+' || true)"
+if [ -n "$stream_id" ]; then
+  stream_state_dir=".swarms/streams/${stream_id}"
+  mkdir -p "$stream_state_dir"
+  stream_state="${stream_state_dir}/state.json"
+  stream_tmp="${stream_state}.tmp"
+  # Don't regress an already-terminal stream; otherwise mark running.
+  worker_state="running"
+  if [ -f "$stream_state" ]; then
+    # JUSTIFIED: jq error muted + fallback — a partial state.json yields empty, treated as non-terminal (running), the safe default
+    prev_state="$(jq -r '.state // ""' "$stream_state" 2>/dev/null || echo "")"
+    case "$prev_state" in
+      finished|failed) worker_state="$prev_state" ;;
+    esac
+  fi
+  stream_json=$(jq -nc \
+    --arg stream_id "$stream_id" \
+    --arg state "$worker_state" \
+    --arg session_id "$session_id" \
+    --arg updated "$now_iso" \
+    '{
+      stream_id: $stream_id,
+      state: $state,
+      session_id: $session_id,
+      updated: $updated,
+      states: ["spawning","trust_required","ready_for_prompt","prompt_accepted","running","finished","failed"]
+    }')
+  # JUSTIFIED: write + mv errors muted — stream state is a per-turn side effect; a transient write failure must never block the prompt, and the next turn re-writes it
+  printf '%s\n' "$stream_json" > "$stream_tmp" 2>/dev/null && mv "$stream_tmp" "$stream_state" 2>/dev/null
+fi
 
 # This hook does not emit additionalContext — it's purely a side effect.
 exit 0

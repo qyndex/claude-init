@@ -304,67 +304,67 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
 
 #### Phase 5 — claw-code adoptions (AC-16..AC-21)
 
-- [ ] T-037 | spec:001 | phase:5 | priority: normal | created: 2026-05-29 | last_touched: 2026-05-29 | parallel: yes | est: 4m
+- [x] T-037 | spec:001 | phase:5 | priority: normal | created: 2026-05-29 | last_touched: 2026-05-29 | parallel: yes | est: 4m
       summary: Author lane-event-schema.json — JSON Schema draft 2020-12 for {ts, stream_id, event in {lane.started, lane.red, lane.green, lane.blocked, lane.finished}, payload object}
       files: .swarms/templates/lane-event-schema.json
       accept: jq -e '.["$schema"] | test("2020-12")' .swarms/templates/lane-event-schema.json && jq -e '.properties.event.enum | length >= 5' .swarms/templates/lane-event-schema.json
       owner: implementer
 
-- [ ] T-038 | spec:001 | phase:5 | priority: normal | created: 2026-05-29 | last_touched: 2026-05-29 | parallel: yes | est: 4m
+- [x] T-038 | spec:001 | phase:5 | priority: normal | created: 2026-05-29 | last_touched: 2026-05-29 | parallel: yes | est: 4m
       summary: Write swarm-events smoke test — spawn single mock stream end-to-end, assert JSONL events appear in .swarms/events/<stream-id>.jsonl with schema-valid lane.started + lane.finished
       files: .claude/scripts/test/swarm-events-smoke.sh
       accept: bash -n .claude/scripts/test/swarm-events-smoke.sh && grep -q 'lane.finished' .claude/scripts/test/swarm-events-smoke.sh
       owner: implementer
 
-- [ ] T-039 | spec:001 | phase:5 | priority: normal | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-037, T-038 | parallel: no | est: 4m
+- [x] T-039 | spec:001 | phase:5 | priority: normal | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-037, T-038 | parallel: no | est: 4m
       summary: Modify post-bash-log.sh to emit lane.red/lane.green/lane.blocked JSONL events to .swarms/events/<stream-id>.jsonl (append-only, O_APPEND atomicity); honor schema
       files: .claude/hooks/post-bash-log.sh
       accept: grep -qE 'lane\.(red|green|blocked)' .claude/hooks/post-bash-log.sh && grep -q '.swarms/events/' .claude/hooks/post-bash-log.sh
       owner: implementer
 
-- [ ] T-040 | spec:001 | phase:5 | priority: normal | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-037 | parallel: yes | est: 3m
+- [x] T-040 | spec:001 | phase:5 | priority: normal | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-037 | parallel: yes | est: 3m
       summary: Modify subagent-stop.sh to emit lane.finished JSONL event when a swarm stream subagent stops
       files: .claude/hooks/subagent-stop.sh
       accept: grep -q 'lane.finished' .claude/hooks/subagent-stop.sh && grep -q '.swarms/events/' .claude/hooks/subagent-stop.sh
       owner: implementer
 
-- [ ] T-041 | spec:001 | phase:5 | priority: normal | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-039 | parallel: yes | est: 4m
+- [x] T-041 | spec:001 | phase:5 | priority: normal | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-039 | parallel: yes | est: 4m
       summary: Modify session-heartbeat.sh — compute WORKSPACE_FP via portable md5/md5sum, namespace session writes under .claude/sessions/$WORKSPACE_FP/; write .swarms/streams/<id>/state.json with worker-state-machine transitions (spawning|trust_required|ready_for_prompt|prompt_accepted|running|finished|failed)
       files: .claude/hooks/session-heartbeat.sh
       accept: grep -qE 'WORKSPACE_FP|md5sum|md5 ' .claude/hooks/session-heartbeat.sh && grep -qE '\.swarms/streams/.\*state\.json' .claude/hooks/session-heartbeat.sh && grep -qE 'ready_for_prompt' .claude/hooks/session-heartbeat.sh
       owner: implementer
 
-- [ ] T-042 | spec:001 | phase:5 | priority: normal | created: 2026-05-29 | last_touched: 2026-05-29 | parallel: yes | est: 4m
+- [x] T-042 | spec:001 | phase:5 | priority: normal | created: 2026-05-29 | last_touched: 2026-05-29 | parallel: yes | est: 4m
       summary: Implement branch-freshness.sh + wire as first step of verify.sh — warn (do not block) when branch diverges from main >50 commits or >7 days; honor SKIP_BRANCH_CHECK=1
       files: .claude/scripts/branch-freshness.sh, .claude/scripts/verify.sh
       accept: test -x .claude/scripts/branch-freshness.sh && bash -n .claude/scripts/branch-freshness.sh && grep -q 'branch-freshness.sh' .claude/scripts/verify.sh && grep -q 'SKIP_BRANCH_CHECK' .claude/scripts/branch-freshness.sh
       owner: implementer
 
-- [ ] T-043 | spec:001 | phase:5 | priority: normal | created: 2026-05-29 | last_touched: 2026-05-29 | parallel: yes | est: 4m
+- [x] T-043 | spec:001 | phase:5 | priority: normal | created: 2026-05-29 | last_touched: 2026-05-29 | parallel: yes | est: 4m
       summary: Author anti-slop-reviewer agent — eight-class triage (actionable-bug, actionable-docs, actionable-feature, duplicate, spam, generated-slop, security-sensitive, not-reproducible); frontmatter model:sonnet per §V
       files: .claude/agents/quality/anti-slop-reviewer.md
       accept: test -f .claude/agents/quality/anti-slop-reviewer.md && grep -qE '^model:[[:space:]]\*sonnet' .claude/agents/quality/anti-slop-reviewer.md && grep -cE 'actionable-bug|actionable-docs|actionable-feature|duplicate|spam|generated-slop|security-sensitive|not-reproducible' .claude/agents/quality/anti-slop-reviewer.md | awk '{exit ($1 < 8)}'
       owner: implementer
 
-- [ ] T-044 | spec:001 | phase:5 | priority: normal | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-043 | parallel: no | est: 3m
+- [x] T-044 | spec:001 | phase:5 | priority: normal | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-043 | parallel: no | est: 3m
       summary: Wire anti-slop-reviewer into claude-review.yml as additional reviewer pass; skip when PR has label human-author; first 30 days advisory (comment-only)
       files: .github/workflows/claude-review.yml
       accept: grep -q 'anti-slop-reviewer' .github/workflows/claude-review.yml && grep -q 'human-author' .github/workflows/claude-review.yml
       owner: implementer
 
-- [ ] T-045 | spec:001 | phase:5 | priority: normal | created: 2026-05-29 | last_touched: 2026-05-29 | parallel: yes | est: 4m
+- [x] T-045 | spec:001 | phase:5 | priority: normal | created: 2026-05-29 | last_touched: 2026-05-29 | parallel: yes | est: 4m
       summary: Write test for validate.sh --json — assert default text mode unchanged, --json emits valid JSON with schema_version, categories[], summary{passed,warned,failed,overall}
       files: .claude/scripts/test/validate-json.sh
       accept: bash -n .claude/scripts/test/validate-json.sh && grep -qE 'schema_version|--json' .claude/scripts/test/validate-json.sh
       owner: implementer
 
-- [ ] T-046 | spec:001 | phase:5 | priority: normal | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-045 | parallel: no | est: 5m
+- [x] T-046 | spec:001 | phase:5 | priority: normal | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-045 | parallel: no | est: 5m
       summary: Add --json flag to validate.sh — text mode unchanged for back-compat; --json emits {schema_version:1, generated_at, categories:[{name,status,checked,failures,warnings}], summary}
       files: .claude/scripts/validate.sh
       accept: bash .claude/scripts/validate.sh --json | jq -e '.schema_version == 1 and (.summary.overall | test("^(pass|warn|fail)$"))' && bash .claude/scripts/test/validate-json.sh
       owner: implementer
 
-- [ ] T-047 | spec:001 | phase:5 | priority: normal | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-046 | parallel: no | est: 3m
+- [x] T-047 | spec:001 | phase:5 | priority: normal | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-046 | parallel: no | est: 3m
       summary: Modify harness-validate.yml to consume validate.sh --json and render per-category annotations on PR
       files: .github/workflows/harness-validate.yml
       accept: grep -q 'validate.sh --json' .github/workflows/harness-validate.yml
