@@ -55,8 +55,51 @@ mkdir -p .claude/memory/.cache/{checkpoints,active,archive,instincts}
 mkdir -p .claude/worktrees
 mkdir -p .swarms/{coordinator,streams,templates}
 mkdir -p verify
+mkdir -p .claude/state/adopt
 touch .claude/hooks/.log/.gitkeep
 ok "runtime directories ready"
+
+step "Activating the characterization gate (greenfield: empty manifest)"
+# verify.sh's characterization gate reads .claude/state/adopt/uncharacterized-paths.txt.
+# On greenfield there is no legacy to protect, but the file must EXIST (empty, header
+# only) so the gate is wired and active — a brownfield /adopt run later fills it with
+# real globs. Absent file = gate silently inert; empty file = gate active, nothing flagged. (AC-15)
+char_manifest=.claude/state/adopt/uncharacterized-paths.txt
+if [ ! -f "$char_manifest" ]; then
+  cat > "$char_manifest" <<'EOF'
+# uncharacterized-paths.txt — legacy-safety manifest for the characterization gate.
+#
+# Each non-comment line is a glob marking a source zone that has NO characterization
+# test yet; verify.sh BLOCKS edits to files matching these globs until one exists.
+# Greenfield starts EMPTY (nothing to protect). A brownfield `/adopt start` run
+# populates this with the repo's source roots; you remove a glob once its zone is
+# characterized. See docs/ADOPTION.md and .claude/skills/characterize/SKILL.md.
+EOF
+  ok "characterization manifest created (empty — gate active, nothing flagged)"
+else
+  ok "characterization manifest already present"
+fi
+
+# Defensive bootstrap of the loop-control state file (consecutive-aborts.json).
+# loop-state.sh self-heals a missing file, but seeding it here means the schema-
+# validated state exists from install and the harness-validate CI step has
+# something to check. (T-036)
+aborts_state=.claude/state/consecutive-aborts.json
+if [ ! -f "$aborts_state" ]; then
+  cat > "$aborts_state" <<EOF
+{
+  "count": 0,
+  "same_task_streak": 0,
+  "last_task": null,
+  "last_error_hash": null,
+  "last_pivot_attempt": 0,
+  "updated": "$(date -Iseconds)"
+}
+EOF
+  ok "seeded loop-control state (consecutive-aborts.json)"
+else
+  ok "loop-control state already present"
+fi
 
 step "Creating .gitignore entries"
 ensure_ignore() {
@@ -118,6 +161,25 @@ command -v prettier >/dev/null || command -v npx >/dev/null || warn "prettier/np
 command -v shellcheck >/dev/null || warn "shellcheck not installed (recommended for harness-validate workflow)"
 command -v ccusage >/dev/null || command -v npx >/dev/null || warn "ccusage not installed — token monitoring will be limited"
 command -v semgrep >/dev/null || warn "semgrep not installed (recommended for in-agent SAST): brew install semgrep"
+
+step "Priming the daily-batch gate"
+# merge-gate.yml blocks PRs until a daily-batch.yml run has passed within its window.
+# On a fresh install there is no prior run, so the very first PR would be blocked for
+# a day. Kick off one daily-batch run now so the first PR after setup can pass. Guarded:
+# only when gh is authenticated AND an origin remote exists (a real GitHub repo). (AC-14)
+if command -v gh >/dev/null 2>&1 \
+   && gh auth status >/dev/null 2>&1 \
+   && git remote get-url origin >/dev/null 2>&1; then
+  if gh workflow run daily-batch.yml >/dev/null 2>&1; then
+    ok "dispatched an initial daily-batch.yml run (first PR won't be gate-blocked)"
+  else
+    # JUSTIFIED: the workflow may not be on the default branch yet on a brand-new repo; a failed dispatch is non-fatal — the operator can re-run after first push
+    warn "could not dispatch daily-batch.yml yet (push to the default branch first, then: gh workflow run daily-batch.yml)"
+  fi
+else
+  note "skip daily-batch priming — no authenticated gh + origin remote yet."
+  note "  After your first push, run:  gh workflow run daily-batch.yml   (unblocks the first PR's merge-gate)"
+fi
 
 step "Initial validation"
 bash .claude/scripts/validate.sh

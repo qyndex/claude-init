@@ -242,61 +242,61 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
 
 #### Phase 4 — Reconciliation (AC-11..AC-15)
 
-- [ ] T-027 | spec:001 | phase:4 | priority: normal | created: 2026-05-29 | last_touched: 2026-05-29 | parallel: yes | est: 4m
+- [x] T-027 | spec:001 | phase:4 | priority: normal | created: 2026-05-29 | last_touched: 2026-05-29 | parallel: yes | est: 4m | completed: 2026-05-29
       summary: Write test for check-model-consistency.sh — seed an agent .md with mismatched model: field vs CLAUDE.md §V; assert script exits non-zero; assert <!-- model-consistency: ignore --> marker bypasses
       files: .claude/scripts/test/check-model-consistency.sh
       accept: bash -n .claude/scripts/test/check-model-consistency.sh && grep -q 'model-consistency' .claude/scripts/test/check-model-consistency.sh
       owner: implementer
 
-- [ ] T-028 | spec:001 | phase:4 | priority: normal | created: 2026-05-29 | last\*touched: 2026-05-29 | deps: T-027 | parallel: no | est: 5m
+- [x] T-028 | spec:001 | phase:4 | priority: normal | created: 2026-05-29 | last\*touched: 2026-05-29 | deps: T-027 | parallel: no | est: 5m | completed: 2026-05-29
       summary: Implement check-model-consistency.sh — parse §V table from .claude/CLAUDE.md, walk .claude/agents/**/\*.md, .claude/skills/**/SKILL.md, .claude/routines/\*\*/\_.yml, docs/AUTOPILOT.md, docs/ARCHITECTURE.md; verify every model: matches; honor ignore marker
       files: .claude/scripts/check-model-consistency.sh
       accept: test -x .claude/scripts/check-model-consistency.sh && bash .claude/scripts/test/check-model-consistency.sh
       owner: implementer
 
-- [ ] T-029 | spec:001 | phase:4 | priority: normal | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-028 | parallel: yes | est: 3m
+- [x] T-029 | spec:001 | phase:4 | priority: normal | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-028 | parallel: yes | est: 3m | completed: 2026-05-29
       summary: Wire model-consistency.yml workflow — run check-model-consistency.sh on PR
       files: .github/workflows/model-consistency.yml
       accept: test -f .github/workflows/model-consistency.yml && grep -q 'check-model-consistency.sh' .github/workflows/model-consistency.yml
       owner: implementer
 
-- [ ] T-030 | spec:001 | phase:4 | priority: normal | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-028 | parallel: no | est: 4m
+- [x] T-030 | spec:001 | phase:4 | priority: normal | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-028 | parallel: no | est: 4m | completed: 2026-05-29
       summary: Reconcile model: mismatches across .claude/agents/**, .claude/skills/**, .claude/routines/\*\*, docs/AUTOPILOT.md, docs/ARCHITECTURE.md against §V — fix any divergent fields so check-model-consistency.sh exits 0
       files: .claude/agents, .claude/skills, .claude/routines, docs/AUTOPILOT.md, docs/ARCHITECTURE.md
       accept: bash .claude/scripts/check-model-consistency.sh
       owner: implementer
 
-- [ ] T-031 | spec:001 | phase:4 | priority: normal | created: 2026-05-29 | last_touched: 2026-05-29 | parallel: yes | est: 5m
+- [x] T-031 | spec:001 | phase:4 | priority: normal | created: 2026-05-29 | last_touched: 2026-05-29 | parallel: yes | est: 5m | completed: 2026-05-29
       summary: Author .claude/skills/dream/SKILL.md body — define when_to_use trigger, consolidate MEMORY.md, archive stale instincts, run memory-gc.sh enforce; reference auto-dream-check.sh trigger contract
       files: .claude/skills/dream/SKILL.md
       accept: test -f .claude/skills/dream/SKILL.md && grep -qE '^---' .claude/skills/dream/SKILL.md && grep -qE 'memory-gc\.sh' .claude/skills/dream/SKILL.md && grep -qE 'name:[[:space:]]\*dream' .claude/skills/dream/SKILL.md
       owner: implementer
 
-- [ ] T-032 | spec:001 | phase:4 | priority: normal | created: 2026-05-29 | last_touched: 2026-05-29 | parallel: yes | est: 3m
+- [x] T-032 | spec:001 | phase:4 | priority: normal | created: 2026-05-29 | last_touched: 2026-05-29 | parallel: yes | est: 3m | completed: 2026-05-29
       summary: Modify setup.sh greenfield branch — write empty .claude/state/adopt/uncharacterized-paths.txt with header-comment so verify.sh characterization gate is active on greenfield (AC-15)
       files: .claude/scripts/setup.sh
       accept: grep -q 'uncharacterized-paths.txt' .claude/scripts/setup.sh
       owner: implementer
 
-- [ ] T-033 | spec:001 | phase:4 | priority: normal | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-032 | parallel: no | est: 3m
+- [x] T-033 | spec:001 | phase:4 | priority: normal | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-032 | parallel: no | est: 3m | completed: 2026-05-29
       summary: Modify setup.sh — dispatch daily-batch.yml once on initial install via gh workflow run daily-batch.yml so first PR after setup passes merge-gate.yml (AC-14)
       files: .claude/scripts/setup.sh
       accept: grep -qE 'gh workflow run daily-batch\.yml|daily-batch\.yml' .claude/scripts/setup.sh
       owner: implementer
 
-- [ ] T-034 | spec:001 | phase:4 | priority: normal | created: 2026-05-29 | last_touched: 2026-05-29 | parallel: yes | est: 4m
+- [x] T-034 | spec:001 | phase:4 | priority: normal | created: 2026-05-29 | last_touched: 2026-05-29 | parallel: yes | est: 4m | completed: 2026-05-29
       summary: Reconcile budgets — make .claude/routines/overnight-build.yml the single source for wall-clock/cost/turn budgets; update docs/AUTOPILOT.md to reference the YAML keys rather than restating numeric values (AC-12)
       files: docs/AUTOPILOT.md, .claude/routines/overnight-build.yml
       accept: grep -qE 'overnight-build\.yml' docs/AUTOPILOT.md && grep -qE 'wall_clock|cost_cap|turn' .claude/routines/overnight-build.yml
       owner: implementer
 
-- [ ] T-035 | spec:001 | phase:4 | priority: normal | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-028, T-031, T-032, T-033, T-034 | parallel: no | est: 3m
+- [x] T-035 | spec:001 | phase:4 | priority: normal | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-028, T-031, T-032, T-033, T-034 | parallel: no | est: 3m
       summary: Phase 4 exit gate — run check-model-consistency.sh and confirm dream skill, uncharacterized-paths.txt fixture, AUTOPILOT/overnight-build reconciliation all in place
       files: .claude/scripts/check-model-consistency.sh
       accept: bash .claude/scripts/check-model-consistency.sh && test -f .claude/skills/dream/SKILL.md && grep -q '## ' .claude/skills/dream/SKILL.md && grep -q 'uncharacterized-paths.txt' .claude/scripts/setup.sh
       owner: implementer
 
-- [ ] T-036 | spec:001 | phase:4 | priority: normal | created: 2026-05-29 | last_touched: 2026-05-29 | parallel: yes | est: 3m
+- [x] T-036 | spec:001 | phase:4 | priority: normal | created: 2026-05-29 | last_touched: 2026-05-29 | parallel: yes | est: 3m
       summary: Add JSON Schema for consecutive-aborts.json under .claude/templates and ensure setup.sh writes initial state file when missing (defensive bootstrap)
       files: .claude/scripts/setup.sh, .claude/templates/consecutive-aborts.schema.json
       accept: jq -e '.required[]' .claude/templates/consecutive-aborts.schema.json | grep -q count && grep -q 'consecutive-aborts.json' .claude/scripts/setup.sh

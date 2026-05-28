@@ -6,14 +6,14 @@
 
 Before reading further, confirm you have these. **Skipping this section will cost 20+ minutes of frustration when configuration fails halfway through.**
 
-| Requirement | Why | How |
-|---|---|---|
-| **Anthropic Build plan or higher** | Cloud Routines require this — Pro doesn't have them | Upgrade at https://claude.com/plans |
-| **Claude.ai login** (not just API key) | Routines run on Anthropic infra, authenticated via OAuth | `claude login` |
-| **GitHub OAuth connector** in claude.ai | The routine opens PRs via GitHub on your behalf | Settings → Connections → GitHub |
-| **Branch protection on `main`** | Routine pushes to `claude/overnight-*` and merges via PR; main must require reviews + status checks | `gh api repos/:owner/:repo/rulesets --method POST --input .github/rulesets/main-protection.json` |
-| **At least one CI run on `main`** | Required-check names must exist before you can reference them in the ruleset | Trigger via empty commit + push |
-| **`ANTHROPIC_API_KEY` in GitHub Secrets** | Used by the claude-code-action workflows | `gh secret set ANTHROPIC_API_KEY` |
+| Requirement                               | Why                                                                                                 | How                                                                                              |
+| ----------------------------------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| **Anthropic Build plan or higher**        | Cloud Routines require this — Pro doesn't have them                                                 | Upgrade at https://claude.com/plans                                                              |
+| **Claude.ai login** (not just API key)    | Routines run on Anthropic infra, authenticated via OAuth                                            | `claude login`                                                                                   |
+| **GitHub OAuth connector** in claude.ai   | The routine opens PRs via GitHub on your behalf                                                     | Settings → Connections → GitHub                                                                  |
+| **Branch protection on `main`**           | Routine pushes to `claude/overnight-*` and merges via PR; main must require reviews + status checks | `gh api repos/:owner/:repo/rulesets --method POST --input .github/rulesets/main-protection.json` |
+| **At least one CI run on `main`**         | Required-check names must exist before you can reference them in the ruleset                        | Trigger via empty commit + push                                                                  |
+| **`ANTHROPIC_API_KEY` in GitHub Secrets** | Used by the claude-code-action workflows                                                            | `gh secret set ANTHROPIC_API_KEY`                                                                |
 
 If any of these aren't set up yet, do them now — it's faster than debugging a failed first run.
 
@@ -70,7 +70,11 @@ Open `.claude/routines/overnight-build.yml` and paste each field into the form:
 - **Branch base**: `main`
 - **Permission mode**: `auto` (Sonnet 4.6 classifier — no user prompts, no bypass)
 - **Model**: `claude-opus-4-7` (fallback Sonnet 4.6)
-- **Budgets**: 330 min wall-clock, $30 USD, 400 turns
+- **Budgets**: the single source of truth is the `budgets:` block in
+  [`.claude/routines/overnight-build.yml`](../.claude/routines/overnight-build.yml)
+  (`max_wall_clock_minutes`, `max_budget_usd`, `max_turns`). This doc deliberately
+  does not restate the numbers — change them in the YAML and they take effect; a
+  number copied here would only drift. (AC-12)
 - **Connectors**: GitHub (required) + Slack (recommended)
 - **Branch permission**: `claude/overnight-*` (the routine can only push here)
 - **Env**:
@@ -102,17 +106,18 @@ In the routine config, enable the Slack connector. The autopilot prompt already 
 
 ## Permission model — Auto Mode + Hooks (two safety layers, zero prompts)
 
-| Surface | Mode | Why safe |
-|---|---|---|
-| Cloud Routine sandbox (11 PM) | `auto` | Sonnet 4.6 classifier reviews every tool call. PreToolUse hooks fire FIRST (exit 2) hard-blocking `rm -rf`, force-push to main, secrets, `DROP TABLE`. Two layers, no prompts. Disposable sandbox means even a slip can't reach your laptop. |
-| Your laptop interactive | `acceptEdits` | Standard. Asks for any unknown command. Use `/fewer-permission-prompts` (Boris #81) to tune from transcripts. |
-| Local `--bg` sessions | `auto` | Anthropic classifier on every tool call. Runs in worktree. Same as Cloud but on your machine. |
-| Desktop scheduled task (3 AM dream) | `auto` | Even though /dream only touches `.claude/memory/`, we use Auto Mode for consistency. |
-| CI containers (Docker, single-use) | `bypassPermissions` | Only context where bypass is appropriate — ephemeral container, container exit destroys all state. |
+| Surface                             | Mode                | Why safe                                                                                                                                                                                                                                     |
+| ----------------------------------- | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Cloud Routine sandbox (11 PM)       | `auto`              | Sonnet 4.6 classifier reviews every tool call. PreToolUse hooks fire FIRST (exit 2) hard-blocking `rm -rf`, force-push to main, secrets, `DROP TABLE`. Two layers, no prompts. Disposable sandbox means even a slip can't reach your laptop. |
+| Your laptop interactive             | `acceptEdits`       | Standard. Asks for any unknown command. Use `/fewer-permission-prompts` (Boris #81) to tune from transcripts.                                                                                                                                |
+| Local `--bg` sessions               | `auto`              | Anthropic classifier on every tool call. Runs in worktree. Same as Cloud but on your machine.                                                                                                                                                |
+| Desktop scheduled task (3 AM dream) | `auto`              | Even though /dream only touches `.claude/memory/`, we use Auto Mode for consistency.                                                                                                                                                         |
+| CI containers (Docker, single-use)  | `bypassPermissions` | Only context where bypass is appropriate — ephemeral container, container exit destroys all state.                                                                                                                                           |
 
 **Why Auto Mode over bypassPermissions:** The classifier catches things the hook denylist might miss (novel injection vectors, unfamiliar dangerous combos like `chmod 777 ~/.ssh/`). Latency cost is ~200-500ms per tool call, negligible for an overnight run. `disableBypassPermissionsMode: true` is set in `settings.json` to prevent accidental bypass.
 
 **Order of safety checks (in any mode):**
+
 1. PreToolUse hook (`.claude/hooks/pre-bash-guard.sh`, `.claude/hooks/pre-write-secret-scan.sh`) → exit 2 hard-blocks
 2. settings.json `deny` list → matched patterns blocked
 3. (Auto Mode only) Sonnet 4.6 classifier → reviews remaining calls
@@ -132,14 +137,14 @@ The routine cannot bypass these because GitHub enforces them at the API layer.
 
 ## What goes wrong (and how to debug)
 
-| Symptom | Likely cause | Fix |
-|---|---|---|
-| Routine doesn't fire at 23:00 | TZ misconfigured | Check routine schedule TZ in claude.ai UI |
+| Symptom                               | Likely cause                                      | Fix                                                                                                   |
+| ------------------------------------- | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Routine doesn't fire at 23:00         | TZ misconfigured                                  | Check routine schedule TZ in claude.ai UI                                                             |
 | Routine fires but exits in 30 seconds | Permission hooks blocked something Phase 0 needed | Check `.claude/hooks/.log/` in the resumed session; widen hook allowlist or relax the offending guard |
-| Routine runs but no PRs | `gh` auth missing inside Routine | Re-link GitHub connector in claude.ai → Routines → settings |
-| `OVERNIGHT_REPORT.md` missing | Run hit budget cap before end | Increase `max_wall_clock_minutes` or trim task scope per night |
-| Same task escalates every night | Underlying spec ambiguous or test broken | Open the spec, run `/clarify`, fix `[OQ]` items, mark task `pending` again |
-| `/dream` didn't run | Stop hook missed it OR cron-backstop also failed | Manually invoke `/dream` next session; check `.claude/memory/.cache/.dream-state.json` |
+| Routine runs but no PRs               | `gh` auth missing inside Routine                  | Re-link GitHub connector in claude.ai → Routines → settings                                           |
+| `OVERNIGHT_REPORT.md` missing         | Run hit budget cap before end                     | Increase `max_wall_clock_minutes` or trim task scope per night                                        |
+| Same task escalates every night       | Underlying spec ambiguous or test broken          | Open the spec, run `/clarify`, fix `[OQ]` items, mark task `pending` again                            |
+| `/dream` didn't run                   | Stop hook missed it OR cron-backstop also failed  | Manually invoke `/dream` next session; check `.claude/memory/.cache/.dream-state.json`                |
 
 ## Sample morning routine (your habit)
 
@@ -153,9 +158,10 @@ The routine cannot bypass these because GitHub enforces them at the API layer.
 
 ## What it costs
 
-A typical 4-hour overnight run:
+A typical overnight run (duration bounded by `max_wall_clock_minutes` in the routine):
+
 - **Tokens**: 1-3M total (Opus 4.7 ~1M, Sonnet 4.6 ~1.5M, Haiku 4.5 ~0.5M for subagents)
-- **USD**: $15-30 per run (cap at $30 in the routine config)
+- **USD**: illustrative $15-30 per run; the hard cap is `max_budget_usd` in the routine config
 - **Anthropic plan**: Build plan or higher (Routines require Claude.ai login, not raw API key)
 
 ## References
