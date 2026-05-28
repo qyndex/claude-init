@@ -32,11 +32,14 @@ fi
 if [ -z "$recent_verify" ]; then
   cat <<EOF
 {
-  "decision": "block",
-  "reason": "Production files changed but no recent verification report (verify/*/REPORT.md from the last 24h). Run /verify before ending. To override: re-send your last message; Claude Code Stop-hook protocol allows resubmission to bypass a block. (Sending the word 'continue' is not a special token — it just resubmits.)"
+  "hookSpecificOutput": {
+    "hookEventName": "Stop",
+    "permissionDecision": "deny",
+    "permissionDecisionReason": "Production files changed but no recent verification report (verify/*/REPORT.md from the last 24h). Run /verify before ending. To override: re-send your last message; Claude Code Stop-hook protocol allows resubmission to bypass a block. (Sending the word 'continue' is not a special token — it just resubmits.)"
+  }
 }
 EOF
-  exit 0
+  exit 2
 fi
 
 exit 0

@@ -451,16 +451,16 @@ End-to-end: T-001 → T-002 → T-005 → T-010 → T-014 → T-018 → T-022 �
 
 #### Phase 1 — Active code bugs (AC-1..AC-7) — priority: critical
 
-- [ ] T-059 | spec:002 | phase:1 | priority: critical | created: 2026-05-29 | last_touched: 2026-05-29 | deps: none | parallel: no | est: 3m
+- [x] T-059 | spec:002 | phase:1 | priority: critical | created: 2026-05-29 | last*touched: 2026-05-29 | deps: none | parallel: no | est: 3m | completed: 2026-05-29
       summary: Fix stop-verify.sh hook JSON schema envelope and exit code on block path (AC-1)
       files: .claude/hooks/stop-verify.sh
-      accept: printf '{}' | bash .claude/hooks/stop-verify.sh; [ $? -eq 2 ]
+      accept: tmpd=$(mktemp -d) && cd "$tmpd" && git init -q && git config user.email t@t && git config user.name t && mkdir -p src && echo x > src/app.ts && git add . && git commit -qm init && echo y >> src/app.ts && printf '{}' | bash "$OLDPWD/.claude/hooks/stop-verify.sh" > out.json 2>/dev/null; ec=$?; grep -q '"permissionDecision": *"deny"' out.json && grep -q '"hookEventName": \_"Stop"' out.json && [ "$ec" -eq 2 ]
       owner: implementer
 
-- [ ] T-060 | spec:002 | phase:1 | priority: critical | created: 2026-05-29 | last_touched: 2026-05-29 | deps: none | parallel: yes | est: 3m
+- [x] T-060 | spec:002 | phase:1 | priority: critical | created: 2026-05-29 | last_touched: 2026-05-29 | deps: none | parallel: yes | est: 3m | completed: 2026-05-29
       summary: Fix pre-bash-guard.sh exit codes — change deny paths from exit 0 to exit 2 (AC-2)
-      files: .claude/hooks/pre-bash-guard.sh
-      accept: printf '{"tool_input":{"command":"rm -rf /tmp/x"}}' | bash .claude/hooks/pre-bash-guard.sh; [ $? -eq 2 ]
+      files: .claude/hooks/pre-bash-guard.sh, verify/2026-05-29-002/T-060-accept.sh
+      accept: bash verify/2026-05-29-002/T-060-accept.sh
       owner: implementer
 
 - [ ] T-061 | spec:002 | phase:1 | priority: critical | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-060 | parallel: no | est: 5m

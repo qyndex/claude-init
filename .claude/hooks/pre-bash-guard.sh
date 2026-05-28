@@ -99,7 +99,7 @@ for pattern in "${subst_sink_patterns[@]}"; do
   }
 }
 EOF
-    exit 0
+    exit 2
   fi
 done
 
@@ -122,7 +122,7 @@ check_segment() {
   }
 }
 EOF
-      exit 0
+      exit 2
     fi
   done
 }

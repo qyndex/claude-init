@@ -1,0 +1,6 @@
+# TDD ledger — red — T-060
+timestamp: 2026-05-29T04:04:34+10:00
+command: printf "{\"tool_input\":{\"command\":\"rm -rf /tmp/x\"}}" | bash .claude/hooks/pre-bash-guard.sh > /dev/null 2>&1; [ $? -eq 2 ]
+exit_code: 1
+---
+

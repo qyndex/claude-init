@@ -1,0 +1,6 @@
+# TDD ledger — green — T-059
+timestamp: 2026-05-29T04:02:55+10:00
+command: tmpd=$(mktemp -d) && cd "$tmpd" && git init -q && git config user.email t@t && git config user.name t && mkdir -p src && echo x > src/app.ts && git add . && git commit -qm init && echo y >> src/app.ts && printf "{}" | bash /Volumes/M/sourcecode/qyndex/claude-init/.claude/hooks/stop-verify.sh > out.json 2>/dev/null; ec=$?; grep -q hookSpecificOutput out.json && grep -q "\"hookEventName\": *\"Stop\"" out.json && grep -q "\"permissionDecision\": *\"deny\"" out.json && [ "$ec" -eq 2 ]
+exit_code: 0
+---
+
