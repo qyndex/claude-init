@@ -27,7 +27,10 @@ esac; done
 cd "$INTO" 2>/dev/null || { echo "cannot cd into target: $INTO"; exit 1; }
 
 ts="$(date +%Y%m%d-%H%M%S)"
-BK=".claude/.brownfield-backup/$ts"
+# Backup lives OUTSIDE .claude/ — a backup dir nested inside the very tree we
+# `cp -R` would recurse into itself (the macOS cp races the mkdir, producing
+# .brownfield-backup/<ts>/.brownfield-backup/<ts>/… ad nauseam). Sibling dir is safe.
+BK=".brownfield-backup/$ts"
 REPORT="ADOPTION-REPORT.md"
 # Factory owns PROCESS. These dirs/files are overwritten (after backup).
 FACTORY_DIRS="agents skills commands hooks scripts routines statuslines output-styles"
@@ -73,6 +76,43 @@ for d in $FACTORY_DIRS; do
 done
 for f in $FACTORY_FILES; do
   [ -f "$FROM/.claude/$f" ] && run "cp '$FROM/.claude/$f' '.claude/$f'"
+done
+
+# .claude/VERSION is factory-authoritative but lives outside FACTORY_DIRS — copy it
+# explicitly (overwrite: it stamps which harness release governs this repo).
+[ -f "$FROM/.claude/VERSION" ] && run "cp '$FROM/.claude/VERSION' '.claude/VERSION'"
+
+# Complete the top-level scaffold the factory needs (.mcp.json + spec/plan/task/memory
+# templates, OKRs/roadmap/slo, swarm templates). NO-CLOBBER: never overwrite a file the
+# brownfield repo already owns — these fill the gaps validate.sh checks for, nothing more.
+# Without this, a reconcile-only install leaves ~20 scaffold files missing (validate.sh
+# [scaffold]/[memory]/[swarm]/[mcp] failures).
+SCAFFOLD_FILES=".mcp.json OKRs.md roadmap.md slo.yml"
+SCAFFOLD_DIRS="specs plans tasks docs initiatives .swarms"
+for f in $SCAFFOLD_FILES; do
+  [ -f "$FROM/$f" ] && [ ! -e "$f" ] && run "cp '$FROM/$f' '$f'"
+done
+for d in $SCAFFOLD_DIRS; do
+  [ -d "$FROM/$d" ] || continue
+  run "mkdir -p '$d'"
+  # -n = no-clobber: copies factory templates/scaffold without touching the repo's own files.
+  run "cp -Rn '$FROM/$d/.' '$d/' 2>/dev/null || true"
+done
+# .gitignore: append factory entries the repo lacks rather than overwriting (setup.sh also
+# does this idempotently, but doing it here keeps a reconcile-only run consistent).
+if [ -f "$FROM/.gitignore" ] && [ ! -e .gitignore ]; then
+  run "cp '$FROM/.gitignore' .gitignore"
+fi
+
+# Seed factory templates under .claude/ that live OUTSIDE the FACTORY_DIRS list but that
+# validate.sh requires (memory templates + report template). NO-CLOBBER so an existing
+# brownfield .claude/memory/ (the user's knowledge — preserved above) is never overwritten;
+# we only fill the missing template files the gate checks for.
+CLAUDE_SEED_DIRS="memory templates"
+for d in $CLAUDE_SEED_DIRS; do
+  [ -d "$FROM/.claude/$d" ] || continue
+  run "mkdir -p '.claude/$d'"
+  run "cp -Rn '$FROM/.claude/$d/.' '.claude/$d/' 2>/dev/null || true"
 done
 
 # Extract their conventions into AGENTS.md + a project-conventions rule (human refines).
