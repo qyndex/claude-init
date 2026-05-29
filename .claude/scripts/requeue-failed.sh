@@ -40,6 +40,20 @@ if [ "$mode" = "report" ]; then
   echo
   echo "$n failed task(s). Retry one with: bash .claude/scripts/requeue-failed.sh --reset <T-id>"
   echo "Retry ONLY after addressing the root cause — these already exhausted 3 self-heal attempts."
+
+  # AC-32: also show recent lane.error events from swarm JSONL logs
+  if [ -d .swarms/events ] && command -v jq >/dev/null 2>&1; then
+    echo ""
+    echo "# Recent lane.error events from swarm JSONL"
+    # JUSTIFIED: find errors muted — .swarms/events may not exist yet; an empty dir produces no output, which is the correct zero-error report
+    find .swarms/events -name '*.jsonl' -type f 2>/dev/null | while read -r evfile; do
+      stream_id=$(basename "$evfile" .jsonl)
+      jq -r --arg sid "$stream_id" \
+        'select(.event == "lane.error") |
+         "  [\(.ts // "?")] stream=\($sid) exit=\(.payload.exit_code // "?") kind=\(.payload.error_kind // "unknown") retryable=\(.payload.retryable // false)"' \
+        "$evfile" 2>/dev/null | tail -5
+    done
+  fi
   exit 0
 fi
 

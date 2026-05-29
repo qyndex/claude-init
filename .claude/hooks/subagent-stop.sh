@@ -92,6 +92,41 @@ EOF
   # Find any handoff-<ts>.yaml or .md file the subagent may have written
   # JUSTIFIED: the redirect drops find stderr when .swarms or the reference log is absent — an empty handoff_path just leaves the digest field blank
   handoff_path=$(find .swarms -name 'handoff-*.yaml' -o -name 'handoff-*.md' -newer .claude/hooks/.log/subagent.log -type f 2>/dev/null | head -1)
+
+  # ─── AC-25: auto-populate tdd_state for feature-stream if absent ────────
+  # If the agent didn't emit tdd_state, derive it from the WIP commit log and
+  # the bash.log tdd-ledger lines so the coordinator can make merge decisions.
+  if [ "$agent_type" = "feature-stream" ] && [ -n "$yaml_block" ]; then
+    if ! echo "$yaml_block" | grep -qE '^tdd_state:|^  phase:'; then
+      # Derive tdd_phase from bash.log: last tdd-ledger line wins
+      tdd_phase="n/a"
+      if [ -f .claude/hooks/.log/bash.log ]; then
+        last_tdd=$(grep -E 'tdd-(red|green|refactor)' .claude/hooks/.log/bash.log 2>/dev/null | tail -1)
+        case "$last_tdd" in
+          *tdd-red*)     tdd_phase="red" ;;
+          *tdd-green*)   tdd_phase="green" ;;
+          *tdd-refactor*) tdd_phase="refactor" ;;
+        esac
+      fi
+      # Derive wip_sha from most recent WIP: commit in current or worktree repo
+      wip_sha=""
+      if [ -n "${worktree:-}" ] && [ -d "$worktree" ]; then
+        wip_sha=$(cd "$worktree" && git log --grep='^WIP:' --format='%h' -1 2>/dev/null || true)
+      fi
+      [ -z "$wip_sha" ] && wip_sha=$(git log --grep='^WIP:' --format='%h' -1 2>/dev/null || true)
+
+      # Append tdd_state block to the handoff YAML in the digest context (not the live file)
+      tdd_block="tdd_state:
+  phase: ${tdd_phase}
+  last_test_command: \"\"
+  last_test_exit_code: \"\"
+  wip_sha: \"${wip_sha}\""
+      # Surface in the digest additionalContext
+      yaml_block="${yaml_block}
+${tdd_block}"
+    fi
+  fi
+
   rm -f "$tmp_msg"
 fi
 

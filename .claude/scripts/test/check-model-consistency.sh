@@ -27,7 +27,7 @@ mkdir -p "$AGENTS_DIR"
 cat >"$CONSTITUTION" <<'EOF'
 ## V. `<model_routing>`
 
-- **Opus 4.7** → implementer (hard thinking)
+- **Opus 4.8** → implementer (hard thinking)
 - **Sonnet 4.6** → planner (daily driver)
 - **Haiku 4.5** → Explore
 

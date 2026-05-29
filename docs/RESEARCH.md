@@ -34,7 +34,7 @@ Each section explains a design choice in the harness and links to the primary so
 - [dl-ezo/claude-code-sub-agents](https://github.com/dl-ezo/claude-code-sub-agents) — 35 end-to-end automation agents
 
 **Tier assignment**:
-- Opus 4.7: architect, implementer, reviewer, security, debugger (hard thinking)
+- Opus 4.8: architect, implementer, reviewer, security, debugger (hard thinking)
 - Sonnet 4.6: planner, tester, verifier, researcher, doc-writer, release (everyday work)
 - Haiku 4.5: built-in Explore subagent for retrieval/search
 

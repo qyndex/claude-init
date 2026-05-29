@@ -52,25 +52,69 @@ case "$MODE" in
     ;;
 
   enforce)
-    # Hard truncate at MAX_LINES, preserving structure
+    # Evict by last_accessed date (oldest-first) rather than by file position.
+    # Entries without last_accessed frontmatter are treated as epoch 0 (oldest).
     if [ "$lines" -le "$MAX_LINES" ]; then
       echo "MEMORY.md within cap; no enforcement needed"
       exit 0
     fi
-    # Backup
     archive=".claude/memory/.archive/MEMORY-$(date +%Y%m%d-%H%M%S).md"
     mkdir -p "$(dirname "$archive")"
     cp "$memory_file" "$archive"
-    # Keep header + first MAX_LINES, append truncation note
-    head -n "$MAX_LINES" "$memory_file" > "$memory_file.tmp"
-    cat >> "$memory_file.tmp" <<EOF
 
----
+    # Split MEMORY.md into entries delimited by blank lines between list items.
+    # Each "- [Title](file.md) — hook" line is one entry; we sort by last_accessed
+    # from the linked file's frontmatter, then keep the MAX_LINES most-recent entries.
 
-_Truncated by memory-gc on $(date -Iseconds). Original at $archive. Recover via /dream-review or by reading the archive directly._
-EOF
+    # Build a temp dir for sorted fragments
+    tmp_dir=$(mktemp -d)
+    trap 'rm -rf "$tmp_dir"' EXIT
+
+    # Read all entry lines (lines starting with "- [")
+    grep -n '^- \[' "$memory_file" | while IFS=: read -r lineno rest; do
+      # Extract the linked file path from the markdown link, e.g. [Title](decisions/foo.md)
+      linked_file=$(echo "$rest" | grep -oE '\([^)]+\.md\)' | tr -d '()' | head -1)
+      # Get last_accessed from the linked file's frontmatter (YYYY-MM-DD or epoch 0)
+      last_accessed="0000-00-00"
+      if [ -n "$linked_file" ] && [ -f ".claude/memory/$linked_file" ]; then
+        la=$(grep -m1 '^last_accessed:' ".claude/memory/$linked_file" 2>/dev/null \
+             | sed 's/last_accessed:[[:space:]]*//' | tr -d '"' | xargs)
+        [ -n "$la" ] && last_accessed="$la"
+      fi
+      printf '%s\t%s\t%s\n' "$last_accessed" "$lineno" "$rest"
+    done | sort -t$'\t' -k1,1r -k2,2n > "$tmp_dir/sorted.tsv"
+
+    # Count header lines (everything before the first "- [" entry)
+    header_end=$(grep -n '^- \[' "$memory_file" | head -1 | cut -d: -f1)
+    header_end=$(( ${header_end:-1} - 1 ))
+    [ "$header_end" -lt 0 ] && header_end=0
+
+    # How many entry lines can we keep within MAX_LINES (minus header lines)?
+    available=$(( MAX_LINES - header_end - 2 ))   # 2 = truncation note lines
+    [ "$available" -lt 1 ] && available=1
+
+    # Keep the `available` most-recent entries; evict the rest
+    keep_tsv="$tmp_dir/keep.tsv"
+    evict_tsv="$tmp_dir/evict.tsv"
+    head -n "$available" "$tmp_dir/sorted.tsv" > "$keep_tsv"
+    tail -n +$(( available + 1 )) "$tmp_dir/sorted.tsv" > "$evict_tsv"
+
+    evicted=$(wc -l < "$evict_tsv" | tr -d ' ')
+    echo "Evicting $evicted oldest entries (by last_accessed) to $archive"
+
+    # Rebuild MEMORY.md: header + kept entries (sorted back by original line number)
+    {
+      [ "$header_end" -gt 0 ] && head -n "$header_end" "$memory_file"
+      sort -t$'\t' -k2,2n "$keep_tsv" | cut -f3-
+      echo ""
+      echo "---"
+      echo ""
+      echo "_$evicted entries evicted by memory-gc on $(date -Iseconds) (oldest last_accessed). Originals at $archive. Recover via /dream-review._"
+    } > "$memory_file.tmp"
+
+    # JUSTIFIED: atomic rename prevents a partial write leaving MEMORY.md empty
     mv "$memory_file.tmp" "$memory_file"
-    echo "Truncated MEMORY.md to $MAX_LINES lines; backup at $archive"
+    echo "Enforced MEMORY.md cap: kept $available entries, evicted $evicted; backup at $archive"
     ;;
 
   archive)

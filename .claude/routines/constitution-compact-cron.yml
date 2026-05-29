@@ -1,0 +1,45 @@
+# Constitution Compact Cron — quarterly constitution size discipline (AC-37)
+#
+# Runs on the first day of each quarter (01-Jan, 01-Apr, 01-Jul, 01-Oct) at 04:00.
+# If .claude/CLAUDE.md is already ≤250 lines, exits as a no-op.
+# If >250 lines, runs the constitution-compact skill and writes a proposal to
+# .claude/memory.proposed/constitution-diff.md for human review.
+#
+# Install via: bash .claude/scripts/install-overnight-tasks.sh
+
+name: constitution-compact-cron
+
+description: Quarterly constitution size check. Proposes a compacted version when .claude/CLAUDE.md exceeds the 300-line cap.
+
+schedule:
+  cron: "0 4 1 1,4,7,10 *" # 04:00 on the first of Jan, Apr, Jul, Oct
+  timezone: "local"
+
+surface: desktop # mcp__scheduled-tasks (local), not Cloud Routines
+
+permission_mode: auto
+
+model: claude-sonnet-4-6
+
+budgets:
+  max_wall_clock_minutes: 20
+  max_budget_usd: 1.50
+
+prompt: |
+  Run the constitution-compact skill (/constitution-compact).
+
+  Preconditions:
+  1. If .claude/memory.proposed/constitution-diff.md already exists, exit immediately
+     with "constitution-diff.md already pending operator review — skipping".
+  2. Run: wc -l < .claude/CLAUDE.md to get the current line count.
+  3. If line count ≤ 250, exit with "constitution within cap ($lines lines) — no action".
+
+  If >250 lines, follow the constitution-compact SKILL.md exactly:
+  - Identify candidates for trimming (stale Round notes, duplicated-by-hook rules, verbose examples)
+  - Write the proposal diff to .claude/memory.proposed/constitution-diff.md
+  - Include the projected post-compaction line count in the proposal header
+  - DO NOT edit .claude/CLAUDE.md directly
+
+  At the end, run:
+    bash .claude/scripts/validate.sh 2>&1 | grep 'constitution'
+  and include the output in the proposal header so the operator knows the current status.

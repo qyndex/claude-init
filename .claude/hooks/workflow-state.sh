@@ -37,15 +37,37 @@ if true; then
   # JUSTIFIED: no pending tasks (or no TASKS.md) makes grep exit 1 — "none" is the intended sentinel shown in the injected state line
   next_task=$(grep -m1 '^- \[ \]' tasks/TASKS.md 2>/dev/null | sed 's/^- \[ \]//' | head -c 100 || echo "none")
 
-  # Current phase derived from artifact state
-  if [ "$spec" = "none" ]; then phase="constitute-or-specify"
-  # JUSTIFIED: grep-as-boolean for phase detection — a missing/non-draft spec is a legitimate false (suppress the "no such file" noise), not an error to handle
-  elif grep -q 'status: draft' "$spec" 2>/dev/null; then phase="specifying"
-  elif [ "$plan" = "none" ]; then phase="planning"
-  elif grep -q 'status: draft' "$plan" 2>/dev/null; then phase="planning"
-  # JUSTIFIED: grep-as-boolean — no pending task lines (or no TASKS.md) is a legitimate false that advances phase to verifying/shipping
-  elif grep -q '^- \[ \]' tasks/TASKS.md 2>/dev/null; then phase="implementing"
-  else phase="verifying-or-shipping"; fi
+  # Current phase derived from artifact state — all 8 phases (AC-19)
+  # JUSTIFIED: grep-as-boolean for phase detection — missing files or non-matching lines advance phase, all errors are intentional false-negatives
+  if [ "$spec" = "none" ] && [ ! -f .claude/skills/constitution/SKILL.md ] && [ ! -f .claude/CLAUDE.md ]; then
+    phase="constitute"
+  elif [ "$spec" = "none" ]; then
+    phase="specify"
+  elif grep -q 'status: draft' "$spec" 2>/dev/null && grep -q '\[OQ' "$spec" 2>/dev/null; then
+    phase="clarify"
+  elif grep -q 'status: draft' "$spec" 2>/dev/null; then
+    phase="specifying"
+  elif [ "$plan" = "none" ] || grep -q 'status: draft' "$plan" 2>/dev/null; then
+    phase="planning"
+  elif ! grep -q '^- \[ \]' tasks/TASKS.md 2>/dev/null && ! grep -q '^- \[~\]' tasks/TASKS.md 2>/dev/null; then
+    # No tasks at all — check if analyze marker present
+    spec_id=$(basename "$spec" .md 2>/dev/null | grep -oE '^[0-9]+')
+    if [ -n "$spec_id" ] && [ ! -f ".claude/state/analyze-${spec_id}.json" ]; then
+      phase="tasks"
+    else
+      phase="verify-review-ship"
+    fi
+  else
+    # Tasks exist — check if analyze step done
+    spec_id=$(basename "$spec" .md 2>/dev/null | grep -oE '^[0-9]+')
+    if [ -n "$spec_id" ] && ! [ -f ".claude/state/analyze-${spec_id}.json" ] && ! grep -q '^- \[x\]' tasks/TASKS.md 2>/dev/null; then
+      phase="analyze"
+    elif grep -q '^- \[ \]' tasks/TASKS.md 2>/dev/null || grep -q '^- \[~\]' tasks/TASKS.md 2>/dev/null; then
+      phase="implementing"
+    else
+      phase="verify-review-ship"
+    fi
+  fi
 
   # JUSTIFIED: basename is purely cosmetic for the state banner — any odd path value degrades to a blank field, never an error
   ctx="<state>Branch: $branch | Phase: $phase | Spec: $(basename "$spec" .md 2>/dev/null) | Plan: $(basename "$plan" .md 2>/dev/null) | Next: $next_task</state>"

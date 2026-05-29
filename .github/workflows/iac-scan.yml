@@ -4,11 +4,11 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - '**/*.tf'
-      - '**/Dockerfile*'
-      - '**/*.sh'
-      - '**/*.sql'
-      - 'infra/**'
+      - "**/*.tf"
+      - "**/Dockerfile*"
+      - "**/*.sh"
+      - "**/*.sql"
+      - "infra/**"
 
 permissions:
   contents: read
@@ -23,7 +23,7 @@ jobs:
       - run: terraform fmt -check -recursive
       - uses: terraform-linters/setup-tflint@v4
       - run: tflint --recursive
-      - uses: bridgecrewio/checkov-action@master
+      - uses: bridgecrewio/checkov-action@4048c972aae68d0b983a48bb3479aab2d877b898 # master 2026-05-29
         with:
           framework: terraform
           soft_fail: false
@@ -44,7 +44,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: ludeeus/action-shellcheck@master
+      - uses: ludeeus/action-shellcheck@00b27aa7cb85167568cb48a3838b75f4265f2bca # master 2026-05-29
         with:
           severity: warning
           ignore_paths: node_modules

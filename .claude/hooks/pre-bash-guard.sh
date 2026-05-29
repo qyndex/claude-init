@@ -75,6 +75,16 @@ deny_patterns=(
   'chmod +(-R +)?777'
   'chmod +(-R +)?a\+w +(/|~|\$HOME)'
   'chown +-R +.* +(/|~|\$HOME)'
+  # AC-5 (BUG-5): writes to constitution-class files via tee / find-exec / xargs
+  # / shell-redirect evasion. The constitution guard only sees Write|Edit tool
+  # calls; these are Bash-tool paths that mutate the same protected files.
+  'tee +(-a +)?\.claude/'
+  'find +.*-exec +(sh|bash|zsh)'
+  'xargs +.*(sh|bash|zsh)'
+  '>+ +\.claude/hooks/'
+  '>+ +\.claude/CLAUDE\.md'
+  '>+ +\.claude/settings\.json'
+  '>+ +\.github/workflows/'
 )
 
 # Pre-pass: command/process substitution that wraps a dangerous payload.
