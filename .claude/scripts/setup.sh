@@ -57,6 +57,30 @@ mkdir -p .swarms/{coordinator,streams,templates}
 mkdir -p verify
 mkdir -p .claude/state/adopt
 touch .claude/hooks/.log/.gitkeep
+# Seed the coordinator runtime-state files. They are gitignored (never shipped via
+# clone/copy) but validate.sh REQUIRES them — so a fresh install must create them or
+# the [swarm] check fails. Idempotent: only written when absent.
+if [ ! -f .swarms/coordinator/fleet.json ]; then
+  cat > .swarms/coordinator/fleet.json <<'EOF'
+{
+  "_doc": "Coordinator's view of the fleet. Updated as streams spawn/complete/fail. Read by /swarm-status command.",
+  "_schema_version": 1,
+  "last_updated": null,
+  "fleet": {}
+}
+EOF
+fi
+if [ ! -f .swarms/coordinator/decisions.log ]; then
+  cat > .swarms/coordinator/decisions.log <<'EOF'
+# Coordinator Decision Log
+
+Append-only. One line per decision. Format:
+
+```
+<ISO-8601 timestamp> | <stream-id> | <decision> | <rationale>
+```
+EOF
+fi
 ok "runtime directories ready"
 
 step "Activating the characterization gate (greenfield: empty manifest)"
