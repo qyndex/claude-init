@@ -1,5 +1,5 @@
 ---
-description: Reconstruct the spec→plan→tasks→PRs→deploy 5-tuple for any commit. Compliance/audit use. Uses commit trailers (Spec: / Plan: / Task:) to walk the chain.
+description: "Reconstruct the spec→plan→tasks→PRs→deploy 5-tuple for any commit. Compliance/audit use. Uses commit trailers (Spec: / Plan: / Task:) to walk the chain."
 argument-hint: "<commit-sha-or-PR-number>"
 allowed-tools: Read, Glob, Grep, Bash, WebFetch
 disable-model-invocation: true

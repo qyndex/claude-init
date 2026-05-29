@@ -1,6 +1,6 @@
 ---
 name: debugger
-description: Use when a test fails unexpectedly, the app crashes, behavior diverges from expected, or any time the cause is non-obvious. Runs the Superpowers systematic-debugging four-phase loop: reproduce → isolate → diagnose → fix. Reads code, runs commands, never commits without explicit handback.
+description: "Use when a test fails unexpectedly, the app crashes, behavior diverges from expected, or any time the cause is non-obvious. Runs the Superpowers systematic-debugging four-phase loop: reproduce → isolate → diagnose → fix. Reads code, runs commands, never commits without explicit handback."
 tools: Read, Glob, Grep, Bash, WebSearch, WebFetch
 model: opus
 permissionMode: plan

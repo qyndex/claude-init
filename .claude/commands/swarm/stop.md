@@ -1,5 +1,5 @@
 ---
-description: Cleanly stop a swarm stream. Writes final handoff (status: STOPPED), keeps worktree for inspection.
+description: "Cleanly stop a swarm stream. Writes final handoff (status: STOPPED), keeps worktree for inspection."
 argument-hint: "<stream-id>"
 allowed-tools: Bash, Read, Edit, Write
 disable-model-invocation: true

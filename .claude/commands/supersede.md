@@ -1,5 +1,5 @@
 ---
-description: Mark a spec as superseded by a new one. Cascades: links PRs already merged under the old spec, opens cleanup/revert decision tasks, updates initiative spec catalog.
+description: "Mark a spec as superseded by a new one. Cascades: links PRs already merged under the old spec, opens cleanup/revert decision tasks, updates initiative spec catalog."
 argument-hint: "<old-spec-id> --by <new-spec-id>"
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, TodoWrite
 disable-model-invocation: true

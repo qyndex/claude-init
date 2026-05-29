@@ -34,7 +34,7 @@ jobs:
         # Pinned tag — bump via Renovate/Dependabot. Never use a floating branch ref.
         # If a stable tag isn't published yet, pin to a commit SHA:
         #   uses: anthropics/claude-code-security-review@<40-char SHA>
-        uses: anthropics/claude-code-security-review@v1
+        uses: anthropics/claude-code-security-review@0c6a49f1fa56a1d472575da86a94dbc1edb78eda # no stable tag published; pinned to main HEAD SHA
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           model: claude-opus-4-8

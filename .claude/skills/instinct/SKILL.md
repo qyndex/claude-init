@@ -1,7 +1,7 @@
 ---
 name: instinct
 description: Continuous-learning observer. PostToolUse + Stop hooks write JSONL observations; a background Haiku subagent extracts atomic "instincts" (trigger → action, confidence-rated, domain-tagged). Project-level by default; promotes to global at 2+ projects. From affaan-m/ECC continuous-learning-v2.
-when_to_use: Auto-runs via hooks. Manual invocation by user: "extract instincts", "what did you learn", "review instincts".
+when_to_use: "Auto-runs via hooks. Manual invocation by user: \"extract instincts\", \"what did you learn\", \"review instincts\"."
 model: inherit
 ---
 

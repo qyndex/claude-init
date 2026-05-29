@@ -1,6 +1,6 @@
 ---
 name: initiative
-description: Author or amend a multi-quarter initiative — the program-level artifact above per-feature specs. Use for 3+ month efforts spanning multiple specs, multiple teams, or multiple quarters. An 18-month migration is one initiative; a 2-day feature is not. Spec template's `complexity: XL` should split into an initiative + multiple specs.
+description: "Author or amend a multi-quarter initiative — the program-level artifact above per-feature specs. Use for 3+ month efforts spanning multiple specs, multiple teams, or multiple quarters. An 18-month migration is one initiative; a 2-day feature is not. Spec template's `complexity: XL` should split into an initiative + multiple specs."
 when_to_use: User says "this is a multi-quarter program", "initiative", "epic", "18-month migration", "set up the program for", "we need a roadmap for X". Architect agent encounters work that exceeds XL.
 argument-hint: "[create|update|status|close|supersede] <id-or-slug>"
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, TodoWrite, WebFetch
