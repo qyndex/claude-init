@@ -6,7 +6,7 @@ model: opus
 permissionMode: acceptEdits
 maxTurns: 50
 effort: high
-skills: [tdd-loop, verification, token-budget]
+skills: [tdd-loop, verify, context-budget]
 color: green
 ---
 

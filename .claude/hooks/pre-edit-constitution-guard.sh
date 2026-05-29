@@ -19,8 +19,14 @@
 
 set -uo pipefail
 
-# Escape hatch — operator-driven amendment.
+# Escape hatch — operator-driven amendment. Log LOUDLY every time it fires so a
+# leaked/persisted FORCE_CONSTITUTION_EDIT (e.g. exported into a long-lived shell)
+# is visible in the audit trail instead of silently disabling the whole guard.
 if [ "${FORCE_CONSTITUTION_EDIT:-0}" = "1" ]; then
+  mkdir -p .claude/hooks/.log 2>/dev/null
+  printf '%s\t%s\tFORCE_CONSTITUTION_EDIT=1 active — guard bypassed\n' \
+    "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "constitution-guard-bypass" \
+    >> .claude/hooks/.log/constitution-write-attempts.log 2>/dev/null || true
   exit 0
 fi
 
@@ -55,6 +61,21 @@ if [ -n "$ROOT" ]; then
   esac
 fi
 
+# Canonicalize before matching — a literal case-glob is bypassed by a leading
+# "./" or an embedded "/./" or "/../" segment that still resolves to a protected
+# file (e.g. "./.claude/./CLAUDE.md"). Collapse them so the deny-list always sees
+# the real path. Pure-bash (no realpath dependency, and the file may not exist yet).
+while [ "$rel" != "${rel#./}" ]; do rel="${rel#./}"; done   # strip leading ./
+rel="${rel//\/.\///}"                                       # collapse /./ → /
+# collapse a/b/../c → a/c, iteratively (left-to-right, bounded by path depth)
+while case "$rel" in */../*|*/..) true ;; *) false ;; esac; do
+  # JUSTIFIED: sed is the simplest reliable collapse of one ../ segment; loop bounds it
+  next=$(printf '%s' "$rel" | sed -E 's#(^|/)[^/]+/\.\.(/|$)#\1#')
+  [ "$next" = "$rel" ] && break
+  rel="$next"
+done
+rel="${rel#/}"                                              # drop any leading slash
+
 # Deny-list — constitution-class globs.
 deny=0
 case "$rel" in
@@ -67,6 +88,8 @@ case "$rel" in
   .github/workflows/*)                     deny=1 ;;
   .github/rulesets/*)                      deny=1 ;;
   .github/CODEOWNERS)                      deny=1 ;;
+  tasks/TASKS.md)                          deny=1 ;;
+  specs/active/*)                          deny=1 ;;
 esac
 
 if [ "$deny" = "1" ]; then

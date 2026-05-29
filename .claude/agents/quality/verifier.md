@@ -6,7 +6,7 @@ model: sonnet
 permissionMode: acceptEdits
 maxTurns: 25
 effort: high
-skills: [verification, browser-e2e]
+skills: [verify, browser-e2e]
 mcpServers: [chrome-devtools, playwright]
 color: magenta
 ---
