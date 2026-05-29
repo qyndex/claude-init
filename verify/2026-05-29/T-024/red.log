@@ -1,6 +1,0 @@
-# TDD ledger — red — T-024
-timestamp: 2026-05-29T01:27:08+10:00
-command: test -x .claude/scripts/gc-tasks.sh && test -x .claude/scripts/gc-verify.sh && test -x .claude/scripts/gc-logs.sh && bash .claude/scripts/test/gc-suite.sh
-exit_code: 1
----
-

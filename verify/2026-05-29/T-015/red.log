@@ -1,6 +1,0 @@
-# TDD ledger — red — T-015
-timestamp: 2026-05-29T01:07:55+10:00
-command: grep -qE 'PIVOT tier|Phase 3\.5' .claude/skills/autopilot/SKILL.md && ! grep -qE '^\- LLM enforces 3-strike' .claude/skills/autopilot/SKILL.md
-exit_code: 1
----
-

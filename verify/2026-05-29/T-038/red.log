@@ -1,6 +1,0 @@
-# TDD ledger — red — T-038
-timestamp: 2026-05-29T02:05:37+10:00
-command: bash -n .claude/scripts/test/swarm-events-smoke.sh && grep -q 'lane.finished' .claude/scripts/test/swarm-events-smoke.sh
-exit_code: 127
----
-bash: .claude/scripts/test/swarm-events-smoke.sh: No such file or directory

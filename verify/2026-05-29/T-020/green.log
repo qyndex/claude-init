@@ -1,8 +1,0 @@
-# TDD ledger — green — T-020
-timestamp: 2026-05-29T02:52:54+10:00
-command: test -x .claude/scripts/lint-silent-failures.sh && bash .claude/scripts/test/lint-silent-failures.sh
-exit_code: 0
----
----
-passed: 8
-failed: 0

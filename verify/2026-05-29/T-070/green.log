@@ -1,6 +1,0 @@
-# TDD ledger — green — T-070
-timestamp: 2026-05-29T11:11:46+10:00
-command: grep -qE "7.*day|seven.*day|semgrep" .github/workflows/merge-gate.yml
-exit_code: 0
----
-

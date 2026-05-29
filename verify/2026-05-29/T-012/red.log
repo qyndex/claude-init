@@ -1,6 +1,0 @@
-# TDD ledger — red — T-012
-timestamp: 2026-05-29T01:04:18+10:00
-command: jq -e '.count == 0 and (.last_pivot_attempt | type == "number")' .claude/state/consecutive-aborts.json && jq -e '.properties.count.type == "integer"' .claude/templates/consecutive-aborts.schema.json
-exit_code: 2
----
-jq: error: Could not open file .claude/state/consecutive-aborts.json: No such file or directory

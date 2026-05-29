@@ -1,1 +1,0 @@
-RED: settings.json had an inert permissions.sandbox block (not a real schema key — silently ignored); docs claimed settings.json enforced the sandbox.

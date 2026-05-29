@@ -1,1 +1,0 @@
-RED: evidence-gate.yml fell through to trusting PR-body prose when no evidence.json was committed.

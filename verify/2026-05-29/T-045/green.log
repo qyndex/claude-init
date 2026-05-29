@@ -1,6 +1,0 @@
-# TDD ledger — green — T-045
-timestamp: 2026-05-29T02:06:01+10:00
-command: bash -n .claude/scripts/test/validate-json.sh && grep -qE 'schema_version|--json' .claude/scripts/test/validate-json.sh
-exit_code: 0
----
-

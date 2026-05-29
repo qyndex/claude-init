@@ -1,6 +1,0 @@
-# TDD ledger — green — T-060
-timestamp: 2026-05-29T04:06:31+10:00
-command: bash verify/2026-05-29-002/T-060-accept.sh
-exit_code: 0
----
-

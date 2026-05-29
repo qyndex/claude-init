@@ -1,6 +1,0 @@
-# TDD ledger — green — T-035
-timestamp: 2026-05-29T02:00:04+10:00
-command: bash .claude/scripts/check-model-consistency.sh && test -f .claude/skills/dream/SKILL.md && grep -q '## ' .claude/skills/dream/SKILL.md && grep -q 'uncharacterized-paths.txt' .claude/scripts/setup.sh
-exit_code: 0
----
-model-consistency: all agents match §V

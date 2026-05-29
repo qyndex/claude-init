@@ -1,9 +1,0 @@
-# TDD ledger — green — T-046
-timestamp: 2026-05-29T02:12:39+10:00
-command: bash .claude/scripts/validate.sh --json | jq -e '.schema_version == 1 and (.summary.overall | test("^(pass|warn|fail)$"))' && bash .claude/scripts/test/validate-json.sh
-exit_code: 0
----
-true
----
-passed: 9
-failed: 0

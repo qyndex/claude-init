@@ -1,4 +1,0 @@
-# TDD ledger — red — T-030
-exit_code: 1
-# Pre-reconciliation: no model-consistency enforcement existed (T-028 introduced the checker).
-# This task verifies zero divergent model: fields; the red baseline is "unenforced".

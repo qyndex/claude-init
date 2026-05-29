@@ -1,6 +1,0 @@
-# TDD ledger — green — T-050
-timestamp: 2026-05-29T02:43:34+10:00
-command: test -z "$(grep -rnE '[^>2] *> *[^ ]*\.json([^a-zA-Z]|$)' .claude/scripts/ .claude/hooks/ | grep -vE 'lib/atomic-write\.sh|\.tmp|<<|EOF|JUSTIFIED:|echo |Usage:|:[0-9]+:[[:space:]]*#')"
-exit_code: 0
----
-

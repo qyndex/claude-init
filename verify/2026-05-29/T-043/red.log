@@ -1,6 +1,0 @@
-# TDD ledger — red — T-043
-timestamp: 2026-05-29T02:05:38+10:00
-command: test -f .claude/agents/quality/anti-slop-reviewer.md && grep -qE '^model:[[:space:]]*sonnet' .claude/agents/quality/anti-slop-reviewer.md && grep -cE 'actionable-bug|actionable-docs|actionable-feature|duplicate|spam|generated-slop|security-sensitive|not-reproducible' .claude/agents/quality/anti-slop-reviewer.md | awk '{exit ($1 < 8)}'
-exit_code: 1
----
-

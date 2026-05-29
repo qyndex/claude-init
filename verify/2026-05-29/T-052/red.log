@@ -1,6 +1,0 @@
-# TDD ledger — red — T-052
-timestamp: 2026-05-29T02:28:42+10:00
-command: bash -n .claude/scripts/test/audit-doc-claims.sh && grep -qE 'enforced by|blocked by|gated by' .claude/scripts/test/audit-doc-claims.sh
-exit_code: 127
----
-bash: .claude/scripts/test/audit-doc-claims.sh: No such file or directory

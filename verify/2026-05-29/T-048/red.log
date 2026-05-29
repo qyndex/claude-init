@@ -1,6 +1,0 @@
-# TDD ledger — red — T-048
-timestamp: 2026-05-29T02:31:41+10:00
-command: bash -n .claude/scripts/test/atomic-write.sh && grep -q 'write_atomic' .claude/scripts/test/atomic-write.sh
-exit_code: 127
----
-bash: .claude/scripts/test/atomic-write.sh: No such file or directory

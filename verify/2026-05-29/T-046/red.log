@@ -1,6 +1,0 @@
-# TDD ledger — red — T-046
-timestamp: 2026-05-29T02:10:02+10:00
-command: bash .claude/scripts/validate.sh --json | jq -e '.schema_version == 1 and (.summary.overall | test("^(pass|warn|fail)$"))' && bash .claude/scripts/test/validate-json.sh
-exit_code: 5
----
-jq: parse error: Invalid numeric literal at line 1, column 4

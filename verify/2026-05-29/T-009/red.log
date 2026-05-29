@@ -1,6 +1,0 @@
-# TDD ledger — red — T-009
-timestamp: 2026-05-29T00:58:52+10:00
-command: grep -qE 'FORCE_CONSTITUTION_EDIT|legitimately edit constitution' docs/PLAYBOOK.md
-exit_code: 1
----
-

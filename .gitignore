@@ -117,14 +117,12 @@ coverage/
 playwright-report/
 test-results/
 
-# Logs
+# Logs — ALL .log files are ignored, including nested (operator directive 2026-05-29).
+# TDD-ledger red/green evidence is therefore NOT git-tracked; check-tdd-ledger.sh
+# verifies the logs exist on disk at run time rather than requiring them committed.
 *.log
+**/*.log
 logs/
-# EXCEPTION: TDD-ledger red/green evidence under verify/ MUST be tracked — the
-# server-side check-tdd-ledger.sh gate (Spec 003 AC-3) only enforces on git-tracked
-# evidence, and the constitution §VII ledger requires these as durable artifacts.
-!verify/**/red.log
-!verify/**/green.log
 
 # Temporary
 tmp/

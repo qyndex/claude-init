@@ -1,6 +1,0 @@
-# TDD ledger — red — T-069
-timestamp: 2026-05-29T11:10:37+10:00
-command: grep -q "warning" .claude/routines/overnight-build.yml
-exit_code: 1
----
-

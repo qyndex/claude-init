@@ -1,1 +1,0 @@
-GREEN: evidence-gate now hard-fails without committed evidence.json; verdict driven from JSON.

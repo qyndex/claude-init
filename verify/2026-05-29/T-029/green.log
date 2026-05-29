@@ -1,6 +1,0 @@
-# TDD ledger — green — T-029
-timestamp: 2026-05-29T01:54:30+10:00
-command: test -f .github/workflows/model-consistency.yml && grep -q 'check-model-consistency.sh' .github/workflows/model-consistency.yml
-exit_code: 0
----
-

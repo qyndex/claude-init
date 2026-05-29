@@ -1,6 +1,0 @@
-# TDD ledger — green — T-016
-timestamp: 2026-05-29T01:08:32+10:00
-command: bash -n .claude/scripts/test/oq-aging.sh && grep -q 'OQ-' .claude/scripts/test/oq-aging.sh
-exit_code: 0
----
-

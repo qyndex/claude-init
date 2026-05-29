@@ -1,8 +1,0 @@
-# TDD ledger — green — T-055
-timestamp: 2026-05-29T02:30:32+10:00
-command: bash .claude/scripts/test/security-invariants.sh && grep -cE 'INVARIANT-?[0-9]+' .claude/scripts/test/security-invariants.sh | awk '{exit ($1 < 10)}'
-exit_code: 0
----
----
-passed: 13
-failed: 0

@@ -1,6 +1,0 @@
-# TDD ledger — green — T-040
-timestamp: 2026-05-29T02:09:22+10:00
-command: grep -q 'lane.finished' .claude/hooks/subagent-stop.sh && grep -q '.swarms/events/' .claude/hooks/subagent-stop.sh
-exit_code: 0
----
-

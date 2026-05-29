@@ -1,8 +1,0 @@
-# TDD ledger — green — T-051
-timestamp: 2026-05-29T02:45:06+10:00
-command: bash -n .claude/hooks/workflow-state.sh && bash -n .claude/scripts/test/workflow-state-no-git.sh && bash .claude/scripts/test/workflow-state-no-git.sh
-exit_code: 0
----
----
-passed: 6
-failed: 0

@@ -1,6 +1,0 @@
-# TDD ledger — red — T-017
-timestamp: 2026-05-29T01:09:39+10:00
-command: test -x .claude/scripts/oq-aging.sh && bash -n .claude/scripts/oq-aging.sh && bash .claude/scripts/test/oq-aging.sh
-exit_code: 1
----
-

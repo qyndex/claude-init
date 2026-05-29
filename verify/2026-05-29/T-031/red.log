@@ -1,6 +1,0 @@
-# TDD ledger — red — T-031
-timestamp: 2026-05-29T01:56:19+10:00
-command: test -f .claude/skills/dream/SKILL.md && grep -qE '^---' .claude/skills/dream/SKILL.md && grep -qE 'memory-gc\.sh' .claude/skills/dream/SKILL.md && grep -qE 'name:[[:space:]]*dream' .claude/skills/dream/SKILL.md
-exit_code: 1
----
-

@@ -1,6 +1,0 @@
-# TDD ledger — green — T-013
-timestamp: 2026-05-29T01:04:39+10:00
-command: test -f .claude/templates/pivot-prompt.md && grep -qE '<alternative>|alternative approach' .claude/templates/pivot-prompt.md
-exit_code: 0
----
-

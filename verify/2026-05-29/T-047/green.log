@@ -1,6 +1,0 @@
-# TDD ledger — green — T-047
-timestamp: 2026-05-29T02:13:38+10:00
-command: grep -q 'validate.sh --json' .github/workflows/harness-validate.yml
-exit_code: 0
----
-

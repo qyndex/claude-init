@@ -1,1 +1,0 @@
-GREEN: server-side TDD-ledger step wired into harness-validate (required gate); check-tdd-ledger.sh runs where SKIP_* cannot apply.

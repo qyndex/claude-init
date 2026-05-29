@@ -1,6 +1,0 @@
-# TDD ledger — red — T-054
-timestamp: 2026-05-29T02:48:34+10:00
-command: test -f .github/workflows/doc-claims-audit.yml && grep -q 'audit-doc-claims.sh' .github/workflows/doc-claims-audit.yml
-exit_code: 1
----
-

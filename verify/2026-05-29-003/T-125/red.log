@@ -1,1 +1,0 @@
-RED: worktree.baseRef:"head" (not in schema enum) + symlinkDirectories (not allowed) silently dropped.

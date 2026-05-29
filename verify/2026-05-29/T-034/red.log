@@ -1,6 +1,0 @@
-# TDD ledger — red — T-034
-exit_code: 1
-# At HEAD, docs/AUTOPILOT.md restated budgets as "330 min wall-clock, 400 turns",
-# conflicting with overnight-build.yml (480 min / 600 turns). Reconciliation removes
-# the duplicated numbers and points at the YAML keys. (The task accept grep was too
-# weak to detect this; this red.log records the real pre-state.)

@@ -1,6 +1,0 @@
-# TDD ledger — green — T-023
-timestamp: 2026-05-29T01:26:04+10:00
-command: bash -n .claude/scripts/test/gc-suite.sh && grep -cE 'gc-tasks|gc-verify|gc-logs' .claude/scripts/test/gc-suite.sh | awk '{exit ($1 < 3)}'
-exit_code: 0
----
-

@@ -1,6 +1,0 @@
-# TDD ledger — red — T-008
-timestamp: 2026-05-29T00:57:28+10:00
-command: jq -e '.permissions.sandbox.enabled == true or (.permissions.sandbox.enabledWhen // "" | test("auto"))' .claude/settings.json
-exit_code: 1
----
-false

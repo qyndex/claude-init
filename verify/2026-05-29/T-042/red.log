@@ -1,6 +1,0 @@
-# TDD ledger — red — T-042
-timestamp: 2026-05-29T02:16:58+10:00
-command: test -x .claude/scripts/branch-freshness.sh && bash -n .claude/scripts/branch-freshness.sh && grep -q 'branch-freshness.sh' .claude/scripts/verify.sh && grep -q 'SKIP_BRANCH_CHECK' .claude/scripts/branch-freshness.sh
-exit_code: 1
----
-

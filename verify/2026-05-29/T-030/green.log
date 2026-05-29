@@ -1,6 +1,0 @@
-# TDD ledger — green — T-030
-timestamp: 2026-05-29T01:54:48+10:00
-command: bash .claude/scripts/check-model-consistency.sh
-exit_code: 0
----
-model-consistency: all agents match §V

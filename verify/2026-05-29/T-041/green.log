@@ -1,6 +1,0 @@
-# TDD ledger — green — T-041
-timestamp: 2026-05-29T02:21:06+10:00
-command: grep -qE 'WORKSPACE_FP|md5sum|md5 ' .claude/hooks/session-heartbeat.sh && grep -qE '\.swarms/streams/.*state\.json' .claude/hooks/session-heartbeat.sh && grep -qE 'ready_for_prompt' .claude/hooks/session-heartbeat.sh
-exit_code: 0
----
-

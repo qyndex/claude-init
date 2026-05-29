@@ -1,6 +1,0 @@
-# TDD ledger — green — T-068
-timestamp: 2026-05-29T11:10:27+10:00
-command: test -f docs/DEPLOY-INTEGRATION.md && grep -q "STUB" .github/workflows/canary-deploy.yml
-exit_code: 0
----
-
