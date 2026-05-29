@@ -1,0 +1,8 @@
+# TDD ledger — green — T-005
+timestamp: 2026-05-29T00:46:26+10:00
+command: bash .claude/scripts/test/pre-bash-guard-bypass.sh
+exit_code: 0
+---
+---
+passed: 15
+failed: 0

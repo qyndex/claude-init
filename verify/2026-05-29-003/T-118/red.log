@@ -1,0 +1,1 @@
+RED: deny[] missing .npmrc/.netrc/.git-credentials/.pfx/.p12/.tfstate(read)/kubeconfig/.pypirc/.docker-config for Read and/or Write.

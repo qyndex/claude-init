@@ -8,6 +8,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This CLAUDE.md governs sessions where you are **developing the harness itself** (fixing bugs in scripts, adding agents/skills/hooks, updating CI, etc.).
 
+**Deploy is Bring-Your-Own (BYO).** The harness ships no working deploy pipeline — `.github/workflows/canary-deploy.yml` is a STUB (echo + sleep placeholders that preserve the progressive-rollout shape). Wire your platform following [docs/DEPLOY-INTEGRATION.md](docs/DEPLOY-INTEGRATION.md).
+
 The **authoritative constitution** (agent operating law) is `.claude/CLAUDE.md` — that file is auto-loaded every session and governs autonomous behavior. This root CLAUDE.md is the developer guide.
 
 ## Validating changes
@@ -87,8 +89,8 @@ Routines       .claude/routines/          — Cloud Routine YAML (overnight-buil
 
 **Agent model assignments** (frontmatter `model:` must match):
 
-- Opus 4.7: architect, implementer, reviewer, security, debugger, coordinator, feature-stream, designer, extractor
-- Sonnet 4.6: planner, tester, verifier, researcher, doc-writer, release, roadmap-architect, feedback-extractor
+- Opus 4.8: architect, implementer, reviewer, security, debugger, designer, extractor
+- Sonnet 4.6: planner, tester, verifier, researcher, doc-writer, release, roadmap-architect, coordinator, feature-stream, feedback-extractor
 - Haiku 4.5: `Explore` subagent (retrieval only)
 
 ## Hook lifecycle

@@ -1,0 +1,6 @@
+# TDD ledger — red — T-032
+timestamp: 2026-05-29T01:57:01+10:00
+command: grep -q 'uncharacterized-paths.txt' .claude/scripts/setup.sh
+exit_code: 1
+---
+

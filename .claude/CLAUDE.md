@@ -56,7 +56,7 @@
 
 ## V. `<model_routing>`
 
-- **Opus 4.7** → architect, implementer, reviewer, security, debugger, designer, extractor (hard thinking / high-craft)
+- **Opus 4.8** → architect, implementer, reviewer, security, debugger, designer, extractor (hard thinking / high-craft)
 - **Sonnet 4.6** → planner, tester, verifier, researcher, doc-writer, release, roadmap-architect, coordinator, feature-stream, feedback-extractor (daily driver; Round 5 demoted the orchestration agents)
 - **Haiku 4.5** → `Explore` subagent (built-in), keyword routing, simple greps
 
@@ -141,7 +141,7 @@ See `.claude/skills/context-budget/SKILL.md` and the installed `alexgreensh/toke
 - **`disableBypassPermissionsMode: "disable"`** is set — bypass is project-locked.
 - **Secrets:** `.env*`, `*.pem`, `*.key`, `*credentials*` deny-listed for Read AND Write. `gitleaks` runs PreToolUse on every Write/Edit.
 - **Destructive ops blocked:** `rm -rf`, `git push --force origin main`, `DROP TABLE`, `--no-verify`, `curl|sh`, `eval`, `base64|sh`, `python -c`, `node -e`.
-- **MCP servers:** version-pinned, deferred via Tool Search, `alwaysLoad: true` only on filesystem/git/github.
+- **MCP servers:** version-pinned, deferred via Tool Search, `alwaysLoad: true` only on filesystem/git/github. NOTE: the filesystem MCP read path is NOT gated by the settings deny-list — never store secrets in the repo tree; gitleaks PreToolUse + .gitignore are the mitigations.
 
 Full checklist: `.claude/skills/security-guard/SKILL.md`.
 
@@ -149,7 +149,7 @@ Full checklist: `.claude/skills/security-guard/SKILL.md`.
 
 ## XI. Autopilot
 
-Cloud Routine at 23:00 → fresh sandbox → Auto Mode → `/verify-loop` → /dream → `OVERNIGHT_REPORT.md`. Laptop can be off. [docs/AUTOPILOT.md](../docs/AUTOPILOT.md).
+Cloud Routine at 23:00 → fresh runtime sandbox (OS-level / `--sandbox` launch flag — NOT settings.json) → Auto Mode → `/verify-loop` → /dream → `OVERNIGHT_REPORT.md`. Laptop can be off. [docs/AUTOPILOT.md](../docs/AUTOPILOT.md).
 
 ---
 

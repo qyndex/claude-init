@@ -1,0 +1,94 @@
+name: Stale spec check
+
+# AC-14: weekly cron that flags approved specs with zero completed tasks after 30 days.
+# Appends a stale-spec incident line to .claude/memory/MEMORY.md and opens a GH issue.
+
+on:
+  schedule:
+    - cron: "0 9 * * 1" # Mondays at 09:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  stale-spec-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Find stale approved specs
+        id: find_stale
+        run: |
+          set -euo pipefail
+          stale_found=0
+          now_epoch=$(date +%s)
+          threshold_days=30
+          threshold_secs=$((threshold_days * 86400))
+
+          for spec in specs/active/*.md; do
+            [ -f "$spec" ] || continue
+
+            # Only check approved specs
+            status=$(grep -m1 '^status:' "$spec" 2>/dev/null | sed 's/status:[[:space:]]*//' | tr -d '"' | xargs)
+            [ "$status" = "approved" ] || continue
+
+            # Spec 003 AC-17: a "ready to archive" signal — an approved spec whose
+            # referencing tasks are 100% done/skipped should be shipped+archived, not
+            # left to the quarterly archiver as the only safety net. Age-independent.
+            spec_id=$(basename "$spec"); spec_id="${spec_id%%-*}"
+            if printf '%s' "$spec_id" | grep -qE '^[0-9]+$'; then
+              ref_total=$(grep -cE "spec:${spec_id}([^0-9]|$)" tasks/TASKS.md 2>/dev/null || echo 0)
+              ref_open=$(grep -E "spec:${spec_id}([^0-9]|$)" tasks/TASKS.md 2>/dev/null | grep -cE '^\- \[( |~|!|b)\]' || true)
+              if [ "${ref_total// /}" -gt 0 ] && [ "${ref_open// /}" -eq 0 ]; then
+                echo "READY-TO-ARCHIVE: $spec (all $ref_total tasks done, still approved)"
+                echo "- [ready-to-archive] $spec is 100% complete but still \`approved\` — run spec-status-sync.sh / archive — $(date -u +%Y-%m-%d)" \
+                  >> .claude/memory/MEMORY.md
+                stale_found=$((stale_found + 1))
+                continue
+              fi
+            fi
+
+            # Check updated: field for age
+            updated=$(grep -m1 '^updated:' "$spec" 2>/dev/null | sed 's/updated:[[:space:]]*//' | tr -d '"' | xargs)
+            if [ -z "$updated" ]; then
+              # Fall back to created: date
+              updated=$(grep -m1 '^created:' "$spec" 2>/dev/null | sed 's/created:[[:space:]]*//' | tr -d '"' | xargs)
+            fi
+            [ -n "$updated" ] || continue
+
+            updated_epoch=$(date -d "$updated" +%s 2>/dev/null || date -j -f '%Y-%m-%d' "$updated" +%s 2>/dev/null || echo 0)
+            age_secs=$(( now_epoch - updated_epoch ))
+            [ "$age_secs" -gt "$threshold_secs" ] || continue
+
+            # Check if ANY completed tasks reference this spec
+            spec_base=$(basename "$spec")
+            completed=$(grep -rE "Spec: specs/active/${spec_base%.*}" tasks/TASKS.md 2>/dev/null | grep '^\- \[x\]' | wc -l || echo 0)
+            [ "${completed// /}" -gt 0 ] && continue
+
+            echo "STALE: $spec (updated=$updated, age=${age_secs}s, completed_tasks=0)"
+            stale_found=$((stale_found + 1))
+
+            # Append incident line to MEMORY.md
+            echo "- [stale-spec] $spec has been approved for >30d with 0 completed tasks — $(date -u +%Y-%m-%d)" \
+              >> .claude/memory/MEMORY.md
+
+            # Open a GH issue
+            gh issue create \
+              --title "Stale spec: $spec_base (approved >30d, 0 tasks done)" \
+              --body "$(printf 'Spec \`%s\` has been in \`approved\` state for more than 30 days with no completed tasks.\n\nEither start implementation or explicitly archive/defer this spec.' "$spec")" \
+              --label "stale-spec" \
+              || true  # non-fatal if label doesn't exist or GH unavailable
+          done
+
+          echo "stale_found=$stale_found" >> "$GITHUB_OUTPUT"
+
+      - name: Commit MEMORY.md update (if changed)
+        if: steps.find_stale.outputs.stale_found != '0'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .claude/memory/MEMORY.md
+          git diff --cached --quiet || git commit -m "chore: flag stale specs in MEMORY.md [skip ci]"
+          git push

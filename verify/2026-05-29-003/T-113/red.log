@@ -1,0 +1,1 @@
+RED: harness-validate.yml had no server-side TDD-ledger re-check; SKIP_* bypass had no CI backstop.

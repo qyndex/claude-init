@@ -1,0 +1,6 @@
+# TDD ledger — red — T-033
+timestamp: 2026-05-29T01:57:44+10:00
+command: grep -qE 'gh workflow run daily-batch\.yml|daily-batch\.yml' .claude/scripts/setup.sh
+exit_code: 1
+---
+

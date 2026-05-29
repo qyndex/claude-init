@@ -1,7 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "_comment": "Team-shared Claude Code settings. Personal overrides go in settings.local.json (gitignored). Validated against Claude Code v2.1.144+ at code.claude.com.",
-
   "_comment_model": "Default model per CLAUDE.md §V — Sonnet 4.6 is the daily driver. Per-agent Opus is set in agent frontmatter (architect, implementer, reviewer, security, debugger). Per-skill model override available via skill frontmatter.",
   "model": "claude-sonnet-4-6",
   "outputStyle": "Default",
@@ -13,38 +12,61 @@
   "alwaysThinkingEnabled": false,
   "includeGitInstructions": true,
   "minimumVersion": "2.1.144",
-
   "attribution": {
     "commit": "disabled",
     "pr": "disabled"
   },
-
   "statusLine": {
     "type": "command",
     "command": "bash .claude/statuslines/budget.sh"
   },
-
   "maxSkillDescriptionChars": 1536,
   "skillListingBudgetFraction": 0.05,
-
   "permissions": {
     "_comment_mode": "Default is acceptEdits for local interactive use. Scheduled/background/Cloud Routine sessions override to 'auto' (Anthropic Sonnet 4.6 classifier reviews every tool call — no user prompts, no bypass). PreToolUse hooks fire BEFORE the classifier in all modes and hard-block destructive ops via exit code 2. disableBypassPermissionsMode uses the canonical string 'disable' per https://code.claude.com/docs/en/permissions (boolean true is silently ignored).",
     "defaultMode": "acceptEdits",
     "disableBypassPermissionsMode": "disable",
     "additionalDirectories": [
-      "./specs",
-      "./plans",
-      "./tasks",
+      "./.swarms",
       "./docs",
-      "./.swarms"
+      "./initiatives",
+      "./plans",
+      "./specs",
+      "./tasks"
     ],
-
     "allow": [
+      "Edit(src/**)",
+      "Edit(tests/**)",
+      "Edit(specs/**)",
+      "Edit(plans/**)",
+      "Edit(tasks/**)",
+      "Edit(docs/**)",
+      "Edit(verify/**)",
+      "Edit(.swarms/**)",
+      "Edit(initiatives/**)",
+      "Edit(.claude/memory/**)",
+      "Edit(.claude/memory.proposed/**)",
+      "Edit(.claude/state/**)",
+      "Edit(.claude/rules/**)",
+      "Edit(OVERNIGHT_REPORT.md)",
+      "Edit(ADOPTION-REPORT.md)",
+      "Edit(roadmap.md)",
+      "Edit(OKRs.md)",
       "Read",
       "Glob",
       "Grep",
-      "Edit",
-      "Write(./**)",
+      "Write(src/**)",
+      "Write(tests/**)",
+      "Write(specs/**)",
+      "Write(plans/**)",
+      "Write(tasks/**)",
+      "Write(docs/**)",
+      "Write(verify/**)",
+      "Write(.swarms/**)",
+      "Write(.claude/memory/**)",
+      "Write(.claude/memory.proposed/**)",
+      "Write(.claude/state/**)",
+      "Write(.claude/hooks/.log/**)",
       "TodoWrite",
       "WebSearch",
       "WebFetch(domain:docs.anthropic.com)",
@@ -65,7 +87,6 @@
       "WebFetch(domain:registry.modelcontextprotocol.io)",
       "WebFetch(domain:apify.com)",
       "WebFetch(domain:docs.apify.com)",
-
       "Bash(ls:*)",
       "Bash(pwd)",
       "Bash(echo:*)",
@@ -94,7 +115,6 @@
       "Bash(touch:*)",
       "Bash(cp:*)",
       "Bash(mv:*)",
-
       "Bash(git status:*)",
       "Bash(git diff:*)",
       "Bash(git log:*)",
@@ -117,7 +137,6 @@
       "Bash(git push -u origin:*)",
       "Bash(git worktree:*)",
       "Bash(git tag:*)",
-
       "Bash(claude -w:*)",
       "Bash(claude --worktree:*)",
       "Bash(claude agents:*)",
@@ -136,7 +155,6 @@
       "Bash(claude logout)",
       "Bash(claude --version)",
       "Bash(claude --help:*)",
-
       "Bash(gh pr view:*)",
       "Bash(gh pr list:*)",
       "Bash(gh pr diff:*)",
@@ -145,7 +163,6 @@
       "Bash(gh pr create:*)",
       "Bash(gh pr ready:*)",
       "Bash(gh pr edit:*)",
-      "Bash(gh issue view:*)",
       "Bash(gh issue list:*)",
       "Bash(gh issue create:*)",
       "Bash(gh issue comment:*)",
@@ -153,13 +170,11 @@
       "Bash(gh run list:*)",
       "Bash(gh run view:*)",
       "Bash(gh run watch:*)",
-      "Bash(gh api:*)",
       "Bash(gh workflow:*)",
       "Bash(gh release view:*)",
       "Bash(gh release list:*)",
       "Bash(gh search:*)",
       "Bash(gh skill:*)",
-
       "Bash(npm test:*)",
       "Bash(npm run *)",
       "Bash(npm ci)",
@@ -177,7 +192,6 @@
       "Bash(bunx:*)",
       "Bash(npx:*)",
       "Bash(pnpx:*)",
-
       "Bash(pytest:*)",
       "Bash(python -m pytest:*)",
       "Bash(python -m:*)",
@@ -191,25 +205,21 @@
       "Bash(mypy:*)",
       "Bash(pyright:*)",
       "Bash(black:*)",
-
       "Bash(cargo test:*)",
       "Bash(cargo build:*)",
       "Bash(cargo check:*)",
       "Bash(cargo clippy:*)",
       "Bash(cargo fmt:*)",
       "Bash(cargo nextest:*)",
-
       "Bash(go test:*)",
       "Bash(go build:*)",
       "Bash(go vet:*)",
       "Bash(go mod:*)",
       "Bash(gofmt:*)",
       "Bash(golangci-lint:*)",
-
       "Bash(make:*)",
       "Bash(just:*)",
       "Bash(task:*)",
-
       "Bash(docker build:*)",
       "Bash(docker compose up:*)",
       "Bash(docker compose down)",
@@ -219,30 +229,28 @@
       "Bash(docker logs:*)",
       "Bash(docker run --rm:*)",
       "Bash(docker buildx:*)",
-
       "Bash(semgrep:*)",
       "Bash(gitleaks:*)",
       "Bash(playwright:*)",
-
       "Bash(curl -s:*)",
       "Bash(curl -I:*)",
       "Bash(http :*)",
-
       "Bash(apify:*)",
-      "Bash(playwright:*)",
-      "Bash(semgrep:*)",
-      "Bash(gitleaks:*)",
       "Bash(c8:*)",
       "Bash(nyc:*)",
       "Bash(coverage:*)",
       "Bash(lighthouse:*)",
-
       "Bash(bash .claude/scripts/*:*)",
       "Bash(bash .claude/hooks/*:*)",
       "Bash(.claude/scripts/*:*)",
-      "Bash(node .claude/hooks/*:*)"
+      "Bash(node .claude/hooks/*:*)",
+      "Write(initiatives/**)",
+      "Write(.claude/rules/**)",
+      "Write(OVERNIGHT_REPORT.md)",
+      "Write(ADOPTION-REPORT.md)",
+      "Write(roadmap.md)",
+      "Write(OKRs.md)"
     ],
-
     "ask": [
       "Bash(git push:*)",
       "Bash(git push --force-with-lease:*)",
@@ -265,97 +273,86 @@
       "Bash(claude --bg:*)",
       "Bash(claude --remote:*)"
     ],
-
     "deny": [
-      "Read(./.env)",
-      "Read(./.env.*)",
-      "Read(**/.env)",
-      "Read(**/.env.*)",
-      "Read(**/*.pem)",
-      "Read(**/*.key)",
-      "Read(**/*_rsa)",
-      "Read(**/id_rsa*)",
-      "Read(**/*credentials*)",
-      "Read(**/secrets/**)",
-      "Read(**/*.tfvars)",
-      "Read(**/known_hosts)",
-      "Read(**/.aws/credentials)",
-      "Read(**/.ssh/**)",
-      "Read(**/.gnupg/**)",
-
-      "Write(./.env)",
-      "Write(./.env.*)",
-      "Write(**/.env)",
-      "Write(**/.env.*)",
-      "Write(**/*.pem)",
-      "Write(**/*.key)",
-      "Write(**/id_rsa*)",
-      "Write(**/*_rsa)",
-      "Write(**/*.tfvars)",
-      "Write(**/*.tfstate)",
-      "Write(**/*credentials*)",
-      "Write(**/.ssh/**)",
-      "Write(**/.gnupg/**)",
-
-      "Bash(rm -rf /)",
-      "Bash(rm -rf ~)",
-      "Bash(rm -rf ~/*)",
-      "Bash(rm -rf $HOME)",
-      "Bash(rm -rf /*)",
-      "Bash(sudo rm:*)",
+      "Bash(DROP DATABASE:*)",
+      "Bash(DROP TABLE:*)",
+      "Bash(TRUNCATE TABLE:*)",
       "Bash(dd if=:*)",
-      "Bash(mkfs:*)",
-      "Bash(git push --force origin main)",
-      "Bash(git push -f origin main)",
-      "Bash(git push --force origin master)",
-      "Bash(git push -f origin master)",
-      "Bash(git push --no-verify:*)",
-      "Bash(git commit --no-verify:*)",
-      "Bash(git reset --hard origin/main)",
-      "Bash(git reset --hard origin/master)",
       "Bash(git branch -D main)",
       "Bash(git branch -D master)",
       "Bash(git checkout -- .)",
       "Bash(git clean -fdx)",
-      "Bash(DROP DATABASE:*)",
-      "Bash(DROP TABLE:*)",
-      "Bash(TRUNCATE TABLE:*)"
-    ],
-
-    "sandbox": {
-      "_comment": "enabled:false keeps interactive local sessions unsandboxed (acceptEdits default). enabledWhen forces the sandbox ON for auto/background/Cloud-Routine sessions where no human reviews tool calls. Local override: set permissions.sandbox.enabled in .claude/settings.local.json (gitignored). allowedDomains is the network egress catalogue for sandboxed runs.",
-      "enabled": false,
-      "enabledWhen": "permissionMode == 'auto'",
-      "filesystem": {
-        "allowRead": ["${CLAUDE_PROJECT_DIR}/**", "~/.claude/**"],
-        "allowWrite": ["${CLAUDE_PROJECT_DIR}/**"],
-        "denyRead": [
-          "${CLAUDE_PROJECT_DIR}/.env*",
-          "${CLAUDE_PROJECT_DIR}/**/secrets/**"
-        ]
-      },
-      "network": {
-        "allowedDomains": [
-          "api.anthropic.com",
-          "code.claude.com",
-          "github.com",
-          "api.github.com",
-          "registry.npmjs.org",
-          "pypi.org",
-          "crates.io",
-          "mcp.apify.com",
-          "mcp.sentry.dev"
-        ]
-      }
-    }
+      "Bash(git commit --no-verify:*)",
+      "Bash(git push --force origin main)",
+      "Bash(git push --force origin master)",
+      "Bash(git push --no-verify:*)",
+      "Bash(git push -f origin main)",
+      "Bash(git push -f origin master)",
+      "Bash(git reset --hard origin/main)",
+      "Bash(git reset --hard origin/master)",
+      "Bash(mkfs:*)",
+      "Bash(rm -rf $HOME)",
+      "Bash(rm -rf /)",
+      "Bash(rm -rf /*)",
+      "Bash(rm -rf ~)",
+      "Bash(rm -rf ~/*)",
+      "Bash(sudo rm:*)",
+      "Read(**/*.kdbx)",
+      "Read(**/*.key)",
+      "Read(**/*.kubeconfig)",
+      "Read(**/*.p12)",
+      "Read(**/*.pem)",
+      "Read(**/*.pfx)",
+      "Read(**/*.tfstate)",
+      "Read(**/*.tfvars)",
+      "Read(**/*_rsa)",
+      "Read(**/*credentials*)",
+      "Read(**/.aws/credentials)",
+      "Read(**/.docker/config.json)",
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Read(**/.git-credentials)",
+      "Read(**/.gnupg/**)",
+      "Read(**/.netrc)",
+      "Read(**/.npmrc)",
+      "Read(**/.pypirc)",
+      "Read(**/.ssh/**)",
+      "Read(**/_netrc)",
+      "Read(**/id_rsa*)",
+      "Read(**/known_hosts)",
+      "Read(**/kubeconfig)",
+      "Read(**/secrets/**)",
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Write(**/*.kdbx)",
+      "Write(**/*.key)",
+      "Write(**/*.kubeconfig)",
+      "Write(**/*.p12)",
+      "Write(**/*.pem)",
+      "Write(**/*.pfx)",
+      "Write(**/*.tfstate)",
+      "Write(**/*.tfvars)",
+      "Write(**/*_rsa)",
+      "Write(**/*credentials*)",
+      "Write(**/.docker/config.json)",
+      "Write(**/.env)",
+      "Write(**/.env.*)",
+      "Write(**/.git-credentials)",
+      "Write(**/.gnupg/**)",
+      "Write(**/.netrc)",
+      "Write(**/.npmrc)",
+      "Write(**/.pypirc)",
+      "Write(**/.ssh/**)",
+      "Write(**/_netrc)",
+      "Write(**/id_rsa*)",
+      "Write(**/kubeconfig)",
+      "Write(./.env)",
+      "Write(./.env.*)"
+    ]
   },
-
   "worktree": {
-    "baseRef": "head",
-    "symlinkDirectories": ["node_modules", ".venv", "target", "dist", ".next"],
     "bgIsolation": true
   },
-
   "env": {
     "_comment_perf": "Tool Search defers MCP tool schemas until needed. Auto-compact window set per Boris Cherny tip #76 — context rot starts at 300-400K on 1M model. Agent Teams flag enables --teammate-mode.",
     "ENABLE_TOOL_SEARCH": "true",
@@ -367,7 +364,6 @@
     "GIT_PAGER": "cat",
     "PAGER": "cat",
     "NODE_NO_WARNINGS": "1",
-
     "_comment_langfuse": "Round 6 A: native OTEL exporter to Langfuse Cloud. Auth header injected at runtime by otelHeadersHelper script that reads ~/.config/langfuse/keys.env (NOT committed). PII redaction defaults (USER_PROMPTS=0, TOOL_CONTENT=0, RAW_API_BODIES=0) are LOCKED — only flip to 1 when actively debugging and you understand the trace is then sensitive. Setup: docs/OBSERVABILITY.md. Disable: set CLAUDE_CODE_ENABLE_TELEMETRY=0.",
     "CLAUDE_CODE_ENABLE_TELEMETRY": "1",
     "CLAUDE_CODE_ENHANCED_TELEMETRY_BETA": "1",
@@ -384,13 +380,10 @@
     "OTEL_LOG_TOOL_CONTENT": "0",
     "OTEL_LOG_RAW_API_BODIES": "0"
   },
-
   "otelHeadersHelper": ".claude/scripts/langfuse-otel-headers.sh",
-
   "enableAllProjectMcpServers": false,
   "enabledMcpjsonServers": [],
   "disabledMcpjsonServers": [],
-
   "hooks": {
     "SessionStart": [
       {
@@ -516,7 +509,10 @@
     "Stop": [
       {
         "hooks": [
-          { "type": "command", "command": "bash .claude/hooks/stop-verify.sh" },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/stop-verify.sh"
+          },
           {
             "type": "command",
             "command": "bash .claude/hooks/auto-dream-check.sh",
@@ -555,7 +551,10 @@
     "SessionEnd": [
       {
         "hooks": [
-          { "type": "command", "command": "bash .claude/hooks/session-end.sh" }
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/session-end.sh"
+          }
         ]
       }
     ]

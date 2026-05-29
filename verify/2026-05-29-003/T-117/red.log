@@ -1,0 +1,1 @@
+RED: allow[] lacked Write(initiatives/**), Write(.claude/rules/**), Write(OVERNIGHT_REPORT.md) etc.; additionalDirectories lacked ./initiatives.

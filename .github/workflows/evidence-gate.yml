@@ -53,5 +53,5 @@ jobs:
             [ "$smoke" -eq 0 ] || { echo "::error::smoke exit $smoke"; exit 1; }
             [ "$verdict" = "PASS" ] || { echo "::error::verdict $verdict"; exit 1; }
           else
-            echo "No committed evidence.json — relying on PR-body assertion."
+            echo "::error::No committed evidence.json — PR-body prose is not sufficient. Run collect-evidence.sh (or commit verify/<date>/no-ac.json for docs-only PRs)."; exit 1
           fi

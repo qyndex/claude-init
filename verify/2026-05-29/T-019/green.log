@@ -1,0 +1,6 @@
+# TDD ledger — green — T-019
+timestamp: 2026-05-29T02:52:54+10:00
+command: bash -n .claude/scripts/test/lint-silent-failures.sh && grep -q 'JUSTIFIED' .claude/scripts/test/lint-silent-failures.sh
+exit_code: 0
+---
+

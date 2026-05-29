@@ -120,9 +120,18 @@ test-results/
 # Logs
 *.log
 logs/
+# EXCEPTION: TDD-ledger red/green evidence under verify/ MUST be tracked — the
+# server-side check-tdd-ledger.sh gate (Spec 003 AC-3) only enforces on git-tracked
+# evidence, and the constitution §VII ledger requires these as durable artifacts.
+!verify/**/red.log
+!verify/**/green.log
 
 # Temporary
 tmp/
 .tmp/
 .claude/state/silent-failure-audit.json
 .claude/state/sweep-remaining.tsv
+# Operator-only marker: presence lets verify.sh honor SKIP_* gate bypasses (Spec 003 AC-1). Must never be committed.
+.claude/state/allow-skip-gates
+# verify.sh SKIP-request audit log (Spec 003 AC-2)
+verify/.skip-log

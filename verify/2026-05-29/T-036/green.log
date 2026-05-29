@@ -1,0 +1,6 @@
+# TDD ledger — green — T-036
+timestamp: 2026-05-29T01:59:55+10:00
+command: jq -e '.required[]' .claude/templates/consecutive-aborts.schema.json | grep -q count && grep -q 'consecutive-aborts.json' .claude/scripts/setup.sh
+exit_code: 0
+---
+

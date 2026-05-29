@@ -34,12 +34,12 @@ description: >
   PRs. Runs /dream at end to consolidate memory.
 
 schedule:
-  cron: "0 23 * * *"        # 23:00 daily — 1 hour minimum interval enforced by Routines
-  timezone: "Etc/UTC"        # set to your team's standup TZ if you prefer
+  cron: "0 23 * * *" # 23:00 daily — 1 hour minimum interval enforced by Routines
+  timezone: "Etc/UTC" # set to your team's standup TZ if you prefer
 
 repo:
-  url: ""                    # paste your GitHub repo URL
-  branch: main               # base branch to clone from
+  url: "" # paste your GitHub repo URL
+  branch: main # base branch to clone from
 
 permission_mode: auto
 # Anthropic Auto Mode: Sonnet 4.6 classifier reviews every tool call and
@@ -54,15 +54,15 @@ permission_mode: auto
 # flow is mostly mechanical; Sonnet handles it. Opus only invoked when Sonnet flags
 # a hard-thinking gate (architect / debugger explicit deep mode).
 model: claude-sonnet-4-6
-fallback_model: claude-opus-4-7
+fallback_model: claude-opus-4-8
 effort_level: medium
 
 budgets:
   # Wall clock: 480 min (8h) = full 23:00 → 07:00 window. Single-stream worst-case
   # hits the 8h cap; multi-stream cumulative work via /swarm:plan inside the prompt.
   max_wall_clock_minutes: 480
-  max_budget_usd: 30                # hard cap on Anthropic spend per run
-  max_turns: 600                    # matches 8h budget
+  max_budget_usd: 30 # hard cap on Anthropic spend per run
+  max_turns: 600 # matches 8h budget
 
 # Round 5 D9: explicit pre-flight cost gate. Before any task work, the routine
 # must check that monthly spend is under cap. If over, abort with a single PR
@@ -107,8 +107,20 @@ pre_flight:
 
   - name: "Monthly cap check"
     run: |
+      # AC-11: fail-OPEN on missing/malformed telemetry. One bad JSON file must not
+      # kill 8 hours of planned work. We only HARD-ABORT when cost-summary.json exists
+      # AND parses AND shows < $30 headroom; otherwise warn-and-continue.
       bash .claude/scripts/cost-report.sh month
-      remaining=$(jq -r '(.monthly_cap_usd - .total_usd)' .claude/hooks/.log/cost-summary.json 2>/dev/null || echo 0)
+      summary=".claude/hooks/.log/cost-summary.json"
+      if [ ! -f "$summary" ]; then
+        echo "::warning::cost-summary.json missing — continuing under fail-open posture (telemetry unavailable)"
+        exit 0
+      fi
+      remaining=$(jq -re '(.monthly_cap_usd - .total_usd)' "$summary" 2>/dev/null)
+      if [ -z "$remaining" ]; then
+        echo "::warning::cost-summary.json malformed — continuing under fail-open posture (could not parse headroom)"
+        exit 0
+      fi
       if [ "$(printf '%.0f' "$remaining")" -lt 30 ]; then
         echo "ABORT: monthly cost cap leaves only \$${remaining} headroom; this run would risk overshoot."
         echo "Raise CLAUDE_MONTHLY_CAP_USD or wait until reset." > OVERNIGHT_REPORT.md
@@ -117,8 +129,8 @@ pre_flight:
 
 connectors:
   # Enable only what's actually needed; each connector adds network surface area.
-  - github                          # required for PR creation
-  - slack                           # for morning ping (optional)
+  - github # required for PR creation
+  - slack # for morning ping (optional)
   # - apify                          # only if scraping
   # - sentry                         # only if checking observability
   # - linear                         # only if reading backlog from Linear
@@ -129,7 +141,7 @@ env:
   CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: "1"
 
 branch_permission:
-  pattern: "claude/overnight-*"     # routine can only push to these branches
+  pattern: "claude/overnight-*" # routine can only push to these branches
 
 prompt: |
   You are running an unattended overnight build.

@@ -1,0 +1,6 @@
+# TDD ledger — red — T-011
+timestamp: 2026-05-29T01:03:48+10:00
+command: bash -n .claude/scripts/test/loop-control.sh && grep -q 'consecutive-aborts' .claude/scripts/test/loop-control.sh
+exit_code: 127
+---
+bash: .claude/scripts/test/loop-control.sh: No such file or directory

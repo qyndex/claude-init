@@ -1,0 +1,6 @@
+# TDD ledger — red — T-072
+timestamp: 2026-05-29T11:13:28+10:00
+command: test -d initiatives/active && test -f initiatives/templates/initiative.md && test -f .claude/commands/initiative.md && grep -q "current-initiative" .claude/commands/initiative.md
+exit_code: 1
+---
+

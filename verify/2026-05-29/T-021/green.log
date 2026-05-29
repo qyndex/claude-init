@@ -1,0 +1,6 @@
+# TDD ledger — green — T-021
+timestamp: 2026-05-29T02:52:54+10:00
+command: test -f .github/workflows/silent-failure-audit.yml && grep -q 'lint-silent-failures.sh' .github/workflows/silent-failure-audit.yml
+exit_code: 0
+---
+

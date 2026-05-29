@@ -1,0 +1,5 @@
+{
+  "type": "command",
+  "command": "bash .claude/hooks/pre-edit-constitution-guard.sh",
+  "timeout": 5
+}

@@ -69,7 +69,7 @@ Open `.claude/routines/overnight-build.yml` and paste each field into the form:
 - **Repo URL**: your GitHub repo
 - **Branch base**: `main`
 - **Permission mode**: `auto` (Sonnet 4.6 classifier — no user prompts, no bypass)
-- **Model**: `claude-opus-4-7` (fallback Sonnet 4.6)
+- **Model**: `claude-opus-4-8` (fallback Sonnet 4.6)
 - **Budgets**: the single source of truth is the `budgets:` block in
   [`.claude/routines/overnight-build.yml`](../.claude/routines/overnight-build.yml)
   (`max_wall_clock_minutes`, `max_budget_usd`, `max_turns`). This doc deliberately
@@ -160,7 +160,7 @@ The routine cannot bypass these because GitHub enforces them at the API layer.
 
 A typical overnight run (duration bounded by `max_wall_clock_minutes` in the routine):
 
-- **Tokens**: 1-3M total (Opus 4.7 ~1M, Sonnet 4.6 ~1.5M, Haiku 4.5 ~0.5M for subagents)
+- **Tokens**: 1-3M total (Opus 4.8 ~1M, Sonnet 4.6 ~1.5M, Haiku 4.5 ~0.5M for subagents)
 - **USD**: illustrative $15-30 per run; the hard cap is `max_budget_usd` in the routine config
 - **Anthropic plan**: Build plan or higher (Routines require Claude.ai login, not raw API key)
 
@@ -172,3 +172,7 @@ A typical overnight run (duration bounded by `max_wall_clock_minutes` in the rou
 - mvara-ai/precompact-hook (witness brief pattern)
 - grandamenium/dream-skill (consolidation pattern)
 - obra/superpowers/skills/verification-before-completion (the gate)
+
+## Sandbox (runtime)
+
+The overnight/autonomous run is contained by the **OS-level runtime sandbox**, launched via the `--sandbox` flag (or the routine sandbox setting) — NOT by any `permissions.sandbox` key in `settings.json` (that key is not part of the settings schema and is silently ignored). Configure the sandbox + network egress allow-list at the routine/launch layer for your environment.

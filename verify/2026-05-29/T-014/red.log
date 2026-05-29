@@ -1,0 +1,6 @@
+# TDD ledger — red — T-014
+timestamp: 2026-05-29T01:06:48+10:00
+command: bash -n .claude/scripts/loop-iteration.sh && grep -qE 'consecutive-aborts\.json|consecutive-abort cap reached' .claude/scripts/loop-iteration.sh && bash .claude/scripts/test/loop-control.sh
+exit_code: 1
+---
+

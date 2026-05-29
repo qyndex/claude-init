@@ -6,7 +6,7 @@
 # frontmatter resolves to the tier §V assigns that agent. A file carrying a
 # `model-consistency: ignore` marker is skipped. Exits non-zero on any mismatch.
 #
-# Model id normalization: opus / "Opus 4.7" / claude-opus-4-7 all → opus (etc).
+# Model id normalization: opus / "Opus 4.8" / claude-opus-4-7 all → opus (etc).
 #
 # Overridable for tests: CONSTITUTION, AGENTS_DIR.
 
@@ -33,7 +33,7 @@ normalize_tier() {
 }
 
 # Parse §V into "name<TAB>tier" lines. Each bullet is:
-#   - **Opus 4.7** → architect, implementer, … (notes)
+#   - **Opus 4.8** → architect, implementer, … (notes)
 # We take the bolded tier and split the arrow's RHS on commas, stripping
 # parenthetical notes and backticked/`Explore` style names.
 parse_routing() {
@@ -95,5 +95,33 @@ if [ "$issues" -gt 0 ]; then
   echo "model-consistency: $issues mismatch(es) vs §V"
   exit 1
 fi
-echo "model-consistency: all agents match §V"
+
+# ─── Stale-version scan (Spec 003 AC-12) ──────────────────────────────────────
+# Agent frontmatter normalizes opus-4-7 → opus, so a tier check can't catch a
+# workflow/doc that pins the *superseded* version. Scan .github/workflows/** and
+# docs/** for the now-stale literal so a model bump can't strand them. The stale
+# version is whatever §V no longer lists; today that is opus 4.7.
+STALE_PATTERN='claude-opus-4-7|opus-4-7|Opus 4\.7'
+stale_hits=0
+while IFS= read -r f; do
+  [ -f "$f" ] || continue
+  grep -q 'model-consistency: ignore' "$f" 2>/dev/null && continue
+  if grep -nE "$STALE_PATTERN" "$f" >/dev/null 2>&1; then
+    grep -nE "$STALE_PATTERN" "$f" | sed "s|^|✗ stale model ref $f:|"
+    stale_hits=$((stale_hits + 1))
+  fi
+# JUSTIFIED: find 2>/dev/null hides absent dirs; empty result = nothing to scan, not an error
+done < <(find "$ROOT/.github/workflows" "$ROOT/docs" -type f \( -name '*.yml' -o -name '*.yaml' -o -name '*.md' \) 2>/dev/null)
+
+# STALE_SCAN_ONLY=1 → run only the stale scan (used by AC-12 test fixtures).
+if [ "${STALE_SCAN_ONLY:-0}" = "1" ]; then
+  if [ "$stale_hits" -gt 0 ]; then echo "model-consistency: $stale_hits stale-version ref(s)"; exit 1; fi
+  echo "model-consistency: no stale-version refs"; exit 0
+fi
+
+if [ "$stale_hits" -gt 0 ]; then
+  echo "model-consistency: $stale_hits stale-version ref(s) in workflows/docs"
+  exit 1
+fi
+echo "model-consistency: all agents match §V; no stale-version refs"
 exit 0

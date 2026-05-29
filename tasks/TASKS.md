@@ -463,37 +463,37 @@ End-to-end: T-001 → T-002 → T-005 → T-010 → T-014 → T-018 → T-022 �
       accept: bash verify/2026-05-29-002/T-060-accept.sh
       owner: implementer
 
-- [ ] T-061 | spec:002 | phase:1 | priority: critical | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-060 | parallel: no | est: 5m
+- [x] T-061 | spec:002 | phase:1 | priority: critical | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-060 | parallel: no | est: 5m | completed: 2026-05-29
       summary: Add tee/redirect/xargs/find-exec evasion deny patterns to pre-bash-guard.sh (AC-5)
       files: .claude/hooks/pre-bash-guard.sh, verify/2026-05-29-002/T-AC-5-bypass-fixtures.sh
       accept: bash verify/2026-05-29-002/T-AC-5-bypass-fixtures.sh
       owner: implementer
 
-- [ ] T-062 | spec:002 | phase:1 | priority: critical | created: 2026-05-29 | last_touched: 2026-05-29 | deps: none | parallel: yes | est: 4m
+- [x] T-062 | spec:002 | phase:1 | priority: critical | created: 2026-05-29 | last_touched: 2026-05-29 | deps: none | parallel: yes | est: 4m | completed: 2026-05-29
       summary: Harden FORCE_CONSTITUTION_EDIT bypass with token check + extend validate.sh check (AC-4)
       files: .claude/hooks/pre-edit-constitution-guard.sh, .claude/scripts/validate.sh
       accept: grep -rE 'export[[:space:]]+FORCE_CONSTITUTION_EDIT' .claude .github | wc -l | grep -q '^0$'
       owner: implementer
 
-- [ ] T-063 | spec:002 | phase:1 | priority: critical | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-059 | parallel: no | est: 4m
+- [x] T-063 | spec:002 | phase:1 | priority: critical | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-059 | parallel: no | est: 4m | completed: 2026-05-29
       summary: Wire coordinator NEXUS enforcement to Stop hook lifecycle (AC-3)
       files: .claude/hooks/stop-verify.sh, .claude/hooks/subagent-stop.sh
       accept: grep -q 'coordinator' .claude/hooks/stop-verify.sh
       owner: implementer
 
-- [ ] T-064 | spec:002 | phase:1 | priority: critical | created: 2026-05-29 | last_touched: 2026-05-29 | deps: none | parallel: yes | est: 4m
+- [x] T-064 | spec:002 | phase:1 | priority: critical | created: 2026-05-29 | last_touched: 2026-05-29 | deps: none | parallel: yes | est: 4m | completed: 2026-05-29
       summary: Pin three unpinned GitHub Actions to commit SHAs (AC-6)
       files: .github/workflows/daily-batch.yml, .github/workflows/iac-scan.yml, .github/workflows/harness-validate.yml
       accept: [ "$(grep -rE '@(main|master)\b' .github/workflows/ | wc -l)" = "0" ]
       owner: implementer
 
-- [ ] T-065 | spec:002 | phase:1 | priority: critical | created: 2026-05-29 | last_touched: 2026-05-29 | deps: none | parallel: yes | est: 4m
+- [x] T-065 | spec:002 | phase:1 | priority: critical | created: 2026-05-29 | last_touched: 2026-05-29 | deps: none | parallel: yes | est: 4m | completed: 2026-05-29
       summary: Fix model-routing table in root CLAUDE.md + write check-doc-consistency.sh (AC-7)
       files: CLAUDE.md, .claude/scripts/check-doc-consistency.sh
       accept: bash .claude/scripts/check-doc-consistency.sh
       owner: implementer
 
-- [ ] T-066 | spec:002 | phase:1 | priority: critical | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-059, T-060, T-061, T-062, T-063, T-064, T-065 | parallel: no | est: 3m
+- [x] T-066 | spec:002 | phase:1 | priority: critical | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-059, T-060, T-061, T-062, T-063, T-064, T-065 | parallel: no | est: 3m | completed: 2026-05-29
       summary: Write Phase 1 TDD evidence artifacts and run validate.sh baseline (Phase 1 exit)
       files: verify/2026-05-29-002/T-AC-1-stop-verify-block.log, verify/2026-05-29-002/T-AC-5-bypass-fixtures.sh
       accept: bash .claude/scripts/validate.sh && test -f verify/2026-05-29-002/T-AC-1-stop-verify-block.log
@@ -501,43 +501,43 @@ End-to-end: T-001 → T-002 → T-005 → T-010 → T-014 → T-018 → T-022 �
 
 #### Phase 2 — Critical process gaps (AC-8..AC-13) — priority: critical
 
-- [ ] T-067 | spec:002 | phase:2 | priority: critical | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-066 | parallel: yes | est: 2m
+- [x] T-067 | spec:002 | phase:2 | priority: critical | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-066 | parallel: yes | est: 2m | completed: 2026-05-29
       summary: Remove continue-on-error: true from integration-test step in ci.yml (AC-9)
       files: .github/workflows/ci.yml
       accept: [ "$(grep -A2 'integration' .github/workflows/ci.yml | grep -c 'continue-on-error: true')" = "0" ]
       owner: implementer
 
-- [ ] T-068 | spec:002 | phase:2 | priority: critical | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-066 | parallel: yes | est: 4m
+- [x] T-068 | spec:002 | phase:2 | priority: critical | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-066 | parallel: yes | est: 4m | completed: 2026-05-29
       summary: Write docs/DEPLOY-INTEGRATION.md + add STUB header to canary-deploy.yml + link from CLAUDE.md (AC-8)
       files: docs/DEPLOY-INTEGRATION.md, .github/workflows/canary-deploy.yml, CLAUDE.md
       accept: test -f docs/DEPLOY-INTEGRATION.md && grep -q 'STUB' .github/workflows/canary-deploy.yml
       owner: implementer
 
-- [ ] T-069 | spec:002 | phase:2 | priority: critical | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-066 | parallel: yes | est: 3m
+- [x] T-069 | spec:002 | phase:2 | priority: critical | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-066 | parallel: yes | est: 3m | completed: 2026-05-29
       summary: Fix overnight-build.yml cost-cap fallback inversion — warn-and-continue when JSON missing (AC-11)
       files: .claude/routines/overnight-build.yml
       accept: grep -q 'warning' .claude/routines/overnight-build.yml
       owner: implementer
 
-- [ ] T-070 | spec:002 | phase:2 | priority: critical | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-066 | parallel: yes | est: 5m
+- [x] T-070 | spec:002 | phase:2 | priority: critical | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-066 | parallel: yes | est: 5m | completed: 2026-05-29
       summary: Harden merge-gate.yml first-run with 7-day bound + inline semgrep+gitleaks fallback (AC-10)
       files: .github/workflows/merge-gate.yml
       accept: grep -q '7.*day\|seven.*day\|semgrep\|gitleaks' .github/workflows/merge-gate.yml
       owner: implementer
 
-- [ ] T-071 | spec:002 | phase:2 | priority: critical | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-066 | parallel: yes | est: 4m
+- [x] T-071 | spec:002 | phase:2 | priority: critical | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-066 | parallel: yes | est: 4m | completed: 2026-05-29
       summary: Add harness-version drift check to session-heartbeat.sh (AC-12)
       files: .claude/hooks/session-heartbeat.sh
       accept: grep -q 'harness.version.drift\|VERSION\|drift' .claude/hooks/session-heartbeat.sh
       owner: implementer
 
-- [ ] T-072 | spec:002 | phase:2 | priority: critical | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-066 | parallel: yes | est: 5m
+- [x] T-072 | spec:002 | phase:2 | priority: critical | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-066 | parallel: yes | est: 5m | completed: 2026-05-29
       summary: Create initiatives/ layer — dir scaffold, template, /initiative command, session-end.sh update (AC-13)
       files: initiatives/active/.gitkeep, initiatives/templates/initiative.md, .claude/commands/initiative.md, .claude/hooks/session-end.sh
       accept: test -d initiatives/active && test -f initiatives/templates/initiative.md && test -f .claude/commands/initiative.md
       owner: implementer
 
-- [ ] T-073 | spec:002 | phase:2 | priority: critical | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-067, T-068, T-069, T-070, T-071, T-072 | parallel: no | est: 2m
+- [x] T-073 | spec:002 | phase:2 | priority: critical | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-067, T-068, T-069, T-070, T-071, T-072 | parallel: no | est: 2m | completed: 2026-05-29
       summary: Phase 2 exit — validate.sh clean with zero failures (Phase 2 exit)
       files: verify/2026-05-29-002/phase2-validate.log
       accept: bash .claude/scripts/validate.sh > verify/2026-05-29-002/phase2-validate.log 2>&1 && grep -c '✗' verify/2026-05-29-002/phase2-validate.log | grep -q '^0$'
@@ -545,49 +545,49 @@ End-to-end: T-001 → T-002 → T-005 → T-010 → T-014 → T-018 → T-022 �
 
 #### Phase 3 — Significant gaps (AC-14..AC-20) — priority: high
 
-- [ ] T-074 | spec:002 | phase:3 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-073 | parallel: yes | est: 2m
+- [x] T-074 | spec:002 | phase:3 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-073 | parallel: yes | est: 2m | completed: 2026-05-29
       summary: Remove gh issue view + gh api read entries from settings.json allow list (AC-20)
       files: .claude/settings.json
       accept: jq '.permissions.allow[]' .claude/settings.json | grep -qvE '"Bash\(gh (issue view|api)'
       owner: implementer
 
-- [ ] T-075 | spec:002 | phase:3 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-073 | parallel: yes | est: 3m
+- [x] T-075 | spec:002 | phase:3 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-073 | parallel: yes | est: 3m | completed: 2026-05-29
       summary: Dedup UserPromptSubmit — remove active-spec injection from user-prompt-context.sh (AC-18)
       files: .claude/hooks/user-prompt-context.sh
       accept: grep -cE 'active.spec|Active spec' .claude/hooks/user-prompt-context.sh | grep -q '^0$'
       owner: implementer
 
-- [ ] T-076 | spec:002 | phase:3 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-073 | parallel: yes | est: 4m
+- [x] T-076 | spec:002 | phase:3 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-073 | parallel: yes | est: 4m | completed: 2026-05-29
       summary: Expand workflow-state.sh phase detection from 5 to all 8 phases (AC-19)
       files: .claude/hooks/workflow-state.sh
       accept: grep -qE 'clarif|analyz|review' .claude/hooks/workflow-state.sh
       owner: implementer
 
-- [ ] T-077 | spec:002 | phase:3 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-073 | parallel: yes | est: 5m
+- [x] T-077 | spec:002 | phase:3 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-073 | parallel: yes | est: 5m | completed: 2026-05-29
       summary: Write docs/ADOPTION.md six-phase brownfield adoption guide (≥100 lines) (AC-16)
       files: docs/ADOPTION.md
       accept: test -f docs/ADOPTION.md && [ "$(wc -l < docs/ADOPTION.md)" -ge 100 ]
       owner: implementer
 
-- [ ] T-078 | spec:002 | phase:3 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-073 | parallel: yes | est: 5m
+- [x] T-078 | spec:002 | phase:3 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-073 | parallel: yes | est: 5m | completed: 2026-05-29
       summary: Write memory-promote.sh with ADR staleness detection and --dry-run mode (AC-17)
       files: .claude/scripts/memory-promote.sh
       accept: bash .claude/scripts/memory-promote.sh --dry-run; [ $? -eq 0 ]
       owner: implementer
 
-- [ ] T-079 | spec:002 | phase:3 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-073 | parallel: yes | est: 4m
+- [x] T-079 | spec:002 | phase:3 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-073 | parallel: yes | est: 4m | completed: 2026-05-29
       summary: Write stale-spec-check.yml GitHub Actions workflow (AC-14)
       files: .github/workflows/stale-spec-check.yml
       accept: test -f .github/workflows/stale-spec-check.yml && bash .claude/scripts/validate.sh 2>&1 | grep -qv 'stale-spec-check'
       owner: implementer
 
-- [ ] T-080 | spec:002 | phase:3 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-073 | parallel: yes | est: 4m
+- [x] T-080 | spec:002 | phase:3 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-073 | parallel: yes | est: 4m | completed: 2026-05-29
       summary: Add spec-archival cross-reference rewrite step to quarterly-archive.yml (AC-15)
       files: .github/workflows/quarterly-archive.yml
       accept: grep -qE 'specs/archive|sed.\*specs/active' .github/workflows/quarterly-archive.yml
       owner: implementer
 
-- [ ] T-081 | spec:002 | phase:3 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-074, T-075, T-076, T-077, T-078, T-079, T-080 | parallel: no | est: 2m
+- [x] T-081 | spec:002 | phase:3 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-074, T-075, T-076, T-077, T-078, T-079, T-080 | parallel: no | est: 2m | completed: 2026-05-29
       summary: Phase 3 exit — validate.sh clean (Phase 3 exit)
       files: verify/2026-05-29-002/phase3-validate.log
       accept: bash .claude/scripts/validate.sh > verify/2026-05-29-002/phase3-validate.log 2>&1 && grep -c '✗' verify/2026-05-29-002/phase3-validate.log | grep -q '^0$'
@@ -595,43 +595,43 @@ End-to-end: T-001 → T-002 → T-005 → T-010 → T-014 → T-018 → T-022 �
 
 #### Phase 4 — Memory hardening (AC-21..AC-25) — priority: high
 
-- [ ] T-082 | spec:002 | phase:4 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-081 | parallel: yes | est: 2m
+- [x] T-082 | spec:002 | phase:4 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-081 | parallel: yes | est: 2m
       summary: Add tdd_state fields to .swarms/templates/handoff.yaml (AC-25)
       files: .swarms/templates/handoff.yaml
       accept: grep -q 'tdd_phase\|tdd_state\|last_test_command' .swarms/templates/handoff.yaml
       owner: implementer
 
-- [ ] T-083 | spec:002 | phase:4 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-081 | parallel: yes | est: 4m
+- [x] T-083 | spec:002 | phase:4 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-081 | parallel: yes | est: 4m
       summary: Add witness-brief polling (90s max) to session-start-context.sh (AC-21)
       files: .claude/hooks/session-start-context.sh
       accept: grep -q 'pending\|poll\|witness' .claude/hooks/session-start-context.sh
       owner: implementer
 
-- [ ] T-084 | spec:002 | phase:4 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-081 | parallel: no | est: 5m
+- [x] T-084 | spec:002 | phase:4 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-081 | parallel: no | est: 5m
       summary: Rewrite memory-gc.sh enforce to evict by last_accessed not file position (AC-22)
       files: .claude/scripts/memory-gc.sh
       accept: bash .claude/scripts/memory-gc.sh --dry-run && grep -q 'last_accessed' .claude/scripts/memory-gc.sh
       owner: implementer
 
-- [ ] T-085 | spec:002 | phase:4 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-081 | parallel: yes | est: 4m
+- [x] T-085 | spec:002 | phase:4 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-081 | parallel: yes | est: 4m
       summary: Write dream-review.md slash-command with structured memory-diff output (AC-23)
       files: .claude/commands/dream-review.md
       accept: test -f .claude/commands/dream-review.md && grep -q 'memory-diff\|diff' .claude/commands/dream-review.md
       owner: implementer
 
-- [ ] T-086 | spec:002 | phase:4 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-081 | parallel: yes | est: 4m
+- [x] T-086 | spec:002 | phase:4 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-081 | parallel: yes | est: 4m
       summary: Add contradiction-detection step to dream skill (AC-24)
       files: .claude/skills/dream/SKILL.md
       accept: grep -q 'conflict\|contradict\|subsystem' .claude/skills/dream/SKILL.md
       owner: implementer
 
-- [ ] T-087 | spec:002 | phase:4 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-082 | parallel: no | est: 4m
+- [x] T-087 | spec:002 | phase:4 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-082 | parallel: no | est: 4m
       summary: Auto-populate tdd_state in subagent-stop.sh from WIP commit and bash.log (AC-25)
       files: .claude/hooks/subagent-stop.sh
       accept: grep -q 'tdd_phase\|WIP\|tdd_state' .claude/hooks/subagent-stop.sh
       owner: implementer
 
-- [ ] T-088 | spec:002 | phase:4 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-082, T-083, T-084, T-085, T-086, T-087 | parallel: no | est: 2m
+- [x] T-088 | spec:002 | phase:4 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-082, T-083, T-084, T-085, T-086, T-087 | parallel: no | est: 2m
       summary: Phase 4 exit — validate.sh clean (Phase 4 exit)
       files: verify/2026-05-29-002/phase4-validate.log
       accept: bash .claude/scripts/validate.sh > verify/2026-05-29-002/phase4-validate.log 2>&1 && grep -c '✗' verify/2026-05-29-002/phase4-validate.log | grep -q '^0$'
@@ -639,37 +639,37 @@ End-to-end: T-001 → T-002 → T-005 → T-010 → T-014 → T-018 → T-022 �
 
 #### Phase 5 — Security gap closures (AC-26..AC-30) — priority: high
 
-- [ ] T-089 | spec:002 | phase:5 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-088 | parallel: yes | est: 4m
+- [x] T-089 | spec:002 | phase:5 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-088 | parallel: yes | est: 4m
       summary: Pin context7 and replicate in .mcp.json + extend validate.sh bare-name check (AC-29)
       files: .mcp.json, .claude/scripts/validate.sh
       accept: bash .claude/scripts/validate.sh 2>&1 | grep -cvE '(bare-name|@latest).\*context7|replicate' | grep -q '^0$'
       owner: implementer
 
-- [ ] T-090 | spec:002 | phase:5 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-088 | parallel: yes | est: 3m
+- [x] T-090 | spec:002 | phase:5 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-088 | parallel: yes | est: 3m
       summary: Expand PII scrubber in pre-write-secret-scan.sh to cover OVERNIGHT_REPORT.md + verify/ paths (AC-30)
       files: .claude/hooks/pre-write-secret-scan.sh
       accept: grep -q 'OVERNIGHT_REPORT\|verify/' .claude/hooks/pre-write-secret-scan.sh
       owner: implementer
 
-- [ ] T-091 | spec:002 | phase:5 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-088 | parallel: yes | est: 4m
+- [x] T-091 | spec:002 | phase:5 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-088 | parallel: yes | est: 4m
       summary: Add version pins and provenance check to install-plugins.sh (AC-28)
       files: .claude/scripts/install-plugins.sh
       accept: grep -cE 'claude plugin install [^ ]+$' .claude/scripts/install-plugins.sh | grep -q '^0$'
       owner: implementer
 
-- [ ] T-092 | spec:002 | phase:5 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-088 | parallel: yes | est: 5m
+- [x] T-092 | spec:002 | phase:5 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-088 | parallel: yes | est: 5m
       summary: Extend pre-spawn-cost-gate.sh to apply cost cap on Agent and Task tool spawns (AC-27)
       files: .claude/hooks/pre-spawn-cost-gate.sh
       accept: grep -q 'Agent\|Task' .claude/hooks/pre-spawn-cost-gate.sh && grep -q 'monthly_cap\|cost_cap' .claude/hooks/pre-spawn-cost-gate.sh
       owner: implementer
 
-- [ ] T-093 | spec:002 | phase:5 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-088 | parallel: no | est: 5m
+- [x] T-093 | spec:002 | phase:5 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-088 | parallel: no | est: 5m | completed: 2026-05-29
       summary: Narrow Write(./\*\*) blanket in settings.json to explicit per-dir allows + extend constitution-guard deny-list (AC-26)
       files: .claude/settings.json, .claude/hooks/pre-edit-constitution-guard.sh
       accept: jq '.permissions.allow[]' .claude/settings.json | grep -qv '"Write(\.\\/\*\*)"' && grep -q 'tasks/TASKS\|specs/active' .claude/hooks/pre-edit-constitution-guard.sh
       owner: implementer
 
-- [ ] T-094 | spec:002 | phase:5 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-089, T-090, T-091, T-092, T-093 | parallel: no | est: 2m
+- [x] T-094 | spec:002 | phase:5 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-089, T-090, T-091, T-092, T-093 | parallel: no | est: 2m
       summary: Phase 5 exit — validate.sh clean + security re-verify (Phase 5 exit)
       files: verify/2026-05-29-002/phase5-validate.log
       accept: bash .claude/scripts/validate.sh > verify/2026-05-29-002/phase5-validate.log 2>&1 && grep -c '✗' verify/2026-05-29-002/phase5-validate.log | grep -q '^0$'
@@ -677,49 +677,49 @@ End-to-end: T-001 → T-002 → T-005 → T-010 → T-014 → T-018 → T-022 �
 
 #### Phase 6 — claw-code adoptions (AC-31..AC-36) — priority: medium
 
-- [ ] T-095 | spec:002 | phase:6 | priority: medium | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-094 | parallel: yes | est: 5m
+- [x] T-095 | spec:002 | phase:6 | priority: medium | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-094 | parallel: yes | est: 5m
       summary: Add workspace fingerprint + state.json writes + workspace.mismatch event to session-heartbeat.sh (AC-31, AC-33)
       files: .claude/hooks/session-heartbeat.sh, .swarms/streams/.gitkeep
       accept: grep -q 'WORKSPACE_FP\|state.json\|fingerprint' .claude/hooks/session-heartbeat.sh
       owner: implementer
 
-- [ ] T-096 | spec:002 | phase:6 | priority: medium | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-094 | parallel: yes | est: 3m
+- [x] T-096 | spec:002 | phase:6 | priority: medium | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-094 | parallel: yes | est: 3m
       summary: Update coordinator.md to gate dispatch on state == ready_for_prompt (AC-31)
       files: .claude/agents/core/coordinator.md
       accept: grep -q 'ready_for_prompt\|state.json' .claude/agents/core/coordinator.md
       owner: implementer
 
-- [ ] T-097 | spec:002 | phase:6 | priority: medium | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-094 | parallel: yes | est: 5m
+- [x] T-097 | spec:002 | phase:6 | priority: medium | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-094 | parallel: yes | est: 5m
       summary: Extend post-bash-log.sh with typed JSONL lane events and error.kind enum (AC-32)
       files: .claude/hooks/post-bash-log.sh
       accept: grep -q 'lane.started\|error.kind\|retryable' .claude/hooks/post-bash-log.sh
       owner: implementer
 
-- [ ] T-098 | spec:002 | phase:6 | priority: medium | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-097 | parallel: no | est: 4m
+- [x] T-098 | spec:002 | phase:6 | priority: medium | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-097 | parallel: no | est: 4m
       summary: Rewrite requeue-failed.sh to read JSONL lane events instead of free-text (AC-32)
       files: .claude/scripts/requeue-failed.sh
       accept: grep -q 'jsonl\|jq\|lane' .claude/scripts/requeue-failed.sh
       owner: implementer
 
-- [ ] T-099 | spec:002 | phase:6 | priority: medium | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-094 | parallel: yes | est: 3m
+- [x] T-099 | spec:002 | phase:6 | priority: medium | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-094 | parallel: yes | est: 3m
       summary: Add branch-freshness preflight to verify.sh (AC-34)
       files: .claude/scripts/verify.sh
       accept: grep -q 'branch.stale\|merge-base\|SKIP_BRANCH_CHECK' .claude/scripts/verify.sh
       owner: implementer
 
-- [ ] T-100 | spec:002 | phase:6 | priority: medium | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-094 | parallel: yes | est: 5m
+- [x] T-100 | spec:002 | phase:6 | priority: medium | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-094 | parallel: yes | est: 5m
       summary: Write harness-doctor.sh with --json flag + extend harness-validate.yml to upload artifact (AC-35)
       files: .claude/scripts/harness-doctor.sh, .github/workflows/harness-validate.yml
       accept: bash .claude/scripts/harness-doctor.sh --json | jq . > /dev/null && [ $? -eq 0 ]
       owner: implementer
 
-- [ ] T-101 | spec:002 | phase:6 | priority: medium | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-094 | parallel: yes | est: 4m
+- [x] T-101 | spec:002 | phase:6 | priority: medium | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-094 | parallel: yes | est: 4m
       summary: Write anti-slop-reviewer.md agent + wire warn-only into pr-review.yml (AC-36)
       files: .claude/agents/quality/anti-slop-reviewer.md, .github/workflows/pr-review.yml
       accept: test -f .claude/agents/quality/anti-slop-reviewer.md && grep -q 'anti-slop\|triage' .github/workflows/pr-review.yml
       owner: implementer
 
-- [ ] T-102 | spec:002 | phase:6 | priority: medium | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-095, T-096, T-097, T-098, T-099, T-100, T-101 | parallel: no | est: 2m
+- [x] T-102 | spec:002 | phase:6 | priority: medium | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-095, T-096, T-097, T-098, T-099, T-100, T-101 | parallel: no | est: 2m
       summary: Phase 6 exit — validate.sh clean (Phase 6 exit)
       files: verify/2026-05-29-002/phase6-validate.log
       accept: bash .claude/scripts/validate.sh > verify/2026-05-29-002/phase6-validate.log 2>&1 && grep -c '✗' verify/2026-05-29-002/phase6-validate.log | grep -q '^0$'
@@ -727,31 +727,31 @@ End-to-end: T-001 → T-002 → T-005 → T-010 → T-014 → T-018 → T-022 �
 
 #### Phase 7 — Meta-evolution discipline (AC-37) — priority: medium
 
-- [ ] T-103 | spec:002 | phase:7 | priority: medium | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-102 | parallel: yes | est: 4m
+- [x] T-103 | spec:002 | phase:7 | priority: medium | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-102 | parallel: yes | est: 4m
       summary: Write constitution-compact/SKILL.md with 300-line cap discipline (AC-37)
       files: .claude/skills/constitution-compact/SKILL.md
       accept: test -f .claude/skills/constitution-compact/SKILL.md && grep -q '300\|compact\|archiv' .claude/skills/constitution-compact/SKILL.md
       owner: implementer
 
-- [ ] T-104 | spec:002 | phase:7 | priority: medium | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-102 | parallel: yes | est: 3m
+- [x] T-104 | spec:002 | phase:7 | priority: medium | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-102 | parallel: yes | est: 3m
       summary: Write constitution-compact-cron.yml quarterly routine (AC-37)
       files: .claude/routines/constitution-compact-cron.yml
       accept: test -f .claude/routines/constitution-compact-cron.yml && grep -q 'constitution-diff\|proposed' .claude/routines/constitution-compact-cron.yml
       owner: implementer
 
-- [ ] T-105 | spec:002 | phase:7 | priority: medium | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-102 | parallel: yes | est: 3m
+- [x] T-105 | spec:002 | phase:7 | priority: medium | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-102 | parallel: yes | est: 3m
       summary: Add constitution-size check (≤300 lines) to validate.sh (AC-37)
       files: .claude/scripts/validate.sh
       accept: bash .claude/scripts/validate.sh 2>&1 | grep -q 'constitution'
       owner: implementer
 
-- [ ] T-106 | spec:002 | phase:7 | priority: medium | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-103, T-104, T-105 | parallel: no | est: 5m
+- [x] T-106 | spec:002 | phase:7 | priority: medium | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-103, T-104, T-105 | parallel: no | est: 5m
       summary: Run constitution-compact skill manually — produce .claude/memory.proposed/constitution-diff.md (AC-37 manual step)
       files: .claude/memory.proposed/constitution-diff.md
       accept: test -f .claude/memory.proposed/constitution-diff.md && wc -l .claude/CLAUDE.md | awk '{exit ($1 > 300)}'
       owner: implementer
 
-- [ ] T-107 | spec:002 | phase:7 | priority: medium | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-106 | parallel: no | est: 2m
+- [x] T-107 | spec:002 | phase:7 | priority: medium | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-106 | parallel: no | est: 2m
       summary: Phase 7 exit — validate.sh clean + constitution ≤300 lines (Phase 7 exit)
       files: verify/2026-05-29-002/phase7-validate.log
       accept: bash .claude/scripts/validate.sh > verify/2026-05-29-002/phase7-validate.log 2>&1 && [ "$(wc -l < .claude/CLAUDE.md)" -le 300 ]
@@ -759,19 +759,19 @@ End-to-end: T-001 → T-002 → T-005 → T-010 → T-014 → T-018 → T-022 �
 
 #### Phase 8 — Exit gates (AC-38..AC-40) — priority: low
 
-- [ ] T-108 | spec:002 | phase:8 | priority: low | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-107 | parallel: no | est: 3m
+- [x] T-108 | spec:002 | phase:8 | priority: low | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-107 | parallel: no | est: 3m
       summary: Run full validate.sh and capture to verify/2026-05-29-002/validate-exit.log (AC-38)
       files: verify/2026-05-29-002/validate-exit.log
       accept: test -f verify/2026-05-29-002/validate-exit.log && grep -c '✗' verify/2026-05-29-002/validate-exit.log | grep -q '^0$'
       owner: implementer
 
-- [ ] T-109 | spec:002 | phase:8 | priority: low | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-108 | parallel: no | est: 3m
+- [x] T-109 | spec:002 | phase:8 | priority: low | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-108 | parallel: no | est: 3m
       summary: Run harness-doctor.sh --json and capture to verify/2026-05-29-002/doctor-exit.json (AC-39)
       files: verify/2026-05-29-002/doctor-exit.json
       accept: bash .claude/scripts/harness-doctor.sh --json | jq '[.[] | select(.status=="fail")] | length' | grep -q '^0$'
       owner: implementer
 
-- [ ] T-110 | spec:002 | phase:8 | priority: low | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-108, T-109 | parallel: no | est: 3m
+- [x] T-110 | spec:002 | phase:8 | priority: low | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-108, T-109 | parallel: no | est: 3m
       summary: Run collect-evidence.sh 002 and emit verify/2026-05-29-002/REPORT.md (AC-40)
       files: verify/2026-05-29-002/REPORT.md
       accept: test -f verify/2026-05-29-002/REPORT.md && grep -q 'AC-40' verify/2026-05-29-002/REPORT.md
@@ -791,6 +791,125 @@ Phase 7 (medium): T-103 ‖ T-104 ‖ T-105 → T-106 → T-107
 Phase 8 (low): T-108 → T-109 → T-110
 
 End-to-end critical path: T-059 → T-063 → T-066 → T-073 → T-081 → T-088 → T-094 → T-102 → T-107 → T-108 → T-109 → T-110
+
+## Spec 003 — Audit Round-2 Remediation (T-111..T-128)
+
+#### Phase 1 — Gate enforceability (AC-1..AC-4) — priority: critical
+
+- [x] T-111 | spec:003 | phase:1 | priority: critical | created: 2026-05-29 | last*touched: 2026-05-29 | deps: none | parallel: no | est: 5m
+      summary: verify.sh honors SKIP*\* only when .claude/state/allow-skip-gates marker exists; else ignore + run gate (AC-1)
+      files: .claude/scripts/verify.sh, .gitignore
+      accept: bash verify/2026-05-29-003/T-111-accept.sh
+      owner: implementer
+- [x] T-112 | spec:003 | phase:1 | priority: critical | created: 2026-05-29 | last*touched: 2026-05-29 | deps: T-111 | parallel: no | est: 3m
+      summary: verify.sh prints active SKIP*\* set to stdout + evidence bundle on every run (AC-2)
+      files: .claude/scripts/verify.sh
+      accept: bash verify/2026-05-29-003/T-112-accept.sh
+      owner: implementer
+- [x] T-113 | spec:003 | phase:1 | priority: critical | created: 2026-05-29 | last_touched: 2026-05-29 | deps: none | parallel: yes | est: 5m
+      summary: add server-side TDD-ledger re-check step to harness-validate.yml (tracked verify/ only; warn on untracked) (AC-3) [operator-apply: .github/workflows]
+      files: .github/workflows/harness-validate.yml, .claude/scripts/check-tdd-ledger.sh
+      accept: bash verify/2026-05-29-003/T-113-accept.sh
+      owner: implementer
+- [x] T-114 | spec:003 | phase:1 | priority: critical | created: 2026-05-29 | last_touched: 2026-05-29 | deps: none | parallel: yes | est: 5m
+      summary: evidence-gate.yml fails when no evidence.json committed; drive verdict from JSON not PR-body prose; add no-ac.json sentinel for doc PRs (AC-4) [operator-apply: .github/workflows]
+      files: .github/workflows/evidence-gate.yml
+      accept: bash verify/2026-05-29-003/T-114-accept.sh
+      owner: implementer
+- [x] T-115 | spec:003 | phase:1 | priority: critical | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-111, T-112, T-113, T-114 | parallel: no | est: 2m
+      summary: phase-1 exit — paired red/green ledger for T-111..T-114
+      accept: ls verify/2026-05-29-003/T-111/green.log verify/2026-05-29-003/T-114/green.log
+      owner: implementer
+
+#### Phase 2 — Permission hardening (AC-5..AC-7) — priority: high
+
+- [x] T-116 | spec:003 | phase:2 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: none | parallel: no | est: 5m
+      summary: scope bare Edit to per-dir Edit(<dir>/\*\*) mirroring Write set + named root files (AC-5) [operator-apply: settings.json]
+      files: .claude/settings.json
+      accept: bash verify/2026-05-29-003/T-116-accept.sh
+      owner: implementer
+- [x] T-117 | spec:003 | phase:2 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-116 | parallel: no | est: 3m
+      summary: add Write(initiatives/**), Write(.claude/rules/**), Write(OVERNIGHT_REPORT.md|ADOPTION-REPORT.md|roadmap.md|OKRs.md) + ./initiatives to additionalDirectories (AC-6) [operator-apply: settings.json]
+      files: .claude/settings.json
+      accept: bash verify/2026-05-29-003/T-117-accept.sh
+      owner: implementer
+- [x] T-118 | spec:003 | phase:2 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-116 | parallel: no | est: 5m
+      summary: close credential deny-list gaps (p12/pfx/.npmrc/.netrc/.git-credentials/.kdbx/.pypirc/kubeconfig/.docker config + tfstate&aws-creds read) for BOTH Read and Write; extend validate.sh security check (AC-7) [operator-apply: settings.json]
+      files: .claude/settings.json, .claude/scripts/validate.sh
+      accept: bash verify/2026-05-29-003/T-118-accept.sh
+      owner: implementer
+- [x] T-119 | spec:003 | phase:2 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-116, T-117, T-118 | parallel: no | est: 2m
+      summary: phase-2 exit — validate.sh clean after permission edits
+      accept: bash .claude/scripts/validate.sh 2>&1 | tail -1 | grep -q 'passed'
+      owner: implementer
+
+#### Phase 3 — Sandbox + MCP containment (AC-8..AC-10) — priority: high
+
+- [x] T-120 | spec:003 | phase:3 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: none | parallel: no | est: 5m
+      summary: remove inert permissions.sandbox block; wire real runtime sandbox (--sandbox flag) in overnight-build.yml; document in AUTOPILOT.md; correct CLAUDE.md §X/§XI (AC-8) [operator-apply: settings.json + constitution]
+      files: .claude/settings.json, docs/AUTOPILOT.md, .claude/routines/overnight-build.yml, .claude/CLAUDE.md, CLAUDE.md
+      accept: bash verify/2026-05-29-003/T-120-accept.sh
+      owner: implementer
+- [x] T-121 | spec:003 | phase:3 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: none | parallel: yes | est: 4m
+      summary: scope filesystem MCP root away from secrets OR document the deny-list bypass + mitigation in CLAUDE.md §X; pin filesystem+git alwaysLoad servers; extend validate.sh (AC-9, AC-10) [operator-apply: .mcp.json + constitution]
+      files: .mcp.json, .claude/CLAUDE.md, .claude/scripts/validate.sh
+      accept: bash verify/2026-05-29-003/T-121-accept.sh
+      owner: implementer
+- [x] T-122 | spec:003 | phase:3 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-120, T-121 | parallel: no | est: 2m
+      summary: phase-3 exit — validate.sh clean; sandbox block absent
+      accept: jq -e '.permissions.sandbox == null' .claude/settings.json
+      owner: implementer
+
+#### Phase 4 — Supply-chain + config drift (AC-11..AC-14) — priority: high
+
+- [x] T-123 | spec:003 | phase:4 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: none | parallel: yes | est: 3m
+      summary: bump claude-review.yml + claude-security.yml model: to claude-opus-4-8 (AC-11) [operator-apply: .github/workflows]
+      files: .github/workflows/claude-review.yml, .github/workflows/claude-security.yml
+      accept: bash verify/2026-05-29-003/T-123-accept.sh
+      owner: implementer
+- [x] T-124 | spec:003 | phase:4 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-123 | parallel: yes | est: 4m
+      summary: extend check-model-consistency.sh to flag opus-4-7 / Opus 4.7 in .github/workflows/** and docs/** (AC-12)
+      files: .claude/scripts/check-model-consistency.sh
+      accept: bash verify/2026-05-29-003/T-124-accept.sh
+      owner: implementer
+- [x] T-125 | spec:003 | phase:4 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: none | parallel: yes | est: 3m
+      summary: fix worktree.baseRef to schema-valid value + remove/relocate symlinkDirectories so neither is silently dropped (AC-13) [operator-apply: settings.json]
+      files: .claude/settings.json
+      accept: bash verify/2026-05-29-003/T-125-accept.sh
+      owner: implementer
+- [x] T-126 | spec:003 | phase:4 | priority: high | created: 2026-05-29 | last_touched: 2026-05-29 | deps: none | parallel: yes | est: 5m
+      summary: add validate.sh category — every main-protection.json required context maps to a PR-triggered job with no paths-filter/unconditional-skip (AC-14, root-cause guard for round-1 deadlock)
+      files: .claude/scripts/validate.sh
+      accept: bash verify/2026-05-29-003/T-126-accept.sh
+      owner: implementer
+
+#### Phase 5 — Lifecycle correctness (AC-15..AC-17) — priority: medium
+
+- [x] T-127 | spec:003 | phase:5 | priority: medium | created: 2026-05-29 | last_touched: 2026-05-29 | deps: none | parallel: no | est: 5m
+      summary: add spec-status-sync.sh (approved→shipped when all spec tasks done); call from post-write-roadmap.sh on TASKS.md change; ship specs 001+002; tighten stale-spec-check.yml to flag 100%-complete approved specs (AC-15, AC-16, AC-17)
+      files: .claude/scripts/spec-status-sync.sh, .claude/hooks/post-write-roadmap.sh, specs/active/001-harness-hardening.md, specs/active/002-audit-remediation.md, .github/workflows/stale-spec-check.yml
+      accept: bash verify/2026-05-29-003/T-127-accept.sh
+      owner: implementer
+
+#### Phase 6 — Verification + exit (AC-18) — priority: medium
+
+- [x] T-128 | spec:003 | phase:6 | priority: medium | created: 2026-05-29 | last_touched: 2026-05-29 | deps: T-115, T-119, T-122, T-126, T-127 | parallel: no | est: 4m
+      summary: full validate.sh clean + harness-doctor + write verify/2026-05-29-003/REPORT.md mapping each AC to PASS evidence (AC-18)
+      files: verify/2026-05-29-003/REPORT.md
+      accept: bash .claude/scripts/validate.sh 2>&1 | tail -1 | grep -q passed && test -f verify/2026-05-29-003/REPORT.md
+      owner: implementer
+
+## Spec 003 critical path
+
+Phase 1 (critical): T-111 → T-112 ‖ (T-113 ‖ T-114) → T-115
+Phase 2 (high): T-116 → T-117 ‖ T-118 → T-119
+Phase 3 (high): T-120 ‖ T-121 → T-122
+Phase 4 (high): T-123 → T-124 ‖ T-125 ‖ T-126
+Phase 5 (medium): T-127
+Phase 6 (medium): T-128
+
+End-to-end critical path: T-111 → T-115 → T-119 → T-122 → T-126 → T-128
+Operator-apply tasks (settings.json / .github / constitution): T-113, T-114, T-116, T-117, T-118, T-120, T-121, T-123, T-125
 
 ## Archive
 

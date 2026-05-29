@@ -4,11 +4,11 @@ name: Harness Validate
 # JSON, bad hook scripts, and missing executable bits.
 
 on:
+  # No pull_request paths filter: this job is a REQUIRED merge gate in
+  # .github/rulesets/main-protection.json. A paths-filtered required check
+  # never reports on PRs that miss the filter and wedges them pending-forever.
+  # The lint is cheap (shell + jq), so run it on every PR to main.
   pull_request:
-    paths:
-      - ".claude/**"
-      - ".mcp.json"
-      - ".github/workflows/**"
   push:
     branches: [main]
     paths:
@@ -19,7 +19,7 @@ permissions:
   contents: read
 
 jobs:
-  validate:
+  harness-validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -51,7 +51,7 @@ jobs:
           done
 
       - name: Shellcheck on hooks
-        uses: ludeeus/action-shellcheck@master
+        uses: ludeeus/action-shellcheck@00b27aa7cb85167568cb48a3838b75f4265f2bca # master 2026-05-29
         with:
           scandir: .claude/hooks
 
@@ -87,3 +87,6 @@ jobs:
           jq -e '.count >= 0 and (.last_pivot_attempt | type == "number")' "$state" >/dev/null
           bash .claude/scripts/test/loop-control.sh
           bash .claude/scripts/test/oq-aging.sh
+
+      - name: TDD ledger gate (server-side — SKIP_* cannot apply here)
+        run: bash .claude/scripts/check-tdd-ledger.sh

@@ -1,0 +1,6 @@
+# TDD ledger — red — T-028
+timestamp: 2026-05-29T01:54:08+10:00
+command: test -x .claude/scripts/check-model-consistency.sh && bash .claude/scripts/test/check-model-consistency.sh
+exit_code: 1
+---
+

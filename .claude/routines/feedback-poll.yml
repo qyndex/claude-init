@@ -25,7 +25,7 @@ permission_mode: auto
 # for consistency; hooks still fire first.
 
 model: claude-sonnet-4-6     # extraction/summarization — Sonnet suffices
-fallback_model: claude-opus-4-7
+fallback_model: claude-opus-4-8
 
 budgets:
   max_wall_clock_minutes: 10

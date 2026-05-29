@@ -1,0 +1,6 @@
+# TDD ledger — green — T-034
+timestamp: 2026-05-29T01:58:35+10:00
+command: grep -qE 'overnight-build\.yml' docs/AUTOPILOT.md && grep -qE 'wall_clock|cost_cap|turn' .claude/routines/overnight-build.yml
+exit_code: 0
+---
+

@@ -1,0 +1,6 @@
+# TDD ledger — red — T-039
+timestamp: 2026-05-29T02:07:50+10:00
+command: grep -qE 'lane\.(red|green|blocked)' .claude/hooks/post-bash-log.sh && grep -q '.swarms/events/' .claude/hooks/post-bash-log.sh
+exit_code: 1
+---
+

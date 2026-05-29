@@ -1,0 +1,6 @@
+# TDD ledger — red — T-044
+timestamp: 2026-05-29T02:16:15+10:00
+command: grep -q 'anti-slop-reviewer' .github/workflows/claude-review.yml && grep -q 'human-author' .github/workflows/claude-review.yml
+exit_code: 1
+---
+

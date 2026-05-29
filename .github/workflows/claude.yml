@@ -40,7 +40,7 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          model: claude-opus-4-7
+          model: claude-opus-4-8
           additional_permissions: |
             actions: read
           trigger_phrases: |

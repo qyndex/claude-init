@@ -1,0 +1,8 @@
+# TDD ledger — green — T-053
+timestamp: 2026-05-29T02:47:00+10:00
+command: test -x .claude/scripts/audit-doc-claims.sh && bash .claude/scripts/test/audit-doc-claims.sh
+exit_code: 0
+---
+---
+passed: 2
+failed: 0

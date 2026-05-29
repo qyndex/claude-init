@@ -1,0 +1,6 @@
+# TDD ledger — red — T-007
+timestamp: 2026-05-29T00:56:42+10:00
+command: jq -e '.rules[] | select(.type == "required_status_checks") | .parameters.required_status_checks[]?.context // .parameters.required_checks[]?.context' .github/rulesets/main-protection.json | grep -q evidence-gate
+exit_code: 1
+---
+
