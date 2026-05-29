@@ -63,7 +63,7 @@ No preamble. Just the brief.'
   nohup bash -c "
     tmp=\"${brief_file}.tmp\"
     set -uo pipefail
-    # JUSTIFIED: best-effort witness generation in a detached background job — a vanished transcript or timed-out/absent claude CLI yields an empty brief; the `if [ -n "$brief" ]` check below handles that without overwriting the synchronous git snapshot
+    # JUSTIFIED: best-effort witness generation in a detached background job. A vanished transcript or timed-out/absent claude CLI yields an empty brief; the non-empty brief check below handles that without overwriting the synchronous git snapshot.
     brief=\$(tail -200 '$transcript_path' 2>/dev/null | \\
             timeout 120 claude -p --bare --append-system-prompt \"$witness_prompt\" \\
               'Write the recovery brief now based on the transcript I just gave you.' 2>/dev/null || echo '')
@@ -78,7 +78,7 @@ No preamble. Just the brief.'
         echo '## Fallback git snapshot'
         echo
         echo '### Branch'
-        # JUSTIFIED: detached HEAD / non-repo — "detached" is the intended fallback for the snapshot header
+        # JUSTIFIED: detached HEAD / non-repo falls back to the literal detached marker for the snapshot header
         git symbolic-ref --short HEAD 2>/dev/null || echo detached
         echo
         echo '### Uncommitted'
