@@ -27,7 +27,7 @@ jobs:
       PERMALINK: ${{ github.event.client_payload.permalink }}
       SOURCE: ${{ github.event.client_payload.source }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 

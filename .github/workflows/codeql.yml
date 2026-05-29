@@ -29,7 +29,7 @@ jobs:
         # Trim per project: keep only the languages actually present.
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Detect language presence
         id: detect
@@ -57,17 +57,17 @@ jobs:
 
       - name: Initialize CodeQL
         if: steps.detect.outputs.present == 'true'
-        uses: github/codeql-action/init@v3
+        uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.language }}
           queries: security-extended
 
       - name: Autobuild
         if: steps.detect.outputs.present == 'true'
-        uses: github/codeql-action/autobuild@v3
+        uses: github/codeql-action/autobuild@v4
 
       - name: Perform analysis
         if: steps.detect.outputs.present == 'true'
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/analyze@v4
         with:
           category: "/language:${{ matrix.language }}"

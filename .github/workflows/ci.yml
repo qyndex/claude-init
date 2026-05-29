@@ -23,7 +23,7 @@ jobs:
       stack: ${{ steps.detect.outputs.stack }}
       pm: ${{ steps.detect.outputs.pm }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - id: detect
         run: |
           set -e
@@ -46,30 +46,30 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
       - name: Setup Node
         if: needs.detect.outputs.stack == 'node'
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version-file: package.json
 
       - name: Setup pnpm
         if: needs.detect.outputs.pm == 'pnpm'
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@v6
         with: { run_install: false }
 
       - name: Setup Python
         if: needs.detect.outputs.stack == 'python'
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version-file: pyproject.toml
 
       - name: Setup uv
         if: needs.detect.outputs.pm == 'uv'
-        uses: astral-sh/setup-uv@v3
+        uses: astral-sh/setup-uv@v7
 
       - name: Setup Rust
         if: needs.detect.outputs.stack == 'rust'
@@ -77,7 +77,7 @@ jobs:
 
       - name: Setup Go
         if: needs.detect.outputs.stack == 'go'
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with: { go-version-file: go.mod }
 
       - name: Install
@@ -118,7 +118,7 @@ jobs:
 
       - name: Upload coverage
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage
           path: |
