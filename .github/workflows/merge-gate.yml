@@ -20,6 +20,8 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # AC-10: need full history to compute repo-init age
 
       - name: Verify daily-batch is recent and green
         env:
@@ -33,7 +35,36 @@ jobs:
             --jq '.[0]')
 
           if [ -z "$most_recent" ] || [ "$most_recent" = "null" ]; then
-            echo "::warning::No daily-batch runs yet. First-run allowance."
+            # AC-10: first-run allowance is BOUNDED to 7 days from repo init, and
+            # even within that window it runs an INLINE security scan rather than
+            # warn-and-pass. After 7 days, no daily-batch == hard block.
+            first_commit=$(git log --reverse --format=%aI | head -1)
+            init_epoch=$(date -d "$first_commit" +%s 2>/dev/null || date -j -f '%Y-%m-%dT%H:%M:%S%z' "$first_commit" +%s 2>/dev/null || echo 0)
+            init_age_days=$(( ($(date +%s) - init_epoch) / 86400 ))
+            echo "No daily-batch runs yet. Repo init age: ${init_age_days}d (first-run window: 7d)."
+
+            if [ "$init_age_days" -gt 7 ]; then
+              echo "::error::No daily-batch has ever run and repo is ${init_age_days}d old (> 7-day first-run window). Trigger daily-batch via: gh workflow run daily-batch.yml"
+              exit 1
+            fi
+
+            echo "::warning::First-run window (<= 7 days): running inline semgrep + gitleaks fallback scan in place of daily-batch."
+            scan_fail=0
+            if command -v semgrep >/dev/null 2>&1; then
+              semgrep --config=auto --error . || scan_fail=1
+            else
+              pipx run semgrep --config=auto --error . || scan_fail=1
+            fi
+            if command -v gitleaks >/dev/null 2>&1; then
+              gitleaks detect --no-banner --redact || scan_fail=1
+            else
+              docker run --rm -v "$PWD:/repo" zricethezav/gitleaks:latest detect --source=/repo --no-banner --redact || scan_fail=1
+            fi
+            if [ "$scan_fail" -ne 0 ]; then
+              echo "::error::Inline first-run security scan found issues. Merge blocked. Fix findings or trigger a full daily-batch run."
+              exit 1
+            fi
+            echo "Inline first-run scan clean. First-run allowance granted."
             exit 0
           fi
 

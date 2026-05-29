@@ -1,16 +1,22 @@
 name: Canary Deploy
 
+# STUB — replace with project-specific deploy logic; see docs/DEPLOY-INTEGRATION.md
+#
 # Progressive deploy gate. Runs after build, before full rollout.
 # Reads slo.yml for per-service tier; T1 services require progressive deploy.
+#
+# The harness ships this as a STUB only: the steps below echo placeholders and
+# sleep. Deploy is Bring-Your-Own (BYO) — wire your platform (Argo Rollouts,
+# Flagger, AWS CodeDeploy, Vercel, Fly, etc.) following docs/DEPLOY-INTEGRATION.md.
 
 on:
   workflow_dispatch:
     inputs:
       service:
-        description: 'Service name (matches slo.yml entry)'
+        description: "Service name (matches slo.yml entry)"
         required: true
       sha:
-        description: 'Commit SHA to canary'
+        description: "Commit SHA to canary"
         required: true
 
 permissions:

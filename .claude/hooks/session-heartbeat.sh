@@ -136,6 +136,52 @@ if [ -n "$stream_id" ]; then
     }')
   # JUSTIFIED: write + mv errors muted — stream state is a per-turn side effect; a transient write failure must never block the prompt, and the next turn re-writes it
   printf '%s\n' "$stream_json" > "$stream_tmp" 2>/dev/null && mv "$stream_tmp" "$stream_state" 2>/dev/null
+
+  # ─── Spec 002 AC-12: harness-version drift detection ──────────────────────
+  # An in-flight feature-stream may be running an OLD snapshot of .claude/ while
+  # main has moved on. Compare the local .claude/ tree SHA against origin/main's
+  # and, on drift beyond DRIFT_THRESHOLD commits, emit a harness.version.drift
+  # lane event so the coordinator can decide whether to refresh the stream.
+  # Cached 5 min per workspace so we don't re-fetch on every turn.
+  drift_threshold="${HARNESS_DRIFT_THRESHOLD:-10}"
+  drift_cache="${session_dir}/.harness-sha.cache"
+  cache_fresh=0
+  if [ -f "$drift_cache" ]; then
+    # JUSTIFIED: stat error muted + 0 fallback — a missing/odd mtime forces a refresh, the safe default
+    cache_mtime=$(stat -f %m "$drift_cache" 2>/dev/null || stat -c %Y "$drift_cache" 2>/dev/null || echo 0)
+    if [ $(( $(date +%s) - cache_mtime )) -lt 300 ]; then
+      cache_fresh=1
+    fi
+  fi
+  if [ "$cache_fresh" -eq 0 ]; then
+    # JUSTIFIED: git errors muted — drift detection is best-effort telemetry; a fetch failure (offline) must never block the prompt, we simply skip this turn's check
+    git fetch --quiet origin main 2>/dev/null || true
+    local_sha="$(git rev-parse HEAD:.claude 2>/dev/null || echo "")"
+    main_sha="$(git rev-parse origin/main:.claude 2>/dev/null || echo "")"
+    if [ -n "$local_sha" ] && [ -n "$main_sha" ] && [ "$local_sha" != "$main_sha" ]; then
+      # Count commits on origin/main touching .claude/ since our merge-base.
+      base="$(git merge-base HEAD origin/main 2>/dev/null || echo "")"
+      drift_count=0
+      if [ -n "$base" ]; then
+        drift_count="$(git rev-list --count "${base}..origin/main" -- .claude 2>/dev/null || echo 0)"
+      fi
+      if [ "$drift_count" -gt "$drift_threshold" ]; then
+        mkdir -p .swarms/events
+        events_file=".swarms/events/${stream_id}.jsonl"
+        drift_event=$(jq -nc \
+          --arg ts "$now_iso" \
+          --arg stream_id "$stream_id" \
+          --arg local_sha "$local_sha" \
+          --arg main_sha "$main_sha" \
+          --argjson drift_count "$drift_count" \
+          '{ts:$ts, stream_id:$stream_id, event:"harness.version.drift", payload:{local_sha:$local_sha, main_sha:$main_sha, drift_count:$drift_count}}')
+        # JUSTIFIED: append error muted — lane events are append-only telemetry; a write failure must never block the prompt
+        printf '%s\n' "$drift_event" >> "$events_file" 2>/dev/null || true
+      fi
+    fi
+    # JUSTIFIED: touch error muted — the cache is a best-effort 5-min throttle; failure just means we re-check next turn
+    : > "$drift_cache" 2>/dev/null || true
+  fi
 fi
 
 # This hook does not emit additionalContext — it's purely a side effect.

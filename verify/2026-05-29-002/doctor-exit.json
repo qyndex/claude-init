@@ -1,0 +1,13 @@
+[
+{"check":".claude/CLAUDE.md exists","status":"pass","detail":""}
+,{"check":".claude/settings.json exists","status":"pass","detail":""}
+,{"check":".mcp.json exists","status":"pass","detail":""}
+,{"check":"tasks/TASKS.md exists","status":"pass","detail":""}
+,{"check":".claude/settings.json valid JSON","status":"pass","detail":""}
+,{"check":".mcp.json valid JSON","status":"pass","detail":""}
+,{"check":"disableBypassPermissionsMode=disable","status":"pass","detail":""}
+,{"check":"hooks executable","status":"pass","detail":""}
+,{"check":"constitution ≤300 lines","status":"pass","detail":"206 lines"}
+,{"check":"no @latest MCP pins","status":"pass","detail":""}
+,{"check":"handoff.yaml has tdd_state","status":"pass","detail":""}
+]
