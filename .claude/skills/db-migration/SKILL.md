@@ -1,6 +1,6 @@
 ---
 name: db-migration
-description: Expand/contract pattern for zero-downtime database schema changes. Replaces the (wrong) "forward-only by default" rule. The four-phase pattern: expand → backfill → cutover → contract.
+description: "Expand/contract pattern for zero-downtime database schema changes. Replaces the (wrong) \"forward-only by default\" rule. The four-phase pattern: expand → backfill → cutover → contract."
 when_to_use: A schema change is needed on a live database. Any DDL touching tables in production. User says "add a column", "rename a column", "change column type", "drop a column", "migration".
 allowed-tools: Read, Glob, Grep, Edit, Write, Bash
 model: opus

@@ -11,6 +11,15 @@ set -uo pipefail
 input=$(cat)
 path=$(printf '%s' "$input" | jq -r '.tool_input.file_path // .tool_input.path // ""')
 
+# Spec 003 AC-16: when tasks/TASKS.md changes, advance any spec whose tasks are
+# all done to status: shipped (mirrors the roadmap-state derivation pattern).
+case "$path" in
+  *tasks/TASKS.md|tasks/TASKS.md|./tasks/TASKS.md)
+    # JUSTIFIED: best-effort in a PostToolUse hook — a sync failure must never block the edit
+    bash "$(dirname "$0")/../scripts/spec-status-sync.sh" >/dev/null 2>&1 || true
+    ;;
+esac
+
 # Only fire on roadmap.md
 [ "$path" = "roadmap.md" ] || [ "$path" = "./roadmap.md" ] || exit 0
 [ -f roadmap.md ] || exit 0

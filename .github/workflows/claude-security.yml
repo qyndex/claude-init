@@ -4,9 +4,9 @@ name: Claude Security Review
 # audit on every PR. Re-verifies each finding to filter false positives.
 # https://github.com/anthropics/claude-code-security-review
 #
-# IMPORTANT: pinned to a tagged release (not @main) per the Round 3 security
-# audit M-S3 finding. If Anthropic publishes a new tag, bump it here with
-# Renovate/Dependabot rather than auto-tracking main.
+# IMPORTANT: pinned to a tagged release (never floating branch ref) per the
+# Round 3 security audit M-S3 finding. If Anthropic publishes a new tag, bump
+# it here with Renovate/Dependabot rather than auto-tracking trunk.
 
 on:
   pull_request:
@@ -31,13 +31,13 @@ jobs:
           fetch-depth: 0
 
       - name: Anthropic security review
-        # Pinned tag — bump via Renovate/Dependabot. Do NOT use @main.
+        # Pinned tag — bump via Renovate/Dependabot. Never use a floating branch ref.
         # If a stable tag isn't published yet, pin to a commit SHA:
         #   uses: anthropics/claude-code-security-review@<40-char SHA>
-        uses: anthropics/claude-code-security-review@v1
+        uses: anthropics/claude-code-security-review@0c6a49f1fa56a1d472575da86a94dbc1edb78eda # no stable tag published; pinned to main HEAD SHA
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          model: claude-opus-4-7
+          model: claude-opus-4-8
 
       - name: Gitleaks
         uses: gitleaks/gitleaks-action@v2

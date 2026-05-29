@@ -1,0 +1,102 @@
+name: Quarterly archive
+
+# AC-15: each quarter, move closed specs to specs/archive/<quarter>/ and
+# rewrite cross-references in tasks/TASKS.md + plans/active/*.md so paths
+# remain valid after the move.
+
+on:
+  schedule:
+    - cron: "0 6 1 1,4,7,10 *" # First day of each quarter at 06:00 UTC
+  workflow_dispatch:
+    inputs:
+      quarter:
+        description: "Quarter label e.g. 2026-Q1 (default: auto-derived)"
+        required: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  quarterly-archive:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Derive quarter label
+        id: quarter
+        run: |
+          if [ -n "${{ inputs.quarter }}" ]; then
+            echo "label=${{ inputs.quarter }}" >> "$GITHUB_OUTPUT"
+          else
+            year=$(date +%Y)
+            month=$(date +%-m)
+            q=$(( (month - 1) / 3 + 1 ))
+            echo "label=${year}-Q${q}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Archive completed specs
+        env:
+          QUARTER: ${{ steps.quarter.outputs.label }}
+        run: |
+          set -euo pipefail
+          archive_dir="specs/archive/${QUARTER}"
+          mkdir -p "$archive_dir"
+
+          moved=0
+          for spec in specs/active/*.md; do
+            [ -f "$spec" ] || continue
+            status=$(grep -m1 '^status:' "$spec" 2>/dev/null | sed 's/status:[[:space:]]*//' | tr -d '"' | xargs)
+            # Archive specs that are closed/shipped/archived/deprecated
+            case "$status" in
+              closed|shipped|archived|deprecated|done) ;;
+              *) continue ;;
+            esac
+
+            spec_file=$(basename "$spec")
+            mv "$spec" "${archive_dir}/${spec_file}"
+            echo "Archived: $spec -> ${archive_dir}/${spec_file}"
+
+            # AC-15: rewrite all cross-references from specs/active/<id> to specs/archive/<quarter>/<id>
+            old_ref="specs/active/${spec_file%.*}"
+            new_ref="specs/archive/${QUARTER}/${spec_file%.*}"
+            find tasks/ plans/active/ -name '*.md' -type f 2>/dev/null | while read -r ref_file; do
+              if grep -q "$old_ref" "$ref_file" 2>/dev/null; then
+                sed -i.bak "s|${old_ref}|${new_ref}|g" "$ref_file"
+                rm -f "${ref_file}.bak"
+                echo "  Rewrote ref in $ref_file"
+              fi
+            done
+
+            moved=$((moved + 1))
+          done
+
+          echo "Archived $moved spec(s) to $archive_dir"
+          echo "moved=$moved" >> "$GITHUB_OUTPUT"
+
+      - name: Open PR with archived specs
+        if: steps.quarter.outputs.label != '' && env.moved != '0'
+        env:
+          moved: ${{ steps.quarterly-archive.outputs.moved || '0' }}
+          QUARTER: ${{ steps.quarter.outputs.label }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "${moved}" = "0" ]; then
+            echo "Nothing to archive this quarter."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          branch="chore/archive-specs-${QUARTER}"
+          git checkout -b "$branch"
+          git add specs/archive/ tasks/ plans/active/
+          git diff --cached --quiet && exit 0
+          git commit -m "chore(archive): move closed specs to specs/archive/${QUARTER}"
+          git push -u origin "$branch"
+          gh pr create \
+            --title "chore: archive closed specs for ${QUARTER}" \
+            --body "Quarterly spec archival. Cross-references in tasks/TASKS.md and plans/active/ rewritten." \
+            --base main \
+            --head "$branch"

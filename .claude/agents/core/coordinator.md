@@ -71,6 +71,21 @@ done
 - Tail any concerning stream: `claude logs feat-001 --follow`.
 - Detect stalls: a stream with no commits in 30 min on its branch → ping the stream or escalate.
 
+**Before dispatching a prompt to a stream, gate on `state.json`:**
+
+```bash
+state=$(jq -r '.state // "unknown"' ".swarms/streams/$stream/state.json" 2>/dev/null)
+if [ "$state" != "ready_for_prompt" ] && [ "$state" != "running" ]; then
+  echo "Stream $stream is $state — not ready. Waiting..."
+  # Poll or skip; never force-dispatch into an unready stream
+fi
+```
+
+The `session-heartbeat.sh` advances each stream through:
+`spawning → trust_required → ready_for_prompt → running → finished | failed`
+
+Only dispatch the initial prompt when `state == ready_for_prompt`; subsequent turns proceed while `state == running`.
+
 ### Merge (Round 6 D + E)
 
 For each stream:
@@ -91,6 +106,7 @@ For each stream:
 ### Escalate
 
 When a stream's handoff has `status: escalated`:
+
 - Add a note to `.swarms/coordinator/decisions.log`
 - Open a GitHub issue with the YAML's `blockers_encountered` + `open_questions` blocks
 - Mark stream `blocked` in `fleet.json`; do NOT restart automatically

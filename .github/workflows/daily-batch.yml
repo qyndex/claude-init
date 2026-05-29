@@ -64,13 +64,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run osv-scanner on lockfiles
-        uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@main
+        uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@b8ac13f90f0ad78cebdcdbe5d39fcc8ff11301ba # main 2026-05-29
         with:
           scan-args: |-
             --recursive
             --skip-git
             ./
-          fail-on-vuln: false  # roll-up handles overall gate
+          fail-on-vuln: false # roll-up handles overall gate
 
   daily-batch-result:
     name: Daily batch result

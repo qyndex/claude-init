@@ -1,7 +1,7 @@
 ---
 name: experiment
 description: A/B test design — hypothesis, MDE, sample size, primary/guardrail metrics, significance gate. Different from flag-rollout (which gradually exposes to ALL users). An experiment runs two variants in parallel to learn which is better.
-when_to_use: User says "A/B test", "experiment", "does this improve <metric>", "split test". Spec template's `## Rollout` section sets `flag.type: experiment`.
+when_to_use: "User says \"A/B test\", \"experiment\", \"does this improve <metric>\", \"split test\". Spec template's `## Rollout` section sets `flag.type: experiment`."
 allowed-tools: Read, Glob, Grep, Edit, Write, WebSearch, WebFetch
 model: opus
 disable-model-invocation: true

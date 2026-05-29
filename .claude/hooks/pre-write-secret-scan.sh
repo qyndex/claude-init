@@ -133,7 +133,7 @@ done
 # from the secret scan above — we WARN on PII (don't block), and the agent
 # should rewrite without the PII.
 case "$path" in
-  .claude/memory/*|.claude/memory/.cache/*)
+  .claude/memory/*|.claude/memory/.cache/*|OVERNIGHT_REPORT.md|verify/*)
     pii_patterns=(
       # email
       '[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}'
@@ -141,8 +141,9 @@ case "$path" in
       '\+?[0-9]{1,3}[-. ]?\(?[0-9]{3}\)?[-. ]?[0-9]{3}[-. ]?[0-9]{4}'
       # SSN-like
       '[0-9]{3}-[0-9]{2}-[0-9]{4}'
-      # credit card-ish (rough)
-      '4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13}'
+      # credit card-ish (rough). Plain group, not PCRE (?:...) — bash [[ =~ ]] is
+      # POSIX ERE and fails to compile (?:...), which silently disabled this rule.
+      '4[0-9]{12}([0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13}'
       # IP address (warn — sometimes legit, sometimes leaky log)
       '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}'
     )

@@ -93,6 +93,13 @@ followup_tasks:                      # findings-to-tasks.sh appends to TASKS.md
     priority: normal
     deps: [T-042]
 
+# ─── TDD state (AC-25, spec 002) — optional; auto-populated by subagent-stop.sh ─
+tdd_state:
+  phase: green                         # red | green | refactor | n/a
+  last_test_command: "pnpm test --filter web"
+  last_test_exit_code: 0
+  wip_sha: "7a3f2b1"                   # most recent WIP: commit at handoff time
+
 # ─── resource accounting ────────────────────────────────────────────────
 tokens_used: 184300
 cost_usd: 2.41

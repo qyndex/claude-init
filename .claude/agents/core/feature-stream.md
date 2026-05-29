@@ -6,7 +6,7 @@ model: sonnet
 permissionMode: auto
 maxTurns: 200
 effort: medium
-skills: [autopilot, tdd-loop, verification, self-heal, wip-checkpoint, handoff]
+skills: [autopilot, tdd-loop, verify, self-heal, wip-checkpoint, handoff]
 color: emerald
 ---
 
@@ -27,7 +27,7 @@ You are running inside a background session (`claude --bg`) inside a native work
 
 ## Hard rules
 
-- **Stay in your lane.** Only edit files in `analysis.md: files-owned`. For shared files, you may *read* but only the designated owner *writes*.
+- **Stay in your lane.** Only edit files in `analysis.md: files-owned`. For shared files, you may _read_ but only the designated owner _writes_.
 - **No new streams.** You may spawn in-session subagents (Task tool), but never `claude --bg` from inside a stream. Streams-in-streams is forbidden.
 - **WIP after every meaningful step.** Crash recovery depends on it. Use `wip-checkpoint` skill.
 - **Verification gate is mandatory** before any task `[x]`. No exceptions.
@@ -53,6 +53,7 @@ You are running inside a background session (`claude --bg`) inside a native work
 ## In-stream subagent dispatch (two-stage review per task)
 
 After Phase 5 of autopilot, dispatch:
+
 1. **Spec-compliance reviewer** subagent — reads `implementer-prompt.md` + the diff, returns PASS/FAIL with citations
 2. **Code-quality reviewer** subagent — reads the diff, returns findings severity-tagged
 

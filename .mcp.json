@@ -2,7 +2,6 @@
   "$schema": "https://modelcontextprotocol.io/schema/mcp.json",
   "_comment": "Project-scoped MCP servers. With ENABLE_TOOL_SEARCH=true, tool schemas load on-demand. alwaysLoad: true forces eager load for every-turn tools. Pinned versions where possible — review before enabling community servers.",
   "_examples_comment": "To enable an example server: copy its block from _disabled_examples into mcpServers and configure env vars.",
-
   "_disabled_examples": {
     "_doc": "Catalogue of optional servers. NOT parsed by Claude Code — kept at top level, outside mcpServers. Copy any entry into mcpServers to activate.",
     "supabase": {
@@ -15,44 +14,89 @@
         "${SBP_ACCESS_TOKEN:-}"
       ]
     },
-    "linear": { "type": "http", "url": "https://mcp.linear.app/sse" },
+    "linear": {
+      "type": "http",
+      "url": "https://mcp.linear.app/sse"
+    },
     "notion": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "@notionhq/notion-mcp-server"],
-      "env": { "NOTION_TOKEN": "${NOTION_TOKEN:-}" }
+      "args": [
+        "-y",
+        "@notionhq/notion-mcp-server"
+      ],
+      "env": {
+        "NOTION_TOKEN": "${NOTION_TOKEN:-}"
+      }
     },
-    "atlassian": { "type": "http", "url": "https://mcp.atlassian.com/v1/sse" },
-    "vercel": { "type": "http", "url": "https://mcp.vercel.com/" },
+    "atlassian": {
+      "type": "http",
+      "url": "https://mcp.atlassian.com/v1/sse"
+    },
+    "vercel": {
+      "type": "http",
+      "url": "https://mcp.vercel.com/"
+    },
     "cloudflare": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "@cloudflare/mcp-server-cloudflare"],
-      "env": { "CLOUDFLARE_API_TOKEN": "${CLOUDFLARE_API_TOKEN:-}" }
+      "args": [
+        "-y",
+        "@cloudflare/mcp-server-cloudflare"
+      ],
+      "env": {
+        "CLOUDFLARE_API_TOKEN": "${CLOUDFLARE_API_TOKEN:-}"
+      }
     },
-    "datadog": { "type": "http", "url": "https://mcp.datadoghq.com/" },
-    "logfire": { "type": "stdio", "command": "uvx", "args": ["logfire-mcp"] },
+    "datadog": {
+      "type": "http",
+      "url": "https://mcp.datadoghq.com/"
+    },
+    "logfire": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": [
+        "logfire-mcp"
+      ]
+    },
     "posthog-stdio": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "@posthog/mcp-server"]
+      "args": [
+        "-y",
+        "@posthog/mcp-server"
+      ]
     },
     "stripe": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "@stripe/mcp", "--tools=all"],
-      "env": { "STRIPE_API_KEY": "${STRIPE_API_KEY:-}" }
+      "args": [
+        "-y",
+        "@stripe/mcp",
+        "--tools=all"
+      ],
+      "env": {
+        "STRIPE_API_KEY": "${STRIPE_API_KEY:-}"
+      }
     },
     "exa": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "exa-mcp-server"],
-      "env": { "EXA_API_KEY": "${EXA_API_KEY:-}" }
+      "args": [
+        "-y",
+        "exa-mcp-server"
+      ],
+      "env": {
+        "EXA_API_KEY": "${EXA_API_KEY:-}"
+      }
     },
     "browserbase": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "@browserbasehq/mcp-server-browserbase"],
+      "args": [
+        "-y",
+        "@browserbasehq/mcp-server-browserbase"
+      ],
       "env": {
         "BROWSERBASE_API_KEY": "${BROWSERBASE_API_KEY:-}",
         "BROWSERBASE_PROJECT_ID": "${BROWSERBASE_PROJECT_ID:-}"
@@ -61,14 +105,21 @@
     "postman": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "@postman/mcp-server"],
-      "env": { "POSTMAN_API_KEY": "${POSTMAN_API_KEY:-}" }
+      "args": [
+        "-y",
+        "@postman/mcp-server"
+      ],
+      "env": {
+        "POSTMAN_API_KEY": "${POSTMAN_API_KEY:-}"
+      }
     },
     "computer-use": {
       "_doc": "Only enable in a disposable sandbox/VM.",
       "type": "stdio",
       "command": "uvx",
-      "args": ["claude-code-computer-use-mcp"]
+      "args": [
+        "claude-code-computer-use-mcp"
+      ]
     },
     "claude-mem": {
       "_doc": "Install via `npx claude-mem install` first.",
@@ -78,27 +129,34 @@
     "aws-serverless": {
       "type": "stdio",
       "command": "uvx",
-      "args": ["awslabs.aws-serverless-mcp-server@latest"]
+      "args": [
+        "awslabs.aws-serverless-mcp-server@latest"
+      ]
     }
   },
-
   "mcpServers": {
     "filesystem": {
       "_doc": "Always-loaded. Sandboxed filesystem access scoped to this project.",
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "."],
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem@2026.1.14",
+        "."
+      ],
       "alwaysLoad": true
     },
-
     "git": {
       "_doc": "Always-loaded. Git operations.",
       "type": "stdio",
       "command": "uvx",
-      "args": ["mcp-server-git", "--repository", "."],
+      "args": [
+        "mcp-server-git==2026.1.14",
+        "--repository",
+        "."
+      ],
       "alwaysLoad": true
     },
-
     "github": {
       "_doc": "Always-loaded. Official GitHub-maintained MCP. OAuth or PAT.",
       "type": "http",
@@ -112,153 +170,192 @@
       },
       "alwaysLoad": true
     },
-
     "chrome-devtools": {
       "_doc": "Deferred via Tool Search. Browser debugging, perf, Lighthouse. Version pinned per Round 4 audit H-FO2 (no @latest in production — supply-chain risk).",
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "chrome-devtools-mcp@0.21.0"]
+      "args": [
+        "-y",
+        "chrome-devtools-mcp@0.21.0"
+      ]
     },
-
     "playwright": {
       "_doc": "Deferred. E2E driving with deterministic refs. Version pinned.",
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "@playwright/mcp@1.50.0"],
-      "env": { "HEADLESS": "${HEADLESS:-true}" }
+      "args": [
+        "-y",
+        "@playwright/mcp@1.50.0"
+      ],
+      "env": {
+        "HEADLESS": "${HEADLESS:-true}"
+      }
     },
-
     "context7": {
-      "_doc": "Deferred. Up-to-date library docs by version. Token-heavy.",
+      "_doc": "Deferred. Up-to-date library docs by version. Token-heavy. Pinned per AC-29.",
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp"]
+      "args": [
+        "-y",
+        "@upstash/context7-mcp@1.4.0"
+      ]
     },
-
     "postgres": {
       "_doc": "Deferred. Read-only SQL by default; crystaldba fork (official postgres MCP deprecated).",
       "type": "stdio",
       "command": "uvx",
-      "args": ["postgres-mcp", "--access-mode=restricted"],
-      "env": { "DATABASE_URI": "${DATABASE_URL:-}" }
+      "args": [
+        "postgres-mcp",
+        "--access-mode=restricted"
+      ],
+      "env": {
+        "DATABASE_URI": "${DATABASE_URL:-}"
+      }
     },
-
     "sentry": {
       "_doc": "Deferred. Official Sentry remote MCP, OAuth.",
       "type": "http",
       "url": "https://mcp.sentry.dev/mcp",
-      "oauth": { "callbackPort": 8081 }
+      "oauth": {
+        "callbackPort": 8081
+      }
     },
-
     "apify": {
       "_doc": "Deferred. Official Apify MCP — 5000+ Actors including Crawlee-powered scrapers. OAuth via Apify.",
       "type": "http",
       "url": "https://mcp.apify.com",
-      "oauth": { "callbackPort": 8082 }
+      "oauth": {
+        "callbackPort": 8082
+      }
     },
-
     "semgrep": {
       "_doc": "Deferred. Run `semgrep mcp` from local install for SAST in-agent.",
       "type": "stdio",
       "command": "semgrep",
-      "args": ["mcp"]
+      "args": [
+        "mcp"
+      ]
     },
-
     "scheduled-tasks": {
       "_doc": "Built-in Anthropic scheduled-tasks MCP. Allows /loop and overnight task wiring. Version pinned per Round 4 audit H-FO2 (no @latest in production).",
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "@anthropic-ai/mcp-scheduled-tasks@0.4.0"]
+      "args": [
+        "-y",
+        "@anthropic-ai/mcp-scheduled-tasks@0.4.0"
+      ]
     },
-
     "openfeature": {
       "_doc": "OpenFeature gateway — provider-agnostic flag MCP. Drives flag-rollout / flag-cleanup / experiment skills. Set OPENFEATURE_PROVIDER and provider-specific env in .claude/settings.local.json.",
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "@openfeature/mcp-server"],
+      "args": [
+        "-y",
+        "@openfeature/mcp-server"
+      ],
       "env": {
         "OPENFEATURE_PROVIDER": "${OPENFEATURE_PROVIDER:-posthog}"
       }
     },
-
     "posthog": {
       "_doc": "PostHog — product analytics, feature flags, A/B experiments, session replays. Lower-friction flag store than LaunchDarkly for small teams.",
       "type": "http",
       "url": "https://mcp.posthog.com/sse",
-      "headers": { "Authorization": "Bearer ${POSTHOG_API_KEY:-}" }
+      "headers": {
+        "Authorization": "Bearer ${POSTHOG_API_KEY:-}"
+      }
     },
-
     "graphify": {
       "_doc": "Graphify — code-as-knowledge-graph. Tree-sitter parsing across 32 languages; agents prefer `query_graph` / `shortest_path` / `get_neighbors` for cross-module questions over grep on >3 files. NOT a memory layer (we keep markdown ADRs/patterns/incidents). Pin to 0.8.21 — pre-1.0 churn risk. Round 5 A1.",
       "type": "stdio",
       "command": "uvx",
       "args": [
         "--from",
-        "graphifyy[mcp]==0.8.21",
+        "graphify[mcp]==0.8.21",
         "python",
         "-m",
         "graphify.serve"
       ]
     },
-
     "langfuse": {
       "_doc": "Langfuse MCP — prompt management only (NOT tracing; tracing is native OTEL via env vars in settings.json). Agents can fetch versioned prompts from Langfuse via this MCP. Round 6 A. Pinned per Round 4 audit H-FO2.",
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "@langfuse/mcp-server-langfuse@0.4.0"],
+      "args": [
+        "-y",
+        "@langfuse/mcp-server-langfuse@0.4.0"
+      ],
       "env": {
         "LANGFUSE_PUBLIC_KEY": "${LANGFUSE_PUBLIC_KEY:-}",
         "LANGFUSE_SECRET_KEY": "${LANGFUSE_SECRET_KEY:-}",
         "LANGFUSE_BASEURL": "${LANGFUSE_HOST:-https://cloud.langfuse.com}"
       }
     },
-
     "fireflies": {
       "_doc": "Fireflies sales-call transcripts — read-only for feedback-extractor agent (Round 7 C). Auth via FIREFLIES_API_KEY in env. Deferred.",
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "@fireflies/mcp-server@0.2.0"],
-      "env": { "FIREFLIES_API_KEY": "${FIREFLIES_API_KEY:-}" }
+      "args": [
+        "-y",
+        "@fireflies/mcp-server@0.2.0"
+      ],
+      "env": {
+        "FIREFLIES_API_KEY": "${FIREFLIES_API_KEY:-}"
+      }
     },
-
     "intercom": {
       "_doc": "Intercom support tickets + conversations — read-only for feedback-extractor agent (Round 7 C). Deferred.",
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "@intercom/mcp-server@0.3.0"],
-      "env": { "INTERCOM_ACCESS_TOKEN": "${INTERCOM_ACCESS_TOKEN:-}" }
+      "args": [
+        "-y",
+        "@intercom/mcp-server@0.3.0"
+      ],
+      "env": {
+        "INTERCOM_ACCESS_TOKEN": "${INTERCOM_ACCESS_TOKEN:-}"
+      }
     },
-
     "pendo": {
       "_doc": "Pendo in-product feedback + polls — read-only for feedback-extractor (Round 7 C). Deferred.",
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "@pendo/mcp-server@0.1.0"],
-      "env": { "PENDO_INTEGRATION_KEY": "${PENDO_INTEGRATION_KEY:-}" }
+      "args": [
+        "-y",
+        "@pendo/mcp-server@0.1.0"
+      ],
+      "env": {
+        "PENDO_INTEGRATION_KEY": "${PENDO_INTEGRATION_KEY:-}"
+      }
     },
-
     "replicate": {
       "_doc": "Replicate — FLUX Schnell (Apache-2.0, $0.003/img) + FLUX Pro (commercial, $0.04). Used by image-generation skill (Round 9 D). Deferred.",
       "type": "http",
       "url": "https://mcp.replicate.com/"
     },
-
     "recraft": {
       "_doc": "Recraft V3 — raster + native SVG vector generation. $0.04 raster / $0.08 SVG. Used for brand icons, scalable assets. Round 9 D. Deferred.",
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "@recraft-ai/mcp-server@0.1.0"],
-      "env": { "RECRAFT_API_KEY": "${RECRAFT_API_KEY:-}" }
+      "args": [
+        "-y",
+        "@recraft-ai/mcp-server@0.1.0"
+      ],
+      "env": {
+        "RECRAFT_API_KEY": "${RECRAFT_API_KEY:-}"
+      }
     },
-
     "pexels": {
       "_doc": "Pexels stock photo — CC0, no attribution required. Fallback when AI photo fails. Round 9 D. Deferred.",
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "pexels-mcp-server@0.2.0"],
-      "env": { "PEXELS_API_KEY": "${PEXELS_API_KEY:-}" }
+      "args": [
+        "-y",
+        "pexels-mcp-server@0.2.0"
+      ],
+      "env": {
+        "PEXELS_API_KEY": "${PEXELS_API_KEY:-}"
+      }
     },
-
     "osv": {
       "_doc": "OSV vulnerability database MCP (StacklokLabs). First-class query_vulns(package, version, ecosystem) tool for agents — alternative to raw curl. Round 8 A. Pinned per §X security rule.",
       "type": "stdio",

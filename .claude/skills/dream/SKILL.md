@@ -36,11 +36,18 @@ silently overwrite the first's proposal and drop the human-review gate.
    absolute ISO dates, so the memory stays interpretable after time passes.
 4. **Archive stale instincts** — move instinct files that haven't fired recently
    from the active set into `.claude/memory/.cache/archive/YYYY-MM/`.
-5. **Enforce the cap** — run `bash .claude/scripts/memory-gc.sh enforce` to hold
+5. **Detect contradictions** — group ADR files under `.claude/memory/decisions/`
+   by their `subsystem:` frontmatter field. For each subsystem group with ≥2 ADRs,
+   compare their `decision:` fields; flag any pair whose decisions conflict (e.g.,
+   "use postgres" vs "use sqlite"). Write flagged pairs to
+   `.claude/memory.proposed/conflicts.md` (one table row per conflict: subsystem,
+   ADR-A path, ADR-B path, conflict summary). If no conflicts found, omit the
+   file. Do not auto-resolve — surface for human review.
+6. **Enforce the cap** — run `bash .claude/scripts/memory-gc.sh enforce` to hold
    `MEMORY.md` at ≤200 lines. This is the hard backstop: the cap is enforced by
    the script, not by this prompt, so a crashed/hallucinating dream cannot leave
    `MEMORY.md` bloated (Round 4 caught exactly that silent failure).
-6. **Archive checkpoints** — move processed checkpoints to
+7. **Archive checkpoints** — move processed checkpoints to
    `.claude/memory/.cache/archive/YYYY-MM/`.
 
 ## Output
@@ -56,6 +63,8 @@ whole point.
   one was already pending).
 - `memory-gc.sh enforce` has run and `MEMORY.md` is ≤200 lines.
 - Relative dates in the proposal are absolutized; processed checkpoints archived.
+- `.claude/memory.proposed/conflicts.md` written if any contradicting ADRs found
+  (subsystem-grouped comparison); absent means no conflicts detected.
 
 ## References
 

@@ -1,5 +1,5 @@
 ---
-description: Plan N parallel feature streams from tasks/TASKS.md. Delegates to coordinator agent. Output: .swarms/streams/<id>/{brief.md, analysis.md, task.json} for each stream. Does NOT dispatch — use /swarm:dispatch next.
+description: "Plan N parallel feature streams from tasks/TASKS.md. Delegates to coordinator agent. Output: .swarms/streams/<id>/{brief.md, analysis.md, task.json} for each stream. Does NOT dispatch — use /swarm:dispatch next."
 argument-hint: "[N (default: 5)] [--scope <pattern>]"
 allowed-tools: Read, Glob, Grep, Edit, Write, Bash, TodoWrite
 disable-model-invocation: true

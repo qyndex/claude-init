@@ -22,6 +22,45 @@ fail_msg() { printf '  ✗ %s\n' "$*"; }
 ok_msg() { printf '  ✓ %s\n' "$*"; }
 warn_msg() { printf '  ⚠ %s\n' "$*"; }
 
+# ─── SKIP_* gate-bypass guard (Spec 003 AC-1, AC-2) ───────────────────────────
+# An autonomous agent can set SKIP_TDD_LEDGER=1 / SKIP_COVERAGE=1 etc. to disarm
+# the very gates that constrain it. Honor any SKIP_* ONLY when the operator has
+# created .claude/state/allow-skip-gates (gitignored, human-only). Otherwise the
+# SKIP request is ignored and the gate runs. Either way, log the requested set so
+# a skipped gate is visible at PR review (AC-2).
+SKIP_GATES_MARKER="$ROOT/.claude/state/allow-skip-gates"
+SKIP_GATES_ALLOWED=0
+[ -f "$SKIP_GATES_MARKER" ] && SKIP_GATES_ALLOWED=1
+
+# skip_honored VARNAME → returns 0 (true) only if that SKIP_* is set AND the
+# operator marker is present. Without the marker it always returns 1 (run gate).
+skip_honored() {
+  local var="$1"
+  local val="${!var:-0}"
+  [ "$val" = "1" ] || return 1
+  [ "$SKIP_GATES_ALLOWED" = "1" ]
+}
+
+# Log the requested SKIP_* set and whether it is honored.
+requested_skips=""
+for v in SKIP_COVERAGE SKIP_TDD_LEDGER SKIP_ASSERT_DENSITY SKIP_STORY_MAP SKIP_INTEG_COV SKIP_CHAR_GATE SKIP_BRANCH_CHECK; do
+  [ "${!v:-0}" = "1" ] && requested_skips="$requested_skips $v"
+done
+if [ -n "$requested_skips" ]; then
+  if [ "$SKIP_GATES_ALLOWED" = "1" ]; then
+    warn_msg "SKIP gates requested and HONORED (operator marker present):${requested_skips}"
+  else
+    warn_msg "SKIP gates requested but IGNORED (no .claude/state/allow-skip-gates marker):${requested_skips}"
+  fi
+  # Append to the evidence bundle so the bypass is auditable at PR review (AC-2).
+  mkdir -p "$ROOT/verify" 2>/dev/null || true
+  printf '%s\tverify-skip-request\thonored=%s\t%s\n' \
+    "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$SKIP_GATES_ALLOWED" "${requested_skips# }" \
+    >> "$ROOT/verify/.skip-log" 2>/dev/null || true
+else
+  ok_msg "no SKIP_* gates requested"
+fi
+
 # ─── Branch freshness preflight (Spec 001 AC-19) ──────────────────────────────
 # First step: advisory-only. Warns if the branch has drifted far from main.
 # Never increments $fails — a stale branch shouldn't block verification, only
@@ -62,7 +101,7 @@ if [ -f package.json ]; then
   fi
 
   # Coverage — only run if a coverage script is defined and SKIP_COVERAGE is unset
-  if [ "${SKIP_COVERAGE:-0}" != "1" ] && grep -q '"coverage"\|"test:coverage"' package.json; then
+  if ! skip_honored SKIP_COVERAGE && grep -q '"coverage"\|"test:coverage"' package.json; then
     step "Coverage gate (min line=${COVERAGE_MIN_LINE}%, branch=${COVERAGE_MIN_BRANCH}%)"
     cov_script="coverage"
     grep -q '"test:coverage"' package.json && cov_script="test:coverage"
@@ -102,7 +141,7 @@ if [ -f pyproject.toml ]; then
     uv run pytest -q && ok_msg "pytest" || { fail_msg "pytest"; fails=$((fails+1)); }
   fi
 
-  if [ "${SKIP_COVERAGE:-0}" != "1" ] && [ -d tests ]; then
+  if ! skip_honored SKIP_COVERAGE && [ -d tests ]; then
     step "Coverage gate (min line=${COVERAGE_MIN_LINE}%)"
     # JUSTIFIED: coverage tool errors muted — the && chain already gates on success; a failing run skips the whole block rather than parsing a bad report
     if uv run coverage run -m pytest -q 2>/dev/null && uv run coverage report --format=json -o /tmp/coverage.json 2>/dev/null; then
@@ -132,7 +171,7 @@ if [ -f go.mod ]; then
   go vet ./... && ok_msg "go vet" || { fail_msg "go vet"; fails=$((fails+1)); }
   go test ./... && ok_msg "go test" || { fail_msg "go test"; fails=$((fails+1)); }
 
-  if [ "${SKIP_COVERAGE:-0}" != "1" ]; then
+  if ! skip_honored SKIP_COVERAGE; then
     step "Coverage gate (min ${COVERAGE_MIN_LINE}%)"
     # JUSTIFIED: go test error muted + 0 fallback — a package with no tests prints to stderr; the awk averages only real "coverage:" lines and 0 is the correct floor when none exist
     pct=$(go test -cover ./... 2>/dev/null | awk '/coverage:/{sum += $2; count++} END {if(count>0) print sum/count}' | tr -d '%' || echo 0)
@@ -149,7 +188,7 @@ fi
 # These were proposed in Round 8 but never wired. Now they run.
 
 # 1. Assertion-density: no assertion-free tests
-if [ -x .claude/scripts/assert-density.sh ] && [ "${SKIP_ASSERT_DENSITY:-0}" != "1" ]; then
+if [ -x .claude/scripts/assert-density.sh ] && ! skip_honored SKIP_ASSERT_DENSITY; then
   step "Assertion-density gate"
   if bash .claude/scripts/assert-density.sh; then
     ok_msg "all tests contain real assertions"
@@ -159,7 +198,7 @@ if [ -x .claude/scripts/assert-density.sh ] && [ "${SKIP_ASSERT_DENSITY:-0}" != 
 fi
 
 # 2. Red→green ledger: any [x] task must have red.log + green.log
-if [ -f tasks/TASKS.md ] && [ "${SKIP_TDD_LEDGER:-0}" != "1" ]; then
+if [ -f tasks/TASKS.md ] && ! skip_honored SKIP_TDD_LEDGER; then
   step "TDD red→green ledger gate"
   ledger_fails=0
   # For each completed task, confirm a red.log + green.log exist somewhere under verify/
@@ -185,7 +224,7 @@ if [ -f tasks/TASKS.md ] && [ "${SKIP_TDD_LEDGER:-0}" != "1" ]; then
 fi
 
 # 3. Story → E2E map (Round 8 script, finally wired)
-if [ -x .claude/scripts/story-test-map.sh ] && [ "${SKIP_STORY_MAP:-0}" != "1" ]; then
+if [ -x .claude/scripts/story-test-map.sh ] && ! skip_honored SKIP_STORY_MAP; then
   step "Story → E2E coverage gate"
   if bash .claude/scripts/story-test-map.sh >/dev/null 2>&1; then
     ok_msg "every approved-spec user story has an E2E test"
@@ -195,7 +234,7 @@ if [ -x .claude/scripts/story-test-map.sh ] && [ "${SKIP_STORY_MAP:-0}" != "1" ]
 fi
 
 # 4. Integration coverage (Round 8 script, finally wired)
-if [ -x .claude/scripts/test-integration-coverage.sh ] && [ "${SKIP_INTEG_COV:-0}" != "1" ]; then
+if [ -x .claude/scripts/test-integration-coverage.sh ] && ! skip_honored SKIP_INTEG_COV; then
   step "Integration coverage gate"
   if bash .claude/scripts/test-integration-coverage.sh >/dev/null 2>&1; then
     ok_msg "changed API/DB files have integration tests"
@@ -209,7 +248,7 @@ fi
 #    characterization test. Fires ONLY in an adopted repo (manifest present) with real
 #    globs; SKIP_CHAR_GATE=1 is the explicit human override.
 CHAR_MANIFEST=".claude/state/adopt/uncharacterized-paths.txt"
-if [ -s "$CHAR_MANIFEST" ] && [ "${SKIP_CHAR_GATE:-0}" != "1" ] && grep -qvE '^[[:space:]]*(#|$)' "$CHAR_MANIFEST"; then
+if [ -s "$CHAR_MANIFEST" ] && ! skip_honored SKIP_CHAR_GATE && grep -qvE '^[[:space:]]*(#|$)' "$CHAR_MANIFEST"; then
   step "Brownfield characterization gate (flagged-legacy edits require a characterization test)"
   BASE="${VERIFY_BASE:-}"
   if [ -z "$BASE" ]; then

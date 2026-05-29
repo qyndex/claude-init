@@ -397,6 +397,38 @@ if command -v jq >/dev/null && [ -f .claude/settings.json ]; then
     ok "no Bash(claude:*) catch-all"
   fi
 fi
+
+# [force-bypass] — no script/workflow may set the constitution-bypass env var via export;
+# that escape hatch is operator-shell-only and must never appear in harness automation.
+# Pattern split across a variable so this validator file itself does not self-match.
+_fb_pat='export[[:space:]]+FORCE_CONSTITUTION'"_EDIT"
+# JUSTIFIED: grep exits 1 on no match (the desired clean outcome); `|| true` prevents pipefail triggering.
+# Exclude runtime logs (.claude/hooks/.log/) — they capture transient command strings an operator
+# may have typed, which are NOT committed harness automation and must not trip this invariant.
+_fb_count=$(grep -rE "$_fb_pat" .claude .github 2>/dev/null | grep -v '\.claude/hooks/\.log/' | wc -l || true)
+if [ "${_fb_count// /}" -eq 0 ]; then
+  ok "no exported FORCE_CONSTITUTION_EDIT in harness files (force-bypass clean)"
+else
+  fail "found exported FORCE_CONSTITUTION_EDIT in harness files — escape hatch is operator-only"
+fi
+echo
+
+# ─── 14b. Constitution size cap (AC-37) ─────────────────────────────────
+echo "[constitution-size]"
+CONST_MAX_LINES="${CONST_MAX_LINES:-300}"
+CONST_WARN_LINES="${CONST_WARN_LINES:-250}"
+if [ -f .claude/CLAUDE.md ]; then
+  const_lines=$(wc -l < .claude/CLAUDE.md | tr -d ' ')
+  if [ "$const_lines" -gt "$CONST_MAX_LINES" ]; then
+    fail "constitution .claude/CLAUDE.md is $const_lines lines (cap: $CONST_MAX_LINES). Run: /constitution-compact"
+  elif [ "$const_lines" -gt "$CONST_WARN_LINES" ]; then
+    warn "constitution .claude/CLAUDE.md is $const_lines lines (warn: $CONST_WARN_LINES). Consider: /constitution-compact"
+  else
+    ok "constitution .claude/CLAUDE.md is $const_lines lines / $CONST_MAX_LINES cap"
+  fi
+else
+  warn "constitution .claude/CLAUDE.md not found"
+fi
 echo
 
 # ─── 14. MCP version pinning ────────────────────────────────────────────
@@ -412,6 +444,61 @@ if [ -f .mcp.json ] && command -v jq >/dev/null; then
   else
     ok "no @latest pins in .mcp.json"
   fi
+fi
+echo
+
+# ─── 15. Ruleset ↔ job coverage (Spec 003 AC-14) ───────────────────────
+# Root cause of the round-1 CI deadlock: a required_status_checks context with
+# no matching PR-triggered job stays pending-forever and blocks every merge.
+# For each required context, confirm a workflow has a job of that name AND the
+# workflow triggers on pull_request with no paths: filter that could skip it.
+echo "[ruleset-coverage]"
+RULESET_FILE="${RULESET_FILE_OVERRIDE:-.github/rulesets/main-protection.json}"
+if [ -f "$RULESET_FILE" ] && command -v jq >/dev/null; then
+  # JUSTIFIED: jq read; `|| true` because an empty contexts list is a valid (if odd) ruleset and must not trip pipefail
+  contexts=$(jq -r '.. | objects | .context? // empty' "$RULESET_FILE" 2>/dev/null | sort -u || true)
+  if [ -z "$contexts" ]; then
+    note "no required_status_checks contexts in $RULESET_FILE"
+  else
+    while IFS= read -r ctx; do
+      [ -z "$ctx" ] && continue
+      # Find a workflow file whose jobs map contains a job key == ctx.
+      job_file=""
+      for wf in .github/workflows/*.yml .github/workflows/*.yaml; do
+        [ -f "$wf" ] || continue
+        # match a top-level job key "  <ctx>:" under the jobs: block (2-space indent convention)
+        if grep -qE "^  ${ctx}:[[:space:]]*$" "$wf"; then job_file="$wf"; break; fi
+      done
+      if [ -z "$job_file" ]; then
+        fail "required context '$ctx' maps to NO workflow job — PRs will hang pending-forever"
+        continue
+      fi
+      # Confirm the workflow triggers on pull_request.
+      if ! grep -qE '^[[:space:]]*pull_request:' "$job_file"; then
+        fail "required context '$ctx' job in $job_file has no pull_request: trigger"
+        continue
+      fi
+      # Warn ONLY if the pull_request trigger itself carries a paths: filter
+      # (a paths: under a sibling push: trigger is fine — push isn't the gate).
+      # Scan from the pull_request: line until the next same-or-shallower-indent
+      # key (e.g. push:, permissions:, jobs:), and flag a paths: inside that block.
+      if awk '
+          /^[[:space:]]*pull_request:[[:space:]]*$/ { inpr=1; prind=match($0,/[^ ]/); next }
+          inpr {
+            ind=match($0,/[^ ]/)
+            if ($0 ~ /^[[:space:]]*$/) next
+            if (ind <= prind) { inpr=0; next }
+            if ($0 ~ /^[[:space:]]+paths:/) { print "hit"; exit }
+          }
+        ' "$job_file" | grep -q hit; then
+        warn "required context '$ctx' ($job_file) has a pull_request paths: filter — may stay pending on PRs that miss the filter"
+      else
+        ok "required context '$ctx' maps to $job_file (pull_request, no paths filter)"
+      fi
+    done <<< "$contexts"
+  fi
+else
+  note "ruleset or jq unavailable — skipping ruleset-coverage check"
 fi
 echo
 

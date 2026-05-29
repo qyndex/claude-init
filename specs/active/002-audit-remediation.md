@@ -1,7 +1,7 @@
 ---
 id: 002
 slug: audit-remediation
-status: approved
+status: shipped
 owner: "@claude"
 human_owner: "@shravan"
 created: 2026-05-29
