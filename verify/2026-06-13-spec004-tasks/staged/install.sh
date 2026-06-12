@@ -15,6 +15,8 @@
 #   .claude/hooks/session-start-context.sh        T-132 SC2034 — wire atlas_sha/current_sha into the staleness check (was dead)
 #   .github/workflows/commitlint.yml              T-135 — drop --extends so commitlint.config.js is read
 #   .github/workflows/merge-gate.yml              T-134 — fix gh json field htmlUrl->url; repo createdAt for the age window
+#   .github/workflows/claude-review.yml           FINDING-14 — add id-token: write (claude-code-action OIDC auth)
+#   .github/workflows/pr-review.yml               FINDING-14 — same
 #
 # NOT installed by this script (already applied, agent-writable, in the main commit):
 #   .shellcheckrc, commitlint.config.js, lint-silent-failures.sh ratchet +
@@ -33,6 +35,8 @@ rels="
 .claude/hooks/session-start-context.sh
 .github/workflows/commitlint.yml
 .github/workflows/merge-gate.yml
+.github/workflows/claude-review.yml
+.github/workflows/pr-review.yml
 "
 
 install_into() {

@@ -1,0 +1,101 @@
+name: Claude PR Review
+
+# Automated code review on every PR. Posts inline comments grouped by severity.
+# Uses anthropics/claude-code-action@v1 in headless mode.
+#
+# Gap-audit G46: the gating reviewer runs a DIFFERENT model than the
+# implementer agent (Opus 4.8). Opus reviewing Opus shares blind spots;
+# cross-model review (Sonnet 4.6 here) is deliberate diversity on the
+# verification axis. check-model-consistency.sh fails if this drifts back
+# to the implementer's model family.
+#
+# Gap-audit G50: the anti-slop triage pass lives ONLY in pr-review.yml now
+# (this file used to duplicate it).
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+  id-token: write   # claude-code-action OIDC auth (spec 004 FINDING-14)
+
+# e2e-audit ci-gates-6: one LLM review per PR head — a push storm must not
+# multiply gating-review spend.
+concurrency:
+  group: claude-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Preflight — Anthropic credential present (e2e-audit ci-gates-4)
+        env:
+          HAS_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+          HAS_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
+        run: |
+          if [ "$HAS_KEY" != "true" ] && [ "$HAS_TOKEN" != "true" ]; then
+            echo "::error::No Anthropic credential — this GATING review can never pass. Fix: gh secret set CLAUDE_CODE_OAUTH_TOKEN (from 'claude setup-token', Pro/Max subscription) or gh secret set ANTHROPIC_API_KEY (metered API). setup.sh and harness-doctor both check this."
+            exit 1
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Run Claude code-reviewer (cross-model — G46)
+        uses: anthropics/claude-code-action@v1
+        with:
+          # Credential: subscription OAuth token ('claude setup-token') or
+          # metered API key — an empty secret resolves to unset, the action
+          # uses whichever is provided.
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          # v1 takes CLI flags via claude_args — `model:`/`mode:` were never
+          # declared inputs (actionlint catch, oauth-fallback 2026-06-12); the
+          # G46 cross-model pin only takes effect through --model here.
+          claude_args: "--model claude-sonnet-4-6"
+          prompt: |
+            You are the reviewer agent (.claude/agents/quality/reviewer.md).
+            Review the PR diff for: correctness, edge cases, idiomatic style, naming,
+            comments, tests, performance, backward-compat, dead code.
+
+            Multi-pass:
+            1. Read the diff.
+            2. Read the full surrounding code for each hunk.
+            3. Form findings, severity-tagged (blocker/high/medium/low/nit).
+            4. Re-verify each finding by re-reading the relevant path — suppress false positives.
+            5. Post the surviving findings as inline review comments.
+
+            FORMAT CONTRACT (machine-checked): every finding MUST cite `path:line`.
+            End your review summary with the exact line:
+            `Multi-pass: re-verified <N> findings, suppressed <M> false positives.`
+
+            Block the PR (--request-changes) if any blocker or high remains.
+
+      # Gap-audit G50: cheap mechanical proxy that pass 2 happened — the posted
+      # review must carry the multi-pass marker and per-finding file:line
+      # citations. Warn-only (prompt drift shouldn't hard-block merges), but
+      # visible in the checks UI so drift gets fixed.
+      - name: Lint review format (citations + multi-pass marker — G50)
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          reviews=$(gh pr view "$PR_NUMBER" --json reviews -q '.reviews[].body' 2>/dev/null || true)
+          [ -z "$reviews" ] && { echo "no review body yet — skipping format lint"; exit 0; }
+          if ! echo "$reviews" | grep -qE 'Multi-pass: re-verified [0-9]+ findings'; then
+            echo "::warning::Reviewer output lacks the multi-pass marker — pass-2 re-verification not evidenced (G50)."
+          fi
+          if ! echo "$reviews" | grep -qE '[A-Za-z0-9_./-]+\.[a-z]+:[0-9]+'; then
+            echo "::warning::Reviewer findings carry no path:line citations (G50)."
+          fi
+          echo "review format lint done"
