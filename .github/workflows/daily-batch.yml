@@ -62,9 +62,9 @@ jobs:
       security-events: write
       actions: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Run osv-scanner on lockfiles
-        uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@b8ac13f90f0ad78cebdcdbe5d39fcc8ff11301ba # main 2026-05-29
+        uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@fa4ff678dd5d0a4fa3d628e57af8162873e93cd6 # main 2026-05-29
         with:
           scan-args: |-
             --recursive
@@ -97,7 +97,7 @@ jobs:
           [ "$status" = "success" ] || exit 1
       - name: Upload result
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: daily-batch-result
           path: daily-batch-status.txt
