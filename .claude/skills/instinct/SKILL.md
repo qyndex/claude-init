@@ -30,7 +30,7 @@ A single (trigger → action) pair with provenance:
 
 ## How it's captured
 
-**PostToolUse hook** (`.claude/hooks/instinct-observer.sh`) appends to `.claude/memory/instincts/observations.jsonl`:
+**PostToolUse hook** (`.claude/hooks/instinct-observer.sh`) appends to `.claude/memory/.cache/instincts/observations.jsonl` (gap-audit G25: path now matches the observer):
 
 ```jsonl
 {"ts":"2026-05-27T22:31:00Z","tool":"Bash","cmd":"npm test","exit":1,"err":"timeout"}
@@ -38,7 +38,7 @@ A single (trigger → action) pair with provenance:
 {"ts":"2026-05-27T22:32:10Z","tool":"Bash","cmd":"npm test","exit":0}
 ```
 
-**Stop hook** triggers extraction every 5 sessions (or manually via `/instinct extract`):
+**Stop hook** (`auto-dream-check.sh`) calls `.claude/scripts/instinct-extract.sh` on every fire; the script self-gates on ≥50 new observations (`INSTINCT_EXTRACT_MIN`) — roughly every few sessions. Force manually via `/instinct extract`. The extraction pass:
 
 1. Spawn fresh Haiku subagent (`claude -p` with empty context).
 2. Subagent reads observations.jsonl since last extraction.
@@ -54,7 +54,7 @@ A single (trigger → action) pair with provenance:
 
 ## Promotion: project → global
 
-When the **same atomic instinct** (same trigger + similar action, fuzzy-matched) appears in **2+ separate projects**, it auto-promotes to `~/.claude/memory/instincts/global.yml`. Global instincts apply across all projects.
+Mechanics (gap-audit G26): `bash .claude/scripts/instinct-promote.sh auto` (dream step 4b) stages confidence-≥0.8 entries into `~/.claude/memory/instincts/global.yml` as `status: candidate` with project provenance. When a **second distinct project** promotes the same trigger, the entry flips to `status: global`. Global instincts apply across all projects.
 
 ## Hard rules
 

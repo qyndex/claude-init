@@ -77,6 +77,11 @@ Recommendation: ✓ healthy
 /context-budget --by-cost           # sort by token cost descending
 ```
 
+## Cache facts (gap-audit G1/G5)
+
+- **"Cache hit rate dropping" is now measurable:** `bash .claude/scripts/cost-report.sh day` writes `cache_hit_rate` into `.claude/hooks/.log/cost-summary.json`; the statusline shows `cache:N%` and harness-doctor warns below `CACHE_HIT_MIN` (default 40%).
+- **TTL is ~5 minutes and not configurable from Claude Code.** Turns spaced >5min apart re-pay the full cache write — keep unattended loops tight, and expect the first turn after an idle break to be cache-creation, not cache-read.
+
 ## Hard rules
 
 - **Don't archive without invocation log.** Use `.claude/hooks/.log/skill.log` (when skill-router records triggers) as ground truth.

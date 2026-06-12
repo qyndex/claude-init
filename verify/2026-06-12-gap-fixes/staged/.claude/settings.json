@@ -1,0 +1,592 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "_comment": "Team-shared Claude Code settings. Personal overrides go in settings.local.json (gitignored). Validated against Claude Code v2.1.144+ at code.claude.com.",
+  "_comment_model": "Default model per CLAUDE.md §V — Sonnet 4.6 is the daily driver. Per-agent Opus is set in agent frontmatter (architect, implementer, reviewer, security, debugger). Per-skill model override available via skill frontmatter.",
+  "model": "claude-sonnet-4-6",
+  "outputStyle": "Concise",
+  "effortLevel": "high",
+  "language": "en",
+  "editorMode": "emacs",
+  "cleanupPeriodDays": 60,
+  "autoMemoryEnabled": true,
+  "alwaysThinkingEnabled": false,
+  "includeGitInstructions": true,
+  "minimumVersion": "2.1.144",
+  "attribution": {
+    "commit": "disabled",
+    "pr": "disabled"
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "bash .claude/statuslines/budget.sh"
+  },
+  "maxSkillDescriptionChars": 1536,
+  "skillListingBudgetFraction": 0.05,
+  "permissions": {
+    "_comment_mode": "Default is acceptEdits for local interactive use. Scheduled/background/Cloud Routine sessions override to 'auto' (Anthropic Sonnet 4.6 classifier reviews every tool call — no user prompts, no bypass). PreToolUse hooks fire BEFORE the classifier in all modes and hard-block destructive ops via exit code 2. disableBypassPermissionsMode uses the canonical string 'disable' per https://code.claude.com/docs/en/permissions (boolean true is silently ignored).",
+    "defaultMode": "acceptEdits",
+    "disableBypassPermissionsMode": "disable",
+    "additionalDirectories": [
+      "./.swarms",
+      "./docs",
+      "./initiatives",
+      "./plans",
+      "./specs",
+      "./tasks"
+    ],
+    "allow": [
+      "Edit(src/**)",
+      "Edit(tests/**)",
+      "Edit(specs/**)",
+      "Edit(plans/**)",
+      "Edit(tasks/**)",
+      "Edit(docs/**)",
+      "Edit(verify/**)",
+      "Edit(.swarms/**)",
+      "Edit(initiatives/**)",
+      "Edit(.claude/memory/**)",
+      "Edit(.claude/memory.proposed/**)",
+      "Edit(.claude/state/**)",
+      "Edit(.claude/rules/**)",
+      "Edit(OVERNIGHT_REPORT.md)",
+      "Edit(ADOPTION-REPORT.md)",
+      "Edit(roadmap.md)",
+      "Edit(OKRs.md)",
+      "Read",
+      "Glob",
+      "Grep",
+      "Write(src/**)",
+      "Write(tests/**)",
+      "Write(specs/**)",
+      "Write(plans/**)",
+      "Write(tasks/**)",
+      "Write(docs/**)",
+      "Write(verify/**)",
+      "Write(.swarms/**)",
+      "Write(.claude/memory/**)",
+      "Write(.claude/memory.proposed/**)",
+      "Write(.claude/state/**)",
+      "Write(.claude/hooks/.log/**)",
+      "TodoWrite",
+      "WebSearch",
+      "WebFetch(domain:docs.anthropic.com)",
+      "WebFetch(domain:code.claude.com)",
+      "WebFetch(domain:claude.com)",
+      "WebFetch(domain:platform.claude.com)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:gist.github.com)",
+      "WebFetch(domain:developer.mozilla.org)",
+      "WebFetch(domain:nodejs.org)",
+      "WebFetch(domain:python.org)",
+      "WebFetch(domain:docs.python.org)",
+      "WebFetch(domain:pypi.org)",
+      "WebFetch(domain:npmjs.com)",
+      "WebFetch(domain:agentskills.io)",
+      "WebFetch(domain:modelcontextprotocol.io)",
+      "WebFetch(domain:registry.modelcontextprotocol.io)",
+      "WebFetch(domain:apify.com)",
+      "WebFetch(domain:docs.apify.com)",
+      "Bash(ls:*)",
+      "Bash(pwd)",
+      "Bash(echo:*)",
+      "Bash(date:*)",
+      "Bash(which:*)",
+      "Bash(whoami)",
+      "Bash(uname:*)",
+      "Bash(file:*)",
+      "Bash(stat:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(wc:*)",
+      "Bash(tree:*)",
+      "Bash(find:*)",
+      "Bash(rg:*)",
+      "Bash(fd:*)",
+      "Bash(jq:*)",
+      "Bash(yq:*)",
+      "Bash(sed -n:*)",
+      "Bash(diff:*)",
+      "Bash(sort:*)",
+      "Bash(uniq:*)",
+      "Bash(cut:*)",
+      "Bash(awk:*)",
+      "Bash(mkdir -p:*)",
+      "Bash(touch:*)",
+      "Bash(cp:*)",
+      "Bash(mv:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git branch:*)",
+      "Bash(git remote:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(git ls-files:*)",
+      "Bash(git fetch:*)",
+      "Bash(git stash list)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git checkout:*)",
+      "Bash(git switch:*)",
+      "Bash(git merge --no-ff:*)",
+      "Bash(git rebase --continue)",
+      "Bash(git rebase --abort)",
+      "Bash(git pull:*)",
+      "Bash(git push origin HEAD)",
+      "Bash(git push -u origin:*)",
+      "Bash(git worktree:*)",
+      "Bash(git tag:*)",
+      "Bash(claude -w:*)",
+      "Bash(claude --worktree:*)",
+      "Bash(claude agents:*)",
+      "Bash(claude attach:*)",
+      "Bash(claude logs:*)",
+      "Bash(claude stop:*)",
+      "Bash(claude respawn:*)",
+      "Bash(claude rm:*)",
+      "Bash(claude --resume:*)",
+      "Bash(claude --continue)",
+      "Bash(claude --fork-session:*)",
+      "Bash(claude daemon:*)",
+      "Bash(claude mcp:*)",
+      "Bash(claude config:*)",
+      "Bash(claude login)",
+      "Bash(claude logout)",
+      "Bash(claude --version)",
+      "Bash(claude --help:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh pr list:*)",
+      "Bash(gh pr diff:*)",
+      "Bash(gh pr checks:*)",
+      "Bash(gh pr comment:*)",
+      "Bash(gh pr create:*)",
+      "Bash(gh pr ready:*)",
+      "Bash(gh pr edit:*)",
+      "Bash(gh issue list:*)",
+      "Bash(gh issue create:*)",
+      "Bash(gh issue comment:*)",
+      "Bash(gh issue edit:*)",
+      "Bash(gh run list:*)",
+      "Bash(gh run view:*)",
+      "Bash(gh run watch:*)",
+      "Bash(gh workflow:*)",
+      "Bash(gh release view:*)",
+      "Bash(gh release list:*)",
+      "Bash(gh search:*)",
+      "Bash(gh skill:*)",
+      "Bash(npm test:*)",
+      "Bash(npm run *)",
+      "Bash(npm ci)",
+      "Bash(npm install:*)",
+      "Bash(pnpm test:*)",
+      "Bash(pnpm run *)",
+      "Bash(pnpm install:*)",
+      "Bash(pnpm i)",
+      "Bash(pnpm exec:*)",
+      "Bash(yarn test:*)",
+      "Bash(yarn install)",
+      "Bash(bun test:*)",
+      "Bash(bun run:*)",
+      "Bash(bun install)",
+      "Bash(bunx:*)",
+      "Bash(npx:*)",
+      "Bash(pnpx:*)",
+      "Bash(pytest:*)",
+      "Bash(python -m pytest:*)",
+      "Bash(python -m:*)",
+      "Bash(uv run:*)",
+      "Bash(uv sync)",
+      "Bash(uv pip:*)",
+      "Bash(uvx:*)",
+      "Bash(poetry run:*)",
+      "Bash(poetry install)",
+      "Bash(ruff:*)",
+      "Bash(mypy:*)",
+      "Bash(pyright:*)",
+      "Bash(black:*)",
+      "Bash(cargo test:*)",
+      "Bash(cargo build:*)",
+      "Bash(cargo check:*)",
+      "Bash(cargo clippy:*)",
+      "Bash(cargo fmt:*)",
+      "Bash(cargo nextest:*)",
+      "Bash(go test:*)",
+      "Bash(go build:*)",
+      "Bash(go vet:*)",
+      "Bash(go mod:*)",
+      "Bash(gofmt:*)",
+      "Bash(golangci-lint:*)",
+      "Bash(make:*)",
+      "Bash(just:*)",
+      "Bash(task:*)",
+      "Bash(docker build:*)",
+      "Bash(docker compose up:*)",
+      "Bash(docker compose down)",
+      "Bash(docker compose logs:*)",
+      "Bash(docker compose ps)",
+      "Bash(docker ps)",
+      "Bash(docker logs:*)",
+      "Bash(docker run --rm:*)",
+      "Bash(docker buildx:*)",
+      "Bash(semgrep:*)",
+      "Bash(gitleaks:*)",
+      "Bash(playwright:*)",
+      "Bash(curl -s:*)",
+      "Bash(curl -I:*)",
+      "Bash(http :*)",
+      "Bash(apify:*)",
+      "Bash(c8:*)",
+      "Bash(nyc:*)",
+      "Bash(coverage:*)",
+      "Bash(lighthouse:*)",
+      "Bash(bash .claude/scripts/*:*)",
+      "Bash(bash .claude/hooks/*:*)",
+      "Bash(.claude/scripts/*:*)",
+      "Bash(node .claude/hooks/*:*)",
+      "Write(initiatives/**)",
+      "Write(.claude/rules/**)",
+      "Write(OVERNIGHT_REPORT.md)",
+      "Write(ADOPTION-REPORT.md)",
+      "Write(roadmap.md)",
+      "Write(OKRs.md)"
+    ],
+    "ask": [
+      "Bash(git push:*)",
+      "Bash(git push --force-with-lease:*)",
+      "Bash(gh pr merge:*)",
+      "Bash(gh release create:*)",
+      "Bash(npm publish:*)",
+      "Bash(pnpm publish:*)",
+      "Bash(cargo publish:*)",
+      "Bash(docker push:*)",
+      "Bash(terraform apply:*)",
+      "Bash(terraform destroy:*)",
+      "Bash(kubectl apply:*)",
+      "Bash(kubectl delete:*)",
+      "Bash(aws:*)",
+      "Bash(vercel deploy:*)",
+      "Bash(flyctl deploy:*)",
+      "Bash(railway deploy:*)",
+      "Bash(rm -rf:*)",
+      "Bash(claude -p:*)",
+      "Bash(claude --bg:*)",
+      "Bash(claude --remote:*)"
+    ],
+    "deny": [
+      "Bash(DROP DATABASE:*)",
+      "Bash(DROP TABLE:*)",
+      "Bash(TRUNCATE TABLE:*)",
+      "Bash(dd if=:*)",
+      "Bash(git branch -D main)",
+      "Bash(git branch -D master)",
+      "Bash(git checkout -- .)",
+      "Bash(git clean -fdx)",
+      "Bash(git commit --no-verify:*)",
+      "Bash(git push --force origin main)",
+      "Bash(git push --force origin master)",
+      "Bash(git push --no-verify:*)",
+      "Bash(git push -f origin main)",
+      "Bash(git push -f origin master)",
+      "Bash(git reset --hard origin/main)",
+      "Bash(git reset --hard origin/master)",
+      "Bash(mkfs:*)",
+      "Bash(rm -rf $HOME)",
+      "Bash(rm -rf /)",
+      "Bash(rm -rf /*)",
+      "Bash(rm -rf ~)",
+      "Bash(rm -rf ~/*)",
+      "Bash(sudo rm:*)",
+      "Read(**/*.kdbx)",
+      "Read(**/*.key)",
+      "Read(**/*.kubeconfig)",
+      "Read(**/*.p12)",
+      "Read(**/*.pem)",
+      "Read(**/*.pfx)",
+      "Read(**/*.tfstate)",
+      "Read(**/*.tfvars)",
+      "Read(**/*_rsa)",
+      "Read(**/*credentials*)",
+      "Read(**/.aws/credentials)",
+      "Read(**/.docker/config.json)",
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Read(**/.git-credentials)",
+      "Read(**/.gnupg/**)",
+      "Read(**/.netrc)",
+      "Read(**/.npmrc)",
+      "Read(**/.pypirc)",
+      "Read(**/.ssh/**)",
+      "Read(**/_netrc)",
+      "Read(**/id_rsa*)",
+      "Read(**/known_hosts)",
+      "Read(**/kubeconfig)",
+      "Read(**/secrets/**)",
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Write(**/*.kdbx)",
+      "Write(**/*.key)",
+      "Write(**/*.kubeconfig)",
+      "Write(**/*.p12)",
+      "Write(**/*.pem)",
+      "Write(**/*.pfx)",
+      "Write(**/*.tfstate)",
+      "Write(**/*.tfvars)",
+      "Write(**/*_rsa)",
+      "Write(**/*credentials*)",
+      "Write(**/.docker/config.json)",
+      "Write(**/.env)",
+      "Write(**/.env.*)",
+      "Write(**/.git-credentials)",
+      "Write(**/.gnupg/**)",
+      "Write(**/.netrc)",
+      "Write(**/.npmrc)",
+      "Write(**/.pypirc)",
+      "Write(**/.ssh/**)",
+      "Write(**/_netrc)",
+      "Write(**/id_rsa*)",
+      "Write(**/kubeconfig)",
+      "Write(./.env)",
+      "Write(./.env.*)"
+    ]
+  },
+  "worktree": {
+    "bgIsolation": true
+  },
+  "env": {
+    "_comment_perf": "Tool Search defers MCP tool schemas until needed. Auto-compact window set per Boris Cherny tip #76 — context rot starts at 300-400K on 1M model. Agent Teams flag enables --teammate-mode.",
+    "ENABLE_TOOL_SEARCH": "true",
+    "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "400000",
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "BASH_DEFAULT_TIMEOUT_MS": "120000",
+    "BASH_MAX_TIMEOUT_MS": "600000",
+    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+    "GIT_PAGER": "cat",
+    "PAGER": "cat",
+    "NODE_NO_WARNINGS": "1",
+    "_comment_langfuse": "Round 6 A: native OTEL exporter to Langfuse Cloud. Auth header injected at runtime by otelHeadersHelper script that reads ~/.config/langfuse/keys.env (NOT committed). PII redaction defaults (USER_PROMPTS=0, TOOL_CONTENT=0, RAW_API_BODIES=0) are LOCKED — only flip to 1 when actively debugging and you understand the trace is then sensitive. Setup: docs/OBSERVABILITY.md. Disable: set CLAUDE_CODE_ENABLE_TELEMETRY=0.",
+    "CLAUDE_CODE_ENABLE_TELEMETRY": "1",
+    "CLAUDE_CODE_ENHANCED_TELEMETRY_BETA": "1",
+    "OTEL_TRACES_EXPORTER": "otlp",
+    "OTEL_METRICS_EXPORTER": "otlp",
+    "OTEL_LOGS_EXPORTER": "otlp",
+    "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
+    "OTEL_EXPORTER_OTLP_ENDPOINT": "https://cloud.langfuse.com/api/public/otel",
+    "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": "https://cloud.langfuse.com/api/public/otel/v1/traces",
+    "OTEL_METRIC_EXPORT_INTERVAL": "60000",
+    "OTEL_METRICS_INCLUDE_SESSION_ID": "true",
+    "OTEL_LOG_TOOL_DETAILS": "1",
+    "OTEL_LOG_USER_PROMPTS": "0",
+    "OTEL_LOG_TOOL_CONTENT": "0",
+    "OTEL_LOG_RAW_API_BODIES": "0"
+  },
+  "otelHeadersHelper": ".claude/scripts/langfuse-otel-headers.sh",
+  "enableAllProjectMcpServers": false,
+  "enabledMcpjsonServers": [],
+  "disabledMcpjsonServers": [],
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/session-start.sh",
+            "timeout": 30
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/session-start-context.sh",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/user-prompt-context.sh",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/workflow-state.sh",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/skill-router.sh",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/session-heartbeat.sh",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/context-monitor.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/pre-bash-guard.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/pre-spawn-cost-gate.sh",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/pre-bash-dep-freshness.sh",
+            "timeout": 15
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/pre-edit-constitution-guard.sh",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/pre-write-secret-scan.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Agent|Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/pre-spawn-cost-gate.sh",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/subagent-context.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/post-write-format.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/instinct-observer.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/post-write-roadmap.sh",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/post-bash-log.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/instinct-observer.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Skill",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/skill-use-log.sh",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/read-volume-nudge.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/stop-verify.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/auto-dream-check.sh",
+            "timeout": 30
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/task-signature-detector.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/subagent-stop.sh"
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "matcher": "auto|manual",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/pre-compact-witness.sh",
+            "timeout": 60
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/session-end.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

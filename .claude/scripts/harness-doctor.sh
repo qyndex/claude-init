@@ -148,6 +148,33 @@ if [ -s .claude/memory/index.jsonl ] && command -v jq >/dev/null 2>&1; then
   fi
 fi
 
+# Skill-use telemetry (gap-audit G17) — never-used skills + adherence signal
+if [ -s .claude/hooks/.log/skill-use.jsonl ]; then
+  used=$(jq -r '.skill' .claude/hooks/.log/skill-use.jsonl 2>/dev/null | sort -u | wc -l | tr -d ' ')
+  total_sk=$(find .claude/skills -name 'SKILL.md' -type f 2>/dev/null | wc -l | tr -d ' ')
+  add_result "skill-use telemetry" "pass" "$used of $total_sk skills invoked at least once (log: .claude/hooks/.log/skill-use.jsonl)"
+else
+  add_result "skill-use telemetry" "warn" "no skill-use.jsonl yet — skill-use-log.sh hook records Skill invocations once installed"
+fi
+
+# Cache hit-rate (gap-audit G1) — warn when measured and below threshold
+CACHE_HIT_MIN="${CACHE_HIT_MIN:-40}"
+summary=.claude/hooks/.log/cost-summary.json
+if [ -f "$summary" ]; then
+  age_s=$(( $(date +%s) - $(stat -f %m "$summary" 2>/dev/null || stat -c %Y "$summary" 2>/dev/null || echo 0) ))
+  hr=$(jq -r '.cache_hit_rate // -1' "$summary" 2>/dev/null || echo -1)
+  hr_int=${hr%.*}; hr_int=${hr_int:-0}
+  if [ "$age_s" -gt 86400 ] || [ "$hr_int" -lt 0 ]; then
+    add_result "cache hit-rate measured" "pass" "no fresh data — run cost-report.sh to refresh"
+  elif [ "$hr_int" -lt "$CACHE_HIT_MIN" ]; then
+    add_result "cache hit-rate ≥${CACHE_HIT_MIN}%" "warn" "${hr}% — prefix churn? check CLAUDE.md/agents/skill-frontmatter stability (§IX)"
+  else
+    add_result "cache hit-rate ≥${CACHE_HIT_MIN}%" "pass" "${hr}%"
+  fi
+else
+  add_result "cache hit-rate measured" "pass" "no cost-summary.json yet — run cost-report.sh"
+fi
+
 printf ']\n' >> "$result_file"
 
 if [ "$JSON_MODE" -eq 1 ]; then

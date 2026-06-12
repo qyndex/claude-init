@@ -8,10 +8,11 @@
 #   2. Surfaces "what to consolidate" for the next /dream
 #   3. Archives super-old entries automatically
 #
-# Wired into:
-#   - PreCompact hook (so compaction never proceeds with bloated MEMORY)
-#   - Cron at 03:30 (after dream-cron) for nightly enforcement
-#   - SessionStart (warn-only at >150 lines; fail at >300)
+# Wired into (gap-audit G10 — header now matches the real wiring):
+#   - gc-nightly.yml (02:30 routine, step 4) — nightly `enforce`
+#   - quarterly-archive.yml — quarterly `enforce`
+#   - session-start-context.sh — warn-only when MEMORY.md >200 lines
+#   - validate.sh [memory] — warn + remediation pointer when over cap
 
 set -uo pipefail
 

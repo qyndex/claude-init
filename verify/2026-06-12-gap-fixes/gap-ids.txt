@@ -1,0 +1,63 @@
+G1|high|Zero local cache hit-rate measurement — the metric the harness tells itself to watch does not exist anywhere
+G2|medium|.claude/skills/* is the one §IX cache surface left unprotected by the constitution guard
+G3|low|Cache-relevant env invariants are not validated
+G4|low|Residual per-turn changing injections (dirty-file count; stuck-streak counter)
+G5|low|Cache TTL knowledge is documented but has no operational hook
+G6|high|Subagent prompt-size ceiling (32KB deny / 16KB ask) is dead code — pre-spawn-cost-gate.sh is not registered on the Agent|Task matcher
+G7|medium|Output-token budget is purely advisory — no mechanical cap, monitor, or mid-session accounting of Claude's own output verbosity
+G8|medium|token-budget skill is referenced in five places but does not exist on disk
+G9|medium|No mid-session context-fill monitor on the model side — the >60% trigger for context-budget is unwired and the only automatic response to context growth is the 400K auto-compact
+G10|medium|memory-gc.sh's claimed wiring is partly aspirational — not run at PreCompact, no 03:30 cron, no >300-line SessionStart hard fail
+G11|low|The 16KB subagent-prompt warning would be a no-op in autonomous contexts even once wired — "ask" auto-resolves under Auto Mode
+G12|high|Auto-creation pipeline is broken at the middle link: nothing consumes _candidates.jsonl
+G13|high|Dream lifecycle destroys pending skill proposals and candidates (shared .claude/memory.proposed/ directory)
+G14|medium|Router coverage is static and covers under half the skill catalogue
+G15|medium|skill-creator's triggers.yml output has no consumer — approved skills never enter the router
+G16|medium|REGISTRY.md is generated but never loaded, and is stale (42 of 55 skills, 15 days old)
+G17|medium|No enforcement of skill use — hints are advisory with no adherence signal
+G18|low|task-signature-detector's documented quality gates are not implemented
+G19|low|validate.sh does not enforce the 1536-char description cap or skill-creator's richer frontmatter
+G20|medium|Hint coverage is sparse: only ~7 of 55 commands have any auto-surfacing trigger
+G21|medium|Dangling hint: session-start-context.sh suggests `/atlas refresh`, a command that does not exist
+G22|medium|`disable-model-invocation: true` policy is documented but not mechanically enforced
+G23|medium|/dream-review unblock requirement is surfaced only in a log file, never in injected context
+G24|low|Injected hints name commands the model cannot invoke, with no "ask the user" framing
+G25|critical|Instinct extraction stage never runs — the pipeline is dead between observations and active.yml
+G26|high|Project → global instinct promotion (2+ projects) is purely aspirational
+G27|high|Subagent followup_tasks / decisions are counted, not persisted — child learnings die with the parent's context
+G28|medium|Skill-candidate consumption is documented as automatic but no consumer exists
+G29|medium|memory-promote.sh and learn-from-success.sh run only via the optionally-installed desktop cron — not via the in-repo dream path
+G30|medium|learn-from-success.sh can never produce its routing insights: stale model id + no agent field writer
+G31|medium|skill-router.sh does not match instinct triggers despite the skill's claim
+G32|low|Implementer (and most worker agents) get no memory recall — shared learnings flow to reviewers but not to the code writer
+G33|high|Subagent handoff digests never reach persistent memory — only the parent's transcript
+G34|high|Instructed memory write-back is mechanically impossible for the agents told to do it
+G35|medium|Delegation (auto-USE of subagents) is suggestion-only — no mechanical trigger or enforcement
+G36|medium|Subagent prompt-size gate is dead code — wired on the wrong matcher
+G37|medium|Handoff followup_tasks -> TASKS.md bridge is LLM-mediated, not automated, and format-mismatched
+G38|low|'SOFT (warn, accept)' handoff enforcement does not actually warn
+G39|critical|Zero real ADRs exist — creation never happens, so the entire lifecycle runs on an empty set
+G40|high|Nothing blocks an architectural change that lacks an ADR — enforcement is entirely LLM-judged prose
+G41|high|'Security disables require an ADR' is aspirational — lint-exception-check.sh only echoes it, never verifies
+G42|medium|/adr-walk does not perform the re-verification it advertises — last_verified is never bumped and chain-walking is a stub
+G43|medium|ADR provenance fields are never populated — 'populated by hook' claim has no hook
+G44|low|Dream contradiction detection keys on a 'subsystem:' frontmatter field the ADR template does not have
+G45|low|Session-start staleness check uses file mtime, diverging from the frontmatter-date logic used everywhere else
+G46|high|Deep code review is same-model: Opus reviews Opus, in-session and in CI
+G47|medium|Confidence/Scope-risk/Not-tested commit trailers are mandated but never validated
+G48|medium|stop-verify.sh checks report existence/recency, not content — and self-documents its bypass
+G49|medium|evidence.json is agent-committed and trusted; CI never re-runs the journey/smoke it attests
+G50|low|Reviewer's multi-pass re-verification is prompt-level only — no mechanical check that pass 2 happened
+G51|critical|spec-match.sh never checks that the tagged test PASSED — a failing journey still 'proves' every AC
+G52|high|All journey evidence is self-attested by the agent; CI never independently runs the E2E journey on a PR
+G53|high|evidence-gate accepts a stale or wrong-spec evidence.json — no binding to the PR's spec or commits
+G54|medium|story-test-map.sh's per-story mapping is fictional — one E2E file satisfies every story in the spec, and passing is never checked
+G55|medium|The autonomous local gate (verify.sh) never executes the user journey — AC coverage is enforced only at PR time
+G56|low|Stop hook accepts any REPORT.md regardless of verdict or feature
+G57|low|evidence-gate's documented docs-only escape hatch (no-ac.json) does not work
+G58|high|No empty-backlog -> ideate trigger anywhere in the autonomous loops
+G59|medium|Triage — the actual ranking/proposal step — has no scheduled trigger and no deterministic scorer
+G60|medium|All feedback source connectors are disabled/unauthenticated out of the box, and the poll routine is a non-executable template
+G61|medium|No automated revenue signal — ARR/renewal data is hand-entered or aspirational Pendo metadata; OKR 'Today' values are static text
+G62|low|Proposal flow is not research-grounded by mandate — researcher is never invoked in the initiative/roadmap path
+G63|low|/okrs draft ignores the feedback registry; /feedback link clobbers existing refs

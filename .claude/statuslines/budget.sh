@@ -55,6 +55,18 @@ if [ -n "$cost_dollars" ]; then
   cost=$(printf 'cost:$%.2f' "$cost_dollars" 2>/dev/null || echo "")
 fi
 
+# Cache hit rate (gap-audit G1) — from cost-summary.json, shown only if <24h old
+cache=""
+summary="$cwd/.claude/hooks/.log/cost-summary.json"
+if [ -f "$summary" ]; then
+  now=$(date +%s)
+  mtime=$(stat -f %m "$summary" 2>/dev/null || stat -c %Y "$summary" 2>/dev/null || echo 0)
+  if [ $((now - mtime)) -lt 86400 ]; then
+    hr=$(jq -r 'if (.cache_hit_rate // -1) >= 0 then (.cache_hit_rate | floor) else empty end' "$summary" 2>/dev/null)
+    [ -n "$hr" ] && cache="cache:${hr}%"
+  fi
+fi
+
 # Assemble
 parts=( "[$model]" "$project" )
 [ -n "$branch" ] && parts+=( "($branch$dirty)" )
@@ -62,5 +74,6 @@ parts=( "[$model]" "$project" )
 [ -n "$plan" ] && parts+=( "$plan" )
 [ -n "$ctx" ] && parts+=( "$ctx" )
 [ -n "$cost" ] && parts+=( "$cost" )
+[ -n "$cache" ] && parts+=( "$cache" )
 
 printf '%s\n' "${parts[*]}"

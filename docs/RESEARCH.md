@@ -147,7 +147,7 @@ Source for tier strategy: [wshobson/agents README](https://github.com/wshobson/a
 - [Managing context (memory + context editing)](https://www.anthropic.com/news/context-management)
 - [Prompt caching docs](https://platform.claude.com/docs/en/build-with-claude/prompt-caching)
 
-**Cache TTL change** (March 6, 2026): default dropped from 1h → 5min. For longer sessions, explicitly set `cache_control: {"type":"ephemeral","ttl":"1h"}`. Source: [DEV article](https://dev.to/whoffagents/anthropic-silently-dropped-prompt-cache-ttl-from-1-hour-to-5-minutes-16ao).
+**Cache TTL change** (March 6, 2026): default dropped from 1h → 5min. `cache_control` is an API-level parameter Claude Code does not expose, so the actionable consequence for this harness is timing, not configuration: turns spaced more than ~5 minutes apart re-pay the full cache write. Keep unattended loop iterations tight (no long sleeps between turns), and treat an idle interactive session as cold — the first turn after a break is expected to cost cache-creation, not cache-read (watch `cache:%` in the statusline / `cost-report.sh`). Source: [DEV article](https://dev.to/whoffagents/anthropic-silently-dropped-prompt-cache-ttl-from-1-hour-to-5-minutes-16ao).
 
 **Cost-monitoring tools**:
 - [ccusage](https://github.com/ryoppippi/ccusage) — local JSONL parser, statusline integration

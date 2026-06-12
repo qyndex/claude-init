@@ -1,0 +1,176 @@
+analyze	analyze the plan
+analyze	any gaps
+analyze	check consistency
+animation-discipline	animate
+animation-discipline	animation
+animation-discipline	framer-motion
+animation-discipline	motion
+animation-discipline	transition
+api-versioning	breaking change to api
+api-versioning	deprecate api
+api-versioning	v2 endpoint
+autopilot	auto-run
+autopilot	autopilot
+autopilot	ralph mode
+autopilot	run on your own
+autopilot	ultrawork
+browser-e2e	did the ui work
+browser-e2e	open the app and try
+browser-e2e	test in browser
+characterize	approval test
+characterize	characterize
+characterize	golden master
+characterize	no tests = no writes
+characterize	pin current behavior
+characterize	safety net before refactor
+clarify	clarify the spec
+clarify	let's nail down
+clarify	what's still ambiguous
+codemod	codemod
+codemod	migrate n call sites
+codemod	refactor at scale
+codemod	upgrade react
+constitution	init the project rules
+constitution	set up the constitution
+constitution	what are our principles
+constitution-compact	compact constitution
+constitution-compact	trim claude.md
+context-budget	/context-budget
+context-budget	trim the harness
+context-budget	what's costing tokens
+creative-web	art-directed
+creative-web	creative
+creative-web	interactive
+creative-web	parallax
+creative-web	playground
+creative-web	scroll-triggered
+creative-web	stunning
+creative-web	wow factor
+db-migration	add a column
+db-migration	change column type
+db-migration	drop a column
+db-migration	forward-only by default\
+db-migration	migration
+db-migration	rename a column
+debug	debug
+debug	what's wrong
+debug	why does this fail
+dispatch-criteria	is this work parallelizable
+dispatch-criteria	should i do this in parallel
+dream	consolidate memory
+dream	dream
+dream	tidy memory
+experiment	does this improve <metric>\
+experiment	experiment\
+experiment	split test\
+experiment	user says \
+flag-cleanup	/flag cleanup <name>
+flag-rollout	/flag rollout
+flag-rollout	go to 10%
+flag-rollout	phased delivery in prod
+flag-rollout	ramp the flag
+flag-rollout	roll it out
+front-end-design	design
+front-end-design	hero
+front-end-design	landing page
+front-end-design	layout
+front-end-design	make it look better
+front-end-design	redesign
+handoff	handoff
+handoff	status report
+handoff	what did you do
+image-generation	hero image
+image-generation	icon
+image-generation	illustration
+image-generation	image needed
+image-generation	logo
+image-generation	mock
+image-generation	og card
+implement	build it
+implement	implement
+implement	let's code
+implement	start coding
+initiative	18-month migration
+initiative	epic
+initiative	initiative
+initiative	set up the program for
+initiative	this is a multi-quarter program
+initiative	we need a roadmap for x
+instinct	auto-runs via hooks. manual invocation by user: \
+instinct	instincts
+instinct	review instincts\
+instinct	what did you learn\
+loop	auto run
+loop	keep going until done
+loop	loop
+loop	ralph
+loop	work overnight
+observability	add observability
+observability	instrument this
+observability	scaffold logging
+okr-align	does this work map to a kr?
+okr-align	how does this align with q3?
+parallel-swarm	build everything
+parallel-swarm	fan out n streams
+parallel-swarm	parallel features
+parallel-swarm	swarm
+parallel-swarm	swarm-plan
+parallel-swarm	work on these in parallel
+plan	design the implementation
+plan	how would you build x
+plan	plan it
+prod-observability	add monitoring
+prod-observability	page on breach
+prod-observability	set up observability
+prod-observability	slo alerts
+prod-observability	uptime monitoring
+prod-observability	wire alerting
+release-train	cut a release
+release-train	promote to prod
+release-train	rc build
+release-train	release train
+research	compare y vs z
+research	research x
+research	what's the best way to
+research	which library
+review	audit
+review	code review
+review	lgtm?
+review	review
+review	security review
+security-guard	audit
+security-guard	check for vulns
+security-guard	is this safe
+security-guard	security review
+self-heal	auto-heal
+self-heal	fix this
+self-heal	make it pass
+self-heal	the tests are red
+ship	deploy
+ship	merge
+ship	open the pr
+ship	release
+ship	ship it
+skill-creator	create a skill
+skill-creator	make this a skill
+skill-creator	we keep doing x
+specify	let's design x
+specify	spec out
+specify	what's the spec for
+specify	write a spec for
+tasks	break it into tasks
+tasks	decompose the plan
+tasks	what's the task list
+tdd-loop	red green refactor
+tdd-loop	test first
+verify	did it actually work?
+verify	does it work
+verify	run it
+verify	test end-to-end
+verify	verify
+verify-loop	/verify-loop
+verify-loop	keep going
+verify-loop	loop until done
+verify-loop	verify until 100%
+wip-checkpoint	checkpoint
+wip-checkpoint	save progress

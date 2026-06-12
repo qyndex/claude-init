@@ -44,9 +44,23 @@ case "$mode" in
     archive_dir=".claude/memory/.archive/$(date +%Y%m%d-%H%M%S)"
     mkdir -p "$archive_dir"
     cp -r "$CANONICAL"/* "$archive_dir/" 2>/dev/null || true
+    # Gap-audit G13: skills/ is the skill-proposal queue, NOT memory — keep it
+    # in .proposed so --approve-skill's path stays valid (canonical memory has
+    # no skills/ dir; moving it there orphaned pending proposals).
+    skills_keep=""
+    if [ -d "$PROPOSED/skills" ]; then
+      skills_keep=$(mktemp -d)
+      mv "$PROPOSED/skills" "$skills_keep/skills"
+    fi
     # Apply proposed
     rm -rf "$CANONICAL"
     mv "$PROPOSED" "$CANONICAL"
+    if [ -n "$skills_keep" ] && [ -d "$skills_keep/skills" ]; then
+      mkdir -p "$PROPOSED"
+      mv "$skills_keep/skills" "$PROPOSED/skills"
+      rm -rf "$skills_keep"
+      echo "  (skill proposals kept pending in $PROPOSED/skills — review via --approve-skill)"
+    fi
     echo "✓ Dream consolidation applied; previous state archived to $archive_dir"
     ;;
 
@@ -55,7 +69,19 @@ case "$mode" in
       echo "Nothing to revert."
       exit 0
     fi
+    # Gap-audit G13: a memory revert must not destroy the skill-proposal queue
+    skills_keep=""
+    if [ -d "$PROPOSED/skills" ]; then
+      skills_keep=$(mktemp -d)
+      mv "$PROPOSED/skills" "$skills_keep/skills"
+    fi
     rm -rf "$PROPOSED"
+    if [ -n "$skills_keep" ] && [ -d "$skills_keep/skills" ]; then
+      mkdir -p "$PROPOSED"
+      mv "$skills_keep/skills" "$PROPOSED/skills"
+      rm -rf "$skills_keep"
+      echo "  (skill proposals kept pending in $PROPOSED/skills)"
+    fi
     echo "✓ Proposed consolidation discarded; canonical memory unchanged"
     ;;
 
@@ -76,6 +102,9 @@ case "$mode" in
     fi
 
     mv "$src" ".claude/skills/$slug"
+    # Gap-audit G16: refresh the registry + router trigger table so the new
+    # skill is discoverable immediately, not on the next SKILL.md write.
+    bash .claude/scripts/regen-skill-registry.sh || true
     echo "✓ Skill .claude/skills/$slug activated"
     echo "  Next: it will appear in skill listings on next session; manual test via the skill's example invocations"
     ;;

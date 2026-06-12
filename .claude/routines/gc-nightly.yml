@@ -31,8 +31,9 @@ prompt: |
   1. bash .claude/scripts/gc-tasks.sh    # archive old [x]/[s] tasks when TASKS.md > cap
   2. bash .claude/scripts/gc-verify.sh   # archive verify/ dirs > 30d, prune archived > 60d
   3. bash .claude/scripts/gc-logs.sh     # rotate .log files > 50MB into .log.1..5
+  4. bash .claude/scripts/memory-gc.sh enforce  # prune MEMORY.md when > 200-line cap (gap-audit G10)
 
-  All three are idempotent and safe to re-run. tasks/TASKS.md remains the sole
+  All four are idempotent and safe to re-run. tasks/TASKS.md remains the sole
   source of truth — archived tasks move to tasks/archive/TASKS-YYYY-MM.md, they
   are not deleted. If any script exits non-zero, surface the error; do not retry
   blindly. Report a one-line summary per script.

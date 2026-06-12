@@ -39,11 +39,17 @@ esac
 # ─── Aggregate from ccusage ─────────────────────────────────────────────
 total=0
 by_agent_json='{}'
+cache_read=0
+cache_creation=0
 if command -v ccusage >/dev/null 2>&1 || command -v npx >/dev/null 2>&1; then
   # JUSTIFIED: ccusage/npx stderr suppressed — when the tool is absent or errors, the chain falls through to the empty-array literal
   blocks=$(ccusage blocks --json --since "$since" 2>/dev/null || \
            npx --no-install ccusage blocks --json --since "$since" 2>/dev/null || echo '[]')
   total=$(printf '%s' "$blocks" | jq '[.[].total_cost_usd] | add // 0')
+  # Gap-audit G1: cache hit-rate. Recursive descent tolerates both flat blocks
+  # and nested tokenCounts shapes across ccusage versions.
+  cache_read=$(printf '%s' "$blocks" | jq '[.. | objects | (.cacheReadInputTokens? // .cache_read_input_tokens? // empty)] | add // 0')
+  cache_creation=$(printf '%s' "$blocks" | jq '[.. | objects | (.cacheCreationInputTokens? // .cache_creation_input_tokens? // empty)] | add // 0')
 fi
 
 # ─── Aggregate from local usage.jsonl (fallback + agent attribution) ────
@@ -80,7 +86,21 @@ if [ -f "$LOG_DIR/usage.jsonl" ]; then
     }
   ' "$LOG_DIR/usage.jsonl")
   [ -z "$by_agent_json" ] && by_agent_json='{}'
+
+  # Gap-audit G1: usage.jsonl fallback for cache tokens when ccusage gave none.
+  if [ "${cache_read:-0}" = "0" ] && [ "${cache_creation:-0}" = "0" ]; then
+    cache_read=$(jq -s --arg since "$since" \
+      '[.[] | select((.timestamp // "") >= $since) | (.cacheReadInputTokens? // .cache_read_input_tokens? // 0)] | add // 0' \
+      "$LOG_DIR/usage.jsonl" 2>/dev/null) || cache_read=0
+    cache_creation=$(jq -s --arg since "$since" \
+      '[.[] | select((.timestamp // "") >= $since) | (.cacheCreationInputTokens? // .cache_creation_input_tokens? // 0)] | add // 0' \
+      "$LOG_DIR/usage.jsonl" 2>/dev/null) || cache_creation=0
+  fi
 fi
+cache_read=${cache_read:-0}
+cache_creation=${cache_creation:-0}
+# hit-rate = read / (read + creation); -1 means "no cache data captured"
+cache_hit_rate=$(awk "BEGIN { t = $cache_read + $cache_creation; if (t <= 0) print -1; else printf \"%.1f\", ($cache_read / t) * 100 }")
 
 # ─── Write summary for downstream consumers ─────────────────────────────
 cat > "$SUMMARY_FILE" <<EOF
@@ -92,6 +112,9 @@ cat > "$SUMMARY_FILE" <<EOF
   "monthly_cap_usd": $MONTHLY_CAP_USD,
   "remaining_usd": $(awk "BEGIN { print $MONTHLY_CAP_USD - $total }"),
   "pct_used": $(awk "BEGIN { print ($total / $MONTHLY_CAP_USD) * 100 }"),
+  "cache_read_tokens": $cache_read,
+  "cache_creation_tokens": $cache_creation,
+  "cache_hit_rate": $cache_hit_rate,
   "by_agent": $by_agent_json
 }
 EOF
@@ -107,7 +130,10 @@ if [ -t 1 ]; then
     "Spent:  $\(.total_usd | tostring)",
     "Cap:    $\(.monthly_cap_usd)",
     "Left:   $\(.remaining_usd | tostring)",
-    "Used:   \(.pct_used | tostring)%"
+    "Used:   \(.pct_used | tostring)%",
+    (if .cache_hit_rate >= 0
+     then "Cache:  \(.cache_hit_rate)% hit rate (\(.cache_read_tokens) read / \(.cache_creation_tokens) written)"
+     else "Cache:  no data captured (ccusage absent or fields missing)" end)
   ' "$SUMMARY_FILE"
 
   echo

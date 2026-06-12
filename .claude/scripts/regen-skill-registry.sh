@@ -51,3 +51,34 @@ STACKMAP
 } > "$OUT"
 
 echo "✓ Regenerated $OUT ($(grep -c '^| `' "$OUT") skills)"
+
+# ─── Gap-audit G14/G15: generated trigger table for skill-router.sh ─────
+# Derives phrase→skill triggers from each skill's frontmatter (quoted phrases
+# in when_to_use/description) plus any <skill>/triggers.yml (skill-creator
+# contract — previously a dead artifact). Router loads this TSV at hook time,
+# so coverage tracks the catalogue automatically.
+TRIGGERS_OUT=".claude/state/skill-triggers.tsv"
+mkdir -p "$(dirname "$TRIGGERS_OUT")"
+{
+  for d in .claude/skills/*/; do
+    skill_md="${d}SKILL.md"
+    [ -f "$skill_md" ] || continue
+    sname=$(basename "$d")
+    # quoted phrases out of when_to_use + description frontmatter lines
+    grep -E '^(when_to_use|description):' "$skill_md" | head -2 \
+      | grep -oE '"[^"]{4,60}"' | tr -d '"' \
+      | tr '[:upper:]' '[:lower:]' \
+      | while IFS= read -r phrase; do printf '%s\t%s\n' "$sname" "$phrase"; done
+    # explicit triggers.yml (skill-creator contract)
+    if [ -f "${d}triggers.yml" ]; then
+      grep -E '^[[:space:]]*-[[:space:]]*' "${d}triggers.yml" \
+        | sed -E 's/^[[:space:]]*-[[:space:]]*//; s/^["'\'']//; s/["'\'']$//' \
+        | tr '[:upper:]' '[:lower:]' \
+        | while IFS= read -r phrase; do
+            [ "${#phrase}" -ge 4 ] && printf '%s\t%s\n' "$sname" "$phrase"
+          done
+    fi
+  done
+} | sort -u > "$TRIGGERS_OUT"
+
+echo "✓ Regenerated $TRIGGERS_OUT ($(wc -l < "$TRIGGERS_OUT" | tr -d ' ') triggers)"

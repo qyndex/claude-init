@@ -171,7 +171,9 @@ while IFS= read -r -d '' f; do
     esac
   fi
 # JUSTIFIED: find -print0 feed — 2>/dev/null hides "no such directory" for any absent template dir; absent dirs contribute no files to validate
-done < <(find .claude specs/templates plans/templates initiatives/templates -name '*.md' -type f -print0 2>/dev/null)
+# .claude/worktrees is gitignored runtime state (native worktrees) — never validated
+done < <(find .claude specs/templates plans/templates initiatives/templates \
+  -path '.claude/worktrees' -prune -o -name '*.md' -type f -print0 2>/dev/null)
 
 if [ "$has_yaml" = "0" ]; then
   warn "python3+pyyaml not available — used regex fallback for YAML"
@@ -212,6 +214,18 @@ else
   ok "$agent_count agents discovered"
 fi
 
+# Gap-audit G34: an agent whose contract claims it writes under .claude/memory/
+# must actually hold a write-capable tool — otherwise the claim is mechanically
+# impossible and the artifact silently never exists.
+while IFS= read -r -d '' af; do
+  if grep -qE '(written to|logged in) `\.claude/memory' "$af"; then
+    tools_line=$(grep -m1 -E '^tools:' "$af" || echo "")
+    if ! printf '%s' "$tools_line" | grep -qE 'Write|Edit'; then
+      warn "agent claims memory writes but has no Write/Edit tool: $af (route the content through the NEXUS handoff instead)"
+    fi
+  fi
+done < <(find .claude/agents -name '*.md' -type f -print0 2>/dev/null)
+
 # Core agents that ARE required by name (the workflow won't function without these)
 for core_agent in architect planner implementer reviewer verifier; do
   # JUSTIFIED: find presence probe — 2>/dev/null hides "no such directory"; an empty result correctly triggers the "core agent missing" fail
@@ -229,6 +243,60 @@ echo "[skills]"
 skill_count=$(find .claude/skills -name 'SKILL.md' -type f 2>/dev/null | wc -l | tr -d ' ')
 ok "$skill_count project-specific skills"
 note "(plugin-installed skills validated by \`/plugin list\`, not here)"
+
+# Gap-audit G19: description frontmatter must fit the maxSkillDescriptionChars
+# cap (settings.json, default 1536) — oversized descriptions are silently
+# truncated by Claude Code, breaking trigger phrases.
+desc_cap=$(jq -r '.maxSkillDescriptionChars // 1536' .claude/settings.json 2>/dev/null || echo 1536)
+desc_over=0
+while IFS= read -r -d '' sf; do
+  dlen=$(awk '/^description:/{sub(/^description:[[:space:]]*/,""); print length($0); exit}' "$sf")
+  if [ "${dlen:-0}" -gt "$desc_cap" ]; then
+    warn "skill description exceeds ${desc_cap}-char cap ($dlen): $sf"
+    desc_over=$((desc_over+1))
+  fi
+done < <(find .claude/skills -name 'SKILL.md' -type f -print0 2>/dev/null)
+[ "$desc_over" -eq 0 ] && ok "all skill descriptions within ${desc_cap}-char cap"
+
+# Gap-audit G8: every `.claude/skills/<name>` path referenced from the docs
+# must resolve to a real skill directory — dangling references send readers
+# (and the model) to dead ends.
+dangling=0
+while IFS= read -r ref; do
+  name="${ref#.claude/skills/}"
+  case "$name" in .archive|"") continue ;; esac
+  if [ ! -d ".claude/skills/$name" ]; then
+    warn "dangling skill reference: $ref (no such directory)"
+    dangling=$((dangling+1))
+  fi
+  # JUSTIFIED: grep -rhoE across docs — 2>/dev/null mutes unreadable-file noise; no matches is a valid (clean) outcome via the empty while-loop
+done < <(grep -rhoE '\.claude/skills/[a-z0-9][a-z0-9_-]*' CLAUDE.md README.md docs/*.md .claude/skills/*/SKILL.md 2>/dev/null | sort -u)
+[ "$dangling" -eq 0 ] && ok "all referenced skill paths resolve"
+
+# Gap-audit G16: REGISTRY.md must track the catalogue (row count == SKILL.md count)
+if [ -f .claude/skills/REGISTRY.md ]; then
+  reg_rows=$(grep -c '^| `' .claude/skills/REGISTRY.md || true)
+  if [ "${reg_rows:-0}" -eq "$skill_count" ]; then
+    ok "REGISTRY.md fresh ($reg_rows/$skill_count skills)"
+  else
+    warn "REGISTRY.md stale ($reg_rows rows vs $skill_count skills) — run .claude/scripts/regen-skill-registry.sh"
+  fi
+else
+  warn "no .claude/skills/REGISTRY.md — run .claude/scripts/regen-skill-registry.sh"
+fi
+
+# Gap-audit G19: skill-creator contract — when_to_use should be present (warn)
+wtu_missing=0
+while IFS= read -r -d '' sf; do
+  if ! grep -qE '^when_to_use:[[:space:]]*\S' "$sf"; then
+    wtu_missing=$((wtu_missing+1))
+  fi
+done < <(find .claude/skills -name 'SKILL.md' -type f -print0 2>/dev/null)
+if [ "$wtu_missing" -eq 0 ]; then
+  ok "all skills carry when_to_use frontmatter"
+else
+  warn "$wtu_missing skill(s) missing when_to_use frontmatter (router/trigger coverage suffers)"
+fi
 echo
 
 # ─── 7. Commands directory ──────────────────────────────────────────────
@@ -236,6 +304,33 @@ echo "[commands]"
 # JUSTIFIED: find|wc count — 2>/dev/null hides "no such directory"; a repo without commands yields 0, reported as informational
 cmd_count=$(find .claude/commands -name '*.md' -type f 2>/dev/null | wc -l | tr -d ' ')
 ok "$cmd_count commands discovered"
+
+# Gap-audit G22: commands are user-only by contract (README: every command
+# carries disable-model-invocation: true). Enforce it so a new command can't
+# silently become model-invocable.
+dmi_missing=0
+while IFS= read -r -d '' cf; do
+  case "$cf" in */README.md) continue ;; esac
+  if ! grep -qE '^disable-model-invocation:[[:space:]]*true' "$cf"; then
+    fail "command missing disable-model-invocation: true — $cf (user-only contract, commands/README.md)"
+    dmi_missing=$((dmi_missing+1))
+  fi
+done < <(find .claude/commands -name '*.md' -type f -print0 2>/dev/null)
+[ "$dmi_missing" -eq 0 ] && ok "all commands carry disable-model-invocation: true"
+
+# Gap-audit G21: every backticked /command a hook injects must resolve to a
+# real command, skill, or known built-in — dangling refs advertise dead ends.
+builtin_cmds="compact clear rewind config plugin loop fast context fewer-permission-prompts"
+dangling_cmd=0
+while IFS= read -r ref; do
+  name="${ref#\`/}"
+  [ -z "$name" ] && continue
+  if [ -f ".claude/commands/${name}.md" ] || [ -d ".claude/skills/${name}" ]; then continue; fi
+  case " $builtin_cmds " in *" $name "*) continue ;; esac
+  warn "hook injects dangling slash-command: /$name (no command/skill/built-in resolves)"
+  dangling_cmd=$((dangling_cmd+1))
+done < <(grep -rhoE '`/[a-z][a-z0-9-]+' .claude/hooks/*.sh 2>/dev/null | sort -u)
+[ "$dangling_cmd" -eq 0 ] && ok "all hook-injected slash-commands resolve"
 echo
 
 # ─── 8. Hooks: every referenced hook must exist ─────────────────────────
@@ -265,6 +360,24 @@ for h in $on_disk; do
   # JUSTIFIED: grep -q presence probe — 2>/dev/null hides "no such file" on a fresh repo; absence then correctly warns the hook is unreferenced
   if ! grep -q "$hname" .claude/settings.json 2>/dev/null; then
     warn "hook on disk but not referenced in settings.json: $hname"
+  fi
+done
+
+# Gap-audit G6: matcher coverage — a hook whose code branches on
+# tool_name == Agent/Task is dead code unless it is registered under a
+# PreToolUse matcher that can actually deliver those tools (being registered
+# "somewhere", e.g. only under Bash, silently disables the branch).
+for h in $on_disk; do
+  hname=$(basename "$h")
+  if grep -qE 'tool_name"?\s*=\s*"(Agent|Task)"' "$h" 2>/dev/null; then
+    covered=$(jq -r --arg cmd "$hname" '
+      .hooks.PreToolUse[]? | select([.hooks[]?.command] | any(contains($cmd)))
+      | .matcher // ""' .claude/settings.json 2>/dev/null | grep -c 'Agent' || true)
+    if [ "${covered:-0}" -eq 0 ]; then
+      fail "$hname branches on tool_name Agent/Task but is not registered under an Agent|Task matcher (dead code — gap-audit G6)"
+    else
+      ok "$hname covered by an Agent-matching matcher"
+    fi
   fi
 done
 echo
@@ -413,6 +526,20 @@ if command -v jq >/dev/null && [ -f .claude/settings.json ]; then
     fail "Bash(claude:*) catch-all in allow — should enumerate subcommands"
   else
     ok "no Bash(claude:*) catch-all"
+  fi
+
+  # Gap-audit G3: cache/context env invariants §IX calls load-bearing
+  ts=$(jq -r '.env.ENABLE_TOOL_SEARCH // "unset"' .claude/settings.json 2>/dev/null)
+  if [ "$ts" = "true" ]; then
+    ok "ENABLE_TOOL_SEARCH=true (MCP schemas deferred)"
+  else
+    fail "ENABLE_TOOL_SEARCH should be \"true\" in settings env, got: $ts (§IX cache invariant)"
+  fi
+  acw=$(jq -r '.env.CLAUDE_CODE_AUTO_COMPACT_WINDOW // "unset"' .claude/settings.json 2>/dev/null)
+  if [ "$acw" != "unset" ] && [ -n "$acw" ]; then
+    ok "CLAUDE_CODE_AUTO_COMPACT_WINDOW set ($acw)"
+  else
+    fail "CLAUDE_CODE_AUTO_COMPACT_WINDOW unset in settings env (§IX context invariant)"
   fi
 fi
 

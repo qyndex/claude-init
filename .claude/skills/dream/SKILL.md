@@ -28,14 +28,22 @@ silently overwrite the first's proposal and drop the human-review gate.
 
 ## What a dream does
 
-1. **Gather** — read `.claude/memory/` topic files and every checkpoint under
-   `.claude/memory/.cache/checkpoints/` written since the last dream.
+1. **Gather** — read `.claude/memory/` topic files, every checkpoint under
+   `.claude/memory/.cache/checkpoints/` written since the last dream, subagent
+   handoff archives under `.claude/memory/handoffs/` (decisions_made,
+   rejected_hypotheses, incidents — gap-audit G33), and the digest log
+   `.claude/hooks/.log/subagent.jsonl` for agents that skipped the handoff.
 2. **Dedupe + compress** — merge repeated observations into a single entry; drop
    anything already captured in a topic file. Prefer the denser phrasing.
 3. **Absolutize dates** — rewrite relative dates ("yesterday", "last week") to
    absolute ISO dates, so the memory stays interpretable after time passes.
 4. **Archive stale instincts** — move instinct files that haven't fired recently
    from the active set into `.claude/memory/.cache/archive/YYYY-MM/`.
+   4a. **Extract fresh instincts** — run `bash .claude/scripts/instinct-extract.sh --force`
+   (gap-audit G25: this is the pipeline's middle stage; without it observations
+   accumulate unconsumed). 4b. **Promote** — run
+   `bash .claude/scripts/instinct-promote.sh auto` (project → global at the
+   2-project threshold, gap-audit G26).
 5. **Detect contradictions** — group ADR files under `.claude/memory/decisions/`
    by their `subsystem:` frontmatter field. For each subsystem group with ≥2 ADRs,
    compare their `decision:` fields; flag any pair whose decisions conflict (e.g.,
@@ -49,7 +57,11 @@ silently overwrite the first's proposal and drop the human-review gate.
    `MEMORY.md` bloated (Round 4 caught exactly that silent failure).
 7. **Archive checkpoints** — move processed checkpoints to
    `.claude/memory/.cache/archive/YYYY-MM/`.
-8. **Roll up horizons** — run `bash .claude/scripts/memory-rollup.sh auto`.
+8. **Promote + decay (mechanical)** — run `bash .claude/scripts/memory-promote.sh`
+   and `bash .claude/scripts/learn-from-success.sh` (gap-audit G29: these
+   previously ran only via the optionally-installed desktop cron, so a fresh
+   harness copy silently never promoted/decayed memory or learned routing).
+9. **Roll up horizons** — run `bash .claude/scripts/memory-rollup.sh auto`.
    This consolidates the week's events into `.claude/memory/rollups/YYYY-Www.md`
    and, at period boundaries, weeklies → monthly → quarterly (each ≤100 lines).
    Multi-year recall depends on this: day-scale memory (in-flight briefs,

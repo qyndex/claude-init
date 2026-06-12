@@ -50,13 +50,24 @@ bash .claude/scripts/cost-report.sh month >/dev/null 2>&1
   fi
   echo
 
-  # Top agents by invocation count
+  # Top agents by invocation count.
+  # Gap-audit G30: usage.jsonl has no agent field writer — the real per-agent
+  # invocation record is subagent.jsonl (written by subagent-stop.sh on every
+  # SubagentStop). Read that; keep usage.jsonl as a secondary source if a
+  # future writer tags it.
   echo "## Invocation frequency (top 10)"
   echo
   if command -v jq >/dev/null; then
-    # JUSTIFIED: jq error output discarded — a malformed/partial usage log yields no agent lines, so the frequency table is simply empty for this advisory report
-    jq -r 'select(.agent) | .agent' "$USAGE_LOG" 2>/dev/null | sort | uniq -c | sort -rn | head -10 | \
-      awk '{printf "- %s: %d invocations\n", $2, $1}'
+    SUBAGENT_LOG=".claude/hooks/.log/subagent.jsonl"
+    if [ -s "$SUBAGENT_LOG" ]; then
+      # JUSTIFIED: jq error output discarded — malformed digest lines are skipped; this is an advisory report
+      jq -r '.agent_type // empty' "$SUBAGENT_LOG" 2>/dev/null | sort | uniq -c | sort -rn | head -10 | \
+        awk '{printf "- %s: %d invocations\n", $2, $1}'
+    else
+      # JUSTIFIED: jq error output discarded — a malformed/partial usage log yields no agent lines, so the frequency table is simply empty for this advisory report
+      jq -r 'select(.agent) | .agent' "$USAGE_LOG" 2>/dev/null | sort | uniq -c | sort -rn | head -10 | \
+        awk '{printf "- %s: %d invocations\n", $2, $1}'
+    fi
   fi
   echo
 
@@ -70,7 +81,7 @@ bash .claude/scripts/cost-report.sh month >/dev/null 2>&1
   if command -v jq >/dev/null && [ -s "$USAGE_LOG" ]; then
     # JUSTIFIED: jq error output discarded — a malformed usage line is skipped; the empty case is caught by the fallback literal at the end of this pipeline
     jq -r '
-      select(.model == "claude-opus-4-7" and .agent != null) |
+      select((.model // "" | startswith("claude-opus")) and .agent != null) |
       {agent, cost: .total_cost_usd, turns: (.turn_count // 1)}
     # JUSTIFIED: the redirect drops jq stderr on a malformed usage line so it is skipped; the empty case is caught by the fallback literal at the end of this pipeline
     ' "$USAGE_LOG" 2>/dev/null | jq -s '
