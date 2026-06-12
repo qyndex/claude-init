@@ -7,6 +7,13 @@ name: Claude Security Review
 # IMPORTANT: pinned to a tagged release (never floating branch ref) per the
 # Round 3 security audit M-S3 finding. If Anthropic publishes a new tag, bump
 # it here with Renovate/Dependabot rather than auto-tracking trunk.
+#
+# CREDENTIAL NOTE (oauth-fallback, 2026-06-12): this action declares ONLY the
+# `claude-api-key` input — it does NOT accept a Claude Code OAuth token. The
+# subscription-token route covers claude-review.yml / pr-review.yml, but this
+# gating workflow needs a real ANTHROPIC_API_KEY. (The previous revision passed
+# `anthropic_api_key:`, an input the action never declared — the key silently
+# never reached it.)
 
 on:
   pull_request:
@@ -36,7 +43,7 @@ jobs:
           HAS_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
         run: |
           if [ "$HAS_KEY" != "true" ]; then
-            echo "::error::ANTHROPIC_API_KEY secret is missing — this GATING security review can never pass. Fix: gh secret set ANTHROPIC_API_KEY (setup.sh and harness-doctor both check this)."
+            echo "::error::ANTHROPIC_API_KEY secret is missing — this GATING security review can never pass. claude-code-security-review accepts ONLY an API key (a CLAUDE_CODE_OAUTH_TOKEN subscription token is NOT enough for this workflow). Fix: gh secret set ANTHROPIC_API_KEY."
             exit 1
           fi
 
@@ -52,8 +59,10 @@ jobs:
         #   uses: anthropics/claude-code-security-review@<40-char SHA>
         uses: anthropics/claude-code-security-review@0c6a49f1fa56a1d472575da86a94dbc1edb78eda # no stable tag published; pinned to main HEAD SHA
         with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          model: claude-opus-4-8
+          # Input names per the pinned action.yml: claude-api-key + claude-model
+          # (the previous anthropic_api_key/model were never declared inputs).
+          claude-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude-model: claude-opus-4-8
 
       - name: Gitleaks
         uses: gitleaks/gitleaks-action@v2

@@ -36,10 +36,15 @@ jobs:
       - name: Run anti-slop reviewer (triage pass)
         uses: anthropics/claude-code-action@v1
         with:
+          # Credential: subscription OAuth token ('claude setup-token') or
+          # metered API key — an empty secret resolves to unset, the action
+          # uses whichever is provided.
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          model: claude-sonnet-4-6
-          max_turns: 20
-          agent: anti-slop-reviewer
+          # v1 takes CLI flags via claude_args — `model:`/`max_turns:`/`agent:`
+          # were never declared inputs (actionlint catch, oauth-fallback
+          # 2026-06-12); the agent role is carried by the prompt below.
+          claude_args: "--model claude-sonnet-4-6 --max-turns 20"
           prompt: |
             Triage this PR as the anti-slop-reviewer agent
             (.claude/agents/quality/anti-slop-reviewer.md).

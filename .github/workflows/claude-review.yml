@@ -33,12 +33,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - name: Preflight — ANTHROPIC_API_KEY present (e2e-audit ci-gates-4)
+      - name: Preflight — Anthropic credential present (e2e-audit ci-gates-4)
         env:
           HAS_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+          HAS_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
         run: |
-          if [ "$HAS_KEY" != "true" ]; then
-            echo "::error::ANTHROPIC_API_KEY secret is missing — this GATING review can never pass. Fix: gh secret set ANTHROPIC_API_KEY (setup.sh and harness-doctor both check this)."
+          if [ "$HAS_KEY" != "true" ] && [ "$HAS_TOKEN" != "true" ]; then
+            echo "::error::No Anthropic credential — this GATING review can never pass. Fix: gh secret set CLAUDE_CODE_OAUTH_TOKEN (from 'claude setup-token', Pro/Max subscription) or gh secret set ANTHROPIC_API_KEY (metered API). setup.sh and harness-doctor both check this."
             exit 1
           fi
 
@@ -51,9 +52,15 @@ jobs:
       - name: Run Claude code-reviewer (cross-model — G46)
         uses: anthropics/claude-code-action@v1
         with:
+          # Credential: subscription OAuth token ('claude setup-token') or
+          # metered API key — an empty secret resolves to unset, the action
+          # uses whichever is provided.
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          model: claude-sonnet-4-6
-          mode: review
+          # v1 takes CLI flags via claude_args — `model:`/`mode:` were never
+          # declared inputs (actionlint catch, oauth-fallback 2026-06-12); the
+          # G46 cross-model pin only takes effect through --model here.
+          claude_args: "--model claude-sonnet-4-6"
           prompt: |
             You are the reviewer agent (.claude/agents/quality/reviewer.md).
             Review the PR diff for: correctness, edge cases, idiomatic style, naming,
