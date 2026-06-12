@@ -42,3 +42,19 @@ persisted next-task is `none` (was the literal `T-NNN | spec:NNN ...` template f
 
 Then review `.claude/memory.proposed/constitution-diff.md` and apply the two
 constitution amendments by hand (or via /constitution).
+
+## Verdict: PASS (re-verified 2026-06-12, post e2e-fix install)
+
+Re-ran the proof commands after the operator installed the 52 staged e2e-fix files:
+
+- `bash .claude/scripts/test/memory-system.sh` → passed=15 failed=0
+- `bash verify/2026-06-12-memory-system-impl/test-hooks.sh` → passed=10 failed=0
+- `bash .claude/scripts/validate.sh` → all checks passed (0 failures, 2 env warnings)
+- `bash .claude/scripts/harness-doctor.sh` → 7 flags, ALL out-of-scope operator wiring
+  (routine registration pending CLI login, release-please placeholder, repo secret,
+  live ruleset activation, feedback/deploy wiring, 1 reviewed stop-verify block) —
+  zero memory-plane failures; the 4 memory-plane checks this campaign added are green.
+
+The four `.fixed` hooks shipped here were superseded by the e2e-fix staged install
+(same fixes carried forward in `verify/2026-06-12-e2e-fixes/staged/`, installed by
+the operator via APPLY=1 install.sh).
