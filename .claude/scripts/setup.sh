@@ -397,17 +397,19 @@ if [ -f release-please-config.json ] && command -v jq >/dev/null 2>&1; then
   [ -f .release-please-manifest.json ] || { printf '{\n  ".": "0.1.0"\n}\n' > .release-please-manifest.json; ok "seeded .release-please-manifest.json at 0.1.0"; }
 fi
 
-step "ANTHROPIC_API_KEY preflight (e2e-audit ci-gates-4)"
-# claude-review / claude-security are GATING required checks — without the
-# secret they fail on every PR with an opaque SDK error. Catch it at setup.
+step "Anthropic credential preflight (e2e-audit ci-gates-4)"
+# claude-review / claude-security are GATING required checks — without a
+# credential they fail on every PR with an opaque SDK error. Catch it at setup.
+# Either secret satisfies the gate: CLAUDE_CODE_OAUTH_TOKEN (Pro/Max
+# subscription via 'claude setup-token') or ANTHROPIC_API_KEY (metered API).
 if command -v gh >/dev/null 2>&1 && gh auth status >/dev/null 2>&1 && git config --get remote.origin.url >/dev/null 2>&1; then
-  if gh secret list 2>/dev/null | grep -q '^ANTHROPIC_API_KEY'; then
-    ok "ANTHROPIC_API_KEY repo secret present"
+  if gh secret list 2>/dev/null | grep -qE '^(ANTHROPIC_API_KEY|CLAUDE_CODE_OAUTH_TOKEN)'; then
+    ok "Anthropic credential secret present (ANTHROPIC_API_KEY or CLAUDE_CODE_OAUTH_TOKEN)"
   else
-    warn "ANTHROPIC_API_KEY repo secret MISSING — claude-review/claude-security (required checks) will fail every PR. Set it: gh secret set ANTHROPIC_API_KEY"
+    warn "No Anthropic credential secret — claude-review/claude-security (required checks) will fail every PR. Set one: gh secret set CLAUDE_CODE_OAUTH_TOKEN (from 'claude setup-token') or gh secret set ANTHROPIC_API_KEY"
   fi
 else
-  note "gh unavailable — cannot verify ANTHROPIC_API_KEY secret (harness-doctor re-checks)"
+  note "gh unavailable — cannot verify Anthropic credential secret (harness-doctor re-checks)"
 fi
 
 step "Setup complete"

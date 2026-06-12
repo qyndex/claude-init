@@ -1,0 +1,52 @@
+name: PR review (anti-slop triage)
+
+# AC-36: anti-slop reviewer triage pass on every PR.
+# The full review (claude-code-review + security) lives in claude-review.yml.
+# This workflow runs the anti-slop-reviewer agent as a WARN-ONLY advisory pass
+# for the first 30 days; after that it becomes a gating check.
+#
+# Agent: .claude/agents/quality/anti-slop-reviewer.md
+# Triage classes: actionable-bug | actionable-docs | actionable-feature |
+#                 duplicate | spam | generated-slop | security-sensitive | not-reproducible
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+# e2e-audit ci-gates-6: one triage per PR head; drafts don't burn LLM spend.
+concurrency:
+  group: pr-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  anti-slop-triage:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    # Advisory mode — never fail the PR during the first 30 days
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run anti-slop reviewer (triage pass)
+        uses: anthropics/claude-code-action@v1
+        with:
+          # Credential: subscription OAuth token ('claude setup-token') or
+          # metered API key — an empty secret resolves to unset, the action
+          # uses whichever is provided.
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          # v1 takes CLI flags via claude_args — `model:`/`max_turns:`/`agent:`
+          # were never declared inputs (actionlint catch, oauth-fallback
+          # 2026-06-12); the agent role is carried by the prompt below.
+          claude_args: "--model claude-sonnet-4-6 --max-turns 20"
+          prompt: |
+            Triage this PR as the anti-slop-reviewer agent
+            (.claude/agents/quality/anti-slop-reviewer.md).
+            Classify into exactly one of eight classes and post a single
+            advisory comment. Do not request changes — comment only.

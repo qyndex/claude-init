@@ -326,15 +326,17 @@ if [ -f release-please-config.json ]; then
   fi
 fi
 
-# ─── ANTHROPIC_API_KEY secret (e2e-audit ci-gates-4) ────────────────────
-# claude-review/claude-security are gating required checks — a missing secret
-# fails every PR with an opaque SDK error.
+# ─── Anthropic credential secret (e2e-audit ci-gates-4) ─────────────────
+# claude-review/claude-security are gating required checks — a missing
+# credential fails every PR with an opaque SDK error. Either secret works:
+# CLAUDE_CODE_OAUTH_TOKEN (subscription, 'claude setup-token') or
+# ANTHROPIC_API_KEY (metered API).
 if command -v gh >/dev/null 2>&1; then
   # JUSTIFIED: gh failure (no auth/remote) yields empty list — handled as the warn branch, not a crash
-  if gh secret list 2>/dev/null | grep -q '^ANTHROPIC_API_KEY'; then
-    add_result "ANTHROPIC_API_KEY secret" "pass" "repo secret present for the LLM CI gates"
+  if gh secret list 2>/dev/null | grep -qE '^(ANTHROPIC_API_KEY|CLAUDE_CODE_OAUTH_TOKEN)'; then
+    add_result "Anthropic credential secret" "pass" "repo secret present for the LLM CI gates (API key or OAuth token)"
   else
-    add_result "ANTHROPIC_API_KEY secret" "warn" "repo secret missing (or gh unauthenticated) — claude-review/claude-security required checks will fail every PR; set: gh secret set ANTHROPIC_API_KEY"
+    add_result "Anthropic credential secret" "warn" "no credential secret (or gh unauthenticated) — claude-review/claude-security required checks will fail every PR; set: gh secret set CLAUDE_CODE_OAUTH_TOKEN (claude setup-token) or gh secret set ANTHROPIC_API_KEY"
   fi
 fi
 
