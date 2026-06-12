@@ -13,7 +13,8 @@
 set -uo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
-HOOK="$ROOT/.claude/hooks/pre-bash-guard.sh"
+# HOOK_UNDER_TEST: rig override so staged (not-yet-installed) copies run this contract.
+HOOK="${HOOK_UNDER_TEST:-$ROOT/.claude/hooks/pre-bash-guard.sh}"
 
 pass=0
 fail=0

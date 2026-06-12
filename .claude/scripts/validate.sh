@@ -97,7 +97,9 @@ if command -v jq >/dev/null; then
   done < <(find .claude .github .swarms .mcp.json -name '*.json' -type f -not -path '*/.cache/*' -print0 2>/dev/null)
   ok "validated $json_count JSON files"
 else
-  warn "jq not installed — JSON files not validated"
+  # e2e-audit hooks-engineering-4: security hooks fail closed without jq, so a
+  # jq-less environment is a broken harness, not a degraded one.
+  fail "jq not installed — JSON files not validated AND security hooks fail closed (install jq)"
 fi
 echo
 
@@ -551,6 +553,39 @@ if command -v jq >/dev/null && [ -f .claude/settings.json ]; then
     ok "CLAUDE_CODE_AUTO_COMPACT_WINDOW set ($acw)"
   else
     fail "CLAUDE_CODE_AUTO_COMPACT_WINDOW unset in settings env (§IX context invariant)"
+  fi
+
+  # e2e-audit security-automode-2: every ephemeral-exec verb allowed in
+  # permissions must be covered by the dep-freshness hook's quick filter —
+  # an allowed-but-unchecked `npx <pkg>` is an ungated download-and-run.
+  eph_missing=0
+  for verb in npx uvx bunx pnpx pipx; do
+    if jq -r '.permissions.allow[]?' .claude/settings.json 2>/dev/null | grep -q "^Bash(${verb}[:)]"; then
+      if grep -q "\"${verb} \"" .claude/hooks/pre-bash-dep-freshness.sh 2>/dev/null; then
+        ok "ephemeral verb '${verb}' allowed AND handled by dep-freshness hook"
+      else
+        fail "ephemeral verb '${verb}' is in the allow list but NOT handled by pre-bash-dep-freshness.sh (security-automode-2)"
+        eph_missing=1
+      fi
+    fi
+  done
+
+  # e2e-audit security-automode-1: every alwaysLoad MCP server with a write/exec
+  # surface must have a PreToolUse matcher gating its write tools — otherwise MCP
+  # writes bypass the constitution guard + secret scan entirely. git MCP has no
+  # write-to-tree/push surface, so only filesystem + github are write-capable.
+  if [ -f .mcp.json ]; then
+    matchers=$(jq -r '[.hooks.PreToolUse[]?.matcher // empty] | join("\n")' .claude/settings.json 2>/dev/null)
+    for srv in filesystem github; do
+      always=$(jq -r --arg s "$srv" '.mcpServers[$s].alwaysLoad // false' .mcp.json 2>/dev/null)
+      if [ "$always" = "true" ]; then
+        if printf '%s\n' "$matchers" | grep -q "mcp__${srv}__"; then
+          ok "alwaysLoad MCP '$srv' write tools have a PreToolUse matcher"
+        else
+          fail "alwaysLoad MCP '$srv' exposes write tools but no PreToolUse matcher gates mcp__${srv}__* (security-automode-1)"
+        fi
+      fi
+    done
   fi
 fi
 

@@ -18,7 +18,9 @@
 set -uo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
-HOOK="$ROOT/.claude/hooks/pre-edit-constitution-guard.sh"
+# HOOK_UNDER_TEST: rig override so staged (not-yet-installed) copies of the hook
+# run against this same contract before an operator installs them.
+HOOK="${HOOK_UNDER_TEST:-$ROOT/.claude/hooks/pre-edit-constitution-guard.sh}"
 
 pass=0
 fail=0
@@ -79,6 +81,14 @@ run_case "DENY-12 absolute hook"            deny ""  "$ROOT/.claude/hooks/pre-wr
 run_case "DENY-13 absolute workflow"        deny ""  "$ROOT/.github/workflows/claude-review.yml"
 run_case "DENY-14 absolute ruleset"         deny ""  "$ROOT/.github/rulesets/main-protection.json"
 run_case "DENY-15 absolute CODEOWNERS"      deny ""  "$ROOT/.github/CODEOWNERS"
+# e2e-audit failure-recovery-1: task ledger + approved specs stay agent-immutable;
+# the sanctioned write paths are task-status.sh (Bash) and new-spec creation.
+run_case "DENY-16 tasks ledger"             deny ""  "tasks/TASKS.md"
+run_case "DENY-17 existing active spec"     deny ""  "specs/active/001-harness-hardening.md"
+run_case "DENY-18 spec bad shape"           deny ""  "specs/active/evil.sh"
+
+# ---- Spec-write carve-out — creating a NOT-YET-EXISTING <id>-<slug>.md is allowed.
+run_case "ALLOW new spec creation"          allow "" "specs/active/999-carveout-probe.md"
 
 # ---- Escape-hatch case — FORCE_CONSTITUTION_EDIT=1 must let a deny-listed path through.
 run_case "FORCE escape hatch on CLAUDE.md"  allow "FORCE_CONSTITUTION_EDIT=1" ".claude/CLAUDE.md"

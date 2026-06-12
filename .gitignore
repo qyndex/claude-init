@@ -135,6 +135,7 @@ tmp/
 .claude/state/sweep-remaining.tsv
 # Operator-only marker: presence lets verify.sh honor SKIP_* gate bypasses (Spec 003 AC-1). Must never be committed.
 .claude/state/allow-skip-gates
+.claude/state/allow-adopt-approve
 # Initiative/spec attribution pointers — rewritten by initiative-state.sh at every
 # network boundary; runtime state (the tracked STATE.md carries the history)
 .claude/state/current-initiative

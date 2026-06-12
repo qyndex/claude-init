@@ -66,6 +66,20 @@ case "$cmd" in
     n="${1:?phase number}"
     cur="$(jq -r '.phase' "$STATE")"
     [ "$n" -le "$cur" ] || { echo "adopt-state: cannot approve phase $n — current phase is $cur"; exit 1; }
+    # e2e-audit brownfield-2: phases 1 (archaeology manifest) and 4 (baseline
+    # safety) are the legacy-protection gates — an auto-mode agent must not
+    # self-approve them. Require the human-created, single-use marker (same
+    # contract as allow-skip-gates): `touch .claude/state/allow-adopt-approve`.
+    case "$n" in
+      1|4)
+        marker=".claude/state/allow-adopt-approve"
+        if [ ! -f "$marker" ]; then
+          echo "adopt-state: approving phase $n is HUMAN-ONLY. Run: touch $marker  (in your own shell), then re-run approve. The marker is single-use and gitignored."
+          exit 1
+        fi
+        rm -f "$marker"
+        ;;
+    esac
     tmp="$STATE.tmp.$$"
     jq --arg n "$n" --arg now "$(date -Iseconds)" \
       '.approvals[$n]=$now | .status=("approved-"+$n)' "$STATE" > "$tmp" && mv "$tmp" "$STATE"

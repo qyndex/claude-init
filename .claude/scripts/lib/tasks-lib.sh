@@ -62,6 +62,42 @@ tasks_insert_top() {
   rm -f "$ef"
 }
 
+# tasks_set_status <id> <marker> — flip the status marker of task T-<id> in place
+# and verify the flip landed. <id> accepts "T-12" or "12". <marker> is one of the
+# canonical single chars: " " ~ x ! b s. Returns 2 on bad marker, 3 when the task
+# id does not exist, 4 when the post-write re-grep cannot see the new marker
+# (write did not land — caller must treat as failure, not success).
+# MUST run inside the lock (with_tasks_lock tasks_set_status T-12 x).
+tasks_set_status() {
+  local id="${1#T-}" marker="$2" tmp="${TASKS_FILE}.tmp.$$"
+  case "$marker" in
+    " "|"~"|"x"|"!"|"b"|"s") ;;
+    *) echo "tasks_set_status: invalid marker '${marker}' (one of: ' ' ~ x ! b s)" >&2; return 2 ;;
+  esac
+  case "$id" in
+    *[!0-9]*|"") echo "tasks_set_status: invalid task id '${1}'" >&2; return 3 ;;
+  esac
+  if ! tasks_id_exists "$id"; then
+    echo "tasks_set_status: T-${id} not found in ${TASKS_FILE}" >&2; return 3
+  fi
+  awk -v id="$id" -v m="$marker" '
+    $0 ~ ("^- \\[.\\] T-" id "([^0-9]|$)") { sub(/^- \[.\]/, "- [" m "]") }
+    { print }
+  ' "${TASKS_FILE}" > "$tmp" && mv "$tmp" "${TASKS_FILE}"
+  grep -qE "^- \[${marker}\] T-${id}([^0-9]|\$)" "${TASKS_FILE}" || {
+    echo "tasks_set_status: flip of T-${id} to [${marker}] did not land" >&2; return 4
+  }
+}
+
+# tasks_get_status <id> — print the current single-char marker of T-<id>, or
+# return 3 when absent. Read-only; safe outside the lock for advisory reads.
+tasks_get_status() {
+  local id="${1#T-}" line
+  line="$(grep -E "^- \[.\] T-${id}([^0-9]|\$)" "${TASKS_FILE}" 2>/dev/null | head -1)"
+  [ -n "$line" ] || return 3
+  printf '%s\n' "$line" | sed -E 's/^- \[(.)\].*/\1/'
+}
+
 # tasks_append_active <entry> — append at the END of the ## Active section,
 # before the next "## " header or EOF (used by findings / appetite). Also the fix
 # for appetite-check.sh, which previously `cat >>`'d to the very end of the file —

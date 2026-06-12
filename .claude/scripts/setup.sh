@@ -17,7 +17,10 @@ note() { printf '    %s\n' "$*"; }
 
 step "Detecting environment"
 command -v git >/dev/null || fail "git not installed"
-command -v jq  >/dev/null || warn "jq not installed — REQUIRED for hooks. brew install jq / apt install jq"
+# e2e-audit greenfield-5: jq is load-bearing for every security hook (they now
+# fail CLOSED without it, blocking all Bash/Write) — a warn here strands the
+# operator in an unusable harness. Hard fail like git.
+command -v jq  >/dev/null || fail "jq not installed — REQUIRED (hooks fail closed without it). brew install jq / apt install jq"
 command -v gh  >/dev/null || warn "gh not installed — REQUIRED for /ship, ruleset, PR automation. https://cli.github.com/"
 command -v claude >/dev/null || warn "claude CLI not installed — install from https://code.claude.com before continuing"
 ok "core tools detected"
