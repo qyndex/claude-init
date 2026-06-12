@@ -10,7 +10,7 @@
 // non-empty subject, the blank line before the body) and relax ONLY
 // subject-case. Trailers in §VI (Constraint/Rejected/Confidence/...) are
 // free-form body lines and were never constrained by conventional config.
-module.exports = {
+export default {
   extends: ["@commitlint/config-conventional"],
   rules: {
     // 0 = disabled. Subject case is a stylistic choice §VI leaves to the author.
