@@ -5,6 +5,15 @@ Pattern: direct fixes where writable; constitution-class files staged under `sta
 
 Status: `[ ]` pending · `[~]` in progress · `[x]` done+rig-proven · `[s]` skipped (reason)
 
+## CAMPAIGN COMPLETE — 2026-06-12
+
+All 40 plan items across 5 phases done and rig-proven. Final proof run:
+
+- **Rig (staged mode)**: `bash verify/2026-06-12-e2e-fixes/test-e2e-fixes.sh` → 22 suites, **361 pass / 0 fail**, 0 suite-level failures.
+- **validate.sh**: exactly the **12 by-design pre-install REDs** (4 ephemeral-verb, 2 alwaysLoad-MCP-matcher, 1 claude.yml actor-guard, 4 handoff-dialect refs, 1 §V model-doc drift) + 2 environment warnings. All 12 flip green after staged install.
+- **Operator install**: `APPLY=1 bash verify/2026-06-12-e2e-fixes/staged/install.sh` (52 files: constitution, settings.json, 15 hooks, 9 agents, 13 skills, 14 workflows, ruleset, 2 script libs). Dry-run by default. Post-install proof: `INSTALLED=1 bash verify/2026-06-12-e2e-fixes/test-e2e-fixes.sh` expects validate.sh fully green.
+- **Repo self-check**: `SKIP_COVERAGE=1 SKIP_TDD_LEDGER=1 SKIP_STORY_MAP=1 SKIP_INTEG_COV=1 bash .claude/scripts/verify.sh` → PASS. shellcheck on all touched scripts: only pre-existing SC2164 boilerplate.
+
 ## Phase 1 — Auto-mode safety
 
 - [x] P1.1 failure-recovery-1 — task-status.sh CLI + tasks-lib primitive; spec-write carve-out; rewrite agent instructions
