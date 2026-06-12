@@ -33,7 +33,7 @@ _(none yet)_
 
 <!-- Format: - [Title](incidents/file.md) — one-line hook -->
 
-_(none yet)_
+- [Constitution unprotected from agent writes (SEV1)](incidents/2026-05-28-sec-constitution-unprotected.md) — five-agent audit found CLAUDE.md §VII/§X security claims were documentation theater; fix tracked in specs/active/001-harness-hardening.md
 
 ## Playbooks
 
