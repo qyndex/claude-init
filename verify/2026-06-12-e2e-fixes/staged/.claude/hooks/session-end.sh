@@ -187,6 +187,12 @@ if command -v jq >/dev/null 2>&1 && git rev-parse --git-dir >/dev/null 2>&1; the
     }' > "$session_recent" 2>/dev/null
 fi
 
+# Local rotation backstop (e2e-audit failure-recovery-5): Cloud Routines may
+# never be installed — rotate oversized .log/.jsonl at session end so
+# multi-night local runs can't grow toward disk pressure with no trigger.
+# JUSTIFIED: best-effort rotation at exit — a gc hiccup must not block session shutdown; harness-doctor independently warns on oversized files
+bash .claude/scripts/gc-logs.sh >/dev/null 2>&1 || true
+
 # Round 6 B: snapshot ~/.claude/projects/<slug>/ into the repo so subscription
 # switches / home-dir wipes / new-machine clones are recoverable.
 # Best-effort, non-blocking.

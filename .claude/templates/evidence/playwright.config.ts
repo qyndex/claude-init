@@ -66,7 +66,12 @@ export default defineConfig({
       use: {
         ...devices["Desktop Chrome"],
         contextOptions: {
-          recordHar: { path: `${OUT}/network.har`, content: "embed" }, // ← full HTTP traces
+          // ← full HTTP traces. CAVEAT (e2e-audit e2e-rig-5): a fixed path is
+          // CLOBBERED per worker — with workers > 1 only the last context's HAR
+          // survives. Either run evidence suites with `workers: 1`, or template
+          // the path per test (e.g. `${OUT}/har/${testInfo.parallelIndex}.har`
+          // via a fixture) and merge afterwards.
+          recordHar: { path: `${OUT}/network.har`, content: "embed" },
         },
       },
     },

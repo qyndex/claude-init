@@ -100,6 +100,31 @@ bash .claude/scripts/install-overnight-tasks.sh
 
 This installs a local Desktop scheduled task that runs `/dream` at 03:00 daily.
 
+### Routine installation matrix
+
+Every routine the harness ships, where it runs, how it gets installed, and what silently degrades
+if you skip it. `bash .claude/scripts/install-overnight-tasks.sh` registers all desktop routines in
+one pass and records successes to `.claude/state/routines-installed` (which `harness-doctor.sh`
+diffs against `.claude/routines/*.yml` to warn about gaps).
+
+| Routine                     | Schedule             | Surface                      | Installed by                                           | If skipped                                                                   |
+| --------------------------- | -------------------- | ---------------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------------- |
+| `overnight-build`           | 23:00 daily          | **Cloud Routine** (claude.ai) | Manual: https://claude.ai/code/routines (§1 above)     | No autonomous overnight work at all — the core autopilot loop never runs     |
+| `overnight-build-backstop`  | 23:30 daily          | Desktop                      | `install-overnight-tasks.sh`                           | Cloud Routine outage = silent overnight skip, no alert                        |
+| `dream-cron`                | 03:00 daily          | Desktop                      | `install-overnight-tasks.sh`                           | Memory never consolidates — observations pile up, instincts never extracted  |
+| `gc-nightly`                | 02:30 daily          | Desktop                      | `install-overnight-tasks.sh`                           | TASKS.md, verify/, logs, MEMORY.md grow unbounded                             |
+| `oq-aging`                  | 06:00 daily          | Desktop                      | `install-overnight-tasks.sh`                           | Week-old `[OQ]`s rot silently; blocked specs never escalate                   |
+| `quarterly-archive`         | 02:00 first Mon of Q | Desktop                      | `install-overnight-tasks.sh`                           | specs/plans archives never rotate; active dirs bloat                          |
+| `appetite-circuit-breaker`  | 09:00 daily          | Desktop                      | `install-overnight-tasks.sh`                           | Initiatives blow past 50%/100% appetite with no flag                          |
+| `atlas-refresh`             | 04:00 daily          | Desktop                      | `install-overnight-tasks.sh`                           | Codebase atlas drifts stale; agents navigate from outdated structure          |
+| `constitution-compact-cron` | 04:00 quarterly      | Desktop                      | `install-overnight-tasks.sh`                           | Constitution creeps past the 300-line cap until validate.sh hard-fails        |
+| `feedback-triage`           | Mon 08:00 weekly     | Desktop                      | `install-overnight-tasks.sh`                           | Feedback entries accumulate unranked; no weekly triage report                 |
+| `feedback-poll`             | hourly               | Desktop (needs source creds) | `INSTALL_FEEDBACK_POLL=yes install-overnight-tasks.sh` | Customer-signal intake stays manual                                           |
+| `hotfix-sentry-poll`        | every 10 min         | Desktop (needs Sentry MCP)   | `INSTALL_SENTRY_POLL=yes install-overnight-tasks.sh`   | Prod SEV1/SEV2 errors never auto-create hotfix tasks                          |
+
+(`cost-report`, also registered by the installer, is a scheduled task without a routine yml — it
+feeds `pre-spawn-cost-gate` from `.claude/hooks/.log/cost-summary.json`.)
+
 ### 4. Slack ping (optional)
 
 In the routine config, enable the Slack connector. The autopilot prompt already includes the ping instruction. You'll get a single message at end-of-run.
@@ -114,7 +139,7 @@ In the routine config, enable the Slack connector. The autopilot prompt already 
 | Desktop scheduled task (3 AM dream) | `auto`              | Even though /dream only touches `.claude/memory/`, we use Auto Mode for consistency.                                                                                                                                                         |
 | CI containers (Docker, single-use)  | `bypassPermissions` | Only context where bypass is appropriate — ephemeral container, container exit destroys all state.                                                                                                                                           |
 
-**Why Auto Mode over bypassPermissions:** The classifier catches things the hook denylist might miss (novel injection vectors, unfamiliar dangerous combos like `chmod 777 ~/.ssh/`). Latency cost is ~200-500ms per tool call, negligible for an overnight run. `disableBypassPermissionsMode: true` is set in `settings.json` to prevent accidental bypass.
+**Why Auto Mode over bypassPermissions:** The classifier catches things the hook denylist might miss (novel injection vectors, unfamiliar dangerous combos like `chmod 777 ~/.ssh/`). Latency cost is ~200-500ms per tool call, negligible for an overnight run. `"disableBypassPermissionsMode": "disable"` is set in `settings.json` to prevent accidental bypass — note the **string** `"disable"`, not a boolean: Claude Code silently ignores `true`/`false` forms, so the boolean spelling would leave bypass enabled while looking locked.
 
 **Order of safety checks (in any mode):**
 

@@ -278,6 +278,41 @@ else
   add_result "live branch ruleset" "warn" "gh unavailable — cannot verify server-side protection"
 fi
 
+# ─── Routine installation coverage (e2e-audit docs-truth-3) ─────────────
+# Routines are authored YAML but install NOTHING by themselves. Enumerate them
+# against the install record so the unattended layer (GC, OQ aging, circuit
+# breaker, Sentry poll) can't silently never fire.
+if ls .claude/routines/*.yml >/dev/null 2>&1; then
+  routines_rec=".claude/state/routines-installed"
+  missing_routines=""
+  for ry in .claude/routines/*.yml; do
+    rname=$(awk '/^name:/{print $2; exit}' "$ry")
+    [ -z "$rname" ] && rname=$(basename "$ry" .yml)
+    case "$rname" in
+      overnight-build) rkey="overnight-build-backstop" ;;  # local backstop name differs
+      *) rkey="$rname" ;;
+    esac
+    # JUSTIFIED: a missing record file means nothing installed — every routine lands in the missing list
+    grep -qx "$rkey" "$routines_rec" 2>/dev/null || missing_routines="${missing_routines}${rname} "
+  done
+  if [ -z "$missing_routines" ]; then
+    add_result "routine installs" "pass" "every .claude/routines/*.yml has an install record"
+  else
+    add_result "routine installs" "warn" "routines with NO install record: ${missing_routines}— locally-eligible ones: bash .claude/scripts/install-overnight-tasks.sh; cloud-only (overnight-build, feedback-*): claude.ai/code/routines (Routine Installation Matrix: docs/AUTOPILOT.md)"
+  fi
+fi
+
+# ─── Oversized runtime logs (e2e-audit failure-recovery-5) ──────────────
+# gc-logs.sh rotates these (session-end backstop + gc-nightly routine), but if
+# neither has fired, multi-night runs grow unbounded — warn before disk pressure.
+# JUSTIFIED: find over dirs that may not exist yet — empty result is the pass case
+big_logs=$(find .claude/hooks/.log .claude/memory/.cache .swarms -type f \( -name '*.log' -o -name '*.jsonl' \) -size +52428800c 2>/dev/null | head -5 | tr '\n' ' ')
+if [ -n "${big_logs// /}" ]; then
+  add_result "runtime log size" "warn" "oversized (>50MB) runtime logs: ${big_logs}— run: bash .claude/scripts/gc-logs.sh (rotation backstop also fires at session end)"
+else
+  add_result "runtime log size" "pass" "no runtime log over the 50MB rotation cap"
+fi
+
 # ─── Release-please authority (e2e-audit release-deploy-6) ──────────────
 # A placeholder package-name means the single tag/changelog authority is
 # broken-by-default: release PRs reference a package that doesn't exist.

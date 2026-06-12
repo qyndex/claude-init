@@ -192,8 +192,14 @@ jq -nc \
   # JUSTIFIED: the redirect drops the glob's no-match error — wc then counts zero, correctly reporting no screenshots captured
   shot_count=$(ls "$date_dir/screenshots/"*.png 2>/dev/null | wc -l | tr -d ' ')
   echo "$shot_count screenshot(s) captured under \`$date_dir/screenshots/\` (named by AC)."
-  [ -f "$date_dir/video.webm" ] && echo "Journey video: \`$date_dir/video.webm\` (CI artifact)."
-  [ -f "$date_dir/trace.zip" ] && echo "Playwright trace: \`$date_dir/trace.zip\` → trace.playwright.dev"
+  # e2e-rig-5: playwright writes per-test artifacts under test-results/<name>/ —
+  # the flat $date_dir path only exists when a rig copies it up. Glob both so the
+  # PR body links the video/trace it promises.
+  # JUSTIFIED: find over a dir that may lack artifacts — empty means "not captured", correctly omitting the link
+  video=$(find "$date_dir" -maxdepth 3 -name 'video.webm' 2>/dev/null | head -1)
+  trace=$(find "$date_dir" -maxdepth 3 -name 'trace.zip' 2>/dev/null | head -1)
+  [ -n "$video" ] && echo "Journey video: \`$video\` (CI artifact)."
+  [ -n "$trace" ] && echo "Playwright trace: \`$trace\` → trace.playwright.dev"
   echo
   echo "### API traces"
   # JUSTIFIED: the redirect drops the glob's no-match error — wc then counts zero, correctly reporting no API trace files

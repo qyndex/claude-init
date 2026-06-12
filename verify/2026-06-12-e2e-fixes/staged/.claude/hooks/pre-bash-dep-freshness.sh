@@ -145,31 +145,70 @@ fi
 mkdir -p .claude/hooks/.log
 fallback_log=".claude/hooks/.log/dep-freshness-fallback.log"
 
-# ─── Query registry for latest version (10s timeout) ─────────────────────
-latest=""
+# ─── Per-session verdict cache (e2e-audit hooks-engineering-5) ────────────
+# Install-heavy loops re-probe the same pkg@ver every call — up to 15s each.
+# Cache the DECISION (not the network data): file content is the exact JSON
+# decision to replay; an empty file means "allow". Fail-closed asks are NOT
+# cached — the network may recover. Keyed per session (or per day headless).
+cache_dir=".claude/hooks/.log/dep-freshness-cache"
+mkdir -p "$cache_dir"
+cache_file="$cache_dir/${CLAUDE_SESSION_ID:-day-$(date +%Y%m%d)}-${ecosystem}-${pkg//\//_}-${requested_ver}"
+if [ -f "$cache_file" ]; then
+  cat "$cache_file"
+  exit 0
+fi
+
 # Test hook: simulate an unreachable registry deterministically (no network).
 if [ "${DEP_FRESHNESS_FORCE_OFFLINE:-0}" = "1" ]; then
   echo "$(date -Iseconds) forced-offline pkg=$pkg eco=$ecosystem" >> "$fallback_log"
   emit_ask "pre-bash-dep-freshness could not reach the ${ecosystem} registry to verify ${pkg}; failing closed (cannot prove the version is current or vuln-free). Confirm only if you trust this install."
 fi
-case "$ecosystem" in
-  npm)
-    # JUSTIFIED: curl noise is muted on purpose — a registry/network failure leaves latest empty, which the fail-closed/log branch below handles (this task only annotates; T-026 owns the network policy)
-    latest=$(timeout 10 curl -fsSL "https://registry.npmjs.org/${pkg}/latest" 2>/dev/null | jq -r '.version // empty')
-    ;;
-  PyPI)
-    # JUSTIFIED: same muted registry probe — an empty latest on failure is routed to the fallback handling below; this task does not alter that policy
-    latest=$(timeout 10 curl -fsSL "https://pypi.org/pypi/${pkg}/json" 2>/dev/null | jq -r '.info.version // empty')
-    ;;
-  crates.io)
-    # JUSTIFIED: same muted registry probe for crates — an empty latest on failure is handled below; annotation only
-    latest=$(timeout 10 curl -fsSL "https://crates.io/api/v1/crates/${pkg}" 2>/dev/null | jq -r '.crate.max_stable_version // empty')
-    ;;
-  Go)
-    # Go module proxy doesn't have a clean "latest" endpoint; skip live check
-    latest=""
-    ;;
-esac
+# Operator-declared airgap (hooks-engineering-5): probes are pointless against a
+# local mirror — skip them and ALLOW, loudly logged. This is the documented
+# operator escape (same contract class as LANE_GUARD=0), distinct from the
+# fail-closed unreachable path which still asks.
+if [ "${DEP_FRESHNESS_OFFLINE:-0}" = "1" ]; then
+  echo "$(date -Iseconds) declared-offline pkg=$pkg eco=$ecosystem ver=$requested_ver (DEP_FRESHNESS_OFFLINE=1 — probes skipped by operator declaration)" >> "$fallback_log"
+  exit 0
+fi
+
+# ─── Probes: registry + OSV, concurrent, 5s each (hooks-engineering-5) ────
+# Sequential 10s+10s could overrun the 15s hook cap on slow networks, which
+# FAILS OPEN at the harness layer. 5s concurrent probes keep worst-case ≤ ~10s
+# (sequential only when "latest" must resolve first), inside the cap.
+probe_registry() {
+  case "$ecosystem" in
+    # JUSTIFIED: curl noise is muted on purpose — a registry/network failure leaves latest empty, which the fail-closed/log branch below handles
+    npm)       curl -fsSL --max-time 5 "https://registry.npmjs.org/${pkg}/latest" 2>/dev/null | jq -r '.version // empty' ;;
+    # JUSTIFIED: same muted registry probe — an empty latest on failure is routed to the fallback handling below
+    PyPI)      curl -fsSL --max-time 5 "https://pypi.org/pypi/${pkg}/json" 2>/dev/null | jq -r '.info.version // empty' ;;
+    # JUSTIFIED: same muted registry probe for crates — an empty latest on failure is handled below
+    crates.io) curl -fsSL --max-time 5 "https://crates.io/api/v1/crates/${pkg}" 2>/dev/null | jq -r '.crate.max_stable_version // empty' ;;
+    Go)        printf '' ;;  # Go module proxy has no clean "latest" endpoint; skip live check
+  esac
+}
+probe_osv() { # <version>
+  local q
+  q=$(jq -nc --arg pkg "$pkg" --arg eco "$ecosystem" --arg ver "$1" \
+    '{package: {name: $pkg, ecosystem: $eco}, version: $ver}')
+  # JUSTIFIED: curl noise muted on purpose — an OSV outage leaves the response empty, which the fail-closed guard below detects and turns into an ask
+  curl -fsSL --max-time 5 -X POST "https://api.osv.dev/v1/query" \
+    -H "Content-Type: application/json" -d "$q" 2>/dev/null
+}
+
+reg_tmp=$(mktemp); osv_tmp=$(mktemp)
+trap 'rm -f "$reg_tmp" "$osv_tmp"' EXIT
+probe_registry > "$reg_tmp" &
+reg_pid=$!
+osv_pid=""
+if [ "$requested_ver" != "latest" ]; then
+  # Explicit version → OSV doesn't need the registry result; run both at once.
+  probe_osv "$requested_ver" > "$osv_tmp" &
+  osv_pid=$!
+fi
+# JUSTIFIED: wait rc intentionally unused — an empty reg_tmp is the unreachable signal handled below
+wait "$reg_pid" 2>/dev/null || true
+latest=$(cat "$reg_tmp")
 
 if [ -z "$latest" ]; then
   # Go has no clean "latest" endpoint — it legitimately skips the live version
@@ -184,17 +223,14 @@ fi
 # Resolve "latest" → actual version
 [ "$requested_ver" = "latest" ] && requested_ver="$latest"
 
-# ─── Query OSV for vulnerabilities at requested version ──────────────────
-osv_query=$(jq -nc \
-  --arg pkg "$pkg" \
-  --arg eco "$ecosystem" \
-  --arg ver "$requested_ver" \
-  '{package: {name: $pkg, ecosystem: $eco}, version: $ver}')
-
-# JUSTIFIED: curl noise muted on purpose — an OSV outage leaves the response empty, which the fail-closed guard below detects and turns into an ask (the version cannot be proven vuln-free); annotation only, T-026 owns this policy
-osv_response=$(timeout 10 curl -fsSL -X POST "https://api.osv.dev/v1/query" \
-  -H "Content-Type: application/json" \
-  -d "$osv_query" 2>/dev/null)
+# ─── OSV result (already racing if the version was explicit) ──────────────
+if [ -n "$osv_pid" ]; then
+  # JUSTIFIED: wait rc intentionally unused — an empty osv_tmp is the unreachable signal handled below
+  wait "$osv_pid" 2>/dev/null || true
+else
+  probe_osv "$requested_ver" > "$osv_tmp"
+fi
+osv_response=$(cat "$osv_tmp")
 
 # Fail CLOSED if OSV is unreachable (empty body or non-JSON) — we cannot prove
 # the version is free of known vulnerabilities, so we must ask, not allow (AC-10).
@@ -212,7 +248,7 @@ vulns=$(echo "$osv_response" | jq -r '.vulns // [] | length' 2>/dev/null)
 if [ "$vulns" -gt 0 ]; then
   # JUSTIFIED: extracting ids from the already-validated response for the deny message; a vuln lacking an id is cosmetically skipped and never blocks the deny decision
   vuln_ids=$(echo "$osv_response" | jq -r '.vulns[].id' 2>/dev/null | tr '\n' ',' | sed 's/,$//')
-  cat <<EOF
+  tee "$cache_file" <<EOF
 {
   "hookSpecificOutput": {
     "hookEventName": "PreToolUse",
@@ -235,7 +271,7 @@ if [ "$requested_ver" != "$latest" ]; then
 fi
 
 if [ -n "$warn" ]; then
-  cat <<EOF
+  tee "$cache_file" <<EOF
 {
   "hookSpecificOutput": {
     "hookEventName": "PreToolUse",
@@ -247,5 +283,6 @@ EOF
   exit 0
 fi
 
-# All clear
+# All clear — cache the allow (empty file replays as silence)
+: > "$cache_file"
 exit 0

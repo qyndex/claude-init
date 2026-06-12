@@ -71,9 +71,9 @@ See [docs/RESEARCH.md](docs/RESEARCH.md) for the full reference list with GitHub
 │   ├── CLAUDE.md                     # Project constitution (auto-loaded each session)
 │   ├── settings.json                  # Team-shared permissions, hooks, env
 │   ├── agents/
-│   │   ├── core/                     # architect, planner, implementer
-│   │   ├── quality/                  # tester, reviewer, security, verifier
-│   │   └── specialists/              # debugger, researcher, doc-writer, release
+│   │   ├── core/                     # architect, planner, implementer, coordinator, feature-stream, roadmap-architect
+│   │   ├── quality/                  # tester, reviewer, security, verifier, anti-slop-reviewer
+│   │   └── specialists/              # debugger, researcher, doc-writer, release, designer, extractor, feedback-extractor
 │   ├── skills/
 │   │   ├── constitution/             # /constitution workflow
 │   │   ├── specify/                  # /specify workflow
@@ -95,7 +95,8 @@ See [docs/RESEARCH.md](docs/RESEARCH.md) for the full reference list with GitHub
 │   │   ├── token-budget/             # cache/delegate/compact discipline
 │   │   ├── auto-loop/                # safe autonomous-loop discipline
 │   │   ├── research-grounding/       # evidence-based decisions
-│   │   └── spec-driven/              # spec→plan→tasks methodology
+│   │   ├── spec-driven/              # spec→plan→tasks methodology
+│   │   └── …                         # 58 skills total — ls .claude/skills/
 │   ├── hooks/
 │   │   ├── pre-bash-guard.sh         # block destructive bash
 │   │   ├── pre-write-secret-scan.sh  # scan writes for secrets (gitleaks)
@@ -112,7 +113,8 @@ See [docs/RESEARCH.md](docs/RESEARCH.md) for the full reference list with GitHub
 │   │   ├── subagent-context.sh        # PreToolUse on Agent/Task — injects spec
 │   │   ├── skill-router.sh            # UserPromptSubmit — hint overlay
 │   │   ├── auto-dream-check.sh        # Stop hook — triggers /dream every 24h
-│   │   └── instinct-observer.sh       # PostToolUse — appends to instinct log
+│   │   ├── instinct-observer.sh       # PostToolUse — appends to instinct log
+│   │   └── …                          # 25 hooks total — ls .claude/hooks/
 │   ├── memory/
 │   │   ├── MEMORY.md                 # index of decisions / patterns / incidents / playbooks
 │   │   ├── decisions/                # ADRs
@@ -133,7 +135,8 @@ See [docs/RESEARCH.md](docs/RESEARCH.md) for the full reference list with GitHub
 │   │   ├── e2e-preview.yml           # Playwright on preview deploy
 │   │   ├── auto-merge-dependabot.yml # auto-merge patch/minor
 │   │   ├── release-please.yml        # Conventional Commits → CHANGELOG
-│   │   └── harness-validate.yml      # lint the .claude/ folder itself
+│   │   ├── harness-validate.yml      # lint the .claude/ folder itself
+│   │   └── …                         # 36 workflows total — ls .github/workflows/
 │   ├── rulesets/main-protection.json # branch protection (Rulesets)
 │   ├── ISSUE_TEMPLATE/               # bug, feature
 │   ├── PULL_REQUEST_TEMPLATE.md

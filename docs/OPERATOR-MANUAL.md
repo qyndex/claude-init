@@ -150,7 +150,10 @@ A **Cloud Routine** runs at 23:00 in a fresh sandbox, picks unblocked tasks from
 runs the full TDD + verify + evidence flow, opens PRs on `claude/overnight-<date>` branches, runs
 `/dream` to consolidate memory, and writes `OVERNIGHT_REPORT.md`. **It never merges or deploys** —
 that's your morning review. A local backstop (`local-overnight-build.sh`) runs if the cloud routine
-can't. Setup + safety: [AUTOPILOT.md](AUTOPILOT.md).
+can't. Setup + safety: [AUTOPILOT.md](AUTOPILOT.md). The overnight build is one of 12 scheduled
+routines (memory GC, OQ aging, feedback triage, Sentry polling, …) — the full list, install
+commands, and what degrades if each is skipped live in AUTOPILOT.md's **Routine installation
+matrix**; `harness-doctor.sh` warns about routines that exist but were never installed.
 
 ### Parallel swarm (many tasks at once)
 `/swarm` plans independent task streams and dispatches each as a background session in its own git
@@ -181,7 +184,7 @@ needs to know "is task T-42 done?", it reads that file — never the GitHub API.
 `no-issue-authority.yml`, enforces this.)
 
 Task state markers in `tasks/TASKS.md`:
-`[ ]` pending · `[~]` in progress · `[x]` done · `[!]` failed (3 self-heals exhausted) · `[b]` blocked · `[s]` shipped.
+`[ ]` pending · `[~]` in progress · `[x]` done · `[!]` failed (3 self-heals exhausted) · `[b]` blocked · `[s]` skipped (explicitly deferred — requires a `reason:` line; surfaces in `/debt list`).
 
 ---
 

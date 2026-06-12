@@ -108,8 +108,13 @@ How the pieces of this harness fit together.
 | **researcher** | specialist | sonnet | Read, WebSearch, WebFetch, Write | cite evidence, comparison briefs |
 | **doc-writer** | specialist | sonnet | Read, Edit, Write, Bash | keep docs honest |
 | **release** | specialist | sonnet | Read, Bash, TodoWrite | push, PR, CI watch, merge, tag, deploy |
-| **coordinator** | core | opus | Read, Glob, Grep, Edit, Write, Bash, TodoWrite | orchestrates swarm fleet — plans, dispatches, monitors, merges |
-| **feature-stream** | core | opus | Read, Glob, Grep, Edit, Write, Bash, TodoWrite | runs inside each `claude --bg -w feat-<N>` session, executes allocated tasks via TDD |
+| **coordinator** | core | sonnet | Read, Glob, Grep, Edit, Write, Bash, TodoWrite | orchestrates swarm fleet — plans, dispatches, monitors, merges |
+| **feature-stream** | core | sonnet | Read, Glob, Grep, Edit, Write, Bash, TodoWrite | runs inside each `claude --bg -w feat-<N>` session, executes allocated tasks via TDD |
+| **roadmap-architect** | core | sonnet | Read, Glob, Grep, WebFetch, WebSearch, Edit, Write, TodoWrite | multi-quarter program design — initiatives, OKR alignment, roadmap cuts |
+| **anti-slop-reviewer** | quality | sonnet | Read, Glob, Grep, Bash, TodoWrite | triages incoming PRs/issues into 8 classes; filters AI-spam contributions |
+| **designer** | specialist | opus | Read, Glob, Grep, Edit, Write, Bash, TodoWrite, WebFetch | visual craft — landing pages, hero sections, redesigns |
+| **extractor** | specialist | opus | Read, Glob, Grep, Bash, Edit, Write, TodoWrite | post-mortem + salvage when an initiative is abandoned (/abandon) |
+| **feedback-extractor** | specialist | sonnet | Read, Glob, Grep, WebFetch, Write | pulls customer signal from transcripts/tickets/surveys into structured entries |
 
 **Tiered model assignment** (from `wshobson/agents`):
 - Opus for hard-thinking: architecture, security, debugging, code review

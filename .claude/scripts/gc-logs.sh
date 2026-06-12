@@ -11,11 +11,11 @@ set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 
 LOG_DIR="${LOG_DIR:-$ROOT/.claude/hooks/.log}"
+# e2e-audit failure-recovery-5: jsonl event streams (instinct observations,
+# lane events) grow unbounded across multi-night runs — rotate them too.
+JSONL_DIR="${JSONL_DIR:-$ROOT/.claude/memory/.cache}"
 GC_LOG_MAX_BYTES="${GC_LOG_MAX_BYTES:-52428800}"   # 50 MB
 GC_LOG_KEEP="${GC_LOG_KEEP:-5}"
-
-# JUSTIFIED: no log dir means nothing to rotate — exit cleanly.
-[ -d "$LOG_DIR" ] || exit 0
 
 file_size() { wc -c <"$1" | tr -d ' '; }
 
@@ -35,7 +35,16 @@ while IFS= read -r log; do
   mv -f "$log" "${log}.1"
   : >"$log"            # recreate an empty live log
   rotated=$((rotated+1))
-# JUSTIFIED: the redirect drops find stderr when the log dir does not yet exist — the loop then iterates over nothing and gc-logs reports zero rotations
-done < <(find "$LOG_DIR" -type f -name '*.log' 2>/dev/null)
+
+  # Offset translation (failure-recovery-5): instinct-extract.sh tracks a
+  # LINE-COUNT offset into observations.jsonl. After truncation the live file
+  # restarts at 0 lines, so a stale offset makes `new = total - last` negative
+  # and extraction silently halts forever. Reset it with the rotation.
+  if [ "$(basename "$log")" = "observations.jsonl" ]; then
+    state="$ROOT/.claude/memory/.cache/.instinct-extract.state"
+    [ -f "$state" ] && printf '0\n' > "$state"
+  fi
+# JUSTIFIED: the redirect drops find stderr when a scanned dir does not yet exist — the loop then iterates over nothing and gc-logs reports zero rotations
+done < <({ find "$LOG_DIR" -type f -name '*.log' 2>/dev/null; find "$LOG_DIR" "$JSONL_DIR" "$ROOT/.swarms" -type f -name '*.jsonl' 2>/dev/null; } | sort -u)
 
 echo "gc-logs: rotated $rotated log(s)"

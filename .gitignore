@@ -17,6 +17,8 @@ verify/**/test-results/
 # overnight run-lock (local-overnight-build.sh). Machine-written, never committed.
 .claude/state/locks/
 .claude/state/overnight-*.run
+# per-machine scheduled-task install record (install-overnight-tasks.sh; doctor reads it)
+.claude/state/routines-installed
 
 # Per-developer auto-memory (Claude Code v2.1.59+ writes to ~/.claude/projects/...)
 # nothing to gitignore here

@@ -705,6 +705,43 @@ if [ "${_fb_count// /}" -eq 0 ]; then
 else
   fail "found exported FORCE_CONSTITUTION_EDIT in harness files — escape hatch is operator-only"
 fi
+
+# Comment-triggered write workflows need an actor guard (e2e-audit ci-gates-5):
+# a workflow that fires on issue/PR comments AND holds contents:write must gate
+# its job on author_association, or any drive-by commenter can spin a runner.
+for wf in .github/workflows/*.yml .github/workflows/*.yaml; do
+  [ -f "$wf" ] || continue
+  grep -qE '^[[:space:]]*(issue_comment|pull_request_review_comment):' "$wf" || continue
+  grep -qE '^[[:space:]]*contents:[[:space:]]*write' "$wf" || continue
+  if grep -q 'author_association' "$wf"; then
+    ok "comment-triggered write workflow has actor guard: $wf"
+  else
+    fail "comment-triggered workflow $wf holds contents:write but has NO author_association guard — drive-by comments can spin a privileged runner (ci-gates-5)"
+  fi
+done
+
+# Docs must not teach the silently-ignored boolean form (e2e-audit docs-truth-2):
+# Claude Code only honors the STRING "disable"; `true`/`false` are no-ops, so a
+# doc recommending them gives operators a false sense of a lock being on or off.
+# JUSTIFIED: grep exit 1 (no matches) is the desired clean state, not an abort
+# docs/research/ is excluded: audit/research artifacts quote the bad patterns as findings.
+_bool_bypass=$(grep -rnE 'disableBypassPermissionsMode[^a-zA-Z]*(true|false)' docs/ README.md 2>/dev/null | grep -v '^docs/research/' | grep -v 'silently ignore' || true)
+if [ -z "$_bool_bypass" ]; then
+  ok "docs never recommend boolean disableBypassPermissionsMode (only \"disable\" string works)"
+else
+  fail "docs recommend the boolean disableBypassPermissionsMode form, which Claude Code silently ignores: $(echo "$_bool_bypass" | head -2 | cut -d: -f1-2 | tr '\n' ' ')"
+fi
+
+# Task-legend drift guard (e2e-audit docs-truth-2): tasks/TASKS.md defines [s]
+# as "skipped"; any doc glossing it as "shipped" teaches operators the wrong
+# state machine (shipped is an issue-lifecycle stage, not a task marker).
+# JUSTIFIED: grep exit 1 (no matches) is the desired clean state, not an abort
+_s_drift=$(grep -rnE '\[s\][^a-zA-Z]*shipped' docs/ README.md 2>/dev/null | grep -v '^docs/research/' || true)
+if [ -z "$_s_drift" ]; then
+  ok "docs agree with tasks/TASKS.md legend: [s] = skipped, never shipped"
+else
+  fail "doc glosses [s] as 'shipped' but tasks/TASKS.md defines it as 'skipped': $(echo "$_s_drift" | head -2 | cut -d: -f1-2 | tr '\n' ' ')"
+fi
 echo
 
 # ─── 14b. Constitution size cap (AC-37) ─────────────────────────────────

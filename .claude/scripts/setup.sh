@@ -287,7 +287,15 @@ else
 fi
 
 step "Initial validation"
-bash .claude/scripts/validate.sh
+# e2e-audit greenfield-6: capture the exit instead of letting set -e abort here —
+# a validation hiccup must not strand the install with the plugin layer (the
+# constitution's superpowers dependency) silently missing. Failures are reported
+# now, the remaining steps run, and the script exits non-zero at the END.
+validate_rc=0
+bash .claude/scripts/validate.sh || validate_rc=$?
+if [ "$validate_rc" -ne 0 ]; then
+  warn "initial validation FAILED (rc=$validate_rc) — continuing with the remaining setup steps; fix the categories above and re-run setup.sh (idempotent). Setup will exit non-zero at the end."
+fi
 
 step "Installing canonical plugins (this is the step earlier versions skipped)"
 if command -v claude >/dev/null 2>&1; then
@@ -410,3 +418,16 @@ For parallel swarm:
   5. /swarm:status                (monitor)
   6. /swarm:merge                 (PR + CI + merge)
 EOF
+
+# Final gate (greenfield-6): re-run validation now that plugins/templates are in
+# place — and surface the earlier failure as THE exit code so CI/operators see it.
+if [ "$validate_rc" -ne 0 ]; then
+  step "Final validation (re-run after remaining steps)"
+  validate_rc=0
+  bash .claude/scripts/validate.sh || validate_rc=$?
+  if [ "$validate_rc" -ne 0 ]; then
+    warn "setup completed WITH validation failures (rc=$validate_rc) — fix the categories above and re-run bash .claude/scripts/setup.sh"
+    exit "$validate_rc"
+  fi
+  ok "final validation clean — the initial failure was transient (resolved by later steps)"
+fi

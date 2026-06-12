@@ -148,3 +148,17 @@ jobs:
             echo "no playwright rig / e2e/$spec — smoke re-execution is the proof for this PR"
           fi
           echo "✓ proof regenerated on head; committed evidence is consistent"
+
+      # e2e-audit e2e-rig-5: a FAILED G49 re-execution previously discarded its
+      # trace.zip/video with the runner — the diagnosis went down with the ship.
+      # Upload verify/ unconditionally so a red gate leaves something to open.
+      - name: Upload verify artifacts (always)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verify-evidence-${{ github.event.pull_request.number }}
+          path: |
+            verify/**
+            !verify/**/*.webm.tmp
+          retention-days: 14
+          if-no-files-found: ignore

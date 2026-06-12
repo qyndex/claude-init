@@ -246,7 +246,7 @@ Skim these files in order — they're short, they're load-bearing:
 ### `claude --dangerously-skip-permissions` warning
 
 - Don't use this flag with the harness — it bypasses the `pre-bash-guard` and `pre-write-secret-scan` hooks.
-- If you must (e.g. CI container), pair it with `disableBypassPermissionsMode: false` in `.claude/settings.json` and ensure your CI sandbox is well-isolated.
+- If you must (e.g. CI container), REMOVE the `"disableBypassPermissionsMode": "disable"` line from `.claude/settings.json` for that container only (the project-locked string is what blocks bypass — boolean `true`/`false` forms are silently ignored by Claude Code, so setting `false` changes nothing) and ensure your CI sandbox is well-isolated.
 
 ## What to read next
 

@@ -106,5 +106,15 @@ _reset() {
     { print }
   ' tasks/TASKS.md > "$tmp" && mv "$tmp" tasks/TASKS.md
 }
+# e2e-audit failure-recovery-6: check the lock rc and re-grep the flip before
+# claiming success — a busy lock or failed awk must not print ✓ for a reset
+# that never happened (hotfix-to-task.sh pattern).
 with_tasks_lock _reset
+lock_rc=$?
+if [ "$lock_rc" -eq 75 ]; then
+  echo "requeue-failed: TASKS.md lock busy — nothing changed; retry"; exit 75
+fi
+if ! grep -qE "^- \[ \] ${target}([^0-9]|\$)" tasks/TASKS.md; then
+  echo "requeue-failed: reset did NOT take (rc=$lock_rc) — ${target} is not [ ] in tasks/TASKS.md"; exit 1
+fi
 echo "✓ Re-opened ${target} → [ ] (requeued_at ${now}). It re-enters the queue as an unblocked task."
