@@ -1,0 +1,52 @@
+name: Ramp check
+
+# e2e-audit release-deploy-3: the scheduled driver for the flag-rollout ramp
+# table. Every ~6h it evaluates each active spec's ## Rollout block via
+# .claude/scripts/ramp-check.sh: ramp when the exit gate is met, hold while
+# soaking, mechanically kill on a gate breach (rollback-flag.sh), fire the
+# flag-shipped dispatch at 100% (→ issue-lifecycle.yml moves the spec issue to
+# SHIPPED), and write a LOUD operator task when no provider is wired.
+#
+# Registry/task writes made by the script are committed back — a loud task that
+# evaporates with the runner is not loud.
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ramp-check
+  cancel-in-progress: false
+
+jobs:
+  ramp:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      PROM_URL: ${{ vars.PROM_URL }}
+      FLAG_PROVIDER: ${{ vars.FLAG_PROVIDER }}
+      FLAG_RAMP_WEBHOOK: ${{ secrets.FLAG_RAMP_WEBHOOK }}
+      LD_API_KEY: ${{ secrets.LD_API_KEY }}
+      POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY }}
+      UNLEASH_URL: ${{ vars.UNLEASH_URL }}
+      UNLEASH_API_TOKEN: ${{ secrets.UNLEASH_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Evaluate ramps
+        run: bash .claude/scripts/ramp-check.sh
+
+      - name: Commit registry + task updates
+        run: |
+          git add .claude/memory/flags/REGISTRY.md .claude/memory/playbooks/flag-kill-log.md tasks/TASKS.md 2>/dev/null || true
+          if ! git diff --cached --quiet; then
+            git config user.name "ramp-check[bot]"
+            git config user.email "ramp-check@users.noreply.github.com"
+            git commit -m "chore(flags): ramp-check state update [skip ci]"
+            git push
+          fi

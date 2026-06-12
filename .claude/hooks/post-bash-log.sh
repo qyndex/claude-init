@@ -3,6 +3,11 @@
 
 set -uo pipefail
 
+# Shared swarm root (e2e-audit swarm-1): .swarms/** must resolve to the MAIN
+# checkout even when this hook fires inside a feat-* worktree.
+# shellcheck source=../scripts/lib/swarm-root.sh
+. "$(cd "$(dirname "$0")/../scripts/lib" && pwd)/swarm-root.sh"
+
 input=$(cat)
 mkdir -p .claude/hooks/.log
 
@@ -64,8 +69,8 @@ if [ -n "$stream_id" ]; then
     *LANE_BLOCKED*)                                 lane_event="lane.blocked" ;;
     # AC-32: lane.started on very first bash command in a new stream session
     *)
-      if [ -f ".swarms/streams/${stream_id}/state.json" ]; then
-        prev_state=$(jq -r '.state // ""' ".swarms/streams/${stream_id}/state.json" 2>/dev/null || true)
+      if [ -f "$SWARM_ROOT/.swarms/streams/${stream_id}/state.json" ]; then
+        prev_state=$(jq -r '.state // ""' "$SWARM_ROOT/.swarms/streams/${stream_id}/state.json" 2>/dev/null || true)
         [ "$prev_state" = "ready_for_prompt" ] && lane_event="lane.started"
       fi
       ;;
@@ -89,7 +94,7 @@ if [ -n "$stream_id" ]; then
   fi
 
   if [ -n "$lane_event" ]; then
-    mkdir -p .swarms/events
+    mkdir -p "$SWARM_ROOT/.swarms/events"
     ev_json=$(jq -nc \
       --arg ts "$ts" \
       --arg sid "$stream_id" \
@@ -101,7 +106,7 @@ if [ -n "$stream_id" ]; then
       '{ts: $ts, stream_id: $sid, event: $ev, payload: {command: $cmd, exit_code: $exit_code, error_kind: (if $error_kind != "" then $error_kind else null end), retryable: ($retryable == "true")}}')
     # Append-only JSONL; O_APPEND on a single short write is atomic on local FS.
     # JUSTIFIED: the redirect drops write stderr — lane telemetry is best-effort; a write failure must never abort the PostToolUse hook
-    printf '%s\n' "$ev_json" >> ".swarms/events/${stream_id}.jsonl" 2>/dev/null
+    printf '%s\n' "$ev_json" >> "$SWARM_ROOT/.swarms/events/${stream_id}.jsonl" 2>/dev/null
   fi
 fi
 

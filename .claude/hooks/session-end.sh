@@ -36,10 +36,12 @@ spec_tag=""
 emit_ccusage() {
   local raw="$1"
   if command -v jq >/dev/null 2>&1 && [ -n "$raw" ]; then
+    # JUSTIFIED: jq error muted — non-JSON ccusage output is passed through unmodified by the else-branch; merge failure shouldn't crash usage capture
+    # (e2e-audit failure-recovery-2: comment moved ABOVE — inside the backslash
+    # continuation it TERMINATED the command, severing the jq filter argument)
     printf '%s' "$raw" | jq -c \
       --arg init "$init_tag" \
       --arg spec "$spec_tag" \
-      # JUSTIFIED: jq error muted — non-JSON ccusage output is passed through unmodified by the else-branch; merge failure shouldn't crash usage capture
       '. + {initiative: $init, spec: $spec}' 2>/dev/null
   else
     printf '%s\n' "$raw"
@@ -184,6 +186,12 @@ if command -v jq >/dev/null 2>&1 && git rev-parse --git-dir >/dev/null 2>&1; the
     # JUSTIFIED: the redirect drops jq stderr — the session-recent cache is advisory; a write hiccup must not fail the SessionEnd hook
     }' > "$session_recent" 2>/dev/null
 fi
+
+# Local rotation backstop (e2e-audit failure-recovery-5): Cloud Routines may
+# never be installed — rotate oversized .log/.jsonl at session end so
+# multi-night local runs can't grow toward disk pressure with no trigger.
+# JUSTIFIED: best-effort rotation at exit — a gc hiccup must not block session shutdown; harness-doctor independently warns on oversized files
+bash .claude/scripts/gc-logs.sh >/dev/null 2>&1 || true
 
 # Round 6 B: snapshot ~/.claude/projects/<slug>/ into the repo so subscription
 # switches / home-dir wipes / new-machine clones are recoverable.

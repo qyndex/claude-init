@@ -17,6 +17,34 @@ case "$path" in
   *tasks/TASKS.md|tasks/TASKS.md|./tasks/TASKS.md)
     # JUSTIFIED: best-effort in a PostToolUse hook — a sync failure must never block the edit
     bash "$(dirname "$0")/../scripts/spec-status-sync.sh" >/dev/null 2>&1 || true
+
+    # Loop-control producer backstop (e2e-audit autopilot-2): direct tool writes
+    # to TASKS.md bypass task-status.sh's recorder, so diff status markers
+    # against the loop snapshot's sibling status file and feed [!]/[x]
+    # transitions to the consecutive-aborts machine. task-status.sh flips never
+    # arrive here (awk+mv, not a Write tool call) — no double-recording.
+    status_prev=.claude/memory/.cache/.tasks-status-prev
+    mkdir -p .claude/memory/.cache
+    # JUSTIFIED: grep exits 1 when no task lines exist — an empty status map is valid
+    status_now=$(grep -oE '^- \[[ ~xbs!]\] T-[0-9]+' tasks/TASKS.md 2>/dev/null | sed 's/^- \[\(.\)\] \(T-[0-9]*\)/\2 \1/' || true)
+    if [ -f "$status_prev" ] && [ -n "$status_now" ]; then
+      while read -r tid marker; do
+        [ -n "$tid" ] || continue
+        prev_marker=$(grep -E "^${tid} " "$status_prev" 2>/dev/null | awk '{print $2}')
+        [ "$prev_marker" = "$marker" ] && continue
+        case "$marker" in
+          x) bash "$(dirname "$0")/../scripts/loop-iteration.sh" record "$tid" progress >/dev/null 2>&1 || true ;;
+          !) bash "$(dirname "$0")/../scripts/loop-iteration.sh" record "$tid" abort >/dev/null 2>&1 || true ;;
+        esac
+      done <<EOF_STATUS
+$status_now
+EOF_STATUS
+    fi
+    printf '%s\n' "$status_now" > "$status_prev" 2>/dev/null || true
+    # Keep the external-edit snapshot honest for this sanctioned write path
+    # JUSTIFIED: best-effort telemetry — a snapshot failure must never block the edit
+    { shasum -a 256 tasks/TASKS.md 2>/dev/null | awk '{print $1}' || echo absent; } \
+      > .claude/state/tasks-md.snapshot 2>/dev/null || true
     ;;
 esac
 

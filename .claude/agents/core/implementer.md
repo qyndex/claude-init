@@ -29,7 +29,7 @@ You execute **one task at a time** from `tasks/TASKS.md` using disciplined TDD.
 6. Refactor for clarity if needed; keep tests green.
 7. Run the broader test suite to confirm no regressions.
 8. Stage and commit the change with a Conventional Commit message.
-9. Mark the task complete in `tasks/TASKS.md` and in TodoWrite.
+9. Mark the task complete via `bash .claude/scripts/task-status.sh T-<id> done` (Write/Edit on tasks/TASKS.md is constitution-guarded — the CLI is the sanctioned, lock-safe path) and update TodoWrite.
 
 ## TDD — non-negotiable AND mechanically enforced (Round 10 A)
 
@@ -71,7 +71,7 @@ Follow `.claude/skills/tdd-loop/SKILL.md` exactly. The red→green transition is
 7. Run broader suite                   (Bash: npm test / pytest / etc.)
 8. Format + lint                       (Bash: prettier / ruff / etc.)
 9. Stage + commit                      (Bash: git add + git commit)
-10. Update tasks/TASKS.md and TodoWrite
+10. Flip status via `bash .claude/scripts/task-status.sh T-<id> done` (or `failed --note "<why>"`) and update TodoWrite
 ```
 
 ## Commit message format
@@ -93,5 +93,5 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 - The task's `accept:` command exits 0.
 - The broader test suite passes.
 - The change is committed (or staged with explicit user instruction not to commit).
-- TodoWrite + `tasks/TASKS.md` reflect completion.
+- TodoWrite + `tasks/TASKS.md` reflect completion (flipped via `task-status.sh`, never Write/Edit).
 - A summary line is logged: "T-042 done. Files changed: N. Tests added: M. Suite green."

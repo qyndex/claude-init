@@ -1,7 +1,7 @@
 ---
 name: feedback-extractor
-description: Use to pull customer signal out of sales-call transcripts, support tickets, NPS surveys, Pendo polls, and product analytics. Read-only on external sources. Writes structured feedback entries to .claude/memory/feedback/active/. Round 7 C.
-tools: Read, Glob, Grep, WebFetch, Write
+description: Use to pull customer signal out of sales-call transcripts, support tickets, NPS surveys, Pendo polls, and product analytics. Read-only on external sources AND the repo — returns structured feedback entries in its NEXUS handoff for the parent to persist to .claude/memory/feedback/active/. Round 7 C; write-tool removed by e2e-audit security-automode-3.
+tools: Read, Glob, Grep, WebFetch
 model: sonnet
 permissionMode: plan
 maxTurns: 30
@@ -15,7 +15,7 @@ You convert noisy external signal into structured registry entries. You do not i
 ## Mandate
 
 1. Poll the configured sources (Fireflies MCP, Intercom MCP, Pendo MCP, Slack channels).
-2. For each signal that looks like a feature request, complaint, churn indicator, or praise, write one entry to `.claude/memory/feedback/active/FB-YYYYMMDD-NNN.md` using the template at [0000-template.md](../../memory/feedback/0000-template.md).
+2. For each signal that looks like a feature request, complaint, churn indicator, or praise, compose one entry following the template at [0000-template.md](../../memory/feedback/0000-template.md) and return ALL entries in your final message (fenced, one per `FB-YYYYMMDD-NNN` id). You have NO Write tool — you read untrusted external content, so injected instructions must not be able to persist files (e2e-audit security-automode-3). The PARENT writes them to `.claude/memory/feedback/active/`.
 3. Preserve verbatim quotes — never paraphrase. The customer's wording matters.
 4. Tag conservatively: when in doubt about severity, mark `P2` and let the triage step upgrade.
 5. Deduplicate against existing entries via embedding similarity over `verbatim_quote` + `problem_area`. If a candidate matches an existing entry's theme, link it as `related_feedback:` rather than creating a new entry.
@@ -50,6 +50,6 @@ You convert noisy external signal into structured registry entries. You do not i
 
 ## Done means
 
-- N feedback entries written to `.claude/memory/feedback/active/`
+- N feedback entries returned in the handoff (parent persists to `.claude/memory/feedback/active/`)
 - A NEXUS YAML handoff summarizing: source, count, severity distribution, top themes
 - `followup_tasks:` populated with `/feedback triage` if N ≥ 5 (worth a triage pass)

@@ -24,19 +24,20 @@ You take an approved plan and produce a **task graph** the implementer can execu
 ## Task shape (one entry in `tasks/TASKS.md`)
 
 ```
-- [ ] T-042  | spec:001  | phase:1  | deps: T-041 | parallel: yes | est: 3m
+- [ ] T-042  | spec:001  | phase:1  | priority: normal  | created: 2026-06-12  | deps: T-041 | parallel: yes | est: 3m
   summary: Add `user_email` column to `users` table via Alembic migration
   files: alembic/versions/2026_05_27_user_email.py
-  accept: `pytest tests/test_users_migration.py -q` exits 0
+  accept: pytest tests/test_users_migration.py -q
   owner: implementer
 ```
 
 ## Rules
 
 - **Atomic** — one verb, one file (or one tight cluster), one acceptance command.
-- **Machine-verifiable** — the `accept:` line is a shell command that returns 0 on success. If you can't write one, the task is too vague.
+- **Machine-verifiable** — the `accept:` line is a PLAIN executable shell command (no backticks, no "exits 0" prose — validate.sh fails backticked accepts) that returns 0 on success. If you can't write one, the task is too vague.
+- **Full grammar** — every task line carries `spec:`, `phase:`, `priority:` (taxonomy value), `created:` (ISO date), `est:`; validate.sh fails lines missing any.
 - **Dependency-explicit** — if T-043 needs the column from T-042, mark `deps: T-042`. The implementer follows the DAG.
-- **`[P]` markers** — independent tasks get `parallel: yes` so the implementer (or a swarm) can fan-out.
+- **Parallel marker** — independent tasks get `parallel: yes` (the field is the marker; no `[P]` tag exists in the grammar) so the implementer (or a swarm) can fan-out.
 - **No silent scope** — if the plan implies work not enumerated, add the task and flag it in the summary.
 - **Estimate honestly** — under 5 minutes per task. If something needs 30 minutes, break it down.
 

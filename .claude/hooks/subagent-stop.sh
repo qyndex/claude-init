@@ -14,6 +14,11 @@
 
 set -uo pipefail
 
+# Shared swarm root (e2e-audit swarm-1): .swarms/** reads/writes must resolve
+# to the MAIN checkout even when this hook fires inside a feat-* worktree.
+# shellcheck source=../scripts/lib/swarm-root.sh
+. "$(cd "$(dirname "$0")/../scripts/lib" && pwd)/swarm-root.sh"
+
 mkdir -p .claude/hooks/.log
 
 input=$(cat)
@@ -21,6 +26,21 @@ agent_type=$(printf '%s' "$input" | jq -r '.agent_type // .tool_input.subagent_t
 session_id=$(printf '%s' "$input" | jq -r '.session_id // ""')
 final_message=$(printf '%s' "$input" | jq -r '.tool_response.final_message // .tool_response.content // ""')
 ts=$(date -Iseconds)
+
+# e2e-audit autopilot-3: livelock breaker — on re-entry (stop_hook_active) the
+# hard-enforce paths below escalate into the handoff log + OVERNIGHT_REPORT.md
+# instead of exit-2-looping a subagent that cannot produce a valid handoff.
+stop_hook_active=$(printf '%s' "$input" | jq -r '.stop_hook_active // false' 2>/dev/null || echo false)
+escalate_handoff() { # escalate_handoff <reason>
+  printf '%s\tagent=%s\tESCALATION\t%s\n' "$ts" "$agent_type" "$1" >> .claude/hooks/.log/subagent.log
+  {
+    echo ""
+    echo "## ⚠ ESCALATION ($ts) — ${agent_type} handoff gate could not be satisfied"
+    echo "- reason: $1"
+    echo "- session: ${session_id:-unknown}"
+  } >> OVERNIGHT_REPORT.md 2>/dev/null || true
+  echo "[subagent-stop] ESCALATION: $1 — allowing Stop after re-entry; see OVERNIGHT_REPORT.md" >&2
+}
 
 # Plain log (preserved for backward compat)
 printf '%s\tagent=%s\n' "$ts" "$agent_type" >> .claude/hooks/.log/subagent.log
@@ -73,9 +93,13 @@ if [ -n "$final_message" ]; then
 EOF
           # Log the failure
           printf '%s\tagent=%s\tinvalid_handoff\n' "$ts" "$agent_type" >> .claude/hooks/.log/subagent.log
-          # On exit 2 the harness surfaces STDERR to the agent; stdout JSON is ignored.
-          echo "[subagent-stop] BLOCK: ${agent_type} returned an INVALID NEXUS handoff. Re-emit with all required fields per .swarms/templates/handoff.yaml." >&2
-          exit 2
+          if [ "$stop_hook_active" = "true" ]; then
+            escalate_handoff "${agent_type} returned an INVALID NEXUS handoff (re-entry)"
+          else
+            # On exit 2 the harness surfaces STDERR to the agent; stdout JSON is ignored.
+            echo "[subagent-stop] BLOCK: ${agent_type} returned an INVALID NEXUS handoff. Re-emit with all required fields per .swarms/templates/handoff.yaml." >&2
+            exit 2
+          fi
         fi
         ;;
     esac
@@ -128,8 +152,12 @@ EOF
 }
 EOF
     printf '%s\tagent=%s\tmissing_handoff\n' "$ts" "$agent_type" >> .claude/hooks/.log/subagent.log
-    echo "[subagent-stop] BLOCK: ${agent_type} did not emit a NEXUS handoff block (\`\`\`nexus or \`\`\`yaml). This is required for swarm agents. See .claude/skills/handoff/SKILL.md." >&2
-    exit 2
+    if [ "$stop_hook_active" = "true" ]; then
+      escalate_handoff "${agent_type} did not emit a NEXUS handoff block (re-entry)"
+    else
+      echo "[subagent-stop] BLOCK: ${agent_type} did not emit a NEXUS handoff block (\`\`\`nexus or \`\`\`yaml). This is required for swarm agents. See .claude/skills/handoff/SKILL.md." >&2
+      exit 2
+    fi
   else
     # ─── Gap-audit G38: SOFT tier actually warns now ────────────────────────
     # Constitution §XV says soft agents are "warn, accept" — previously a soft
@@ -145,7 +173,7 @@ EOF
 
   # Find any handoff-<ts>.yaml or .md file the subagent may have written
   # JUSTIFIED: the redirect drops find stderr when .swarms or the reference log is absent — an empty handoff_path just leaves the digest field blank
-  handoff_path=$(find .swarms -name 'handoff-*.yaml' -o -name 'handoff-*.md' -newer .claude/hooks/.log/subagent.log -type f 2>/dev/null | head -1)
+  handoff_path=$(find "${SWARM_ROOT:-.}/.swarms" -name 'handoff-*.yaml' -newer .claude/hooks/.log/subagent.log -type f 2>/dev/null | head -1)
 
   # ─── AC-25: auto-populate tdd_state for feature-stream if absent ────────
   # If the agent didn't emit tdd_state, derive it from the WIP commit log and
@@ -187,12 +215,12 @@ fi
 # ─── Worktree git diff surface (feature-stream only) ────────────────────
 worktree_diff=""
 if [ "$agent_type" = "feature-stream" ]; then
-  # Look up worktree from fleet.json by session_id
-  if [ -f .swarms/coordinator/fleet.json ] && command -v jq >/dev/null 2>&1; then
+  # Look up worktree from fleet.json by session_id (shared root — swarm-1)
+  if [ -f "${SWARM_ROOT:-.}/.swarms/coordinator/fleet.json" ] && command -v jq >/dev/null 2>&1; then
     # JUSTIFIED: the redirect drops jq stderr on a malformed fleet.json — an empty worktree fails the guard below and skips the diff surface
     worktree=$(jq -r --arg sid "$session_id" \
       '.fleet | to_entries[] | select(.value.sessionId == $sid) | .value.worktree' \
-      .swarms/coordinator/fleet.json 2>/dev/null | head -1)
+      "${SWARM_ROOT:-.}/.swarms/coordinator/fleet.json" 2>/dev/null | head -1)
     if [ -n "$worktree" ] && [ -d "$worktree" ]; then
       # JUSTIFIED: the redirect drops git diff stderr if the worktree has no main ref — an empty diff just leaves the worktree_diff digest field blank
       worktree_diff=$(cd "$worktree" && git diff --name-only main...HEAD 2>/dev/null | head -10 | tr '\n' ',' | sed 's/,$//')
@@ -210,7 +238,7 @@ if [ "$agent_type" = "feature-stream" ]; then
     [ -z "$lane_stream_id" ] && lane_stream_id=$(basename "$worktree")
   fi
   if [ -n "$lane_stream_id" ]; then
-    mkdir -p .swarms/events
+    mkdir -p "${SWARM_ROOT:-.}/.swarms/events"
     fin_json=$(jq -nc \
       --arg ts "$ts" \
       --arg sid "$lane_stream_id" \
@@ -218,7 +246,7 @@ if [ "$agent_type" = "feature-stream" ]; then
       --arg session_id "$session_id" \
       '{ts: $ts, stream_id: $sid, event: "lane.finished", payload: {status: $status, session_id: $session_id}}')
     # JUSTIFIED: the redirect drops write stderr — lane telemetry is best-effort; a write failure must never abort the SubagentStop hook
-    printf '%s\n' "$fin_json" >> ".swarms/events/${lane_stream_id}.jsonl" 2>/dev/null
+    printf '%s\n' "$fin_json" >> "${SWARM_ROOT:-.}/.swarms/events/${lane_stream_id}.jsonl" 2>/dev/null
   fi
 fi
 

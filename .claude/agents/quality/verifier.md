@@ -44,11 +44,11 @@ Your job is to answer one question with proof: **does it actually work?**
 ## Workflow (Round 10 B — evidence rig)
 
 1. Read the spec's user journey + acceptance criteria (AC ids).
-2. **Ensure the evidence rig is installed**: if no `playwright.config.ts` at repo root, copy `.claude/templates/evidence/playwright.config.ts` + `.claude/templates/evidence/_evidence.ts` → `e2e/_evidence.ts`. This turns on video + trace + HAR + per-AC screenshots.
-3. **Write/confirm AC-tagged journey tests** at `e2e/<spec-id>/story-N.spec.ts` — each test tagged `{ tag: ['@AC-0N'] }`, using `shot(ac, label)` + `recordApi(page, ac)` from the helper.
+2. **Ensure the evidence rig is installed**: run `bash .claude/scripts/rig-bootstrap.sh` — it installs the STANDALONE `playwright.evidence.config.ts` (never collides with a project's own playwright.config.ts), `e2e/_evidence.ts`, @playwright/test, and chromium. This turns on video + trace + HAR + per-AC screenshots.
+3. **Confirm AC-tagged journey tests exist** at `e2e/<spec-id>/story-N.spec.ts` — each test tagged `{ tag: ['@AC-N'] }` (UNPADDED, matching the spec template's AC-1/AC-2 ids), using `shot(ac, label)` + `recordApi(page, ac)` from the helper. If tests are missing, delegate authoring to the `tester` agent (it has Write; you don't — you verify, you don't author).
 4. **Run the journey with the rig**:
    ```
-   VERIFY_FEATURE=<spec-id>-<slug> npx playwright test e2e/<spec-id>
+   VERIFY_FEATURE=<spec-id>-<slug> npx playwright test --config playwright.evidence.config.ts e2e/<spec-id>
    ```
    This auto-captures video.webm + trace.zip + network.har + per-AC screenshots + results.json into `verify/<date>-<feature>/`.
 5. **Prove spec-match**: `bash .claude/scripts/spec-match.sh <spec-id>` — fails if any AC lacks a passing tagged test.

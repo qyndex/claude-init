@@ -18,8 +18,15 @@ Walk the task DAG and execute each task with strict TDD discipline.
 ```
 1. Read tasks/TASKS.md.
 2. If arg is a task id, work on that task only.
-   If arg is "next", pick the next unblocked task (deps satisfied, status pending).
-   If arg is "all", loop until no unblocked tasks remain or a task fails.
+   If arg is "next", nominate via the canonical picker — `bash .claude/scripts/next-task.sh`
+   (dep-aware, priority-ordered, skips operator-owned/RESOLVE lines and the Format
+   template; rc 1 = backlog empty, rc 3 = all blocked → run `--why` and report).
+   NEVER hand-pick with grep — the picker is the single nomination grammar shared
+   with loop-iteration.sh and workflow-state.sh.
+   Analyze gate (spec-pipeline-1): before working any task of spec N, check
+   `.claude/state/analyze-<N>.json` exists with verdict PASS (spec:HOTFIX exempt).
+   Missing → run /analyze first. verdict BLOCK → refuse and surface the blockers.
+   If arg is "all", loop: call `next-task.sh` before each task until rc ≠ 0 or a task fails.
 3. For each task:
    a. Mark in_progress in TodoWrite.
    b. Delegate to the implementer agent (which uses the tdd-loop skill).
@@ -45,13 +52,13 @@ Walk the task DAG and execute each task with strict TDD discipline.
 6. Run broader test suite.
 7. Lint + format.
 8. Commit (Conventional Commits).
-9. Update tasks/TASKS.md + TodoWrite.
+9. Flip status: `bash .claude/scripts/task-status.sh T-<id> done` (lock-safe sanctioned path — Write/Edit on TASKS.md is denied) + TodoWrite.
 
 ## Output
 
 ```
 Each completed task → 1 commit in git history.
-tasks/TASKS.md → [x] mark, completed-at timestamp.
+tasks/TASKS.md → [x] mark via `task-status.sh` (never Write/Edit), completed-at timestamp.
 TodoWrite → completed.
 ```
 

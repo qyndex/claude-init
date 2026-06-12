@@ -58,7 +58,7 @@
 ## V. `<model_routing>`
 
 - **Opus 4.8** → architect, implementer, reviewer, security, debugger, designer, extractor (hard thinking / high-craft)
-- **Sonnet 4.6** → planner, tester, verifier, researcher, doc-writer, release, roadmap-architect, coordinator, feature-stream, feedback-extractor (daily driver; Round 5 demoted the orchestration agents)
+- **Sonnet 4.6** → planner, tester, verifier, researcher, doc-writer, release, roadmap-architect, coordinator, feature-stream, feedback-extractor, anti-slop-reviewer (daily driver; Round 5 demoted the orchestration agents)
 - **Haiku 4.5** → `Explore` subagent (built-in), keyword routing, simple greps
 
 **Rule of thumb:** Sonnet unless proven otherwise. This list is authoritative — every agent's frontmatter `model:` must match it.
@@ -96,7 +96,7 @@ WIP checkpoints during long work: `WIP: <6-word decision>` subject + `[gstack-co
 ## VII. `<verification>` (before any "done" claim)
 
 1. **TDD ledger** — each task has `verify/<date>/T-<id>/red.log` (failed first) + `green.log` (passed after). `verify.sh` blocks `[x]` tasks without both. (Round 10 A)
-2. Task's `accept:` command exits 0 (must be a real test runner, not `echo` — `validate.sh` enforces).
+2. Task's `accept:` command exits 0. `validate.sh` FAILS backticked accepts and no-op accepts (`echo`/`true`/trailing `|| true`/bare `ls`) on actionable implementer tasks; `verify.sh` re-runs the accepts of tasks newly flipped `[x]` on the branch.
 3. Broader test suite passes + `assert-density.sh` clean (no assertion-free tests).
 4. User-facing change → run the journey via the Playwright evidence rig (`VERIFY_FEATURE=<id> npx playwright test`). Captures video + trace + HAR + per-AC screenshots to `verify/<date>-<feature>/`. `spec-match.sh` proves every AC has a passing tagged test. (Round 10 B)
 5. Auth/data/network/dep change → semgrep + dependency audit clean.
@@ -145,7 +145,7 @@ See `.claude/skills/context-budget/SKILL.md` and the installed `alexgreensh/toke
 - **`disableBypassPermissionsMode: "disable"`** is set — bypass is project-locked.
 - **Secrets:** `.env*`, `*.pem`, `*.key`, `*credentials*` deny-listed for Read AND Write. `gitleaks` runs PreToolUse on every Write/Edit.
 - **Destructive ops blocked:** `rm -rf`, `git push --force origin main`, `DROP TABLE`, `--no-verify`, `curl|sh`, `eval`, `base64|sh`, `python -c`, `node -e`.
-- **MCP servers:** version-pinned, deferred via Tool Search, `alwaysLoad: true` only on filesystem/git/github. NOTE: the filesystem MCP read path is NOT gated by the settings deny-list — never store secrets in the repo tree; gitleaks PreToolUse + .gitignore are the mitigations.
+- **MCP servers:** version-pinned, deferred via Tool Search, `alwaysLoad: true` only on filesystem/git/github. MCP WRITE tools (filesystem write_file/edit_file/move_file, github create_or_update_file/push_files) are gated by `pre-mcp-write-guard.sh` — same constitution deny-list + secret rules as Write/Edit. The filesystem MCP READ path is still NOT gated by the settings deny-list — never store secrets in the repo tree; gitleaks PreToolUse + .gitignore are the mitigations.
 
 Full checklist: `.claude/skills/security-guard/SKILL.md`.
 
@@ -154,6 +154,8 @@ Full checklist: `.claude/skills/security-guard/SKILL.md`.
 ## XI. Autopilot
 
 Cloud Routine at 23:00 → fresh runtime sandbox (OS-level / `--sandbox` launch flag — NOT settings.json) → Auto Mode → `/verify-loop` → /dream → `OVERNIGHT_REPORT.md`. Laptop can be off. [docs/AUTOPILOT.md](../docs/AUTOPILOT.md).
+
+**Autonomous merge (e2e-audit release-deploy-2):** in auto mode the merge confirmation is POLICY, not a human — the `auto-merge-ok` label or a `claude/overnight-*` branch arms `auto-merge.yml` (native `gh pr merge --auto`), and the LIVE branch ruleset's required checks are the gate. No live ruleset → no auto-merge (ship step 0). Merge ≠ deploy: production stays behind the deploy environment's required reviewers + the `DEPLOY_WIRED` gate.
 
 ---
 

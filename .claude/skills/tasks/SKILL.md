@@ -22,28 +22,31 @@ Convert an approved plan into the task DAG that the implementer will execute one
 ## Task format
 
 ```
-- [ ] T-042  | spec:001  | phase:1  | deps: T-041  | parallel: yes  | est: 3m
+- [ ] T-042  | spec:001  | phase:1  | priority: normal  | created: 2026-06-12  | deps: T-041  | parallel: yes  | est: 3m
   summary: <verb-first one-line description>
   files: path/to/file1.ts, path/to/file2.test.ts
   accept: pnpm test src/auth/login.test.ts -q
   owner: implementer
 ```
 
-Fields:
+Fields (the FULL canonical grammar — tasks/TASKS.md §Format is authoritative;
+validate.sh fails task lines missing spec/phase/priority/created/est):
 - `T-NNN` — unique id, monotonic across the repo
 - `spec:` — parent spec id
 - `phase:` — plan phase number
+- `priority:` — one of hotfix | incident-followup | security | P1-spec | debt | normal | cleanup | deprecation
+- `created:` — ISO date; required for `[!]`/`[s]` aging
 - `deps:` — task ids this depends on (must complete first)
-- `parallel:` — `yes` if can run in parallel with sibling tasks
+- `parallel:` — `yes` if can run in parallel with sibling tasks (the field IS the marker — there is no separate `[P]` tag)
 - `est:` — agent time estimate; aim ≤ 5m
-- `accept:` — shell command that returns 0 when the task is done
+- `accept:` — plain executable shell command (NO backticks, no prose) that exits 0 when the task is done
 
 ## Hard rules
 
 - **2-5 minutes per task.** Larger = decompose. Smaller = combine.
 - **Machine-verifiable.** No task without an `accept:` command.
 - **Explicit dependencies.** If a task needs another's output, list it in `deps:`.
-- **Mark `[P]`.** Parallel-safe tasks must be flagged so swarms can fan out.
+- **Mark `parallel: yes`.** Parallel-safe tasks must be flagged so swarms can fan out.
 - **Cover the plan.** Sum of `accept:` results must imply plan phase complete.
 
 ## Output

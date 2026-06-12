@@ -36,7 +36,7 @@ You are the swarm orchestrator. You do not write code. You plan streams, dispatc
 
 ### Plan
 
-1. Read backlog: `grep '^- \[ \]' tasks/TASKS.md`.
+1. Read backlog: `bash .claude/scripts/next-task.sh --all` (canonical picker — dep-aware, priority-ordered, never the Format template line).
 2. Identify independent task groups. For each candidate group:
    - Does any task in group A share files with any task in group B? If yes, merge or designate owner.
    - Cap each stream at 3-5 tasks; otherwise the stream's session becomes long-running.
@@ -45,6 +45,20 @@ You are the swarm orchestrator. You do not write code. You plan streams, dispatc
    - `.swarms/streams/<id>/analysis.md` (scope, files-owned, files-shared+owner, acceptance command)
    - `.swarms/streams/<id>/brief.md` (the system-prompt extension the background session receives)
    - `.swarms/streams/<id>/task.json` (ccg-workflow schema: id, status:pending, taskIds, branch)
+
+### Single-writer contract (e2e-audit swarm-6)
+
+**You are the ONLY writer of tasks/TASKS.md state.** Streams never flip markers —
+they report completion via their NEXUS handoff (`status: completed|qa_pass`).
+On each merge decision, YOU flip the stream's tasks via the sanctioned mutator:
+
+```bash
+bash .claude/scripts/task-status.sh T-<id> done           # after verified-merge succeeds
+bash .claude/scripts/task-status.sh T-<id> failed --note "stream <id>: <reason>"  # on escalation
+```
+
+Never Write/Edit TASKS.md directly (the constitution guard denies it anyway).
+Cross-stream rebase conflicts on the ledger are impossible by construction.
 
 ### Dispatch
 

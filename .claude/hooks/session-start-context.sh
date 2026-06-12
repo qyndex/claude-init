@@ -37,6 +37,15 @@ if [ -f .claude/memory/.cache/current-session.json ]; then
   # JUSTIFIED: same partially-written session JSON — // default + suppression degrade a truncated file to 0 uncommitted rather than aborting
   killed_uncommitted=$(jq -r '.uncommitted // 0' .claude/memory/.cache/current-session.json 2>/dev/null)
   ctx_parts+=("⚠ KILLED-SESSION: previous session ($killed_id) on $killed_branch was terminated abnormally after $killed_turns turns with $killed_uncommitted uncommitted files. Run \`bash .claude/scripts/resume-or-restart.sh\` to triage.")
+
+  # e2e-audit failure-recovery-3: the killed session's [~] tasks are orphans —
+  # reconcile them to [!] now (the script is heartbeat-aware: it refuses to
+  # touch anything while a live session is heartbeating).
+  # JUSTIFIED: best-effort at SessionStart — reconciler output is surfaced, failure never blocks the session
+  orphan_out=$(bash .claude/scripts/orphan-reconcile.sh 2>/dev/null || true)
+  if printf '%s' "$orphan_out" | grep -q 'reconciled:'; then
+    ctx_parts+=("⚠ ORPHANED-TASKS: $(printf '%s' "$orphan_out" | grep -c 'reconciled:') in-progress task(s) from the killed session flipped to [!]. Review: \`bash .claude/scripts/requeue-failed.sh\`.")
+  fi
 fi
 
 # ─── Round 6 B: subscription-switch / home-dir drift detector ──────────
@@ -245,6 +254,44 @@ if [ -f .swarms/coordinator/fleet.json ] && command -v jq >/dev/null 2>&1; then
   running_count=$(jq -r '[.fleet[] | select(.status == "running")] | length' .swarms/coordinator/fleet.json 2>/dev/null)
   if [ "${running_count:-0}" -gt 0 ]; then
     ctx_parts+=("${running_count} swarm stream(s) marked running in fleet.json. Verify with \`claude agents --json\`; if stale, run /swarm:status.")
+  fi
+fi
+
+# ─── Morning-operator banners (e2e-audit autopilot-4) ──────────────────
+# Four one-line, fail-silent surfaces: the overnight run's escalations, failed
+# tasks, the ideation flag, and the abort-cap halt were previously
+# prose-or-nothing — an operator who didn't open the right file saw none of it.
+
+# (1) Fresh OVERNIGHT_REPORT.md (<12h) with its ESCALATION count
+if [ -f OVERNIGHT_REPORT.md ]; then
+  # JUSTIFIED: stat dialects probed; unstat-able report degrades to age 999h (no banner) rather than crashing
+  rep_m=$(stat -f %m OVERNIGHT_REPORT.md 2>/dev/null || stat -c %Y OVERNIGHT_REPORT.md 2>/dev/null || echo 0)
+  rep_age_h=$(( ( $(date +%s) - rep_m ) / 3600 ))
+  if [ "$rep_m" -gt 0 ] && [ "$rep_age_h" -lt 12 ]; then
+    # JUSTIFIED: grep -c exits 1 on zero matches — 0 escalations is a valid, reportable count
+    esc_n=$(grep -c 'ESCALATION' OVERNIGHT_REPORT.md 2>/dev/null || echo 0)
+    ctx_parts+=("🌅 OVERNIGHT_REPORT.md is ${rep_age_h}h old with ${esc_n} ESCALATION(s) — read it before starting new work.")
+  fi
+fi
+
+# (2) [!] failed tasks awaiting requeue
+# JUSTIFIED: grep -c exit 1 = zero failed tasks, the quiet path
+failed_n=$(grep -cE '^- \[!\] T-[0-9]+' tasks/TASKS.md 2>/dev/null || echo 0)
+if [ "${failed_n:-0}" -gt 0 ]; then
+  ctx_parts+=("⚠ [!] failed tasks: ${failed_n} — \`bash .claude/scripts/requeue-failed.sh\` to triage.")
+fi
+
+# (3) Ideation pending (backlog ran dry mid-loop)
+if [ -f .claude/state/ideation-pending ]; then
+  ctx_parts+=("💡 IDEATION-PENDING since $(cat .claude/state/ideation-pending 2>/dev/null | head -c 25): backlog is empty — review .claude/memory.proposed/next-feature-*.md or run /specify.")
+fi
+
+# (4) Consecutive-aborts cap reached (loop is halted until a human resets)
+if [ -f .claude/state/consecutive-aborts.json ]; then
+  # JUSTIFIED: jq muted — a corrupt state file yields empty, no banner; the loop itself re-validates
+  cap_count=$(jq -r '.count // 0' .claude/state/consecutive-aborts.json 2>/dev/null)
+  if [ "${cap_count:-0}" -ge "${LOOP_ABORT_CAP:-3}" ]; then
+    ctx_parts+=("🛑 ABORT-CAP REACHED (count=${cap_count}): the autopilot loop is HALTED. Investigate the failing task, then reset .claude/state/consecutive-aborts.json (or record a progress) to resume.")
   fi
 fi
 

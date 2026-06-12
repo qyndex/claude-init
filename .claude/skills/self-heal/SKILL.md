@@ -48,7 +48,7 @@ Tier 4 — Human escalation         (after 3 failed Tier 1-3 cycles)
   - Implementer's three attempts (commits)
   - Why each failed (paste verify output)
   - Suggested human next step
-- Mark the task `[!]` in `tasks/TASKS.md`.
+- Mark the task failed: `bash .claude/scripts/task-status.sh T-<id> failed --note "<one-line why>"` (lock-safe; also feeds the consecutive-aborts machine).
 
 ## Hard rules
 

@@ -26,6 +26,13 @@ jobs:
       TITLE: ${{ github.event.client_payload.title }}
       PERMALINK: ${{ github.event.client_payload.permalink }}
       SOURCE: ${{ github.event.client_payload.source }}
+      ALERT_SERVICE: ${{ github.event.client_payload.service }}
+      FLAG_PROVIDER: ${{ vars.FLAG_PROVIDER }}
+      FLAG_KILL_WEBHOOK: ${{ secrets.FLAG_KILL_WEBHOOK }}
+      LD_API_KEY: ${{ secrets.LD_API_KEY }}
+      POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY }}
+      UNLEASH_URL: ${{ vars.UNLEASH_URL }}
+      UNLEASH_API_TOKEN: ${{ secrets.UNLEASH_API_TOKEN }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -42,6 +49,21 @@ jobs:
             echo "skip=true" >> "$GITHUB_OUTPUT"
           else
             echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Flag first-responder (e2e-audit release-deploy-4)
+        if: ${{ steps.triage.outputs.skip == 'false' }}
+        run: |
+          # If the alerting service maps to a flag-gated spec, a mechanical flag
+          # kill shrinks the blast radius in seconds — BEFORE the (minutes-long)
+          # autonomous fix even starts. Exit 3 = no flag mapped (normal); exit 2 =
+          # provider unwired (loud in the log, fix proceeds anyway).
+          if [ -n "${ALERT_SERVICE:-}" ]; then
+            bash .claude/scripts/rollback-flag.sh --service "$ALERT_SERVICE" \
+              --reason "hotfix-ingest $FINGERPRINT ($SEVERITY)" || \
+              echo "flag first-responder: no kill performed (rc=$?) — proceeding to autonomous fix"
+          else
+            echo "alert carries no service field — flag first-responder skipped"
           fi
 
       - name: Project write-only hotfix issue

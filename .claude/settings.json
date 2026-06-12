@@ -398,6 +398,11 @@
             "type": "command",
             "command": "bash .claude/hooks/session-start-context.sh",
             "timeout": 15
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/scripts/check-overnight-fired.sh",
+            "timeout": 10
           }
         ]
       }
@@ -464,6 +469,16 @@
           {
             "type": "command",
             "command": "bash .claude/hooks/pre-write-secret-scan.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/pre-edit-legacy-guard.sh",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/pre-lane-guard.sh",
+            "timeout": 5
           }
         ]
       },
@@ -478,6 +493,16 @@
           {
             "type": "command",
             "command": "bash .claude/hooks/subagent-context.sh",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__filesystem__write_file|mcp__filesystem__edit_file|mcp__filesystem__move_file|mcp__github__create_or_update_file|mcp__github__push_files",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/pre-mcp-write-guard.sh",
             "timeout": 10
           }
         ]

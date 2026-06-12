@@ -11,6 +11,9 @@ name: Claude Security Review
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
+    # e2e-audit ci-gates-6: gate cost scales with push count — scope to PRs
+    # targeting main (same filter claude-review already had).
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -18,12 +21,25 @@ permissions:
   pull-requests: write
   security-events: write
 
+concurrency:
+  group: claude-security-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   security-review:
     if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
+      - name: Preflight — ANTHROPIC_API_KEY present (e2e-audit ci-gates-4)
+        env:
+          HAS_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+        run: |
+          if [ "$HAS_KEY" != "true" ]; then
+            echo "::error::ANTHROPIC_API_KEY secret is missing — this GATING security review can never pass. Fix: gh secret set ANTHROPIC_API_KEY (setup.sh and harness-doctor both check this)."
+            exit 1
+          fi
+
       - name: Checkout
         uses: actions/checkout@v4
         with:

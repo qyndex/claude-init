@@ -55,14 +55,16 @@ gh pr create --base "release/$next" --head main --title "release: $next" --body 
 ### Promoting through environments
 
 ```bash
-# Monday: deploy to staging
-gh workflow run deploy.yml --ref "release/$next" -F environment=staging
+# Monday: deploy to staging — via YOUR BYO deploy workflow (the harness ships no
+# deploy.yml; wire your platform per docs/DEPLOY-INTEGRATION.md, then substitute it here)
+gh workflow run <your-deploy-workflow>.yml --ref "release/$next" -F environment=staging
 
-# Wednesday: canary in prod (after staging soak)
+# Wednesday: canary in prod (after staging soak) — requires DEPLOY_WIRED=true,
+# otherwise canary-deploy.yml refuses to run (fail-closed stub)
 gh workflow run canary-deploy.yml -F service=<svc> -F sha=$(git rev-parse "release/$next")
 
-# Friday: 100%
-gh workflow run deploy.yml --ref "release/$next" -F environment=production
+# Friday: 100% — again via your BYO workflow
+gh workflow run <your-deploy-workflow>.yml --ref "release/$next" -F environment=production
 git tag "v$next"
 git push --tags
 ```

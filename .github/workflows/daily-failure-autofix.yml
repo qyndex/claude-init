@@ -48,8 +48,10 @@ jobs:
       - name: Spawn claude --bg to investigate + fix
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # e2e-audit failure-recovery-4: the session must push + `gh pr create` —
+          # without GH_TOKEN every fix attempt died at the PR step.
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RUN_URL_E: ${{ env.RUN_URL }}
-          DATE_LABEL: $(date +%Y-%m-%d)
         run: |
           # All inputs passed as env vars; never interpolated into shell strings.
           date_label=$(date +%Y-%m-%d)
@@ -64,14 +66,27 @@ jobs:
             --append-system-prompt "$prompt_body" \
             "Investigate the daily batch failure and open a fix PR" || echo "claude session ended; check PR"
 
-      - name: Surface autofix as an issue
+      - name: Verify a fix PR exists (e2e-audit failure-recovery-4)
         if: always()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RUN_URL_BODY: ${{ env.RUN_URL }}
         run: |
+          # The whole point of this workflow is the fix PR. "Session ended, no PR,
+          # job green" silently broke the recovery loop — fail loudly instead.
           date_label=$(date +%Y-%m-%d)
-          gh issue create \
-            --title "Daily batch failed $date_label - autofix attempt logged" \
-            --body "Daily batch failed. Autofix attempted via claude --bg. See run: $RUN_URL_BODY. Merge-gate now blocks PR merges until the next daily passes." \
-            --label "ci,daily-autofix" || true
+          branch="claude/daily-autofix-$date_label"
+          pr_url=$(gh pr list --head "$branch" --json url --jq '.[0].url // empty' 2>/dev/null || true)
+          if [ -n "$pr_url" ]; then
+            gh issue create \
+              --title "Daily batch failed $date_label - autofix PR open" \
+              --body "Daily batch failed. Autofix PR: $pr_url (run: $RUN_URL_BODY). Merge-gate blocks other merges until the next daily passes." \
+              --label "ci,daily-autofix" || true
+          else
+            gh issue create \
+              --title "Daily batch failed $date_label - AUTOFIX PRODUCED NO PR" \
+              --body "Daily batch failed AND the autofix session ended without opening a PR (run: $RUN_URL_BODY). Manual investigation required — the recovery loop did not recover." \
+              --label "ci,daily-autofix,autofix-no-pr" || true
+            echo "::error::autofix session produced no PR on $branch — the recovery loop needs a human"
+            exit 1
+          fi

@@ -4,7 +4,7 @@ description: Cross-check spec, plan, and tasks for consistency. Phase 4.5 of the
 when_to_use: Spec, plan, and tasks all exist for a feature and you want a sanity check before coding. User says "analyze the plan", "check consistency", "any gaps".
 argument-hint: "<feature id>"
 model: sonnet
-allowed-tools: Read, Glob, Grep, TodoWrite
+allowed-tools: Read, Glob, Grep, TodoWrite, Write
 ---
 
 # Analyze
@@ -18,7 +18,16 @@ Cross-artifact consistency check. Catch drift before it becomes code.
 3. Read the **tasks** in `tasks/TASKS.md` filtered by `spec:<id>`.
 4. Run the consistency checklist (below).
 5. Report findings, severity-tagged.
-6. Block `/implement` if any blockers.
+6. **Write the machine marker** (e2e-audit spec-pipeline-1 — this is what makes the
+   gate real; without it next-task.sh/workflow-state.sh see the spec as unanalyzed):
+   Write `.claude/state/analyze-<id>.json` with exactly:
+   ```json
+   {"verdict": "PASS|BLOCK", "blockers": ["<each BLOCKER finding>"], "date": "<ISO>"}
+   ```
+   `<id>` is the numeric spec id (e.g. `analyze-042.json`). Re-running /analyze
+   overwrites the marker — verdict reflects the LATEST run.
+7. Block `/implement` if any blockers — the marker's `verdict: BLOCK` is enforced
+   by `next-task.sh --require-analyze` (loop path), not just by this prose.
 
 ## Consistency checks
 

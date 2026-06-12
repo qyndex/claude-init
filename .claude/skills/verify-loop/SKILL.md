@@ -15,14 +15,22 @@ The outer loop. Runs `autopilot` skill iteratively, gated by `verification-befor
 ## The loop
 
 ```
+init: bash .claude/scripts/loop-iteration.sh start --until <ISO> --max-iter <N>
+      (machine-enforces the wall-clock/iteration budgets below)
+
 while not stop_condition:
-    1. pick next unblocked task from tasks/TASKS.md
+    1. run `bash .claude/scripts/loop-iteration.sh` — deterministic gate + picker:
+       exit 2 → HALT (abort cap / run budget / external TASKS.md edit — reason printed);
+       exit 1 → stop (empty or fully-blocked backlog, or verify pre-flight red);
+       exit 0 → it names the nominated task (canonical next-task.sh grammar)
     2. invoke autopilot skill on that task    (5-phase execution)
     3. run verification-before-completion gate
-       a. if PASS  → mark task [x], commit, continue
+       a. if PASS  → `task-status.sh T-<id> done`, commit, continue
        b. if FAIL  → invoke self-heal (3 attempts max)
           - on heal success → continue
-          - on heal failure → mark task [!], log to OVERNIGHT_REPORT, continue
+          - on heal failure → `task-status.sh T-<id> failed --note "<reason>"`,
+            log to OVERNIGHT_REPORT, continue
+       (task-status.sh feeds the abort/progress recorder — never flip by hand)
     4. WIP checkpoint
     5. evaluate stop conditions
 end
@@ -42,7 +50,9 @@ at end:
 - 3 consecutive task ESCALATIONs (self-heal exhausted on 3 different tasks in a row)
 - Any security check fails on a diff (semgrep critical, gitleaks hit)
 - User sends `/stop`, Ctrl+C, or any interrupt
-- `tasks/TASKS.md` modified externally (file watcher detects human edit)
+- `tasks/TASKS.md` modified externally — loop-iteration.sh compares its hash to
+  the loop's snapshot (.claude/state/tasks-md.snapshot, refreshed by every
+  sanctioned mutation) and exits 2 on mismatch
 
 ## Invocation patterns
 
@@ -95,7 +105,7 @@ Only when ALL FIVE pass is the task `[x]`. Otherwise `[!]` and self-heal kicks i
 ## What it produces
 
 - N completed PRs on `claude/overnight-<date>-<task>` branches
-- M handoff files in `.swarms/streams/<run-id>/handoff-*.md` (coordinator schema; the autopilot skill writes here too)
+- M handoff files in `.swarms/streams/<run-id>/handoff-*.yaml` (coordinator schema; the autopilot skill writes here too)
 - 1 `OVERNIGHT_REPORT.md` at repo root
 - 1 `/dream` consolidation pass at the end
 - Updated `tasks/TASKS.md` with `[x]` and `[!]` marks

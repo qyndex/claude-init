@@ -87,8 +87,8 @@ After QA passes:
 
 - Squash WIP commits with `bash .claude/scripts/squash-wip.sh`.
 - Write the final Conventional Commits message with git trailers (per `CLAUDE.md §VI`).
-- Mark task `[x]` in `tasks/TASKS.md`.
-- Write a NEXUS-format handoff to `.swarms/streams/<run-id>/handoff-T-<task-id>-<ts>.md` (in a swarm) OR to the `OVERNIGHT_REPORT.md` "shipped" section (solo run; coordinator picks it up). Never write to `.swarms/<run-id>/` directly — that path doesn't match the coordinator's schema.
+- Mark task done: `bash .claude/scripts/task-status.sh T-<id> done` (lock-safe; Write/Edit on TASKS.md is constitution-guarded).
+- Write a NEXUS-format handoff to `.swarms/streams/<run-id>/handoff-T-<task-id>-<ts>.yaml` (in a swarm) OR to the `OVERNIGHT_REPORT.md` "shipped" section (solo run; coordinator picks it up). Never write to `.swarms/<run-id>/` directly — that path doesn't match the coordinator's schema.
 - Loop back to Phase 0 for the next unblocked task.
 
 ## Stop conditions (any one stops the run)

@@ -1,18 +1,24 @@
 {
-  "_comment": "GitHub Ruleset for the default branch. Apply via: gh api repos/:owner/:repo/rulesets --method POST --input .github/rulesets/main-protection.json. Replaces classic branch protection.",
-
+  "_comment": "GitHub Ruleset for the default branch. Apply via: gh api repos/:owner/:repo/rulesets --method POST --input .github/rulesets/main-protection.json. Replaces classic branch protection. | e2e-audit ci-gates-1: every unfiltered per-PR gate is REQUIRED (adr-gate, commitlint incl. lint-trailers, lint-exception-audit, check-daily-batch=merge-gate). Path-filtered gates (claude-review, claude-security, pr-review) stay ADVISORY by decision - they don't run on every PR, so requiring them would block docs-only merges.",
   "name": "main-protection",
   "target": "branch",
   "enforcement": "active",
   "conditions": {
     "ref_name": {
-      "include": ["refs/heads/main", "refs/heads/master"],
+      "include": [
+        "refs/heads/main",
+        "refs/heads/master"
+      ],
       "exclude": []
     }
   },
   "rules": [
-    { "type": "deletion" },
-    { "type": "non_fast_forward" },
+    {
+      "type": "deletion"
+    },
+    {
+      "type": "non_fast_forward"
+    },
     {
       "type": "pull_request",
       "parameters": {
@@ -28,11 +34,33 @@
       "parameters": {
         "strict_required_status_checks_policy": true,
         "required_status_checks": [
-          { "context": "lint-test" },
-          { "context": "review" },
-          { "context": "security-review" },
-          { "context": "harness-validate" },
-          { "context": "evidence-gate" }
+          {
+            "context": "lint-test"
+          },
+          {
+            "context": "review"
+          },
+          {
+            "context": "security-review"
+          },
+          {
+            "context": "harness-validate"
+          },
+          {
+            "context": "evidence-gate"
+          },
+          {
+            "context": "adr-gate"
+          },
+          {
+            "context": "commitlint"
+          },
+          {
+            "context": "lint-exception-audit"
+          },
+          {
+            "context": "check-daily-batch"
+          }
         ]
       }
     },

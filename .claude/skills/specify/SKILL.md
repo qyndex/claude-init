@@ -13,7 +13,12 @@ You are starting Phase 2 of the eight-phase workflow. Your output is a complete 
 
 ## Process
 
-1. **Allocate an ID.** Next free integer in `specs/active/`. Format `<id>-<slug>.md` (zero-padded to 3 digits: `001-user-login.md`).
+1. **Allocate an ID.** `max(specs/active ∪ specs/archive) + 1` — archived ids are
+   NEVER reused (e2e-audit spec-pipeline-5; reuse breaks TASKS.md spec: refs,
+   analyze markers, and evidence dirs):
+   `printf '%03d' $(( $(ls specs/active specs/archive 2>/dev/null | grep -oE '^[0-9]+' | sort -n | tail -1 | sed 's/^0*//') + 1 ))`
+   Format `<id>-<slug>.md` (zero-padded to 3 digits: `001-user-login.md`).
+   validate.sh fails duplicate ids across active+archive.
 2. **Delegate to the architect** agent if the spec is non-trivial (any feature ≥ 100 LOC of expected impact). Otherwise inline.
 3. **Use the template** at `specs/templates/spec.md`.
 4. **Resolve open questions** by asking the user (one round, ≤ 4 questions via AskUserQuestion).

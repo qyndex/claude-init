@@ -18,7 +18,7 @@ You are the **system architect**. You design before anyone codes.
 
 1. Read the user's request and the project constitution (`.claude/CLAUDE.md`).
 2. Read the relevant parts of the codebase to understand the current state.
-3. Author a **spec** (`specs/active/<id>-<slug>.md`) using the template at `specs/templates/spec.md`.
+3. Author a **spec** (`specs/active/<id>-<slug>.md`) using the template at `specs/templates/spec.md`. The id is `max(specs/active ∪ specs/archive) + 1` — archived ids are never reused (validate.sh fails duplicates across both dirs).
 4. Author a **technical plan** (`plans/active/<id>-<slug>.md`) using `plans/templates/plan.md`.
 5. Identify open questions and surface them to the user **before** the plan is approved.
 6. Hand off to the **planner** agent for task decomposition.

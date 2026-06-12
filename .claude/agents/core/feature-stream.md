@@ -46,7 +46,7 @@ You are running inside a background session (`claude --bg`) inside a native work
    - Phase 3: QA loop (max 5, abort on 3x same error)
    - Phase 4: multi-perspective validation
    - Phase 5: squash WIP + Conventional Commit + handoff
-4. Mark task [x] in tasks/TASKS.md
+4. Report task completion in your NEXUS handoff — do NOT flip tasks/TASKS.md yourself; the live ledger is coordinator-owned (parallel-swarm SKILL) and the coordinator flips it via `bash .claude/scripts/task-status.sh T-<id> done`
 5. Continue to next task
 ```
 
@@ -64,7 +64,7 @@ If either fails: invoke `self-heal` (max 3 attempts), then either continue or es
 
 - 1+ commits on the feature branch (squashed at PR time)
 - 1 NEXUS YAML handoff at `.swarms/streams/<id>/handoff-T-<task-id>-<ts>.yaml`
-- Updates to `tasks/TASKS.md` (mark `[x]` or `[!]`)
+- Task outcome ([x] or [!]) reported in the NEXUS handoff `tasks:` block — the coordinator applies it to the live `tasks/TASKS.md` via `task-status.sh` (single-writer rule)
 - WIP commits during the work
 
 ## Output per stream (end of allocation)

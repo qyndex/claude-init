@@ -16,7 +16,7 @@ No production code without a failing test that demanded it. The transition from 
 
 ### 1. RED — write the failing test first
 
-- Write the test that encodes the spec's acceptance criterion. **Tag it with the AC id** (`@AC-01` / `{ tag: ['@AC-01'] }` / docstring `AC-01`).
+- Write the test that encodes the spec's acceptance criterion. **Tag it with the AC id, UNPADDED** (`@AC-1` / `{ tag: ['@AC-1'] }` / docstring `AC-1`) — matching the spec template's `**AC-1**:` form (e2e-audit e2e-rig-3).
 - Run the task's `accept:` command (or the specific test).
 - **Capture the failure**: `bash .claude/scripts/tdd-ledger.sh red <task-id> "<accept-command>"` → writes `verify/<date>/<task-id>/red.log` with the command + exit code (MUST be non-zero) + output excerpt.
 - If the test passes on first run, the test is wrong (asserts nothing, or the behavior already exists). Fix the test until it fails for the RIGHT reason.

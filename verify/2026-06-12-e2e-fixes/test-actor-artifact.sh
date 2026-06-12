@@ -12,9 +12,14 @@ chk "claude.yml (staged) valid YAML"          0 "$(ruby -ryaml -e "YAML.load_fil
 chk "claude.yml: 4 trigger arms guarded"      4 "$(grep -c 'github\.event\..*author_association' "$CY")"
 chk "claude.yml: id-token kept (action needs it)" 0 "$(grep -q 'id-token: write' "$CY"; echo $?)"
 
-# validate.sh invariant: live claude.yml (unguarded) → fail line present; staged guarded passes
+# validate.sh invariant — mode-aware: pre-install the live claude.yml is unguarded
+# (fail line present); post-install (INSTALLED=1) the guard is live (fail absent).
 out=$(bash "$R/.claude/scripts/validate.sh" 2>&1)
-chk "validate: flags unguarded live claude.yml" 0 "$(echo "$out" | grep -q 'NO author_association guard'; echo $?)"
+if [ "${INSTALLED:-0}" = "1" ]; then
+  chk "validate: installed claude.yml is guarded"  1 "$(echo "$out" | grep -q 'NO author_association guard'; echo $?)"
+else
+  chk "validate: flags unguarded live claude.yml" 0 "$(echo "$out" | grep -q 'NO author_association guard'; echo $?)"
+fi
 # synthetic: guarded workflow passes the check
 T=$(mktemp -d); cd "$T"; mkdir -p .github/workflows
 printf 'on:\n  issue_comment:\n    types: [created]\npermissions:\n  contents: write\njobs:\n  j:\n    if: contains(fromJSON(chr), github.event.comment.author_association)\n' > .github/workflows/guarded.yml

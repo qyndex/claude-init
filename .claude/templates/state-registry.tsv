@@ -12,3 +12,9 @@ overnight-	.claude/scripts/local-overnight-build.sh
 read-nudge	.claude/hooks/read-volume-nudge.sh
 skill-triggers.tsv	.claude/scripts/regen-skill-registry.sh
 stop-verify-blocks.log	.claude/hooks/stop-verify.sh
+# allow-skip-gates is OPERATOR-created (human-only marker); verify.sh documents the contract at its head.
+adopt	.claude/scripts/adopt-state.sh
+allow-skip-gates	.claude/scripts/verify.sh
+consecutive-aborts.json	.claude/scripts/loop-iteration.sh
+ideation-pending	.claude/scripts/loop-iteration.sh
+tasks-md.snapshot	.claude/scripts/task-status.sh

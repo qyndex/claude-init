@@ -1,0 +1,47 @@
+name: Auto-merge (opt-in)
+
+# e2e-audit release-deploy-2: the autonomous last mile. Autonomous delivery
+# structurally ended at "PR open" because merging always required a human in
+# the loop. This workflow arms GitHub's native auto-merge — the merge itself
+# still happens ONLY when every required check in the live branch ruleset is
+# green, so this automates the click, never the gates.
+#
+# Opt-in surface (deliberately narrow):
+#   • label `auto-merge-ok` applied by a human or the coordinator, OR
+#   • head branch matches claude/overnight-* (the overnight autopilot's own PRs)
+# Draft PRs never arm. Prod deploy stays environment-protected (required
+# reviewers on the environment), so merge-to-main ≠ deploy-to-prod.
+#
+# INTERLOCK (audit): only useful AFTER the ruleset is live server-side —
+# harness-doctor's "live branch ruleset" check verifies that. With no required
+# checks, --auto merges immediately; the ruleset is the gate, not this file.
+
+on:
+  pull_request:
+    types: [opened, reopened, labeled, ready_for_review]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: auto-merge-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  arm:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: >-
+      github.event.pull_request.draft == false &&
+      (contains(github.event.pull_request.labels.*.name, 'auto-merge-ok') ||
+       startsWith(github.event.pull_request.head.ref, 'claude/overnight-'))
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      PR: ${{ github.event.pull_request.number }}
+      REPO: ${{ github.repository }}
+    steps:
+      - name: Arm native auto-merge (squash)
+        run: |
+          gh pr merge "$PR" --repo "$REPO" --auto --squash
+          echo "auto-merge armed for #$PR — merges only when all required checks pass"

@@ -90,3 +90,31 @@ jobs:
 
       - name: TDD ledger gate (server-side — SKIP_* cannot apply here)
         run: bash .claude/scripts/check-tdd-ledger.sh
+
+      - name: Live ruleset drift (e2e-audit ci-gates-2)
+        # The ruleset FILE is inert until applied server-side. Assert an ACTIVE
+        # branch ruleset exists whose required-check contexts cover the file's.
+        # Warn-only (advisory) when the API is unreadable; FAIL on drift.
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          file=.github/rulesets/main-protection.json
+          test -f "$file" || { echo "::warning::no $file — skipping live-ruleset check"; exit 0; }
+          live=$(gh api "repos/${{ github.repository }}/rulesets" 2>/dev/null || true)
+          if [ -z "$live" ] || [ "$live" = "[]" ]; then
+            echo "::warning title=live ruleset::no server-side ruleset — every required check is ADVISORY. Apply: gh api repos/${{ github.repository }}/rulesets --method POST --input $file"
+            exit 0
+          fi
+          live_id=$(printf '%s' "$live" | jq -r '[.[] | select(.target=="branch" and .enforcement=="active")][0].id // empty')
+          if [ -z "$live_id" ]; then
+            echo "::warning title=live ruleset::rulesets exist but none is an ACTIVE branch ruleset — protection is off"
+            exit 0
+          fi
+          live_ctx=$(gh api "repos/${{ github.repository }}/rulesets/$live_id" | jq -r '.rules[]? | select(.type=="required_status_checks") | .parameters.required_status_checks[].context' | sort)
+          file_ctx=$(jq -r '.rules[] | select(.type=="required_status_checks") | .parameters.required_status_checks[].context' "$file" | sort)
+          missing=$(comm -23 <(printf '%s\n' "$file_ctx") <(printf '%s\n' "$live_ctx"))
+          if [ -n "$missing" ]; then
+            echo "::error title=live ruleset drift::live ruleset missing required contexts: $(echo $missing) — re-apply $file"
+            exit 1
+          fi
+          echo "live ruleset covers all $(printf '%s\n' "$file_ctx" | grep -c .) file contexts"

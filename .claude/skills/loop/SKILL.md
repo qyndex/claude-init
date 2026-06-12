@@ -37,21 +37,27 @@ Use a loop only when **all** of these are true:
    - .claude/scripts/verify.sh exists and exits 0 when project is healthy
    - Running inside a worktree (not main)
 
-2. Declare the budget:
-   --budget 500000          (token cap; abort when crossed)
-   --until 02:00            (wall-clock cap)
-   --max-iter 20            (iteration cap)
+2. Declare the budget — MACHINE-ENFORCED, not prose:
+   bash .claude/scripts/loop-iteration.sh start --until <ISO-timestamp> --max-iter <N>
+   (writes {started_at, deadline, max_iter, iter_count} run metadata; every
+   iteration increments the count and loop-iteration.sh exits 2 once a cap is
+   crossed. --budget <tokens> remains LLM-tracked — stop yourself when crossed.)
 
 3. Loop:
    while not stop_condition:
-     a. Pick next unblocked task (tasks/TASKS.md).
-     b. Delegate to implementer subagent (fresh context).
+     a. Run `bash .claude/scripts/loop-iteration.sh` — the deterministic gate.
+        exit 0 → it prints the nominated task (canonical next-task.sh picker);
+        exit 2 → HALT NOW (abort cap, run budget, or external TASKS.md edit —
+        the reason is printed); exit 1 → stop (empty/blocked backlog or verify
+        pre-flight failure — ideation branch when IDEATE is printed).
+     b. Delegate the nominated task to implementer subagent (fresh context).
      c. On subagent return:
         - if completed:
-            stage commit, mark [x], capture token usage
+            stage commit, flip via `task-status.sh T-<id> done`, capture token usage
         - if failed:
-            log failure to progress.md, increment failure counter,
-            move on to next task (don't retry the same one)
+            flip via `task-status.sh T-<id> failed --note "<reason>"`,
+            log failure to progress.md, move on (don't retry the same one)
+        (task-status.sh feeds the abort/progress recorder — never skip it)
      d. Run .claude/scripts/verify.sh
      e. Write summary line to plans/active/<id>-progress.md
      f. Evaluate stop conditions

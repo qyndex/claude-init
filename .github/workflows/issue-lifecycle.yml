@@ -41,6 +41,7 @@ jobs:
       MERGED: ${{ github.event.pull_request.merged }}
       PR_BODY: ${{ github.event.pull_request.body }}
       DEPLOY_STATE: ${{ github.event.deployment_status.state }}
+      DEPLOY_SHA: ${{ github.event.deployment.sha }}
       DISPATCH_ISSUE: ${{ github.event.client_payload.issue_number }}
       REPO: ${{ github.repository }}
     steps:
@@ -69,6 +70,12 @@ jobs:
           issue=""
           if [ -n "${DISPATCH_ISSUE:-}" ]; then
             issue="$DISPATCH_ISSUE"
+          elif [ "$EVENT" = "deployment_status" ] && [ -n "${DEPLOY_SHA:-}" ]; then
+            # e2e-audit release-deploy-5: deployment_status events carry NO PR body and
+            # no dispatch issue — resolve via the deployed sha's associated merged PR,
+            # otherwise the SHIPPED transition can never find its spec issue.
+            pr_body=$(gh api "repos/$REPO/commits/$DEPLOY_SHA/pulls" --jq '[.[] | select(.merged_at != null)][0].body // ""' 2>/dev/null || true)
+            issue=$(printf '%s' "$pr_body" | grep -oiE '(closes|fixes|resolves|part of) #[0-9]+' | grep -oE '[0-9]+' | head -1)
           else
             issue=$(printf '%s' "$PR_BODY" | grep -oiE '(closes|fixes|resolves|part of) #[0-9]+' | grep -oE '[0-9]+' | head -1)
           fi

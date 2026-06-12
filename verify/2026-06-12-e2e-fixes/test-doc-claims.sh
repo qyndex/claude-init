@@ -12,8 +12,13 @@ chk "validate.sh has [model-doc-consistency] category" 0 "$(grep -q '\[model-doc
 chk "validate.sh invokes check-doc-consistency.sh"     0 "$(grep -q 'check-doc-consistency.sh' .claude/scripts/validate.sh; echo $?)"
 out=$(bash .claude/scripts/validate.sh 2>&1)
 chk "validate runs the category (output present)"      0 "$(echo "$out" | grep -q 'model-doc-consistency'; echo $?)"
-# pre-install: live constitution §V lacks anti-slop-reviewer → by-design RED
-chk "pre-install RED: §V missing anti-slop-reviewer"   0 "$(echo "$out" | grep -q 'doc/model drift.*anti-slop-reviewer'; echo $?)"
+# mode-aware: pre-install the live constitution §V lacks anti-slop-reviewer (by-design
+# RED); post-install (INSTALLED=1) the staged constitution fixed it (RED absent).
+if [ "${INSTALLED:-0}" = "1" ]; then
+  chk "installed: §V model-doc drift resolved"          1 "$(echo "$out" | grep -q 'doc/model drift.*anti-slop-reviewer'; echo $?)"
+else
+  chk "pre-install RED: §V missing anti-slop-reviewer"  0 "$(echo "$out" | grep -q 'doc/model drift.*anti-slop-reviewer'; echo $?)"
+fi
 # staged constitution fixes it
 chk "staged constitution: anti-slop-reviewer in §V"    0 "$(grep -q 'feedback-extractor, anti-slop-reviewer' verify/2026-06-12-e2e-fixes/staged/.claude/CLAUDE.md; echo $?)"
 

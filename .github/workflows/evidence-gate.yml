@@ -102,6 +102,14 @@ jobs:
           fi
           echo "ev_path=$ev" >> "$GITHUB_ENV"
 
+      # e2e-audit e2e-rig-2/ci-gates-3: install the project toolchain + deps
+      # (and BYO services / allowlisted env) BEFORE re-executing proof — a
+      # toolchain-less runner fails with "command not found" and mis-attributes
+      # it as evidence divergence.
+      - name: Setup stack for re-execution
+        if: env.docs_only != '1'
+        uses: ./.github/actions/setup-stack
+
       # Gap-audit G49: don't trust the agent-committed attestation — REGENERATE
       # the proof against the checked-out head. The smoke command evidence.json
       # attests (verify.sh) is re-run here; if the journey rig exists, the
@@ -114,15 +122,22 @@ jobs:
           spec=$(jq -r '.spec // empty' "$ev_path")
 
           echo "→ re-running smoke (bash .claude/scripts/verify.sh)"
-          if ! SKIP_TDD_LEDGER=1 SKIP_STORY_MAP=1 SKIP_INTEG_COV=1 bash .claude/scripts/verify.sh; then
+          # e2e-audit tdd-loop-2: SKIP_TDD_LEDGER removed — red/green ledger logs
+          # are committed (P2.1 gitignore negation), so CI CAN and MUST enforce
+          # the ledger. Story-map + integ-cov remain skipped here (covered by
+          # their own gates) — explicit, logged:
+          echo "VERIFY_CI path: SKIP_STORY_MAP=1 SKIP_INTEG_COV=1 (gates run elsewhere); TDD ledger ENFORCED"
+          if ! VERIFY_CI=1 SKIP_STORY_MAP=1 SKIP_INTEG_COV=1 bash .claude/scripts/verify.sh; then
             echo "::error::Smoke re-execution FAILED on head, but committed evidence.json claims smoke_exit_max=0 — evidence diverges from reality (G49)."
             exit 1
           fi
 
-          if [ -n "$spec" ] && [ -f playwright.config.ts ] && [ -d "e2e/$spec" ]; then
+          if [ -n "$spec" ] && [ -f playwright.evidence.config.ts ] && [ -d "e2e/$spec" ]; then
             echo "→ re-running journey + spec-match for spec $spec"
-            npx playwright install --with-deps chromium >/dev/null 2>&1 || true
-            VERIFY_FEATURE="$spec" npx playwright test "e2e/$spec" || {
+            # e2e-audit ci-gates-3: install un-muted — a browser-install failure
+            # must surface as a toolchain error, not as "evidence diverges".
+            npx playwright install --with-deps chromium
+            VERIFY_FEATURE="$spec" npx playwright test --config playwright.evidence.config.ts "e2e/$spec" || {
               echo "::error::Journey re-execution failed for spec $spec — committed evidence is stale (G49)."; exit 1; }
             results=$(find verify -name results.json -newer "$ev_path" 2>/dev/null | sort -r | head -1)
             if [ -n "$results" ]; then
@@ -133,3 +148,17 @@ jobs:
             echo "no playwright rig / e2e/$spec — smoke re-execution is the proof for this PR"
           fi
           echo "✓ proof regenerated on head; committed evidence is consistent"
+
+      # e2e-audit e2e-rig-5: a FAILED G49 re-execution previously discarded its
+      # trace.zip/video with the runner — the diagnosis went down with the ship.
+      # Upload verify/ unconditionally so a red gate leaves something to open.
+      - name: Upload verify artifacts (always)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verify-evidence-${{ github.event.pull_request.number }}
+          path: |
+            verify/**
+            !verify/**/*.webm.tmp
+          retention-days: 14
+          if-no-files-found: ignore

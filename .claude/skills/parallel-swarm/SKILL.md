@@ -42,7 +42,7 @@ Everything lives under `.swarms/`:
         ├── analysis.md        # ccpm-style: scope, files-owned, files-shared-with-owner
         ├── progress.md        # Updated by stream
         ├── context.jsonl      # Spec refs auto-injected into subagents
-        └── handoff-<ts>.md    # NEXUS format
+        └── handoff-<ts>.yaml  # NEXUS v1.0
 ```
 
 ## Process

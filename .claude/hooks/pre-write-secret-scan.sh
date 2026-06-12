@@ -2,11 +2,23 @@
 # PreToolUse hook for Write|Edit. Scans the proposed file content for secrets
 # BEFORE the write hits disk. Uses gitleaks if installed; falls back to regex.
 
-set -euo pipefail
+set -uo pipefail
 
-input=$(cat)
-path=$(printf '%s' "$input" | jq -r '.tool_input.file_path // .tool_input.path // ""')
-content=$(printf '%s' "$input" | jq -r '.tool_input.content // .tool_input.new_string // ""')
+# Fail-closed jq preamble (e2e-audit hooks-engineering-4): without jq this scan
+# cannot see the content it must vet — deny rather than silently pass.
+if ! command -v jq >/dev/null 2>&1; then
+  echo "Blocked by .claude/hooks/pre-write-secret-scan.sh: jq is not installed; the secret scan fails CLOSED. Install jq (brew install jq)." >&2
+  exit 2
+fi
+
+# JUSTIFIED: || true tolerates a closed stdin; empty input exits 0 below
+input=$(cat 2>/dev/null || true)
+[ -z "$input" ] && exit 0
+if ! path=$(printf '%s' "$input" | jq -r '.tool_input.file_path // .tool_input.path // ""' 2>/dev/null); then
+  echo "Blocked by .claude/hooks/pre-write-secret-scan.sh: tool input is not parseable JSON; failing closed." >&2
+  exit 2
+fi
+content=$(printf '%s' "$input" | jq -r '.tool_input.content // .tool_input.new_string // ""' 2>/dev/null)
 
 if [ -z "$content" ]; then
   exit 0
@@ -86,7 +98,9 @@ regex_patterns=(
   'sk_live_[0-9A-Za-z]{24,}'                                  # Stripe live secret
   'sk_test_[0-9A-Za-z]{24,}'                                  # Stripe test secret
   'rk_live_[0-9A-Za-z]{24,}'                                  # Stripe restricted
-  'pk_live_[0-9A-Za-z]{24,}'                                  # Stripe publishable (warn)
+  # pk_live_ (publishable key) removed from DENY (e2e-audit hooks-engineering-2):
+  # publishable keys are client-side by design — blocking them denies legitimate
+  # frontend code. High-precision secret keys (sk_live_, rk_live_) stay above.
   # Google / GCP
   'AIza[0-9A-Za-z_-]{35}'                                     # GCP API key
   '"type":[[:space:]]*"service_account"'                      # GCP service-account JSON
@@ -100,13 +114,17 @@ regex_patterns=(
   'xoxr-[A-Za-z0-9-]{30,}'                                    # Refresh
   # Generic credentials
   '-----BEGIN[A-Z[:space:]]+PRIVATE KEY-----'                 # PEM blocks
-  'eyJ[A-Za-z0-9_-]{20,}\.eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]+' # JWT
+  # Generic JWT demoted from unconditional deny to CONTEXTUAL (see below):
+  # sample/expired JWTs in tests and docs are common and harmless on their own.
   # SendGrid / Mailgun / Twilio
   'SG\.[A-Za-z0-9_-]{22,}\.[A-Za-z0-9_-]{40,}'                # SendGrid
   'key-[0-9a-f]{32}'                                          # Mailgun
   'SK[0-9a-f]{32}'                                            # Twilio
   # Heroku, DigitalOcean, npm, PyPI
-  '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}' # Generic UUID — high FP rate, used as last filter
+  # Bare-UUID rule removed (e2e-audit hooks-engineering-2): UUIDs are pervasive
+  # non-secrets (session ids, trace ids, fixture data) — the rule blocked
+  # legitimate memory/log writes. Heroku API keys are UUID-shaped but
+  # indistinguishable from any other UUID; vendor-prefixed rules stay.
   'dop_v1_[a-f0-9]{64}'                                       # DigitalOcean
   'npm_[A-Za-z0-9]{36}'                                       # npm token
   'pypi-AgEIcHlwaS5vcmc[A-Za-z0-9_-]{50,}'                    # PyPI token
@@ -126,6 +144,26 @@ EOF
     exit 0
   fi
 done
+
+# Contextual JWT rule (e2e-audit hooks-engineering-2): a JWT literal is only
+# denied when it sits next to a secret-named key (assignment context) — e.g.
+# `AUTH_TOKEN = "eyJ….eyJ…"`. A bare JWT in a test fixture or doc passes.
+jwt_re='eyJ[A-Za-z0-9_-]{20,}\.eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]+'
+ctx_re='[Ss][Ee][Cc][Rr][Ee][Tt]|[Tt][Oo][Kk][Ee][Nn]|[Aa][Pp][Ii]_?[Kk][Ee][Yy]|[Pp][Aa][Ss][Ss][Ww][Oo][Rr][Dd]|[Cc][Rr][Ee][Dd][Ee][Nn][Tt][Ii][Aa][Ll]|[Aa][Uu][Tt][Hh]'
+if [[ "$content" =~ $jwt_re ]]; then
+  if printf '%s' "$content" | grep -E "(${ctx_re})[^\"']{0,40}['\"=: ]+eyJ" >/dev/null 2>&1; then
+    cat <<EOF
+{
+  "hookSpecificOutput": {
+    "hookEventName": "PreToolUse",
+    "permissionDecision": "deny",
+    "permissionDecisionReason": "Blocked by .claude/hooks/pre-write-secret-scan.sh: a JWT assigned to a secret-named key was found in '$path'. Move it to env vars."
+  }
+}
+EOF
+    exit 0
+  fi
+fi
 
 # ─── Round 5 C5: PII scrubber on memory writes ──────────────────────────
 # When writing to .claude/memory/** (especially auto-dream / witness outputs

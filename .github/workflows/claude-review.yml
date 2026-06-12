@@ -21,12 +21,27 @@ permissions:
   contents: read
   pull-requests: write
 
+# e2e-audit ci-gates-6: one LLM review per PR head — a push storm must not
+# multiply gating-review spend.
+concurrency:
+  group: claude-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   review:
     if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
+      - name: Preflight — ANTHROPIC_API_KEY present (e2e-audit ci-gates-4)
+        env:
+          HAS_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+        run: |
+          if [ "$HAS_KEY" != "true" ]; then
+            echo "::error::ANTHROPIC_API_KEY secret is missing — this GATING review can never pass. Fix: gh secret set ANTHROPIC_API_KEY (setup.sh and harness-doctor both check this)."
+            exit 1
+          fi
+
       - name: Checkout
         uses: actions/checkout@v4
         with:

@@ -30,6 +30,14 @@ if [ "${FORCE_CONSTITUTION_EDIT:-0}" = "1" ]; then
   exit 0
 fi
 
+# Fail-closed jq preamble (e2e-audit hooks-engineering-4): without jq the grep
+# fallback below still works for simple payloads, but escaped/nested paths can
+# evade it — this guard protects the constitution itself, so it fails CLOSED.
+if ! command -v jq >/dev/null 2>&1; then
+  echo "Blocked by .claude/hooks/pre-edit-constitution-guard.sh: jq is not installed; the constitution guard fails CLOSED. Install jq (brew install jq)." >&2
+  exit 2
+fi
+
 # Read PreToolUse JSON payload from stdin.
 # JUSTIFIED: cat stderr suppressed and || true — an empty/closed stdin yields an empty payload, handled by the -z guard below; the hook must fail open, not crash the tool chain
 payload=$(cat 2>/dev/null || true)
@@ -94,6 +102,21 @@ case "$rel" in
   tasks/TASKS.md)                          deny=1 ;;
   specs/active/*)                          deny=1 ;;
 esac
+
+# Spec-write carve-out (e2e-audit failure-recovery-1): /specify must be able to
+# CREATE specs/active/<id>-<slug>.md. Creation of a not-yet-existing spec file is
+# allowed; mutation of an existing spec stays denied (approved specs are immutable
+# to agents — amendments go through the operator). Path shape is enforced so the
+# carve-out cannot be used to plant arbitrary files under specs/active/.
+if [ "$deny" = "1" ]; then
+  case "$rel" in
+    specs/active/[0-9][0-9][0-9]-*.md)
+      if [ ! -e "$rel" ] && [ ! -e "${ROOT:+$ROOT/}$rel" ]; then
+        deny=0
+      fi
+      ;;
+  esac
+fi
 
 if [ "$deny" = "1" ]; then
   # Audit-log the attempt before denying.

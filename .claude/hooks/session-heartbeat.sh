@@ -109,7 +109,11 @@ cp "$state_file" "${session_dir}/current-session.json" 2>/dev/null || true
 # JUSTIFIED: grep || true — a non-feat branch yields an empty stream_id, which the guard below treats as "not a swarm stream" and skips emission (grep exit 1 is expected, not an error)
 stream_id="$(printf '%s' "$branch" | grep -oE '^feat-[a-z0-9-]+' || true)"
 if [ -n "$stream_id" ]; then
-  stream_state_dir=".swarms/streams/${stream_id}"
+  # Shared swarm root (e2e-audit swarm-1): the stream state must land in the
+  # MAIN checkout's .swarms/, not the worktree's — the coordinator reads there.
+  # shellcheck source=../scripts/lib/swarm-root.sh
+  . "$(cd "$(dirname "$0")/../scripts/lib" && pwd)/swarm-root.sh"
+  stream_state_dir="$SWARM_ROOT/.swarms/streams/${stream_id}"
   mkdir -p "$stream_state_dir"
   stream_state="${stream_state_dir}/state.json"
   stream_tmp="${stream_state}.tmp"
@@ -166,8 +170,8 @@ if [ -n "$stream_id" ]; then
         drift_count="$(git rev-list --count "${base}..origin/main" -- .claude 2>/dev/null || echo 0)"
       fi
       if [ "$drift_count" -gt "$drift_threshold" ]; then
-        mkdir -p .swarms/events
-        events_file=".swarms/events/${stream_id}.jsonl"
+        mkdir -p "$SWARM_ROOT/.swarms/events"
+        events_file="$SWARM_ROOT/.swarms/events/${stream_id}.jsonl"
         drift_event=$(jq -nc \
           --arg ts "$now_iso" \
           --arg stream_id "$stream_id" \

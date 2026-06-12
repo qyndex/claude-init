@@ -121,8 +121,12 @@ EOF
     contexts=" $(jq -r '.. | .required_status_checks? // empty | .[]? | .context? // empty' "$ROOT/.github/rulesets/main-protection.json" 2>/dev/null | tr '\n' ' ') "
     while IFS=: read -r lineno text; do
       [ -n "$lineno" ] || continue
-      # Backticked extensionless tokens on a "required ... check" line are check-name claims.
-      names=$(printf '%s\n' "$text" | grep -oE '`[a-z0-9][a-z0-9-]*`' | tr -d '`' || true)
+      # Two claim shapes only — "`x` is a required check" and "required checks: `a`, `b`".
+      # Grabbing every backticked token on the line false-positives on labels and
+      # branch patterns that merely share a sentence with the phrase.
+      names_a=$(printf '%s\n' "$text" | grep -oE '`[a-z0-9][a-z0-9-]*` is( now)? a required check' | grep -oE '^`[a-z0-9-]+`' | tr -d '`' || true)
+      names_b=$(printf '%s\n' "$text" | sed -nE 's/.*[Rr]equired (status )?checks?[*]*: *//p' | grep -oE '`[a-z0-9][a-z0-9-]*`' | tr -d '`' || true)
+      names=$(printf '%s\n%s\n' "$names_a" "$names_b" | grep -v "^$" || true)
       while IFS= read -r name; do
         [ -n "$name" ] || continue
         checked=$((checked + 1))
