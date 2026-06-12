@@ -132,7 +132,7 @@ hotspot_table=""
 if [ -s "$HOTSPOTS" ]; then
   hotspot_table=$(awk -F'|' 'BEGIN{print "| Score | Churn | LOC | File |"; print "|---|---|---|---|"} {printf "| %s | %s | %s | `%s` |\n",$1,$2,$3,$4}' "$HOTSPOTS")
 else
-  hotspot_table="_$hotspot_note_"
+  hotspot_table="_${hotspot_note}_"
 fi
 
 # JUSTIFIED: grep stderr suppressed and || true — UNCHAR exists (just written); exit 1 only means every line is a comment, so an empty manifest body is correct

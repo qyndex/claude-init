@@ -107,7 +107,11 @@ run_stack_lint() {
       ;;
     shell)
       if command -v shellcheck >/dev/null; then
-        find . -name '*.sh' -not -path '*/node_modules/*' -not -path '*/.git/*' -print0 \
+        # spec 004 T-137: scope to product code. verify/ holds throwaway
+        # verification artifacts + staged copies of guarded files (whose real
+        # fixes the operator installs separately) — linting them gates product
+        # CI on scratch files. node_modules/.git excluded as before.
+        find . -name '*.sh' -not -path '*/node_modules/*' -not -path '*/.git/*' -not -path './verify/*' -print0 \
           | xargs -0 shellcheck -S warning || failures=$((failures + 1))
       else
         tool_missing "shellcheck"

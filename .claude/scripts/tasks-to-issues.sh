@@ -112,11 +112,11 @@ project_one() {
   [ -z "$checklist" ] && checklist="_(no tasks projected yet — planner has not decomposed this spec)_"
 
   # Count for lifecycle hint
-  local total done
+  local total done_count
   # JUSTIFIED: grep -c counting checklist rows; grep exits 1 on zero matches, so `|| echo 0` defaults the count for an empty checklist (value only feeds a display string)
   total=$(echo "$checklist" | grep -c '^- \[' || echo 0)
   # JUSTIFIED: grep -c counting completed rows; `|| echo 0` defaults the count when no task is done yet (display-only "$done / $total")
-  done=$(echo "$checklist" | grep -c '^- \[x\]' || echo 0)
+  done_count=$(echo "$checklist" | grep -c '^- \[x\]' || echo 0)
 
   # Body (regenerated WHOLE — idempotent)
   local body
@@ -126,7 +126,7 @@ project_one() {
 
 **Spec:** \`$spec\`
 **Status:** $status
-**Tasks:** $done / $total complete
+**Tasks:** $done_count / $total complete
 
 ## Task checklist (projected from tasks/TASKS.md)
 
