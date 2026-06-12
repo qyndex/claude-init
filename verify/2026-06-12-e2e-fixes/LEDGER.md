@@ -31,14 +31,14 @@ Status: `[ ]` pending · `[~]` in progress · `[x]` done+rig-proven · `[s]` ski
 
 ## Phase 3 — Mechanize the loop
 
-- [ ] P3.1 spec-pipeline-2 tdd-loop-3 — next-task.sh canonical picker; wire into loop-iteration + /implement + workflow-state
-- [ ] P3.2 autopilot-2,5 — loop-control producer (post-write-roadmap diff) + consumer (/loop invokes loop-iteration); run metadata
-- [ ] P3.3 autopilot-1 — idle/shipped phase + session-scoped streak in workflow-state.sh
-- [ ] P3.4 spec-pipeline-1 — analyze marker producer + enforcement + dangling-consumer check
-- [ ] P3.5 spec-pipeline-3 tdd-loop-5 — task grammar alignment + accept-discipline escalation
-- [ ] P3.6 spec-pipeline-4,5 — validate.sh specs/plans lint; id allocation incl. archive
-- [ ] P3.7 failure-recovery-3 — orphan reconciler ([~] → [!] on dead heartbeat); requeue-failed extensions
-- [ ] P3.8 autopilot-4 — morning-operator banners + check-overnight-fired registration
+- [x] P3.1 spec-pipeline-2 tdd-loop-3 — next-task.sh canonical picker; wire into loop-iteration + /implement + workflow-state
+- [x] P3.2 autopilot-2,5 — loop-control producer (post-write-roadmap diff) + consumer (/loop invokes loop-iteration); run metadata
+- [x] P3.3 autopilot-1 — idle/shipped phase + session-scoped streak in workflow-state.sh
+- [x] P3.4 spec-pipeline-1 — analyze marker producer + enforcement + dangling-consumer check
+- [x] P3.5 spec-pipeline-3 tdd-loop-5 — task grammar alignment + accept-discipline escalation
+- [x] P3.6 spec-pipeline-4,5 — validate.sh specs/plans lint; id allocation incl. archive
+- [x] P3.7 failure-recovery-3 — orphan reconciler ([~] → [!] on dead heartbeat); requeue-failed extensions
+- [x] P3.8 autopilot-4 — morning-operator banners + check-overnight-fired registration
 
 ## Phase 4 — Swarm, brownfield, release
 

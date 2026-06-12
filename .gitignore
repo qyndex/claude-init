@@ -150,3 +150,6 @@ verify/.skip-log
 .claude/state/read-nudge/
 .claude/state/ideation-pending
 .claude/state/stop-verify-blocks.log
+# Loop-control runtime telemetry (e2e-audit autopilot-2/5) — machine-written
+.claude/state/tasks-md.snapshot
+.claude/state/task-status-notes.log

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "_comment": "Team-shared Claude Code settings. Personal overrides go in settings.local.json (gitignored). Validated against Claude Code v2.1.144+ at code.claude.com.",
-  "_comment_model": "Default model per CLAUDE.md \u00a7V \u2014 Sonnet 4.6 is the daily driver. Per-agent Opus is set in agent frontmatter (architect, implementer, reviewer, security, debugger). Per-skill model override available via skill frontmatter.",
+  "_comment_model": "Default model per CLAUDE.md §V — Sonnet 4.6 is the daily driver. Per-agent Opus is set in agent frontmatter (architect, implementer, reviewer, security, debugger). Per-skill model override available via skill frontmatter.",
   "model": "claude-sonnet-4-6",
   "outputStyle": "Concise",
   "effortLevel": "high",
@@ -23,7 +23,7 @@
   "maxSkillDescriptionChars": 1536,
   "skillListingBudgetFraction": 0.05,
   "permissions": {
-    "_comment_mode": "Default is acceptEdits for local interactive use. Scheduled/background/Cloud Routine sessions override to 'auto' (Anthropic Sonnet 4.6 classifier reviews every tool call \u2014 no user prompts, no bypass). PreToolUse hooks fire BEFORE the classifier in all modes and hard-block destructive ops via exit code 2. disableBypassPermissionsMode uses the canonical string 'disable' per https://code.claude.com/docs/en/permissions (boolean true is silently ignored).",
+    "_comment_mode": "Default is acceptEdits for local interactive use. Scheduled/background/Cloud Routine sessions override to 'auto' (Anthropic Sonnet 4.6 classifier reviews every tool call — no user prompts, no bypass). PreToolUse hooks fire BEFORE the classifier in all modes and hard-block destructive ops via exit code 2. disableBypassPermissionsMode uses the canonical string 'disable' per https://code.claude.com/docs/en/permissions (boolean true is silently ignored).",
     "defaultMode": "acceptEdits",
     "disableBypassPermissionsMode": "disable",
     "additionalDirectories": [
@@ -354,7 +354,7 @@
     "bgIsolation": true
   },
   "env": {
-    "_comment_perf": "Tool Search defers MCP tool schemas until needed. Auto-compact window set per Boris Cherny tip #76 \u2014 context rot starts at 300-400K on 1M model. Agent Teams flag enables --teammate-mode.",
+    "_comment_perf": "Tool Search defers MCP tool schemas until needed. Auto-compact window set per Boris Cherny tip #76 — context rot starts at 300-400K on 1M model. Agent Teams flag enables --teammate-mode.",
     "ENABLE_TOOL_SEARCH": "true",
     "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "400000",
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
@@ -364,7 +364,7 @@
     "GIT_PAGER": "cat",
     "PAGER": "cat",
     "NODE_NO_WARNINGS": "1",
-    "_comment_langfuse": "Round 6 A: native OTEL exporter to Langfuse Cloud. Auth header injected at runtime by otelHeadersHelper script that reads ~/.config/langfuse/keys.env (NOT committed). PII redaction defaults (USER_PROMPTS=0, TOOL_CONTENT=0, RAW_API_BODIES=0) are LOCKED \u2014 only flip to 1 when actively debugging and you understand the trace is then sensitive. Setup: docs/OBSERVABILITY.md. Disable: set CLAUDE_CODE_ENABLE_TELEMETRY=0.",
+    "_comment_langfuse": "Round 6 A: native OTEL exporter to Langfuse Cloud. Auth header injected at runtime by otelHeadersHelper script that reads ~/.config/langfuse/keys.env (NOT committed). PII redaction defaults (USER_PROMPTS=0, TOOL_CONTENT=0, RAW_API_BODIES=0) are LOCKED — only flip to 1 when actively debugging and you understand the trace is then sensitive. Setup: docs/OBSERVABILITY.md. Disable: set CLAUDE_CODE_ENABLE_TELEMETRY=0.",
     "CLAUDE_CODE_ENABLE_TELEMETRY": "1",
     "CLAUDE_CODE_ENHANCED_TELEMETRY_BETA": "1",
     "OTEL_TRACES_EXPORTER": "otlp",
@@ -398,6 +398,11 @@
             "type": "command",
             "command": "bash .claude/hooks/session-start-context.sh",
             "timeout": 15
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/scripts/check-overnight-fired.sh",
+            "timeout": 10
           }
         ]
       }

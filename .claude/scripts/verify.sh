@@ -348,6 +348,47 @@ if [ -f tasks/TASKS.md ] && ! skip_honored SKIP_TDD_LEDGER; then
   fi
 fi
 
+# 2b. Accept re-run (e2e-audit tdd-loop-5): every task newly flipped [x] on this
+# branch must have an accept: that STILL exits 0 — the flip claimed it did.
+# Bounded by the same timeout as the TDD ledger. SKIP_ACCEPT_RERUN to waive.
+if [ -f tasks/TASKS.md ] && ! skip_honored SKIP_ACCEPT_RERUN && git rev-parse --git-dir >/dev/null 2>&1; then
+  cur_branch=$(git symbolic-ref --short HEAD 2>/dev/null || echo detached)
+  if [ "$cur_branch" != "main" ] && [ "$cur_branch" != "master" ] && [ "$cur_branch" != "detached" ]; then
+    # JUSTIFIED: merge-base fails on shallow/bare checkouts — the gate degrades to a no-op (zero newly-flipped ids)
+    base=$(git merge-base origin/main HEAD 2>/dev/null || git merge-base main HEAD 2>/dev/null || true)
+    newly_done=""
+    if [ -n "$base" ]; then
+      # JUSTIFIED: diff/grep empty when no flips on the branch — the loop simply doesn't run
+      newly_done=$(git diff "$base" -- tasks/TASKS.md 2>/dev/null | grep -E '^\+- \[x\] T-[0-9]+' | grep -oE 'T-[0-9]+' | sort -u || true)
+    fi
+    if [ -n "$newly_done" ]; then
+      step "Accept re-run for tasks newly [x] on this branch"
+      timeout_bin=""
+      command -v timeout >/dev/null 2>&1 && timeout_bin="timeout ${TDD_LEDGER_TIMEOUT:-300}"
+      command -v gtimeout >/dev/null 2>&1 && timeout_bin="gtimeout ${TDD_LEDGER_TIMEOUT:-300}"
+      accept_fails=0
+      for tid in $newly_done; do
+        acc=$(awk -v id="$tid" '
+          $0 ~ "^- \\[x\\] " id "[^0-9]" { inblk = 1; next }
+          inblk && /^- \[/ { inblk = 0 }
+          inblk && /^[ \t]+accept:/ { sub(/^[ \t]+accept:[ ]*/, ""); print; exit }
+        ' tasks/TASKS.md)
+        case "$acc" in
+          ""|*"<"*|*tbd*|*human*) continue ;;
+        esac
+        # JUSTIFIED: word-splitting of $timeout_bin is the wrapper invocation; accept commands run via bash -c
+        if $timeout_bin bash -c "$acc" >/dev/null 2>&1; then
+          ok_msg "$tid accept still green"
+        else
+          fail_msg "$tid was flipped [x] on this branch but its accept: now fails: $acc"
+          accept_fails=$((accept_fails+1))
+        fi
+      done
+      [ "$accept_fails" -gt 0 ] && fails=$((fails+1))
+    fi
+  fi
+fi
+
 # 3. Story → E2E map (Round 8 script, finally wired)
 if [ -x .claude/scripts/story-test-map.sh ] && ! skip_honored SKIP_STORY_MAP; then
   step "Story → E2E coverage gate"

@@ -437,27 +437,130 @@ for f in "${scaffold_required[@]}"; do
   if [ -f "$f" ]; then ok "$(basename $f)"; else fail "missing $f"; fi
 done
 
-# Round 10 A: accept: must be a test command, not echo/true/:
+# Round 10 A + e2e-audit spec-pipeline-3/tdd-loop-5: task-line grammar + accept
+# discipline. Required pipe fields on every task line; backtick-free accept;
+# no-op accepts are a FAIL on actionable ([ ]/[~]) implementer-owned tasks
+# (history stays warn-only — done markers can't be rewritten without forging).
 if [ -f tasks/TASKS.md ]; then
   bad_accept=0
-  while IFS= read -r accept_line; do
-    cmd=$(echo "$accept_line" | sed 's/.*accept:[[:space:]]*//')
-    # Skip placeholder/tbd
-    case "$cmd" in
-      *"<"*|*tbd*|*human*|"") continue ;;
+  grammar_bad=0
+  # One awk pass emits: status \x1f line \x1f owner \x1f accept  per task block
+  while IFS=$'\x1f' read -r t_status t_line t_owner t_accept; do
+    # Grammar: required pipe fields (priority/created joined the canon — the
+    # tasks skill and planner format blocks must produce them)
+    for field in 'spec:' 'phase:' 'priority:' 'created:' 'est:'; do
+      if ! printf '%s' "$t_line" | grep -q "$field"; then
+        fail "task line missing required field '$field': ${t_line:0:60}"
+        grammar_bad=$((grammar_bad+1))
+      fi
+    done
+    # Taxonomy enum: warn on ACTIONABLE tasks only — [x]/[s] history predates the
+    # taxonomy ("critical") and can't be rewritten without forging the ledger
+    case "$t_status" in
+      x|s) : ;;
+      *)
+        if ! printf '%s' "$t_line" | grep -qE 'priority: *(hotfix|incident-followup|security|P1-spec|debt|normal|cleanup|deprecation)( |\||$)'; then
+          warn "task priority outside the taxonomy: ${t_line:0:60}"
+        fi ;;
     esac
-    # Must invoke a recognized test runner / verification
-    if ! echo "$cmd" | grep -qE 'pytest|vitest|jest|npm test|pnpm test|yarn test|bun test|cargo test|go test|playwright|verify\.sh|coverage|tdd-ledger'; then
-      # Reject obvious no-ops
-      if echo "$cmd" | grep -qE '^(echo|true|:|exit 0)'; then
+    # Accept discipline
+    cmd="$t_accept"
+    case "$cmd" in
+      *'`'*)
+        fail "task accept: contains backticks — must be a plain executable command: \"$cmd\""
+        bad_accept=$((bad_accept+1)); continue ;;
+      *"<"*|*tbd*|*human*|"") continue ;;  # placeholder / operator-resolved
+    esac
+    is_noop=0
+    # No-ops: classic (echo/true/:/exit 0), neutered (trailing || true), and
+    # existence-only probes with no content assertion (bare ls / lone test -f)
+    if printf '%s' "$cmd" | grep -qE '^(echo|true$|: *$|exit 0)'; then is_noop=1; fi
+    if printf '%s' "$cmd" | grep -qE '\|\| *true *$'; then is_noop=1; fi
+    if printf '%s' "$cmd" | grep -qE '^(ls |test -[a-z] [^&|;]*$)'; then is_noop=1; fi
+    if [ "$is_noop" = 1 ]; then
+      if { [ "$t_status" = " " ] || [ "$t_status" = "~" ]; } && printf '%s' "$t_owner" | grep -qi 'implementer'; then
+        fail "actionable implementer task has a no-op accept: \"$cmd\""
+      else
         warn "task accept: is a no-op, not a test: \"$cmd\""
-        bad_accept=$((bad_accept+1))
+      fi
+      bad_accept=$((bad_accept+1))
+    fi
+  done < <(awk '
+    function flush() { if (line != "") printf "%s\x1f%s\x1f%s\x1f%s\n", status, line, owner, accept; line = "" }
+    /^- \[.\] T-[0-9]+/ {
+      flush()
+      status = substr($0, 4, 1); line = $0; owner = ""; accept = ""
+      next
+    }
+    /^- \[/ || /^#/ { flush(); next }
+    line != "" && /^[ \t]+owner:/  { o = $0; sub(/^[ \t]+owner:[ ]*/, "", o); owner = o }
+    line != "" && /^[ \t]+accept:/ { a = $0; sub(/^[ \t]+accept:[ ]*/, "", a); accept = a }
+    END { flush() }
+  ' tasks/TASKS.md 2>/dev/null)
+  [ "$bad_accept" -eq 0 ] && [ "$grammar_bad" -eq 0 ] && ok "task grammar + accept discipline clean ($(grep -cE '^- \[.\] T-[0-9]+' tasks/TASKS.md 2>/dev/null || echo 0) tasks)"
+fi
+echo
+
+# ─── 11b. Live artifact lint (e2e-audit spec-pipeline-4/5) ───────────────
+# Malformed specs/plans previously failed silent-open mid-run: no frontmatter
+# check, no id↔filename check, no status enum, dangling plan→spec pointers,
+# duplicate ids across active+archive, TASKS.md spec refs to nowhere.
+echo "[artifacts]"
+artifact_bad=0
+fm_field() { # fm_field <file> <key> — first value of <key> inside the leading frontmatter block
+  awk -v k="$2" 'NR==1 && $0 != "---" { exit } NR>1 && /^---$/ { exit } $0 ~ "^" k ":" { sub("^" k ":[ \t]*", ""); sub(/[ \t]+#.*$/, ""); gsub(/^"|"$/, ""); print; exit }' "$1"
+}
+for kind in specs plans; do
+  enum='draft|review|approved|shipped|paused|dropped|superseded|abandoned'
+  [ "$kind" = "plans" ] && enum='draft|review|approved|superseded'
+  for f in "$kind"/active/*.md; do
+    [ -f "$f" ] || continue
+    base=$(basename "$f" .md)
+    file_id="${base%%-*}"
+    if [ "$(head -1 "$f")" != "---" ]; then
+      fail "$f: no leading frontmatter block"
+      artifact_bad=$((artifact_bad+1)); continue
+    fi
+    fm_id=$(fm_field "$f" id)
+    fm_status=$(fm_field "$f" status)
+    if [ "$fm_id" != "$file_id" ]; then
+      fail "$f: frontmatter id '$fm_id' != filename prefix '$file_id'"
+      artifact_bad=$((artifact_bad+1))
+    fi
+    if ! printf '%s' "$fm_status" | grep -qE "^($enum)$"; then
+      fail "$f: status '$fm_status' not in enum ($enum)"
+      artifact_bad=$((artifact_bad+1))
+    fi
+    if [ "$kind" = "plans" ]; then
+      plan_spec=$(fm_field "$f" spec)
+      if [ -z "$plan_spec" ] || [ ! -f "$plan_spec" ]; then
+        fail "$f: spec pointer '$plan_spec' does not resolve"
+        artifact_bad=$((artifact_bad+1))
       fi
     fi
-    # JUSTIFIED: grep over TASKS.md — 2>/dev/null swallows the "no such file" case; a missing/empty file yields zero loop iterations, the intended no-op
-  done < <(grep -E '^\s*accept:' tasks/TASKS.md 2>/dev/null)
-  [ "$bad_accept" -eq 0 ] && ok "all task accept: commands look like real verifications"
+  done
+done
+# ids globally unique across active ∪ archive (per kind)
+for kind in specs plans; do
+  # JUSTIFIED: missing archive dir yields no entries — uniqueness over active only
+  dupes=$(ls "$kind"/active/*.md "$kind"/archive/*.md 2>/dev/null | xargs -n1 basename 2>/dev/null | grep -oE '^[0-9]+' | sort | uniq -d)
+  if [ -n "$dupes" ]; then
+    fail "$kind: duplicate ids across active+archive: $(echo $dupes | tr '\n' ' ')"
+    artifact_bad=$((artifact_bad+1))
+  fi
+done
+# every TASKS.md spec:NNN resolves (HOTFIX sentinel exempt)
+if [ -f tasks/TASKS.md ]; then
+  for sid in $(grep -oE '\| *spec:[A-Za-z0-9]+' tasks/TASKS.md | grep -oE '[A-Za-z0-9]+$' | sort -u); do
+    case "$sid" in HOTFIX|NNN) continue ;; esac  # sentinels: hotfix + the Format template line
+    # JUSTIFIED: glob probes — no match in EITHER dir means the ref dangles, which is exactly the failure below
+    if ! ls specs/active/"$sid"-*.md >/dev/null 2>&1 && ! ls specs/archive/"$sid"-*.md >/dev/null 2>&1; then
+      fail "tasks/TASKS.md references spec:$sid but no specs/{active,archive}/$sid-*.md exists"
+      artifact_bad=$((artifact_bad+1))
+    fi
+  done
 fi
+[ "$artifact_bad" -eq 0 ] && ok "specs/plans frontmatter, ids, pointers, and TASKS.md spec refs all consistent"
 echo
 
 # ─── 12. Memory layout ──────────────────────────────────────────────────
@@ -690,6 +793,33 @@ if [ -f "$RULESET_FILE" ] && command -v jq >/dev/null; then
   fi
 else
   note "ruleset or jq unavailable — skipping ruleset-coverage check"
+fi
+echo
+
+# ─── 16. State-path producers (e2e-audit spec-pipeline-1) ───────────────
+# A hook that reads .claude/state/<x> which nothing produces is a gate that can
+# never fire (the /analyze marker was consumed by workflow-state.sh but produced
+# by NOTHING). Every hook-referenced state path must map to a documented,
+# existing producer in .claude/templates/state-registry.tsv.
+echo "[state-producers]"
+registry=.claude/templates/state-registry.tsv
+if [ -f "$registry" ]; then
+  # JUSTIFIED: grep across hooks — 2>/dev/null tolerates an empty hooks dir; no refs means the loop runs zero times
+  state_refs=$(grep -hoE '\.claude/state/[A-Za-z0-9._-]+' .claude/hooks/*.sh 2>/dev/null | sed 's|\.claude/state/||' | sort -u)
+  dangling=0
+  for ref in $state_refs; do
+    producer=$(awk -F'\t' -v r="$ref" '$0 !~ /^#/ && $1 == r {print $2; exit}' "$registry")
+    if [ -z "$producer" ]; then
+      fail "hook reads .claude/state/$ref but it has no documented producer (add to $registry)"
+      dangling=$((dangling + 1))
+    elif [ ! -f "$producer" ]; then
+      fail "state path $ref: documented producer $producer does not exist"
+      dangling=$((dangling + 1))
+    fi
+  done
+  [ "$dangling" -eq 0 ] && ok "every hook-referenced state path has an existing documented producer"
+else
+  warn "no $registry — dangling-consumer check skipped"
 fi
 echo
 

@@ -74,6 +74,12 @@ if [ "${TASK_STATUS_NO_SYNC:-0}" != "1" ]; then
     x) bash .claude/scripts/loop-iteration.sh record "T-${id#T-}" progress >/dev/null 2>&1 || true ;;
     !) bash .claude/scripts/loop-iteration.sh record "T-${id#T-}" abort >/dev/null 2>&1 || true ;;
   esac
+
+  # Side-effect 3: refresh the loop's TASKS.md snapshot so this sanctioned flip
+  # is not mistaken for an external edit (record above already refreshes on x/!).
+  # JUSTIFIED: snapshot is best-effort loop telemetry — a write failure must not fail the flip
+  { shasum -a 256 "$TASKS_FILE" 2>/dev/null | awk '{print $1}' || echo absent; } \
+    > .claude/state/tasks-md.snapshot 2>/dev/null || true
 fi
 
 echo "T-${id#T-} -> [${marker}]"

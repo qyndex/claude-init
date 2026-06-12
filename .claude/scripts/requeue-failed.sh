@@ -41,6 +41,39 @@ if [ "$mode" = "report" ]; then
   echo "$n failed task(s). Retry one with: bash .claude/scripts/requeue-failed.sh --reset <T-id>"
   echo "Retry ONLY after addressing the root cause — these already exhausted 3 self-heal attempts."
 
+  # e2e-audit failure-recovery-3: surface stale [~] (possible orphans the
+  # reconciler hasn't caught) and [b] tasks whose deps are ALL [x] (unblockable).
+  STALE_HOURS="${STALE_HOURS:-12}"
+  stale=$(awk -v cutoff="$(date -v-"${STALE_HOURS}"H +%Y-%m-%d 2>/dev/null || date -d "-${STALE_HOURS} hours" +%Y-%m-%d 2>/dev/null)" '
+    /^- \[~\] T-[0-9]+/ {
+      lt = ""
+      if (match($0, /last_touched: *[0-9-]+/)) { lt = substr($0, RSTART, RLENGTH); sub(/last_touched: */, "", lt) }
+      if (lt == "" || lt <= cutoff) print "  " $0
+    }
+  ' tasks/TASKS.md)
+  if [ -n "$stale" ]; then
+    echo ""
+    echo "# In-progress [~] older than ${STALE_HOURS}h (possible orphans — run orphan-reconcile.sh)"
+    printf '%s\n' "$stale"
+  fi
+  done_ids=" $(grep -oE '^- \[x\] T-[0-9]+' tasks/TASKS.md | grep -oE 'T-[0-9]+' | tr '\n' ' ')"
+  unblockable=""
+  while IFS= read -r bline; do
+    deps=$(printf '%s' "$bline" | grep -oE 'deps: *T-[0-9]+( *, *T-[0-9]+)*' | sed 's/deps: *//; s/ //g')
+    [ -n "$deps" ] || continue
+    all_done=1
+    for dep in ${deps//,/ }; do
+      case "$done_ids" in *" $dep "*) ;; *) all_done=0; break ;; esac
+    done
+    [ "$all_done" = 1 ] && unblockable="${unblockable}  ${bline}\n"
+    # JUSTIFIED: grep exit 1 when no [b] tasks exist — zero loop iterations is the correct empty report
+  done < <(grep -E '^- \[b\] T-[0-9]+' tasks/TASKS.md 2>/dev/null)
+  if [ -n "$unblockable" ]; then
+    echo ""
+    echo "# Blocked [b] tasks whose deps are ALL [x] — unblock with task-status.sh <id> pending"
+    printf '%b' "$unblockable"
+  fi
+
   # AC-32: also show recent lane.error events from swarm JSONL logs
   if [ -d .swarms/events ] && command -v jq >/dev/null 2>&1; then
     echo ""

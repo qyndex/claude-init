@@ -96,3 +96,57 @@ loop_state_should_stop() {
   _loop_state_ensure
   jq -e --argjson cap "$LOOP_ABORT_CAP" '.count >= $cap' "$STATE_FILE" >/dev/null 2>&1
 }
+
+# ─── Run metadata (e2e-audit autopilot-5) ────────────────────────────────────
+# Makes /loop's declared --until/--max-iter budgets real. `loop-iteration.sh
+# start` initializes {started_at, deadline, max_iter, iter_count}; every
+# iteration increments iter_count and refuses (exit 2 upstream) once past the
+# deadline or the iteration cap. Additive to the consecutive-aborts schema.
+
+# loop_state_start [deadline-ISO|""] [max-iter|0]
+loop_state_start() {
+  local deadline="${1:-}" max_iter="${2:-0}"
+  _loop_state_ensure
+  write_atomic "$STATE_FILE" "$(jq \
+    --arg ts "$(date -Iseconds)" --arg dl "$deadline" --argjson mi "${max_iter:-0}" \
+    '.run = {started_at: $ts, deadline: (if $dl == "" then null else $dl end), max_iter: $mi, iter_count: 0}' \
+    "$STATE_FILE")"
+}
+
+# loop_state_iter_count — current iteration count (0 when no run metadata)
+loop_state_iter_count() {
+  _loop_state_ensure
+  jq -r '.run.iter_count // 0' "$STATE_FILE"
+}
+
+# loop_state_iterate — increment iter_count (no-op without run metadata)
+loop_state_iterate() {
+  _loop_state_ensure
+  jq -e '.run' "$STATE_FILE" >/dev/null 2>&1 || return 0
+  write_atomic "$STATE_FILE" "$(jq --arg ts "$(date -Iseconds)" \
+    '.run.iter_count = (.run.iter_count // 0) + 1 | .updated = $ts' "$STATE_FILE")"
+}
+
+# loop_state_run_exceeded — exit 0 (with a reason on stdout) when the run budget
+# is spent: past deadline, or iter_count >= max_iter (max_iter 0 = unlimited).
+loop_state_run_exceeded() {
+  _loop_state_ensure
+  jq -e '.run' "$STATE_FILE" >/dev/null 2>&1 || return 1
+  local deadline max_iter iters now
+  deadline=$(jq -r '.run.deadline // empty' "$STATE_FILE")
+  max_iter=$(jq -r '.run.max_iter // 0' "$STATE_FILE")
+  iters=$(jq -r '.run.iter_count // 0' "$STATE_FILE")
+  if [ "$max_iter" -gt 0 ] && [ "$iters" -ge "$max_iter" ]; then
+    echo "max-iter reached ($iters/$max_iter)"
+    return 0
+  fi
+  if [ -n "$deadline" ]; then
+    now=$(date -Iseconds)
+    # ISO-8601 strings with identical offsets compare correctly as strings
+    if [ "$(printf '%s\n%s\n' "$deadline" "$now" | sort | head -1)" = "$deadline" ] && [ "$now" != "$deadline" ]; then
+      echo "deadline passed ($deadline)"
+      return 0
+    fi
+  fi
+  return 1
+}

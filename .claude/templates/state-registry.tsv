@@ -1,0 +1,14 @@
+# State-path registry (e2e-audit spec-pipeline-1 dangling-consumer check).
+# Every `.claude/state/<path>` a hook READS must have a documented producer here;
+# validate.sh fails on hook-referenced state paths missing from this registry or
+# whose producer file does not exist. Prefix rows (trailing -) cover templated
+# names like analyze-<id>.json. Format: <path-or-prefix>\t<producer file>
+analyze-	.claude/skills/analyze/SKILL.md
+context-monitor	.claude/hooks/context-monitor.sh
+current-	.claude/scripts/initiative-state.sh
+current-initiative	.claude/scripts/initiative-state.sh
+current-spec	.claude/scripts/initiative-state.sh
+overnight-	.claude/scripts/local-overnight-build.sh
+read-nudge	.claude/hooks/read-volume-nudge.sh
+skill-triggers.tsv	.claude/scripts/regen-skill-registry.sh
+stop-verify-blocks.log	.claude/hooks/stop-verify.sh

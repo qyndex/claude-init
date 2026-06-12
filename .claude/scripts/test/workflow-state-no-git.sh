@@ -15,7 +15,7 @@
 set -uo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
-HOOK="$ROOT/.claude/hooks/workflow-state.sh"
+HOOK="${HOOK_UNDER_TEST:-$ROOT/.claude/hooks/workflow-state.sh}"
 
 pass=0
 fail=0

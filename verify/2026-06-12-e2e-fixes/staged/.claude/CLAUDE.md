@@ -96,7 +96,7 @@ WIP checkpoints during long work: `WIP: <6-word decision>` subject + `[gstack-co
 ## VII. `<verification>` (before any "done" claim)
 
 1. **TDD ledger** — each task has `verify/<date>/T-<id>/red.log` (failed first) + `green.log` (passed after). `verify.sh` blocks `[x]` tasks without both. (Round 10 A)
-2. Task's `accept:` command exits 0 (must be a real test runner, not `echo` — `validate.sh` enforces).
+2. Task's `accept:` command exits 0. `validate.sh` FAILS backticked accepts and no-op accepts (`echo`/`true`/trailing `|| true`/bare `ls`) on actionable implementer tasks; `verify.sh` re-runs the accepts of tasks newly flipped `[x]` on the branch.
 3. Broader test suite passes + `assert-density.sh` clean (no assertion-free tests).
 4. User-facing change → run the journey via the Playwright evidence rig (`VERIFY_FEATURE=<id> npx playwright test`). Captures video + trace + HAR + per-AC screenshots to `verify/<date>-<feature>/`. `spec-match.sh` proves every AC has a passing tagged test. (Round 10 B)
 5. Auth/data/network/dep change → semgrep + dependency audit clean.
