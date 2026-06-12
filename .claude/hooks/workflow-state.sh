@@ -33,9 +33,13 @@ if true; then
   spec=$(ls -t specs/active/*.md 2>/dev/null | head -1 || echo "none")
   plan=$(ls -t plans/active/*.md 2>/dev/null | head -1 || echo "none")
 
-  # Pending task
+  # Pending task. The T-[0-9]+ guard is load-bearing: TASKS.md's format section
+  # contains a literal "- [ ] T-NNN | spec:NNN ..." template line that the bare
+  # '^- \[ \]' pattern matched, producing a placeholder "next task" for dozens
+  # of consecutive turns (memory-system review, 2026-06-12).
   # JUSTIFIED: no pending tasks (or no TASKS.md) makes grep exit 1 — "none" is the intended sentinel shown in the injected state line
-  next_task=$(grep -m1 '^- \[ \]' tasks/TASKS.md 2>/dev/null | sed 's/^- \[ \]//' | head -c 100 || echo "none")
+  next_task=$(grep -m1 -E '^- \[ \] T-[0-9]+' tasks/TASKS.md 2>/dev/null | sed 's/^- \[ \]//' | head -c 100 || echo "none")
+  [ -z "$next_task" ] && next_task="none"
 
   # Current phase derived from artifact state — all 8 phases (AC-19)
   # JUSTIFIED: grep-as-boolean for phase detection — missing files or non-matching lines advance phase, all errors are intentional false-negatives
@@ -49,7 +53,7 @@ if true; then
     phase="specifying"
   elif [ "$plan" = "none" ] || grep -q 'status: draft' "$plan" 2>/dev/null; then
     phase="planning"
-  elif ! grep -q '^- \[ \]' tasks/TASKS.md 2>/dev/null && ! grep -q '^- \[~\]' tasks/TASKS.md 2>/dev/null; then
+  elif ! grep -qE '^- \[ \] T-[0-9]+' tasks/TASKS.md 2>/dev/null && ! grep -qE '^- \[~\] T-[0-9]+' tasks/TASKS.md 2>/dev/null; then
     # No tasks at all — check if analyze marker present
     spec_id=$(basename "$spec" .md 2>/dev/null | grep -oE '^[0-9]+')
     if [ -n "$spec_id" ] && [ ! -f ".claude/state/analyze-${spec_id}.json" ]; then
@@ -60,9 +64,9 @@ if true; then
   else
     # Tasks exist — check if analyze step done
     spec_id=$(basename "$spec" .md 2>/dev/null | grep -oE '^[0-9]+')
-    if [ -n "$spec_id" ] && ! [ -f ".claude/state/analyze-${spec_id}.json" ] && ! grep -q '^- \[x\]' tasks/TASKS.md 2>/dev/null; then
+    if [ -n "$spec_id" ] && ! [ -f ".claude/state/analyze-${spec_id}.json" ] && ! grep -qE '^- \[x\] T-[0-9]+' tasks/TASKS.md 2>/dev/null; then
       phase="analyze"
-    elif grep -q '^- \[ \]' tasks/TASKS.md 2>/dev/null || grep -q '^- \[~\]' tasks/TASKS.md 2>/dev/null; then
+    elif grep -qE '^- \[ \] T-[0-9]+' tasks/TASKS.md 2>/dev/null || grep -qE '^- \[~\] T-[0-9]+' tasks/TASKS.md 2>/dev/null; then
       phase="implementing"
     else
       phase="verify-review-ship"

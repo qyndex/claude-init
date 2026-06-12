@@ -46,10 +46,17 @@ fi
 [ -n "$plan" ] && ctx="$ctx Plan: $plan."
 [ -n "$phase" ] && ctx="$ctx Phase: $phase."
 
-# Current task (in-progress marker)
+# ─── Initiative living state (memory-system review §7.2) ────────────────
+# Point the child at the always-current STATE.md instead of making it re-derive.
+# JUSTIFIED: pre-sync repos have no STATE.md — empty result omits the line
+init_state=$(ls -t initiatives/active/*.STATE.md 2>/dev/null | head -1 || echo "")
+[ -n "$init_state" ] && ctx="$ctx Initiative state: $init_state (machine-current; read instead of re-deriving)."
+
+# Current task (in-progress marker). T-[0-9]+ guard: never match the TASKS.md
+# format-template line (memory-system review, 2026-06-12).
 if [ -f tasks/TASKS.md ]; then
   # JUSTIFIED: the redirect drops grep stderr and the fallback handles no in-progress task (grep exit 1) — empty result just omits the current-task line
-  in_progress=$(grep -m1 '^- \[~\]' tasks/TASKS.md 2>/dev/null | sed 's/^- \[~\] *//' | head -c 200 || echo "")
+  in_progress=$(grep -m1 -E '^- \[~\] T-[0-9]+' tasks/TASKS.md 2>/dev/null | sed 's/^- \[~\] *//' | head -c 200 || echo "")
   if [ -n "$in_progress" ]; then
     ctx="$ctx Current task: $in_progress."
   fi

@@ -15,9 +15,19 @@ printf '%s session end\n' "$ts" >> .claude/hooks/.log/session.log
 # SessionEnd ever fired) and we should surface a recovery banner.
 rm -f .claude/memory/.cache/current-session.json
 
+# ─── Initiative living state (memory-system review §7.2) ────────────────
+# SessionEnd is a network boundary: rewrite initiatives/active/<id>.STATE.md
+# and the .claude/state/current-{initiative,spec} pointers that the usage
+# attribution below reads. LOUD on failure — memory-plane writes must not
+# fail silently (§7.6).
+if [ -x .claude/scripts/initiative-state.sh ]; then
+  bash .claude/scripts/initiative-state.sh sync >/dev/null \
+    || echo "session-end: initiative-state.sh sync FAILED — STATE.md and attribution pointers are stale" >&2
+fi
+
 # ─── Token usage via ccusage — Round 7 E: inject initiative + spec attribution
-# Reads current initiative/spec from .claude/state/ written by /initiative create
-# and /specify (the load-bearing primitive that links sessions to roadmap items).
+# Reads current initiative/spec from .claude/state/ written by initiative-state.sh
+# (the load-bearing primitive that links sessions to roadmap items).
 init_tag=""
 spec_tag=""
 [ -f .claude/state/current-initiative ] && init_tag=$(cat .claude/state/current-initiative | tr -d '\n' | head -c 32)
@@ -92,10 +102,10 @@ in_flight=".claude/memory/in-flight.md"
   # Tasks: in-progress
   if [ -f tasks/TASKS.md ]; then
     echo "## Tasks in flight"
-    grep -nE '^- \[~\]' tasks/TASKS.md | head -10 || echo "_(none)_"
+    grep -nE '^- \[~\] T-[0-9]+' tasks/TASKS.md | head -10 || echo "_(none)_"
     echo
     echo "## Tasks blocked"
-    grep -nE '^- \[b\]' tasks/TASKS.md | head -10 || echo "_(none)_"
+    grep -nE '^- \[b\] T-[0-9]+' tasks/TASKS.md | head -10 || echo "_(none)_"
     echo
   fi
 
@@ -142,10 +152,15 @@ if command -v jq >/dev/null 2>&1 && git rev-parse --git-dir >/dev/null 2>&1; the
   dirty_count=$(git status --porcelain 2>/dev/null | wc -l | tr -d ' ')
   # JUSTIFIED: git error muted — no upstream configured (@{u}) is expected on local branches; 0 unpushed is correct then
   unpushed_count=$(git log @{u}..HEAD --oneline 2>/dev/null | wc -l | tr -d ' ')
-  # JUSTIFIED: grep -c exits 1 with stderr when no in-progress tasks match; muted + fallback so an empty backlog records 0
-  in_progress=$(grep -cE '^- \[~\]' tasks/TASKS.md 2>/dev/null || echo 0)
-  # JUSTIFIED: grep -c exits 1 with stderr when no blocked tasks match; muted + fallback so none records 0
-  blocked=$(grep -cE '^- \[b\]' tasks/TASKS.md 2>/dev/null || echo 0)
+  # grep -c prints 0 AND exits 1 on zero matches — `|| echo 0` would double-print
+  # ("0\n0"), breaking --argjson below and silently skipping session-recent.json
+  # (observed: the file was 0 bytes). Capture-then-default instead.
+  # JUSTIFIED: grep stderr muted — a missing TASKS.md leaves the var empty, defaulted to 0
+  in_progress=$(grep -cE '^- \[~\] T-[0-9]+' tasks/TASKS.md 2>/dev/null) || true
+  in_progress="${in_progress:-0}"
+  # JUSTIFIED: grep stderr muted — same capture-then-default contract
+  blocked=$(grep -cE '^- \[b\] T-[0-9]+' tasks/TASKS.md 2>/dev/null) || true
+  blocked="${blocked:-0}"
   # JUSTIFIED: ls + grep errors muted — no specs/active glob match means 0 drafts, the correct cache value
   drafts=$(ls specs/active/*.md 2>/dev/null | xargs grep -lE '^status: draft' 2>/dev/null | wc -l | tr -d ' ')
   # JUSTIFIED: ls error muted — absent streams dir means 0 active streams, the correct cache value
