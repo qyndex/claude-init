@@ -34,6 +34,10 @@ verify/**/test-results/
 .claude/sessions/
 
 # Auto-managed memory scratchpads — short-term, machine-written
+# in-flight briefs: rewritten by session-end.sh at every exit and cleared at the
+# next start — tracking them keeps the tree perpetually dirty (incl. stale-* copies)
+.claude/memory/in-flight*.md
+.claude/memory.proposed/in-flight*.md
 .claude/memories/.*
 .claude/memories/checkpoints/
 .claude/memories/active/
