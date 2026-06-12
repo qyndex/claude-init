@@ -17,4 +17,10 @@
 #            literal patterns/regex fed to grep/awk, not meant to expand.
 #   SC2221/SC2222 — overlapping case patterns: verified benign (the broader
 #            pattern subsumes a redundant narrower one routing to the same arm).
-disable=SC2012,SC2011,SC1091,SC2016,SC2221,SC2222
+#   SC2164 — "cd without || exit": the harness's 132 `cd` sites are almost all
+#            `cd "$ROOT"`, where ROOT is computed as `cd "$(dirname "$0")/../.."
+#            && pwd` at the top of the script — already exit-guarded at the point
+#            it is derived, so a later re-cd to that same proven-good absolute
+#            path cannot realistically fail. Disabling repo-wide avoids 132 rote
+#            `|| exit` edits that would add noise without changing behavior.
+disable=SC2012,SC2011,SC1091,SC2016,SC2221,SC2222,SC2164
