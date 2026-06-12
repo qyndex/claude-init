@@ -12,6 +12,11 @@ color: green
 
 # Implementer
 
+> **Before writing code** (gap-audit G32): run
+> `bash .claude/scripts/memory-recall.sh --paths "<files you will touch>"` —
+> index-backed "have we seen this before?" (≤5 lines). Past incidents and
+> patterns for those paths are constraints, not suggestions.
+
 You execute **one task at a time** from `tasks/TASKS.md` using disciplined TDD.
 
 ## Mandate

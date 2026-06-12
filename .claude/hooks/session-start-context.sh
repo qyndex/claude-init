@@ -10,6 +10,22 @@ set -uo pipefail
 
 ctx_parts=()
 
+# ─── Gap-audit G16: keep skill discovery surfaces fresh ──────────────────
+# REGISTRY.md + skill-triggers.tsv are regenerated idempotently (<100ms) so the
+# router and any registry reader always see the current catalogue.
+bash .claude/scripts/regen-skill-registry.sh >/dev/null 2>&1 || true
+
+# ─── Gap-audit G23: pending dream proposal blocks future dreams ──────────
+# auto-dream-check.sh refuses to dream while a proposal awaits review, but used
+# to say so only in a log file. Surface it where the operator will see it.
+if [ -d .claude/memory.proposed ] && [ "$(ls -A .claude/memory.proposed 2>/dev/null)" ]; then
+  # JUSTIFIED: jq on a possibly-corrupt state file degrades to empty (not "true") — the banner only fires on a positively recorded awaiting_review
+  awaiting=$(jq -r '.awaiting_review // false' .claude/memory/.cache/.dream-state.json 2>/dev/null)
+  if [ "$awaiting" = "true" ]; then
+    ctx_parts+=("⚠ DREAM-PENDING: .claude/memory.proposed/ awaits review — ask the user to run /dream-review (--approve | --revert). Memory consolidation is BLOCKED until cleared.")
+  fi
+fi
+
 # ─── Round 6 B: killed-session detector ─────────────────────────────────
 # session-end.sh deletes .claude/memory/.cache/current-session.json on graceful
 # exit. If it exists at SessionStart, the previous session was KILLED.
@@ -149,7 +165,8 @@ if [ -f .claude/memory/atlas/manifest.json ] && command -v jq >/dev/null 2>&1; t
   [ -f .claude/memory/atlas/.dirty ] && stale_reason="watched files changed since refresh"
 
   if [ -n "$stale_reason" ]; then
-    ctx_parts+=("⚠ ATLAS STALE ($stale_reason) — run \`bash .claude/scripts/atlas-refresh.sh\` or \`/atlas refresh\`.")
+    # Gap-audit G21: no /atlas command exists — the script is the only real path
+    ctx_parts+=("⚠ ATLAS STALE ($stale_reason) — run \`bash .claude/scripts/atlas-refresh.sh\`.")
   else
     ctx_parts+=("[atlas] Web: $atlas_web | API: $atlas_api | ORM: $atlas_orm | Updated: ${atlas_updated%%T*}. Read .claude/memory/atlas/{STACK,STRUCTURE,KNOWN_ENTRIES}.md for full details.")
 
@@ -180,13 +197,26 @@ if [ -f .claude/memory/atlas/manifest.json ] && command -v jq >/dev/null 2>&1; t
 fi
 
 # ─── ADR re-verification backlog ────────────────────────────────────────
+# Gap-audit G45: staleness from CONTENT dates, not file mtime — a git clone
+# (or any touch) resets mtimes, so `find -mtime +365` never fired on real
+# repos. An ADR is stale when its freshest content date (last_verified if
+# present, else Date) is >12 months old.
 if [ -d .claude/memory/decisions ]; then
-  # Count ADRs >12mo with no last_verified
-  # JUSTIFIED: find suppresses traversal warnings on a sparse decisions tree; xargs grep -L returns empty when no files match — wc -l then yields 0, a valid "no stale ADRs" count
-  stale_adrs=$(find .claude/memory/decisions -name '*.md' -mtime +365 2>/dev/null | \
-    xargs grep -L '^- \*\*last_verified\*\*:' 2>/dev/null | wc -l | tr -d ' ')
+  cutoff=$(date -v-1y +%Y-%m-%d 2>/dev/null || date -d '1 year ago' +%Y-%m-%d 2>/dev/null)
+  stale_adrs=0
+  for adr in .claude/memory/decisions/[0-9]*.md; do
+    [ -f "$adr" ] || continue
+    case "$adr" in *0000-template.md) continue ;; esac
+    fresh=$(grep -E '^- \*\*last_verified\*\*:' "$adr" | head -1 | grep -oE '[0-9]{4}-[0-9]{2}-[0-9]{2}' || true)
+    [ -z "$fresh" ] && fresh=$(grep -E '^- \*\*Date\*\*:' "$adr" | head -1 | grep -oE '[0-9]{4}-[0-9]{2}-[0-9]{2}' || true)
+    [ -z "$fresh" ] && continue  # placeholder/template dates — not assessable
+    # YYYY-MM-DD compares correctly as a string
+    if [ -n "$cutoff" ] && [ "$fresh" \< "$cutoff" ]; then
+      stale_adrs=$((stale_adrs + 1))
+    fi
+  done
   if [ "$stale_adrs" -gt 0 ]; then
-    ctx_parts+=("$stale_adrs ADR(s) need re-verification — run \`/adr-walk\`.")
+    ctx_parts+=("$stale_adrs ADR(s) not verified in >12mo — re-check each, then stamp it: \`/adr-walk --reverify <id>\`.")
   fi
 fi
 

@@ -3,7 +3,7 @@
   "_comment": "Team-shared Claude Code settings. Personal overrides go in settings.local.json (gitignored). Validated against Claude Code v2.1.144+ at code.claude.com.",
   "_comment_model": "Default model per CLAUDE.md §V — Sonnet 4.6 is the daily driver. Per-agent Opus is set in agent frontmatter (architect, implementer, reviewer, security, debugger). Per-skill model override available via skill frontmatter.",
   "model": "claude-sonnet-4-6",
-  "outputStyle": "Default",
+  "outputStyle": "Concise",
   "effortLevel": "high",
   "language": "en",
   "editorMode": "emacs",
@@ -424,6 +424,11 @@
             "type": "command",
             "command": "bash .claude/hooks/session-heartbeat.sh",
             "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/context-monitor.sh",
+            "timeout": 5
           }
         ]
       }
@@ -467,6 +472,11 @@
         "hooks": [
           {
             "type": "command",
+            "command": "bash .claude/hooks/pre-spawn-cost-gate.sh",
+            "timeout": 10
+          },
+          {
+            "type": "command",
             "command": "bash .claude/hooks/subagent-context.sh",
             "timeout": 10
           }
@@ -502,6 +512,26 @@
           {
             "type": "command",
             "command": "bash .claude/hooks/instinct-observer.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Skill",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/skill-use-log.sh",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/read-volume-nudge.sh",
+            "timeout": 5
           }
         ]
       }

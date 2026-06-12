@@ -32,6 +32,9 @@ handoff_path=""
 followup_count=0
 blockers_count=0
 files_modified=""
+archive_file=""
+soft_missing=0
+adr_missing=0
 
 if [ -n "$final_message" ]; then
   # Save final message to a temp for grep + extract block content
@@ -76,6 +79,43 @@ EOF
         fi
         ;;
     esac
+
+    # ─── Gap-audit G27/G33/G34: persist the handoff durably ─────────────────
+    # Previously the digest lived only in the parent's transcript + a count-only
+    # JSONL — decisions_made, rejected_hypotheses, and incident notes evaporated
+    # with the parent's context. Archive the full YAML where the dream pipeline
+    # (and any future session) can consolidate it.
+    handoff_dir=".claude/memory/handoffs/$(date +%Y-%m)"
+    # JUSTIFIED: archive is best-effort — an unwritable dir leaves archive_file empty and the digest simply omits it
+    if mkdir -p "$handoff_dir" 2>/dev/null; then
+      safe_ts=$(printf '%s' "$ts" | tr ':+' '--')
+      archive_file="$handoff_dir/${safe_ts}-${agent_type}.yaml"
+      printf '%s\n' "$yaml_block" > "$archive_file" 2>/dev/null || archive_file=""
+    fi
+
+    # ─── Gap-audit G37: followup_tasks → TASKS.md, deterministically ────────
+    # The constitution promised this bridge; it was prose-only. Render the YAML
+    # list as checkbox lines and feed the existing lock-safe idempotent helper.
+    followup_items=$(echo "$yaml_block" | awk '/^followup_tasks:/{f=1; next} /^[a-z_]+:/{f=0} f && /^[[:space:]]*-/' \
+      | sed -E 's/^[[:space:]]*-[[:space:]]*//; s/^"//; s/"$//' | grep -v '^$' || true)
+    if [ -n "$followup_items" ] && [ -x .claude/scripts/findings-to-tasks.sh ]; then
+      ft_tmp=$(mktemp)
+      printf '%s\n' "$followup_items" | sed 's/^/- [ ] /' > "$ft_tmp"
+      # JUSTIFIED: bridge is best-effort — a failure is visible via followup_tasks count in the digest; it must not block the subagent's stop
+      bash .claude/scripts/findings-to-tasks.sh "$ft_tmp" --priority normal --source "handoff:${agent_type}" >/dev/null 2>&1 || true
+      rm -f "$ft_tmp"
+    fi
+
+    # ─── Gap-audit G40: architect handoff must cite ADRs ────────────────────
+    # An architect run that made decisions but referenced no ADR is the exact
+    # leak the adr-gate catches later at PR time — flag it at the source.
+    if [ "$agent_type" = "architect" ]; then
+      adr_refs=$(echo "$yaml_block" | awk '/^adrs_referenced:/{f=1; next} /^[a-z_]+:/{f=0} f && /^[[:space:]]*-/' | grep -v '^\s*-\s*$' || true)
+      if [ -z "$adr_refs" ]; then
+        adr_missing=1
+        printf '%s\tagent=%s\tadrs_referenced_empty\n' "$ts" "$agent_type" >> .claude/hooks/.log/subagent.log
+      fi
+    fi
   elif [ "$agent_type" = "feature-stream" ] || [ "$agent_type" = "coordinator" ]; then
     # Hard-enforced agent didn't emit a YAML block at all
     rm -f "$tmp_msg"
@@ -90,6 +130,17 @@ EOF
     printf '%s\tagent=%s\tmissing_handoff\n' "$ts" "$agent_type" >> .claude/hooks/.log/subagent.log
     echo "[subagent-stop] BLOCK: ${agent_type} did not emit a NEXUS handoff block (\`\`\`nexus or \`\`\`yaml). This is required for swarm agents. See .claude/skills/handoff/SKILL.md." >&2
     exit 2
+  else
+    # ─── Gap-audit G38: SOFT tier actually warns now ────────────────────────
+    # Constitution §XV says soft agents are "warn, accept" — previously a soft
+    # agent skipping the handoff was silently accepted, so the contract decayed
+    # invisibly. Log it (measurable) + nudge the parent (visible).
+    case "$agent_type" in
+      architect|planner|implementer|reviewer|verifier|security|debugger|researcher|doc-writer|tester)
+        printf '%s\tagent=%s\tmissing_handoff_soft\n' "$ts" "$agent_type" >> .claude/hooks/.log/subagent.log
+        soft_missing=1
+        ;;
+    esac
   fi
 
   # Find any handoff-<ts>.yaml or .md file the subagent may have written
@@ -201,10 +252,12 @@ jq -nc \
 digest_parts=()
 [ -n "$status" ] && digest_parts+=("status=$status")
 [ -n "$handoff_path" ] && digest_parts+=("handoff=$handoff_path")
+[ -n "$archive_file" ] && digest_parts+=("archived=$archive_file")
 [ -n "$files_modified" ] && digest_parts+=("files_modified=[$files_modified]")
 [ -n "$worktree_diff" ] && digest_parts+=("worktree_diff=[$worktree_diff]")
 [ "$followup_count" -gt 0 ] && digest_parts+=("followup_tasks=$followup_count")
 [ "$blockers_count" -gt 0 ] && digest_parts+=("blockers=$blockers_count")
+[ "$adr_missing" = "1" ] && digest_parts+=("WARN:adrs_referenced=EMPTY — persist the architect's decisions via 'bash .claude/scripts/adr-new.sh \"<title>\" --by architect' before planning (gap-audit G40)")
 
 if [ "${#digest_parts[@]}" -gt 0 ]; then
   digest=$(IFS=' '; echo "${digest_parts[*]}")
@@ -213,6 +266,16 @@ if [ "${#digest_parts[@]}" -gt 0 ]; then
   "hookSpecificOutput": {
     "hookEventName": "SubagentStop",
     "additionalContext": "[subagent-stop digest] $agent_type: $digest"
+  }
+}
+EOF
+elif [ "$soft_missing" = "1" ]; then
+  # Gap-audit G38: the documented soft warning, made real.
+  cat <<EOF
+{
+  "hookSpecificOutput": {
+    "hookEventName": "SubagentStop",
+    "additionalContext": "[subagent-stop] WARN (soft): $agent_type returned no NEXUS handoff block — its findings exist only in prose and will not be archived to .claude/memory/handoffs/. Accepted, but ask for a \`\`\`nexus block next time (.claude/skills/handoff/SKILL.md)."
   }
 }
 EOF

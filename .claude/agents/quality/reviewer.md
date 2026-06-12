@@ -70,5 +70,5 @@ You are a senior code reviewer. You read diffs carefully. You spot bugs.
 
 - All blockers and highs resolved.
 - A `gh pr review --approve` is posted, OR a chat message saying "diff is clean, ready to ship".
-- If a reusable insight emerged, a new pattern is written to `.claude/memory/patterns/<slug>.md` with frontmatter (`last_verified: <today>`, `verified_in_commits: [<hash>]`).
-- If a found bug matched a past incident pattern, the incident's frontmatter is updated with `recurred_at: <today>` so we can spot truly-recurrent classes.
+- If a reusable insight emerged, include the full pattern content (name, body, `last_verified: <today>`, `verified_in_commits: [<hash>]`) in your NEXUS handoff under `decisions_made` — gap-audit G34: this agent is read-only and cannot write `.claude/memory/patterns/` itself; subagent-stop.sh archives the handoff to `.claude/memory/handoffs/` and the dream pipeline consolidates it.
+- If a found bug matched a past incident pattern, name the incident file + `recurred_at: <today>` in the handoff so the parent (or dream) updates its frontmatter.

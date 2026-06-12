@@ -39,3 +39,12 @@ jobs:
           TITLE: ${{ github.event.pull_request.title }}
         run: |
           echo "$TITLE" | npx commitlint --extends '@commitlint/config-conventional'
+
+      # Gap-audit G47: §VI's Confidence/Scope-risk/Not-tested trailers were
+      # mandated but never validated — commitlint only checked the header.
+      - name: Validate required trailers (G47)
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          bash .claude/scripts/lint-trailers.sh "$BASE" "$HEAD"

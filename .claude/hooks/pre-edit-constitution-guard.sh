@@ -84,6 +84,9 @@ case "$rel" in
   .claude/hooks/*)                         deny=1 ;;
   .claude/rules/*)                         deny=1 ;;
   .claude/agents/*)                        deny=1 ;;
+  # Gap-audit G2: skill frontmatter is a §IX cache-prefix surface, same as agents/*.
+  # Proposals still flow freely via .claude/memory.proposed/skills/ (not matched here).
+  .claude/skills/*)                        deny=1 ;;
   .mcp.json)                               deny=1 ;;
   .github/workflows/*)                     deny=1 ;;
   .github/rulesets/*)                      deny=1 ;;

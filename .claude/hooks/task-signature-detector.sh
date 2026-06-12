@@ -29,39 +29,51 @@ mkdir -p "$(dirname "$COUNTER")"
 today_count=$(cat "$COUNTER" 2>/dev/null || echo 0)
 [ "$today_count" -ge 5 ] && exit 0
 
-# Read last 200 successful (exit=0) bash log lines
-recent=$(tail -200 "$BASH_LOG" | grep -E 'exit=0' | head -200)
+# Gap-audit G18: the header's quality gates are now implemented, portably
+# (no gawk mktime). Last 200 lines INCLUDING failures (the exit-0 ratio needs
+# them); session id increments on a >1h timestamp gap; a trigram qualifies on
+# count ≥5 AND ≥2 distinct sessions AND ≥80% of instances fully exit-0.
+recent=$(tail -200 "$BASH_LOG")
 [ -z "$recent" ] && exit 0
 
-# Extract command families: first token after the timestamp+exit
-# Example log line: 2026-05-28T01:02:03+10:00\texit=0\tnpm install foo
-# Family = "npm install" (first 2 tokens of the command)
-families=$(echo "$recent" | awk -F'\t' '{
-  # $3 is the command; take first 2 tokens
-  split($3, parts, " ")
-  print parts[1] " " parts[2]
-}' | head -200)
-
-# Build 3-gram signatures (sliding window over consecutive families)
-trigrams=$(echo "$families" | awk '
+# Emits qualifying signatures "fam1||fam2||fam3". Timestamp → approximate
+# minutes via fixed 31-day months — exact gaps don't matter, only ">60min".
+qualifying=$(echo "$recent" | awk -F'\t' '
+  function tmins(ts,    y, mo, d, h, mi) {
+    y  = substr(ts, 1, 4) + 0; mo = substr(ts, 6, 2) + 0
+    d  = substr(ts, 9, 2) + 0; h  = substr(ts, 12, 2) + 0
+    mi = substr(ts, 15, 2) + 0
+    return ((((y * 12 + mo) * 31 + d) * 24 + h) * 60 + mi)
+  }
   {
-    history[NR] = $0
+    t = tmins($1)
+    if (NR > 1 && t - prev_t > 60) session++
+    prev_t = t
+    split($3, parts, " ")
+    fam[NR] = parts[1] " " parts[2]
+    ok[NR] = ($2 == "exit=0") ? 1 : 0
+    sess[NR] = session + 0
   }
   END {
     for (i = 1; i <= NR - 2; i++) {
-      # Skip if any family is empty
-      if (history[i] == "" || history[i+1] == "" || history[i+2] == "") continue
-      printf "%s||%s||%s\n", history[i], history[i+1], history[i+2]
+      if (fam[i] == "" || fam[i+1] == "" || fam[i+2] == "") continue
+      sig = fam[i] "||" fam[i+1] "||" fam[i+2]
+      count[sig]++
+      if (ok[i] && ok[i+1] && ok[i+2]) clean[sig]++
+      sessions[sig, sess[i]] = 1
+    }
+    for (sig in count) {
+      if (count[sig] < 5) continue
+      nsess = 0
+      for (k in sessions) { split(k, p, SUBSEP); if (p[1] == sig) nsess++ }
+      if (nsess < 2) continue
+      if ((clean[sig] + 0) / count[sig] < 0.8) continue
+      print count[sig] "\t" sig
     }
   }
-' | sort | uniq -c | sort -rn)
-
-# Pick trigrams with count ≥ 5
-qualifying=$(echo "$trigrams" | awk '$1 >= 5 { sub(/^ *[0-9]+ +/, ""); print }')
+' | sort -rn | cut -f2)
 [ -z "$qualifying" ] && exit 0
 
-# For each qualifying trigram, check if it appears in ≥ 2 distinct sessions
-# Session = bash.log timestamp gap > 1h between consecutive lines
 emitted=0
 while IFS= read -r sig; do
   [ -z "$sig" ] && continue
@@ -80,7 +92,12 @@ while IFS= read -r sig; do
   fam1=$(echo "$sig" | cut -d'|' -f1 | tr -s ' ' '-' | tr -d '[:punct:]' | tr '[:upper:]' '[:lower:]')
   slug_suggestion=$(echo "$fam1" | head -c 24)-$(echo "$sig_hash" | head -c 6)
 
-  # Emit candidate
+  # Emit candidate.
+  # JUSTIFIED: jq error output discarded — appending a candidate is best-effort in
+  # this Stop hook; a write hiccup must not fail the stop, the counter just stays put.
+  # (Gap-audit G18 bonus fix: this comment previously sat INSIDE the single-quoted
+  # jq program — its apostrophes broke the shell quoting and every emit silently
+  # failed, which is why _candidates.jsonl never accumulated anything.)
   jq -nc \
     --arg ts "$(date -Iseconds)" \
     --arg sig "$sig" \
@@ -92,7 +109,6 @@ while IFS= read -r sig; do
       sig_hash: $hash,
       suggested_slug: $slug,
       source: "task-signature-detector"
-      # JUSTIFIED: jq error output discarded — appending a candidate is best-effort in this Stop hook; a write hiccup must not fail the user's stop, the counter just won't advance
     }' >> "$CANDIDATES" 2>/dev/null
 
   emitted=$((emitted + 1))

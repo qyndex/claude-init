@@ -141,3 +141,7 @@ tmp/
 .claude/state/current-spec
 # verify.sh SKIP-request audit log (Spec 003 AC-2)
 verify/.skip-log
+.claude/state/context-monitor/
+.claude/state/read-nudge/
+.claude/state/ideation-pending
+.claude/state/stop-verify-blocks.log

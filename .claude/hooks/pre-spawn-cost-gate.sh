@@ -2,10 +2,12 @@
 # PreToolUse hook. Two responsibilities:
 #   1. Refuse spawn-class commands (claude --bg / -p / --remote) when monthly
 #      cost cap is exceeded. Reads .claude/hooks/.log/cost-summary.json.
-#   2. Refuse a single subagent spawn whose prompt exceeds 4 KB (Round 5 D7 —
-#      catches "parent passes 10K-token brief, child pays it" leak).
+#   2. Gate subagent prompt size (Round 5 D7 / Round 6 C — catches "parent
+#      passes 10K-token brief, child pays it" leak): deny >32 KB always;
+#      ask >16 KB interactively, deny >16 KB in autonomous contexts where
+#      "ask" auto-resolves (gap-audit G11).
 #
-# Wired on Bash and Agent|Task matchers in .claude/settings.json.
+# Wired on Bash and Agent|Task matchers in .claude/settings.json (G6).
 
 set -uo pipefail
 
@@ -50,12 +52,21 @@ EOF
       || printf '%s' "$prompt" | grep -qE '^(```|---$)' 2>/dev/null; then
       inline_hint=" Detected probable inlined file content — replace with file paths."
     fi
+
+    # Gap-audit G11: in autonomous contexts an "ask" auto-resolves to allow,
+    # making this tier a no-op exactly where input-token leaks matter most.
+    # Detect autopilot (routine-exported env or live overnight run-lock) and
+    # harden to deny there; stay "ask" for interactive sessions.
+    decision="ask"
+    if [ "${CLAUDE_AUTOPILOT:-0}" = "1" ] || ls "$ROOT"/.claude/state/overnight-*.run >/dev/null 2>&1; then
+      decision="deny"
+    fi
     cat <<EOF
 {
   "hookSpecificOutput": {
     "hookEventName": "PreToolUse",
-    "permissionDecision": "ask",
-    "permissionDecisionReason": "Large subagent prompt: ${prompt_bytes} bytes (~$((prompt_bytes / 4)) tokens). The child pays this on every turn.$inline_hint Consider (a) pointers/paths not contents, (b) narrower subagents, (c) Explore for reads."
+    "permissionDecision": "${decision}",
+    "permissionDecisionReason": "Large subagent prompt: ${prompt_bytes} bytes (~$((prompt_bytes / 4)) tokens). The child pays this on every turn.$inline_hint Consider (a) pointers/paths not contents, (b) narrower subagents, (c) Explore for reads.$([ "$decision" = "deny" ] && printf ' Denied (autonomous context: 16 KB hard ceiling).')"
   }
 }
 EOF
@@ -112,12 +123,17 @@ EOF
 fi
 
 if [ "${pct:-0}" -ge 90 ]; then
+  # Gap-audit G11: "ask" auto-resolves in autonomous contexts — harden to deny there.
+  decision="ask"
+  if [ "${CLAUDE_AUTOPILOT:-0}" = "1" ] || ls "$ROOT"/.claude/state/overnight-*.run >/dev/null 2>&1; then
+    decision="deny"
+  fi
   cat <<EOF
 {
   "hookSpecificOutput": {
     "hookEventName": "PreToolUse",
-    "permissionDecision": "ask",
-    "permissionDecisionReason": "Cost cap at ${pct}% (\$${total} of \$${cap}). Confirm this spawn is necessary; consider switching to Sonnet/Haiku to extend runway."
+    "permissionDecision": "${decision}",
+    "permissionDecisionReason": "Cost cap at ${pct}% (\$${total} of \$${cap}). Confirm this spawn is necessary; consider switching to Sonnet/Haiku to extend runway.$([ "$decision" = "deny" ] && printf ' Denied (autonomous context holds the last 10%% of cap for the operator).')"
   }
 }
 EOF

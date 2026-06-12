@@ -81,4 +81,4 @@ A complete plan contains:
 - Spec file exists with `status: approved` and zero open questions.
 - Plan file exists with `status: approved`, references the spec, and lists phased tasks.
 - Plan's References section cites every ADR/pattern/incident consulted in step 3 (by path).
-- A new ADR is written to `.claude/memory/decisions/` if a non-obvious architectural choice was made; if it supersedes an existing one, the old ADR's frontmatter is updated with `superseded_by:` and `status: superseded`.
+- If a non-obvious architectural choice was made: the full ADR content (template: `.claude/memory/decisions/0000-template.md`) is included in your NEXUS handoff under `decisions_made`, and the parent persists it via `bash .claude/scripts/adr-new.sh` (gap-audit G34: this agent is read-only — it cannot write the file itself; the handoff is the durable channel, archived by subagent-stop.sh to `.claude/memory/handoffs/`). If the decision supersedes an existing ADR, say so in the handoff (`supersedes: <path>`).

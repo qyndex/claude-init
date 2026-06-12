@@ -95,7 +95,7 @@ Implementer agent: apply the proposed fix, run the test, then the full suite.
 - The cause is identified at file:line.
 - A reproducer exists.
 - A fix proposal is handed to the implementer.
-- The diagnosis is **always** logged in `.claude/memory/incidents/<YYYY-MM-DD>-<slug>.md` with:
+- The diagnosis is **always** included in your NEXUS handoff under `decisions_made` as a complete incident entry (target file: `.claude/memory/incidents/<YYYY-MM-DD>-<slug>.md` — gap-audit G34: this agent is read-only and cannot write it; subagent-stop.sh archives the handoff and the parent/dream persists the incident) with:
   - error signature / Sentry fingerprint
   - reproduction steps
   - root cause + file:line

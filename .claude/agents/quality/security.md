@@ -108,6 +108,6 @@ Semgrep is the *first line* (sub-minute scan). CodeQL is the *deep pass* (in CI)
 - Report posted (chat or PR comment).
 - Zero unresolved critical or high findings.
 - Dependency audit shows no known-vulnerable versions.
-- **For every blocked critical/high**, an incident is logged at `.claude/memory/incidents/<YYYY-MM-DD>-sec-<slug>.md` with the vulnerability class, affected paths, root cause, and remediation. This builds the institutional memory of what almost shipped.
-- If the finding matches a class from a past incident, that incident's frontmatter is updated with `recurred_at: <today>` — this surfaces systemic gaps (training? linting? architecture?).
-- If a new anti-pattern was discovered, a pattern note is written to `.claude/memory/patterns/anti-<slug>.md` so the reviewer agent can flag it on future diffs.
+- **For every blocked critical/high**, a complete incident entry (vulnerability class, affected paths, root cause, remediation) is included in your NEXUS handoff under `decisions_made`, with target file `.claude/memory/incidents/<YYYY-MM-DD>-sec-<slug>.md` — gap-audit G34: this agent is read-only and cannot write it; subagent-stop.sh archives the handoff and the parent/dream persists the incident. This builds the institutional memory of what almost shipped.
+- If the finding matches a class from a past incident, name that incident + `recurred_at: <today>` in the handoff so the parent updates its frontmatter — this surfaces systemic gaps (training? linting? architecture?).
+- If a new anti-pattern was discovered, include the pattern content in the handoff (target: `.claude/memory/patterns/anti-<slug>.md`) so the parent persists it and the reviewer agent can flag it on future diffs.

@@ -79,14 +79,35 @@ esac
 case "$prompt" in *"handoff"*|*"status report"*|*"what did you do"*|*"next session"*|*"hand off"*)
   hints+=(".claude/skills/handoff/SKILL.md — NEXUS schema") ;;
 esac
-case "$prompt" in *"lesson learned"*|*"postmortem"*|*"capture what we learned"*|*"adr"*|*"decision record"*|*"incident"*)
-  hints+=("/lesson-learned — incidents / decisions / patterns / playbooks") ;;
+# Gap-audit G20: "incident" used to misroute here (postmortem tool) — live
+# incidents now route to /incident-start below; this arm keeps the
+# after-the-fact phrases only.
+case "$prompt" in *"lesson learned"*|*"postmortem"*|*"capture what we learned"*|*"adr"*|*"decision record"*)
+  hints+=("suggest the user run /lesson-learned — incidents / decisions / patterns / playbooks (user-only command)") ;;
+esac
+# Gap-audit G20: high-value operational commands previously had zero discovery
+# path. G24: framed as "suggest the user run" — these are disable-model-invocation
+# commands the model cannot execute itself.
+case "$prompt" in *"incident"*|*"outage"*|*"prod is down"*|*"production is down"*|*"sev1"*|*"sev 1"*)
+  hints+=("suggest the user run /incident-start --severity P1|P2|P3 (user-only command) — IC assignment + incident doc + deploy/flag/error pull") ;;
+esac
+case "$prompt" in *"harness broken"*|*"hooks not firing"*|*"harness doctor"*|*"behavior feels off"*|*"harness health"*)
+  hints+=("suggest the user run /harness-doctor (user-only command), or run: bash .claude/scripts/harness-doctor.sh") ;;
+esac
+case "$prompt" in *"triage"*|*"bug report"*|*"re-rank tasks"*|*"reprioritize"*|*"what should we work on"*)
+  hints+=("suggest the user run /triage (user-only command) — re-rank pending tasks by priority + age + spec health") ;;
+esac
+case "$prompt" in *"dependency audit"*|*"outdated deps"*|*"vulnerable packages"*|*"audit dependencies"*|*"deps audit"*)
+  hints+=("suggest the user run /deps-audit (user-only command) — outdated + vulnerable + low-quality packages") ;;
+esac
+case "$prompt" in *"brownfield"*|*"existing project"*|*"adopt this repo"*|*"legacy repo"*|*"bring under the framework"*)
+  hints+=("suggest the user run /adopt start (user-only command) — six-phase brownfield adoption; see docs/ADOPTION.md") ;;
 esac
 case "$prompt" in *"create a skill"*|*"new skill"*|*"author a skill"*|*"build a skill"*)
-  hints+=("/create-skill <slug> \"<desc>\" — native skill-creator (Round 9 A); writes to .claude/memory.proposed/skills/ for review") ;;
+  hints+=("suggest the user run /create-skill <slug> (user-only command) — native skill-creator; writes to .claude/memory.proposed/skills/ for review") ;;
 esac
 case "$prompt" in *"create an agent"*|*"new agent"*|*"create-agent"*|*"new subagent"*|*"build an agent"*)
-  hints+=("/create-agent — scaffolds .claude/agents/<tier>/<name>.md") ;;
+  hints+=("suggest the user run /create-agent (user-only command) — scaffolds .claude/agents/<tier>/<name>.md") ;;
 esac
 case "$prompt" in *"build an mcp"*|*"new mcp"*|*"mcp server"*|*"author mcp"*)
   hints+=("/plugin install mcp-builder@claude-plugins-official") ;;
@@ -95,13 +116,13 @@ case "$prompt" in *"brainstorm"*|*"think through"*|*"explore options"*|*"throw i
   hints+=("superpowers:brainstorming — design before code (plugin)") ;;
 esac
 case "$prompt" in *"prime me"*|*"load context"*|*"refresh state"*|*"prime discipline"*)
-  hints+=("/prime — load project context") ;;
+  hints+=("suggest the user run /prime (user-only command) — load project context") ;;
 esac
 case "$prompt" in *"what's the state"*|*"current status"*|*"what's happening"*|*"swarm status"*)
-  hints+=("/status — branch, dirty, active spec/plan, CI") ;;
+  hints+=("suggest the user run /status (user-only command) — branch, dirty, active spec/plan, CI") ;;
 esac
 case "$prompt" in *"onboard"*|*"new team member"*|*"first time"*|*"orient me"*)
-  hints+=("/onboard — 10-min interactive walkthrough") ;;
+  hints+=("suggest the user run /onboard (user-only command) — 10-min interactive walkthrough") ;;
 esac
 case "$prompt" in *"worktree"*|*"isolated workspace"*|*"feat branch"*)
   hints+=("superpowers:using-git-worktrees + native claude -w") ;;
@@ -109,6 +130,52 @@ esac
 case "$prompt" in *"should i delegate"*|*"six gates"*|*"subagent criteria"*|*"dispatch criteria"*)
   hints+=(".claude/skills/dispatch-criteria/SKILL.md — six gates") ;;
 esac
+
+# ─── Gap-audit G14/G15: generated trigger table ─────────────────────────
+# .claude/state/skill-triggers.tsv (skill<TAB>phrase, lowercase) is emitted by
+# regen-skill-registry.sh from skill frontmatter + triggers.yml files, so
+# router coverage tracks the catalogue instead of this hand-written case list.
+# cwd is the project root for hooks (matches the other relative paths here)
+TRIGGERS_TSV=".claude/state/skill-triggers.tsv"
+if [ -f "$TRIGGERS_TSV" ] && [ ${#hints[@]} -lt 3 ]; then
+  seen_skills=" ${hints[*]:-} "
+  while IFS=$'\t' read -r t_skill t_phrase; do
+    [ -z "$t_skill" ] || [ -z "$t_phrase" ] && continue
+    case "$prompt" in
+      *"$t_phrase"*)
+        # skip skills already hinted by the static arms
+        case "$seen_skills" in *"/$t_skill/"*|*" $t_skill "*) continue ;; esac
+        hints+=(".claude/skills/$t_skill/SKILL.md (matched: $t_phrase)")
+        seen_skills="$seen_skills $t_skill "
+        [ ${#hints[@]} -ge 3 ] && break
+        ;;
+    esac
+  done < "$TRIGGERS_TSV"
+fi
+
+# ─── Gap-audit G31: instinct triggers (instinct/SKILL.md read path) ──────
+# Match learned instincts (confidence ≥0.5 per the skill's own rule) against
+# the prompt and inject the action just-in-time.
+INSTINCTS=".claude/memory/instincts/active.yml"
+if [ -s "$INSTINCTS" ] && [ ${#hints[@]} -lt 3 ]; then
+  while IFS=$'\t' read -r i_trigger i_action i_conf; do
+    [ -z "$i_trigger" ] || [ -z "$i_action" ] && continue
+    awk -v c="$i_conf" 'BEGIN { exit !(c >= 0.5) }' || continue
+    lt=$(printf '%s' "$i_trigger" | tr '[:upper:]' '[:lower:]')
+    case "$prompt" in
+      *"$lt"*)
+        hints+=("[instinct] $i_action (learned; confidence $i_conf)")
+        [ ${#hints[@]} -ge 3 ] && break
+        ;;
+    esac
+  done < <(awk '
+    /^- id:/ { if (trg != "") printf "%s\t%s\t%s\n", trg, act, conf; trg=""; act=""; conf="0" }
+    /^[[:space:]]*trigger:/ { sub(/^[[:space:]]*trigger:[[:space:]]*/, ""); gsub(/"/, ""); trg=$0 }
+    /^[[:space:]]*action:/  { sub(/^[[:space:]]*action:[[:space:]]*/, "");  gsub(/"/, ""); act=$0 }
+    /^[[:space:]]*confidence:/ { sub(/^[[:space:]]*confidence:[[:space:]]*/, ""); conf=$0 }
+    END { if (trg != "") printf "%s\t%s\t%s\n", trg, act, conf }
+  ' "$INSTINCTS")
+fi
 
 # Done? Bail.
 [ ${#hints[@]} -eq 0 ] && exit 0

@@ -63,6 +63,8 @@
 
 **Rule of thumb:** Sonnet unless proven otherwise. This list is authoritative — every agent's frontmatter `model:` must match it.
 
+**Cross-model review (gap-audit G46):** the CI gating reviewer (`claude-review.yml`) must NOT resolve to the same model id as the implementer agent — same-model review shares blind spots. Implementer is Opus 4.8 → the CI review job runs Sonnet 4.6. `check-model-consistency.sh` fails on drift.
+
 ---
 
 ## VI. `<commit_protocol>` (Conventional Commits + git trailers, from [yeachan-heo/oh-my-claudecode](https://github.com/yeachan-heo/oh-my-claudecode))

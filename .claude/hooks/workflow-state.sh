@@ -117,8 +117,10 @@ if [ "$streak" -ge 3 ] && [ "$warned_at" = "0" ]; then
     "$streak")
   replace_atomic "$state_file" "$warned_json"
 elif [ "$streak" -ge 3 ]; then
-  # Already warned this phase — short reminder only, no full protocol
-  ctx="$ctx <warn>still stuck (streak=$streak); see BREAK-LOOP above</warn>"
+  # Already warned this phase — short reminder only, no full protocol.
+  # Gap-audit G4: no streak integer — an incrementing number makes the injected
+  # string unique every turn, exactly during loops (the worst time for cache churn).
+  ctx="$ctx <warn>still stuck in this phase; see BREAK-LOOP above</warn>"
 fi
 
 # Emit

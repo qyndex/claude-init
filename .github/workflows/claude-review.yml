@@ -2,6 +2,15 @@ name: Claude PR Review
 
 # Automated code review on every PR. Posts inline comments grouped by severity.
 # Uses anthropics/claude-code-action@v1 in headless mode.
+#
+# Gap-audit G46: the gating reviewer runs a DIFFERENT model than the
+# implementer agent (Opus 4.8). Opus reviewing Opus shares blind spots;
+# cross-model review (Sonnet 4.6 here) is deliberate diversity on the
+# verification axis. check-model-consistency.sh fails if this drifts back
+# to the implementer's model family.
+#
+# Gap-audit G50: the anti-slop triage pass lives ONLY in pr-review.yml now
+# (this file used to duplicate it).
 
 on:
   pull_request:
@@ -24,11 +33,11 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
 
-      - name: Run Claude code-reviewer
+      - name: Run Claude code-reviewer (cross-model — G46)
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          model: claude-opus-4-8
+          model: claude-sonnet-4-6
           mode: review
           prompt: |
             You are the reviewer agent (.claude/agents/quality/reviewer.md).
@@ -42,39 +51,28 @@ jobs:
             4. Re-verify each finding by re-reading the relevant path — suppress false positives.
             5. Post the surviving findings as inline review comments.
 
+            FORMAT CONTRACT (machine-checked): every finding MUST cite `path:line`.
+            End your review summary with the exact line:
+            `Multi-pass: re-verified <N> findings, suppressed <M> false positives.`
+
             Block the PR (--request-changes) if any blocker or high remains.
 
-  # Spec 001 AC-20: anti-slop triage as an additional reviewer pass. Skips PRs
-  # labelled `human-author` (a human explicitly owns it). For the first 30 days
-  # this pass is ADVISORY — it comments its triage class but never requests
-  # changes — so the team can calibrate the eight-class taxonomy before it gates.
-  anti-slop-triage:
-    if: >-
-      github.event.pull_request.draft == false &&
-      !contains(github.event.pull_request.labels.*.name, 'human-author')
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 0
-
-      - name: Run anti-slop-reviewer (advisory)
-        uses: anthropics/claude-code-action@v1
-        with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          model: claude-sonnet-4-6
-          mode: review
-          prompt: |
-            You are the anti-slop-reviewer agent
-            (.claude/agents/quality/anti-slop-reviewer.md). Triage this PR into
-            exactly one of the eight classes: actionable-bug, actionable-docs,
-            actionable-feature, duplicate, spam, generated-slop,
-            security-sensitive, not-reproducible.
-
-            ADVISORY MODE (first 30 days): post a single summary comment stating
-            the triage class and a one-line rationale. Do NOT request changes and
-            do NOT block — this pass is calibration-only for now. If the class is
-            `security-sensitive`, recommend routing to the security agent.
+      # Gap-audit G50: cheap mechanical proxy that pass 2 happened — the posted
+      # review must carry the multi-pass marker and per-finding file:line
+      # citations. Warn-only (prompt drift shouldn't hard-block merges), but
+      # visible in the checks UI so drift gets fixed.
+      - name: Lint review format (citations + multi-pass marker — G50)
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          reviews=$(gh pr view "$PR_NUMBER" --json reviews -q '.reviews[].body' 2>/dev/null || true)
+          [ -z "$reviews" ] && { echo "no review body yet — skipping format lint"; exit 0; }
+          if ! echo "$reviews" | grep -qE 'Multi-pass: re-verified [0-9]+ findings'; then
+            echo "::warning::Reviewer output lacks the multi-pass marker — pass-2 re-verification not evidenced (G50)."
+          fi
+          if ! echo "$reviews" | grep -qE '[A-Za-z0-9_./-]+\.[a-z]+:[0-9]+'; then
+            echo "::warning::Reviewer findings carry no path:line citations (G50)."
+          fi
+          echo "review format lint done"

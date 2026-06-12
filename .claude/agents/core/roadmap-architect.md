@@ -56,6 +56,11 @@ A complete initiative contains:
      d. Flag namespace + default cleanup window
      e. Top 3 risks (with named owner) — sub-Qs per risk
      f. Communication cadence (weekly/monthly/quarterly)
+5b. RESEARCH BRIEF (gap-audit G62) — for any NET-NEW initiative, delegate a
+    researcher brief first: competitors, prior art, build-vs-buy. The
+    researcher saves it to docs/research/<slug>.md; cite it in the
+    initiative's Strategic context. No brief → the initiative is a hunch,
+    not a plan. (Skippable only for continuations of an existing initiative.)
 6. Draft initiative — phases, risks, flag policy, communication
 7. Run okr-align skill to validate KR linkage
 8. Identify P0 specs; create stubs in specs/active/ (status: draft)
@@ -75,6 +80,7 @@ A complete initiative contains:
 ## Done means
 
 - Initiative file exists with `status: active`
+- **Research-grounded (G62):** net-new initiative cites a `docs/research/` brief in Strategic context
 - Roadmap.md placement updated
 - OKR alignment validated
 - P0 spec stubs created (delegated to architect)

@@ -1,0 +1,64 @@
+# ADR gate — gap-audit G40.
+# An architectural change with no ADR used to pass every gate (enforcement was
+# prose-only). This fails a PR whose diff touches architectural surfaces
+# (globs in .claude/adr-surfaces.txt) unless the same PR adds/updates a file
+# under .claude/memory/decisions/ or a commit references an ADR.
+name: adr-gate
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  adr-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check architectural surfaces vs ADR presence
+        run: |
+          set -uo pipefail
+          base="origin/${{ github.base_ref }}"
+          git fetch origin "${{ github.base_ref }}" --depth=50 >/dev/null 2>&1 || true
+          changed=$(git diff --name-only "$base"...HEAD)
+          [ -z "$changed" ] && { echo "no changes"; exit 0; }
+
+          surfaces=".claude/adr-surfaces.txt"
+          [ -f "$surfaces" ] || { echo "no $surfaces — gate skipped"; exit 0; }
+
+          touched_arch=""
+          while IFS= read -r glob; do
+            case "$glob" in ''|'#'*) continue ;; esac
+            # shell-glob match each changed path against the pattern
+            while IFS= read -r f; do
+              case "$f" in
+                $glob) touched_arch="$touched_arch $f" ;;
+              esac
+            done <<< "$changed"
+          done < "$surfaces"
+
+          if [ -z "$touched_arch" ]; then
+            echo "✓ no architectural surfaces touched"
+            exit 0
+          fi
+
+          echo "Architectural surfaces touched:$touched_arch"
+
+          if echo "$changed" | grep -q '^\.claude/memory/decisions/.*\.md$'; then
+            echo "✓ ADR added/updated in this PR"
+            exit 0
+          fi
+          if git log "$base"...HEAD --format='%B' | grep -qiE 'ADR[-: ]?[0-9]{4}|\.claude/memory/decisions/'; then
+            echo "✓ commit references an ADR"
+            exit 0
+          fi
+
+          echo "✗ Architectural surfaces changed with no ADR."
+          echo "  Create one: bash .claude/scripts/adr-new.sh \"<title>\" --by human --subsystem <key>"
+          echo "  (or cite an existing ADR-NNNN in the commit body; surfaces list: $surfaces)"
+          exit 1

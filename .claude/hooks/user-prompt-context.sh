@@ -15,12 +15,20 @@ branch=$(git symbolic-ref --short HEAD 2>/dev/null || echo "detached")
 # JUSTIFIED: git error output discarded — any status hiccup yields an empty list and a dirty count of 0, acceptable for a context banner
 dirty=$(git status --porcelain 2>/dev/null | wc -l | tr -d ' ')
 
+# Gap-audit G4: bucket the count so the injected string is stable across most
+# turns (guaranteed-unique tokens defeat transcript-level caching).
+case "$dirty" in
+  0) bucket="clean" ;;
+  [1-9]) bucket="dirty (1-9)" ;;
+  *) bucket="dirty (10+)" ;;
+esac
+
 # Emit as additionalContext (JSON)
 cat <<EOF
 {
   "hookSpecificOutput": {
     "hookEventName": "UserPromptSubmit",
-    "additionalContext": "[harness] Branch: $branch | Dirty files: $dirty"
+    "additionalContext": "[harness] Branch: $branch | Tree: $bucket"
   }
 }
 EOF

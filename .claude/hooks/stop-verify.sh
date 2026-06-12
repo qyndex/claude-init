@@ -55,16 +55,49 @@ if [ -z "$prod_changed" ]; then
   exit 0
 fi
 
-# Check if a recent verify report exists
+# ─── Gap-audit G48: check report CONTENT, not just existence/recency ─────
+# A REPORT.md with verdict FAIL (or for a different feature) used to satisfy
+# this gate. Now: newest recent report must carry a PASS verdict, and if it
+# names a feature, that feature must relate to this session's branch or
+# touched specs. Blocks are logged so /harness-doctor can surface bypasses.
+block() { # block <reason>
+  mkdir -p .claude/state
+  # JUSTIFIED: log write is best-effort telemetry — a failure must not mask the block itself
+  printf '%s\t%s\n' "$(date -Iseconds)" "$1" >> .claude/state/stop-verify-blocks.log 2>/dev/null
+  echo "$1 Run /verify before ending." >&2
+  exit 2
+}
+
 recent_verify=""
 if [ -d verify ]; then
   # JUSTIFIED: the redirect drops find stderr and the fallback yields empty if find errors or matches nothing — empty recent_verify correctly emits the "no recent verification" block
-  recent_verify=$(find verify -name 'REPORT.md' -mtime -1 -print 2>/dev/null | head -1 || true)
+  recent_verify=$(find verify -name 'REPORT.md' -mtime -1 -print 2>/dev/null | sort -r | head -1 || true)
 fi
 
 if [ -z "$recent_verify" ]; then
-  echo "Production files changed but no recent verification report (verify/*/REPORT.md from the last 24h). Run /verify before ending. To override: re-send your last message; Claude Code Stop-hook protocol allows resubmission to bypass a block." >&2
-  exit 2
+  block "Production files changed but no recent verification report (verify/*/REPORT.md from the last 24h)."
+fi
+
+# Verdict must be PASS (case-insensitive on the label, strict on the value)
+if ! grep -qiE '(verdict|result)[:* ]+.*PASS' "$recent_verify"; then
+  block "Recent report $recent_verify does not carry a PASS verdict — a failing report is not verification."
+fi
+
+# Feature match: verify/<date>-<feature>/REPORT.md — if a feature slug is
+# present, it must appear in the branch name or in a touched spec/plan path.
+report_dir=$(basename "$(dirname "$recent_verify")")
+feature=$(printf '%s' "$report_dir" | sed -E 's/^[0-9]{4}-[0-9]{2}-[0-9]{2}-?//')
+if [ -n "$feature" ]; then
+  # JUSTIFIED: git stderr suppressed — detached HEAD yields empty branch; the spec-path check below still applies
+  branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || true)
+  touched=$(git diff --name-only HEAD 2>/dev/null | grep -E '^(specs|plans)/' || true)
+  if ! printf '%s\n%s\n' "$branch" "$touched" | grep -qiF "$feature"; then
+    # Heuristic, so warn-strength only when the report is otherwise valid:
+    # block ONLY if the session touched specs/plans for a clearly different feature.
+    if [ -n "$touched" ]; then
+      block "Recent report is for '$feature' but this session touched different spec/plan files — verify THIS feature."
+    fi
+  fi
 fi
 
 exit 0

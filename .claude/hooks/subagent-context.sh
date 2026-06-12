@@ -52,6 +52,21 @@ fi
 init_state=$(ls -t initiatives/active/*.STATE.md 2>/dev/null | head -1 || echo "")
 [ -n "$init_state" ] && ctx="$ctx Initiative state: $init_state (machine-current; read instead of re-deriving)."
 
+# ─── Gap-audit G32: "have we seen this before?" for every child ──────────
+# Lessons used to flow only to reviewers; the code-writing agents started
+# blind. memory-recall is index-backed, injection-safe, and empty when
+# irrelevant — scope it to the paths the child will touch (spec/plan).
+if [ -x .claude/scripts/memory-recall.sh ]; then
+  recall_paths=""
+  [ -n "$spec" ] && recall_paths="$spec"
+  [ -n "$plan" ] && recall_paths="$recall_paths $plan"
+  if [ -n "$recall_paths" ]; then
+    # JUSTIFIED: recall is best-effort enrichment — failure or no matches yields empty and the line is omitted
+    recall=$(bash .claude/scripts/memory-recall.sh --paths "$recall_paths" --limit 3 2>/dev/null | tr '\n' ' ' | head -c 400)
+    [ -n "$recall" ] && ctx="$ctx Memory recall: $recall"
+  fi
+fi
+
 # Current task (in-progress marker). T-[0-9]+ guard: never match the TASKS.md
 # format-template line (memory-system review, 2026-06-12).
 if [ -f tasks/TASKS.md ]; then
