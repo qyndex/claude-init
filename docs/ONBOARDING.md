@@ -29,7 +29,7 @@ Recommended:
 gh repo create my-project --private --clone
 cd my-project
 gh repo clone <your-org>/claude-init /tmp/claude-init
-cp -r /tmp/claude-init/{.claude,.github,specs,plans,tasks,docs,.mcp.json,.gitignore} .
+git -C /tmp/claude-init archive HEAD | tar -x -C .
 cp /tmp/claude-init/.gitignore .gitignore 2>/dev/null || true
 git add . && git commit -m "feat: bootstrap claude code golden harness"
 ```
@@ -40,7 +40,7 @@ git add . && git commit -m "feat: bootstrap claude code golden harness"
 # From the repo root
 gh repo clone <your-org>/claude-init /tmp/claude-init
 # Copy the harness, preserving any existing files you have
-cp -nr /tmp/claude-init/{.claude,.github,specs,plans,tasks,docs,.mcp.json,.gitignore} .
+git -C /tmp/claude-init archive HEAD | tar -x -C .
 
 # Merge .gitignore manually if you already have one
 diff -u .gitignore /tmp/claude-init/.gitignore | less

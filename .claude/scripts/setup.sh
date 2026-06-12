@@ -85,6 +85,31 @@ if [ "${TEMPLATE_CLEAN:-1}" = "1" ] && ! printf '%s' "$origin_url" | grep -q "cl
     mv "$f" "$hist/initiatives/"
     cleaned=$((cleaned+1))
   done
+  # 5. Factory runtime state (live-e2e FINDING-2): hook logs, memory cache, and
+  # session state read as THIS project's history by harness-doctor. Personal
+  # settings are deleted outright (never belong to a new project); the rest is
+  # archived. Keeps state scaffolding: .gitkeep, adopt/, skill-triggers.tsv.
+  rm -f .claude/settings.local.json
+  for d in .claude/hooks/.log .claude/memory/.cache; do
+    [ -d "$d" ] || continue
+    [ -n "$(find "$d" -type f -print -quit 2>/dev/null)" ] || continue
+    mkdir -p "$hist/$d"
+    cp -R "$d"/. "$hist/$d/" 2>/dev/null
+    find "$d" -mindepth 1 -delete 2>/dev/null
+    cleaned=$((cleaned+1))
+  done
+  if [ -d .claude/state ]; then
+    state_purged=0
+    for f in .claude/state/* .claude/state/.[!.]*; do
+      [ -e "$f" ] || continue
+      case "$(basename "$f")" in .gitkeep|adopt|skill-triggers.tsv) continue ;; esac
+      mkdir -p "$hist/.claude/state"
+      cp -R "$f" "$hist/.claude/state/" 2>/dev/null
+      rm -rf "$f"
+      state_purged=1
+    done
+    [ "$state_purged" = 1 ] && cleaned=$((cleaned+1))
+  fi
   if [ "$cleaned" -gt 0 ]; then
     ok "template-clean: $cleaned factory artifact group(s) moved to $hist/"
   else

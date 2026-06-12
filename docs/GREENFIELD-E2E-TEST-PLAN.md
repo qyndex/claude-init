@@ -25,7 +25,7 @@ Delete it when done; nothing here touches production.
 | # | Step | Command / action | Pass criteria |
 |---|------|------------------|---------------|
 | 0.1 | Create repo | `gh repo create <org>/harness-e2e-sandbox --private --clone` | repo exists, cloned |
-| 0.2 | Scaffold harness | copy `.claude/ .github/ specs/ plans/ tasks/ docs/ .mcp.json .gitignore` from claude-init, then `bash .claude/scripts/setup.sh` | setup completes; release-please config seeded for the detected stack (no `@your-org/your-repo` placeholder); API-key preflight warns until 0.3 |
+| 0.2 | Scaffold harness | `git -C <claude-init> archive HEAD | tar -x -C .` (git-aware: complete tracked set, no gitignored leakage), then `bash .claude/scripts/setup.sh` | setup completes; release-please config seeded for the detected stack (no `@your-org/your-repo` placeholder); API-key preflight warns until 0.3 |
 | 0.3 | Set secret | `gh secret set ANTHROPIC_API_KEY` **(operator)** | `gh secret list` shows it; setup preflight / doctor check green |
 | 0.4 | Apply + activate ruleset | `gh api repos/<org>/harness-e2e-sandbox/rulesets --method POST --input .github/rulesets/main-protection.json` | doctor "live branch ruleset" check flips green |
 | 0.5 | First push | `git push -u origin main` | `harness-validate` workflow runs green in Actions |

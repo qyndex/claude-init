@@ -142,7 +142,7 @@ When adopting an existing project (not greenfield setup):
 ```bash
 # From the target repo root
 git clone https://github.com/<org>/claude-init /tmp/claude-init
-cp -nr /tmp/claude-init/{.claude,.github,specs,plans,tasks,docs,.mcp.json,.gitignore} .
+git -C /tmp/claude-init archive HEAD | tar -x -C .   # git-aware: tracked files only — cp -r leaks gitignored runtime state + settings.local.json
 bash .claude/scripts/setup.sh
 # If .claude/CLAUDE.md already exists and isn't factory-format:
 bash .claude/scripts/reconcile-claude-dir.sh --from /tmp/claude-init --into .

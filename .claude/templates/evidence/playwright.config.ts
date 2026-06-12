@@ -35,7 +35,11 @@ function detectServerCommand(): string {
   );
 }
 
-const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000";
+// live-e2e FINDING-5: a fixed :3000 + reuseExistingServer captured "evidence"
+// against an unrelated dev server squatting the port. Evidence runs get their
+// own port and never trust a server they did not start.
+const PORT = process.env.PORT ?? "3517";
+const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? `http://localhost:${PORT}`;
 
 export default defineConfig({
   testDir: "e2e",
@@ -51,8 +55,9 @@ export default defineConfig({
   webServer: {
     command: detectServerCommand(),
     url: BASE_URL,
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: false, // FINDING-5: never capture evidence off a foreign server
     timeout: 120_000,
+    env: { ...process.env, PORT },
   },
   use: {
     baseURL: BASE_URL,

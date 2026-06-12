@@ -32,7 +32,7 @@ existing `.claude/`** — that leaves a half-merged mess. Two cases:
 **A) Repo has no `.claude/` (clean install):**
 ```bash
 git clone <factory-repo> /tmp/claude-init
-cp -r /tmp/claude-init/{.claude,.github,specs,plans,tasks,docs,.mcp.json,.gitignore} .   # into your repo
+git -C /tmp/claude-init archive HEAD | tar -x -C .   # into your repo (git-aware: tracked files only)
 bash .claude/scripts/setup.sh
 ```
 

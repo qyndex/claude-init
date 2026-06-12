@@ -40,7 +40,26 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
 | `cleanup`           | flag cleanup, dep upgrades                                              | when bandwidth                               |
 | `deprecation`       | sunset / migration                                                      | quarter-bounded                              |
 
-**Hotfix tasks** (Round 12) carry extra fields: `fingerprint:` (Sentry dedup key), `sentry:` (permalink), `hotfix_issue:` (projected issue #). Inserted at the TOP of `## Active` by `hotfix-to-task.sh`. `spec:HOTFIX` is a sentinel — a hotfix has no originating spec.
+**Hotfix tasks** (Round 12) carry extra fields: `fingerprint:` (Sentry dedup key), `sentry:` (permalink), `hotfix_issue:` (projected issue #). Inserted at the TOP of `## Active
+
+- [ ] T-129  | spec:003  | phase:9  | priority: normal  | created: 2026-06-12  | last_touched: 2026-06-12  | deps:  | parallel: yes  | est: 5m
+  summary: Scope pre-bash-guard backtick-network-verb pattern to command position (live-e2e FINDING-3 — false-positives on heredoc bodies carrying frontend fetch code or prose)
+  files: .claude/hooks/pre-bash-guard.sh
+  accept: bash verify/2026-06-12-e2e-fixes/test-bash-guard-cases.sh
+  owner: implementer
+
+- [ ] T-130  | spec:003  | phase:9  | priority: normal  | created: 2026-06-12  | last_touched: 2026-06-12  | deps:  | parallel: yes  | est: 4m
+  summary: Classify playwright/vitest config-load errors as tooling-error in tdd-ledger red phase (live-e2e FINDING-4 — config throw stamped assertion-failure)
+  files: .claude/scripts/tdd-ledger.sh
+  accept: bash .claude/scripts/test/tdd-ledger-suite.sh
+  owner: implementer
+
+- [ ] T-131  | spec:003  | phase:9  | priority: normal  | created: 2026-06-12  | last_touched: 2026-06-12  | deps:  | parallel: no  | est: 5m
+  summary: Fix collect-evidence results.json clobber (smoke accept re-runs overwrite the AC proof) + reconcile rig template filename guidance with the playwright.evidence.config.ts + e2e/<spec-id>/ contract (live-e2e FINDING-6)
+  files: .claude/scripts/collect-evidence.sh, .claude/templates/evidence/playwright.config.ts
+  accept: bash verify/2026-06-12-e2e-fixes/test-actor-artifact.sh
+  owner: implementer
+` by `hotfix-to-task.sh`. `spec:HOTFIX` is a sentinel — a hotfix has no originating spec.
 
 ## Status legend
 

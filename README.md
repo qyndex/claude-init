@@ -24,7 +24,7 @@ A complete agentic harness for Claude Code that includes:
 
 ```bash
 # 1. Copy this folder into your project (or use as a template repo)
-cp -r path/to/claude-init/{.claude,.github,.mcp.json,specs,plans,tasks,docs,.gitignore} your-project/
+git -C path/to/claude-init archive HEAD | tar -x -C your-project/   # git-aware copy: tracked files only
 
 # 2. Run setup (installs canonical plugins, configures hooks, validates)
 cd your-project
@@ -176,7 +176,7 @@ Read [docs/ONBOARDING.md](docs/ONBOARDING.md). Short version:
 ```bash
 # From the repo root of your existing project:
 git clone https://github.com/<your-org>/claude-init /tmp/claude-init
-cp -nr /tmp/claude-init/{.claude,.github,specs,plans,tasks,docs,.mcp.json,.gitignore} .
+git -C /tmp/claude-init archive HEAD | tar -x -C .
 bash .claude/scripts/setup.sh
 ```
 
