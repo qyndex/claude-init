@@ -30,7 +30,8 @@ else
   cd "$ROOT"
   # JUSTIFIED: find 2>/dev/null on docs/ + .claude/skills/ — a repo without those dirs simply contributes no docs to the scan, not an error
   while IFS= read -r f; do docs+=("$f"); done < <(
-    find docs -type f -name '*.md' 2>/dev/null
+    # docs/research/ excluded: audit/research artifacts quote stale claims as findings
+    find docs -type f -name '*.md' -not -path 'docs/research/*' 2>/dev/null
     [ -f CLAUDE.md ] && printf '%s\n' CLAUDE.md
     [ -f .claude/CLAUDE.md ] && printf '%s\n' .claude/CLAUDE.md
     # JUSTIFIED: find 2>/dev/null — absent .claude/skills contributes no SKILL.md docs, not an error
@@ -91,6 +92,53 @@ $gates
 EOF
   # JUSTIFIED: grep 2>/dev/null — a doc with zero claim lines (grep exit 1) is the common case; the empty loop body is the intended no-op, not an error
   done < <(grep -niE '(enforced|blocked|required|gated) by ' "$doc" 2>/dev/null)
+
+  # ── Active-voice claims (e2e-audit docs-truth-1) — "validate.sh enforces",
+  # "no-issue-authority.yml fails the build". Same resolver, opposite word order:
+  # gate-file token immediately followed by an enforcement verb.
+  while IFS=: read -r lineno text; do
+    [ -n "$lineno" ] || continue
+    gates=$(printf '%s\n' "$text" \
+      | grep -oiE '`?[A-Za-z0-9._-]+\.(sh|ya?ml)`? +(enforces|blocks|fails|gates|rejects|halts)' \
+      | sed -E 's/ +(enforces|blocks|fails|gates|rejects|halts)$//i; s/^`//; s/`$//')
+    while IFS= read -r gate; do
+      [ -n "$gate" ] || continue
+      checked=$((checked + 1))
+      if ! gate_exists "$gate"; then
+        printf 'ORPHAN: %s:%s active-voice claim names a gate that does not exist: %s\n' "$doc" "$lineno" "$gate"
+        orphans=$((orphans + 1))
+      fi
+    done <<EOF
+$gates
+EOF
+  # JUSTIFIED: grep 2>/dev/null — zero active-voice claim lines is the common case; the empty loop is the intended no-op
+  done < <(grep -niE '[A-Za-z0-9._-]+\.(sh|ya?ml)`? +(enforces|blocks|fails|gates|rejects|halts)' "$doc" 2>/dev/null)
+
+  # ── Required-check claims (e2e-audit docs-truth-1) — a doc asserting
+  # "`x` is a required check" must name a context that exists in
+  # .github/rulesets/main-protection.json, or the promised merge gate is fiction.
+  if [ -f "$ROOT/.github/rulesets/main-protection.json" ] && command -v jq >/dev/null 2>&1; then
+    contexts=" $(jq -r '.. | .required_status_checks? // empty | .[]? | .context? // empty' "$ROOT/.github/rulesets/main-protection.json" 2>/dev/null | tr '\n' ' ') "
+    while IFS=: read -r lineno text; do
+      [ -n "$lineno" ] || continue
+      # Backticked extensionless tokens on a "required ... check" line are check-name claims.
+      names=$(printf '%s\n' "$text" | grep -oE '`[a-z0-9][a-z0-9-]*`' | tr -d '`' || true)
+      while IFS= read -r name; do
+        [ -n "$name" ] || continue
+        checked=$((checked + 1))
+        case "$contexts" in
+          *" $name "*) : ;;
+          *)
+            printf 'ORPHAN: %s:%s claims required check not in main-protection.json contexts: %s\n' "$doc" "$lineno" "$name"
+            orphans=$((orphans + 1))
+            ;;
+        esac
+      done <<EOF
+$names
+EOF
+    # JUSTIFIED: grep 2>/dev/null — zero required-check claim lines is the common case; the empty loop is the intended no-op
+    done < <(grep -niE 'required (status )?check' "$doc" 2>/dev/null | grep ':[^:]*`' || true)
+  fi
 done
 
 if [ "$orphans" -gt 0 ]; then

@@ -58,7 +58,7 @@
 ## V. `<model_routing>`
 
 - **Opus 4.8** → architect, implementer, reviewer, security, debugger, designer, extractor (hard thinking / high-craft)
-- **Sonnet 4.6** → planner, tester, verifier, researcher, doc-writer, release, roadmap-architect, coordinator, feature-stream, feedback-extractor (daily driver; Round 5 demoted the orchestration agents)
+- **Sonnet 4.6** → planner, tester, verifier, researcher, doc-writer, release, roadmap-architect, coordinator, feature-stream, feedback-extractor, anti-slop-reviewer (daily driver; Round 5 demoted the orchestration agents)
 - **Haiku 4.5** → `Explore` subagent (built-in), keyword routing, simple greps
 
 **Rule of thumb:** Sonnet unless proven otherwise. This list is authoritative — every agent's frontmatter `model:` must match it.

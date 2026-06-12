@@ -879,6 +879,22 @@ else
 fi
 echo
 
+# ─── 17. Model-doc consistency (e2e-audit docs-truth-1) ──────────────────
+# check-doc-consistency.sh diffs root CLAUDE.md vs constitution §V model routing
+# AND docs/ARCHITECTURE.md's agent table vs live agent frontmatter. It existed
+# but was wired into nothing — drift accumulated invisibly.
+echo "[model-doc-consistency]"
+if [ -x .claude/scripts/check-doc-consistency.sh ]; then
+  if cdc_out=$(bash .claude/scripts/check-doc-consistency.sh 2>&1); then
+    ok "model routing + ARCHITECTURE agent table consistent with frontmatter"
+  else
+    fail "doc/model drift — $(echo "$cdc_out" | grep -vE 'consistent|matches' | head -3 | tr '\n' '; ')"
+  fi
+else
+  warn "check-doc-consistency.sh missing or not executable — drift check skipped"
+fi
+echo
+
 # ─── Summary ────────────────────────────────────────────────────────────
 echo "─────────────────────────────────────"
 if [ "$fails" -gt 0 ]; then

@@ -80,4 +80,28 @@ if [ -n "$diff_out" ]; then
 fi
 
 echo "Model routing tables consistent between CLAUDE.md and .claude/CLAUDE.md §V"
+
+# e2e-audit docs-truth-1: also diff docs/ARCHITECTURE.md's agent table against
+# live frontmatter — the table is the doc humans read; frontmatter is what runs.
+arch_drift=0
+if [ -f docs/ARCHITECTURE.md ]; then
+  while IFS= read -r f; do
+    an=$(grep -m1 '^name:' "$f" | sed 's/name:[[:space:]]*//' | tr -d '"' | xargs)
+    am=$(grep -m1 '^model:' "$f" | sed 's/model:[[:space:]]*//' | xargs)
+    [ -n "$an" ] && [ -n "$am" ] || continue
+    row=$(grep -E "^\| \*\*$an\*\* \|" docs/ARCHITECTURE.md || true)
+    if [ -z "$row" ]; then
+      echo "ARCHITECTURE.md agent table missing agent: $an (model: $am)"
+      arch_drift=$((arch_drift+1))
+    elif ! echo "$row" | grep -q "| $am |"; then
+      echo "ARCHITECTURE.md agent table model drift: $an should be '$am', row: $row"
+      arch_drift=$((arch_drift+1))
+    fi
+  done < <(find .claude/agents -name '*.md' -type f 2>/dev/null)
+  if [ "$arch_drift" -gt 0 ]; then
+    echo "docs/ARCHITECTURE.md agent table drifted from .claude/agents frontmatter ($arch_drift issues)"
+    exit 1
+  fi
+  echo "docs/ARCHITECTURE.md agent table matches .claude/agents frontmatter"
+fi
 exit 0

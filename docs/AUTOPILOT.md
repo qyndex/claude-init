@@ -154,7 +154,7 @@ In the routine config, enable the Slack connector. The autopilot prompt already 
 Set these on your GitHub repo before relying on autopilot:
 
 - **Required reviews**: 1 human OR Claude code-reviewer + Claude security-reviewer (via `.github/workflows/`)
-- **Required status checks**: `ci`, `claude-code-review`, `claude-code-security-review`, `e2e-preview`
+- **Required status checks**: `lint-test`, `review`, `security-review`, `evidence-gate`, `harness-validate` (the contexts in `.github/rulesets/main-protection.json` — keep doc, ruleset, and workflow job names in sync; `audit-doc-claims.sh` cross-checks this list)
 - **Restrict push to default**: no one pushes directly to `main`
 - **Branch-name pattern protection**: `main`/`master` are protected; `claude/overnight-*` is allowed for PRs only
 
