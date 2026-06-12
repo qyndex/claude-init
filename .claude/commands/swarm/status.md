@@ -28,14 +28,16 @@ jq -r '.fleet | to_entries[] | "\(.key)\t\(.value.status)\tspawned:\(.value.spaw
 
 ```!
 echo
-echo "=== Latest handoffs per stream ==="
+echo "=== Latest handoffs per stream (NEXUS v1.0 yaml — e2e-audit swarm-5) ==="
 for dir in .swarms/streams/*/; do
   stream=$(basename "$dir")
-  latest=$(ls -t "$dir"/handoff-*.md 2>/dev/null | head -1)
+  latest=$(ls -t "$dir"/handoff-*.yaml 2>/dev/null | head -1)
   if [ -n "$latest" ]; then
-    status=$(grep -m1 '^- Status:' "$latest" | sed 's/^- Status: //')
-    attempt=$(grep -m1 '^- Attempt:' "$latest" | sed 's/^- Attempt: //')
-    echo "$stream: $status (attempt $attempt) — $latest"
+    status=$(grep -m1 '^status:' "$latest" | sed 's/^status:[[:space:]]*//')
+    attempt=$(grep -m1 '^attempt:' "$latest" | sed 's/^attempt:[[:space:]]*//')
+    valid=valid
+    bash .claude/scripts/validate-handoff.sh "$latest" >/dev/null 2>&1 || valid=INVALID
+    echo "$stream: ${status:-?} (attempt ${attempt:-?}, $valid) — $latest"
   else
     echo "$stream: no handoff yet"
   fi

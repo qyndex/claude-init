@@ -14,6 +14,11 @@
 
 set -uo pipefail
 
+# Shared swarm root (e2e-audit swarm-1): .swarms/** reads/writes must resolve
+# to the MAIN checkout even when this hook fires inside a feat-* worktree.
+# shellcheck source=../scripts/lib/swarm-root.sh
+. "$(cd "$(dirname "$0")/../scripts/lib" && pwd)/swarm-root.sh"
+
 mkdir -p .claude/hooks/.log
 
 input=$(cat)
@@ -168,7 +173,7 @@ EOF
 
   # Find any handoff-<ts>.yaml or .md file the subagent may have written
   # JUSTIFIED: the redirect drops find stderr when .swarms or the reference log is absent — an empty handoff_path just leaves the digest field blank
-  handoff_path=$(find .swarms -name 'handoff-*.yaml' -o -name 'handoff-*.md' -newer .claude/hooks/.log/subagent.log -type f 2>/dev/null | head -1)
+  handoff_path=$(find "${SWARM_ROOT:-.}/.swarms" -name 'handoff-*.yaml' -newer .claude/hooks/.log/subagent.log -type f 2>/dev/null | head -1)
 
   # ─── AC-25: auto-populate tdd_state for feature-stream if absent ────────
   # If the agent didn't emit tdd_state, derive it from the WIP commit log and
@@ -210,12 +215,12 @@ fi
 # ─── Worktree git diff surface (feature-stream only) ────────────────────
 worktree_diff=""
 if [ "$agent_type" = "feature-stream" ]; then
-  # Look up worktree from fleet.json by session_id
-  if [ -f .swarms/coordinator/fleet.json ] && command -v jq >/dev/null 2>&1; then
+  # Look up worktree from fleet.json by session_id (shared root — swarm-1)
+  if [ -f "${SWARM_ROOT:-.}/.swarms/coordinator/fleet.json" ] && command -v jq >/dev/null 2>&1; then
     # JUSTIFIED: the redirect drops jq stderr on a malformed fleet.json — an empty worktree fails the guard below and skips the diff surface
     worktree=$(jq -r --arg sid "$session_id" \
       '.fleet | to_entries[] | select(.value.sessionId == $sid) | .value.worktree' \
-      .swarms/coordinator/fleet.json 2>/dev/null | head -1)
+      "${SWARM_ROOT:-.}/.swarms/coordinator/fleet.json" 2>/dev/null | head -1)
     if [ -n "$worktree" ] && [ -d "$worktree" ]; then
       # JUSTIFIED: the redirect drops git diff stderr if the worktree has no main ref — an empty diff just leaves the worktree_diff digest field blank
       worktree_diff=$(cd "$worktree" && git diff --name-only main...HEAD 2>/dev/null | head -10 | tr '\n' ',' | sed 's/,$//')
@@ -233,7 +238,7 @@ if [ "$agent_type" = "feature-stream" ]; then
     [ -z "$lane_stream_id" ] && lane_stream_id=$(basename "$worktree")
   fi
   if [ -n "$lane_stream_id" ]; then
-    mkdir -p .swarms/events
+    mkdir -p "${SWARM_ROOT:-.}/.swarms/events"
     fin_json=$(jq -nc \
       --arg ts "$ts" \
       --arg sid "$lane_stream_id" \
@@ -241,7 +246,7 @@ if [ "$agent_type" = "feature-stream" ]; then
       --arg session_id "$session_id" \
       '{ts: $ts, stream_id: $sid, event: "lane.finished", payload: {status: $status, session_id: $session_id}}')
     # JUSTIFIED: the redirect drops write stderr — lane telemetry is best-effort; a write failure must never abort the SubagentStop hook
-    printf '%s\n' "$fin_json" >> ".swarms/events/${lane_stream_id}.jsonl" 2>/dev/null
+    printf '%s\n' "$fin_json" >> "${SWARM_ROOT:-.}/.swarms/events/${lane_stream_id}.jsonl" 2>/dev/null
   fi
 fi
 

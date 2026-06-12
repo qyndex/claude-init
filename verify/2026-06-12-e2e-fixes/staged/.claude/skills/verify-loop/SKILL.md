@@ -105,7 +105,7 @@ Only when ALL FIVE pass is the task `[x]`. Otherwise `[!]` and self-heal kicks i
 ## What it produces
 
 - N completed PRs on `claude/overnight-<date>-<task>` branches
-- M handoff files in `.swarms/streams/<run-id>/handoff-*.md` (coordinator schema; the autopilot skill writes here too)
+- M handoff files in `.swarms/streams/<run-id>/handoff-*.yaml` (coordinator schema; the autopilot skill writes here too)
 - 1 `OVERNIGHT_REPORT.md` at repo root
 - 1 `/dream` consolidation pass at the end
 - Updated `tasks/TASKS.md` with `[x]` and `[!]` marks

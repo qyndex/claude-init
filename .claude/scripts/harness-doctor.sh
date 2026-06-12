@@ -231,6 +231,23 @@ else
   add_result "anti-slop ramp (30d)" "warn" "no .claude/state/anti-slop-wirein.date — ramp clock unrecorded (gap-audit G50)"
 fi
 
+# ─── Stale swarm worktrees (e2e-audit swarm-4) ──────────────────────────
+# A worktree whose fleet entry reached a terminal status (merged/reverted/
+# crashed/blocked) should have been torn down — the graveyard wedges redispatch
+# and eats disk. verified-merge now removes them; this catches the leftovers.
+if [ -f .swarms/coordinator/fleet.json ] && command -v jq >/dev/null 2>&1; then
+  stale_wts=""
+  # JUSTIFIED: jq muted — a malformed fleet.json yields no entries; the [swarm] category already validates its schema
+  while IFS='	' read -r s wt; do
+    [ -n "$s" ] && [ -n "$wt" ] && [ -d "$wt" ] && stale_wts="$stale_wts $s"
+  done < <(jq -r '.fleet | to_entries[] | select(.value.status == "merged" or .value.status == "reverted" or .value.status == "crashed" or .value.status == "blocked") | "\(.key)\t\(.value.worktree // "")"' .swarms/coordinator/fleet.json 2>/dev/null)
+  if [ -n "$stale_wts" ]; then
+    add_result "stale swarm worktrees" "warn" "terminal-status streams still have worktrees:${stale_wts} — remove with: git worktree remove --force .claude/worktrees/<id>"
+  else
+    add_result "stale swarm worktrees" "pass" "no terminal-status stream retains a worktree"
+  fi
+fi
+
 # ─── Live ruleset drift (e2e-audit ci-gates-2) ────────────────────────
 # The ruleset FILE is inert until applied server-side. Fetch live rulesets and
 # assert (a) a main-targeting active ruleset exists, (b) its required-check

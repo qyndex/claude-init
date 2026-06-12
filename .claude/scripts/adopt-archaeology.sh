@@ -66,12 +66,40 @@ fi
   echo "# test exists (verify.sh char gate enforces this). Remove a glob once its zone is"
   echo "# characterized. Empty/absent file = adoption complete, no restrictions."
   echo "# Edit conservatively in Phase 2 (/adopt reconcile)."
-  for d in src lib app pkg internal cmd server client api services core domain; do
-    [ -d "$d" ] && echo "${d}/**"
+  # e2e-audit brownfield-1: monorepo roots (packages/apps/...) joined the list —
+  # the standard pnpm/nx/turbo layout previously matched NOTHING and the
+  # "no tests = no writes" guarantee silently disarmed.
+  matched_root=0
+  for d in src lib app apps pkg packages internal cmd server client api services core domain web frontend backend functions plugins; do
+    [ -d "$d" ] && { echo "${d}/**"; matched_root=1; }
   done
-  # If none of the common roots exist, flag the repo root's source files broadly.
-  if ! ls -d src lib app pkg internal cmd server client api services core domain >/dev/null 2>&1; then
-    echo "# (no conventional source root found — review STRUCTURE.md and add globs manually)"
+  if [ "$matched_root" = 0 ]; then
+    # FAIL CLOSED: no conventional root → emit a REAL catch-all glob per
+    # top-level source-bearing dir instead of a comment nothing enforces.
+    emitted_any=0
+    for d in */; do
+      d="${d%/}"
+      case "$d" in
+        .git|.claude|.github|.swarms|node_modules|vendor|dist|build|out|coverage|docs|specs|plans|tasks|verify|initiatives) continue ;;
+      esac
+      # JUSTIFIED: find probe — a dir with no source files contributes no glob, by design
+      if find "$d" -maxdepth 3 -type f \( -name '*.ts' -o -name '*.tsx' -o -name '*.js' -o -name '*.jsx' -o -name '*.py' -o -name '*.rb' -o -name '*.go' -o -name '*.rs' -o -name '*.java' -o -name '*.cs' -o -name '*.php' \) -print -quit 2>/dev/null | grep -q .; then
+        echo "${d}/**"
+        emitted_any=1
+      fi
+    done
+    # Root-level source files (flat repos). One ls per extension — a combined
+    # `ls a b` exits non-zero when ANY glob misses (js-only repos would emit
+    # nothing), and per-extension lines keep manifest globs case-matchable
+    # (no brace expansion in `case` patterns).
+    for ext in ts tsx js jsx py go rs rb; do
+      # JUSTIFIED: ls probe — no root-level source files of this extension means no glob needed
+      if ls ./*."$ext" >/dev/null 2>&1; then
+        echo "*.${ext}"
+        emitted_any=1
+      fi
+    done
+    [ "$emitted_any" = 0 ] && echo "# (no source files found anywhere — empty manifest is genuinely correct)"
   fi
 } > "$UNCHAR"
 
@@ -110,6 +138,18 @@ fi
 # JUSTIFIED: grep stderr suppressed and || true — UNCHAR exists (just written); exit 1 only means every line is a comment, so an empty manifest body is correct
 manifest_globs="$(grep -vE '^[[:space:]]*#' "$UNCHAR" 2>/dev/null || true)"
 
+# e2e-audit brownfield-1: the exec summary must TELL THE TRUTH about coverage.
+# Zero manifest globs + non-empty hotspots = the char gate guards NOTHING.
+risk_line="**REVIEW** — every source zone is treated as uncharacterized legacy until
+  proven otherwise (see the safety manifest below). The factory will refuse to auto-modify
+  these zones until characterization tests exist."
+if [ -z "$manifest_globs" ] && [ -s "$HOTSPOTS" ]; then
+  risk_line="**⚠ UNPROTECTED** — the legacy-safety manifest has ZERO globs while hotspots
+  exist. The 'no tests = no writes' gate currently guards NOTHING. Add globs to
+  .claude/state/adopt/uncharacterized-paths.txt before approving Phase 1 — /adopt auto
+  will refuse to pass gate 1 in this state."
+fi
+
 cat > "$REPORT" <<EOF
 # Adoption Report — $(basename "$ROOT") — $(date +%Y-%m-%d)
 
@@ -119,9 +159,7 @@ cat > "$REPORT" <<EOF
 ## Executive summary
 - Stacks detected: \`$(echo "$stacks" | tr -d '\n' | head -c 300)\`
 - Hotspots: $hotspot_note
-- Adoption risk: **REVIEW** — every source zone is treated as uncharacterized legacy until
-  proven otherwise (see the safety manifest below). The factory will refuse to auto-modify
-  these zones until characterization tests exist.
+- Adoption risk: $risk_line
 
 ## Stack inventory
 See \`.claude/memory/atlas/STACK.md\` (framework, ORM, test runner, idioms).

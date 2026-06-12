@@ -70,6 +70,25 @@ case "$cmd" in
     # safety) are the legacy-protection gates — an auto-mode agent must not
     # self-approve them. Require the human-created, single-use marker (same
     # contract as allow-skip-gates): `touch .claude/state/allow-adopt-approve`.
+    # e2e-audit brownfield-1: gate 1 is the legacy-safety manifest gate. An
+    # empty manifest while hotspots exist means "no tests = no writes" guards
+    # NOTHING — refuse before the single-use marker is consumed.
+    if [ "$n" = "1" ]; then
+      manifest="$STATE_DIR/uncharacterized-paths.txt"
+      hotspots="$STATE_DIR/hotspots.txt"
+      glob_count=0
+      # JUSTIFIED: grep -c prints the count even when it exits 1 (zero matches) — || true keeps that count instead of corrupting it with a second echo
+      [ -f "$manifest" ] && glob_count=$(grep -cvE '^[[:space:]]*(#|$)' "$manifest" 2>/dev/null || true)
+      if [ "${glob_count:-0}" -eq 0 ] && [ -s "$hotspots" ]; then
+        echo "╔══════════════════════════════════════════════════════════════════╗"
+        echo "║ ⚠ RISK: legacy-safety manifest is EMPTY while hotspots exist.     ║"
+        echo "║ The 'no tests = no writes' guard protects NOTHING in this state.  ║"
+        echo "╚══════════════════════════════════════════════════════════════════╝"
+        echo "adopt-state: REFUSING approve 1. Add path globs to $manifest"
+        echo "covering the hotspot zones in $hotspots, then re-run approve."
+        exit 1
+      fi
+    fi
     case "$n" in
       1|4)
         marker=".claude/state/allow-adopt-approve"

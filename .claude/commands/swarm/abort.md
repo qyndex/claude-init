@@ -33,7 +33,7 @@ for stream in $running; do
   # Update fleet.json
   jq --arg id "$stream" \
      '.fleet[$id].status = "stopped" | .fleet[$id].stopped_at = (now|todate)' \
-     .swarms/coordinator/fleet.json > /tmp/fleet.json && mv /tmp/fleet.json .swarms/coordinator/fleet.json
+     .swarms/coordinator/fleet.json > .swarms/coordinator/.fleet.json.tmp.$$ && mv .swarms/coordinator/.fleet.json.tmp.$$ .swarms/coordinator/fleet.json
 
   echo "$(date -Iseconds) $stream     Aborted by /swarm:abort" >> .swarms/coordinator/decisions.log
 done

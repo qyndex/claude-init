@@ -173,6 +173,24 @@ for s in "${to_dispatch[@]}"; do
     continue
   fi
 
+  # e2e-audit swarm-1: the stream session runs INSIDE the worktree, where the
+  # main checkout's .swarms/streams/<s>/ files don't exist. Copy the briefing
+  # artifacts in (the prompt cites them by relative path). The worktree is
+  # created by `claude --bg -w` above — wait briefly for it to appear.
+  wt=".claude/worktrees/$s"
+  for _i in 1 2 3 4 5 6 7 8 9 10; do
+    [ -d "$wt" ] && break
+    sleep 0.5
+  done
+  if [ -d "$wt" ]; then
+    mkdir -p "$wt/.swarms/streams/$s"
+    for art in brief.md analysis.md task.json; do
+      [ -f ".swarms/streams/$s/$art" ] && cp ".swarms/streams/$s/$art" "$wt/.swarms/streams/$s/$art"
+    done
+  else
+    echo "$(date -Iseconds) $s     WARN worktree $wt not found — briefing artifacts not copied" >> .swarms/coordinator/decisions.log
+  fi
+
   # Update fleet.json atomically
   jq --arg id "$s" --arg sid "$sid" \
      '.fleet[$id] = {sessionId: $sid, status: "running", spawned: (now|todate), worktree: (".claude/worktrees/" + $id), branch: $id}

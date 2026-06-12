@@ -40,8 +40,8 @@ For each task in your allocation, the gate is:
 
 ## Coordinator contract
 
-- After **each task**, write a handoff: `.swarms/streams/feat-{{ STREAM_ID }}/handoff-T-<id>-<ts>.md`
-- At **stream end**, write final handoff: `.swarms/streams/feat-{{ STREAM_ID }}/handoff-final-<ts>.md`
+- After **each task**, write a handoff: `.swarms/streams/feat-{{ STREAM_ID }}/handoff-T-<id>-<ts>.yaml` (NEXUS v1.0 — schema: `.swarms/templates/handoff.yaml`)
+- At **stream end**, write final handoff: `.swarms/streams/feat-{{ STREAM_ID }}/handoff-final-<ts>.yaml`
 - Push branch to origin when done; coordinator opens the PR
 
 ## References

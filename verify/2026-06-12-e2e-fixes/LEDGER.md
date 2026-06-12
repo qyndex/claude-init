@@ -42,12 +42,12 @@ Status: `[ ]` pending · `[~]` in progress · `[x]` done+rig-proven · `[s]` ski
 
 ## Phase 4 — Swarm, brownfield, release
 
-- [ ] P4.1 swarm-1 — SWARM_ROOT shared-root helper in hooks; dispatch copies briefs
-- [ ] P4.2 swarm-2 failure-recovery-2 — fix verified-merge line-continuation; lint-silent-failures rule
-- [ ] P4.3 swarm-3 — PR lifecycle in verified-merge (create/checks/merge, exit 41)
-- [ ] P4.4 swarm-4 — fleet-reconcile.sh; worktree teardown; doctor stale-worktree check
-- [ ] P4.5 swarm-5,6 — handoff dialect unification; lane-guard hook; TASKS.md single-writer
-- [ ] P4.6 brownfield-1 — fail-closed legacy manifest (roots, catch-all globs, gate-1 refusal)
+- [x] P4.1 swarm-1 — SWARM_ROOT shared-root helper in hooks; dispatch copies briefs — lib/swarm-root.sh (pwd -P); staged post-bash-log/session-heartbeat/subagent-stop; swarm-dispatch post-spawn brief copy; 5/5 test-swarm-root.sh
+- [x] P4.2 swarm-2 failure-recovery-2 — fix verified-merge line-continuation; lint-silent-failures rule — comments moved above continuations; new awk continuation rule (found+fixed session-end.sh:42); covered by test-verified-merge.sh
+- [x] P4.3 swarm-3 — PR lifecycle in verified-merge (create/checks/merge, exit 41) — gh pr create/checks --watch/merge with escalate 41; absolute $LOG fix; worktree+branch teardown; 10/10 test-verified-merge.sh
+- [x] P4.4 swarm-4 — fleet-reconcile.sh; worktree teardown; doctor stale-worktree check — fail-safe vs daemon restart, --respawn cap; swarm-respawn.sh extraction; doctor stale-worktree warn; 9/9 test-fleet-reconcile.sh
+- [x] P4.5 swarm-5,6 — handoff dialect unification; lane-guard hook; TASKS.md single-writer — handoff-*.yaml everywhere + validate.sh [handoff-dialect]; staged pre-lane-guard.sh 10/10 test-lane-guard.sh; coordinator single-writer contract
+- [x] P4.6 brownfield-1 — fail-closed legacy manifest (roots, catch-all globs, gate-1 refusal) — adopt-archaeology.sh monorepo roots + per-dir catch-all + per-ext root globs + UNPROTECTED banner; adopt-state.sh approve-1 refusal before marker consumption; 17/17 test-adopt-gate.sh
 - [ ] P4.7 brownfield-3,4,5 — reconcile .github; backup hygiene + revert; import-issues error capture
 - [ ] P4.8 release-deploy-1,5 — DEPLOY_WIRED gate; SHIPPED producer; deployment_status resolution
 - [ ] P4.9 release-deploy-2,3,4 — auto-merge workflow; ramp-check driver; rollback-flag.sh

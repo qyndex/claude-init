@@ -75,7 +75,7 @@ Coordinator enforces this by writing it into each stream's `analysis.md`. Stream
 │       ├── brief.md     # system-prompt extension (loaded via --append-system-prompt-file)
 │       ├── analysis.md  # coordinator's scope decomposition
 │       ├── task.json    # ccg-workflow schema; updated by stream
-│       └── handoff-*.md # NEXUS handoffs from the stream
+│       └── handoff-*.yaml # NEXUS v1.0 handoffs from the stream
 └── templates/
     ├── brief.md
     ├── analysis.md

@@ -90,6 +90,16 @@ while IFS= read -r file; do
     esac
   # JUSTIFIED: file may be unreadable and grep returns 1 when no matching line exists; muting stderr + the fallback keeps the loop iterating over zero hits rather than aborting the audit
   done < <(grep -nE '^[[:space:]]*set +-uo +pipefail' "$file" 2>/dev/null || true)
+  # e2e-audit failure-recovery-2: a comment line directly after a backslash
+  # continuation TERMINATES the command — trailing args/redirects silently
+  # become a separate statement (the verified-merge.sh claude-spawn bug).
+  # NEVER justifiable: the offending line IS a comment, so a JUSTIFIED tag
+  # would self-justify the very pattern that caused the bug.
+  while IFS= read -r lineno; do
+    [ -n "$lineno" ] || continue
+    emit_finding "$file" "$lineno" 'comment terminates backslash continuation' false
+  # JUSTIFIED: awk over an unreadable file yields nothing — zero findings, the loop simply does not run
+  done < <(awk 'prev !~ /^[[:space:]]*#/ && prev ~ /\\$/ && $0 ~ /^[[:space:]]*#/ {print NR} {prev=$0}' "$file" 2>/dev/null || true)
 done < <(enumerate_files)
 
 # Assemble the report.

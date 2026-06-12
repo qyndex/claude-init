@@ -21,6 +21,7 @@
 #   22 — contract-tests failed
 #   30 — AI mediation failed
 #   40 — post-merge verify failed; AUTO-REVERTED
+#   41 — PR create/checks/merge failed (e2e-audit swarm-3; 40 was taken)
 
 set -uo pipefail
 
@@ -38,7 +39,10 @@ fi
 
 FLEET=".swarms/coordinator/fleet.json"
 WORKTREE=".claude/worktrees/$STREAM"
-LOG=".claude/hooks/.log/verified-merge-${STREAM}-$(date +%Y%m%d-%H%M%S).log"
+# LOG must be ABSOLUTE (e2e-audit swarm-2 follow-on): the mediation/auto-fix
+# redirects happen inside `cd "$WORKTREE"` subshells — a relative path fails to
+# resolve there, killing the whole command before claude ever spawns.
+LOG="$ROOT/.claude/hooks/.log/verified-merge-${STREAM}-$(date +%Y%m%d-%H%M%S).log"
 mkdir -p .claude/hooks/.log
 
 log() { printf '[%s] %s\n' "$(date -Iseconds)" "$*" | tee -a "$LOG" >&2; }
@@ -136,12 +140,14 @@ Read the failure in $LOG, diff this branch (cwd) vs origin/main, propose minimal
 reconciliation, apply it as a single commit with subject 'merge-mediation: <one-line>'. \
 Then re-run verify.sh. If verify still fails, exit non-zero — do NOT push broken state."
 
+    # JUSTIFIED: || true — a non-zero from the mediation agent is intentionally tolerated; the authoritative gate is the verify.sh re-run immediately below, which escalates on failure
+    # (e2e-audit swarm-2: comment moved ABOVE the command — a comment line inside a
+    # backslash continuation TERMINATES it, severing the prompt arg + log redirect)
     (cd "$WORKTREE" && claude -p \
       --max-turns 30 \
       --max-budget-usd 2 \
       --permission-mode auto \
       --append-system-prompt "$mediation_prompt" \
-      # JUSTIFIED: || true — a non-zero from the mediation agent is intentionally tolerated; the authoritative gate is the verify.sh re-run immediately below, which escalates on failure
       "Fix the integration failure for stream $STREAM" >> "$LOG" 2>&1) || true
 
     # Re-run verify
@@ -163,11 +169,27 @@ else
 
   mediation_note=""
   [ "$mediation_used" = "true" ] && mediation_note=" + AI mediation"
-  pr_body=$(printf 'Verified-merge: rebased on main + %d sibling(s)%s; verify.sh + heavy + contract-tests PASS. See %s' \
-    "$(echo "$already_merged" | wc -w)" "$mediation_note" "$LOG")
+  # e2e-audit swarm-3: embed the evidence bundle path per §VII.7 when one exists
+  evidence_note=""
+  # JUSTIFIED: glob probe — no evidence dir for this stream just leaves the note blank
+  evidence_dir=$(ls -dt verify/*-"${STREAM#feat-}"* verify/*-"$STREAM"* 2>/dev/null | head -1)
+  [ -n "$evidence_dir" ] && evidence_note=" Evidence: $evidence_dir/"
+  pr_body=$(printf 'Verified-merge: rebased on main + %d sibling(s)%s; verify.sh + heavy + contract-tests PASS.%s See %s' \
+    "$(echo "$already_merged" | wc -w)" "$mediation_note" "$evidence_note" "$LOG")
 
+  # e2e-audit swarm-3: full PR lifecycle — create the PR when none exists, WAIT
+  # for the required checks, and only then merge. Previously a missing PR
+  # dead-ended ("no PR found") on protected repos and merged INSTANTLY around
+  # review on unprotected ones. All failures route through escalate() exit 41.
+  if ! gh pr view "$branch" >> "$LOG" 2>&1; then
+    (cd "$WORKTREE" && gh pr create --fill --body "$pr_body") >> "$LOG" 2>&1 \
+      || escalate "gh pr create failed for $branch" 41
+  fi
+  if ! gh pr checks "$branch" --watch --fail-fast >> "$LOG" 2>&1; then
+    escalate "PR checks failed for $branch — fix the red check, do not merge around it" 41
+  fi
   gh pr merge "$branch" --squash --delete-branch --body "$pr_body" >> "$LOG" 2>&1 \
-    || fail "gh pr merge failed" 40
+    || escalate "gh pr merge failed for $branch" 41
 fi
 
 # ─── Step 5: Post-merge verify on main + auto-revert/fix on failure ──────
@@ -190,11 +212,13 @@ else
     if command -v claude >/dev/null 2>&1; then
       fix_branch="claude/post-merge-autofix-$(date +%Y-%m-%d-%H%M)"
       git checkout -b "$fix_branch" >> "$LOG" 2>&1
+      # JUSTIFIED: || true — the auto-fix agent's exit is non-authoritative; main is already reverted+safe and the agent only opens a PR for human review, so its failure must not abort cleanup
+      # (e2e-audit swarm-2: comment moved ABOVE the command — a comment line inside a
+      # backslash continuation TERMINATES it, severing the prompt arg + log redirect)
       claude -p --max-budget-usd 5 --max-turns 60 --permission-mode auto \
         --append-system-prompt "Post-merge verify failed on main after merging stream $STREAM. \
 Read the failure in $LOG, identify the issue, propose minimal fix, commit, push, open PR. \
 Do NOT auto-merge." \
-        # JUSTIFIED: || true — the auto-fix agent's exit is non-authoritative; main is already reverted+safe and the agent only opens a PR for human review, so its failure must not abort cleanup
         "Investigate the post-merge failure" >> "$LOG" 2>&1 || true
       git checkout main >> "$LOG" 2>&1
     fi
@@ -204,6 +228,10 @@ Do NOT auto-merge." \
        "$FLEET" > "${FLEET}.tmp" && mv "${FLEET}.tmp" "$FLEET"
     echo "$(date -Iseconds) $STREAM     AUTO-REVERT (post-merge verify failed)" \
       >> .swarms/coordinator/decisions.log
+    # e2e-audit swarm-4: the branch is reverted — tear the worktree down so the
+    # graveyard stops accumulating (the branch itself was deleted by pr merge).
+    # JUSTIFIED: || true — teardown is cleanup on an already-failed path; its failure must not mask exit 40
+    git worktree remove --force "$WORKTREE" >> "$LOG" 2>&1 || true
     exit 40
   fi
 
@@ -214,6 +242,13 @@ Do NOT auto-merge." \
       | .fleet[$s].mediation_used = $mediation_used
       | ._schema_version = 2' \
      "$FLEET" > "${FLEET}.tmp" && mv "${FLEET}.tmp" "$FLEET"
+
+  # e2e-audit swarm-4: success teardown — the branch is merged+deleted remotely;
+  # remove the worktree and the local branch so redispatch never collides.
+  # JUSTIFIED: || true — teardown is best-effort cleanup after a SUCCESSFUL merge; a busy worktree is surfaced by harness-doctor's stale-worktree check instead
+  git worktree remove --force "$WORKTREE" >> "$LOG" 2>&1 || true
+  # JUSTIFIED: || true — the local branch may not exist (worktree-only checkout); nothing to delete is fine
+  git branch -D "$branch" >> "$LOG" 2>&1 || true
 
   log "verified-merge SUCCESS for stream=$STREAM"
 fi

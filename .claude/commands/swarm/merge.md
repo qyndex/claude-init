@@ -38,11 +38,11 @@ for stream in $(ls .swarms/streams/); do
         --body "$(cat "$handoff")" \
         --label "swarm,escalation"
       jq --arg s "$stream" '.fleet[$s].status = "escalated"' .swarms/coordinator/fleet.json \
-        > /tmp/f && mv /tmp/f .swarms/coordinator/fleet.json
+        > .swarms/coordinator/.fleet.json.tmp.$$ && mv .swarms/coordinator/.fleet.json.tmp.$$ .swarms/coordinator/fleet.json
       ;;
     blocked)
       jq --arg s "$stream" '.fleet[$s].status = "blocked"' .swarms/coordinator/fleet.json \
-        > /tmp/f && mv /tmp/f .swarms/coordinator/fleet.json
+        > .swarms/coordinator/.fleet.json.tmp.$$ && mv .swarms/coordinator/.fleet.json.tmp.$$ .swarms/coordinator/fleet.json
       ;;
     *)
       echo "  ? unknown status '$status' for stream $stream — skipping"

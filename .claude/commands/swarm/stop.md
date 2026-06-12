@@ -18,7 +18,7 @@ sleep 30
 claude stop "$stream"
 
 # 3. Update fleet.json
-jq --arg id "$stream" '.fleet[$id].status = "stopped"' .swarms/coordinator/fleet.json > /tmp/fleet.json && mv /tmp/fleet.json .swarms/coordinator/fleet.json
+jq --arg id "$stream" '.fleet[$id].status = "stopped"' .swarms/coordinator/fleet.json > .swarms/coordinator/.fleet.json.tmp.$$ && mv .swarms/coordinator/.fleet.json.tmp.$$ .swarms/coordinator/fleet.json
 
 # 4. Log
 echo "$(date -Iseconds) $stream     Stopped by user" >> .swarms/coordinator/decisions.log

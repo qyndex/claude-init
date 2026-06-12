@@ -796,6 +796,25 @@ else
 fi
 echo
 
+# ─── 15b. Handoff dialect (e2e-audit swarm-5) ───────────────────────────
+# NEXUS handoffs are YAML (handoff-*.yaml, schema .swarms/templates/handoff.yaml).
+# A consumer or template citing handoff-*.md re-splits the dialect — streams
+# would write artifacts the coordinator can't parse.
+echo "[handoff-dialect]"
+# Targets SWARM handoffs only (.swarms/** paths or the handoff-*.md glob) — the
+# session-handoff playbooks under .claude/memory/playbooks/ are a different,
+# legitimately-markdown artifact class.
+# JUSTIFIED: grep exit 1 = no offenders, the pass path
+md_handoffs=$(grep -rln --exclude-dir=.log -e '\.swarms/[^ ]*handoff-[^ ]*\.md' -e 'handoff-\*\.md' -e 'handoff-<ts>\.md' .swarms/templates .claude/commands .claude/agents .claude/skills .claude/hooks docs/PARALLEL-SWARM.md 2>/dev/null || true)
+if [ -n "$md_handoffs" ]; then
+  for f in $md_handoffs; do
+    fail "handoff-*.md reference (NEXUS dialect is .yaml): $f"
+  done
+else
+  ok "no handoff-*.md references — single NEXUS yaml dialect"
+fi
+echo
+
 # ─── 16. State-path producers (e2e-audit spec-pipeline-1) ───────────────
 # A hook that reads .claude/state/<x> which nothing produces is a gate that can
 # never fire (the /analyze marker was consumed by workflow-state.sh but produced

@@ -474,6 +474,11 @@
             "type": "command",
             "command": "bash .claude/hooks/pre-edit-legacy-guard.sh",
             "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/pre-lane-guard.sh",
+            "timeout": 5
           }
         ]
       },
