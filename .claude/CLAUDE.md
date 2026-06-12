@@ -44,6 +44,7 @@
 |---|---|
 | Heavy reads (>3 files, >20K tokens) | `Explore` (Haiku, built-in) |
 | Cross-module / call-graph questions | **Graphify MCP** (`query_graph`, `shortest_path`, `get_neighbors`) — beats grep on >3 files |
+| "Have we seen this before?" (patterns/ADRs/incidents for files being touched) | `bash .claude/scripts/memory-recall.sh --paths "<files>"` — index-backed, ≤5 lines; use BEFORE grepping .claude/memory/ |
 | Independent investigation | `researcher` (spawns parallel sub-researchers) |
 | Code review | `reviewer` (read-only, multi-pass) |
 | Security audit | `security` (semgrep + codeql + LLM Top 10) |
@@ -128,6 +129,7 @@ Autopilot loop wraps phases 5-8 inside `/loop` until verification gate passes.
 - **`/compact <hint>` vs `/clear`** — same task → `/compact "focus on X"`; new task → `/clear` (Boris #75).
 - **`/fewer-permission-prompts`** — auto-tune `allow` list from transcripts (Boris #81).
 - **Subagents preserve parent context.** Delegate heavy reads, searches, fetches.
+- **`initiatives/active/<id>.STATE.md` is the always-current initiative answer.** Machine-rewritten at network boundaries by `initiative-state.sh sync`; read it (≤60 lines) instead of re-deriving state from specs/plans/tasks.
 - **Don't echo files back.** Refer by `path:line`. Don't narrate. State results.
 
 See `.claude/skills/context-budget/SKILL.md` and the installed `alexgreensh/token-optimizer` plugin.
