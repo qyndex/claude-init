@@ -40,10 +40,16 @@ for stack in $stacks; do
     typescript)
       if [ -f package.json ] && grep -q '"test"' package.json; then
         ran=$((ran + 1))
-        if [ -f pnpm-lock.yaml ]; then pnpm test --run || failures=$((failures + 1))
+        # Runner-aware flags (stack-portability-6): --run is vitest-only, --ci is
+        # jest-only — hardcoding --run broke every jest/node:test repo.
+        test_args=""
+        if jq -e '.devDependencies.vitest // .dependencies.vitest' package.json >/dev/null 2>&1; then test_args="--run"
+        elif jq -e '.devDependencies.jest // .dependencies.jest' package.json >/dev/null 2>&1; then test_args="--ci"
+        fi
+        if [ -f pnpm-lock.yaml ]; then pnpm test $test_args || failures=$((failures + 1))
         elif [ -f bun.lock ] || [ -f bun.lockb ]; then bun test || failures=$((failures + 1))
-        elif [ -f yarn.lock ]; then yarn test --run || failures=$((failures + 1))
-        else npm test -- --run || failures=$((failures + 1))
+        elif [ -f yarn.lock ]; then yarn test $test_args || failures=$((failures + 1))
+        else npm test ${test_args:+-- $test_args} || failures=$((failures + 1))
         fi
       else
         echo "  ✗ node stack detected but package.json has no test script"

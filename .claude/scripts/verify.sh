@@ -124,6 +124,12 @@ if [ -f package.json ]; then
   elif [ -f yarn.lock ]; then PM="yarn"
   fi
 
+  # Workspace dimension (stack-portability-5) — from detect-stacks.sh; a monorepo
+  # run from the root must aggregate across packages, not test only the root.
+  # JUSTIFIED: detection errors fall back to "none" — single-package behavior, the safe default
+  node_ws=$(bash .claude/scripts/detect-stacks.sh 2>/dev/null | jq -r '.workspace // "none"' 2>/dev/null || echo none)
+  case "$node_ws" in turbo|nx|pnpm|lerna|npm) : ;; *) node_ws="none" ;; esac
+
   # Runner-aware test flags (stack-portability-6): --run is vitest-only, --ci is jest-only.
   test_args=""
   if jq -e '.devDependencies.vitest // .dependencies.vitest' package.json >/dev/null 2>&1; then test_args="--run"
@@ -136,7 +142,40 @@ if [ -f package.json ]; then
   if grep -q '"lint"' package.json; then
     $PM run lint && ok_msg "lint" || { fail_msg "lint"; fails=$((fails+1)); }
   fi
-  if grep -q '"test"' package.json; then
+
+  if [ "$node_ws" != "none" ]; then
+    # Monorepo: run the aggregation the repo actually orchestrates with. A detected
+    # workspace whose runner is not installed is a FAIL — testing only the root
+    # package would silently skip every workspace package.
+    step "Workspace test aggregation via $node_ws"
+    stack_tests_ran=1
+    case "$node_ws" in
+      turbo)
+        if command -v turbo >/dev/null 2>&1 || [ -x node_modules/.bin/turbo ]; then
+          npx turbo run test && ok_msg "turbo run test" || { fail_msg "turbo run test"; fails=$((fails+1)); }
+        else
+          fail_msg "turbo.json present but turbo not installed — workspace tests cannot aggregate"; fails=$((fails+1))
+        fi ;;
+      nx)
+        if command -v nx >/dev/null 2>&1 || [ -x node_modules/.bin/nx ]; then
+          npx nx run-many -t test && ok_msg "nx run-many -t test" || { fail_msg "nx run-many -t test"; fails=$((fails+1)); }
+        else
+          fail_msg "nx.json present but nx not installed — workspace tests cannot aggregate"; fails=$((fails+1))
+        fi ;;
+      pnpm)
+        if command -v pnpm >/dev/null 2>&1; then
+          pnpm -r run test ${test_args:+-- $test_args} && ok_msg "pnpm -r run test" || { fail_msg "pnpm -r run test"; fails=$((fails+1)); }
+        else
+          fail_msg "pnpm-workspace.yaml present but pnpm not installed — workspace tests cannot aggregate"; fails=$((fails+1))
+        fi ;;
+      lerna|npm)
+        if grep -q '"test"' package.json || [ "$node_ws" = "npm" ]; then
+          npm test --workspaces --if-present ${test_args:+-- $test_args} && ok_msg "npm test --workspaces" || { fail_msg "npm test --workspaces"; fails=$((fails+1)); }
+        else
+          fail_msg "$node_ws workspace detected but no runnable aggregation (no test script)"; fails=$((fails+1))
+        fi ;;
+    esac
+  elif grep -q '"test"' package.json; then
     stack_tests_ran=1
     if [ "$PM" = "npm" ]; then
       npm test ${test_args:+-- $test_args} && ok_msg "unit tests" || { fail_msg "unit tests"; fails=$((fails+1)); }
@@ -147,10 +186,44 @@ if [ -f package.json ]; then
     fi
   fi
 
+  # Per-package coverage merge (stack-portability-5): in a workspace, each package
+  # emits its own coverage/coverage-summary.json. Merge totals (covered/total sums,
+  # not pct averages) and apply the same gate. No summaries at all → FAIL.
+  if ! skip_honored SKIP_COVERAGE && [ "${node_ws:-none}" != "none" ] && [ "$stack_tests_ran" = "1" ]; then
+    step "Workspace coverage merge (min line=${COVERAGE_MIN_LINE}%, branch=${COVERAGE_MIN_BRANCH}%)"
+    # JUSTIFIED: find muted — packages without coverage simply contribute no summaries; the zero-summaries case is failed explicitly below
+    summaries=$(find . -maxdepth 5 -path '*/coverage/coverage-summary.json' -not -path '*/node_modules/*' 2>/dev/null)
+    if [ -z "$summaries" ]; then
+      fail_msg "workspace tests ran but NO package emitted coverage/coverage-summary.json — configure the json-summary reporter per package"; fails=$((fails+1))
+    else
+      # JUSTIFIED: jq muted + 0 fallback — a malformed summary contributes nothing and the 0% computed below fails the gate safely
+      merged=$(echo "$summaries" | xargs cat 2>/dev/null | jq -s '
+        {lc: (map(.total.lines.covered) | add), lt: (map(.total.lines.total) | add),
+         bc: (map(.total.branches.covered) | add), bt: (map(.total.branches.total) | add)} |
+        {line: (if .lt > 0 then (.lc / .lt * 100) else 0 end),
+         branch: (if .bt > 0 then (.bc / .bt * 100) else 0 end)}' 2>/dev/null || echo '{"line":0,"branch":0}')
+      line_pct=$(echo "$merged" | jq -r '.line' 2>/dev/null || echo 0)
+      branch_pct=$(echo "$merged" | jq -r '.branch' 2>/dev/null || echo 0)
+      line_int=${line_pct%.*}; branch_int=${branch_pct%.*}
+      n_pkgs=$(echo "$summaries" | wc -l | tr -d ' ')
+      if [ "${line_int:-0}" -lt "$COVERAGE_MIN_LINE" ]; then
+        fail_msg "merged line coverage ${line_int}% < ${COVERAGE_MIN_LINE}% (across $n_pkgs package summaries)"; fails=$((fails+1))
+      else
+        ok_msg "merged line coverage ${line_int}% across $n_pkgs package summaries"
+      fi
+      if [ "${branch_int:-0}" -lt "$COVERAGE_MIN_BRANCH" ]; then
+        fail_msg "merged branch coverage ${branch_int}% < ${COVERAGE_MIN_BRANCH}%"; fails=$((fails+1))
+      else
+        ok_msg "merged branch coverage ${branch_int}%"
+      fi
+    fi
+  fi
+
   # Coverage — POLARITY INVERTED (stack-portability-4): when tests ran, missing
   # coverage tooling/script/report is a FAIL, not a silent note. Operator waiver:
-  # allow-skip-gates marker + SKIP_COVERAGE=1.
-  if ! skip_honored SKIP_COVERAGE && [ "$stack_tests_ran" = "1" ]; then
+  # allow-skip-gates marker + SKIP_COVERAGE=1. Workspace repos gate via the merge
+  # block above instead — a root-level coverage run would miss every package.
+  if ! skip_honored SKIP_COVERAGE && [ "$stack_tests_ran" = "1" ] && [ "${node_ws:-none}" = "none" ]; then
     step "Coverage gate (min line=${COVERAGE_MIN_LINE}%, branch=${COVERAGE_MIN_BRANCH}%)"
     if grep -q '"coverage"\|"test:coverage"' package.json; then
       cov_script="coverage"

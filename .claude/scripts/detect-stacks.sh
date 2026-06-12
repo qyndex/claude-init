@@ -37,6 +37,20 @@ find . -maxdepth 4 -name '*.sql' -not -path '*/node_modules/*' -print -quit 2>/d
 # Primary = first detected (heuristic; ordered to prefer the most-common dominant stack)
 primary="${stacks[0]:-\"unknown\"}"
 
+# Workspace dimension (e2e-audit stack-portability-5): monorepos need aggregated
+# test/lint runs (pnpm -r / turbo / nx), not a single root `npm test`. Detect the
+# orchestrator so verify.sh can pick the right aggregation — first match wins,
+# ordered task-runner-first (turbo/nx wrap pnpm/yarn workspaces when both exist).
+workspace="none"
+if   [ -f turbo.json ]; then workspace="turbo"
+elif [ -f nx.json ]; then workspace="nx"
+elif [ -f pnpm-workspace.yaml ]; then workspace="pnpm"
+elif [ -f lerna.json ]; then workspace="lerna"
+elif [ -f package.json ] && jq -e '.workspaces' package.json >/dev/null 2>&1; then workspace="npm"
+elif [ -f go.work ]; then workspace="go-work"
+elif [ -f Cargo.toml ] && grep -q '^\[workspace\]' Cargo.toml; then workspace="cargo"
+fi
+
 # Emit JSON
 IFS=','
-printf '{"stacks":[%s],"primary":%s}\n' "${stacks[*]:-}" "$primary"
+printf '{"stacks":[%s],"primary":%s,"workspace":"%s"}\n' "${stacks[*]:-}" "$primary" "$workspace"

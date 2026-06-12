@@ -25,6 +25,19 @@ fi
 failures=0
 ran=0
 
+# Tool-missing policy (e2e-audit stack-portability-6): a detected stack whose
+# linter is absent is a counted failure — a silent skip reads as a green lint.
+# Operator escape for airgapped/minimal environments: LINT_TOOL_MISSING_OK=1
+# downgrades to a warning.
+tool_missing() {
+  if [ "${LINT_TOOL_MISSING_OK:-0}" = "1" ]; then
+    echo "  ⚠ $1 not installed — skipped (LINT_TOOL_MISSING_OK=1)"
+  else
+    echo "  ✗ $1 not installed — stack detected but unlintable (set LINT_TOOL_MISSING_OK=1 to waive)"
+    failures=$((failures + 1))
+  fi
+}
+
 run_stack_lint() {
   local stack="$1"
   echo
@@ -35,7 +48,7 @@ run_stack_lint() {
     typescript|npm)
       if [ -f package.json ] && grep -q '"lint"' package.json; then
         if [ -f pnpm-lock.yaml ]; then pnpm lint || failures=$((failures + 1))
-        elif [ -f bun.lock ]; then bun run lint || failures=$((failures + 1))
+        elif [ -f bun.lock ] || [ -f bun.lockb ]; then bun run lint || failures=$((failures + 1))
         elif [ -f yarn.lock ]; then yarn lint || failures=$((failures + 1))
         else npm run lint || failures=$((failures + 1))
         fi
@@ -71,30 +84,40 @@ run_stack_lint() {
         gradle check --warning-mode all || failures=$((failures + 1))
       elif command -v mvn >/dev/null && [ -f pom.xml ]; then
         mvn checkstyle:check spotbugs:check || failures=$((failures + 1))
+      else
+        tool_missing "gradle/mvn"
       fi
       ;;
     terraform)
+      tf_ran=0
       if command -v tflint >/dev/null; then
-        tflint --recursive || failures=$((failures + 1))
+        tflint --recursive || failures=$((failures + 1)); tf_ran=1
       fi
       if command -v terraform >/dev/null; then
-        terraform fmt -check -recursive || failures=$((failures + 1))
+        terraform fmt -check -recursive || failures=$((failures + 1)); tf_ran=1
       fi
+      [ "$tf_ran" = 0 ] && tool_missing "tflint/terraform"
       ;;
     docker)
       if command -v hadolint >/dev/null; then
         find . -name 'Dockerfile*' -not -path '*/node_modules/*' -print0 | xargs -0 hadolint || failures=$((failures + 1))
+      else
+        tool_missing "hadolint"
       fi
       ;;
     shell)
       if command -v shellcheck >/dev/null; then
         find . -name '*.sh' -not -path '*/node_modules/*' -not -path '*/.git/*' -print0 \
           | xargs -0 shellcheck -S warning || failures=$((failures + 1))
+      else
+        tool_missing "shellcheck"
       fi
       ;;
     sql)
       if command -v sqlfluff >/dev/null; then
         sqlfluff lint --dialect=ansi . || failures=$((failures + 1))
+      else
+        tool_missing "sqlfluff"
       fi
       ;;
     *)
