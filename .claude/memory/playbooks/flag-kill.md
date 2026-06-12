@@ -3,6 +3,9 @@ name: flag-kill
 description: Emergency flag rollback during a P1 incident.
 metadata:
   type: playbook
+status: established
+created: 2026-05-28
+last_verified: 2026-05-28
 ---
 
 # Playbook: Emergency flag rollback

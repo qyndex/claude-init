@@ -3,6 +3,9 @@ name: flag-cleanup
 description: Remove a feature flag from code after 100% rollout.
 metadata:
   type: playbook
+status: established
+created: 2026-05-28
+last_verified: 2026-05-28
 ---
 
 # Playbook: Feature flag cleanup

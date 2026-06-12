@@ -3,6 +3,9 @@ name: flaky-test
 description: Playbook for diagnosing and fixing a flaky test.
 metadata:
   type: playbook
+status: established
+created: 2026-05-28
+last_verified: 2026-05-28
 ---
 
 # Playbook: Flaky Test

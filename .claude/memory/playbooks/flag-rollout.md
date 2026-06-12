@@ -3,6 +3,9 @@ name: flag-rollout
 description: Phased flag rollout from default-OFF to 100%, with auto-rollback discipline.
 metadata:
   type: playbook
+status: established
+created: 2026-05-28
+last_verified: 2026-05-28
 ---
 
 # Playbook: Phased flag rollout

@@ -49,6 +49,14 @@ silently overwrite the first's proposal and drop the human-review gate.
    `MEMORY.md` bloated (Round 4 caught exactly that silent failure).
 7. **Archive checkpoints** — move processed checkpoints to
    `.claude/memory/.cache/archive/YYYY-MM/`.
+8. **Roll up horizons** — run `bash .claude/scripts/memory-rollup.sh auto`.
+   This consolidates the week's events into `.claude/memory/rollups/YYYY-Www.md`
+   and, at period boundaries, weeklies → monthly → quarterly (each ≤100 lines).
+   Multi-year recall depends on this: day-scale memory (in-flight briefs,
+   observations) ages out within days, but the rollup chain preserves it at
+   log-scale cost. The factual skeleton is deterministic (git + task ledger);
+   you may enrich the narrative sections of the current week's file, but never
+   alter past-period rollups.
 
 ## Output
 
@@ -65,6 +73,8 @@ whole point.
 - Relative dates in the proposal are absolutized; processed checkpoints archived.
 - `.claude/memory.proposed/conflicts.md` written if any contradicting ADRs found
   (subsystem-grouped comparison); absent means no conflicts detected.
+- `memory-rollup.sh auto` has run — the current week's rollup exists under
+  `.claude/memory/rollups/`.
 
 ## References
 

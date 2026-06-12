@@ -3,6 +3,9 @@ name: incident-response
 description: Live incident command — severity matrix, IC/scribe/comms roles, status update cadence, communication templates.
 metadata:
   type: playbook
+status: established
+created: 2026-05-28
+last_verified: 2026-05-28
 ---
 
 # Playbook: Live incident response

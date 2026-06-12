@@ -65,6 +65,7 @@ determine_type() {
     .claude/memory/playbooks/*) echo playbook ;;
     .claude/memory/deprecations/*) echo deprecation ;;
     .claude/memory/audits/*) echo audit ;;
+    .claude/memory/rollups/*) echo rollup ;;
     *) echo other ;;
   esac
 }
@@ -78,6 +79,9 @@ build_entry() {
   local status=$(extract_field "$file" "status")
   local created=$(extract_field "$file" "created")
   [ -z "$created" ] && created=$(extract_field "$file" "Date")
+  # seed-patterns frontmatter uses written_at — without this fallback every
+  # seeded file indexed with created:"" and the promotion lifecycle never fired
+  [ -z "$created" ] && created=$(extract_field "$file" "written_at")
   local last_verified=$(extract_field "$file" "last_verified")
   local written_by=$(extract_field "$file" "written_by")
   local source_session=$(extract_field "$file" "source_session")
@@ -142,6 +146,7 @@ case "$cmd" in
     done < <(find .claude/memory \
       -name '*.md' \
       -not -name '0000-template.md' \
+      -not -name 'in-flight*.md' \
       -not -path '*/.cache/*' \
       -not -path '*/audits/*' \
       -type f -print0 2>/dev/null) # JUSTIFIED: mutes find traversal warnings on a sparse memory tree; an empty set just means zero artifacts to index

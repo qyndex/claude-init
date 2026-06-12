@@ -4,6 +4,9 @@ description: Audit-uncovered systemic gap — the harness constitution and secur
 metadata:
   type: incident
   status: open
+status: open
+created: 2026-05-29
+last_verified: 2026-05-29
 ---
 
 # Incident: Constitution and security-critical files unprotected from agent writes

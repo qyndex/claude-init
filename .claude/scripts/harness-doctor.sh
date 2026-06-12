@@ -107,6 +107,47 @@ if [ -f .swarms/templates/handoff.yaml ]; then
   fi
 fi
 
+# ─── Memory-plane health (memory-system review §7.6: failures must be loud) ──
+
+# Witness briefs stuck in "(pending)" — the async witness died without anyone noticing
+stuck_witness=$(find .claude/memory/.cache/checkpoints -name '*.md' -mtime +2 -exec grep -l '(pending)' {} \; 2>/dev/null | head -3 || true)
+if [ -z "$stuck_witness" ]; then
+  add_result "no witness briefs stuck pending >2d" "pass" ""
+else
+  add_result "no witness briefs stuck pending >2d" "fail" "async witness died: $(echo "$stuck_witness" | tr '\n' ' ')"
+fi
+
+# Initiative pointers — session-end.sh reads these for token attribution
+if [ -s .claude/state/current-initiative ] && [ -s .claude/state/current-spec ]; then
+  add_result "initiative/spec pointers present" "pass" ""
+else
+  add_result "initiative/spec pointers present" "fail" "run: bash .claude/scripts/initiative-state.sh sync"
+fi
+
+# Initiative STATE.md freshness (the always-current state answer; 7d budget)
+state_md=$(ls -t initiatives/active/*.STATE.md 2>/dev/null | head -1 || true)
+if [ -n "$state_md" ]; then
+  state_age_d=$(( ( $(date +%s) - $(stat -f %m "$state_md" 2>/dev/null || stat -c %Y "$state_md" 2>/dev/null || echo 0) ) / 86400 ))
+  if [ "$state_age_d" -le 7 ]; then
+    add_result "initiative STATE.md fresh (≤7d)" "pass" "${state_age_d}d old"
+  else
+    add_result "initiative STATE.md fresh (≤7d)" "fail" "${state_age_d}d old — run initiative-state.sh sync"
+  fi
+else
+  add_result "initiative STATE.md fresh (≤7d)" "fail" "no STATE.md — run: bash .claude/scripts/initiative-state.sh sync"
+fi
+
+# Index lifecycle population — unknown-status entries can't promote or decay
+if [ -s .claude/memory/index.jsonl ] && command -v jq >/dev/null 2>&1; then
+  idx_total=$(wc -l < .claude/memory/index.jsonl | tr -d ' ')
+  idx_unknown=$(jq -rs '[.[] | select(.status == "unknown" or .status == null)] | length' .claude/memory/index.jsonl 2>/dev/null || echo 0)
+  if [ "$idx_total" -gt 0 ] && [ $(( idx_unknown * 2 )) -le "$idx_total" ]; then
+    add_result "memory index lifecycle ≥50% populated" "pass" "$((idx_total - idx_unknown))/$idx_total"
+  else
+    add_result "memory index lifecycle ≥50% populated" "fail" "$idx_unknown/$idx_total unknown — backfill frontmatter + rebuild"
+  fi
+fi
+
 printf ']\n' >> "$result_file"
 
 if [ "$JSON_MODE" -eq 1 ]; then

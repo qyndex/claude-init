@@ -3,6 +3,9 @@ name: new-feature
 description: End-to-end playbook for shipping a new feature from idea to deploy.
 metadata:
   type: playbook
+status: established
+created: 2026-05-28
+last_verified: 2026-05-28
 ---
 
 # Playbook: New Feature, End-to-End

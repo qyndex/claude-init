@@ -367,6 +367,24 @@ if [ -f .claude/memory/MEMORY.md ]; then
     ok "MEMORY.md within budget ($mem_lines/200 lines)"
   fi
 fi
+
+# Lifecycle frontmatter — without status/created the promotion/decay rules in
+# memory-promote.sh can never fire (memory-system review §7.4). Topic files
+# (not templates, not the index page, not runtime briefs) must carry both.
+fm_missing=0
+fm_checked=0
+while IFS= read -r -d '' f; do
+  fm_checked=$((fm_checked+1))
+  if ! grep -q '^status:' "$f" || ! grep -qE '^(created|written_at):' "$f"; then
+    warn "memory file missing lifecycle frontmatter (status + created/written_at): $f"
+    fm_missing=$((fm_missing+1))
+  fi
+  # JUSTIFIED: find 2>/dev/null mutes traversal noise on absent topic dirs — zero files is a valid (empty) memory tree
+done < <(find .claude/memory/decisions .claude/memory/patterns .claude/memory/incidents .claude/memory/playbooks \
+  -name '*.md' -not -name '0000-template.md' -type f -print0 2>/dev/null)
+if [ "$fm_missing" -eq 0 ]; then
+  ok "lifecycle frontmatter present on all $fm_checked topic files"
+fi
 echo
 
 # ─── 13. Settings security invariants ───────────────────────────────────

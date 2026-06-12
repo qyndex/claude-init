@@ -3,6 +3,9 @@ name: rollback
 description: Playbook for rolling back a bad release.
 metadata:
   type: playbook
+status: established
+created: 2026-05-28
+last_verified: 2026-05-28
 ---
 
 # Playbook: Rolling Back a Bad Release
