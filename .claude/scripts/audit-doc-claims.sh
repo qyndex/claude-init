@@ -30,8 +30,11 @@ else
   cd "$ROOT"
   # JUSTIFIED: find 2>/dev/null on docs/ + .claude/skills/ — a repo without those dirs simply contributes no docs to the scan, not an error
   while IFS= read -r f; do docs+=("$f"); done < <(
-    # docs/research/ excluded: audit/research artifacts quote stale claims as findings
-    find docs -type f -name '*.md' -not -path 'docs/research/*' 2>/dev/null
+    # docs/research/ excluded: audit/research artifacts quote stale claims as findings.
+    # docs/factory-history/ excluded: a vendored snapshot of the factory past
+    # plans/sessions that quotes hook OUTPUT like a Blocked-by hook message inside
+    # JSON example strings, which is not a live enforcement claim about THIS repo.
+    find docs -type f -name '*.md' -not -path 'docs/research/*' -not -path 'docs/factory-history/*' 2>/dev/null
     [ -f CLAUDE.md ] && printf '%s\n' CLAUDE.md
     [ -f .claude/CLAUDE.md ] && printf '%s\n' .claude/CLAUDE.md
     # JUSTIFIED: find 2>/dev/null — absent .claude/skills contributes no SKILL.md docs, not an error
@@ -42,14 +45,18 @@ fi
 # ─── Gate resolver — does this named gate exist in the real harness? ─────
 gate_exists() {
   local gate="$1"
+  # Claims may name a gate by basename ("pre-bash-guard.sh") or by repo-relative
+  # path (".claude/hooks/pre-bash-guard.sh", common in quoted hook-output
+  # examples). find -name matches the basename, so resolve on that.
+  local base="${gate##*/}"
   case "$gate" in
     *.sh)
       # JUSTIFIED: find 2>/dev/null — suppresses "no such dir"; grep -q . is the real resolve signal (a match means the gate exists)
-      find "$ROOT/.claude/scripts" "$ROOT/.claude/hooks" -type f -name "$gate" 2>/dev/null | grep -q .
+      find "$ROOT/.claude/scripts" "$ROOT/.claude/hooks" -type f -name "$base" 2>/dev/null | grep -q .
       ;;
     *.yml|*.yaml)
       # JUSTIFIED: find 2>/dev/null — suppresses "no such dir"; grep -q . is the real resolve signal (a match means the workflow exists)
-      find "$ROOT/.github/workflows" -type f -name "$gate" 2>/dev/null | grep -q .
+      find "$ROOT/.github/workflows" -type f -name "$base" 2>/dev/null | grep -q .
       ;;
   esac
 }

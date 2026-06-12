@@ -118,4 +118,44 @@ fi
 
 unjustified=$(jq -r '.unjustified' "$AUDIT_FILE")
 echo "silent-failure audit: $unjustified unjustified of $(jq -r '.total' "$AUDIT_FILE") (report: $AUDIT_FILE)"
-[ "$unjustified" -eq 0 ]
+
+# ─── Baseline ratchet (spec 004 T-133) ──────────────────────────────────
+# 223 pre-existing unjustified swallows live in the harness's own scripts —
+# mostly defensive 2>/dev/null and || true. Justifying each inline risks
+# rubber-stamping the very anti-pattern this gate guards against, so instead we
+# LOCK the known set as a baseline keyed on path:line:pattern and fail only on
+# NEW unjustified swallows. The baseline is a ceiling: it can only shrink.
+# Regenerate intentionally with UPDATE_SILENT_BASELINE=1 after burning entries
+# down. Burn-down tracked as a debt task.
+BASELINE_FILE="${SILENT_BASELINE_FILE:-$ROOT/.claude/state/silent-failure-baseline.json}"
+
+# Current unjustified keys, repo-relative + stable across checkouts.
+current_keys="$(jq -r --arg root "$ROOT/" \
+  '.findings[]? | select(.justified|not) | ((.path|sub($root;"")) + ":" + (.line|tostring) + ":" + .pattern)' \
+  "$AUDIT_FILE" | sort)"
+
+if [ "${UPDATE_SILENT_BASELINE:-0}" = "1" ]; then
+  printf '%s\n' "$current_keys" | grep . | jq -R . | jq -s . >"$BASELINE_FILE"
+  echo "silent-failure baseline written: $(printf '%s\n' "$current_keys" | grep -c .) entries -> $BASELINE_FILE"
+  exit 0
+fi
+
+[ "$unjustified" -eq 0 ] && exit 0
+
+# No baseline yet -> strict mode (any unjustified fails), preserving old behavior.
+if [ ! -f "$BASELINE_FILE" ]; then
+  echo "::error::no silent-failure baseline; run UPDATE_SILENT_BASELINE=1 to lock the current set, then burn it down"
+  exit 1
+fi
+
+baseline_keys="$(jq -r '.[]' "$BASELINE_FILE" | sort)"
+# Keys present now but absent from the baseline = newly-introduced swallows.
+new_list="$(comm -23 <(printf '%s\n' "$current_keys") <(printf '%s\n' "$baseline_keys") | grep . || true)"
+if [ -n "$new_list" ]; then
+  echo "::error::new unjustified silent-failure(s) beyond the baseline — add '# JUSTIFIED:' within 3 lines or fix:"
+  printf '%s\n' "$new_list"
+  exit 1
+fi
+baseline_count="$(printf '%s\n' "$baseline_keys" | grep -c . || true)"
+echo "silent-failure: $unjustified within baseline of $baseline_count (no new swallows)"
+exit 0

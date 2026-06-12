@@ -1,0 +1,53 @@
+name: Commitlint
+
+# Enforce Conventional Commits format on all commits.
+# Required by release-please for auto-CHANGELOG; mandated by CLAUDE.md §VI.
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  commitlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with: { node-version: '22' }
+
+      - name: Install commitlint
+        run: |
+          npm install -g @commitlint/cli @commitlint/config-conventional
+
+      # Uses the repo-root commitlint.config.js (extends conventional, relaxes
+      # subject-case per §VI — spec 004 T-135). Dropping the explicit --extends
+      # flag lets commitlint discover the config file; the flag would override it.
+      - name: Validate commits in PR
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          npx commitlint --from "$BASE" --to "$HEAD"
+
+      - name: Validate PR title (also must be Conventional Commits — for squash-merge)
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          echo "$TITLE" | npx commitlint
+
+      # Gap-audit G47: §VI's Confidence/Scope-risk/Not-tested trailers were
+      # mandated but never validated — commitlint only checked the header.
+      - name: Validate required trailers (G47)
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          bash .claude/scripts/lint-trailers.sh "$BASE" "$HEAD"

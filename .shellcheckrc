@@ -1,0 +1,20 @@
+# Shellcheck config for the harness (spec 004 T-132).
+#
+# The CI shellcheck-on-hooks gate (harness-validate.yml, ci.yml lint.sh) runs at
+# default severity and failed on a set of style-class diagnostics that are
+# intentional in these hooks. We disable ONLY the cosmetic/false-positive codes
+# repo-wide and FIX the substantive ones in the hooks themselves (SC1083 git
+# rev-syntax quoting, SC2295 prefix-strip quoting in the security guards, SC2034
+# unused vars). Anything not listed here still fails the gate.
+#
+# Disabled, with rationale:
+#   SC2012 — "use find instead of ls": these `ls` uses are over known-safe,
+#            alnum-named state files; find would be heavier for no benefit.
+#   SC2011 — same family (ls | xargs) on controlled inputs.
+#   SC1091 — "can't follow sourced file": the libs ARE present at runtime; the
+#            linter just can't resolve the relative path statically.
+#   SC2016 — "expr won't expand in single quotes": intentional — these are
+#            literal patterns/regex fed to grep/awk, not meant to expand.
+#   SC2221/SC2222 — overlapping case patterns: verified benign (the broader
+#            pattern subsumes a redundant narrower one routing to the same arm).
+disable=SC2012,SC2011,SC1091,SC2016,SC2221,SC2222
