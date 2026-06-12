@@ -1,0 +1,6 @@
+# TDD ledger — red — T-018
+timestamp: 2026-05-29T01:10:26+10:00
+command: test -f .claude/routines/oq-aging.yml && grep -q 'oq-aging.sh' .claude/routines/oq-aging.yml && grep -q 'consecutive-aborts' .github/workflows/harness-validate.yml
+exit_code: 1
+---
+

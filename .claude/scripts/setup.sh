@@ -39,6 +39,61 @@ if [ -f .claude/CLAUDE.md ] && ! grep -q "Karpathy's Four Principles" .claude/CL
 fi
 ok "no foreign .claude/CLAUDE.md collision"
 
+step "Greenfield template-clean (e2e-audit greenfield-1)"
+# The factory's OWN dev state rides along in the cp: 100+ completed harness
+# tasks, specs/plans 001-003, harness ADRs, an initiative STATE file. In a new
+# project that makes verify.sh red-on-arrival and seeds the loop with foreign
+# work. Move it all to docs/factory-history/ (auditable, out of the live path).
+# Guarded: NEVER runs inside the factory repo itself (its CI exercises that
+# state), and TEMPLATE_CLEAN=0 skips explicitly.
+# JUSTIFIED: git config muted — no remote configured means not the factory clone, which is the cleaning case
+origin_url=$(git config --get remote.origin.url 2>/dev/null || echo "")
+if [ "${TEMPLATE_CLEAN:-1}" = "1" ] && ! printf '%s' "$origin_url" | grep -q "claude-init"; then
+  hist="docs/factory-history"
+  cleaned=0
+  # 1. TASKS.md → header/format sections only; factory task lines archived.
+  if [ -f tasks/TASKS.md ] && grep -qE '^- \[.\] T-[0-9]+.*spec:00[1-3]' tasks/TASKS.md; then
+    mkdir -p "$hist"
+    cp tasks/TASKS.md "$hist/TASKS.factory.md"
+    awk '
+      /^## Active$/ {print; print ""; print "<!-- queue cleaned by setup.sh template-clean — factory tasks archived in docs/factory-history/ -->"; act=1; next}
+      act && /^## / {print ""; print; next}
+      act {next}
+      {print}' \
+      "$hist/TASKS.factory.md" > tasks/TASKS.md
+    cleaned=$((cleaned+1))
+  fi
+  # 2. Factory specs/plans (001-003 harness work) → history.
+  for f in specs/active/001-*.md specs/active/002-*.md specs/active/003-*.md \
+           plans/active/001-*.md plans/active/002-*.md plans/active/003-*.md; do
+    [ -f "$f" ] || continue
+    mkdir -p "$hist/$(dirname "$f")"
+    mv "$f" "$hist/$f"
+    cleaned=$((cleaned+1))
+  done
+  # 3. Memory: keep the taxonomy + 0000 templates; archive factory ADRs/incidents.
+  for f in .claude/memory/decisions/000[1-9]-*.md .claude/memory/incidents/2026-*.md; do
+    [ -f "$f" ] || continue
+    mkdir -p "$hist/$(dirname "$f")"
+    mv "$f" "$hist/$f"
+    cleaned=$((cleaned+1))
+  done
+  # 4. Initiative STATE files are factory-run artifacts.
+  for f in initiatives/active/*.STATE.md; do
+    [ -f "$f" ] || continue
+    mkdir -p "$hist/initiatives"
+    mv "$f" "$hist/initiatives/"
+    cleaned=$((cleaned+1))
+  done
+  if [ "$cleaned" -gt 0 ]; then
+    ok "template-clean: $cleaned factory artifact group(s) moved to $hist/"
+  else
+    ok "template-clean: no factory dev state found (already clean)"
+  fi
+else
+  ok "template-clean skipped (factory repo or TEMPLATE_CLEAN=0)"
+fi
+
 step "Initializing git (if needed)"
 if [ ! -d .git ]; then
   git init -b main
@@ -151,7 +206,17 @@ ensure_ignore ".swarms/streams/*"
 ensure_ignore "!.swarms/streams/.gitkeep"
 ensure_ignore ".swarms/events/"
 ensure_ignore ".claude/sessions/"
-ensure_ignore "verify/"
+# e2e-audit greenfield-2: do NOT ignore all of verify/ — evidence-gate requires
+# the lightweight trail (REPORT.md, AC screenshots, red/green ledger) in the PR
+# diff. Ignore only the heavy artifacts, exactly like the factory .gitignore.
+ensure_ignore "verify/**/*.webm"
+ensure_ignore "verify/**/*.zip"
+ensure_ignore "verify/**/network.har"
+ensure_ignore "verify/**/html-report/"
+ensure_ignore "verify/**/test-results/"
+ensure_ignore "verify/.skip-log"
+ensure_ignore "!verify/**/red.log"
+ensure_ignore "!verify/**/green.log"
 ensure_ignore "OVERNIGHT_REPORT.md"
 ensure_ignore "overnight-report-*.md"
 ensure_ignore "node_modules/"
@@ -191,6 +256,17 @@ command -v shellcheck >/dev/null || warn "shellcheck not installed (recommended 
 command -v ccusage >/dev/null || command -v npx >/dev/null || warn "ccusage not installed — token monitoring will be limited"
 command -v semgrep >/dev/null || warn "semgrep not installed (recommended for in-agent SAST): brew install semgrep"
 
+step "Evidence rig bootstrap (web stacks)"
+# e2e-audit e2e-rig-4c: on web-stack detection install the standalone Playwright
+# evidence rig so the verify chain can actually run journeys. Best-effort —
+# a failed browser download must not abort setup; the verifier re-runs it.
+if [ -f package.json ]; then
+  # JUSTIFIED: rig bootstrap failure degrades to a warn — verifier.md step 2 re-runs it pre-first-journey
+  bash .claude/scripts/rig-bootstrap.sh || warn "rig-bootstrap failed — run 'bash .claude/scripts/rig-bootstrap.sh' manually before the first /verify"
+else
+  note "no package.json — browser rig skipped (stack-runner AC proof applies; see collect-evidence.sh)"
+fi
+
 step "Priming the daily-batch gate"
 # merge-gate.yml blocks PRs until a daily-batch.yml run has passed within its window.
 # On a fresh install there is no prior run, so the very first PR would be blocked for
@@ -226,12 +302,35 @@ else
   warn "claude CLI not found — skipping plugin install. Install Claude Code first, then run bash .claude/scripts/install-plugins.sh"
 fi
 
-step "Optional: apply branch protection ruleset"
-note "Branch protection is configured at .github/rulesets/main-protection.json"
-note "To apply (requires gh + repo admin):"
-note "  gh api repos/:owner/:repo/rulesets --method POST --input .github/rulesets/main-protection.json"
-note "Skipping by default — run AFTER your CI workflows have run at least once on main"
-note "(otherwise required-check names won't be available to reference in the ruleset)."
+step "Branch protection ruleset (e2e-audit ci-gates-2)"
+# The ruleset file means NOTHING until applied server-side — every required
+# check is advisory until then. Offer to apply when gh is authenticated;
+# record the decision either way so harness-doctor can nag about it.
+mkdir -p .claude/state
+ruleset_state=".claude/state/ruleset-applied"
+if command -v gh >/dev/null 2>&1 && gh auth status >/dev/null 2>&1 && git config --get remote.origin.url >/dev/null 2>&1; then
+  apply_ruleset="${APPLY_RULESET:-}"
+  if [ -z "$apply_ruleset" ] && [ -t 0 ]; then
+    printf "  Apply .github/rulesets/main-protection.json to this repo now? [y/N] "
+    read -r reply
+    case "$reply" in y|Y|yes) apply_ruleset=1 ;; *) apply_ruleset=0 ;; esac
+  fi
+  if [ "$apply_ruleset" = "1" ]; then
+    if gh api "repos/{owner}/{repo}/rulesets" --method POST --input .github/rulesets/main-protection.json >/dev/null 2>&1; then
+      printf '%s\tapplied\n' "$(date -Iseconds)" > "$ruleset_state"
+      ok "ruleset applied server-side"
+    else
+      printf '%s\tapply-failed\n' "$(date -Iseconds)" > "$ruleset_state"
+      warn "ruleset apply FAILED (need repo admin; CI check names must exist) — re-run: gh api repos/{owner}/{repo}/rulesets --method POST --input .github/rulesets/main-protection.json"
+    fi
+  else
+    printf '%s\tdeclined\n' "$(date -Iseconds)" > "$ruleset_state"
+    warn "ruleset NOT applied — branch protection is INACTIVE until you run: gh api repos/{owner}/{repo}/rulesets --method POST --input .github/rulesets/main-protection.json"
+  fi
+else
+  printf '%s\tno-gh-auth\n' "$(date -Iseconds)" > "$ruleset_state"
+  warn "gh not authenticated / no remote — ruleset NOT applied (harness-doctor will keep flagging this)"
+fi
 
 step "Setup complete"
 cat <<'EOF'

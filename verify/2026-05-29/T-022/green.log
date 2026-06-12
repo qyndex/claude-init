@@ -1,0 +1,7 @@
+# TDD ledger — green — T-022
+timestamp: 2026-05-29T01:51:02+10:00
+command: bash .claude/scripts/lint-silent-failures.sh && jq -e '.unjustified == 0' .claude/state/silent-failure-audit.json
+exit_code: 0
+---
+silent-failure audit: 0 unjustified of 580 (report: /Volumes/M/sourcecode/qyndex/claude-init/.claude/state/silent-failure-audit.json)
+true

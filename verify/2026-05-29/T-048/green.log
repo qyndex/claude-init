@@ -1,0 +1,6 @@
+# TDD ledger — green — T-048
+timestamp: 2026-05-29T02:32:06+10:00
+command: bash -n .claude/scripts/test/atomic-write.sh && grep -q 'write_atomic' .claude/scripts/test/atomic-write.sh
+exit_code: 0
+---
+

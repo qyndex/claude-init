@@ -1,0 +1,8 @@
+# TDD ledger — green — T-026
+timestamp: 2026-05-29T01:29:12+10:00
+command: bash -n .claude/hooks/pre-bash-dep-freshness.sh && grep -qE 'permissionDecision.*ask|permissionDecision":[[:space:]]*"ask' .claude/hooks/pre-bash-dep-freshness.sh && bash .claude/scripts/test/pre-bash-dep-freshness.sh
+exit_code: 0
+---
+---
+passed: 4
+failed: 0

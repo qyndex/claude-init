@@ -1,0 +1,129 @@
+# setup-stack — composite action: detect the project stack and install its
+# toolchain + dependencies (e2e-audit e2e-rig-2 / ci-gates-3).
+#
+# evidence-gate.yml re-executes verify.sh and the Playwright journey on the PR
+# head; without the project toolchain those re-runs fail with "command not
+# found" and get mis-attributed as "evidence diverges from reality". This
+# action ports ci.yml's detect job + per-stack setup into one reusable step so
+# evidence-gate (and any future workflow) runs against a real toolchain.
+# Lockfile-aware: npm ci / pnpm --frozen-lockfile / uv sync / poetry install.
+
+name: setup-stack
+description: Detect project stack (node/python/rust/go) and install toolchain + deps
+outputs:
+  stack:
+    description: Detected stack (node|python|rust|go|unknown)
+    value: ${{ steps.detect.outputs.stack }}
+  pm:
+    description: Detected package manager
+    value: ${{ steps.detect.outputs.pm }}
+
+runs:
+  using: composite
+  steps:
+    - id: detect
+      shell: bash
+      run: |
+        set -e
+        stack=unknown; pm=unknown
+        if [ -f pnpm-lock.yaml ]; then stack=node; pm=pnpm
+        elif [ -f package-lock.json ]; then stack=node; pm=npm
+        elif [ -f yarn.lock ]; then stack=node; pm=yarn
+        elif [ -f bun.lock ] || [ -f bun.lockb ]; then stack=node; pm=bun
+        elif [ -f uv.lock ]; then stack=python; pm=uv
+        elif [ -f poetry.lock ]; then stack=python; pm=poetry
+        elif [ -f requirements.txt ] || [ -f pyproject.toml ]; then stack=python; pm=pip
+        elif [ -f Cargo.lock ] || [ -f Cargo.toml ]; then stack=rust; pm=cargo
+        elif [ -f go.sum ] || [ -f go.mod ]; then stack=go; pm=gomod
+        elif [ -f package.json ]; then stack=node; pm=npm
+        fi
+        echo "stack=$stack" >> "$GITHUB_OUTPUT"
+        echo "pm=$pm" >> "$GITHUB_OUTPUT"
+        echo "setup-stack: detected stack=$stack pm=$pm"
+
+    - name: Setup Node
+      if: steps.detect.outputs.stack == 'node'
+      uses: actions/setup-node@v4
+      with:
+        node-version: "20"
+
+    - name: Setup pnpm
+      if: steps.detect.outputs.pm == 'pnpm'
+      uses: pnpm/action-setup@v3
+      with: { run_install: false }
+
+    - name: Setup Python
+      if: steps.detect.outputs.stack == 'python'
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+
+    - name: Setup uv
+      if: steps.detect.outputs.pm == 'uv'
+      uses: astral-sh/setup-uv@v3
+
+    - name: Setup Rust
+      if: steps.detect.outputs.stack == 'rust'
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Setup Go
+      if: steps.detect.outputs.stack == 'go'
+      uses: actions/setup-go@v5
+      with: { go-version-file: go.mod }
+
+    - name: Install dependencies
+      shell: bash
+      env:
+        PM: ${{ steps.detect.outputs.pm }}
+        STACK: ${{ steps.detect.outputs.stack }}
+      run: |
+        set -e
+        case "$STACK" in
+          node)
+            case "$PM" in
+              pnpm) pnpm install --frozen-lockfile ;;
+              yarn) yarn install --frozen-lockfile ;;
+              bun)  bun install --frozen-lockfile ;;
+              *)    if [ -f package-lock.json ]; then npm ci; else npm install; fi ;;
+            esac
+            ;;
+          python)
+            case "$PM" in
+              uv) uv sync --all-extras ;;
+              poetry) poetry install ;;
+              pip) [ -f requirements.txt ] && pip install -r requirements.txt || pip install -e . ;;
+            esac
+            ;;
+          rust) cargo fetch ;;
+          go) go mod download ;;
+          unknown) echo "setup-stack: no recognizable stack — nothing to install" ;;
+        esac
+
+    - name: BYO services (compose.ci.yml)
+      shell: bash
+      run: |
+        # e2e-audit ci-gates-3: projects that need backing services in CI ship a
+        # compose.ci.yml; absence is the normal case and skips silently.
+        if [ -f compose.ci.yml ] && command -v docker >/dev/null 2>&1; then
+          docker compose -f compose.ci.yml up -d
+          echo "setup-stack: compose.ci.yml services started"
+        fi
+
+    - name: Load allowlisted verify-ci.env
+      shell: bash
+      run: |
+        # Only non-secret, rig-relevant keys may flow from the repo into the CI
+        # env — an allowlist prevents a committed env file from smuggling
+        # credentials or altering the runner beyond the rig's needs.
+        if [ -f verify-ci.env ]; then
+          while IFS='=' read -r k v; do
+            case "$k" in ''|\#*) continue ;; esac
+            case "$k" in
+              E2E_*|VERIFY_*|BASE_URL|PORT|DATABASE_URL|REDIS_URL)
+                echo "$k=$v" >> "$GITHUB_ENV"
+                echo "setup-stack: loaded $k from verify-ci.env"
+                ;;
+              *) echo "setup-stack: SKIPPED non-allowlisted key '$k' in verify-ci.env" ;;
+            esac
+          done < verify-ci.env
+        fi

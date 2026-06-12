@@ -45,20 +45,43 @@ echo "→ Collecting evidence for spec $spec_id ($slug)"
 
 # ─── 1. Parse acceptance criteria ───────────────────────────────────────
 ac_block=$(awk '/^## Acceptance criteria/,/^## [^A]/' "$spec")
-ac_ids=$(echo "$ac_block" | grep -oE 'AC-[0-9]+' | sort -u)
+# Normalized to unpadded AC-N (e2e-audit e2e-rig-3) — must match spec-match.sh's canonical form.
+ac_ids=$(echo "$ac_block" | grep -oE 'AC-[0-9]+' | sed 's/AC-0*\([0-9]\)/AC-\1/' | sort -u)
 # JUSTIFIED: the fallback yields a zero count when grep matches no AC lines (exit 1) — a spec with no acceptance criteria correctly reports zero rather than aborting under pipefail
 ac_count=$(echo "$ac_ids" | grep -c . || echo 0)
 
 # ─── 2. Run the journey via the playwright rig (unless check-only) ──────
 results_json="$date_dir/results.json"
 if [ "$CHECK_ONLY" = "0" ]; then
-  if [ -f playwright.config.ts ] && [ -d "e2e/$spec_id" ]; then
-    echo "  Running journey: VERIFY_FEATURE=$slug npx playwright test e2e/$spec_id"
+  # e2e-audit e2e-rig-4: the rig runs via its OWN config (--config
+  # playwright.evidence.config.ts) so it never collides with a brownfield
+  # project's playwright.config.ts; existence checks key on the evidence config.
+  if [ -f playwright.evidence.config.ts ] && [ -d "e2e/$spec_id" ]; then
+    echo "  Running journey: VERIFY_FEATURE=$slug npx playwright test --config playwright.evidence.config.ts e2e/$spec_id"
     # JUSTIFIED: the fallback lets the script continue past a failing journey run — the AC-proven verdict is computed from results.json in step 4, so a non-zero exit here is captured there, not swallowed
-    VERIFY_FEATURE="$slug" npx playwright test "e2e/$spec_id" 2>&1 | tail -20 || true
+    VERIFY_FEATURE="$slug" npx playwright test --config playwright.evidence.config.ts "e2e/$spec_id" 2>&1 | tail -20 || true
   else
-    echo "  ⚠ No playwright.config.ts or e2e/$spec_id/ — install rig (templates/evidence/) + write AC-tagged tests"
+    # e2e-audit greenfield-4: no browser rig — CLIs/APIs/libraries prove ACs via
+    # the stack's own runner emitting AC-tagged junit/json into the bundle dir.
+    echo "  ⚠ No playwright.evidence.config.ts or e2e/$spec_id/ — run: bash .claude/scripts/rig-bootstrap.sh (web apps) or rely on the stack-runner AC proof below"
+    if [ -f package.json ] && jq -e '.devDependencies.vitest // .dependencies.vitest' package.json >/dev/null 2>&1; then
+      echo "  Running stack AC proof: vitest → $date_dir/results.json"
+      # JUSTIFIED: failing tests must not abort evidence collection — step 4 reads pass/fail from the output file
+      npx vitest run --reporter=json --outputFile="$results_json" 2>&1 | tail -5 || true
+    elif [ -f package.json ] && jq -e '.devDependencies.jest // .dependencies.jest' package.json >/dev/null 2>&1; then
+      echo "  Running stack AC proof: jest → $date_dir/results.json"
+      # JUSTIFIED: same contract as above — the verdict comes from the output file
+      npx jest --json --outputFile="$results_json" 2>&1 | tail -5 || true
+    elif [ -f pyproject.toml ] || [ -f requirements.txt ] || [ -f setup.py ]; then
+      echo "  Running stack AC proof: pytest → $date_dir/results.xml"
+      results_json="$date_dir/results.xml"
+      # JUSTIFIED: same contract — junit XML carries pass/fail per testcase
+      python3 -m pytest --junitxml="$results_json" 2>&1 | tail -5 || true
+    fi
   fi
+fi
+if [ ! -f "$results_json" ]; then
+  echo "  ⚠ No results at $results_json — every AC will read UNPROVEN. Install the rig: bash .claude/scripts/rig-bootstrap.sh, or emit AC-tagged junit/jest output to that path."
 fi
 
 # ─── 3. Smoke commands ──────────────────────────────────────────────────
@@ -83,7 +106,8 @@ if [ -f "$results_json" ]; then
   # JUSTIFIED: the fallback keeps match_out as captured output even if spec-match exits non-zero — each AC is then individually checked against it below, so a tool error degrades to "unproven", never a crash
   match_out=$(bash .claude/scripts/spec-match.sh "$spec_id" "$results_json" 2>&1 || true)
   for ac in $ac_ids; do
-    if echo "$match_out" | grep -qE "✓ $ac"; then
+    # Anchored (e2e-audit e2e-rig-3): without the boundary, '✓ AC-10' satisfied AC-1.
+    if echo "$match_out" | grep -qE "✓ ${ac}( |\$)"; then
       ac_proven=$((ac_proven + 1))
     else
       ac_unproven+=("$ac")

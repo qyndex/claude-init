@@ -1,0 +1,8 @@
+# TDD ledger — green — T-049
+timestamp: 2026-05-29T02:32:50+10:00
+command: test -f .claude/scripts/lib/atomic-write.sh && bash -n .claude/scripts/lib/atomic-write.sh && bash .claude/scripts/test/atomic-write.sh
+exit_code: 0
+---
+---
+passed: 7
+failed: 0

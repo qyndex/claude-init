@@ -1,0 +1,6 @@
+# TDD ledger — green — T-025
+timestamp: 2026-05-29T01:27:29+10:00
+command: test -f .claude/routines/gc-nightly.yml && grep -qE 'gc-tasks|gc-verify|gc-logs' .claude/routines/gc-nightly.yml
+exit_code: 0
+---
+

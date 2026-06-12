@@ -67,7 +67,8 @@ for spec in specs/active/*.md; do
        | select(.ok == true
            or ([.tests[]?.results[]?.status] | length > 0 and all(. == "expected" or . == "passed")))
        | ((.tags // [])[]?, .title // empty)] | .[]' "$results" 2>/dev/null \
-      | grep -oE 'story-[0-9]+' | sort -u)
+      | grep -oE 'story-[0-9]+' | sed 's/story-0*\([0-9]\)/story-\1/' | sort -u)
+      # ^ normalized to unpadded story-N (e2e-audit e2e-rig-3) — story_num below counts 1,2,3
   fi
 
   story_num=0

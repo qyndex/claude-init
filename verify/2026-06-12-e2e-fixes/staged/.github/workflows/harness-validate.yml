@@ -1,0 +1,120 @@
+name: Harness Validate
+
+# Lints the .claude/ folder itself. Catches malformed YAML frontmatter, broken
+# JSON, bad hook scripts, and missing executable bits.
+
+on:
+  # No pull_request paths filter: this job is a REQUIRED merge gate in
+  # .github/rulesets/main-protection.json. A paths-filtered required check
+  # never reports on PRs that miss the filter and wedges them pending-forever.
+  # The lint is cheap (shell + jq), so run it on every PR to main.
+  pull_request:
+  push:
+    branches: [main]
+    paths:
+      - ".claude/**"
+      - ".mcp.json"
+
+permissions:
+  contents: read
+
+jobs:
+  harness-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate JSON files
+        run: |
+          set -e
+          for f in $(find .claude .github .mcp.json -name '*.json' -type f 2>/dev/null); do
+            echo "Checking $f"
+            jq -e . "$f" > /dev/null
+          done
+
+      - name: Validate YAML frontmatter in skills/agents/commands
+        run: |
+          set -e
+          pip install pyyaml --quiet
+          for f in $(find .claude/skills .claude/agents .claude/commands -name '*.md' -type f 2>/dev/null); do
+            if head -1 "$f" | grep -q '^---$'; then
+              fm=$(awk '/^---$/{c++; next} c==1{print}' "$f")
+              echo "$fm" | python3 -c "import sys, yaml; yaml.safe_load(sys.stdin.read())" || { echo "Bad frontmatter in $f"; exit 1; }
+            fi
+          done
+
+      - name: Validate hook scripts are executable
+        run: |
+          set -e
+          for f in .claude/hooks/*.sh; do
+            test -x "$f" || { echo "$f is not executable"; exit 1; }
+          done
+
+      - name: Shellcheck on hooks
+        uses: ludeeus/action-shellcheck@00b27aa7cb85167568cb48a3838b75f4265f2bca # master 2026-05-29
+        with:
+          scandir: .claude/hooks
+
+      - name: Verify CLAUDE.md exists
+        run: |
+          test -f .claude/CLAUDE.md || test -f CLAUDE.md || { echo "No CLAUDE.md found"; exit 1; }
+
+      - name: Structured harness report (validate.sh --json)
+        run: |
+          # Spec 001 AC-21: consume the structured report and render per-category
+          # GitHub annotations. Static commands only — no event interpolation.
+          report="$(bash .claude/scripts/validate.sh --json)"
+          printf '%s\n' "$report" | jq -e . > /dev/null
+          printf '%s\n' "$report" \
+            | jq -r '.categories[] | .name as $c
+                     | (.failures[]? | "::error title=" + $c + "::" + .),
+                       (.warnings[]? | "::warning title=" + $c + "::" + .)'
+          overall="$(printf '%s\n' "$report" | jq -r '.summary.overall')"
+          echo "harness validate overall: $overall"
+          test "$overall" != "fail"
+
+      - name: Validate loop-control state (consecutive-aborts schema)
+        run: |
+          # The consecutive-aborts.json state file must conform to its schema and
+          # the loop-control state machine + OQ-aging tests must pass.
+          state=.claude/state/consecutive-aborts.json
+          schema=.claude/templates/consecutive-aborts.schema.json
+          test -f "$state" && test -f "$schema"
+          # Every required schema key must be present in the committed state file.
+          for key in $(jq -r '.required[]' "$schema"); do
+            jq -e "has(\"$key\")" "$state" >/dev/null || { echo "consecutive-aborts.json missing required key: $key"; exit 1; }
+          done
+          jq -e '.count >= 0 and (.last_pivot_attempt | type == "number")' "$state" >/dev/null
+          bash .claude/scripts/test/loop-control.sh
+          bash .claude/scripts/test/oq-aging.sh
+
+      - name: TDD ledger gate (server-side — SKIP_* cannot apply here)
+        run: bash .claude/scripts/check-tdd-ledger.sh
+
+      - name: Live ruleset drift (e2e-audit ci-gates-2)
+        # The ruleset FILE is inert until applied server-side. Assert an ACTIVE
+        # branch ruleset exists whose required-check contexts cover the file's.
+        # Warn-only (advisory) when the API is unreadable; FAIL on drift.
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          file=.github/rulesets/main-protection.json
+          test -f "$file" || { echo "::warning::no $file — skipping live-ruleset check"; exit 0; }
+          live=$(gh api "repos/${{ github.repository }}/rulesets" 2>/dev/null || true)
+          if [ -z "$live" ] || [ "$live" = "[]" ]; then
+            echo "::warning title=live ruleset::no server-side ruleset — every required check is ADVISORY. Apply: gh api repos/${{ github.repository }}/rulesets --method POST --input $file"
+            exit 0
+          fi
+          live_id=$(printf '%s' "$live" | jq -r '[.[] | select(.target=="branch" and .enforcement=="active")][0].id // empty')
+          if [ -z "$live_id" ]; then
+            echo "::warning title=live ruleset::rulesets exist but none is an ACTIVE branch ruleset — protection is off"
+            exit 0
+          fi
+          live_ctx=$(gh api "repos/${{ github.repository }}/rulesets/$live_id" | jq -r '.rules[]? | select(.type=="required_status_checks") | .parameters.required_status_checks[].context' | sort)
+          file_ctx=$(jq -r '.rules[] | select(.type=="required_status_checks") | .parameters.required_status_checks[].context' "$file" | sort)
+          missing=$(comm -23 <(printf '%s\n' "$file_ctx") <(printf '%s\n' "$live_ctx"))
+          if [ -n "$missing" ]; then
+            echo "::error title=live ruleset drift::live ruleset missing required contexts: $(echo $missing) — re-apply $file"
+            exit 1
+          fi
+          echo "live ruleset covers all $(printf '%s\n' "$file_ctx" | grep -c .) file contexts"

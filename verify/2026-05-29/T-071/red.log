@@ -1,0 +1,6 @@
+# TDD ledger — red — T-071
+timestamp: 2026-05-29T11:12:08+10:00
+command: grep -qE "harness.version.drift|drift" .claude/hooks/session-heartbeat.sh
+exit_code: 1
+---
+

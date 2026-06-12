@@ -1,0 +1,8 @@
+# TDD ledger — red — T-056
+exit_code: 1
+# Baseline (scaffold commit 780fa60) validate.sh exits 1 with 2 failures:
+#     ✗ missing .swarms/coordinator/fleet.json
+#     ✗ missing .swarms/coordinator/decisions.log
+#   ✗ 2 failures, 1 warnings
+# The hardened tree (HEAD) fixes these and adds the new gates; AC-26 requires
+# zero NEW failures vs baseline — confirmed (hardened exits 0).

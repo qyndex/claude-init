@@ -1,0 +1,6 @@
+# TDD ledger — red — T-037
+timestamp: 2026-05-29T02:04:05+10:00
+command: jq -e '.["$schema"] | test("2020-12")' .swarms/templates/lane-event-schema.json && jq -e '.properties.event.enum | length >= 5' .swarms/templates/lane-event-schema.json
+exit_code: 2
+---
+jq: error: Could not open file .swarms/templates/lane-event-schema.json: No such file or directory

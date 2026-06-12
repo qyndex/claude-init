@@ -1,0 +1,3 @@
+# red — T-020
+exit_code: 1
+# lint-silent-failures.sh did not exist; the T-019 test could not pass

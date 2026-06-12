@@ -1,0 +1,55 @@
+# TDD ledger — green — T-010
+timestamp: 2026-05-29T01:01:07+10:00
+command: bash .claude/scripts/test/pre-bash-guard-bypass.sh && bash .claude/scripts/test/security-invariants.sh && bash .claude/scripts/test/pre-edit-constitution-guard.sh && bash .claude/scripts/validate.sh
+exit_code: 0
+---
+  ℹ (plugin-installed skills validated by `/plugin list`, not here)
+
+[commands]
+  ✓ 56 commands discovered
+
+[hooks]
+  ✓ 22 referenced hooks present
+
+[autopilot]
+  ✓ overnight-build.yml
+  ✓ dream-cron.yml
+  ✓ quarterly-archive.yml
+  ✓ overnight-report.md
+  ✓ AUTOPILOT.md
+  ✓ PARALLEL-SWARM.md
+
+[swarm]
+  ✓ fleet.json
+  ✓ decisions.log
+  ✓ brief.md
+  ✓ analysis.md
+  ✓ task.json
+
+[scaffold]
+  ✓ spec.md
+  ✓ plan.md
+  ✓ initiative.md
+  ✓ TASKS.md
+  ✓ OKRs.md
+  ✓ roadmap.md
+  ✓ slo.yml
+  ✓ all task accept: commands look like real verifications
+
+[memory]
+  ✓ MEMORY.md
+  ✓ 0000-template.md
+  ✓ 0000-template.md
+  ✓ REGISTRY.md
+  ✓ MEMORY.md within budget (      50/200 lines)
+
+[security]
+  ✓ disableBypassPermissionsMode: disable
+  ✓ no Bash(env) in allow
+  ✓ no Bash(claude:*) catch-all
+
+[mcp]
+  ✓ no @latest pins in .mcp.json
+
+─────────────────────────────────────
+✓ all checks passed (with 1 warnings)

@@ -1,0 +1,6 @@
+# TDD ledger — green — T-067
+timestamp: 2026-05-29T11:09:21+10:00
+command: [ "$(grep -A2 "integration" .github/workflows/ci.yml | grep -c "continue-on-error: true")" = "0" ]
+exit_code: 0
+---
+

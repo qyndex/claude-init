@@ -1,0 +1,6 @@
+# TDD ledger — green — T-052
+timestamp: 2026-05-29T02:29:17+10:00
+command: bash -n .claude/scripts/test/audit-doc-claims.sh && grep -qE 'enforced by|blocked by|gated by' .claude/scripts/test/audit-doc-claims.sh
+exit_code: 0
+---
+

@@ -1,0 +1,28 @@
+name: Lint exception audit
+
+# Round 8 E. Greps the diff for lint/type disables; requires JUSTIFICATION:
+# and ISSUE: markers within 3 lines. Fails PR otherwise.
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  # Job id renamed audit → lint-exception-audit (e2e-audit ci-gates-1): the job id
+  # IS the required-check context in main-protection.json — 'audit' was ambiguous.
+  lint-exception-audit:
+    runs-on: ubuntu-latest
+    env:
+      BASE_SHA: ${{ github.event.pull_request.base.sha }}
+      HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Scan diff for un-justified disables
+        run: bash .claude/scripts/lint-exception-check.sh "$BASE_SHA" "$HEAD_SHA"

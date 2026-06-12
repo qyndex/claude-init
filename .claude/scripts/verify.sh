@@ -34,11 +34,26 @@ SKIP_GATES_ALLOWED=0
 
 # skip_honored VARNAME → returns 0 (true) only if that SKIP_* is set AND the
 # operator marker is present. Without the marker it always returns 1 (run gate).
+#
+# e2e-audit tdd-loop-2: VERIFY_CI carve-out — evidence-gate re-executes verify.sh
+# on a bare CI runner where story-map / integ-cov / the journey run as their own
+# jobs. ONLY those three gates may be relaxed via VERIFY_CI=1, only when actually
+# running under GitHub Actions, and always logged. The TDD ledger and coverage
+# gates are NEVER relaxable this way (that would reopen the spec-003 bypass).
 skip_honored() {
   local var="$1"
   local val="${!var:-0}"
   [ "$val" = "1" ] || return 1
-  [ "$SKIP_GATES_ALLOWED" = "1" ]
+  if [ "$SKIP_GATES_ALLOWED" = "1" ]; then return 0; fi
+  case "$var" in
+    SKIP_STORY_MAP|SKIP_INTEG_COV|SKIP_E2E_JOURNEY)
+      if [ "${VERIFY_CI:-0}" = "1" ] && [ "${GITHUB_ACTIONS:-}" = "true" ]; then
+        warn_msg "VERIFY_CI: $var honored in CI re-execution context (gate runs as its own job)"
+        return 0
+      fi
+      ;;
+  esac
+  return 1
 }
 
 # Log the requested SKIP_* set and whether it is honored.
@@ -74,6 +89,31 @@ else
   ok_msg "branch fresh against main"
 fi
 
+# ─── Stack checks (e2e-audit stack-portability-1..4) ─────────────────────────
+# Driven by detect-stacks.sh (single source of stack truth). Explicit accounting:
+# if language stacks are detected but ZERO stack test commands execute, verify
+# FAILS — the old per-stack ifs let an undetected stack sail through green.
+# Carve-out: a repo with NO language stacks (this template itself: shell/docs
+# only) skips with a visible note.
+
+# JUSTIFIED: detection errors yield empty stacks — the accounting below then takes the no-language-stack path, which is visible, not silent
+stacks_json=$(bash .claude/scripts/detect-stacks.sh 2>/dev/null || echo '{"stacks":[]}')
+# JUSTIFIED: jq muted on malformed detection output — empty list routes to the visible no-stack path
+detected_stacks=$(echo "$stacks_json" | jq -r '.stacks[]' 2>/dev/null)
+# JUSTIFIED: grep no-match exits 1 — an empty lang_stacks is the legitimate docs/shell-only case
+lang_stacks=$(printf '%s\n' "$detected_stacks" | grep -E '^(typescript|python|rust|go|java|ruby|dotnet|php)$' || true)
+stack_tests_ran=0
+
+# Python package-manager ladder (stack-portability-3): pick the runner from the
+# lockfile — uv was previously assumed, breaking poetry/pipenv/plain-pip repos.
+py_run() {
+  if [ -f uv.lock ]; then uv run "$@"
+  elif [ -f poetry.lock ]; then poetry run "$@"
+  elif [ -f Pipfile.lock ]; then pipenv run "$@"
+  else "$@"
+  fi
+}
+
 # ─── Node / TypeScript ────────────────────────────────────────────────────────
 if [ -f package.json ]; then
   step "Node project detected"
@@ -84,6 +124,12 @@ if [ -f package.json ]; then
   elif [ -f yarn.lock ]; then PM="yarn"
   fi
 
+  # Runner-aware test flags (stack-portability-6): --run is vitest-only, --ci is jest-only.
+  test_args=""
+  if jq -e '.devDependencies.vitest // .dependencies.vitest' package.json >/dev/null 2>&1; then test_args="--run"
+  elif jq -e '.devDependencies.jest // .dependencies.jest' package.json >/dev/null 2>&1; then test_args="--ci"
+  fi
+
   if grep -q '"typecheck"' package.json; then
     $PM run typecheck && ok_msg "typecheck" || { fail_msg "typecheck"; fails=$((fails+1)); }
   fi
@@ -91,67 +137,79 @@ if [ -f package.json ]; then
     $PM run lint && ok_msg "lint" || { fail_msg "lint"; fails=$((fails+1)); }
   fi
   if grep -q '"test"' package.json; then
+    stack_tests_ran=1
     if [ "$PM" = "npm" ]; then
-      npm test -- --run && ok_msg "unit tests" || { fail_msg "unit tests"; fails=$((fails+1)); }
+      npm test ${test_args:+-- $test_args} && ok_msg "unit tests" || { fail_msg "unit tests"; fails=$((fails+1)); }
     elif [ "$PM" = "bun" ]; then
       bun test && ok_msg "unit tests" || { fail_msg "unit tests"; fails=$((fails+1)); }
     else
-      $PM test --run && ok_msg "unit tests" || { fail_msg "unit tests"; fails=$((fails+1)); }
+      $PM test $test_args && ok_msg "unit tests" || { fail_msg "unit tests"; fails=$((fails+1)); }
     fi
   fi
 
-  # Coverage — only run if a coverage script is defined and SKIP_COVERAGE is unset
-  if ! skip_honored SKIP_COVERAGE && grep -q '"coverage"\|"test:coverage"' package.json; then
+  # Coverage — POLARITY INVERTED (stack-portability-4): when tests ran, missing
+  # coverage tooling/script/report is a FAIL, not a silent note. Operator waiver:
+  # allow-skip-gates marker + SKIP_COVERAGE=1.
+  if ! skip_honored SKIP_COVERAGE && [ "$stack_tests_ran" = "1" ]; then
     step "Coverage gate (min line=${COVERAGE_MIN_LINE}%, branch=${COVERAGE_MIN_BRANCH}%)"
-    cov_script="coverage"
-    grep -q '"test:coverage"' package.json && cov_script="test:coverage"
-    if $PM run "$cov_script" 2>&1 | tee /tmp/coverage.out > /dev/null; then
-      # Parse coverage from common formats. Try v8/istanbul JSON summary if exists.
-      if [ -f coverage/coverage-summary.json ]; then
-        # JUSTIFIED: jq error muted + 0 fallback — a malformed summary yields 0, which correctly fails the line-coverage gate rather than crashing it
-        line_pct=$(jq -r '.total.lines.pct' coverage/coverage-summary.json 2>/dev/null || echo 0)
-        # JUSTIFIED: jq error muted + 0 fallback — same rationale for branch coverage; 0 fails the gate safely
-        branch_pct=$(jq -r '.total.branches.pct' coverage/coverage-summary.json 2>/dev/null || echo 0)
-        line_int=${line_pct%.*}
-        branch_int=${branch_pct%.*}
-        if [ "${line_int:-0}" -lt "$COVERAGE_MIN_LINE" ]; then
-          fail_msg "line coverage ${line_pct}% < ${COVERAGE_MIN_LINE}%"; fails=$((fails+1))
+    if grep -q '"coverage"\|"test:coverage"' package.json; then
+      cov_script="coverage"
+      grep -q '"test:coverage"' package.json && cov_script="test:coverage"
+      if $PM run "$cov_script" 2>&1 | tee /tmp/coverage.out > /dev/null; then
+        if [ -f coverage/coverage-summary.json ]; then
+          # JUSTIFIED: jq error muted + 0 fallback — a malformed summary yields 0, which correctly fails the line-coverage gate rather than crashing it
+          line_pct=$(jq -r '.total.lines.pct' coverage/coverage-summary.json 2>/dev/null || echo 0)
+          # JUSTIFIED: jq error muted + 0 fallback — same rationale for branch coverage; 0 fails the gate safely
+          branch_pct=$(jq -r '.total.branches.pct' coverage/coverage-summary.json 2>/dev/null || echo 0)
+          line_int=${line_pct%.*}
+          branch_int=${branch_pct%.*}
+          if [ "${line_int:-0}" -lt "$COVERAGE_MIN_LINE" ]; then
+            fail_msg "line coverage ${line_pct}% < ${COVERAGE_MIN_LINE}%"; fails=$((fails+1))
+          else
+            ok_msg "line coverage ${line_pct}%"
+          fi
+          if [ "${branch_int:-0}" -lt "$COVERAGE_MIN_BRANCH" ]; then
+            fail_msg "branch coverage ${branch_pct}% < ${COVERAGE_MIN_BRANCH}%"; fails=$((fails+1))
+          else
+            ok_msg "branch coverage ${branch_pct}%"
+          fi
         else
-          ok_msg "line coverage ${line_pct}%"
-        fi
-        if [ "${branch_int:-0}" -lt "$COVERAGE_MIN_BRANCH" ]; then
-          fail_msg "branch coverage ${branch_pct}% < ${COVERAGE_MIN_BRANCH}%"; fails=$((fails+1))
-        else
-          ok_msg "branch coverage ${branch_pct}%"
+          fail_msg "coverage script ran but coverage/coverage-summary.json was not generated — configure the json-summary reporter (c8 / @vitest/coverage-v8)"; fails=$((fails+1))
         fi
       else
-        echo "  (coverage-summary.json not generated — install c8 or @vitest/coverage-v8)"
+        fail_msg "coverage script failed"; fails=$((fails+1))
       fi
+    else
+      fail_msg "tests ran but package.json has no coverage / test:coverage script — coverage gate cannot run (waiver: allow-skip-gates + SKIP_COVERAGE=1)"; fails=$((fails+1))
     fi
   fi
 fi
 
 # ─── Python ───────────────────────────────────────────────────────────────────
-if [ -f pyproject.toml ]; then
+# Broader sentinel set (stack-portability-3): pyproject OR requirements.txt OR setup.py.
+if [ -f pyproject.toml ] || [ -f requirements.txt ] || [ -f setup.py ]; then
   step "Python project detected"
   command -v ruff >/dev/null && { ruff check . && ok_msg "ruff" || { fail_msg "ruff"; fails=$((fails+1)); } ; }
   # JUSTIFIED: trailing fallback absorbs the `command -v mypy` miss — when mypy is not installed the whole guarded clause is skipped without the absence being mistaken for a tool failure; a present-but-failing mypy still increments fails inside the braces
   command -v mypy >/dev/null && { mypy . && ok_msg "mypy" || { fail_msg "mypy"; fails=$((fails+1)); } ; } || true
-  if [ -d tests ]; then
-    uv run pytest -q && ok_msg "pytest" || { fail_msg "pytest"; fails=$((fails+1)); }
-  fi
+  if [ -d tests ] || [ -f conftest.py ]; then
+    stack_tests_ran=1
+    py_run python3 -m pytest -q && ok_msg "pytest" || { fail_msg "pytest"; fails=$((fails+1)); }
 
-  if ! skip_honored SKIP_COVERAGE && [ -d tests ]; then
-    step "Coverage gate (min line=${COVERAGE_MIN_LINE}%)"
-    # JUSTIFIED: coverage tool errors muted — the && chain already gates on success; a failing run skips the whole block rather than parsing a bad report
-    if uv run coverage run -m pytest -q 2>/dev/null && uv run coverage report --format=json -o /tmp/coverage.json 2>/dev/null; then
-      # JUSTIFIED: jq error muted + 0 fallback — a malformed coverage.json yields 0, which correctly fails the gate rather than crashing it
-      pct=$(jq -r '.totals.percent_covered' /tmp/coverage.json 2>/dev/null || echo 0)
-      pct_int=${pct%.*}
-      if [ "${pct_int:-0}" -lt "$COVERAGE_MIN_LINE" ]; then
-        fail_msg "line coverage ${pct}% < ${COVERAGE_MIN_LINE}%"; fails=$((fails+1))
+    if ! skip_honored SKIP_COVERAGE; then
+      step "Coverage gate (min line=${COVERAGE_MIN_LINE}%)"
+      if py_run coverage run -m pytest -q >/dev/null 2>&1 && py_run coverage report --format=json -o /tmp/coverage.json >/dev/null 2>&1; then
+        # JUSTIFIED: jq error muted + 0 fallback — a malformed coverage.json yields 0, which correctly fails the gate rather than crashing it
+        pct=$(jq -r '.totals.percent_covered' /tmp/coverage.json 2>/dev/null || echo 0)
+        pct_int=${pct%.*}
+        if [ "${pct_int:-0}" -lt "$COVERAGE_MIN_LINE" ]; then
+          fail_msg "line coverage ${pct}% < ${COVERAGE_MIN_LINE}%"; fails=$((fails+1))
+        else
+          ok_msg "line coverage ${pct}%"
+        fi
       else
-        ok_msg "line coverage ${pct}%"
+        # Polarity inverted (stack-portability-4): tests ran → coverage must be measurable.
+        fail_msg "tests ran but coverage could not be measured — install/configure coverage (pip install coverage) (waiver: allow-skip-gates + SKIP_COVERAGE=1)"; fails=$((fails+1))
       fi
     fi
   fi
@@ -162,26 +220,105 @@ if [ -f Cargo.toml ]; then
   step "Rust project detected"
   cargo check && ok_msg "cargo check" || { fail_msg "cargo check"; fails=$((fails+1)); }
   cargo clippy -- -D warnings && ok_msg "clippy" || { fail_msg "clippy"; fails=$((fails+1)); }
+  stack_tests_ran=1
   cargo test --quiet && ok_msg "tests" || { fail_msg "tests"; fails=$((fails+1)); }
+
+  if ! skip_honored SKIP_COVERAGE; then
+    step "Coverage gate (min line=${COVERAGE_MIN_LINE}%) — cargo llvm-cov"
+    if cargo llvm-cov --version >/dev/null 2>&1; then
+      # JUSTIFIED: jq + summary errors muted with 0 fallback — an unparsable report yields 0, failing the gate visibly instead of crashing
+      pct=$(cargo llvm-cov --summary-only --json 2>/dev/null | jq -r '.data[0].totals.lines.percent' 2>/dev/null || echo 0)
+      pct_int=${pct%.*}
+      if [ "${pct_int:-0}" -lt "$COVERAGE_MIN_LINE" ]; then
+        fail_msg "line coverage ${pct}% < ${COVERAGE_MIN_LINE}%"; fails=$((fails+1))
+      else
+        ok_msg "line coverage ${pct}%"
+      fi
+    else
+      fail_msg "tests ran but cargo-llvm-cov is not installed — cargo install cargo-llvm-cov (waiver: allow-skip-gates + SKIP_COVERAGE=1)"; fails=$((fails+1))
+    fi
+  fi
 fi
 
 # ─── Go ───────────────────────────────────────────────────────────────────────
 if [ -f go.mod ]; then
   step "Go project detected"
   go vet ./... && ok_msg "go vet" || { fail_msg "go vet"; fails=$((fails+1)); }
+  stack_tests_ran=1
   go test ./... && ok_msg "go test" || { fail_msg "go test"; fails=$((fails+1)); }
 
   if ! skip_honored SKIP_COVERAGE; then
-    step "Coverage gate (min ${COVERAGE_MIN_LINE}%)"
-    # JUSTIFIED: go test error muted + 0 fallback — a package with no tests prints to stderr; the awk averages only real "coverage:" lines and 0 is the correct floor when none exist
-    pct=$(go test -cover ./... 2>/dev/null | awk '/coverage:/{sum += $2; count++} END {if(count>0) print sum/count}' | tr -d '%' || echo 0)
-    pct_int=${pct%.*}
-    if [ "${pct_int:-0}" -lt "$COVERAGE_MIN_LINE" ]; then
-      fail_msg "avg coverage ${pct}% < ${COVERAGE_MIN_LINE}%"; fails=$((fails+1))
+    step "Coverage gate (min ${COVERAGE_MIN_LINE}%) — coverprofile total"
+    # Coverprofile TOTAL (stack-portability-4) — the old per-package mean
+    # over-weighted tiny packages and ignored untested ones entirely.
+    if go test -coverprofile=/tmp/go-cover.out ./... >/dev/null 2>&1 \
+       && pct=$(go tool cover -func=/tmp/go-cover.out 2>/dev/null | awk '/^total:/{gsub(/%/,"",$NF); print $NF}') \
+       && [ -n "$pct" ]; then
+      pct_int=${pct%.*}
+      if [ "${pct_int:-0}" -lt "$COVERAGE_MIN_LINE" ]; then
+        fail_msg "total coverage ${pct}% < ${COVERAGE_MIN_LINE}%"; fails=$((fails+1))
+      else
+        ok_msg "total coverage ${pct}%"
+      fi
     else
-      ok_msg "avg coverage ${pct}%"
+      fail_msg "tests ran but coverprofile total could not be computed (waiver: allow-skip-gates + SKIP_COVERAGE=1)"; fails=$((fails+1))
     fi
   fi
+fi
+
+# ─── Java ─────────────────────────────────────────────────────────────────────
+if [ -f pom.xml ] || [ -f build.gradle ] || [ -f build.gradle.kts ]; then
+  step "Java project detected"
+  stack_tests_ran=1
+  if [ -f pom.xml ]; then
+    mvn -q test && ok_msg "mvn test" || { fail_msg "mvn test"; fails=$((fails+1)); }
+  elif [ -x ./gradlew ]; then
+    ./gradlew test && ok_msg "gradle test" || { fail_msg "gradle test"; fails=$((fails+1)); }
+  else
+    gradle test && ok_msg "gradle test" || { fail_msg "gradle test"; fails=$((fails+1)); }
+  fi
+fi
+
+# ─── Ruby ─────────────────────────────────────────────────────────────────────
+if [ -f Gemfile ]; then
+  step "Ruby project detected"
+  stack_tests_ran=1
+  if [ -d spec ]; then
+    bundle exec rspec && ok_msg "rspec" || { fail_msg "rspec"; fails=$((fails+1)); }
+  else
+    bundle exec rake test && ok_msg "rake test" || { fail_msg "rake test"; fails=$((fails+1)); }
+  fi
+fi
+
+# ─── .NET ─────────────────────────────────────────────────────────────────────
+# JUSTIFIED: find muted — absence of sln/csproj simply means no dotnet stack
+if find . -maxdepth 2 \( -name '*.sln' -o -name '*.csproj' \) -not -path '*/node_modules/*' -print -quit 2>/dev/null | grep -q .; then
+  step ".NET project detected"
+  stack_tests_ran=1
+  dotnet test && ok_msg "dotnet test" || { fail_msg "dotnet test"; fails=$((fails+1)); }
+fi
+
+# ─── PHP ──────────────────────────────────────────────────────────────────────
+if [ -f composer.json ]; then
+  step "PHP project detected"
+  stack_tests_ran=1
+  if jq -e '.scripts.test' composer.json >/dev/null 2>&1; then
+    composer test && ok_msg "composer test" || { fail_msg "composer test"; fails=$((fails+1)); }
+  elif [ -x vendor/bin/phpunit ]; then
+    vendor/bin/phpunit && ok_msg "phpunit" || { fail_msg "phpunit"; fails=$((fails+1)); }
+  else
+    fail_msg "composer.json present but no test script and no vendor/bin/phpunit"; fails=$((fails+1))
+  fi
+fi
+
+# ─── Stack accounting (stack-portability-1) ──────────────────────────────────
+if [ -n "$lang_stacks" ] && [ "$stack_tests_ran" -eq 0 ]; then
+  step "Stack accounting"
+  fail_msg "language stack(s) detected ($(printf '%s' "$lang_stacks" | tr '\n' ' ')) but ZERO stack test commands executed — refusing silent pass"
+  fails=$((fails+1))
+elif [ -z "$lang_stacks" ]; then
+  step "Stack accounting"
+  ok_msg "no language stacks detected (template/docs/shell-only repo) — stack checks legitimately skipped"
 fi
 
 # ─── Round 10 A: TDD + evidence gates ───────────────────────────────────
@@ -197,29 +334,17 @@ if [ -x .claude/scripts/assert-density.sh ] && ! skip_honored SKIP_ASSERT_DENSIT
   fi
 fi
 
-# 2. Red→green ledger: any [x] task must have red.log + green.log
+# 2. Red→green ledger gate — SINGLE implementation in check-tdd-ledger.sh
+# (e2e-audit tdd-loop-2: the previous inline copy and the script drifted; the
+# script also carries the bare-checkout degrade + enforcement floor + content
+# checks that the inline version lacked).
 if [ -f tasks/TASKS.md ] && ! skip_honored SKIP_TDD_LEDGER; then
-  step "TDD red→green ledger gate"
-  ledger_fails=0
-  # For each completed task, confirm a red.log + green.log exist somewhere under verify/
-  while IFS= read -r task_id; do
-    [ -z "$task_id" ] && continue
-    # JUSTIFIED: find error muted — an absent verify/ dir means the red.log genuinely does not exist; grep -q "no match" is the intended ledger-gate failure trigger
-    if ! find verify -path "*/${task_id}/red.log" 2>/dev/null | grep -q . ; then
-      fail_msg "task $task_id marked [x] but no red.log (TDD red phase not captured)"
-      ledger_fails=$((ledger_fails+1))
-    fi
-    # JUSTIFIED: find error muted — same rationale; an absent green.log is the intended ledger-gate failure trigger
-    if ! find verify -path "*/${task_id}/green.log" 2>/dev/null | grep -q . ; then
-      fail_msg "task $task_id marked [x] but no green.log"
-      ledger_fails=$((ledger_fails+1))
-    fi
-  # JUSTIFIED: grep error muted — a missing tasks/TASKS.md yields no completed task ids, so the loop runs zero times (nothing to gate)
-  done < <(grep -oE '^- \[x\] T-[0-9]+' tasks/TASKS.md 2>/dev/null | grep -oE 'T-[0-9]+')
-  if [ "$ledger_fails" -eq 0 ]; then
-    ok_msg "all completed tasks have red→green ledger"
+  step "TDD red→green ledger gate (check-tdd-ledger.sh)"
+  if bash .claude/scripts/check-tdd-ledger.sh; then
+    ok_msg "TDD ledger gate clean"
   else
-    fails=$((fails + ledger_fails))
+    fail_msg "TDD ledger gate failed — see check-tdd-ledger.sh output above"
+    fails=$((fails+1))
   fi
 fi
 
@@ -248,7 +373,10 @@ fi
 #     /loop and self-heal cycles could iterate on a broken journey for hours.
 #     Opt-in by construction: fires only when the Playwright rig AND a spec's
 #     e2e/<id>/ dir exist. SKIP_E2E_JOURNEY honors the operator marker.
-if [ -f playwright.config.ts ] && ! skip_honored SKIP_E2E_JOURNEY; then
+# e2e-audit e2e-rig-4: keyed on the STANDALONE evidence config — a brownfield
+# project's own playwright.config.ts is neither sufficient (wrong reporters)
+# nor required (the rig brings its own via --config).
+if [ -f playwright.evidence.config.ts ] && ! skip_honored SKIP_E2E_JOURNEY; then
   for spec in specs/active/*.md; do
     [ -f "$spec" ] || continue
     grep -qE '^status:[[:space:]]*"?approved' "$spec" || continue
@@ -256,7 +384,7 @@ if [ -f playwright.config.ts ] && ! skip_honored SKIP_E2E_JOURNEY; then
     [ -n "$sid" ] && [ -d "e2e/$sid" ] || continue
     step "E2E journey gate (spec $sid)"
     slug=$(basename "$spec" .md)
-    if VERIFY_FEATURE="$slug" npx playwright test "e2e/$sid" >/dev/null 2>&1; then
+    if VERIFY_FEATURE="$slug" npx playwright test --config playwright.evidence.config.ts "e2e/$sid" >/dev/null 2>&1; then
       jr=$(ls -t verify/*-${sid}*/results.json 2>/dev/null | head -1)
       if [ -n "$jr" ] && bash .claude/scripts/spec-match.sh "$sid" "$jr" >/dev/null 2>&1; then
         ok_msg "journey green + every AC proven (spec $sid)"

@@ -24,7 +24,7 @@ A complete agentic harness for Claude Code that includes:
 
 ```bash
 # 1. Copy this folder into your project (or use as a template repo)
-cp -r path/to/claude-init/{.claude,.github,.mcp.json,specs,plans,tasks,docs} your-project/
+cp -r path/to/claude-init/{.claude,.github,.mcp.json,specs,plans,tasks,docs,.gitignore} your-project/
 
 # 2. Run setup (installs canonical plugins, configures hooks, validates)
 cd your-project

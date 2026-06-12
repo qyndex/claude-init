@@ -20,13 +20,24 @@ if [ -f package.json ]; then
     else exec npm start
     fi
   fi
-elif [ -f pyproject.toml ]; then
-  if grep -q 'fastapi\|uvicorn' pyproject.toml; then
-    exec uv run uvicorn app:app --reload
-  elif grep -q 'flask' pyproject.toml; then
-    exec uv run flask run
-  elif grep -q 'django' pyproject.toml; then
-    exec uv run python manage.py runserver
+elif [ -f pyproject.toml ] || [ -f requirements.txt ] || [ -f setup.py ]; then
+  # Python PM ladder (e2e-audit stack-portability-3): the runner follows the
+  # lockfile — uv was previously assumed, breaking poetry/pipenv/pip repos.
+  py_run() {
+    if [ -f uv.lock ]; then exec uv run "$@"
+    elif [ -f poetry.lock ]; then exec poetry run "$@"
+    elif [ -f Pipfile.lock ]; then exec pipenv run "$@"
+    else exec "$@"
+    fi
+  }
+  py_manifest="pyproject.toml"
+  [ -f "$py_manifest" ] || py_manifest="requirements.txt"
+  if grep -q 'fastapi\|uvicorn' "$py_manifest" 2>/dev/null; then
+    py_run uvicorn app:app --reload
+  elif grep -q 'flask' "$py_manifest" 2>/dev/null; then
+    py_run flask run
+  elif grep -q 'django' "$py_manifest" 2>/dev/null; then
+    py_run python manage.py runserver
   else
     echo "Edit .claude/scripts/run.sh — Python project but no recognized framework."
     exit 1

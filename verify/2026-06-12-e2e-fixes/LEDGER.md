@@ -18,16 +18,16 @@ Status: `[ ]` pending · `[~]` in progress · `[x]` done+rig-proven · `[s]` ski
 
 ## Phase 2 — Verification/merge spine
 
-- [ ] P2.1 greenfield-2,3 tdd-loop-2 — DECISION: un-ignore verify/**/{red,green}.log; setup.sh selective block; canonical check-tdd-ledger.sh; evidence-gate SKIP removal
-- [ ] P2.2 tdd-loop-1,4 — unforgeable ledger (header parse, exit codes, timestamps, timeout, red_reason)
-- [ ] P2.3 e2e-rig-2 ci-gates-3 — evidence-gate toolchain install (composite action); BYO services; unmute playwright install
-- [ ] P2.4 e2e-rig-1 — webServer block in playwright evidence config
-- [ ] P2.5 e2e-rig-3 — AC id normalization (spec-match, story-test-map, collect-evidence anchored grep)
-- [ ] P2.6 greenfield-4 e2e-rig-4 — stack-aware AC proof; standalone evidence config; rig bootstrap; verifier/tester Write; path typo
-- [ ] P2.7 stack-portability-1..4 — stack engine pass (verify.sh detect-stacks consumption, test-unit/integration rewrite, Python PM ladder, coverage polarity)
-- [ ] P2.8 greenfield-1 — template-clean step in setup.sh (factory dev state stays out of new projects)
-- [ ] P2.9 ci-gates-1,2 — required checks in main-protection.json; setup.sh ruleset apply offer; live-ruleset drift checks
-- [ ] P2.10 brownfield-6 — characterization exemption in check-tdd-ledger.sh; stronger char-gate
+- [x] P2.1 greenfield-2,3 tdd-loop-2 — DECISION: un-ignore verify/**/{red,green}.log; setup.sh selective block; canonical check-tdd-ledger.sh; evidence-gate SKIP removal
+- [x] P2.2 tdd-loop-1,4 — unforgeable ledger (header parse, exit codes, timestamps, timeout, red_reason)
+- [x] P2.3 e2e-rig-2 ci-gates-3 — evidence-gate toolchain install (composite action); BYO services; unmute playwright install
+- [x] P2.4 e2e-rig-1 — webServer block in playwright evidence config
+- [x] P2.5 e2e-rig-3 — AC id normalization (spec-match, story-test-map, collect-evidence anchored grep)
+- [x] P2.6 greenfield-4 e2e-rig-4 — stack-aware AC proof; standalone evidence config; rig bootstrap; verifier/tester Write; path typo
+- [x] P2.7 stack-portability-1..4 — stack engine pass (verify.sh detect-stacks consumption, test-unit/integration rewrite, Python PM ladder, coverage polarity)
+- [x] P2.8 greenfield-1 — template-clean step in setup.sh (factory dev state stays out of new projects)
+- [x] P2.9 ci-gates-1,2 — required checks in main-protection.json; setup.sh ruleset apply offer; live-ruleset drift checks
+- [x] P2.10 brownfield-6 — characterization exemption in check-tdd-ledger.sh; stronger char-gate
 
 ## Phase 3 — Mechanize the loop
 

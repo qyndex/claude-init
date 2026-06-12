@@ -231,6 +231,36 @@ else
   add_result "anti-slop ramp (30d)" "warn" "no .claude/state/anti-slop-wirein.date — ramp clock unrecorded (gap-audit G50)"
 fi
 
+# ─── Live ruleset drift (e2e-audit ci-gates-2) ────────────────────────
+# The ruleset FILE is inert until applied server-side. Fetch live rulesets and
+# assert (a) a main-targeting active ruleset exists, (b) its required-check
+# contexts are a superset of the file's. Warn-only when gh/network unavailable.
+if command -v gh >/dev/null 2>&1 && [ -f .github/rulesets/main-protection.json ]; then
+  # JUSTIFIED: gh failure (no auth/remote/network) yields empty — handled as a warn, not a crash
+  live_rulesets=$(gh api "repos/{owner}/{repo}/rulesets" 2>/dev/null || true)
+  if [ -z "$live_rulesets" ] || [ "$live_rulesets" = "[]" ]; then
+    add_result "live branch ruleset" "warn" "no server-side ruleset found (or gh unauthenticated) — every required check is ADVISORY; apply: gh api repos/{owner}/{repo}/rulesets --method POST --input .github/rulesets/main-protection.json"
+  else
+    # JUSTIFIED: jq muted on unexpected API shapes — empty live id falls into the warn branch
+    live_id=$(printf '%s' "$live_rulesets" | jq -r '[.[] | select(.target=="branch" and .enforcement=="active")][0].id // empty' 2>/dev/null)
+    if [ -z "$live_id" ]; then
+      add_result "live branch ruleset" "warn" "rulesets exist but none is an ACTIVE branch ruleset — protection is off"
+    else
+      # JUSTIFIED: jq/gh muted — an unreadable detail response degrades to a drift warn below
+      live_ctx=$(gh api "repos/{owner}/{repo}/rulesets/$live_id" 2>/dev/null | jq -r '.rules[]? | select(.type=="required_status_checks") | .parameters.required_status_checks[].context' 2>/dev/null | sort)
+      file_ctx=$(jq -r '.rules[] | select(.type=="required_status_checks") | .parameters.required_status_checks[].context' .github/rulesets/main-protection.json 2>/dev/null | sort)
+      missing_ctx=$(comm -23 <(printf '%s\n' "$file_ctx") <(printf '%s\n' "$live_ctx") | tr '\n' ' ')
+      if [ -n "${missing_ctx// /}" ]; then
+        add_result "live branch ruleset" "fail" "live ruleset is missing required contexts from the file: ${missing_ctx} — re-apply main-protection.json"
+      else
+        add_result "live branch ruleset" "pass" "active branch ruleset covers all file contexts"
+      fi
+    fi
+  fi
+else
+  add_result "live branch ruleset" "warn" "gh unavailable — cannot verify server-side protection"
+fi
+
 printf ']\n' >> "$result_file"
 
 if [ "$JSON_MODE" -eq 1 ]; then

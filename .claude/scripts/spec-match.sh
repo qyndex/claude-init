@@ -33,8 +33,10 @@ if [ -z "$results" ] || [ ! -f "$results" ]; then
   exit 1
 fi
 
-# 1. Extract AC ids from the spec (AC-1, AC-2, AC-01 …)
-ac_ids=$(grep -oE '\*\*AC-[0-9]+\*\*|AC-[0-9]+' "$spec" | grep -oE 'AC-[0-9]+' | sort -u)
+# 1. Extract AC ids from the spec (AC-1, AC-2, AC-01 …), normalized to
+#    unpadded AC-N — e2e-audit e2e-rig-3: specs write AC-01 while tests tag
+#    @AC-1; the comparison must happen in ONE canonical form.
+ac_ids=$(grep -oE '\*\*AC-[0-9]+\*\*|AC-[0-9]+' "$spec" | grep -oE 'AC-[0-9]+' | sed 's/AC-0*\([0-9]\)/AC-\1/' | sort -u)
 [ -z "$ac_ids" ] && { echo "No AC ids in $spec — nothing to match"; exit 0; }
 
 # 2. Extract tags from PASSING tests only — gap-audit G51 (critical): the old
@@ -52,7 +54,26 @@ jq_prog='
   | .[]
 '
 # JUSTIFIED: the redirect mutes jq on a malformed/partial results.json; empty passing_tags then correctly yields zero matched ACs rather than aborting
-passing_tags=$(jq -r "$jq_prog" "$results" 2>/dev/null | grep -oE 'AC-[0-9]+' | sort -u)
+passing_tags=$(jq -r "$jq_prog" "$results" 2>/dev/null | grep -oE 'AC-[0-9]+' | sed 's/AC-0*\([0-9]\)/AC-\1/' | sort -u)
+
+# e2e-audit greenfield-4: stack-aware AC proof — CLIs/APIs/libraries have no
+# browser rig; their AC-tagged proof arrives as jest JSON or junit XML
+# (pytest --junitxml / go-junit / jest --json). Accept those shapes too.
+if [ -z "$passing_tags" ]; then
+  case "$results" in
+    *.xml)
+      # junit: a PASSING testcase is self-closing (<testcase …/>); a failing one
+      # wraps <failure>/<error> children. Extract AC-N from the name attribute.
+      # JUSTIFIED: grep no-match exits 1 — empty set simply proves nothing
+      passing_tags=$(grep -oE '<testcase[^>]*/>' "$results" 2>/dev/null | grep -oE 'AC-[0-9]+' | sed 's/AC-0*\([0-9]\)/AC-\1/' | sort -u)
+      ;;
+    *)
+      # jest --json: .testResults[].assertionResults[] with status "passed"
+      # JUSTIFIED: jq muted on non-jest JSON — empty set proves nothing, matching the playwright path's contract
+      passing_tags=$(jq -r '.testResults[]?.assertionResults[]? | select(.status == "passed") | .fullName // .title // empty' "$results" 2>/dev/null | grep -oE 'AC-[0-9]+' | sed 's/AC-0*\([0-9]\)/AC-\1/' | sort -u)
+      ;;
+  esac
+fi
 
 # No silent fallback: if the file mentions AC tags but pass status could not be
 # established, say so loudly — these ACs are UNPROVEN, not assumed proven.

@@ -1,0 +1,4 @@
+GREEN: T-128 exit gate — final verification all green:
+✓ all checks passed (with 140 warnings)
+model-consistency: all agents match §V; no stale-version refs
+REPORT.md present: yes

@@ -16,6 +16,9 @@ stacks=()
 [ -f go.mod ] && stacks+=('"go"')
 { [ -f pom.xml ] || [ -f build.gradle ] || [ -f build.gradle.kts ]; } && stacks+=('"java"')
 { [ -f Gemfile ]; } && stacks+=('"ruby"')
+# JUSTIFIED: find muted — absence of sln/csproj means no dotnet stack
+find . -maxdepth 2 \( -name '*.sln' -o -name '*.csproj' \) -not -path '*/node_modules/*' -print -quit 2>/dev/null | grep -q . && stacks+=('"dotnet"')
+[ -f composer.json ] && stacks+=('"php"')
 
 # Infra / config stacks
 # JUSTIFIED: find stderr suppressed — unreadable subdirs during the scan emit noise; absence of a .tf just means "no terraform stack"

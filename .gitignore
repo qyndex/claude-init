@@ -121,11 +121,14 @@ coverage/
 playwright-report/
 test-results/
 
-# Logs — ALL .log files are ignored, including nested (operator directive 2026-05-29).
-# TDD-ledger red/green evidence is therefore NOT git-tracked; check-tdd-ledger.sh
-# verifies the logs exist on disk at run time rather than requiring them committed.
+# Logs — ALL .log files are ignored, including nested (operator directive 2026-05-29)
+# EXCEPT the TDD ledger's red/green evidence (e2e-audit P2.1 decision, 2026-06-12):
+# evidence-gate binds AC proof to the reviewed commit, so the Round-10-B
+# "committed lightweight trail" needs exactly these two filenames in the PR diff.
 *.log
 **/*.log
+!verify/**/red.log
+!verify/**/green.log
 logs/
 
 # Temporary
@@ -136,6 +139,7 @@ tmp/
 # Operator-only marker: presence lets verify.sh honor SKIP_* gate bypasses (Spec 003 AC-1). Must never be committed.
 .claude/state/allow-skip-gates
 .claude/state/allow-adopt-approve
+.claude/state/ruleset-applied
 # Initiative/spec attribution pointers — rewritten by initiative-state.sh at every
 # network boundary; runtime state (the tracked STATE.md carries the history)
 .claude/state/current-initiative
