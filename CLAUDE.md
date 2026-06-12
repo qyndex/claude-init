@@ -24,7 +24,7 @@ bash .claude/scripts/validate.sh
 /harness-doctor
 ```
 
-`validate.sh` is data-driven (uses `find`), so adding or removing files is automatically reflected. It checks 14 categories: core files, JSON validity, YAML frontmatter, executable bits, agents, skills, commands, hook cross-references, autopilot artifacts, swarm state, spec/plan/task scaffold, memory layout, security invariants, MCP version pinning.
+`validate.sh` is data-driven (uses `find`), so adding or removing files is automatically reflected. It checks 16 categories: core files, JSON validity, YAML frontmatter, executable bits, agents, skills, commands, hook cross-references, autopilot artifacts, swarm state, spec/plan/task scaffold, memory layout, security invariants, constitution size cap, MCP version pinning, ruleset coverage. Both `validate.sh` and `harness-doctor.sh` accept `--json` for a structured report.
 
 ## Development commands
 
@@ -90,7 +90,7 @@ Routines       .claude/routines/          — Cloud Routine YAML (overnight-buil
 **Agent model assignments** (frontmatter `model:` must match):
 
 - Opus 4.8: architect, implementer, reviewer, security, debugger, designer, extractor
-- Sonnet 4.6: planner, tester, verifier, researcher, doc-writer, release, roadmap-architect, coordinator, feature-stream, feedback-extractor
+- Sonnet 4.6: planner, tester, verifier, researcher, doc-writer, release, roadmap-architect, coordinator, feature-stream, feedback-extractor, anti-slop-reviewer
 - Haiku 4.5: `Explore` subagent (retrieval only)
 
 ## Hook lifecycle
@@ -99,7 +99,7 @@ Routines       .claude/routines/          — Cloud Routine YAML (overnight-buil
 SessionStart      → session-start.sh + session-start-context.sh
 UserPromptSubmit  → user-prompt-context.sh, workflow-state.sh, skill-router.sh, session-heartbeat.sh
 PreToolUse:Bash   → pre-bash-guard.sh (exit 2 = hard block), pre-spawn-cost-gate.sh, pre-bash-dep-freshness.sh
-PreToolUse:Write  → pre-write-secret-scan.sh (gitleaks)
+PreToolUse:Write|Edit|NotebookEdit → pre-edit-constitution-guard.sh, pre-write-secret-scan.sh (gitleaks)
 PreToolUse:Agent  → subagent-context.sh
 PostToolUse:Write → post-write-format.sh, instinct-observer.sh, post-write-roadmap.sh
 PostToolUse:Bash  → post-bash-log.sh, instinct-observer.sh
@@ -200,6 +200,6 @@ Every `eslint-disable`, `# noqa`, `# type: ignore` requires `JUSTIFICATION:` and
 - `disableBypassPermissionsMode: "disable"` must remain in `settings.json` (the string `"disable"`, not boolean `true` — Claude Code silently ignores the boolean form).
 - `pre-bash-guard.sh` must block: `rm -rf`, `git push --force origin main`, `DROP TABLE`, `--no-verify`, `curl|sh`, `eval`, `base64|sh`, `python -c`, `node -e`.
 - `.env*`, `*.pem`, `*.key`, `*credentials*` must stay deny-listed for Read and Write.
-- `.claude/CLAUDE.md` (the constitution) is intentionally blocked from Claude writes — do not circumvent this.
+- `.claude/CLAUDE.md` (the constitution) is intentionally blocked from Claude writes — enforced by `pre-edit-constitution-guard.sh` on Write/Edit/NotebookEdit. Do not circumvent this; amendments go through `/constitution` with human approval.
 - `validate.sh` checks `disableBypassPermissionsMode` and absence of `Bash(env)` / bare `Bash(claude:*)` in the allow list.
 - GitHub Issues are **write-only projections** of `tasks/TASKS.md`. Never read task state from `gh issue view` / `gh api .../issues` — `no-issue-authority.yml` fails the build if introduced.
