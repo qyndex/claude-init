@@ -31,6 +31,9 @@ O3: Platform health
 Draft next-quarter OKRs. Interview-driven. Looks at:
 - Currently in-flight initiatives needing KR continuation
 - Themes from recent incidents (operations OKRs)
+- **Top customer-feedback themes** from `.claude/memory/feedback/_triage-latest.md`
+  (gap-audit G63 — the customer-signal registry must feed quarterly planning;
+  if no triage report exists, run `/feedback triage` first or note "no signal")
 - Strategic asks from sponsors/execs
 Writes to a `next-quarter` section in `OKRs.md`.
 

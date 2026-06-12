@@ -168,6 +168,24 @@ and your originals are kept as `*.brownfield-orig`. Adoption is reversible.
 
 ---
 
+## Wiring customer-feedback intake (optional, post-adoption)
+
+The feedback pipeline ships **configured but unwired** (gap-audit G60): the
+`feedback-poll.yml` routine and `/feedback` command exist, but every source
+connector is a catalogue entry. Until wired, intake is manual (`/feedback log`)
+and `/harness-doctor` reports "feedback intake configured but UNWIRED". To wire:
+
+1. Copy the relevant block (fireflies / intercom / pendo / slack) from
+   `_disabled_examples` into `mcpServers` in `.mcp.json`; add credentials via
+   env vars (never in the repo tree).
+2. Paste `.claude/routines/feedback-poll.yml` into a Cloud Routine
+   (claude.ai/code/routines) — it needs the connectors, so Desktop-local won't do.
+3. Schedule `.claude/routines/feedback-triage.yml` (weekly, Desktop is fine) —
+   ranking is deterministic via `.claude/scripts/feedback-score.sh`.
+4. ARR/renewal fields are **operator-supplied** unless you wire a billing source
+   (Stripe MCP or `.claude/memory/feedback/accounts.csv`); the scorer warns when
+   most entries lack `arr_band`.
+
 ## See also
 - [OPERATOR-MANUAL.md](OPERATOR-MANUAL.md) — running the factory day-to-day (post-adoption)
 - [docs/research/brownfield-onboarding.md](research/brownfield-onboarding.md) — the research brief behind this design

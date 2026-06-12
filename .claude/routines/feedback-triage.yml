@@ -1,0 +1,45 @@
+# Feedback Triage Weekly — gap-audit G59
+#
+# /feedback triage previously had NO scheduled trigger — ranking only happened
+# when a human remembered. This routine runs it weekly: deterministic scoring
+# via feedback-score.sh, LLM clustering on top, ranked report to
+# _triage-latest.md, top clusters surfaced as candidates.
+#
+# Configure as a Desktop scheduled task. Install via:
+#   bash .claude/scripts/install-overnight-tasks.sh
+
+name: feedback-triage
+
+description: Weekly customer-feedback triage — deterministic scoring + clustering + ranked report.
+
+schedule:
+  cron: "0 8 * * 1" # Monday 08:00
+  timezone: "local"
+
+surface: desktop
+
+permission_mode: auto
+
+model: claude-sonnet-4-6
+
+budgets:
+  max_wall_clock_minutes: 15
+  max_budget_usd: 1
+
+prompt: |
+  Run weekly feedback triage:
+
+  1. `bash .claude/scripts/feedback-score.sh` — the DETERMINISTIC ranking
+     (severity × ARR × renewal-proximity). Do not re-rank by judgement; the
+     scorer's order stands. Heed its arr_band-coverage warning if printed.
+  2. Read .claude/memory/feedback/active/*.md and cluster the scored entries
+     by problem_area + verbatim_quote similarity (your judgement clusters;
+     the scores rank).
+  3. Write .claude/memory/feedback/_triage-<YYYY-WW>.md with the ranked
+     cluster table (top score per cluster, signal count, linked FB ids) and
+     update _triage-latest.md.
+  4. Surface clusters with ≥3 signals (or any P0) as candidates: append
+     "- [ ] Evaluate <cluster> for /specify or /initiative create (FB-…)"
+     via bash .claude/scripts/findings-to-tasks.sh --priority normal --source feedback-triage.
+  5. If there are zero active FB entries, say so in the report — do not invent
+     signal.

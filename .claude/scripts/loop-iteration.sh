@@ -51,9 +51,18 @@ fi
 # JUSTIFIED: the redirect drops grep stderr when TASKS.md is absent and the fallback yields empty on no-match (grep exit 1) — an empty next_task is handled by the "no pending tasks" stop below
 next_task=$(grep -m1 '^- \[ \]' tasks/TASKS.md 2>/dev/null | head -1 || true)
 if [ -z "$next_task" ]; then
-  echo "$ts STOP no pending tasks" >> "$iter_log"
+  # ─── Gap-audit G58: empty backlog → ideation branch, not a dead stop ────
+  # The loop used to just exit; product momentum died silently. Signal the
+  # caller to propose (never auto-promote) the next feature, grounded in the
+  # feedback registry + OKR gaps.
+  echo "$ts STOP backlog empty → ideation branch" >> "$iter_log"
+  mkdir -p .claude/state
+  date -Iseconds > .claude/state/ideation-pending
+  echo "IDEATE: backlog is empty. Run \`bash .claude/scripts/feedback-score.sh\` + read .claude/memory/feedback/_triage-latest.md and the OKR gap table (/okrs status), then spawn roadmap-architect (plan mode) to write ONE proposal to .claude/memory.proposed/next-feature-$(date +%Y-%m-%d).md citing FB-### / KR-### evidence. PROPOSE ONLY — a human promotes it via /specify."
   exit 1
 fi
+# Backlog non-empty → clear any stale ideation flag
+rm -f .claude/state/ideation-pending
 
 task_id=$(echo "$next_task" | grep -oE 'T-[0-9]+' | head -1)
 echo "$ts START $task_id" >> "$iter_log"

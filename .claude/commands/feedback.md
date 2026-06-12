@@ -44,6 +44,14 @@ Runs weekly + on-demand. Reads `.claude/memory/feedback/active/*.md`:
 /feedback triage [--threshold 3]   # ≥3 corroborating signals to surface (Round 7 default)
 ```
 
+> **Revenue data honesty (gap-audit G61):** `arr_band` / `contract_renewal` are
+> **operator-supplied** — no billing source is wired by default. The scorer
+> (`feedback-score.sh`) weights missing ARR as neutral and warns when >50% of
+> entries lack it, so revenue-weighted ranking degrades *visibly*, never
+> silently. To automate: wire the Stripe MCP (catalogue entry in `.mcp.json`
+> `_disabled_examples`) or maintain `.claude/memory/feedback/accounts.csv`
+> mapping account → arr_band/renewal.
+
 ### `/feedback link <FB-id> --spec <id>` or `--initiative <id>` or `--pivot <id>`
 Bidirectional linking. Updates the FB's `spec_refs:` / `initiative_refs:` / `pivot_refs:` array AND adds `feedback_refs: [FB-id]` to the spec/initiative.
 
@@ -125,9 +133,13 @@ EOF
     done
     week=$(date +%Y-%V)
     out=".claude/memory/feedback/_triage-${week}.md"
-    # The triage logic is implemented by the feedback skill — invoke claude
+    # Gap-audit G59: ranking is DETERMINISTIC (feedback-score.sh); the LLM only
+    # clusters and narrates on top of the reproducible score order.
+    scores=$(bash .claude/scripts/feedback-score.sh)
     claude -p --max-turns 20 --max-budget-usd 0.50 \
-      "Run feedback triage. Read every .claude/memory/feedback/active/*.md, cluster by problem_area, dedupe via verbatim_quote similarity, score by severity × ARR × renewal-proximity, write the ranked table to ${out} AND update _triage-latest.md. Surface only clusters with >= ${threshold} signals. Append followup tasks via findings-to-tasks.sh."
+      "Run feedback triage. The deterministic ranking (do NOT re-rank by judgement) is:
+${scores}
+Read every .claude/memory/feedback/active/*.md, cluster the ranked entries by problem_area + verbatim_quote similarity, write the ranked cluster table to ${out} AND update _triage-latest.md. Surface only clusters with >= ${threshold} signals (or any P0). Append followup tasks via findings-to-tasks.sh."
     ;;
 
   link)
@@ -144,9 +156,28 @@ EOF
     done
     fb_file=$(ls .claude/memory/feedback/active/${fb_id}*.md 2>/dev/null | head -1)
     [ -z "$fb_file" ] && { echo "Not found: $fb_id"; exit 1; }
-    # Append the target_id to the array; simplistic — proper YAML editor preferred
-    sed -i.bak -E "s/^${target_kind}:.*/${target_kind}: [${target_id}]/" "$fb_file" && rm -f "${fb_file}.bak"
-    echo "✓ ${fb_id} linked to ${target_kind} ${target_id}"
+    # Gap-audit G63: APPEND into the refs array — the old sed replaced the whole
+    # line, so multi-spec feedback silently lost its earlier links.
+    awk -v k="$target_kind" -v t="$target_id" '
+      BEGIN { fm=0; done=0 }
+      /^---$/ { fm++; if (fm==2 && !done) { print k": ["t"]"; done=1 } print; next }
+      !done && index($0, k":") == 1 {
+        if (index($0, t)) { print; done=1; next }
+        if (match($0, /\[[^]]*\]/)) {
+          inner = substr($0, RSTART+1, RLENGTH-2)
+          gsub(/^[ \t]+|[ \t]+$/, "", inner)
+          if (inner == "") print k": ["t"]"
+          else print k": ["inner", "t"]"
+        } else {
+          val = $0; sub("^"k":[ \t]*", "", val)
+          if (val == "") print k": ["t"]"
+          else print k": ["val", "t"]"
+        }
+        done=1; next
+      }
+      { print }
+    ' "$fb_file" > "${fb_file}.tmp" && mv "${fb_file}.tmp" "$fb_file"
+    echo "✓ ${fb_id} linked to ${target_kind} ${target_id} (refs appended, never clobbered)"
     ;;
 
   status)

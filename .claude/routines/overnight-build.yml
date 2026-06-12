@@ -181,6 +181,14 @@ prompt: |
   - WIP commits filter-squashed at PR time (per .claude/scripts/squash-wip.sh)
 
   END OF RUN:
+  0. IDEATION BRANCH (gap-audit G58) — if tasks/TASKS.md had ZERO unblocked
+     pending tasks (or .claude/state/ideation-pending exists): do NOT just end.
+     Run `bash .claude/scripts/feedback-score.sh`, read
+     .claude/memory/feedback/_triage-latest.md + the OKR gap table, and spawn
+     roadmap-architect (plan mode) to write ONE proposal to
+     .claude/memory.proposed/next-feature-<date>.md grounded in FB-### + KR-###.
+     PROPOSE ONLY — never auto-promote to specs/. The morning report must say:
+     "backlog empty; proposed candidate <X> grounded in <FB-###/KR-###>".
   1. Invoke the dream skill — consolidate .claude/memory/ and .claude/memory/.cache/checkpoints/
   2. Write OVERNIGHT_REPORT.md at repo root in NEXUS handoff format:
      - Tasks shipped (with PR URLs)
