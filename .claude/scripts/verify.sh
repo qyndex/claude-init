@@ -43,7 +43,7 @@ skip_honored() {
 
 # Log the requested SKIP_* set and whether it is honored.
 requested_skips=""
-for v in SKIP_COVERAGE SKIP_TDD_LEDGER SKIP_ASSERT_DENSITY SKIP_STORY_MAP SKIP_INTEG_COV SKIP_CHAR_GATE SKIP_BRANCH_CHECK; do
+for v in SKIP_COVERAGE SKIP_TDD_LEDGER SKIP_ASSERT_DENSITY SKIP_STORY_MAP SKIP_INTEG_COV SKIP_CHAR_GATE SKIP_BRANCH_CHECK SKIP_E2E_JOURNEY; do
   [ "${!v:-0}" = "1" ] && requested_skips="$requested_skips $v"
 done
 if [ -n "$requested_skips" ]; then
@@ -241,6 +241,32 @@ if [ -x .claude/scripts/test-integration-coverage.sh ] && ! skip_honored SKIP_IN
   else
     fail_msg "changed handler/query lacks integration test"; fails=$((fails+1))
   fi
+fi
+
+# 4b. E2E journey gate (gap-audit G55) — the autonomous local gate used to skip
+#     the user journey entirely; AC coverage was only enforced at PR time, so
+#     /loop and self-heal cycles could iterate on a broken journey for hours.
+#     Opt-in by construction: fires only when the Playwright rig AND a spec's
+#     e2e/<id>/ dir exist. SKIP_E2E_JOURNEY honors the operator marker.
+if [ -f playwright.config.ts ] && ! skip_honored SKIP_E2E_JOURNEY; then
+  for spec in specs/active/*.md; do
+    [ -f "$spec" ] || continue
+    grep -qE '^status:[[:space:]]*"?approved' "$spec" || continue
+    sid=$(basename "$spec" .md | grep -oE '^[0-9]+' | head -1)
+    [ -n "$sid" ] && [ -d "e2e/$sid" ] || continue
+    step "E2E journey gate (spec $sid)"
+    slug=$(basename "$spec" .md)
+    if VERIFY_FEATURE="$slug" npx playwright test "e2e/$sid" >/dev/null 2>&1; then
+      jr=$(ls -t verify/*-${sid}*/results.json 2>/dev/null | head -1)
+      if [ -n "$jr" ] && bash .claude/scripts/spec-match.sh "$sid" "$jr" >/dev/null 2>&1; then
+        ok_msg "journey green + every AC proven (spec $sid)"
+      else
+        fail_msg "journey ran but spec-match found unproven ACs (spec $sid)"; fails=$((fails+1))
+      fi
+    else
+      fail_msg "E2E journey FAILED for spec $sid — fix before PR time"; fails=$((fails+1))
+    fi
+  done
 fi
 
 # 5. Brownfield characterization gate (Round 14) — "no tests = no writes" on adopted

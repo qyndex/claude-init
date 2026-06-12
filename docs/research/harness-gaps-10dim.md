@@ -1,5 +1,7 @@
 # Harness Gap Audit — 10 Capability Dimensions
 
+<!-- model-consistency: ignore — this report QUOTES stale model literals as audit evidence (G30); they are citations, not pins -->
+
 > **Date:** 2026-06-12 · **Method:** dynamic workflow (`harness-gap-audit`, run wf_d90e3725-e97) — 10 parallel evidence-grounded auditors, each claimed gap then adversarially re-verified by an independent skeptic instructed to refute it against the actual files. 20 agents, 436 tool uses.
 > **Raw structured findings:** `verify/2026-06-12-harness-gap-audit/raw-audit.json`
 > **Result:** 63 gaps survived verification (60 confirmed, 3 adjusted, **0 refuted** — every auditor claim held up against re-reading).

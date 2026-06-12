@@ -112,8 +112,15 @@ verdict="PASS"
 # ─── 7. Emit evidence.json ──────────────────────────────────────────────
 # JUSTIFIED: the redirect and fallback emit an empty JSON array when there are no unproven ACs (grep exits 1 on empty input) — the valid default keeps evidence.json well-formed
 unproven_json=$(printf '%s\n' "${ac_unproven[@]+"${ac_unproven[@]}"}" | grep . | jq -R . | jq -sc . 2>/dev/null || echo '[]')
+# Gap-audit G53: bind the bundle to the exact commit + moment it attests, so
+# evidence-gate can reject stale or wrong-branch evidence instead of trusting
+# any committed file.
+# JUSTIFIED: git muted + unknown fallback — outside a repo the binding fields degrade visibly; evidence-gate treats "unknown" as unbound and fails
+ev_commit=$(git rev-parse HEAD 2>/dev/null || echo unknown)
 jq -nc \
   --arg spec "$spec_id" \
+  --arg commit "$ev_commit" \
+  --arg generated_at "$(date -Iseconds)" \
   --argjson ac_total "${ac_count:-0}" \
   --argjson ac_proven "$ac_proven" \
   --argjson ac_unproven "$unproven_json" \
@@ -121,7 +128,8 @@ jq -nc \
   --arg cov_line "$cov_line" \
   --arg cov_branch "$cov_branch" \
   --arg verdict "$verdict" \
-  '{spec: $spec, ac_total: $ac_total, ac_proven: $ac_proven, ac_unproven: $ac_unproven,
+  '{spec: $spec, commit: $commit, generated_at: $generated_at,
+    ac_total: $ac_total, ac_proven: $ac_proven, ac_unproven: $ac_unproven,
     smoke_exit_max: $smoke_exit, coverage: {line: $cov_line, branch: $cov_branch}, verdict: $verdict}' \
   | replace_atomic "$date_dir/evidence.json"
 

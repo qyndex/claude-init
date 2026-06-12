@@ -54,27 +54,50 @@ for spec in specs/active/*.md; do
   echo "## Spec $spec_id ($(basename "$spec" .md))" >> "$report"
   echo "" >> "$report"
 
+  # Gap-audit G54: cross-check against the journey's pass status. When a
+  # results.json exists for this spec, a story counts only if a PASSING test
+  # carries its @story-N tag — same standard spec-match.sh applies to ACs.
+  # JUSTIFIED: the muted ls tolerates no results.json — file-existence mapping then stands alone (pre-journey local use)
+  results=$(ls -t verify/*-${spec_id}*/results.json 2>/dev/null | head -1)
+  passing_story_tags=""
+  if [ -n "$results" ]; then
+    # JUSTIFIED: jq muted on malformed results — empty passing tags degrades to "exists but unproven", never a crash
+    passing_story_tags=$(jq -r '
+      [.. | objects | select(has("specs")) | .specs[]
+       | select(.ok == true
+           or ([.tests[]?.results[]?.status] | length > 0 and all(. == "expected" or . == "passed")))
+       | ((.tags // [])[]?, .title // empty)] | .[]' "$results" 2>/dev/null \
+      | grep -oE 'story-[0-9]+' | sort -u)
+  fi
+
   story_num=0
   while IFS= read -r story_line; do
     [ -z "$story_line" ] && continue
     story_num=$((story_num + 1))
     total=$((total + 1))
 
-    # Match any file matching e2e/<spec-id>/* OR e2e/spec-<id>/*
-    # JUSTIFIED: the muted find tolerates a missing e2e/ tree; no matches means this story has no E2E test, which the caller reports as a gap
-    test_files=$(find e2e -path "e2e/${spec_id}*/*" -name '*.spec.*' 2>/dev/null | head -3)
-    # JUSTIFIED: same — the muted find tolerates a missing e2e/ tree; the two find results concatenate and emptiness signals a missing E2E test
-    test_files=$(find e2e -path "e2e/spec-${spec_id}*/*" -name '*.spec.*' 2>/dev/null | head -3)$test_files
+    # Gap-audit G54: match THIS story's test, not any file in the spec's dir —
+    # filename convention story-N.* first, @story-N tag inside test files second.
+    # JUSTIFIED: the muted find tolerates a missing e2e/ tree; no matches falls through to the tag grep, then to "MISSING"
+    test_files=$(find e2e \( -path "e2e/${spec_id}*/story-${story_num}.*" -o -path "e2e/spec-${spec_id}*/story-${story_num}.*" \) -type f 2>/dev/null | head -3)
+    if [ -z "$test_files" ]; then
+      # JUSTIFIED: the muted grep tolerates missing dirs/no matches — emptiness correctly reports the story as unmapped
+      test_files=$(grep -rlE "@story-${story_num}([^0-9]|\$)" e2e/${spec_id}* e2e/spec-${spec_id}* 2>/dev/null | head -3)
+    fi
 
     story_short=$(echo "$story_line" | sed 's/^- *//' | head -c 80)
 
-    if [ -n "$test_files" ]; then
+    if [ -z "$test_files" ]; then
+      echo "  ✗ Story $story_num MISSING: $story_short..." >> "$report"
+      echo "    Expected: e2e/${spec_id}/story-${story_num}.spec.ts (or @story-${story_num} tag)" >> "$report"
+      missing=$((missing + 1))
+    elif [ -n "$results" ] && ! printf '%s\n' "$passing_story_tags" | grep -qx "story-${story_num}"; then
+      echo "  ✗ Story $story_num UNPROVEN: $story_short..." >> "$report"
+      echo "    Test exists ($(echo "$test_files" | head -1)) but no PASSING test tagged @story-${story_num} in $results" >> "$report"
+      missing=$((missing + 1))
+    else
       echo "  ✓ Story $story_num: $story_short..." >> "$report"
       echo "    → $(echo "$test_files" | head -1)" >> "$report"
-    else
-      echo "  ✗ Story $story_num MISSING: $story_short..." >> "$report"
-      echo "    Expected: e2e/${spec_id}/story-${story_num}.spec.ts (or .py)" >> "$report"
-      missing=$((missing + 1))
     fi
   done <<< "$stories"
 

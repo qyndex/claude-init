@@ -20,11 +20,13 @@ spec_id="${1:-}"
 spec=$(ls specs/active/${spec_id}*.md 2>/dev/null | head -1)
 [ -z "$spec" ] && { echo "Spec not found: $spec_id"; exit 1; }
 
-# results.json: explicit arg, or newest under verify/
+# results.json: explicit arg, or newest under verify/ FOR THIS SPEC ONLY —
+# gap-audit G53: the old any-directory wildcard fallback let a different
+# feature's results "prove" this spec's ACs.
 results="${2:-}"
 if [ -z "$results" ]; then
   # JUSTIFIED: the muted ls tolerates no results.json yet; emptiness is handled by the "No Playwright results.json" guard below
-  results=$(ls -t verify/*-${spec_id}*/results.json verify/*/results.json 2>/dev/null | head -1)
+  results=$(ls -t verify/*-${spec_id}*/results.json 2>/dev/null | head -1)
 fi
 if [ -z "$results" ] || [ ! -f "$results" ]; then
   echo "✗ No Playwright results.json found for spec $spec_id (run the journey first)"
@@ -35,18 +37,27 @@ fi
 ac_ids=$(grep -oE '\*\*AC-[0-9]+\*\*|AC-[0-9]+' "$spec" | grep -oE 'AC-[0-9]+' | sort -u)
 [ -z "$ac_ids" ] && { echo "No AC ids in $spec — nothing to match"; exit 0; }
 
-# 2. Extract passing test tags from results.json
-#    Playwright JSON: .suites[].specs[].tests[].results[].status + .specs[].tags
+# 2. Extract tags from PASSING tests only — gap-audit G51 (critical): the old
+#    jq collected tags from every spec object regardless of status, and a
+#    status-blind grep fallback meant a 100%-failing journey still "proved"
+#    every AC. Now a tag counts only when its spec object is ok==true (or
+#    every test under it reported expected/passed).
 jq_prog='
-  [.. | objects | select(.status? == "expected" or .status? == "passed")] as $ok
-  | [.. | objects | select(.tags?)] | .[].tags[]?
+  [.. | objects | select(has("specs")) | .specs[]
+   | select(
+       .ok == true
+       or ([.tests[]?.results[]?.status] | length > 0 and all(. == "expected" or . == "passed"))
+     )
+   | ((.tags // [])[]?, .title // empty)]
+  | .[]
 '
 # JUSTIFIED: the redirect mutes jq on a malformed/partial results.json; empty passing_tags then correctly yields zero matched ACs rather than aborting
 passing_tags=$(jq -r "$jq_prog" "$results" 2>/dev/null | grep -oE 'AC-[0-9]+' | sort -u)
 
-# Fallback: grep the raw results for AC tags on passing tests
-if [ -z "$passing_tags" ]; then
-  passing_tags=$(grep -oE 'AC-[0-9]+' "$results" | sort -u)
+# No silent fallback: if the file mentions AC tags but pass status could not be
+# established, say so loudly — these ACs are UNPROVEN, not assumed proven.
+if [ -z "$passing_tags" ] && grep -qE 'AC-[0-9]+' "$results"; then
+  echo "⚠ $results contains AC tags but no test could be confirmed PASSING — cannot prove any AC from it (gap-audit G51)"
 fi
 
 # 3. Compare

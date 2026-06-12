@@ -175,6 +175,62 @@ else
   add_result "cache hit-rate measured" "pass" "no cost-summary.json yet — run cost-report.sh"
 fi
 
+# Stop-verify bypass surface (gap-audit G48) — blocks logged in the last 7 days
+blog=.claude/state/stop-verify-blocks.log
+if [ -s "$blog" ]; then
+  week_ago=$(date -v-7d -Iseconds 2>/dev/null || date -d '7 days ago' -Iseconds 2>/dev/null)
+  recent_blocks=$(awk -F'\t' -v c="$week_ago" 'BEGIN{n=0} $1 >= c {n++} END{print n}' "$blog" 2>/dev/null || echo 0)
+  if [ "${recent_blocks:-0}" -gt 0 ]; then
+    add_result "stop-verify blocks (7d)" "warn" "$recent_blocks block(s) in the last week — each was either fixed or bypassed by resubmission; review $blog"
+  else
+    add_result "stop-verify blocks (7d)" "pass" "none recent"
+  fi
+else
+  add_result "stop-verify blocks (7d)" "pass" "no block log yet"
+fi
+
+# Feedback intake wiring (gap-audit G60) — connectors ship with empty-default
+# env expansion (${KEY:-}), so a "configured" source can still be dead. Check
+# the actual env keys; say UNWIRED instead of letting intake look operational.
+if [ -f .claude/routines/feedback-poll.yml ]; then
+  fb_servers=$(jq -r '.mcpServers | keys[]' .mcp.json 2>/dev/null | grep -iE 'fireflies|intercom|pendo|slack' || true)
+  if [ -z "$fb_servers" ]; then
+    add_result "feedback intake wiring" "warn" "feedback-poll.yml exists but no feedback-source MCP (fireflies/intercom/pendo/slack) in .mcp.json — copy a catalogue block from _disabled_examples (docs/ADOPTION.md)"
+  else
+    wired=0
+    for s in $fb_servers; do
+      # env var names referenced as ${VAR:-} in the server's env block
+      vars=$(jq -r --arg s "$s" '.mcpServers[$s].env // {} | to_entries[].value' .mcp.json 2>/dev/null | grep -oE '[A-Z][A-Z0-9_]+' || true)
+      for v in $vars; do
+        [ -n "$(eval "printf '%s' \"\${$v:-}\"")" ] && wired=$((wired + 1))
+      done
+    done
+    if [ "$wired" -eq 0 ]; then
+      add_result "feedback intake wiring" "warn" "feedback-source MCPs present but every auth env key is EMPTY — intake is configured but UNWIRED; export the API keys (docs/ADOPTION.md §feedback)"
+    else
+      add_result "feedback intake wiring" "pass" "$wired feedback-source credential(s) set"
+    fi
+  fi
+fi
+
+# Anti-slop ramp expiry (gap-audit G50) — advisory pass must flip to gating after 30 days
+wirein=.claude/state/anti-slop-wirein.date
+if [ -f "$wirein" ] && [ -f .github/workflows/pr-review.yml ]; then
+  wd=$(head -1 "$wirein" | tr -d ' ')
+  cutoff30=$(date -v-30d +%Y-%m-%d 2>/dev/null || date -d '30 days ago' +%Y-%m-%d 2>/dev/null)
+  if [ -n "$wd" ] && [ "$wd" \< "$cutoff30" ]; then
+    if grep -q 'continue-on-error: true' .github/workflows/pr-review.yml; then
+      add_result "anti-slop ramp (30d)" "warn" "wired in $wd (>30d ago) but pr-review.yml is still advisory — remove continue-on-error to make it gating, and add the job to the ruleset"
+    else
+      add_result "anti-slop ramp (30d)" "pass" "ramp complete; pass is gating"
+    fi
+  else
+    add_result "anti-slop ramp (30d)" "pass" "within 30-day calibration window (since $wd)"
+  fi
+else
+  add_result "anti-slop ramp (30d)" "warn" "no .claude/state/anti-slop-wirein.date — ramp clock unrecorded (gap-audit G50)"
+fi
+
 printf ']\n' >> "$result_file"
 
 if [ "$JSON_MODE" -eq 1 ]; then

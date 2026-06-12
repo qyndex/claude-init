@@ -123,5 +123,24 @@ if [ "$stale_hits" -gt 0 ]; then
   echo "model-consistency: $stale_hits stale-version ref(s) in workflows/docs"
   exit 1
 fi
-echo "model-consistency: all agents match §V; no stale-version refs"
+
+# ─── Cross-model review gate (gap-audit G46) ─────────────────────────────────
+# Same-model review shares blind spots: the CI gating reviewer
+# (claude-review.yml `review` job) must NOT resolve to the same tier as the
+# implementer agent. Overridable for tests: REVIEW_WORKFLOW.
+REVIEW_WORKFLOW="${REVIEW_WORKFLOW:-$ROOT/.github/workflows/claude-review.yml}"
+if [ -f "$REVIEW_WORKFLOW" ]; then
+  impl_tier="$(expected_tier implementer)"
+  ci_model="$(grep -E '^[[:space:]]*model: claude-' "$REVIEW_WORKFLOW" | head -1 | awk -F': *' '{print $2}')"
+  if [ -n "$ci_model" ] && [ "$impl_tier" != "unknown" ] && [ -n "$impl_tier" ]; then
+    ci_tier="$(normalize_tier "$ci_model")"
+    if [ "$ci_tier" = "$impl_tier" ]; then
+      echo "✗ cross-model gate: CI reviewer ($ci_model → $ci_tier) is the SAME tier as the implementer agent ($impl_tier) — route the gating review to a different model (gap-audit G46)"
+      echo "model-consistency: cross-model review gate violated"
+      exit 1
+    fi
+  fi
+fi
+
+echo "model-consistency: all agents match §V; no stale-version refs; review is cross-model"
 exit 0
