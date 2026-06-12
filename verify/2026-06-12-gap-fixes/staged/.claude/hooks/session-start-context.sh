@@ -197,13 +197,26 @@ if [ -f .claude/memory/atlas/manifest.json ] && command -v jq >/dev/null 2>&1; t
 fi
 
 # ─── ADR re-verification backlog ────────────────────────────────────────
+# Gap-audit G45: staleness from CONTENT dates, not file mtime — a git clone
+# (or any touch) resets mtimes, so `find -mtime +365` never fired on real
+# repos. An ADR is stale when its freshest content date (last_verified if
+# present, else Date) is >12 months old.
 if [ -d .claude/memory/decisions ]; then
-  # Count ADRs >12mo with no last_verified
-  # JUSTIFIED: find suppresses traversal warnings on a sparse decisions tree; xargs grep -L returns empty when no files match — wc -l then yields 0, a valid "no stale ADRs" count
-  stale_adrs=$(find .claude/memory/decisions -name '*.md' -mtime +365 2>/dev/null | \
-    xargs grep -L '^- \*\*last_verified\*\*:' 2>/dev/null | wc -l | tr -d ' ')
+  cutoff=$(date -v-1y +%Y-%m-%d 2>/dev/null || date -d '1 year ago' +%Y-%m-%d 2>/dev/null)
+  stale_adrs=0
+  for adr in .claude/memory/decisions/[0-9]*.md; do
+    [ -f "$adr" ] || continue
+    case "$adr" in *0000-template.md) continue ;; esac
+    fresh=$(grep -E '^- \*\*last_verified\*\*:' "$adr" | head -1 | grep -oE '[0-9]{4}-[0-9]{2}-[0-9]{2}' || true)
+    [ -z "$fresh" ] && fresh=$(grep -E '^- \*\*Date\*\*:' "$adr" | head -1 | grep -oE '[0-9]{4}-[0-9]{2}-[0-9]{2}' || true)
+    [ -z "$fresh" ] && continue  # placeholder/template dates — not assessable
+    # YYYY-MM-DD compares correctly as a string
+    if [ -n "$cutoff" ] && [ "$fresh" \< "$cutoff" ]; then
+      stale_adrs=$((stale_adrs + 1))
+    fi
+  done
   if [ "$stale_adrs" -gt 0 ]; then
-    ctx_parts+=("$stale_adrs ADR(s) need re-verification — run \`/adr-walk\`.")
+    ctx_parts+=("$stale_adrs ADR(s) not verified in >12mo — re-check each, then stamp it: \`/adr-walk --reverify <id>\`.")
   fi
 fi
 

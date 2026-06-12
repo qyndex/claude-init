@@ -35,6 +35,7 @@ Push, PR, CI, merge, deploy. With gates.
 - **No `--force`.** Ever, on main/master.
 - **User confirms merge.** Even if all checks pass.
 - **User confirms deploy.** Production always requires explicit go.
+- **ADR check (gap-audit G39/G40).** If the diff touches architectural surfaces (migrations, settings, auth, API contracts) and no `.claude/memory/decisions/` file is added/updated or cited in the plan's References, STOP and warn loudly — create the missing ADR via `adr-new.sh` before shipping. CI's adr-gate enforces the same rule.
 
 ## Quality bar (from CLAUDE.md §8)
 

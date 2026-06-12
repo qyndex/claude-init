@@ -1,0 +1,14 @@
+# Architectural-surface globs for the ADR gate (gap-audit G40).
+# A PR touching any of these paths must add/modify a file under
+# .claude/memory/decisions/ or reference an ADR in a commit trailer/body.
+# One glob per line; '#' comments. Tune per project.
+migrations/**
+db/migrations/**
+**/auth/**
+**/login/**
+**/session/**
+.claude/settings.json
+.mcp.json
+openapi/**
+**/api/contracts/**
+proto/**

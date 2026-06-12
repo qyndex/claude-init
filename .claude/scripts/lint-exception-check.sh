@@ -69,16 +69,64 @@ for f in $files; do
   ' "$f" || issues=$((issues + 1))
 done
 
+# ─── Gap-audit G41: security disables require a RESOLVABLE ADR ────────────
+# The "needs an ADR" rule above was a hint string only — nothing checked it.
+# A security-class disable must carry an `ADR: NNNN` (or ADR-NNNN) marker
+# within 3 lines that resolves to a real file in .claude/memory/decisions/,
+# OR the same diff must add/modify a decisions/ file.
+sec_patterns='# nosec|# noqa:[[:space:]]*S[0-9]|eslint-disable[^\n]*security|//nolint:gosec|#\[allow\([a-z_]*unsafe'
+
+# JUSTIFIED: git stderr suppressed — a missing decisions/ path in the diff just means no ADR rode along; the inline-marker path below still applies
+adr_in_diff=$(git diff --name-only "$BASE...$HEAD" -- '.claude/memory/decisions/*.md' 2>/dev/null || true)
+
+new_sec=$(printf '%s\n' "$new_disables" | grep -E "$sec_patterns" || true)
+if [ -n "$new_sec" ]; then
+  echo "→ Security-class disables in diff; checking for resolvable ADR (G41)"
+  for f in $files; do
+    [ -f "$f" ] || continue
+    grep -nE "$sec_patterns" "$f" 2>/dev/null | while IFS=: read -r ln _rest; do
+      # Collect ±3 lines around the disable and look for an ADR marker
+      start=$((ln > 3 ? ln - 3 : 1))
+      ctx=$(sed -n "${start},$((ln + 3))p" "$f")
+      adr_id=$(printf '%s\n' "$ctx" | grep -oE 'ADR[-: ]+#?[0-9]{1,4}' | grep -oE '[0-9]+' | head -1)
+      if [ -n "$adr_id" ]; then
+        padded=$(printf '%04d' "$((10#$adr_id))")
+        if ls .claude/memory/decisions/"${padded}"-*.md >/dev/null 2>&1; then
+          continue  # resolvable ADR — OK
+        fi
+        echo "  ✗ $f:$ln — ADR: $adr_id does not resolve to .claude/memory/decisions/${padded}-*.md"
+        echo "SEC_FAIL" >> "${TMPDIR:-/tmp}/.lint-exc-sec.$$"
+      elif [ -n "$adr_in_diff" ]; then
+        continue  # ADR rides in the same diff — OK
+      else
+        echo "  ✗ $f:$ln — security disable with no ADR marker and no decisions/ file in diff"
+        echo "SEC_FAIL" >> "${TMPDIR:-/tmp}/.lint-exc-sec.$$"
+      fi
+    done
+  done
+  if [ -s "${TMPDIR:-/tmp}/.lint-exc-sec.$$" ]; then
+    rm -f "${TMPDIR:-/tmp}/.lint-exc-sec.$$"
+    issues=$((issues + 1))
+    sec_failed=1
+  fi
+  rm -f "${TMPDIR:-/tmp}/.lint-exc-sec.$$"
+fi
+
 if [ "$issues" -gt 0 ]; then
   echo
   echo "✗ $issues file(s) have un-justified disables."
   echo "  Add inline comments (within 3 lines of the disable):"
   echo "    // JUSTIFICATION: <why this disable is necessary>"
   echo "    // ISSUE: #<github issue number tracking removal>"
-  echo
-  echo "  Security disables (# nosec, # noqa: S*, security-*) also need an ADR in .claude/memory/decisions/"
+  if [ "${sec_failed:-0}" = "1" ]; then
+    echo
+    echo "  Security disables (# nosec, # noqa: S*, eslint-disable*security) REQUIRE a"
+    echo "  resolvable ADR: add 'ADR: NNNN' within 3 lines (file must exist in"
+    echo "  .claude/memory/decisions/) or ship the ADR in the same diff."
+    echo "  Create one: bash .claude/scripts/adr-new.sh \"<title>\" --by human --tags security"
+  fi
   exit 1
 fi
 
 echo
-echo "✓ All disables have JUSTIFICATION + ISSUE markers"
+echo "✓ All disables have JUSTIFICATION + ISSUE markers (security disables: resolvable ADRs)"

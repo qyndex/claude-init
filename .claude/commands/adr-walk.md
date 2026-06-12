@@ -1,6 +1,6 @@
 ---
-description: Enforce ADR supersession. Find dead ADRs (status=superseded but still in active context), validate that superseded_by points to a real ADR, surface ADRs that haven't been verified in >12 months.
-argument-hint: "[--prune-stale] [--verify-links]"
+description: Enforce ADR supersession. Find dead ADRs (status=superseded but still in active context), validate that superseded_by points to a real ADR, surface ADRs that haven't been verified in >12 months. --reverify <id> stamps last_verified after a human/agent re-check.
+argument-hint: "[--prune-stale] [--verify-links] [--reverify <id>]"
 allowed-tools: Read, Glob, Grep, Bash
 disable-model-invocation: true
 ---
@@ -9,6 +9,27 @@ disable-model-invocation: true
 
 ```bash
 mode="${1:---verify-links}"
+
+# ─── Gap-audit G42: --reverify <id> closes the staleness loop ────────────
+# The 12-month staleness report had no resolution path — nothing ever wrote
+# last_verified, so every ADR aged into "needs re-verification" forever.
+if [ "$mode" = "--reverify" ]; then
+  id="${2:?usage: /adr-walk --reverify <id>}"
+  padded=$(printf '%04d' "$((10#$id))")
+  f=$(ls .claude/memory/decisions/"${padded}"-*.md 2>/dev/null | head -1)
+  [ -z "$f" ] && { echo "✗ No ADR ${padded}-*.md in .claude/memory/decisions/"; exit 1; }
+  today=$(date +%Y-%m-%d)
+  if grep -qE '^- \*\*last_verified\*\*:' "$f"; then
+    sed -i.bak -E "s/^- \*\*last_verified\*\*:.*/- **last_verified**: ${today}/" "$f" && rm -f "$f.bak"
+  else
+    # Insert after the Date line so the metadata block stays grouped
+    sed -i.bak -E "/^- \*\*Date\*\*:/a\\
+- **last_verified**: ${today}" "$f" && rm -f "$f.bak"
+  fi
+  bash .claude/scripts/memory-index.sh >/dev/null 2>&1 || true
+  echo "✓ $(basename "$f"): last_verified → ${today} (index rebuilt)"
+  exit 0
+fi
 
 echo "# ADR walk — $(date -Iseconds)"
 
@@ -51,11 +72,32 @@ for f in .claude/memory/decisions/*.md; do
   fi
 done
 
-# 4. Find orphan superseded_by chains
+# 4. Walk superseded_by chains end-to-end (G42 — was a stub)
 echo
 echo "## Chains (decision A superseded by B superseded by C...)"
-echo "Walking forward references..."
-# (heuristic; full chain walk left to manual)
+pairs=$(grep -rE '^- \*\*Status\*\*:.*superseded by ADR-[0-9]+' .claude/memory/decisions/ 2>/dev/null \
+  | sed -E 's|.*/([0-9]+)[^:]*:.*superseded by ADR-0*([0-9]+).*|\1 \2|')
+if [ -z "$pairs" ]; then
+  echo "(no supersession chains)"
+else
+  printf '%s\n' "$pairs" | while read -r src dst; do
+    chain="ADR-$src"
+    cur="$dst"
+    depth=0
+    while [ "$depth" -lt 10 ]; do
+      chain="$chain → ADR-$(printf '%04d' "$((10#$cur))")"
+      next=$(printf '%s\n' "$pairs" | awk -v c="$((10#$cur))" '$1 + 0 == c {print $2; exit}')
+      [ -z "$next" ] && break
+      cur="$next"; depth=$((depth + 1))
+    done
+    [ "$depth" -ge 10 ] && chain="$chain → ⚠ CYCLE/DEPTH-LIMIT"
+    # Terminal ADR should exist and not itself be superseded
+    if ! ls .claude/memory/decisions/"$(printf '%04d' "$((10#$cur))")"-*.md >/dev/null 2>&1; then
+      chain="$chain (⚠ terminal ADR missing)"
+    fi
+    echo "- $chain"
+  done
+fi
 
 # 5. Surface to architect agent
 echo

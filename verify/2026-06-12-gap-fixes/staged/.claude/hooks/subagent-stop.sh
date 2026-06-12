@@ -34,6 +34,7 @@ blockers_count=0
 files_modified=""
 archive_file=""
 soft_missing=0
+adr_missing=0
 
 if [ -n "$final_message" ]; then
   # Save final message to a temp for grep + extract block content
@@ -103,6 +104,17 @@ EOF
       # JUSTIFIED: bridge is best-effort — a failure is visible via followup_tasks count in the digest; it must not block the subagent's stop
       bash .claude/scripts/findings-to-tasks.sh "$ft_tmp" --priority normal --source "handoff:${agent_type}" >/dev/null 2>&1 || true
       rm -f "$ft_tmp"
+    fi
+
+    # ─── Gap-audit G40: architect handoff must cite ADRs ────────────────────
+    # An architect run that made decisions but referenced no ADR is the exact
+    # leak the adr-gate catches later at PR time — flag it at the source.
+    if [ "$agent_type" = "architect" ]; then
+      adr_refs=$(echo "$yaml_block" | awk '/^adrs_referenced:/{f=1; next} /^[a-z_]+:/{f=0} f && /^[[:space:]]*-/' | grep -v '^\s*-\s*$' || true)
+      if [ -z "$adr_refs" ]; then
+        adr_missing=1
+        printf '%s\tagent=%s\tadrs_referenced_empty\n' "$ts" "$agent_type" >> .claude/hooks/.log/subagent.log
+      fi
     fi
   elif [ "$agent_type" = "feature-stream" ] || [ "$agent_type" = "coordinator" ]; then
     # Hard-enforced agent didn't emit a YAML block at all
@@ -245,6 +257,7 @@ digest_parts=()
 [ -n "$worktree_diff" ] && digest_parts+=("worktree_diff=[$worktree_diff]")
 [ "$followup_count" -gt 0 ] && digest_parts+=("followup_tasks=$followup_count")
 [ "$blockers_count" -gt 0 ] && digest_parts+=("blockers=$blockers_count")
+[ "$adr_missing" = "1" ] && digest_parts+=("WARN:adrs_referenced=EMPTY — persist the architect's decisions via 'bash .claude/scripts/adr-new.sh \"<title>\" --by architect' before planning (gap-audit G40)")
 
 if [ "${#digest_parts[@]}" -gt 0 ]; then
   digest=$(IFS=' '; echo "${digest_parts[*]}")

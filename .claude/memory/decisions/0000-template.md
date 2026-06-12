@@ -1,6 +1,8 @@
 ---
 name: 0000-decision-template
 description: ADR template — copy to a new file and fill in.
+status: proposed
+created: YYYY-MM-DD
 metadata:
   type: decision
   status: template
@@ -13,10 +15,11 @@ metadata:
 - **Deciders**: <names or @handles>
 - **Owners**: [@<human-owner>]    # who answers if this needs revisiting
 - **written_by**: human | architect | dream | reviewer | debugger | security   # Round 5 C2 — provenance
-- **source_session**: <session-id>  # populated by hook when ADR is written by an agent; empty if human
+- **source_session**: <session-id>  # stamped by .claude/scripts/adr-new.sh when written via an agent; empty if human
 - **last_verified**: YYYY-MM-DD    # when an owner last confirmed this is still the way; bumped by /adr-walk
 - **Context**: link to the spec/plan/issue that triggered this decision
 - **Tags**: architecture | data | api | security | infra | ux
+- **subsystem**: <one-word grouping key — dream's contradiction detector compares ADRs sharing it (gap-audit G44)>
 - **Supersedes**: ADR-XXXX (if this replaces a prior decision)
 - **superseded_by**:               # filled in when a future ADR replaces this one
 - **orphaned_from**:               # Round 7 D — set if this ADR's parent initiative was abandoned/dropped. The technical claim may still be valid; the work that prompted it isn't. Extractor agent populates.

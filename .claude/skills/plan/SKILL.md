@@ -38,6 +38,7 @@ Turn an approved spec into an actionable technical plan.
 - **Cite evidence.** Every "we chose X because Y" must reference a doc, benchmark, or precedent.
 - **Phases ship.** Phase 1 alone should deliver value, not be "scaffolding".
 - **Surface risks.** A risk hidden is a risk multiplied.
+- **Decisions become ADRs (gap-audit G39).** Every non-obvious architectural choice in the plan gets an ADR: `bash .claude/scripts/adr-new.sh "<title>" --by architect --subsystem <key>`, then fill Context/Decision/Alternatives. The plan's References section must cite it. A plan whose References cite no ADR while making architecture choices is incomplete — validate.sh fails the repo when active plans exist with an empty decisions store.
 
 ## Output
 

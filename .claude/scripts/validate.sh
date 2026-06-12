@@ -481,6 +481,17 @@ if [ -f .claude/memory/MEMORY.md ]; then
   fi
 fi
 
+# Gap-audit G39: plans without decisions = architecture happening with zero
+# ADRs — the entire lifecycle (staleness, supersession, conflict detection)
+# runs on an empty set. Real plans must produce real decisions.
+plan_count=$(find plans/active -name '*.md' -type f 2>/dev/null | wc -l | tr -d ' ')
+adr_count=$(find .claude/memory/decisions -name '*.md' -type f -not -name '0000-template.md' 2>/dev/null | wc -l | tr -d ' ')
+if [ "$plan_count" -gt 0 ] && [ "$adr_count" -eq 0 ]; then
+  fail "plans/active has $plan_count plan(s) but .claude/memory/decisions/ holds only the template — create ADRs via .claude/scripts/adr-new.sh (gap-audit G39)"
+else
+  ok "ADR store non-vacuous ($adr_count ADR(s), $plan_count active plan(s))"
+fi
+
 # Lifecycle frontmatter — without status/created the promotion/decay rules in
 # memory-promote.sh can never fire (memory-system review §7.4). Topic files
 # (not templates, not the index page, not runtime briefs) must carry both.
