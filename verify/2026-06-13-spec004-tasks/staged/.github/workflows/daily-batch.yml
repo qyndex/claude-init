@@ -1,0 +1,106 @@
+name: Daily batch (8am UTC)
+
+# Round 5 Batch B: heavy checks run ONCE a day at 8 am UTC instead of per-PR.
+# See docs/CI-COST.md for rationale + branch protection setup.
+
+on:
+  schedule:
+    - cron: "0 8 * * *"
+  workflow_dispatch:
+    inputs:
+      skip_heavy:
+        description: "Skip codeql + lighthouse (faster validation run)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+  pull-requests: write
+
+jobs:
+  codeql:
+    if: ${{ inputs.skip_heavy != true }}
+    uses: ./.github/workflows/codeql.yml
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+  semgrep:
+    uses: ./.github/workflows/semgrep.yml
+    permissions:
+      contents: read
+      security-events: write
+
+  lighthouse:
+    if: ${{ inputs.skip_heavy != true }}
+    uses: ./.github/workflows/lighthouse.yml
+    permissions:
+      contents: read
+      pull-requests: write
+
+  perf-budget:
+    uses: ./.github/workflows/perf-budget.yml
+    permissions:
+      contents: read
+      pull-requests: write
+
+  license-check:
+    uses: ./.github/workflows/license-check.yml
+    permissions:
+      contents: read
+
+  osv-scanner:
+    # Round 8 A: scan lockfiles against OSV.dev every 24h. Catches CVEs that
+    # appear AFTER the lockfile was committed — the gap Dependabot can't close.
+    #
+    # spec 004 FINDING-16: osv-scanner-reusable.yml is a REUSABLE WORKFLOW, so it
+    # must be invoked at the JOB level (jobs.osv-scanner.uses), exactly like the
+    # codeql/semgrep/lighthouse siblings above — NOT as a `steps: - uses:` step.
+    # The step form made the whole daily-batch.yml fail to parse ("reusable
+    # workflows should be referenced at the top-level jobs.*.uses key"), which in
+    # turn kept the daily-batch un-runnable and check-daily-batch permanently red.
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@b8ac13f90f0ad78cebdcdbe5d39fcc8ff11301ba # main 2026-05-29
+    with:
+      scan-args: |-
+        --recursive
+        --skip-git
+        ./
+      fail-on-vuln: false # roll-up handles overall gate
+
+  daily-batch-result:
+    name: Daily batch result
+    runs-on: ubuntu-latest
+    needs: [semgrep, perf-budget, license-check, osv-scanner]
+    if: always()
+    env:
+      SEMGREP_RESULT: ${{ needs.semgrep.result }}
+      PERF_RESULT: ${{ needs.perf-budget.result }}
+      LICENSE_RESULT: ${{ needs.license-check.result }}
+      OSV_RESULT: ${{ needs.osv-scanner.result }}
+    steps:
+      - name: Roll-up status
+        run: |
+          status="success"
+          for r in "$SEMGREP_RESULT" "$PERF_RESULT" "$LICENSE_RESULT" "$OSV_RESULT"; do
+            case "$r" in
+              success|skipped) ;;
+              *) status="failure" ;;
+            esac
+          done
+          echo "Daily batch status: $status"
+          echo "$status" > daily-batch-status.txt
+          [ "$status" = "success" ] || exit 1
+      - name: Upload result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-batch-result
+          path: daily-batch-status.txt
+          retention-days: 30

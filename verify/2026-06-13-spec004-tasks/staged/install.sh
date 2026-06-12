@@ -17,6 +17,7 @@
 #   .github/workflows/merge-gate.yml              T-134 — fix gh json field htmlUrl->url; repo createdAt for the age window
 #   .github/workflows/claude-review.yml           FINDING-14 — add id-token: write (claude-code-action OIDC auth)
 #   .github/workflows/pr-review.yml               FINDING-14 — same
+#   .github/workflows/daily-batch.yml             FINDING-16 — osv-scanner reusable workflow at job level (was an invalid step; broke parse)
 #
 # NOT installed by this script (already applied, agent-writable, in the main commit):
 #   .shellcheckrc, commitlint.config.js, lint-silent-failures.sh ratchet +
@@ -37,6 +38,7 @@ rels="
 .github/workflows/merge-gate.yml
 .github/workflows/claude-review.yml
 .github/workflows/pr-review.yml
+.github/workflows/daily-batch.yml
 "
 
 install_into() {
