@@ -332,6 +332,51 @@ else
   warn "gh not authenticated / no remote — ruleset NOT applied (harness-doctor will keep flagging this)"
 fi
 
+step "Release-please config (e2e-audit release-deploy-6)"
+# release-please is the SINGLE tag/changelog authority. The factory config ships
+# with a placeholder package-name + node release-type — set both by detected
+# stack, or warn loudly so a broken-by-default workflow never goes unnoticed.
+if [ -f release-please-config.json ] && command -v jq >/dev/null 2>&1; then
+  if grep -q '@your-org/your-repo' release-please-config.json; then
+    rp_type=""
+    [ -f package.json ] && rp_type="node"
+    [ -z "$rp_type" ] && [ -f pyproject.toml ] && rp_type="python"
+    [ -z "$rp_type" ] && [ -f Cargo.toml ] && rp_type="rust"
+    [ -z "$rp_type" ] && [ -f go.mod ] && rp_type="go"
+    if [ -n "$rp_type" ]; then
+      rp_name="$(basename "$(pwd)")"
+      if [ -f package.json ]; then
+        # JUSTIFIED: package.json name read; a missing/invalid name keeps the directory-name fallback
+        pj_name="$(jq -r '.name // empty' package.json 2>/dev/null || true)"
+        [ -n "$pj_name" ] && rp_name="$pj_name"
+      fi
+      tmp="release-please-config.json.tmp.$$"
+      jq --arg t "$rp_type" --arg n "$rp_name" \
+        '."release-type"=$t | .packages."."."release-type"=$t | .packages."."."package-name"=$n' \
+        release-please-config.json > "$tmp" && mv "$tmp" release-please-config.json
+      ok "release-please configured: release-type=$rp_type package-name=$rp_name"
+    else
+      warn "release-please-config.json still has the PLACEHOLDER package-name and no stack was detected — releases will NOT work until you edit it (release-type + package-name)"
+    fi
+  else
+    ok "release-please-config.json already customized"
+  fi
+  [ -f .release-please-manifest.json ] || { printf '{\n  ".": "0.1.0"\n}\n' > .release-please-manifest.json; ok "seeded .release-please-manifest.json at 0.1.0"; }
+fi
+
+step "ANTHROPIC_API_KEY preflight (e2e-audit ci-gates-4)"
+# claude-review / claude-security are GATING required checks — without the
+# secret they fail on every PR with an opaque SDK error. Catch it at setup.
+if command -v gh >/dev/null 2>&1 && gh auth status >/dev/null 2>&1 && git config --get remote.origin.url >/dev/null 2>&1; then
+  if gh secret list 2>/dev/null | grep -q '^ANTHROPIC_API_KEY'; then
+    ok "ANTHROPIC_API_KEY repo secret present"
+  else
+    warn "ANTHROPIC_API_KEY repo secret MISSING — claude-review/claude-security (required checks) will fail every PR. Set it: gh secret set ANTHROPIC_API_KEY"
+  fi
+else
+  note "gh unavailable — cannot verify ANTHROPIC_API_KEY secret (harness-doctor re-checks)"
+fi
+
 step "Setup complete"
 cat <<'EOF'
 

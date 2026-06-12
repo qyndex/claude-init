@@ -1,6 +1,8 @@
 # Deploy Integration — Bring Your Own (BYO)
 
 > The harness does **not** ship a working deploy pipeline. `.github/workflows/canary-deploy.yml` is a **STUB**: its steps echo placeholders and `sleep`. Deploy is Bring-Your-Own — this document is the checklist for wiring your platform into the stub.
+>
+> **The stub FAILS CLOSED**: its first step exits 1 unless the repo variable `DEPLOY_WIRED` is `true` (`gh variable set DEPLOY_WIRED --body true` — only after completing this checklist). A green run of the unwired stub can therefore never be mistaken for a successful deploy, and `/ship` reports "Deploy: NOT WIRED" instead of "Deployed: yes".
 
 ## Why a stub, not a real pipeline
 
@@ -60,12 +62,17 @@ Pick one and replace the `# Provider-specific:` placeholder lines:
 - [ ] Wire it to the `::error::SLO burn breach` exit path so a burn breach auto-rolls-back instead of just failing the job.
 - [ ] Confirm rollback is idempotent and safe to run when no canary is in flight.
 
-### 5. Verification before first real deploy
+### 5. Lifecycle signal — deployment_status (or SHIPPED never fires)
+
+- [ ] **Your pipeline must emit a GitHub `deployment_status` event, or the spec issue never reaches SHIPPED.** `issue-lifecycle.yml` moves a spec issue to SHIPPED only on `deployment_status: success` (or a `flag-shipped` dispatch). The wired `canary-deploy.yml` does this for you (it creates a Deployment and posts statuses); if you deploy through some other pipeline, post the pair yourself: `gh api repos/{owner}/{repo}/deployments -f ref=$SHA …` then `…/deployments/$ID/statuses -f state=success`.
+- [ ] Confirm the deployed sha's merged PR body links the spec issue (`Closes #N`) — that's how the lifecycle resolves which issue to move on a deployment event.
+
+### 6. Verification before first real deploy
 
 - [ ] Run the workflow in a staging environment first (`workflow_dispatch` with a staging service).
 - [ ] Confirm the SLO-burn watch can actually reach `$PROM_URL` from the runner (network/firewall).
 - [ ] Confirm a deliberately-bad canary triggers the rollback path (chaos test).
-- [ ] Only then enable for a T1 production service.
+- [ ] Only then set `DEPLOY_WIRED=true` and enable for a T1 production service. Remove the `# STUB` header marker once wired — `harness-doctor` fails on `DEPLOY_WIRED=true` + marker still present.
 
 ## Relationship to the rest of the harness
 

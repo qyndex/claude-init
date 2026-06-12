@@ -1,0 +1,91 @@
+name: Hotfix ingest
+
+# Round 12 B (fallback ingestion) + D (autonomous fix spawn).
+# Fires on repository_dispatch from Alertmanager/Sentry/synthetic-monitor.
+# Security: all client_payload data flows via env vars, passed as quoted args,
+# never interpolated into run: strings.
+
+on:
+  repository_dispatch:
+    types: [prod-alert]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  ingest-and-fix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      FINGERPRINT: ${{ github.event.client_payload.fingerprint }}
+      SEVERITY: ${{ github.event.client_payload.severity }}
+      TITLE: ${{ github.event.client_payload.title }}
+      PERMALINK: ${{ github.event.client_payload.permalink }}
+      SOURCE: ${{ github.event.client_payload.source }}
+      ALERT_SERVICE: ${{ github.event.client_payload.service }}
+      FLAG_PROVIDER: ${{ vars.FLAG_PROVIDER }}
+      FLAG_KILL_WEBHOOK: ${{ secrets.FLAG_KILL_WEBHOOK }}
+      LD_API_KEY: ${{ secrets.LD_API_KEY }}
+      POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY }}
+      UNLEASH_URL: ${{ vars.UNLEASH_URL }}
+      UNLEASH_API_TOKEN: ${{ secrets.UNLEASH_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Triage — insert hotfix into TASKS.md (dedup-guarded)
+        id: triage
+        run: |
+          bash .claude/scripts/hotfix-to-task.sh "$FINGERPRINT" "$SEVERITY" "$TITLE" "$PERMALINK" > /tmp/triage.out 2>&1 || true
+          cat /tmp/triage.out
+          tid=$(grep -oE 'T-[0-9]+' /tmp/triage.out | head -1)
+          echo "task_id=$tid" >> "$GITHUB_OUTPUT"
+          if grep -qE 'dedup|cooldown|skip:' /tmp/triage.out; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Flag first-responder (e2e-audit release-deploy-4)
+        if: ${{ steps.triage.outputs.skip == 'false' }}
+        run: |
+          # If the alerting service maps to a flag-gated spec, a mechanical flag
+          # kill shrinks the blast radius in seconds — BEFORE the (minutes-long)
+          # autonomous fix even starts. Exit 3 = no flag mapped (normal); exit 2 =
+          # provider unwired (loud in the log, fix proceeds anyway).
+          if [ -n "${ALERT_SERVICE:-}" ]; then
+            bash .claude/scripts/rollback-flag.sh --service "$ALERT_SERVICE" \
+              --reason "hotfix-ingest $FINGERPRINT ($SEVERITY)" || \
+              echo "flag first-responder: no kill performed (rc=$?) — proceeding to autonomous fix"
+          else
+            echo "alert carries no service field — flag first-responder skipped"
+          fi
+
+      - name: Project write-only hotfix issue
+        if: ${{ steps.triage.outputs.skip == 'false' }}
+        run: bash .claude/scripts/tasks-to-issues.sh HOTFIX 2>/dev/null || echo "issue attaches on next projector run"
+
+      - name: Install claude CLI
+        if: ${{ steps.triage.outputs.skip == 'false' }}
+        run: command -v claude || npm i -g @anthropic-ai/claude-code
+
+      - name: Autonomous fix (diagnose -> fix -> PR; never auto-merge)
+        if: ${{ steps.triage.outputs.skip == 'false' }}
+        env:
+          TASK_ID: ${{ steps.triage.outputs.task_id }}
+        run: |
+          branch="claude/hotfix-$(echo "$FINGERPRINT" | cut -c1-8)-$(date +%Y%m%d)"
+          git checkout -b "$branch"
+          prompt="A production alert opened hotfix task ${TASK_ID} (fingerprint ${FINGERPRINT}, ${SEVERITY}). Run the debugger 4-phase loop starting with Phase 0 (recall: grep .claude/memory/incidents/ + query Sentry MCP for this fingerprint history). Reproduce, write a regression test reproducing the failure, fix minimally via tdd-ledger.sh red->green, run collect-evidence.sh, open a PR with Closes #<hotfix-issue> + the evidence bundle. Do NOT auto-merge. If unfixable within budget, mark the task [!] with a reason and comment on the issue."
+          claude -p --max-turns 100 --max-budget-usd 8 --permission-mode auto \
+            --append-system-prompt "$prompt" \
+            "Fix hotfix ${TASK_ID}" 2>&1 | tail -40 || echo "fix session ended; check PR/issue"
+
+      - name: Breadcrumb
+        if: ${{ always() && steps.triage.outputs.skip == 'false' }}
+        run: echo "Hotfix run complete for $FINGERPRINT — check open claude/hotfix-* PRs."

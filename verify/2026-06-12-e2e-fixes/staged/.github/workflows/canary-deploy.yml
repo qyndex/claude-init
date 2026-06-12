@@ -1,0 +1,131 @@
+name: Canary Deploy
+
+# STUB — replace with project-specific deploy logic; see docs/DEPLOY-INTEGRATION.md
+#
+# Progressive deploy gate. Runs after build, before full rollout.
+# Reads slo.yml for per-service tier; T1 services require progressive deploy.
+#
+# The harness ships this as a STUB only: the ramp steps echo placeholders and
+# sleep. Deploy is Bring-Your-Own (BYO) — wire your platform (Argo Rollouts,
+# Flagger, AWS CodeDeploy, Vercel, Fly, etc.) following docs/DEPLOY-INTEGRATION.md.
+#
+# e2e-audit release-deploy-1: the workflow FAILS CLOSED until the repo variable
+# DEPLOY_WIRED=true is set (step 1). A 40-minute echo+sleep can never again be
+# reported as a successful deploy. When wired, it creates a real GitHub
+# Deployment and posts deployment_status — the signal issue-lifecycle.yml needs
+# to move a spec issue to SHIPPED (release-deploy-5).
+
+on:
+  workflow_dispatch:
+    inputs:
+      service:
+        description: "Service name (matches slo.yml entry)"
+        required: true
+      sha:
+        description: "Commit SHA to canary"
+        required: true
+
+permissions:
+  contents: read
+  deployments: write
+
+jobs:
+  canary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      REPO: ${{ github.repository }}
+      SERVICE: ${{ inputs.service }}
+      SHA: ${{ inputs.sha }}
+    steps:
+      - name: Refuse to run unwired (release-deploy-1)
+        env:
+          DEPLOY_WIRED: ${{ vars.DEPLOY_WIRED }}
+        run: |
+          if [ "${DEPLOY_WIRED:-}" != "true" ]; then
+            echo "::error::canary-deploy is a STUB and the repo variable DEPLOY_WIRED is not 'true'."
+            echo "::error::Wire your platform first (docs/DEPLOY-INTEGRATION.md), then: gh variable set DEPLOY_WIRED --body true"
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+
+      - name: Create GitHub Deployment (release-deploy-5)
+        id: deployment
+        run: |
+          # The Deployment + deployment_status pair is what drives SHIPPED in
+          # issue-lifecycle.yml — without it the lifecycle's deploy branch never fires.
+          dep_id=$(gh api "repos/$REPO/deployments" \
+            -f ref="$SHA" -f environment=production -f description="canary $SERVICE@$SHA" \
+            -F auto_merge=false -f 'required_contexts[]' --jq .id)
+          echo "id=$dep_id" >> "$GITHUB_OUTPUT"
+          gh api "repos/$REPO/deployments/$dep_id/statuses" -f state=in_progress >/dev/null
+
+      - name: Parse SLO for service
+        run: |
+          # Read slo.yml for the service tier + auto_rollback thresholds
+          tier=$(yq ".services.\"$SERVICE\".tier // .defaults.T2.tier" slo.yml)
+          rollback_enabled=$(yq ".services.\"$SERVICE\".auto_rollback.enabled // .defaults.T2.auto_rollback" slo.yml)
+          echo "tier=$tier" >> "$GITHUB_OUTPUT"
+          echo "rollback=$rollback_enabled" >> "$GITHUB_OUTPUT"
+
+      - name: Canary at 1%
+        run: |
+          echo "Deploying $SERVICE@$SHA to 1% of traffic"
+          # Provider-specific: Argo Rollouts / Flagger / AWS CodeDeploy
+          # kubectl argo rollouts set image $SERVICE $SERVICE=$IMAGE
+          # kubectl argo rollouts promote $SERVICE --percentage=1
+          echo "Waiting 10 min for canary metrics..."
+          sleep 600
+
+      - name: Watch SLO burn during canary
+        env:
+          PROM_URL: ${{ vars.PROM_URL }}
+          CANARY_SERVICE: ${{ vars.CANARY_SERVICE }}
+        run: |
+          # Round 12 A: real burn-rate query. e2e-audit release-deploy-1: behind the
+          # DEPLOY_WIRED gate an unset PROM_URL is a config ERROR, not a skippable
+          # warning — a wired deploy without its SLO watch is a blind ramp.
+          if [ -z "${PROM_URL:-}" ]; then
+            echo "::error::DEPLOY_WIRED=true but PROM_URL is not set — the canary would ramp blind. Set repo var PROM_URL (docs/DEPLOY-INTEGRATION.md §1)."
+            exit 1
+          fi
+          err=$(curl -sG "$PROM_URL/api/v1/query" \
+            --data-urlencode "query=sum(rate(http_requests_total{service=\"$CANARY_SERVICE\",code=~\"5..\"}[10m])) / sum(rate(http_requests_total{service=\"$CANARY_SERVICE\"}[10m]))" \
+            | jq -r '.data.result[0].value[1] // "0"')
+          threshold="0.0144"   # slo.yml fast-burn page threshold (14.4x of 0.1% budget)
+          echo "canary error_rate=$err threshold=$threshold"
+          if awk "BEGIN{exit !($err > $threshold)}"; then
+            echo "::error::SLO burn breach during canary ($err > $threshold) — auto-rollback"
+            # Mechanical flag-kill before failing (release-deploy-4): if the spec is
+            # flag-gated, killing the flag shrinks blast radius faster than any human.
+            bash .claude/scripts/rollback-flag.sh --service "$SERVICE" --reason "canary SLO burn $err" || true
+            exit 1
+          fi
+          echo "Canary within SLO budget."
+
+      - name: Promote to 10%
+        run: |
+          echo "Canary green; promoting to 10%"
+          # kubectl argo rollouts promote $SERVICE --percentage=10
+          sleep 1800
+
+      - name: Promote to 50%, then 100%
+        run: |
+          echo "Promoting to 50% → 100%"
+          # Final ramp; monitor at each step
+
+      - name: Post deployment_status success (release-deploy-5)
+        env:
+          DEP_ID: ${{ steps.deployment.outputs.id }}
+        run: |
+          gh api "repos/$REPO/deployments/$DEP_ID/statuses" -f state=success >/dev/null
+          echo "deployment_status=success posted — issue-lifecycle.yml moves the spec issue to SHIPPED"
+
+      - name: Post deployment_status failure
+        if: ${{ failure() && steps.deployment.outputs.id != '' }}
+        env:
+          DEP_ID: ${{ steps.deployment.outputs.id }}
+        run: |
+          gh api "repos/$REPO/deployments/$DEP_ID/statuses" -f state=failure >/dev/null

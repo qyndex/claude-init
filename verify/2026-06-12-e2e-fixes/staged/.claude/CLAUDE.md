@@ -155,6 +155,8 @@ Full checklist: `.claude/skills/security-guard/SKILL.md`.
 
 Cloud Routine at 23:00 → fresh runtime sandbox (OS-level / `--sandbox` launch flag — NOT settings.json) → Auto Mode → `/verify-loop` → /dream → `OVERNIGHT_REPORT.md`. Laptop can be off. [docs/AUTOPILOT.md](../docs/AUTOPILOT.md).
 
+**Autonomous merge (e2e-audit release-deploy-2):** in auto mode the merge confirmation is POLICY, not a human — the `auto-merge-ok` label or a `claude/overnight-*` branch arms `auto-merge.yml` (native `gh pr merge --auto`), and the LIVE branch ruleset's required checks are the gate. No live ruleset → no auto-merge (ship step 0). Merge ≠ deploy: production stays behind the deploy environment's required reviewers + the `DEPLOY_WIRED` gate.
+
 ---
 
 ## XII. Parallel Swarm

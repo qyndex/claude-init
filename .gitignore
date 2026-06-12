@@ -153,3 +153,6 @@ verify/.skip-log
 # Loop-control runtime telemetry (e2e-audit autopilot-2/5) — machine-written
 .claude/state/tasks-md.snapshot
 .claude/state/task-status-notes.log
+
+# Brownfield adoption backup (reconcile-claude-dir.sh — holds settings.local.json, never commit)
+.brownfield-backup/

@@ -45,7 +45,7 @@ Is the bug user-affecting NOW?
 ## Step 1 — Communicate
 
 - Status channel: incident open, severity, what's affected.
-- Stop new deploys (`gh workflow disable deploy.yml`).
+- Stop new deploys (`gh workflow disable canary-deploy.yml` — plus your own BYO deploy workflow if separate; see docs/DEPLOY-INTEGRATION.md).
 - Pin oncall.
 
 ## Step 2 — Revert the code

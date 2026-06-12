@@ -7,24 +7,52 @@
 #   • never-overwrite (their knowledge + secrets + local state) → preserve verbatim
 #   • merge-by-extraction (their conventions) → extracted to AGENTS.md by extract-conventions.sh
 # Every direct conflict becomes an [OQ] in ADOPTION-REPORT.md routed through /clarify.
-# Fully reversible: originals are copied to .claude/.brownfield-backup/<ts>/ before anything.
+# Fully reversible: originals are copied to .brownfield-backup/<ts>/ (repo root, gitignored)
+# with a MANIFEST.txt of every path adoption created; undo via --revert <ts>.
 #
 # Runs from anywhere (does NOT use the script-relative ROOT — it operates on --into):
 #   reconcile-claude-dir.sh --from <factory-clone-dir> [--into <repo-dir>] [--dry-run]
+#   reconcile-claude-dir.sh --revert <ts> [--into <repo-dir>]
 
 set -uo pipefail
-FROM=""; INTO="$(pwd)"; DRY=0
+FROM=""; INTO="$(pwd)"; DRY=0; REVERT=""
 while [ $# -gt 0 ]; do case "$1" in
   --from) FROM="${2:-}"; shift 2 ;;
   --into) INTO="${2:-}"; shift 2 ;;
+  --revert) REVERT="${2:-}"; shift 2 ;;
   --dry-run) DRY=1; shift ;;
   *) shift ;;
 esac; done
 
-[ -z "$FROM" ] && { echo "usage: reconcile-claude-dir.sh --from <factory-clone-dir> [--into <repo>] [--dry-run]"; exit 1; }
-[ -d "$FROM/.claude" ] || { echo "no .claude/ found in factory dir: $FROM"; exit 1; }
+[ -z "$FROM" ] && [ -z "$REVERT" ] && { echo "usage: reconcile-claude-dir.sh --from <factory-clone-dir> [--into <repo>] [--dry-run] | --revert <ts>"; exit 1; }
+[ -n "$FROM" ] && { [ -d "$FROM/.claude" ] || { echo "no .claude/ found in factory dir: $FROM"; exit 1; }; }
 # JUSTIFIED: a non-existent target makes cd fail; the muted system message is replaced by the clearer fallback error and a hard exit, so this never proceeds in the wrong directory
 cd "$INTO" 2>/dev/null || { echo "cannot cd into target: $INTO"; exit 1; }
+
+# ── Revert mode (e2e-audit brownfield-4): restore the pre-adoption .claude/ and
+# delete the files adoption CREATED (per MANIFEST.txt) — never the repo's own. ──
+if [ -n "$REVERT" ]; then
+  BK=".brownfield-backup/$REVERT"
+  if [ ! -d "$BK" ]; then
+    echo "no backup at $BK. Available timestamps:"
+    # JUSTIFIED: ls probe — an empty/absent backup dir falls through to the (none) line
+    ls -1 .brownfield-backup 2>/dev/null || echo "  (none)"
+    exit 1
+  fi
+  if [ -f "$BK/MANIFEST.txt" ]; then
+    while IFS=$'\t' read -r verb path; do
+      [ "$verb" = "created" ] || continue
+      [ -n "$path" ] && [ -e "$path" ] && rm -f -- "$path"
+    done < "$BK/MANIFEST.txt"
+    echo "  deleted adoption-created files listed in $BK/MANIFEST.txt"
+  else
+    echo "  (no MANIFEST.txt in backup — restoring .claude/ only; scaffold files created by adoption stay in place)"
+  fi
+  rm -rf .claude && mkdir -p .claude && cp -R "$BK/." .claude/
+  rm -f .claude/MANIFEST.txt
+  echo "✓ reverted: .claude/ restored from $BK; adoption-created files removed per MANIFEST."
+  exit 0
+fi
 
 ts="$(date +%Y%m%d-%H%M%S)"
 # Backup lives OUTSIDE .claude/ — a backup dir nested inside the very tree we
@@ -42,7 +70,19 @@ run() { [ "$DRY" = 1 ] && echo "[dry-run] $*" || eval "$*"; }
 if [ ! -d .claude ]; then
   echo "→ No existing .claude/ in $INTO — greenfield copy (no reconciliation needed)."
   run "cp -r '$FROM/.claude' .claude"
-  echo "✓ copied factory .claude/. Run: bash .claude/scripts/setup.sh"
+  # .github still copies NO-CLOBBER — even a repo without .claude/ can have its own CI
+  # (brownfield-3); differing same-name files stay the repo's and are flagged.
+  if [ -d "$FROM/.github" ]; then
+    run "mkdir -p .github"
+    while IFS= read -r f; do
+      f="${f#./}"
+      if [ -e ".github/$f" ] && ! cmp -s "$FROM/.github/$f" ".github/$f"; then
+        echo "  [OQ] .github/$f exists and differs — repo's version kept (factory gate NOT applied)"
+      fi
+    done < <(cd "$FROM/.github" && find . -type f 2>/dev/null)
+    run "cp -Rn '$FROM/.github/.' '.github/' 2>/dev/null || true"
+  fi
+  echo "✓ copied factory .claude/ + .github (no-clobber). Run: bash .claude/scripts/setup.sh"
   exit 0
 fi
 
@@ -51,6 +91,17 @@ run "mkdir -p '$BK'"
 # JUSTIFIED: recursive backup of regular files into the just-created backup dir; the muted stream + fallback swallow only per-entry warnings (sockets, perm-odd state files) so a cosmetic copy gripe doesn't abort adoption — regular files are still backed up, preserving reversibility
 run "cp -R .claude/. '$BK/' 2>/dev/null || true"
 echo "  backed up your original .claude/ → $BK"
+
+# MANIFEST.txt (brownfield-4): every path adoption creates/overwrites, consumed by --revert.
+MANIFEST="$BK/MANIFEST.txt"
+manifest() { [ "$DRY" = 1 ] || printf '%s\t%s\n' "$1" "$2" >> "$MANIFEST"; }
+
+# Backup hygiene (brownfield-4): the backup holds settings.local.json + .claude/state/ —
+# gitignore it NOW, before the first `git add -A` WIP checkpoint can commit it to history.
+if ! grep -qxF '.brownfield-backup/' .gitignore 2>/dev/null; then
+  run "printf '\n# brownfield adoption backup (holds settings.local.json — never commit)\n.brownfield-backup/\n' >> .gitignore"
+  echo "  added .brownfield-backup/ to .gitignore"
+fi
 
 # Preserve their CLAUDE.md if it is NOT already the factory's (signature check).
 conflict_claude=""
@@ -73,14 +124,15 @@ for d in $FACTORY_DIRS; do
   [ -d "$FROM/.claude/$d" ] || continue
   run "mkdir -p '.claude/$d'"
   run "cp -R '$FROM/.claude/$d/.' '.claude/$d/'"
+  manifest overwritten ".claude/$d/"
 done
 for f in $FACTORY_FILES; do
-  [ -f "$FROM/.claude/$f" ] && run "cp '$FROM/.claude/$f' '.claude/$f'"
+  [ -f "$FROM/.claude/$f" ] && { run "cp '$FROM/.claude/$f' '.claude/$f'"; manifest overwritten ".claude/$f"; }
 done
 
 # .claude/VERSION is factory-authoritative but lives outside FACTORY_DIRS — copy it
 # explicitly (overwrite: it stamps which harness release governs this repo).
-[ -f "$FROM/.claude/VERSION" ] && run "cp '$FROM/.claude/VERSION' '.claude/VERSION'"
+[ -f "$FROM/.claude/VERSION" ] && { run "cp '$FROM/.claude/VERSION' '.claude/VERSION'"; manifest overwritten ".claude/VERSION"; }
 
 # Complete the top-level scaffold the factory needs (.mcp.json + spec/plan/task/memory
 # templates, OKRs/roadmap/slo, swarm templates). NO-CLOBBER: never overwrite a file the
@@ -90,11 +142,16 @@ done
 SCAFFOLD_FILES=".mcp.json OKRs.md roadmap.md slo.yml"
 SCAFFOLD_DIRS="specs plans tasks docs initiatives .swarms"
 for f in $SCAFFOLD_FILES; do
-  [ -f "$FROM/$f" ] && [ ! -e "$f" ] && run "cp '$FROM/$f' '$f'"
+  [ -f "$FROM/$f" ] && [ ! -e "$f" ] && { run "cp '$FROM/$f' '$f'"; manifest created "$f"; }
 done
 for d in $SCAFFOLD_DIRS; do
   [ -d "$FROM/$d" ] || continue
   run "mkdir -p '$d'"
+  # Record which files the no-clobber copy will CREATE — --revert deletes exactly these.
+  while IFS= read -r f; do
+    f="${f#./}"
+    [ -e "$d/$f" ] || manifest created "$d/$f"
+  done < <(cd "$FROM/$d" && find . -type f 2>/dev/null)
   # -n = no-clobber: copies factory templates/scaffold without touching the repo's own files.
   run "cp -Rn '$FROM/$d/.' '$d/' 2>/dev/null || true"
 done
@@ -102,7 +159,42 @@ done
 # does this idempotently, but doing it here keeps a reconcile-only run consistent).
 if [ -f "$FROM/.gitignore" ] && [ ! -e .gitignore ]; then
   run "cp '$FROM/.gitignore' .gitignore"
+  manifest created ".gitignore"
 fi
+
+# ── .github CI gate layer (e2e-audit brownfield-3) ────────────────────────
+# Without this, a brownfield repo ends adoption with ZERO factory merge gates
+# (no evidence-gate, no commitlint, no no-issue-authority) while the constitution
+# promises them. Factory files copy NO-CLOBBER; same-name files that differ stay
+# the repo's and surface as [OQ]s — never silent-merged.
+gh_collisions=""; gh_created=0; preexisting_ci=""
+if [ -d "$FROM/.github" ]; then
+  # JUSTIFIED: ls probe — no pre-existing workflows is the common case and yields an empty inventory
+  preexisting_ci="$(ls .github/workflows/*.yml .github/workflows/*.yaml 2>/dev/null | tr '\n' ' ' || true)"
+  run "mkdir -p .github"
+  while IFS= read -r f; do
+    f="${f#./}"
+    if [ -e ".github/$f" ]; then
+      if ! cmp -s "$FROM/.github/$f" ".github/$f"; then
+        gh_collisions="${gh_collisions}  - \`.github/$f\` — exists in both and DIFFERS; the repo's version was kept.
+"
+      fi
+    else
+      manifest created ".github/$f"
+      gh_created=$((gh_created + 1))
+    fi
+  done < <(cd "$FROM/.github" && find . -type f 2>/dev/null)
+  run "cp -Rn '$FROM/.github/.' '.github/' 2>/dev/null || true"
+  echo "  .github: $gh_created factory file(s) added (no-clobber)$([ -n "$gh_collisions" ] && echo '; collisions → [OQ]')"
+fi
+# Git-hook managers that can collide with the factory commit protocol (husky/lefthook/
+# pre-commit rejecting `WIP:` subjects + pre-bash-guard blocking --no-verify = deadlock).
+hook_managers=""
+for hm in .husky lefthook.yml .lefthook.yml lefthook.yaml .pre-commit-config.yaml; do
+  [ -e "$hm" ] && hook_managers="${hook_managers}${hm} "
+done
+# JUSTIFIED: find probe — a sample-only .git/hooks is the default and contributes an empty inventory
+git_hooks="$(find .git/hooks -type f ! -name '*.sample' 2>/dev/null | tr '\n' ' ' || true)"
 
 # Seed factory templates under .claude/ that live OUTSIDE the FACTORY_DIRS list but that
 # validate.sh requires (memory templates + report template). NO-CLOBBER so an existing
@@ -125,7 +217,7 @@ if [ "$DRY" = 0 ]; then
   {
     echo
     echo "## Existing \`.claude/\` collision map (reconcile $ts)"
-    echo "- Backup of your original \`.claude/\`: \`$BK\` (fully reversible)."
+    echo "- Backup of your original \`.claude/\`: \`$BK\` (gitignored). MANIFEST.txt lists every created/overwritten path; undo with \`bash .claude/scripts/reconcile-claude-dir.sh --revert $ts\`."
     echo "- **Preserved, never overwritten:** \`settings.local.json\`, \`.claude/state/\`, \`.claude/memory/\`, existing \`.claude/rules/*\`, \`conventions.yml\`, your secrets."
     echo "- **Factory now governs (overwritten, backed up):** agents, skills, commands, hooks, scripts, routines, statuslines, output-styles, CLAUDE.md, settings.json."
     [ -n "$conflict_claude" ] && {
@@ -133,6 +225,19 @@ if [ "$DRY" = 0 ]; then
       echo "- [OQ] Reconcile CLAUDE.md: review \`.brownfield-orig\` vs factory; decide per axis (factory wins on process; your conventions → AGENTS.md). Resolve via /clarify."
     }
     [ -n "$conflict_settings" ] && echo "- [OQ] Your settings.json → \`.brownfield-orig\`. Move any custom \`allow\`/\`deny\` permissions into \`.claude/settings.local.json\` (never committed)."
+    echo
+    echo "### .github CI gate layer (reconcile $ts)"
+    echo "- Factory workflows/rulesets copied no-clobber: $gh_created new file(s); your existing files untouched."
+    [ -n "$gh_collisions" ] && {
+      echo "- [OQ] **.github collisions** — decide per file (factory gates evidence-gate/commitlint/no-issue-authority are required checks in \`.github/rulesets/main-protection.json\`; a kept repo version means that gate is NOT the factory's). Resolve via /clarify:"
+      printf '%s' "$gh_collisions"
+    }
+    [ -n "$preexisting_ci" ] && echo "- [OQ] Pre-existing CI workflows detected (${preexisting_ci}) — verify they don't double-run against the factory gates (docs/CI-COST.md) and that their secrets still exist."
+    [ -n "${hook_managers}${git_hooks}" ] && {
+      echo "- [OQ] **Git-hook coexistence decision (resolve in Phase 2):** detected ${hook_managers}${git_hooks}."
+      echo "  The factory's WIP checkpoints (\`WIP: <6-word>\` subjects) and commit trailers must pass YOUR hooks — \`pre-bash-guard.sh\` blocks \`--no-verify\`, so a rejecting commit-msg hook DEADLOCKS auto-mode loops."
+      echo "  Either relax your commitlint/hook to accept \`WIP:\` subjects, or disable WIP checkpoints (.claude/skills/wip-checkpoint/SKILL.md)."
+    }
   } >> "$REPORT"
 fi
 

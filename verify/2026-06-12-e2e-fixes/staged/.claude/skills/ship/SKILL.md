@@ -29,9 +29,20 @@ Push, PR, CI, merge, deploy. With gates.
 6. **Open the PR with the evidence bundle as the body**:
    `gh pr create --body-file verify/<date>-<feature>/pr-body.md`
 7. **Wait for CI** (`gh pr checks --watch`) — `evidence-gate` is now a required check; it blocks merge if any AC is unproven.
-8. **Ask the user** to confirm merge.
+8. **Merge confirmation — mode-dependent (e2e-audit release-deploy-2):**
+   - **Interactive session** → ask the user to confirm merge. Their go is the gate.
+   - **Auto mode** (Cloud Routine, `--bg`, overnight) → do NOT block on a human:
+     defer to policy — apply the `auto-merge-ok` label (or use a `claude/overnight-*`
+     branch) so `auto-merge.yml` arms native auto-merge; the live ruleset's required
+     checks remain the real gate. If the label policy isn't configured, stop at
+     "PR open + CI green" and surface it in the morning report — never improvise a merge.
 9. **Squash-merge** (`gh pr merge --auto --squash --delete-branch`).
-10. **Tag the release** if semver bump (`gh release create`).
+10. **Release via release-please (e2e-audit release-deploy-6)** — release-please is the
+    SINGLE tag/changelog authority. Never `git tag` or `gh release create` by hand:
+    after the feature PR merges, release-please opens/updates its release PR from the
+    Conventional Commits; **merging the release-please PR** is what tags + publishes
+    the CHANGELOG. If no release PR appears, check release-please-config.json for the
+    placeholder package-name (harness-doctor flags it).
 11. **Trigger deploy** (or watch auto-deploy).
 12. **Update memory** with any non-obvious learnings.
 
@@ -40,8 +51,8 @@ Push, PR, CI, merge, deploy. With gates.
 - **No bypass.** Required checks must be green.
 - **No merge without a live ruleset.** "Required" checks only block when a server-side active branch ruleset exists — preflight step 0 is non-negotiable.
 - **No `--force`.** Ever, on main/master.
-- **User confirms merge.** Even if all checks pass.
-- **User confirms deploy.** Production always requires explicit go.
+- **Interactive: user confirms merge. Auto mode: policy confirms merge** — the `auto-merge-ok` label / `claude/overnight-*` pattern + green required checks on a LIVE ruleset (step 0). Auto mode never merges outside that policy.
+- **User confirms deploy.** Production always requires explicit go — in auto mode the deploy environment's required reviewers are that gate (merge ≠ deploy).
 - **ADR check (gap-audit G39/G40).** If the diff touches architectural surfaces (migrations, settings, auth, API contracts) and no `.claude/memory/decisions/` file is added/updated or cited in the plan's References, STOP and warn loudly — create the missing ADR via `adr-new.sh` before shipping. CI's adr-gate enforces the same rule.
 
 ## Quality bar (from CLAUDE.md §8)

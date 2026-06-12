@@ -150,6 +150,18 @@ if [ -z "$manifest_globs" ] && [ -s "$HOTSPOTS" ]; then
   will refuse to pass gate 1 in this state."
 fi
 
+# ─── 6b. CI / git-hook inventory (e2e-audit brownfield-3) ──────────────────
+# The factory gate layer (.github workflows + WIP: commit subjects) must coexist
+# with whatever CI/hooks the repo already runs — surface them for the Phase-2 decision.
+# JUSTIFIED: ls probe — no workflows dir is the common brownfield case, yielding an empty inventory
+own_wf="$(ls .github/workflows/*.yml .github/workflows/*.yaml 2>/dev/null | tr '\n' ' ' || true)"
+hook_inv=""
+for hm in .husky lefthook.yml .lefthook.yml lefthook.yaml .pre-commit-config.yaml; do
+  [ -e "$hm" ] && hook_inv="${hook_inv}${hm} "
+done
+# JUSTIFIED: find probe — a sample-only .git/hooks contributes an empty inventory
+git_hooks="$(find .git/hooks -type f ! -name '*.sample' 2>/dev/null | tr '\n' ' ' || true)"
+
 cat > "$REPORT" <<EOF
 # Adoption Report — $(basename "$ROOT") — $(date +%Y-%m-%d)
 
@@ -176,6 +188,12 @@ $deps_out
 ## Security scan
 - SAST: $sec_out
 - Secrets: $secrets_out
+
+## Existing CI & git hooks (coexistence with the factory gate layer)
+- Workflows already in this repo: ${own_wf:-(none)}
+- Hook managers: ${hook_inv:-(none)}${git_hooks:+ · .git/hooks: $git_hooks}
+$([ -n "${hook_inv}${git_hooks}" ] && printf '%s\n' "- [OQ] **Git-hook coexistence (decide in Phase 2):** the factory's \`WIP: <6-word>\` checkpoint subjects and commit trailers must pass YOUR hooks — \`pre-bash-guard.sh\` blocks \`--no-verify\`, so a rejecting commit-msg hook DEADLOCKS auto-mode loops. Relax your commitlint to accept \`WIP:\` subjects or disable WIP checkpoints (.claude/skills/wip-checkpoint/SKILL.md).")
+$([ -n "${own_wf}" ] && printf '%s\n' "- [OQ] Pre-existing CI may double-run against the factory gates after Phase 2 copies .github — review overlap (docs/CI-COST.md).")
 
 ## Test / coverage baseline
 $(cat "$COV")

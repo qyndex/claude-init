@@ -39,6 +39,24 @@ _import_docs() {
   [ -f .claude/scripts/memory-index.sh ] && bash .claude/scripts/memory-index.sh backfill >/dev/null 2>&1 || true
 }
 
+# Phase-6 gate verification (brownfield-3): every required check named in the ruleset
+# must exist as a workflow job, or every brownfield PR hangs pending-forever.
+_verify_gates() {
+  local rs=.github/rulesets/main-protection.json missing=0 ctx
+  { [ -f "$rs" ] && command -v jq >/dev/null 2>&1; } || { echo "→ gate check skipped (no ruleset or no jq)"; return 0; }
+  while IFS= read -r ctx; do
+    [ -z "$ctx" ] && continue
+    grep -qE "^  ${ctx}:[[:space:]]*$" .github/workflows/*.yml .github/workflows/*.yaml 2>/dev/null \
+      || { echo "  ✗ required check '$ctx' has NO workflow job in .github/workflows/"; missing=1; }
+  done < <(jq -r '.. | objects | .context? // empty' "$rs" | sort -u)
+  if [ "$missing" = 1 ]; then
+    echo "✗ the ruleset requires checks no workflow provides — PRs will never merge."
+    echo "  Fix: copy the factory .github (reconcile-claude-dir.sh does this) or edit $rs."
+    return 1
+  fi
+  echo "→ all ruleset required checks map to workflow jobs ✓"
+}
+
 case "$verb" in
   auto)         # Self-driving: chain the mechanical phases; HARD-STOP only at safety gates 1 & 4.
     cur="$(bash "$S" phase 2>/dev/null || echo 0)"
@@ -63,7 +81,22 @@ case "$verb" in
       fi
       if [ "$(bash "$S" phase)" -lt 3 ]; then
         _import_docs
-        command -v gh >/dev/null 2>&1 && bash .claude/scripts/import-issues-once.sh >/dev/null 2>&1 || true
+        # brownfield-5: the issue import is NEVER muted — a failed read must refuse
+        # Phase-3 auto-approval instead of silently severing the backlog forever.
+        import_rc=0
+        if [ -f .claude/state/adopt/issues-imported.done ]; then
+          echo "→ issues already imported ($(cat .claude/state/adopt/issues-imported.done))"
+        elif command -v gh >/dev/null 2>&1; then
+          bash .claude/scripts/import-issues-once.sh || import_rc=$?
+        else
+          echo "→ gh not available — issue import SKIPPED (run import-issues-once.sh later, or seed tasks/TASKS.md manually)"
+        fi
+        if [ "$import_rc" -ne 0 ]; then
+          echo
+          echo "✗ AUTO HALTED — Phase 3 issue import FAILED (rc=$import_rc). NOT auto-approving Phase 3."
+          echo "  No sentinel was written — fix gh auth/network, then re-run: /adopt auto"
+          exit 1
+        fi
         bash "$S" set 3 import >/dev/null; bash "$S" approve 3 >/dev/null
         echo "✓ auto-advanced Phase 3 (import) — docs → memory, issues → tasks/TASKS.md"
       fi
@@ -81,6 +114,10 @@ case "$verb" in
 
     # ── Phase 4 approved → auto-run phases 5 & 6 to completion ──
     if bash "$S" gate 4 >/dev/null 2>&1; then
+      if [ "${ADOPT_SKIP_GATE_CHECK:-0}" != 1 ] && ! _verify_gates; then
+        echo "✗ AUTO HALTED before Phase 6 — fix the gate layer, then re-run /adopt auto (or ADOPT_SKIP_GATE_CHECK=1 to override deliberately)."
+        exit 1
+      fi
       [ -f ADOPTION-REPORT.md ] && [ -f .claude/scripts/findings-to-tasks.sh ] && \
         bash .claude/scripts/findings-to-tasks.sh ADOPTION-REPORT.md --priority security --source adopt-backlog >/dev/null 2>&1 || true
       bash "$S" set 5 backlog >/dev/null; bash "$S" approve 5 >/dev/null
@@ -120,7 +157,7 @@ case "$verb" in
     _import_docs                                  # 3a. docs/ADRs → memory (references)
     # 3b. One-time GitHub issue ingest (self-terminating; see import-issues-once.sh header).
     if command -v gh >/dev/null 2>&1; then
-      bash .claude/scripts/import-issues-once.sh "$@"
+      bash .claude/scripts/import-issues-once.sh "$@" || { echo "✗ issue import failed — no sentinel written; fix gh and re-run /adopt import"; exit 1; }
     else
       echo "→ gh not available — skipped issue import. Run import-issues-once.sh later, or seed tasks/TASKS.md manually."
       bash "$S" set 3 import
@@ -156,6 +193,10 @@ case "$verb" in
 
   handoff)      # Phase 6 — Handoff to the normal 8-phase workflow
     bash "$S" gate 5 || exit 1
+    if [ "${ADOPT_SKIP_GATE_CHECK:-0}" != 1 ] && ! _verify_gates; then
+      echo "  (override only deliberately: ADOPT_SKIP_GATE_CHECK=1 /adopt handoff)"
+      exit 1
+    fi
     [ -f .claude/scripts/seed-patterns.sh ] && bash .claude/scripts/seed-patterns.sh auto >/dev/null 2>&1 || true
     if command -v gh >/dev/null 2>&1 && [ -f .claude/scripts/tasks-to-issues.sh ]; then
       bash .claude/scripts/tasks-to-issues.sh --all >/dev/null 2>&1 || true

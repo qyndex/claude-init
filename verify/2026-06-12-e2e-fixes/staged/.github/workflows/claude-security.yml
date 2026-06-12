@@ -1,0 +1,68 @@
+name: Claude Security Review
+
+# Anthropic's claude-code-security-review action. Multi-agent parallel security
+# audit on every PR. Re-verifies each finding to filter false positives.
+# https://github.com/anthropics/claude-code-security-review
+#
+# IMPORTANT: pinned to a tagged release (never floating branch ref) per the
+# Round 3 security audit M-S3 finding. If Anthropic publishes a new tag, bump
+# it here with Renovate/Dependabot rather than auto-tracking trunk.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    # e2e-audit ci-gates-6: gate cost scales with push count — scope to PRs
+    # targeting main (same filter claude-review already had).
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+  security-events: write
+
+concurrency:
+  group: claude-security-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  security-review:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Preflight — ANTHROPIC_API_KEY present (e2e-audit ci-gates-4)
+        env:
+          HAS_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+        run: |
+          if [ "$HAS_KEY" != "true" ]; then
+            echo "::error::ANTHROPIC_API_KEY secret is missing — this GATING security review can never pass. Fix: gh secret set ANTHROPIC_API_KEY (setup.sh and harness-doctor both check this)."
+            exit 1
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Anthropic security review
+        # Pinned tag — bump via Renovate/Dependabot. Never use a floating branch ref.
+        # If a stable tag isn't published yet, pin to a commit SHA:
+        #   uses: anthropics/claude-code-security-review@<40-char SHA>
+        uses: anthropics/claude-code-security-review@0c6a49f1fa56a1d472575da86a94dbc1edb78eda # no stable tag published; pinned to main HEAD SHA
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          model: claude-opus-4-8
+
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: false
+
+      - name: Dependency review
+        if: github.event_name == 'pull_request'
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high

@@ -278,6 +278,49 @@ else
   add_result "live branch ruleset" "warn" "gh unavailable — cannot verify server-side protection"
 fi
 
+# ─── Release-please authority (e2e-audit release-deploy-6) ──────────────
+# A placeholder package-name means the single tag/changelog authority is
+# broken-by-default: release PRs reference a package that doesn't exist.
+if [ -f release-please-config.json ]; then
+  if grep -q '@your-org/your-repo' release-please-config.json; then
+    add_result "release-please config" "warn" "release-please-config.json still has the placeholder package-name '@your-org/your-repo' — releases are broken until set (setup.sh configures it by stack)"
+  elif [ ! -f .release-please-manifest.json ]; then
+    add_result "release-please config" "warn" ".release-please-manifest.json missing — release-please v4 needs the manifest to track versions; seed it (setup.sh does)"
+  else
+    add_result "release-please config" "pass" "config customized + manifest present (single tag authority)"
+  fi
+fi
+
+# ─── ANTHROPIC_API_KEY secret (e2e-audit ci-gates-4) ────────────────────
+# claude-review/claude-security are gating required checks — a missing secret
+# fails every PR with an opaque SDK error.
+if command -v gh >/dev/null 2>&1; then
+  # JUSTIFIED: gh failure (no auth/remote) yields empty list — handled as the warn branch, not a crash
+  if gh secret list 2>/dev/null | grep -q '^ANTHROPIC_API_KEY'; then
+    add_result "ANTHROPIC_API_KEY secret" "pass" "repo secret present for the LLM CI gates"
+  else
+    add_result "ANTHROPIC_API_KEY secret" "warn" "repo secret missing (or gh unauthenticated) — claude-review/claude-security required checks will fail every PR; set: gh secret set ANTHROPIC_API_KEY"
+  fi
+fi
+
+# ─── Deploy stub wiring (e2e-audit release-deploy-1) ────────────────────
+# canary-deploy.yml ships as a STUB (echo + sleep). Unwired is fine (warn) —
+# but DEPLOY_WIRED=true while the STUB marker is still present means someone
+# armed the gate around placeholder steps: that's a fail.
+if [ -f .github/workflows/canary-deploy.yml ]; then
+  if grep -q '^# STUB' .github/workflows/canary-deploy.yml; then
+    # JUSTIFIED: gh failure/absent variable yields empty — treated as unwired (the safe default)
+    wired_var=$(gh variable get DEPLOY_WIRED 2>/dev/null || true)
+    if [ "$wired_var" = "true" ]; then
+      add_result "deploy stub" "fail" "DEPLOY_WIRED=true but canary-deploy.yml still carries the STUB marker — the gate is armed around echo+sleep placeholders; wire the platform first (docs/DEPLOY-INTEGRATION.md), then remove the marker"
+    else
+      add_result "deploy stub" "warn" "canary-deploy.yml is a STUB and DEPLOY_WIRED is unset — deploys are BYO and refuse to run (by design); wire via docs/DEPLOY-INTEGRATION.md"
+    fi
+  else
+    add_result "deploy stub" "pass" "canary-deploy.yml has no STUB marker (platform wired)"
+  fi
+fi
+
 printf ']\n' >> "$result_file"
 
 if [ "$JSON_MODE" -eq 1 ]; then

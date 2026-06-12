@@ -40,9 +40,11 @@ bash .claude/scripts/setup.sh
 ```bash
 git clone <factory-repo> /tmp/claude-init
 bash /tmp/claude-init/.claude/scripts/reconcile-claude-dir.sh --from /tmp/claude-init --into .
-# → backs up your .claude/ to .claude/.brownfield-backup/<ts>/, installs the factory (process)
-#   files, PRESERVES your settings.local.json / state / memory / rules / secrets, saves your
-#   CLAUDE.md to .claude/CLAUDE.md.brownfield-orig, and drafts AGENTS.md from your conventions.
+# → backs up your .claude/ to .brownfield-backup/<ts>/ (repo root, auto-gitignored, with a
+#   MANIFEST.txt of every created path), installs the factory (process) files + the .github
+#   gate layer (no-clobber; collisions become [OQ]s), PRESERVES your settings.local.json /
+#   state / memory / rules / secrets, saves your CLAUDE.md to .claude/CLAUDE.md.brownfield-orig,
+#   and drafts AGENTS.md from your conventions.
 bash .claude/scripts/setup.sh   # (now finds the factory CLAUDE.md; the brownfield guard passes)
 ```
 `setup.sh` refuses to run greenfield over a foreign `CLAUDE.md` — it points you here. Override only
@@ -149,9 +151,12 @@ it physically cannot wander into raw untested legacy.
 **"Can I let autopilot run mid-adoption?"** Yes — it will safely skip flagged zones and work on
 anything characterized or new. The pre-flight prints which zones remain blocked.
 
-**"The issue import didn't run / I want to re-run it."** It self-terminates after one run
-(`.claude/state/adopt/issues-imported.done`). Re-running is forbidden by design (it would
-duplicate + risk inverting the authority model). To deliberately re-migrate, delete the sentinel.
+**"The issue import didn't run / I want to re-run it."** It self-terminates after one
+*successful* run (`.claude/state/adopt/issues-imported.done`). A failed `gh` read (auth, network,
+rate-limit) errors out loudly WITHOUT writing the sentinel — fix `gh auth status` and re-run; open
+imports are deduped, so re-running after a partial failure is safe. Re-running after success is
+forbidden by design (it would duplicate + risk inverting the authority model). To deliberately
+re-migrate, delete the sentinel. `/adopt auto` refuses to auto-approve Phase 3 when the import errored.
 
 **"It refused to read my issues for status."** Correct — that's `no-issue-authority`. Task state
 comes from `tasks/TASKS.md`, never the GitHub API. The one-time import is the *only* sanctioned
@@ -163,8 +168,11 @@ pagination — confirm before Phase 3.
 **"My repo has no conventional `src/` root."** Phase 1 notes this; edit
 `uncharacterized-paths.txt` in Phase 2 to list your real source globs.
 
-**"Reverting adoption."** Everything destructive is backed up to `.claude/.brownfield-backup/<ts>/`
-and your originals are kept as `*.brownfield-orig`. Adoption is reversible.
+**"Reverting adoption."** Everything destructive is backed up to `.brownfield-backup/<ts>/` (repo
+root, auto-gitignored) and your originals are kept as `*.brownfield-orig`. The backup's
+`MANIFEST.txt` lists every path adoption created or overwrote. Undo with
+`bash .claude/scripts/reconcile-claude-dir.sh --revert <ts>` — it restores your original `.claude/`
+and deletes the manifest-listed created files (scaffold, .github gates, .mcp.json, …).
 
 ---
 

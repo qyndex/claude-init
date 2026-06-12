@@ -14,29 +14,25 @@ The fastest rollback in a flagged world is a flag flip. **Always try this before
 ```bash
 flag="$1"
 
-# 1. Confirm flag exists in provider
-flag_state=$(claude -p "Query the flag provider MCP for current state of flag $flag" --bare)
+# 1. Mechanical kill (e2e-audit release-deploy-4): provider adapters live in the
+#    script — launchdarkly | posthog | unleash | webhook, selected by FLAG_PROVIDER.
+#    Exit 0 = killed + logged. Exit 2 = provider unwired/failed — KILL MANUALLY NOW,
+#    do not proceed to step 2 until the flag is confirmed off.
+bash .claude/scripts/rollback-flag.sh "$flag" --reason "${2:-incident}"
 
-# 2. Flip to 0% (kill)
-# Provider-specific call via MCP
-# OpenFeature: posthog/launchdarkly/unleash MCP
-
-# 3. Verify
-sleep 5
-new_state=$(claude -p "Re-query flag $flag, confirm 0% / OFF" --bare)
-
-# 4. Open incident if not already open
+# 2. Verify via the provider (read-back), then open the incident if not already open
 if [ -z "$(ls .claude/memory/incidents/active/ 2>/dev/null)" ]; then
-  # spawn incident-start
   claude -p "/incident-start \"flag $flag rolled back: <symptom>\"" --bare
 fi
 
-# 5. Log to playbook
-echo "$(date -Iseconds)  rollback-flag $flag  $(whoami)" >> .claude/memory/playbooks/flag-kill-log.md
-
-# 6. Slack page (if Slack MCP active)
+# 3. Slack page (if Slack MCP active)
 claude -p "Post to Slack #incidents: 'Flag $flag rolled back at $(date). Symptom: ...'" --bare
 ```
+
+The script already appends to `.claude/memory/playbooks/flag-kill-log.md` and marks the
+flag KILLED in `.claude/memory/flags/REGISTRY.md`. The same script is the first responder
+in `canary-deploy.yml` (SLO-breach path) and `hotfix-ingest.yml` (alert → flag-gated spec),
+so a metric breach produces a mechanical kill without any human or LLM in the loop.
 
 ## Hard rules
 

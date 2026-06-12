@@ -33,13 +33,27 @@ if [ -f "$SENTINEL" ]; then
 fi
 command -v gh >/dev/null 2>&1 || { echo "import-issues-once: gh CLI required"; exit 1; }
 command -v jq >/dev/null 2>&1 || { echo "import-issues-once: jq required"; exit 1; }
+# e2e-audit brownfield-5: an unauthenticated gh must be a loud refusal up-front —
+# a fail-silent zero-import would write the permanent sentinel and sever the backlog.
+if ! gh auth status >/dev/null 2>&1; then
+  echo "import-issues-once: ERROR — 'gh auth status' failed (not authenticated?)." >&2
+  echo "NOT importing, NOT writing the sentinel. Run 'gh auth login', then re-run." >&2
+  exit 1
+fi
 [ -f tasks/TASKS.md ] || printf '# Tasks\n\n## Active\n\n## Archive\n' > tasks/TASKS.md
 
 now="$(date -Iseconds)"
 
 # ── OPEN issues → pending tasks (under the TASKS.md lock) ─────────────────
-# JUSTIFIED: gh error muted + empty-array fallback — an unauthenticated/offline gh yields an empty backlog to import, the documented contract for this one-time migration (no tasks created, sentinel still written)
-open_json="$(gh issue list --state open --json number,title,labels --limit "$LIMIT" 2>/dev/null || echo '[]')"
+# brownfield-5: a failed read must be distinguishable from "zero open issues" —
+# error out WITHOUT the sentinel so the migration stays re-runnable.
+gh_err="$(mktemp)"
+if ! open_json="$(gh issue list --state open --json number,title,labels --limit "$LIMIT" 2>"$gh_err")"; then
+  echo "import-issues-once: ERROR — 'gh issue list --state open' failed:" >&2
+  cat "$gh_err" >&2; rm -f "$gh_err"
+  echo "NOT writing the sentinel — the backlog was NOT read. Fix gh (auth/network/rate-limit) and re-run." >&2
+  exit 1
+fi
 open_count="$(echo "$open_json" | jq 'length')"
 imported_open=0
 
@@ -71,8 +85,15 @@ fi
 
 # ── CLOSED issues → memory history (NOT tasks) ───────────────────────────
 HIST=".claude/memory/imported-issues-closed.md"
-# JUSTIFIED: gh error muted + empty-array fallback — an offline gh yields no closed-issue history to record, the documented contract for this one-time migration
-closed_json="$(gh issue list --state closed --json number,title,closedAt --limit "$LIMIT" 2>/dev/null || echo '[]')"
+# brownfield-5: same loud-failure contract as the open read. Open imports already
+# appended above are safe — the imported_from_issue dedup makes a re-run idempotent.
+if ! closed_json="$(gh issue list --state closed --json number,title,closedAt --limit "$LIMIT" 2>"$gh_err")"; then
+  echo "import-issues-once: ERROR — 'gh issue list --state closed' failed:" >&2
+  cat "$gh_err" >&2; rm -f "$gh_err"
+  echo "NOT writing the sentinel — re-run after fixing gh (open-issue imports are deduped on re-run)." >&2
+  exit 1
+fi
+rm -f "$gh_err"
 closed_count="$(echo "$closed_json" | jq 'length')"
 if [ "$DRY" = 1 ]; then
   echo "[dry-run] would write $closed_count closed issue(s) to $HIST (history, not backlog)"
