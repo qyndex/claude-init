@@ -45,10 +45,13 @@ jobs:
     if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    # `secrets` is NOT a valid context in a step-level `if:` (actionlint /
+    # GitHub reject the whole workflow file). Resolve the secret's presence to a
+    # job-level env var here — env IS allowed in step `if:` — and gate on it.
+    env:
+      HAS_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
     steps:
       - name: Preflight — note LLM-scan credential status (T-142)
-        env:
-          HAS_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
         run: |
           if [ "$HAS_KEY" = "true" ]; then
             echo "ANTHROPIC_API_KEY present — the claude-code-security-review LLM scan will run."
@@ -66,7 +69,7 @@ jobs:
         # Runs only when the API key is configured — degrades gracefully on
         # token-only repos rather than failing the whole job. gitleaks +
         # dependency-review below still gate the PR unconditionally.
-        if: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+        if: env.HAS_KEY == 'true'
         # Pinned tag — bump via Renovate/Dependabot. Never use a floating branch ref.
         # If a stable tag isn't published yet, pin to a commit SHA:
         #   uses: anthropics/claude-code-security-review@<40-char SHA>
