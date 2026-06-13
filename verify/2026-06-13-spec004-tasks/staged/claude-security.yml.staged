@@ -96,7 +96,11 @@ jobs:
           tar -xzf /tmp/gitleaks.tgz -C /tmp gitleaks
           # Full git-history scan; --exit-code 1 (the default) fails the gate on
           # any finding, --redact keeps the secret value out of the run log.
-          /tmp/gitleaks git --redact --exit-code 1
+          # --config uses the repo's .gitleaks.toml (allowlists harness doc prose
+          # that trips the generic-api-key entropy rule — see that file's header).
+          cfg=""; [ -f .gitleaks.toml ] && cfg="--config .gitleaks.toml"
+          # shellcheck disable=SC2086 # cfg is a controlled two-token flag or empty; intentional word-split
+          /tmp/gitleaks git --redact --exit-code 1 $cfg
 
       - name: Dependency review
         if: github.event_name == 'pull_request'

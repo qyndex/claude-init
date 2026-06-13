@@ -23,7 +23,8 @@ Paste before `## Spec 003 critical path`. tasks/TASKS.md is constitution-class.
 
 - [ ] T-143  | spec:004  | phase:7  | priority: high  | created: 2026-06-13  | last_touched: 2026-06-13  | deps:  | parallel: yes  | est: 5m
   summary: FINDING-17 (live-e2e 2026-06-13) — the security-review job uses gitleaks/gitleaks-action@v2, which requires a PAID GITLEAKS_LICENSE secret on ANY repo owned by a GitHub ORGANIZATION. It hard-exits "[org] is an organization. License key is required." and fails the whole job with nothing actually leaked — so security-review can never pass on an org repo out of the box. (The Anthropic scanner itself ran clean, findings_count=0; gitleaks was the sole failure.) FIX (staged): replace the marketplace action with the gitleaks CLI (download pinned v8.30.1 tarball, run `gitleaks git --redact --exit-code 1`) — same MIT-licensed scanner, no licence key for any account type, same blocking behavior. Staged in claude-security.yml.staged.
-  files: .github/workflows/claude-security.yml
-  accept: grep -q 'gitleaks git' .github/workflows/claude-security.yml && ! grep -q 'gitleaks/gitleaks-action' .github/workflows/claude-security.yml
+  files: .github/workflows/claude-security.yml, .gitleaks.toml
+  accept: grep -q 'gitleaks git' .github/workflows/claude-security.yml && ! grep -q 'gitleaks/gitleaks-action' .github/workflows/claude-security.yml && test -f .gitleaks.toml
   owner: implementer
+  note: Also ships .gitleaks.toml — the CLI's generic-api-key entropy rule false-positived on harness DOC prose (skill SKILL.md `description:` frontmatter, security tables): 2 leaks found in .claude/skills/{flask-realtime,security-guard}/SKILL.md. Config extends the default ruleset (useDefault=true) and allowlists ONLY doc PATHS (.claude/{skills,agents,commands,rules,memory}/**.md, docs/**.md) — no content/stopword allowlist that could mask a real secret. Verified live against the sandbox: history scan 26 commits → no leaks (rc=0); real-secret detection intact (a non-example key is still caught; gitleaks' own AKIA…EXAMPLE keys are allowlisted by the DEFAULT ruleset, not by us).
 ```

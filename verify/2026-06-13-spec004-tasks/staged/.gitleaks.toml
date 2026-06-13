@@ -1,0 +1,35 @@
+# gitleaks configuration for the harness (T-143 / FINDING-17, live-e2e 2026-06-13).
+#
+# The secret-scan gate (security-review job) runs the gitleaks CLI over full git
+# history. gitleaks' `generic-api-key` rule is an entropy heuristic: it fires on
+# long high-entropy strings, and the harness's OWN documentation — skill SKILL.md
+# frontmatter `description:` lines and security tables — are exactly that shape.
+# Those are prose, not credentials, so they are false positives that would make
+# the gate red-flag the template's own files on every adopter.
+#
+# This config inherits the full upstream ruleset (extend.useDefault) and ONLY
+# allowlists harness documentation PATHS. It deliberately does NOT add content
+# regexes or stopwords that could mask a real secret in code/config — scanning of
+# everything outside these doc paths is unchanged. Application source, .env-shaped
+# files, configs, and migrations are all still scanned at full strength.
+
+title = "harness gitleaks config"
+
+[extend]
+# Inherit gitleaks' built-in rules (all the real detectors) — we only add an
+# allowlist on top, never remove a detector.
+useDefault = true
+
+[allowlist]
+description = "Harness documentation prose trips the generic-api-key entropy heuristic; these paths are docs, not secrets."
+paths = [
+    # Skill docs — `description:`/`when_to_use:` frontmatter is long high-entropy prose.
+    '''\.claude/skills/.*\.md$''',
+    # Agent + command + rule docs — same prose shape.
+    '''\.claude/agents/.*\.md$''',
+    '''\.claude/commands/.*\.md$''',
+    '''\.claude/rules/.*\.md$''',
+    # Memory + project docs (decisions/patterns/incidents/playbooks, /docs).
+    '''\.claude/memory/.*\.md$''',
+    '''docs/.*\.md$''',
+]
