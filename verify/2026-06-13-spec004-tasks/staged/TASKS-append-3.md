@@ -27,4 +27,10 @@ Paste before `## Spec 003 critical path`. tasks/TASKS.md is constitution-class.
   accept: grep -q 'gitleaks git' .github/workflows/claude-security.yml && ! grep -q 'gitleaks/gitleaks-action' .github/workflows/claude-security.yml && test -f .gitleaks.toml
   owner: implementer
   note: Also ships .gitleaks.toml — the CLI's generic-api-key entropy rule false-positived on harness DOC prose (skill SKILL.md `description:` frontmatter, security tables): 2 leaks found in .claude/skills/{flask-realtime,security-guard}/SKILL.md. Config extends the default ruleset (useDefault=true) and allowlists ONLY doc PATHS (.claude/{skills,agents,commands,rules,memory}/**.md, docs/**.md) — no content/stopword allowlist that could mask a real secret. Verified live against the sandbox: history scan 26 commits → no leaks (rc=0); real-secret detection intact (a non-example key is still caught; gitleaks' own AKIA…EXAMPLE keys are allowlisted by the DEFAULT ruleset, not by us).
+
+- [ ] T-144  | spec:004  | phase:7  | priority: high  | created: 2026-06-13  | last_touched: 2026-06-13  | deps:  | parallel: yes  | est: 3m
+  summary: FINDING-18 (live-e2e 2026-06-13) — the security-review job's actions/dependency-review-action@v4 step requires the GitHub Dependency Graph (and, on private repos, GitHub Advanced Security) to be enabled. On a private repo without GHAS it hard-exits "Dependency review is not supported on this repository" and fails the WHOLE security gate — even though gitleaks + the Anthropic scan passed. Same capability-gate class as T-143. FIX (staged): add `continue-on-error: true` to the dependency-review step so it is ADVISORY where the capability is absent (still runs/posts where supported), keeping gitleaks (secrets) + claude-code-security-review (code) as the hard gates. To make dependency-review blocking: enable Dependency Graph + GHAS on the repo, then drop continue-on-error.
+  files: .github/workflows/claude-security.yml
+  accept: awk '/Dependency review/{f=1} f&&/continue-on-error: true/{print; found=1} END{exit !found}' .github/workflows/claude-security.yml
+  owner: implementer
 ```
