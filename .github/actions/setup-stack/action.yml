@@ -41,11 +41,37 @@ runs:
         echo "pm=$pm" >> "$GITHUB_OUTPUT"
         echo "setup-stack: detected stack=$stack pm=$pm"
 
-    - name: Setup Node
+    # FINDING-22 (live-e2e 2026-06-13): this used a hardcoded node-version "20".
+    # The evidence-gate re-runs the project's tests through here, so an app that
+    # needs a newer Node (e.g. `node:sqlite`, stable in 22+/24) failed the gate's
+    # smoke re-execution with "No such built-in module: node:sqlite" — and the
+    # gate mis-attributed it as evidence divergence. Honor the project's declared
+    # version (package.json `engines.node` / `.nvmrc` / `.node-version`) like
+    # ci.yml does; the literal pin is only a floor when the project declares none.
+    - name: Resolve project Node version file
+      id: nodever
       if: steps.detect.outputs.stack == 'node'
+      shell: bash
+      run: |
+        # Pick the most specific version source the project declares. Only treat
+        # package.json as a version file when it has an `engines.node` (else the
+        # setup-node action errors "couldn't find node version"). Empty -> floor.
+        if [ -f .nvmrc ]; then echo "file=.nvmrc" >> "$GITHUB_OUTPUT"
+        elif [ -f .node-version ]; then echo "file=.node-version" >> "$GITHUB_OUTPUT"
+        elif jq -e '.engines.node' package.json >/dev/null 2>&1; then echo "file=package.json" >> "$GITHUB_OUTPUT"
+        else echo "file=" >> "$GITHUB_OUTPUT"; fi
+
+    - name: Setup Node (from project version file)
+      if: steps.detect.outputs.stack == 'node' && steps.nodever.outputs.file != ''
       uses: actions/setup-node@v4
       with:
-        node-version: "20"
+        node-version-file: ${{ steps.nodever.outputs.file }}
+
+    - name: Setup Node (fallback floor when project declares none)
+      if: steps.detect.outputs.stack == 'node' && steps.nodever.outputs.file == ''
+      uses: actions/setup-node@v4
+      with:
+        node-version: "22"
 
     - name: Setup pnpm
       if: steps.detect.outputs.pm == 'pnpm'

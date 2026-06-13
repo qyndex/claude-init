@@ -51,4 +51,10 @@ Paste before `## Spec 003 critical path`. tasks/TASKS.md is constitution-class.
   files: .claude/scripts/collect-evidence.sh
   accept: bash .claude/scripts/collect-evidence.sh 001 >/dev/null 2>&1; jq -e . "$(ls -dt verify/*-001-* | head -1)/evidence.json" >/dev/null
   owner: implementer
+
+- [ ] T-148  | spec:004  | phase:7  | priority: high  | created: 2026-06-13  | last_touched: 2026-06-13  | deps:  | parallel: yes  | est: 5m
+  summary: FINDING-22 (live-e2e 2026-06-13) — .github/actions/setup-stack/action.yml hardcoded `node-version: "20"`. The evidence-gate re-runs the project's tests through setup-stack, so an app needing a newer Node (here `node:sqlite`, stable in 22+/24) failed the gate's smoke re-execution with "No such built-in module: node:sqlite" — which the gate mis-reported as G49 evidence divergence (the app + its 15 unit tests pass locally on Node 24). FIX (done; .github/actions/ is NOT constitution-class): resolve the project's declared Node version (.nvmrc / .node-version / package.json engines.node) like ci.yml does, falling back to a "22" floor only when the project declares none. (Sandbox side: added engines.node>=24 + .nvmrc 24.)
+  files: .github/actions/setup-stack/action.yml
+  accept: ! grep -qE 'node-version:\s*"20"' .github/actions/setup-stack/action.yml && grep -q 'node-version-file' .github/actions/setup-stack/action.yml
+  owner: implementer
 ```
