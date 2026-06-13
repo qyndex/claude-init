@@ -16,8 +16,8 @@ Paste before `## Spec 003 critical path`. tasks/TASKS.md is constitution-class.
   owner: implementer
 
 - [ ] T-142  | spec:004  | phase:7  | priority: medium  | created: 2026-06-13  | last_touched: 2026-06-13  | deps:  | parallel: yes  | est: 3m
-  summary: security-review (claude-code-security-review action) accepts ONLY claude-api-key — no OAuth path. On a subscription-token-only repo it can never pass. Either document the API-key requirement prominently, gate the job on the secret's presence with a clear skip, or make security-review non-required for token-only setups. (FINDING-7, confirmed.)
-  files: .github/workflows/claude-security.yml, docs/
-  accept: grep -q 'claude-api-key' .github/workflows/claude-security.yml
+  summary: security-review (claude-code-security-review action) accepts ONLY claude-api-key — no OAuth path. FIX (staged): KEEP the purpose-built scanner (an OAuth claude-code-action prompt would forfeit diff-scoping, the separate false-positive pass, and SARIF — the real value of a gating security scan). Instead degrade gracefully: gate the LLM-scan step on `secrets.ANTHROPIC_API_KEY != ''` (skip + ::warning:: when absent), keep gitleaks + dependency-review UNCONDITIONAL so the job still enforces secret-scanning + dependency CVEs and can pass on a token-only repo. To make the LLM scan a hard gate: set ANTHROPIC_API_KEY and add security-review back to the ruleset required checks. (Considered + rejected the OAuth prompt swap, commit 6182b1f reverted in 1203dd6, on the user's call to preserve scanner rigor.)
+  files: .github/workflows/claude-security.yml
+  accept: grep -q 'claude-code-security-review' .github/workflows/claude-security.yml && grep -q "secrets.ANTHROPIC_API_KEY != ''" .github/workflows/claude-security.yml
   owner: implementer
 ```
