@@ -33,7 +33,6 @@ Paste before `## Spec 003 critical path`. tasks/TASKS.md is constitution-class.
   files: .github/workflows/claude-security.yml
   accept: awk '/Dependency review/{f=1} f&&/continue-on-error: true/{print; found=1} END{exit !found}' .github/workflows/claude-security.yml
   owner: implementer
-```
 
 - [ ] T-145  | spec:004  | phase:6  | priority: high  | created: 2026-06-13  | last_touched: 2026-06-13  | deps:  | parallel: yes  | est: 5m
   summary: FINDING-19 (live-e2e 2026-06-13, surfaced by the T-140 diagnostic) — validate.sh [swarm] hard-required .swarms/coordinator/fleet.json + decisions.log, but fleet.json is GITIGNORED mutable runtime state. A fresh CI checkout therefore lacks it, so the [swarm] category — and harness-validate — failed on EVERY clean checkout, including claude-init's own (it only passed locally because the dev had the runtime file present). This was the real CI-only cause behind harness-validate, masked until T-140 made the step print failing categories. FIX (done, validate.sh is script not constitution-class): [swarm] now SEEDS fleet.json + decisions.log to their documented empty shape if absent, then checks — self-heals deterministically without versioning runtime state. Verified: simulated fresh checkout (files removed) → seeded → 0 swarm failures, valid JSON.
@@ -46,3 +45,4 @@ Paste before `## Spec 003 critical path`. tasks/TASKS.md is constitution-class.
   files: .claude/scripts/validate.sh
   accept: grep -qiE 'pyyaml|yaml.*not.*(available|installed)|frontmatter.*skip' .claude/scripts/validate.sh
   owner: implementer
+```
