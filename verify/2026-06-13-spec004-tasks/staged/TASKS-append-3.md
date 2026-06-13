@@ -63,4 +63,10 @@ Paste before `## Spec 003 critical path`. tasks/TASKS.md is constitution-class.
   files: .claude/scripts/verify.sh
   accept: grep -q 'playwright install chromium' .claude/scripts/verify.sh && ! grep -q 'npx playwright test --config playwright.evidence.config.ts "e2e/$sid" >/dev/null 2>&1' .claude/scripts/verify.sh
   owner: implementer
+
+- [ ] T-150  | spec:004  | phase:7  | priority: high  | created: 2026-06-13  | last_touched: 2026-06-13  | deps:  | parallel: yes  | est: 5m
+  summary: FINDING-24 (live-e2e 2026-06-13) — perf-budget.yml + license-check.yml gated jobs with `if: ${{ hashFiles(...) != '' }}` at the JOB level, where hashFiles is NOT available (only step contexts). As REUSABLE workflows called by daily-batch this made daily-batch fail to PARSE: `gh workflow run daily-batch.yml` returned HTTP 422 "error parsing called workflow", so no daily-batch could run on main -> check-daily-batch stayed red on every PR. FIX (staged): drop the job-level hashFiles if:, add a post-checkout `detect` step that sets exists=0/1, gate the remaining steps on steps.detect.outputs.exists. (iac-scan.yml has the same job-level hashFiles but is pull_request-only — not a reusable-workflow parse failure — noted as FINDING-25, not fixed here.)
+  files: .github/workflows/perf-budget.yml, .github/workflows/license-check.yml
+  accept: ! grep -qE "^\s+if:.*hashFiles" .github/workflows/perf-budget.yml && ! grep -qE "^\s+if:.*hashFiles" .github/workflows/license-check.yml
+  owner: implementer
 ```

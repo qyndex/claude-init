@@ -50,6 +50,8 @@ rels="
 renames="
 claude-security.yml.staged|.github/workflows/claude-security.yml
 harness-validate.yml.staged|.github/workflows/harness-validate.yml
+perf-budget.yml.staged|.github/workflows/perf-budget.yml
+license-check.yml.staged|.github/workflows/license-check.yml
 "
 
 install_into() {
