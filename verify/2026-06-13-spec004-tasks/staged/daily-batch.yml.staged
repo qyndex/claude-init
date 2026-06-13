@@ -12,14 +12,6 @@ on:
         description: "Skip codeql (faster validation run)"
         type: boolean
         default: false
-      run_lighthouse:
-        description: "Run lighthouse (needs a preview URL; off by default — see job comment)"
-        type: boolean
-        default: false
-      run_osv:
-        description: "Run osv-scanner (SARIF upload needs GHAS; off by default — see job comment)"
-        type: boolean
-        default: false
 
 permissions:
   contents: read
@@ -42,20 +34,12 @@ jobs:
       contents: read
       security-events: write
 
-  lighthouse:
-    # FINDING-27 (live-e2e 2026-06-13): lighthouse needs a deployed preview URL
-    # it never has in the scheduled daily-batch context, so it can ONLY fail
-    # here — and a failed job sets the whole RUN conclusion to failure, which
-    # merge-gate's check-daily-batch reads. `continue-on-error` is NOT valid on a
-    # reusable-workflow `uses:` job (actionlint syntax-check), so it can't be
-    # masked that way. It is therefore OPT-IN: runs only when an operator passes
-    # run_lighthouse=true from an environment that DOES expose a preview URL.
-    # Default off keeps daily-batch's run conclusion meaningful.
-    if: ${{ inputs.run_lighthouse == true }}
-    uses: ./.github/workflows/lighthouse.yml
-    permissions:
-      contents: read
-      pull-requests: write
+  # FINDING-27 (live-e2e 2026-06-13): lighthouse was REMOVED from the daily
+  # batch. It is a runtime perf audit that only means anything against a
+  # deployed/preview URL, which the scheduled batch never has — so here it could
+  # only ever fail on a missing URL, never on a real perf regression. Run it in
+  # the deploy/preview pipeline (where a URL exists), not the scheduled batch.
+  # See docs/DEPLOY-INTEGRATION.md.
 
   perf-budget:
     uses: ./.github/workflows/perf-budget.yml
@@ -69,35 +53,53 @@ jobs:
       contents: read
 
   osv-scanner:
-    # FINDING-27 (live-e2e 2026-06-13): osv-scanner's only output is a SARIF
-    # upload to GitHub Code Scanning, which needs GHAS — absent on a private
-    # Team-plan repo. With no input to disable the upload, the 3rd-party reusable
-    # workflow hard-fails on it, and that failed JOB sets the whole RUN conclusion
-    # to failure (merge-gate reads it). `continue-on-error` is NOT valid on a
-    # reusable-workflow `uses:` job, so it's OPT-IN via run_osv=true (set it where
-    # GHAS is enabled). CVEs are still hard-gated by dependency-review
-    # (claude-security.yml) every PR, so default-off does not weaken the CVE axis.
-    if: ${{ inputs.run_osv == true }}
-    # Round 8 A: scan lockfiles against OSV.dev every 24h. Catches CVEs that
-    # appear AFTER the lockfile was committed — the gap Dependabot can't close.
+    # FINDING-27 (live-e2e 2026-06-13): the previous design called the 3rd-party
+    # google/osv-scanner-action REUSABLE WORKFLOW, whose ONLY output path is a
+    # SARIF upload to GitHub Code Scanning — which requires GHAS. On a private
+    # Team-plan repo (no GHAS) that upload hard-fails, sinking the whole batch,
+    # and the workflow exposes no input to disable it. Making the job opt-in
+    # "fixed" the red by DELETING the CVE scan — the wrong trade.
     #
-    # spec 004 FINDING-16: osv-scanner-reusable.yml is a REUSABLE WORKFLOW, so it
-    # must be invoked at the JOB level (jobs.osv-scanner.uses), exactly like the
-    # codeql/semgrep/lighthouse siblings above — NOT as a `steps: - uses:` step.
-    # The step form made the whole daily-batch.yml fail to parse ("reusable
-    # workflows should be referenced at the top-level jobs.*.uses key"), which in
-    # turn kept the daily-batch un-runnable and check-daily-batch permanently red.
+    # Correct fix: run the osv-scanner CLI directly. The CLI does the same OSV.dev
+    # lockfile scan but reports to STDOUT and gates via its EXIT CODE — no SARIF,
+    # no Code Scanning, no GHAS. So CVE detection is RESTORED as a hard gate and
+    # works on any plan. This closes the gap dependency-review can't: a CVE newly
+    # disclosed against an ALREADY-committed dependency (dependency-review only
+    # inspects deps added in a PR diff).
+    name: osv-scanner
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: read
-      security-events: write
-      actions: read
-    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@b8ac13f90f0ad78cebdcdbe5d39fcc8ff11301ba # main 2026-05-29
-    with:
-      scan-args: |-
-        --recursive
-        --skip-git
-        ./
-      fail-on-vuln: false # roll-up handles overall gate
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install osv-scanner CLI (pinned)
+        env:
+          OSV_VERSION: v2.3.8
+        run: |
+          set -euo pipefail
+          url="https://github.com/google/osv-scanner/releases/download/${OSV_VERSION}/osv-scanner_linux_amd64"
+          curl -sSfL "$url" -o /usr/local/bin/osv-scanner
+          chmod +x /usr/local/bin/osv-scanner
+          osv-scanner --version
+      - name: Scan lockfiles against OSV.dev (gates on exit code)
+        run: |
+          set -uo pipefail
+          # Exit codes: 0 = no vulns; 1 = vulns found (BLOCK); >1 = scan/infra
+          # error. Block on 1; treat a tool/infra error (network, parse) as an
+          # advisory warning so a transient failure can't false-block a merge.
+          set +e
+          osv-scanner scan source -r --no-ignore ./
+          rc=$?
+          set -e
+          if [ "$rc" -eq 0 ]; then
+            echo "osv-scanner: no known vulnerabilities."
+          elif [ "$rc" -eq 1 ]; then
+            echo "::error::osv-scanner found known vulnerabilities in committed dependencies. See log above; update the flagged packages."
+            exit 1
+          else
+            echo "::warning::osv-scanner exited $rc (scan/infra error, not a vuln verdict) — advisory this run. Re-run daily-batch to retry."
+          fi
 
   daily-batch-result:
     name: Daily batch result
@@ -112,27 +114,16 @@ jobs:
     steps:
       - name: Roll-up status
         run: |
-          # FINDING-27 (live-e2e 2026-06-13): osv-scanner is a 3rd-party reusable
-          # workflow whose only output path is a SARIF upload to GitHub Code
-          # Scanning — which requires Code Security / GHAS. On a repo without it
-          # (e.g. private Team-plan) the job hard-fails on the upload, with no
-          # input to disable it, sinking the whole daily-batch. We can't edit the
-          # 3rd-party workflow, so osv-scanner is ADVISORY in the roll-up: its
-          # failure is logged but does not fail daily-batch. The dependency-CVE
-          # axis is still hard-gated by dependency-review (claude-security.yml).
-          # Where GHAS IS enabled, promote OSV_RESULT back into the blocking set.
+          # osv-scanner is now a CLI job that gates on its own exit code (no GHAS
+          # dependency), so it is back in the BLOCKING set alongside the others.
           status="success"
-          for r in "$SEMGREP_RESULT" "$PERF_RESULT" "$LICENSE_RESULT"; do
+          for r in "$SEMGREP_RESULT" "$PERF_RESULT" "$LICENSE_RESULT" "$OSV_RESULT"; do
             case "$r" in
               success|skipped) ;;
               *) status="failure" ;;
             esac
           done
-          case "$OSV_RESULT" in
-            success|skipped) ;;
-            *) echo "::warning::osv-scanner did not pass ($OSV_RESULT) — advisory (needs Code Security/GHAS for its SARIF upload). dependency-review still hard-gates CVEs." ;;
-          esac
-          echo "Daily batch status: $status (osv advisory: $OSV_RESULT)"
+          echo "Daily batch status: $status (semgrep=$SEMGREP_RESULT perf=$PERF_RESULT license=$LICENSE_RESULT osv=$OSV_RESULT)"
           echo "$status" > daily-batch-status.txt
           [ "$status" = "success" ] || exit 1
       - name: Upload result
