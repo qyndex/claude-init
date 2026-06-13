@@ -408,16 +408,25 @@ echo "[swarm]"
 # category (and harness-validate) fail on EVERY clean checkout, including
 # claude-init's own. Seed the runtime files to their documented empty shape if
 # absent, then check — self-heals deterministically without versioning state.
+# JUSTIFIED: seed is best-effort — the swarm_required loop below re-checks each
+# file with -f and emits a real `fail` if seeding didn't produce it, so a failed
+# mkdir/write is surfaced there, never silently swallowed by these || true guards.
 mkdir -p .swarms/coordinator 2>/dev/null || true
 if [ ! -f .swarms/coordinator/fleet.json ]; then
-  printf '%s\n' '{' \
-    '  "_doc": "Coordinator'"'"'s view of the fleet. Updated as streams spawn/complete/fail. Read by /swarm-status command.",' \
-    '  "_schema_version": 1,' \
-    '  "last_updated": null,' \
-    '  "fleet": {}' \
-    '}' > .swarms/coordinator/fleet.json 2>/dev/null || true
+  # JUSTIFIED: heredoc redirect is best-effort; the -f re-check in swarm_required
+  # below emits a real `fail` if the file still doesn't exist, so a write failure
+  # is surfaced there, not hidden by this 2>/dev/null || true.
+  cat > .swarms/coordinator/fleet.json 2>/dev/null <<'FLEET_JSON' || true
+{
+  "_doc": "Coordinator's view of the fleet. Updated as streams spawn/complete/fail. Read by /swarm-status command.",
+  "_schema_version": 1,
+  "last_updated": null,
+  "fleet": {}
+}
+FLEET_JSON
 fi
 if [ ! -f .swarms/coordinator/decisions.log ]; then
+  # JUSTIFIED: write failure is caught by the -f re-check in swarm_required below
   printf '%s\n' '# Coordinator Decision Log' '' 'Append-only. One line per decision.' \
     > .swarms/coordinator/decisions.log 2>/dev/null || true
 fi
