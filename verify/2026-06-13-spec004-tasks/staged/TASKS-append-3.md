@@ -45,4 +45,10 @@ Paste before `## Spec 003 critical path`. tasks/TASKS.md is constitution-class.
   files: .claude/scripts/validate.sh
   accept: grep -qiE 'pyyaml|yaml.*not.*(available|installed)|frontmatter.*skip' .claude/scripts/validate.sh
   owner: implementer
+
+- [ ] T-147  | spec:004  | phase:7  | priority: high  | created: 2026-06-13  | last_touched: 2026-06-13  | deps:  | parallel: yes  | est: 5m
+  summary: FINDING-21 (live-e2e 2026-06-13) — collect-evidence.sh emitted an EMPTY (0-byte) evidence.json whenever a spec had NO unproven ACs (the all-pass case). Line 138 built the unproven array via `printf ... | grep . | jq -R . | jq -sc . || echo []` — on empty input the inner jq printed `[]` AND grep exited 1 so the `|| echo []` ALSO fired, yielding `[]\n[]`, which is invalid JSON for the `--argjson ac_unproven` below; jq -nc then errored and wrote nothing. So a PERFECT (5/5 proven) run produced a broken bundle that fails evidence-gate. FIX (done): build the array directly — `[ ${#ac_unproven[@]} -eq 0 ] && []` else `printf | jq -Rsc 'split|map(select(length>0))'`; no grep/fallback race. Verified: 5/5-proven run now emits valid evidence.json (verdict PASS, unproven 0).
+  files: .claude/scripts/collect-evidence.sh
+  accept: bash .claude/scripts/collect-evidence.sh 001 >/dev/null 2>&1; jq -e . "$(ls -dt verify/*-001-* | head -1)/evidence.json" >/dev/null
+  owner: implementer
 ```
