@@ -34,3 +34,15 @@ Paste before `## Spec 003 critical path`. tasks/TASKS.md is constitution-class.
   accept: awk '/Dependency review/{f=1} f&&/continue-on-error: true/{print; found=1} END{exit !found}' .github/workflows/claude-security.yml
   owner: implementer
 ```
+
+- [ ] T-145  | spec:004  | phase:6  | priority: high  | created: 2026-06-13  | last_touched: 2026-06-13  | deps:  | parallel: yes  | est: 5m
+  summary: FINDING-19 (live-e2e 2026-06-13, surfaced by the T-140 diagnostic) — validate.sh [swarm] hard-required .swarms/coordinator/fleet.json + decisions.log, but fleet.json is GITIGNORED mutable runtime state. A fresh CI checkout therefore lacks it, so the [swarm] category — and harness-validate — failed on EVERY clean checkout, including claude-init's own (it only passed locally because the dev had the runtime file present). This was the real CI-only cause behind harness-validate, masked until T-140 made the step print failing categories. FIX (done, validate.sh is script not constitution-class): [swarm] now SEEDS fleet.json + decisions.log to their documented empty shape if absent, then checks — self-heals deterministically without versioning runtime state. Verified: simulated fresh checkout (files removed) → seeded → 0 swarm failures, valid JSON.
+  files: .claude/scripts/validate.sh
+  accept: rm -f .swarms/coordinator/fleet.json && bash .claude/scripts/validate.sh --json | jq -e '.categories[]|select(.name=="swarm")|.failures|length==0' >/dev/null && jq -e . .swarms/coordinator/fleet.json >/dev/null
+  owner: implementer
+
+- [ ] T-146  | spec:004  | phase:6  | priority: medium  | created: 2026-06-13  | last_touched: 2026-06-13  | deps:  | parallel: yes  | est: 3m
+  summary: FINDING-20 (live-e2e 2026-06-13) — validate.sh's [frontmatter] YAML check is SKIPPED when python3 lacks the yaml module (has_yaml=0 → no parse), but RUNS in CI where pyyaml is present. So a malformed frontmatter (e.g. an unquoted colon: `description: ADR-0001: foo` → "mapping values are not allowed") passes locally and fails only in CI — a silent local/CI divergence. The sandbox's .claude/memory/decisions/0001-*.md hit exactly this. Consider: (a) a regex fallback that catches the common unquoted-colon-in-value case even without pyyaml, and/or (b) WARN (not silently skip) when pyyaml is absent so the dev knows frontmatter wasn't validated. (The sandbox ADR itself was fixed by quoting the description.)
+  files: .claude/scripts/validate.sh
+  accept: grep -qiE 'pyyaml|yaml.*not.*(available|installed)|frontmatter.*skip' .claude/scripts/validate.sh
+  owner: implementer

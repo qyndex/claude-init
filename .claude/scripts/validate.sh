@@ -401,6 +401,26 @@ echo
 
 # ─── 10. Swarm state ────────────────────────────────────────────────────
 echo "[swarm]"
+# FINDING-19 (live-e2e 2026-06-13): coordinator runtime-state files are
+# gitignored MUTABLE state (.gitignore: .swarms/coordinator/fleet.json,
+# workflow-state.json) — correct, they shouldn't be versioned. But a fresh CI
+# checkout therefore lacks them, so a hard "missing" fail made the [swarm]
+# category (and harness-validate) fail on EVERY clean checkout, including
+# claude-init's own. Seed the runtime files to their documented empty shape if
+# absent, then check — self-heals deterministically without versioning state.
+mkdir -p .swarms/coordinator 2>/dev/null || true
+if [ ! -f .swarms/coordinator/fleet.json ]; then
+  printf '%s\n' '{' \
+    '  "_doc": "Coordinator'"'"'s view of the fleet. Updated as streams spawn/complete/fail. Read by /swarm-status command.",' \
+    '  "_schema_version": 1,' \
+    '  "last_updated": null,' \
+    '  "fleet": {}' \
+    '}' > .swarms/coordinator/fleet.json 2>/dev/null || true
+fi
+if [ ! -f .swarms/coordinator/decisions.log ]; then
+  printf '%s\n' '# Coordinator Decision Log' '' 'Append-only. One line per decision.' \
+    > .swarms/coordinator/decisions.log 2>/dev/null || true
+fi
 swarm_required=(
   ".swarms/coordinator/fleet.json"
   ".swarms/coordinator/decisions.log"
