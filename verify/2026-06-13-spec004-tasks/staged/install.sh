@@ -41,7 +41,6 @@ rels="
 .github/workflows/merge-gate.yml
 .github/workflows/claude-review.yml
 .github/workflows/pr-review.yml
-.github/workflows/daily-batch.yml
 .gitleaks.toml
 "
 
@@ -52,6 +51,11 @@ claude-security.yml.staged|.github/workflows/claude-security.yml
 harness-validate.yml.staged|.github/workflows/harness-validate.yml
 perf-budget.yml.staged|.github/workflows/perf-budget.yml
 license-check.yml.staged|.github/workflows/license-check.yml
+adr-gate.yml.staged|.github/workflows/adr-gate.yml
+quarterly-archive.yml.staged|.github/workflows/quarterly-archive.yml
+semgrep.yml.staged|.github/workflows/semgrep.yml
+codeql.yml.staged|.github/workflows/codeql.yml
+daily-batch.yml.staged|.github/workflows/daily-batch.yml
 "
 
 install_into() {

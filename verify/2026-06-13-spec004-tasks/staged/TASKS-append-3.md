@@ -69,4 +69,16 @@ Paste before `## Spec 003 critical path`. tasks/TASKS.md is constitution-class.
   files: .github/workflows/perf-budget.yml, .github/workflows/license-check.yml
   accept: ! grep -qE "^\s+if:.*hashFiles" .github/workflows/perf-budget.yml && ! grep -qE "^\s+if:.*hashFiles" .github/workflows/license-check.yml
   owner: implementer
+
+- [ ] T-151  | spec:004  | phase:7  | priority: high  | created: 2026-06-13  | last_touched: 2026-06-13  | deps:  | parallel: yes  | est: 5m
+  summary: FINDING-27 (live-e2e 2026-06-13) — daily-batch sub-scanners (semgrep, codeql, osv-scanner) hard-fail on "Code Security must be enabled for this repository to use code scanning" when uploading SARIF — Code Scanning needs GitHub Advanced Security, unavailable on a private Team-plan repo (advanced_security: not-exposed; qyndex is Team, not Enterprise). Same capability-gate class as T-144. FIX (staged): semgrep.yml — drop --error (the jq high/critical step is the GHAS-independent gate), make upload-sarif continue-on-error; codeql.yml — analyze step continue-on-error; daily-batch.yml roll-up — osv-scanner (3rd-party reusable wf, no no-upload input) treated ADVISORY (logged, non-blocking), since dependency-review still hard-gates CVEs. Promote back to blocking where GHAS is enabled.
+  files: .github/workflows/semgrep.yml, .github/workflows/codeql.yml, .github/workflows/daily-batch.yml
+  accept: grep -q 'continue-on-error: true' .github/workflows/semgrep.yml && grep -q 'continue-on-error: true' .github/workflows/codeql.yml
+  owner: implementer
+
+- [ ] T-152  | spec:004  | phase:7  | priority: high  | created: 2026-06-13  | last_touched: 2026-06-13  | deps:  | parallel: yes  | est: 5m
+  summary: FINDING-28 (live-e2e 2026-06-13, semgrep) — two real run-shell-injection findings in the harness's OWN workflows: adr-gate.yml:26-27 interpolated ${{ github.base_ref }} directly into a shell command; quarterly-archive.yml:31-32 interpolated ${{ inputs.quarter }} (operator-supplied via workflow_dispatch) into `[ -n ... ]` + echo. Both are the classic GitHub Actions script-injection anti-pattern. FIX (staged): pass each value through a job/step `env:` var and reference $VAR in the shell — env values are not re-parsed by the shell, closing the vector. Swept all workflows; these two were the only genuine cases (the rest are env:/with: keys, already safe).
+  files: .github/workflows/adr-gate.yml, .github/workflows/quarterly-archive.yml
+  accept: ! grep -qE 'origin/\$\{\{ github.base_ref' .github/workflows/adr-gate.yml && ! grep -qE '\$\{\{ inputs.quarter' .github/workflows/quarterly-archive.yml
+  owner: implementer
 ```
