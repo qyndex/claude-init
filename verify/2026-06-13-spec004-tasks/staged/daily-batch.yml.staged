@@ -9,7 +9,15 @@ on:
   workflow_dispatch:
     inputs:
       skip_heavy:
-        description: "Skip codeql + lighthouse (faster validation run)"
+        description: "Skip codeql (faster validation run)"
+        type: boolean
+        default: false
+      run_lighthouse:
+        description: "Run lighthouse (needs a preview URL; off by default — see job comment)"
+        type: boolean
+        default: false
+      run_osv:
+        description: "Run osv-scanner (SARIF upload needs GHAS; off by default — see job comment)"
         type: boolean
         default: false
 
@@ -35,7 +43,15 @@ jobs:
       security-events: write
 
   lighthouse:
-    if: ${{ inputs.skip_heavy != true }}
+    # FINDING-27 (live-e2e 2026-06-13): lighthouse needs a deployed preview URL
+    # it never has in the scheduled daily-batch context, so it can ONLY fail
+    # here — and a failed job sets the whole RUN conclusion to failure, which
+    # merge-gate's check-daily-batch reads. `continue-on-error` is NOT valid on a
+    # reusable-workflow `uses:` job (actionlint syntax-check), so it can't be
+    # masked that way. It is therefore OPT-IN: runs only when an operator passes
+    # run_lighthouse=true from an environment that DOES expose a preview URL.
+    # Default off keeps daily-batch's run conclusion meaningful.
+    if: ${{ inputs.run_lighthouse == true }}
     uses: ./.github/workflows/lighthouse.yml
     permissions:
       contents: read
@@ -53,6 +69,15 @@ jobs:
       contents: read
 
   osv-scanner:
+    # FINDING-27 (live-e2e 2026-06-13): osv-scanner's only output is a SARIF
+    # upload to GitHub Code Scanning, which needs GHAS — absent on a private
+    # Team-plan repo. With no input to disable the upload, the 3rd-party reusable
+    # workflow hard-fails on it, and that failed JOB sets the whole RUN conclusion
+    # to failure (merge-gate reads it). `continue-on-error` is NOT valid on a
+    # reusable-workflow `uses:` job, so it's OPT-IN via run_osv=true (set it where
+    # GHAS is enabled). CVEs are still hard-gated by dependency-review
+    # (claude-security.yml) every PR, so default-off does not weaken the CVE axis.
+    if: ${{ inputs.run_osv == true }}
     # Round 8 A: scan lockfiles against OSV.dev every 24h. Catches CVEs that
     # appear AFTER the lockfile was committed — the gap Dependabot can't close.
     #

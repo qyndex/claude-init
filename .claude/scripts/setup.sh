@@ -403,10 +403,15 @@ step "Anthropic credential preflight (e2e-audit ci-gates-4)"
 # Either secret satisfies the gate: CLAUDE_CODE_OAUTH_TOKEN (Pro/Max
 # subscription via 'claude setup-token') or ANTHROPIC_API_KEY (metered API).
 if command -v gh >/dev/null 2>&1 && gh auth status >/dev/null 2>&1 && git config --get remote.origin.url >/dev/null 2>&1; then
-  if gh secret list 2>/dev/null | grep -qE '^(ANTHROPIC_API_KEY|CLAUDE_CODE_OAUTH_TOKEN)'; then
-    ok "Anthropic credential secret present (ANTHROPIC_API_KEY or CLAUDE_CODE_OAUTH_TOKEN)"
+  secrets_list="$(gh secret list 2>/dev/null || true)"
+  if echo "$secrets_list" | grep -qE '^CLAUDE_CODE_OAUTH_TOKEN'; then
+    ok "Anthropic credential: CLAUDE_CODE_OAUTH_TOKEN present (subscription — no metered spend)"
+  elif echo "$secrets_list" | grep -qE '^ANTHROPIC_API_KEY'; then
+    # Gate is satisfied, but OAuth-everywhere (T-153): the metered key burns
+    # money on every LLM CI run. Nudge to the free subscription token.
+    warn "Only ANTHROPIC_API_KEY (metered) is set — LLM CI runs bill per call. Prefer the free subscription token: gh secret set CLAUDE_CODE_OAUTH_TOKEN (from 'claude setup-token'), then gh secret delete ANTHROPIC_API_KEY"
   else
-    warn "No Anthropic credential secret — claude-review/claude-security (required checks) will fail every PR. Set one: gh secret set CLAUDE_CODE_OAUTH_TOKEN (from 'claude setup-token') or gh secret set ANTHROPIC_API_KEY"
+    warn "No Anthropic credential secret — claude-review/claude-security (required checks) will fail every PR. Set the FREE subscription token: gh secret set CLAUDE_CODE_OAUTH_TOKEN (from 'claude setup-token'). ANTHROPIC_API_KEY also works but is metered."
   fi
 else
   note "gh unavailable — cannot verify Anthropic credential secret (harness-doctor re-checks)"

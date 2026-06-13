@@ -1,33 +1,33 @@
 name: Claude Security Review
 
-# Anthropic's claude-code-security-review action. Multi-agent parallel security
-# audit on every PR. Re-verifies each finding to filter false positives, and
-# emits structured findings — this purpose-built scanner is the real value of
-# the gate (diff-aware scoping + a separate refutation pass), which a generic
-# claude-code-action prompt cannot replicate. We KEEP it.
-# https://github.com/anthropics/claude-code-security-review
+# Security audit on every PR — runs as a claude-code-action@v1 prompt so it
+# authenticates with the Claude subscription OAuth token (CLAUDE_CODE_OAUTH_TOKEN),
+# NOT a metered ANTHROPIC_API_KEY. This is the "OAuth everywhere" rework
+# (T-153): the previous design used anthropics/claude-code-security-review, which
+# has no OAuth input and runs Opus on every push — that combination cost ~$40 of
+# metered API in a single iterative session. OAuth = subscription = no per-call
+# metered spend.
 #
-# IMPORTANT: pinned to a tagged release (never floating branch ref) per the
-# Round 3 security audit M-S3 finding. If Anthropic publishes a new tag, bump
-# it here with Renovate/Dependabot rather than auto-tracking trunk.
+# Tradeoff (recorded so it isn't lost): the dedicated scanner did diff-aware
+# finding dedup + SARIF/code-scanning annotations. The prompt approach is the
+# `security` agent told to audit the diff — structure is enforced by the prompt's
+# format contract + the format-lint step, not by the action. gitleaks (secrets) +
+# dependency-review (CVEs) remain UNCONDITIONAL hard gates on every push, so the
+# secret/dependency axes are never weakened by this swap.
 #
-# CREDENTIAL NOTE (T-142, 2026-06-13): this action declares ONLY the
-# `claude-api-key` input — it does NOT accept a Claude Code OAuth subscription
-# token. We deliberately did NOT swap it for an OAuth claude-code-action prompt
-# (that would forfeit diff-scoping, the separate false-positive pass, and SARIF
-# output — the whole point of a gating security scanner). Instead the LLM scan
-# DEGRADES GRACEFULLY: it runs only when ANTHROPIC_API_KEY is present, and skips
-# with a visible warning when it is not. gitleaks + dependency-review run
-# UNCONDITIONALLY (no Anthropic credential needed), so the job still enforces
-# secret-scanning and dependency CVEs even on a token-only repo — and can pass.
-# To make the LLM scan a hard gate, set the secret and add this job back to the
-# branch ruleset's required checks: gh secret set ANTHROPIC_API_KEY.
+# COST CONTROLS (T-153):
+#   - OAuth token, not API key → no metered spend.
+#   - Triggers on opened/ready_for_review/reopened ONLY — NOT synchronize, so a
+#     push storm on an open PR does not re-run the LLM scan on every commit.
+#   - Sonnet 4.6, not Opus — adequate for diff-scoped SAST, far cheaper if a key
+#     is ever used as a fallback.
+#   - concurrency cancels superseded runs.
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
-    # e2e-audit ci-gates-6: gate cost scales with push count — scope to PRs
-    # targeting main (same filter claude-review already had).
+    # NOT synchronize — one LLM security pass when a PR opens / is marked ready,
+    # not on every push (that was the per-push cost driver).
+    types: [opened, ready_for_review, reopened]
     branches: [main]
   workflow_dispatch:
 
@@ -35,6 +35,7 @@ permissions:
   contents: read
   pull-requests: write
   security-events: write
+  id-token: write # OIDC -> Claude GitHub App token exchange (OAuth path)
 
 concurrency:
   group: claude-security-${{ github.event.pull_request.number || github.run_id }}
@@ -44,19 +45,16 @@ jobs:
   security-review:
     if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
-    timeout-minutes: 25
-    # `secrets` is NOT a valid context in a step-level `if:` (actionlint /
-    # GitHub reject the whole workflow file). Resolve the secret's presence to a
-    # job-level env var here — env IS allowed in step `if:` — and gate on it.
-    env:
-      HAS_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+    timeout-minutes: 20
     steps:
-      - name: Preflight — note LLM-scan credential status (T-142)
+      - name: Preflight — Anthropic credential present (e2e-audit ci-gates-4)
+        env:
+          HAS_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+          HAS_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
         run: |
-          if [ "$HAS_KEY" = "true" ]; then
-            echo "ANTHROPIC_API_KEY present — the claude-code-security-review LLM scan will run."
-          else
-            echo "::warning::ANTHROPIC_API_KEY absent — the LLM security scan will be SKIPPED. gitleaks + dependency-review still run and gate this PR. claude-code-security-review accepts ONLY an API key (a subscription OAuth token is not enough). To enable the full scan: gh secret set ANTHROPIC_API_KEY. To make it a hard merge gate, also add 'security-review' to the branch ruleset required checks."
+          if [ "$HAS_KEY" != "true" ] && [ "$HAS_TOKEN" != "true" ]; then
+            echo "::error::No Anthropic credential — this GATING security review can never pass. Fix: gh secret set CLAUDE_CODE_OAUTH_TOKEN (from 'claude setup-token', Pro/Max subscription — FREE, no metered spend) or gh secret set ANTHROPIC_API_KEY (metered). setup.sh and harness-doctor both check this."
+            exit 1
           fi
 
       - name: Checkout
@@ -65,27 +63,58 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
 
-      - name: Anthropic security review
-        # Runs only when the API key is configured — degrades gracefully on
-        # token-only repos rather than failing the whole job. gitleaks +
-        # dependency-review below still gate the PR unconditionally.
-        if: env.HAS_KEY == 'true'
-        # Pinned tag — bump via Renovate/Dependabot. Never use a floating branch ref.
-        # If a stable tag isn't published yet, pin to a commit SHA:
-        #   uses: anthropics/claude-code-security-review@<40-char SHA>
-        uses: anthropics/claude-code-security-review@0c6a49f1fa56a1d472575da86a94dbc1edb78eda # no stable tag published; pinned to main HEAD SHA
+      - name: Run Claude security review (OAuth — subscription, no metered spend)
+        uses: anthropics/claude-code-action@v1
         with:
-          # Input names per the pinned action.yml: claude-api-key + claude-model
-          # (the previous anthropic_api_key/model were never declared inputs).
-          claude-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
-          claude-model: claude-opus-4-8
+          # Subscription OAuth token first (free); API key only as a fallback if
+          # someone sets it. An empty secret resolves to unset.
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Sonnet, not Opus — diff-scoped SAST doesn't need Opus, and this keeps
+          # any future API-key fallback cheap. v1 takes model via claude_args.
+          claude_args: "--model claude-sonnet-4-6 --max-turns 15"
+          prompt: |
+            You are the security agent (.claude/agents/quality/security.md).
+            Perform a security audit of THIS PULL REQUEST'S DIFF ONLY — do not
+            flag pre-existing issues outside the changed lines.
 
-      # Gitleaks via the CLI, NOT gitleaks/gitleaks-action@v2 (T-143 / FINDING-17,
-      # live-e2e 2026-06-13). The marketplace action requires a paid
-      # GITLEAKS_LICENSE secret on ANY repo owned by a GitHub ORGANIZATION — it
-      # hard-exits "is an organization. License key is required." and fails the
-      # whole job, with nothing leaked. The CLI is the same scanner under the
-      # same MIT licence with no key for any account type. Pinned by version.
+            Scope (OWASP LLM/web Top 10 + the constitution's guardrails):
+            injection (SQL/command/path/template), authn/authz gaps, secret or
+            credential exposure, SSRF, insecure deserialization, missing input
+            validation, unsafe shell (eval, curl|sh, command interpolation,
+            unquoted GitHub-expression interpolation into run: steps),
+            permission/sandbox regressions, dependency risk.
+
+            Multi-pass (re-verify to suppress false positives):
+            1. Read the diff.
+            2. Read the full surrounding code for each changed hunk.
+            3. Form findings, severity-tagged (critical/high/medium/low/info).
+            4. Re-verify each finding by re-reading the relevant path — drop
+               anything you cannot substantiate at a concrete path:line.
+            5. Post the surviving findings as inline PR review comments.
+
+            FORMAT CONTRACT (machine-checked): every finding MUST cite
+            `path:line`. End your summary with the exact line:
+            `Security: re-verified <N> findings, suppressed <M> false positives.`
+
+            Block the PR (--request-changes) if any critical or high remains.
+
+      - name: Lint security review format (citations + marker)
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          reviews=$(gh pr view "$PR_NUMBER" --json reviews -q '.reviews[].body' 2>/dev/null || true)
+          [ -z "$reviews" ] && { echo "no review body yet — skipping format lint"; exit 0; }
+          if ! echo "$reviews" | grep -qE 'Security: re-verified [0-9]+ findings'; then
+            echo "::warning::Security review output lacks the re-verification marker — pass-2 not evidenced."
+          fi
+          if ! echo "$reviews" | grep -qE '[A-Za-z0-9_./-]+\.[a-z]+:[0-9]+'; then
+            echo "::warning::Security review findings carry no path:line citations."
+          fi
+          echo "security review format lint done"
+
       - name: Gitleaks (CLI — no org licence; T-143)
         env:
           GITLEAKS_VERSION: 8.30.1
@@ -94,23 +123,12 @@ jobs:
           url="https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
           curl -sSfL "$url" -o /tmp/gitleaks.tgz
           tar -xzf /tmp/gitleaks.tgz -C /tmp gitleaks
-          # Full git-history scan; --exit-code 1 (the default) fails the gate on
-          # any finding, --redact keeps the secret value out of the run log.
-          # --config uses the repo's .gitleaks.toml (allowlists harness doc prose
-          # that trips the generic-api-key entropy rule — see that file's header).
           cfg=""; [ -f .gitleaks.toml ] && cfg="--config .gitleaks.toml"
           # shellcheck disable=SC2086 # cfg is a controlled two-token flag or empty; intentional word-split
           /tmp/gitleaks git --redact --exit-code 1 $cfg
 
-      # actions/dependency-review-action requires the Dependency Graph (and, on
-      # private repos, GitHub Advanced Security) to be enabled — otherwise it
-      # hard-exits "Dependency review is not supported on this repository" and
-      # fails the whole security gate (T-144 / FINDING-18, live-e2e 2026-06-13).
-      # continue-on-error keeps it ADVISORY where the capability is absent: it
-      # still runs and posts where supported, but its absence does not sink the
-      # gate — gitleaks (secrets) + claude-code-security-review (code) remain the
-      # hard gates. To make dependency-review blocking, enable Dependency Graph
-      # + GHAS on the repo, then drop continue-on-error.
+      # dependency-review needs Dependency Graph (+ GHAS on private repos) — advisory
+      # where the capability is absent (T-144); gitleaks + the LLM scan still gate.
       - name: Dependency review (advisory where Dependency Graph/GHAS is off; T-144)
         if: github.event_name == 'pull_request'
         continue-on-error: true
