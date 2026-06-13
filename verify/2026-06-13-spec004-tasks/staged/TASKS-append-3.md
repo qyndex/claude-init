@@ -16,8 +16,8 @@ Paste before `## Spec 003 critical path`. tasks/TASKS.md is constitution-class.
   owner: implementer
 
 - [ ] T-142  | spec:004  | phase:7  | priority: medium  | created: 2026-06-13  | last_touched: 2026-06-13  | deps:  | parallel: yes  | est: 3m
-  summary: security-review (claude-code-security-review action) accepts ONLY claude-api-key — no OAuth path, so it can never pass on a subscription-token-only repo. FIX (staged): replace it with a claude-code-action@v1 prompt (same OAuth pattern as claude-review.yml — claude_code_oauth_token + claude_args + id-token:write), keeping gitleaks + dependency-review. Job name stays "security-review" so the ruleset check still matches. Tradeoff recorded in the workflow header: lose the purpose-built scanner's diff-aware dedup/SARIF; structure now enforced by prompt + format-lint step. Staged as claude-security.yml.staged (constitution-guard dodges the basename match), renamed on install by install.sh.
-  files: .github/workflows/claude-security.yml
-  accept: grep -q 'claude_code_oauth_token' .github/workflows/claude-security.yml && ! grep -q 'claude-code-security-review' .github/workflows/claude-security.yml
+  summary: security-review (claude-code-security-review action) accepts ONLY claude-api-key — no OAuth path. On a subscription-token-only repo it can never pass. Either document the API-key requirement prominently, gate the job on the secret's presence with a clear skip, or make security-review non-required for token-only setups. (FINDING-7, confirmed.)
+  files: .github/workflows/claude-security.yml, docs/
+  accept: grep -q 'claude-api-key' .github/workflows/claude-security.yml
   owner: implementer
 ```
