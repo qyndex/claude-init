@@ -217,7 +217,7 @@
   ".claude/scripts/verify.sh:206:|| echo 0",
   ".claude/scripts/verify.sh:328:2>/dev/null",
   ".claude/scripts/verify.sh:428:2>/dev/null",
-  ".claude/scripts/verify.sh:502:2>/dev/null",
+  ".claude/scripts/verify.sh:518:2>/dev/null",
   ".claude/scripts/verify.sh:71:2>/dev/null",
   ".claude/scripts/verify.sh:71:|| true",
   ".claude/scripts/verify.sh:74:2>/dev/null",

@@ -57,4 +57,10 @@ Paste before `## Spec 003 critical path`. tasks/TASKS.md is constitution-class.
   files: .github/actions/setup-stack/action.yml
   accept: ! grep -qE 'node-version:\s*"20"' .github/actions/setup-stack/action.yml && grep -q 'node-version-file' .github/actions/setup-stack/action.yml
   owner: implementer
+
+- [ ] T-149  | spec:004  | phase:7  | priority: high  | created: 2026-06-13  | last_touched: 2026-06-13  | deps:  | parallel: yes  | est: 5m
+  summary: FINDING-23 (live-e2e 2026-06-13) — verify.sh's E2E journey gate (step 4b) ran `npx playwright test` assuming a pre-provisioned browser and swallowed all output with >/dev/null 2>&1. On a fresh runner it failed with "browserType.launch: Executable doesn't exist … chrome-headless-shell" — a TOOLCHAIN gap mis-reported as "E2E journey FAILED", and undiagnosable because output was discarded. (The same journey passes locally where the browser is cached, and under collect-evidence which installs it.) FIX (done): ensure the browser is installed first (`npx playwright install chromium`, idempotent); on install failure, SKIP (toolchain gap) rather than hard-fail since the PR-time evidence-gate journey (--with-deps) is authoritative; tee output to verify/.journey-<id>.log so real failures are diagnosable.
+  files: .claude/scripts/verify.sh
+  accept: grep -q 'playwright install chromium' .claude/scripts/verify.sh && ! grep -q 'npx playwright test --config playwright.evidence.config.ts "e2e/$sid" >/dev/null 2>&1' .claude/scripts/verify.sh
+  owner: implementer
 ```
