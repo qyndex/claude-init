@@ -31,15 +31,27 @@ jobs:
           most_recent=$(gh run list \
             --workflow="daily-batch.yml" \
             --limit 1 \
-            --json status,conclusion,createdAt,htmlUrl \
+            --json status,conclusion,createdAt,url \
             --jq '.[0]')
 
           if [ -z "$most_recent" ] || [ "$most_recent" = "null" ]; then
             # AC-10: first-run allowance is BOUNDED to 7 days from repo init, and
             # even within that window it runs an INLINE security scan rather than
             # warn-and-pass. After 7 days, no daily-batch == hard block.
-            first_commit=$(git log --reverse --format=%aI | head -1)
-            init_epoch=$(date -d "$first_commit" +%s 2>/dev/null || date -j -f '%Y-%m-%dT%H:%M:%S%z' "$first_commit" +%s 2>/dev/null || echo 0)
+            #
+            # spec 004 T-134: "repo init" = the GitHub repo creation date, NOT the
+            # first COMMIT date. `git archive` brownfield adoption preserves the
+            # original authored timestamps, so first-commit can read as months old
+            # on a repo created today — falsely blowing the 7-day window. Prefer
+            # the repo's createdAt from the API; fall back to first-commit only
+            # when the API is unavailable.
+            repo_created=$(gh repo view --json createdAt --jq '.createdAt' 2>/dev/null || echo "")
+            if [ -n "$repo_created" ]; then
+              init_ts="$repo_created"
+            else
+              init_ts=$(git log --reverse --format=%aI | head -1)
+            fi
+            init_epoch=$(date -d "$init_ts" +%s 2>/dev/null || date -j -f '%Y-%m-%dT%H:%M:%S%z' "$init_ts" +%s 2>/dev/null || date -j -f '%Y-%m-%dT%H:%M:%SZ' "$init_ts" +%s 2>/dev/null || echo 0)
             init_age_days=$(( ($(date +%s) - init_epoch) / 86400 ))
             echo "No daily-batch runs yet. Repo init age: ${init_age_days}d (first-run window: 7d)."
 
@@ -71,7 +83,7 @@ jobs:
           status=$(echo "$most_recent" | jq -r '.status')
           conclusion=$(echo "$most_recent" | jq -r '.conclusion // "in_progress"')
           created=$(echo "$most_recent" | jq -r '.createdAt')
-          url=$(echo "$most_recent" | jq -r '.htmlUrl')
+          url=$(echo "$most_recent" | jq -r '.url')
 
           created_epoch=$(date -d "$created" +%s 2>/dev/null || date -j -f '%Y-%m-%dT%H:%M:%SZ' "$created" +%s 2>/dev/null || echo 0)
           age_hours=$(( ($(date +%s) - created_epoch) / 3600 ))

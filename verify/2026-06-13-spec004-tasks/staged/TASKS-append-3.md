@@ -20,4 +20,10 @@ Paste before `## Spec 003 critical path`. tasks/TASKS.md is constitution-class.
   files: .github/workflows/claude-security.yml
   accept: grep -q 'claude-code-security-review' .github/workflows/claude-security.yml && grep -q "secrets.ANTHROPIC_API_KEY != ''" .github/workflows/claude-security.yml
   owner: implementer
+
+- [ ] T-143  | spec:004  | phase:7  | priority: high  | created: 2026-06-13  | last_touched: 2026-06-13  | deps:  | parallel: yes  | est: 5m
+  summary: FINDING-17 (live-e2e 2026-06-13) — the security-review job uses gitleaks/gitleaks-action@v2, which requires a PAID GITLEAKS_LICENSE secret on ANY repo owned by a GitHub ORGANIZATION. It hard-exits "[org] is an organization. License key is required." and fails the whole job with nothing actually leaked — so security-review can never pass on an org repo out of the box. (The Anthropic scanner itself ran clean, findings_count=0; gitleaks was the sole failure.) FIX (staged): replace the marketplace action with the gitleaks CLI (download pinned v8.30.1 tarball, run `gitleaks git --redact --exit-code 1`) — same MIT-licensed scanner, no licence key for any account type, same blocking behavior. Staged in claude-security.yml.staged.
+  files: .github/workflows/claude-security.yml
+  accept: grep -q 'gitleaks git' .github/workflows/claude-security.yml && ! grep -q 'gitleaks/gitleaks-action' .github/workflows/claude-security.yml
+  owner: implementer
 ```

@@ -172,6 +172,9 @@ if [ -f .claude/memory/atlas/manifest.json ] && command -v jq >/dev/null 2>&1; t
   stale_reason=""
   [ "$age_days" -gt 7 ] && stale_reason="atlas >7d old"
   [ -f .claude/memory/atlas/.dirty ] && stale_reason="watched files changed since refresh"
+  # spec 004 T-132: atlas was indexed at atlas_sha; if HEAD has moved, the atlas
+  # may not reflect the current tree. (Both empty — e.g. outside a repo — is not stale.)
+  [ -n "$current_sha" ] && [ -n "$atlas_sha" ] && [ "$atlas_sha" != "$current_sha" ] && stale_reason="atlas indexed at a different commit"
 
   if [ -n "$stale_reason" ]; then
     # Gap-audit G21: no /atlas command exists — the script is the only real path

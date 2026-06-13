@@ -55,22 +55,24 @@ jobs:
   osv-scanner:
     # Round 8 A: scan lockfiles against OSV.dev every 24h. Catches CVEs that
     # appear AFTER the lockfile was committed — the gap Dependabot can't close.
-    name: OSV vulnerability scan
-    runs-on: ubuntu-latest
+    #
+    # spec 004 FINDING-16: osv-scanner-reusable.yml is a REUSABLE WORKFLOW, so it
+    # must be invoked at the JOB level (jobs.osv-scanner.uses), exactly like the
+    # codeql/semgrep/lighthouse siblings above — NOT as a `steps: - uses:` step.
+    # The step form made the whole daily-batch.yml fail to parse ("reusable
+    # workflows should be referenced at the top-level jobs.*.uses key"), which in
+    # turn kept the daily-batch un-runnable and check-daily-batch permanently red.
     permissions:
       contents: read
       security-events: write
       actions: read
-    steps:
-      - uses: actions/checkout@v4
-      - name: Run osv-scanner on lockfiles
-        uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@b8ac13f90f0ad78cebdcdbe5d39fcc8ff11301ba # main 2026-05-29
-        with:
-          scan-args: |-
-            --recursive
-            --skip-git
-            ./
-          fail-on-vuln: false # roll-up handles overall gate
+    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@b8ac13f90f0ad78cebdcdbe5d39fcc8ff11301ba # main 2026-05-29
+    with:
+      scan-args: |-
+        --recursive
+        --skip-git
+        ./
+      fail-on-vuln: false # roll-up handles overall gate
 
   daily-batch-result:
     name: Daily batch result

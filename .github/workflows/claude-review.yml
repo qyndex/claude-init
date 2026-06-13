@@ -20,6 +20,7 @@ on:
 permissions:
   contents: read
   pull-requests: write
+  id-token: write   # claude-code-action OIDC auth (spec 004 FINDING-14)
 
 # e2e-audit ci-gates-6: one LLM review per PR head — a push storm must not
 # multiply gating-review spend.

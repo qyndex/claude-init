@@ -77,11 +77,23 @@ jobs:
           claude-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
           claude-model: claude-opus-4-8
 
-      - name: Gitleaks
-        uses: gitleaks/gitleaks-action@v2
+      # Gitleaks via the CLI, NOT gitleaks/gitleaks-action@v2 (T-143 / FINDING-17,
+      # live-e2e 2026-06-13). The marketplace action requires a paid
+      # GITLEAKS_LICENSE secret on ANY repo owned by a GitHub ORGANIZATION — it
+      # hard-exits "is an organization. License key is required." and fails the
+      # whole job, with nothing leaked. The CLI is the same scanner under the
+      # same MIT licence with no key for any account type. Pinned by version.
+      - name: Gitleaks (CLI — no org licence; T-143)
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        continue-on-error: false
+          GITLEAKS_VERSION: 8.30.1
+        run: |
+          set -euo pipefail
+          url="https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          curl -sSfL "$url" -o /tmp/gitleaks.tgz
+          tar -xzf /tmp/gitleaks.tgz -C /tmp gitleaks
+          # Full git-history scan; --exit-code 1 (the default) fails the gate on
+          # any finding, --redact keeps the secret value out of the run log.
+          /tmp/gitleaks git --redact --exit-code 1
 
       - name: Dependency review
         if: github.event_name == 'pull_request'

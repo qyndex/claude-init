@@ -18,7 +18,7 @@
 #   .github/workflows/claude-review.yml           FINDING-14 — add id-token: write (claude-code-action OIDC auth)
 #   .github/workflows/pr-review.yml               FINDING-14 — same
 #   .github/workflows/daily-batch.yml             FINDING-16 — osv-scanner reusable workflow at job level (was an invalid step; broke parse)
-#   .github/workflows/claude-security.yml         T-142 — keep claude-code-security-review (the real scanner); gate the LLM step on ANTHROPIC_API_KEY presence (skip+warn when absent), keep gitleaks + dependency-review unconditional. Staged as claude-security.yml.staged (constitution-guard basename match), renamed on install.
+#   .github/workflows/claude-security.yml         T-142 + T-143 — keep claude-code-security-review (the real scanner), gate the LLM step on ANTHROPIC_API_KEY presence (skip+warn when absent); replace gitleaks-action@v2 (paid org licence) with the gitleaks CLI; keep dependency-review unconditional. Staged as claude-security.yml.staged (constitution-guard basename match), renamed on install.
 #
 # NOT installed by this script (already applied, agent-writable, in the main commit):
 #   .shellcheckrc, commitlint.config.js, lint-silent-failures.sh ratchet +

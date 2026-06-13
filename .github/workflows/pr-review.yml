@@ -16,6 +16,7 @@ on:
 permissions:
   contents: read
   pull-requests: write
+  id-token: write   # claude-code-action OIDC auth (spec 004 FINDING-14)
 
 # e2e-audit ci-gates-6: one triage per PR head; drafts don't burn LLM spend.
 concurrency:
