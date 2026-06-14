@@ -134,8 +134,17 @@ verdict="PASS"
 [ "$smoke_max_exit" -ne 0 ] && verdict="FAIL"
 
 # ─── 7. Emit evidence.json ──────────────────────────────────────────────
-# JUSTIFIED: the redirect and fallback emit an empty JSON array when there are no unproven ACs (grep exits 1 on empty input) — the valid default keeps evidence.json well-formed
-unproven_json=$(printf '%s\n' "${ac_unproven[@]+"${ac_unproven[@]}"}" | grep . | jq -R . | jq -sc . 2>/dev/null || echo '[]')
+# Build the unproven-AC JSON array. The previous form piped through
+# `grep . | jq -R . | jq -sc . || echo '[]'`, which double-emitted "[]\n[]" when
+# the list was empty (the inner jq printed [] AND the || fallback fired on grep's
+# exit 1) — that is invalid JSON and broke the --argjson below, writing an empty
+# evidence.json (FINDING-21, live-e2e 2026-06-13). Build it directly from the
+# array with jq, no grep/fallback race: empty array -> a clean [].
+if [ "${#ac_unproven[@]}" -eq 0 ]; then
+  unproven_json='[]'
+else
+  unproven_json=$(printf '%s\n' "${ac_unproven[@]}" | jq -Rsc 'split("\n") | map(select(length > 0))')
+fi
 # Gap-audit G53: bind the bundle to the exact commit + moment it attests, so
 # evidence-gate can reject stale or wrong-branch evidence instead of trusting
 # any committed file.

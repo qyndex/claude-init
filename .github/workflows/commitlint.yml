@@ -27,18 +27,21 @@ jobs:
         run: |
           npm install -g @commitlint/cli @commitlint/config-conventional
 
+      # Uses the repo-root commitlint.config.js (extends conventional, relaxes
+      # subject-case per §VI — spec 004 T-135). Dropping the explicit --extends
+      # flag lets commitlint discover the config file; the flag would override it.
       - name: Validate commits in PR
         env:
           BASE: ${{ github.event.pull_request.base.sha }}
           HEAD: ${{ github.event.pull_request.head.sha }}
         run: |
-          npx commitlint --from "$BASE" --to "$HEAD" --extends '@commitlint/config-conventional'
+          npx commitlint --from "$BASE" --to "$HEAD"
 
       - name: Validate PR title (also must be Conventional Commits — for squash-merge)
         env:
           TITLE: ${{ github.event.pull_request.title }}
         run: |
-          echo "$TITLE" | npx commitlint --extends '@commitlint/config-conventional'
+          echo "$TITLE" | npx commitlint
 
       # Gap-audit G47: §VI's Confidence/Scope-risk/Not-tested trailers were
       # mandated but never validated — commitlint only checked the header.

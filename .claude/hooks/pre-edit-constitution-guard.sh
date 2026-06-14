@@ -65,7 +65,7 @@ ROOT="$(cd "$(dirname "$0")/../.." 2>/dev/null && pwd || echo "")"
 rel="$file_path"
 if [ -n "$ROOT" ]; then
   case "$file_path" in
-    "$ROOT"/*) rel="${file_path#$ROOT/}" ;;
+    "$ROOT"/*) rel="${file_path#"$ROOT"/}" ;;
   esac
 fi
 

@@ -401,6 +401,35 @@ echo
 
 # ─── 10. Swarm state ────────────────────────────────────────────────────
 echo "[swarm]"
+# FINDING-19 (live-e2e 2026-06-13): coordinator runtime-state files are
+# gitignored MUTABLE state (.gitignore: .swarms/coordinator/fleet.json,
+# workflow-state.json) — correct, they shouldn't be versioned. But a fresh CI
+# checkout therefore lacks them, so a hard "missing" fail made the [swarm]
+# category (and harness-validate) fail on EVERY clean checkout, including
+# claude-init's own. Seed the runtime files to their documented empty shape if
+# absent, then check — self-heals deterministically without versioning state.
+# JUSTIFIED: seed is best-effort — the swarm_required loop below re-checks each
+# file with -f and emits a real `fail` if seeding didn't produce it, so a failed
+# mkdir/write is surfaced there, never silently swallowed by these || true guards.
+mkdir -p .swarms/coordinator 2>/dev/null || true
+if [ ! -f .swarms/coordinator/fleet.json ]; then
+  # JUSTIFIED: heredoc redirect is best-effort; the -f re-check in swarm_required
+  # below emits a real `fail` if the file still doesn't exist, so a write failure
+  # is surfaced there, not hidden by this 2>/dev/null || true.
+  cat > .swarms/coordinator/fleet.json 2>/dev/null <<'FLEET_JSON' || true
+{
+  "_doc": "Coordinator's view of the fleet. Updated as streams spawn/complete/fail. Read by /swarm-status command.",
+  "_schema_version": 1,
+  "last_updated": null,
+  "fleet": {}
+}
+FLEET_JSON
+fi
+if [ ! -f .swarms/coordinator/decisions.log ]; then
+  # JUSTIFIED: write failure is caught by the -f re-check in swarm_required below
+  printf '%s\n' '# Coordinator Decision Log' '' 'Append-only. One line per decision.' \
+    > .swarms/coordinator/decisions.log 2>/dev/null || true
+fi
 swarm_required=(
   ".swarms/coordinator/fleet.json"
   ".swarms/coordinator/decisions.log"
@@ -893,6 +922,28 @@ if [ -x .claude/scripts/check-doc-consistency.sh ]; then
 else
   warn "check-doc-consistency.sh missing or not executable — drift check skipped"
 fi
+echo
+
+# ─── 18. Anthropic auth: OAuth-first (live-e2e T-153) ───────────────────
+# Root cause of a ~$40 single-session metered bill: a workflow authenticated
+# ONLY with the metered ANTHROPIC_API_KEY (and ran Opus per push). The harness
+# rule is OAuth-everywhere: every workflow that can authenticate to Anthropic
+# MUST offer the subscription token CLAUDE_CODE_OAUTH_TOKEN (free) — the API key
+# is allowed only as a fallback, never as the sole credential.
+echo "[auth-credential]"
+auth_bad=0
+for wf in .github/workflows/*.yml .github/workflows/*.yaml; do
+  [ -f "$wf" ] || continue
+  # Does this workflow reference the metered key at all?
+  if grep -qiE 'anthropic_api_key' "$wf"; then
+    # Then it must also offer the OAuth token somewhere in the file.
+    if ! grep -qi 'CLAUDE_CODE_OAUTH_TOKEN' "$wf"; then
+      fail "OAuth-everywhere: $(basename "$wf") uses ANTHROPIC_API_KEY (metered) without offering CLAUDE_CODE_OAUTH_TOKEN (subscription) — add the OAuth token first, API key as fallback"
+      auth_bad=$((auth_bad + 1))
+    fi
+  fi
+done
+[ "$auth_bad" -eq 0 ] && ok "every Anthropic-auth workflow offers the OAuth token (API key is fallback only)"
 echo
 
 # ─── Summary ────────────────────────────────────────────────────────────

@@ -333,10 +333,14 @@ fi
 # ANTHROPIC_API_KEY (metered API).
 if command -v gh >/dev/null 2>&1; then
   # JUSTIFIED: gh failure (no auth/remote) yields empty list — handled as the warn branch, not a crash
-  if gh secret list 2>/dev/null | grep -qE '^(ANTHROPIC_API_KEY|CLAUDE_CODE_OAUTH_TOKEN)'; then
-    add_result "Anthropic credential secret" "pass" "repo secret present for the LLM CI gates (API key or OAuth token)"
+  _secrets="$(gh secret list 2>/dev/null || true)"
+  if echo "$_secrets" | grep -qE '^CLAUDE_CODE_OAUTH_TOKEN'; then
+    add_result "Anthropic credential secret" "pass" "CLAUDE_CODE_OAUTH_TOKEN present (subscription — no metered spend)"
+  elif echo "$_secrets" | grep -qE '^ANTHROPIC_API_KEY'; then
+    # OAuth-everywhere (T-153): gate satisfied but metered. Nudge to the free token.
+    add_result "Anthropic credential secret" "warn" "only ANTHROPIC_API_KEY (metered) set — LLM CI bills per call; prefer the free subscription token: gh secret set CLAUDE_CODE_OAUTH_TOKEN (claude setup-token), then gh secret delete ANTHROPIC_API_KEY"
   else
-    add_result "Anthropic credential secret" "warn" "no credential secret (or gh unauthenticated) — claude-review/claude-security required checks will fail every PR; set: gh secret set CLAUDE_CODE_OAUTH_TOKEN (claude setup-token) or gh secret set ANTHROPIC_API_KEY"
+    add_result "Anthropic credential secret" "warn" "no credential secret (or gh unauthenticated) — claude-review/claude-security required checks will fail every PR; set the FREE token: gh secret set CLAUDE_CODE_OAUTH_TOKEN (claude setup-token)"
   fi
 fi
 
@@ -363,6 +367,7 @@ printf ']\n' >> "$result_file"
 if [ "$JSON_MODE" -eq 1 ]; then
   cat "$result_file"
 else
+  # JUSTIFIED: jq over the result file — a missing/unparseable file yields count 0, which the >0 gate below treats as "no failures recorded"; the 2>/dev/null hides only the jq parse noise
   fail_count=$(jq '[.[] | select(.status=="fail")] | length' "$result_file" 2>/dev/null || echo 0)
   total=$(jq 'length' "$result_file" 2>/dev/null || echo 0)
   printf '\n%s check(s), %s failure(s)\n' "$total" "$fail_count"

@@ -41,7 +41,7 @@ file_path=$(printf '%s' "$payload" | jq -r '.tool_input.file_path // .tool_input
 ROOT="$(cd "$(dirname "$0")/../.." 2>/dev/null && pwd || echo "")"
 rel="$file_path"
 if [ -n "$ROOT" ]; then
-  case "$file_path" in "$ROOT"/*) rel="${file_path#$ROOT/}" ;; esac
+  case "$file_path" in "$ROOT"/*) rel="${file_path#"$ROOT"/}" ;; esac
 fi
 while [ "$rel" != "${rel#./}" ]; do rel="${rel#./}"; done
 

@@ -74,7 +74,7 @@ requested_ver=""
 # (`npx create-foo@2 my-app` runs create-foo, not my-app — the last-positional
 # heuristic used for installs picks the wrong token here).
 if [ -n "$ephemeral" ]; then
-  rest="${cmd#*$ephemeral }"
+  rest="${cmd#*"$ephemeral" }"
   for tok in $rest; do
     case "$tok" in
       -*) continue ;;

@@ -498,7 +498,23 @@ if [ -f playwright.evidence.config.ts ] && ! skip_honored SKIP_E2E_JOURNEY; then
     [ -n "$sid" ] && [ -d "e2e/$sid" ] || continue
     step "E2E journey gate (spec $sid)"
     slug=$(basename "$spec" .md)
-    if VERIFY_FEATURE="$slug" npx playwright test --config playwright.evidence.config.ts "e2e/$sid" >/dev/null 2>&1; then
+    # e2e-rig-7 / FINDING-23 (live-e2e 2026-06-13): the journey used to launch
+    # Playwright assuming a pre-provisioned browser. On a fresh runner that fails
+    # with "Executable doesn't exist … chrome-headless-shell" — a TOOLCHAIN gap
+    # mis-reported as a journey failure. Ensure the browser is present first
+    # (idempotent; a no-op when already installed). Capture output to a log so a
+    # real journey failure is diagnosable instead of swallowed by >/dev/null.
+    jlog="verify/.journey-${sid}.log"
+    # JUSTIFIED: mkdir is best-effort — if verify/ can't be created the log
+    # redirects below fail loudly on their own; no error is hidden here.
+    mkdir -p verify 2>/dev/null || true
+    if ! npx playwright install chromium >>"$jlog" 2>&1; then
+      # Browser couldn't be provisioned (offline/locked-down). Don't fail the
+      # smoke gate on a toolchain gap — the dedicated PR-time journey gate
+      # (evidence-gate, with --with-deps) is the authoritative re-run. Surface
+      # it as a visible skip, not a pass and not a hard fail.
+      ok_msg "E2E journey SKIPPED for spec $sid — Playwright browser unavailable (toolchain gap; see $jlog)"
+    elif VERIFY_FEATURE="$slug" npx playwright test --config playwright.evidence.config.ts "e2e/$sid" >>"$jlog" 2>&1; then
       jr=$(ls -t verify/*-${sid}*/results.json 2>/dev/null | head -1)
       if [ -n "$jr" ] && bash .claude/scripts/spec-match.sh "$sid" "$jr" >/dev/null 2>&1; then
         ok_msg "journey green + every AC proven (spec $sid)"
@@ -506,7 +522,7 @@ if [ -f playwright.evidence.config.ts ] && ! skip_honored SKIP_E2E_JOURNEY; then
         fail_msg "journey ran but spec-match found unproven ACs (spec $sid)"; fails=$((fails+1))
       fi
     else
-      fail_msg "E2E journey FAILED for spec $sid — fix before PR time"; fails=$((fails+1))
+      fail_msg "E2E journey FAILED for spec $sid — fix before PR time (see $jlog)"; fails=$((fails+1))
     fi
   done
 fi

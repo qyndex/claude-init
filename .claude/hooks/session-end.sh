@@ -91,7 +91,7 @@ in_flight=".claude/memory/in-flight.md"
       echo "- working tree: clean"
     fi
     # JUSTIFIED: git error muted — a branch with no upstream (@{u}) is expected locally; an empty result correctly omits the unpushed section
-    unpushed=$(git log @{u}..HEAD --oneline 2>/dev/null | head -5)
+    unpushed=$(git log '@{u}..HEAD' --oneline 2>/dev/null | head -5)
     if [ -n "$unpushed" ]; then
       echo "- unpushed commits:"
       echo '```'
@@ -153,7 +153,7 @@ if command -v jq >/dev/null 2>&1 && git rev-parse --git-dir >/dev/null 2>&1; the
   # JUSTIFIED: git error muted — already inside the rev-parse success branch; any residual noise just yields a 0 count
   dirty_count=$(git status --porcelain 2>/dev/null | wc -l | tr -d ' ')
   # JUSTIFIED: git error muted — no upstream configured (@{u}) is expected on local branches; 0 unpushed is correct then
-  unpushed_count=$(git log @{u}..HEAD --oneline 2>/dev/null | wc -l | tr -d ' ')
+  unpushed_count=$(git log '@{u}..HEAD' --oneline 2>/dev/null | wc -l | tr -d ' ')
   # grep -c prints 0 AND exits 1 on zero matches — `|| echo 0` would double-print
   # ("0\n0"), breaking --argjson below and silently skipping session-recent.json
   # (observed: the file was 0 bytes). Capture-then-default instead.
