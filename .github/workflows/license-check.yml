@@ -19,11 +19,11 @@ jobs:
   licenses-node:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
       - id: detect
         run: |
           if [ -f package.json ]; then echo "exists=1" >> "$GITHUB_OUTPUT"; else echo "exists=0" >> "$GITHUB_OUTPUT"; echo "no package.json — skipping node license check"; fi
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v4
         if: steps.detect.outputs.exists == '1'
         with: { node-version-file: 'package.json' }
       - name: Install deps
@@ -35,17 +35,25 @@ jobs:
       - name: Check licenses
         if: steps.detect.outputs.exists == '1'
         run: |
+          # FINDING-31 (live-e2e 2026-06-14): exclude the project's OWN package
+          # from the dependency-license gate — a private app is typically
+          # UNLICENSED/private, which is not in the allow-list, and the gate must
+          # check DEPENDENCY licenses, not fail on the project itself.
+          # license-checker matches --excludePackages on the "name@version" key,
+          # so the bare name never matched and the own-package slipped through to
+          # fail. Build the full name@version string.
+          self="$(node -p "const p=require('./package.json'); p.name+'@'+p.version")"
           npx license-checker --production --onlyAllow "MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC;CC0-1.0;CC-BY-4.0;Unlicense;0BSD;Python-2.0" \
-            --excludePackages "$(node -p "require('./package.json').name")"
+            --excludePackages "$self"
 
   licenses-python:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
       - id: detect
         run: |
           if [ -f pyproject.toml ]; then echo "exists=1" >> "$GITHUB_OUTPUT"; else echo "exists=0" >> "$GITHUB_OUTPUT"; echo "no pyproject.toml — skipping python license check"; fi
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v5
         if: steps.detect.outputs.exists == '1'
         with: { python-version-file: 'pyproject.toml' }
       - if: steps.detect.outputs.exists == '1'

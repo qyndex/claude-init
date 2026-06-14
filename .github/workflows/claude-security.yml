@@ -64,7 +64,7 @@ jobs:
           fi
 
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
@@ -78,7 +78,13 @@ jobs:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           # Sonnet, not Opus — diff-scoped SAST doesn't need Opus, and this keeps
           # any future API-key fallback cheap. v1 takes model via claude_args.
-          claude_args: "--model claude-sonnet-4-6 --max-turns 15"
+          # FINDING-32 (live-e2e 2026-06-14): --max-turns 15 was too tight — the
+          # multi-pass review (read diff → read surrounding code → form findings
+          # → re-verify each → post) exhausted the budget on a multi-file PR, and
+          # the action treats turn-exhaustion as exit 1, hard-failing the GATE on
+          # a non-finding. Raise to 40 so the agent can finish; still bounded so a
+          # runaway can't burn unbounded subscription turns.
+          claude_args: "--model claude-sonnet-4-6 --max-turns 40"
           prompt: |
             You are the security agent (.claude/agents/quality/security.md).
             Perform a security audit of THIS PULL REQUEST'S DIFF ONLY — do not
@@ -138,6 +144,6 @@ jobs:
       - name: Dependency review (advisory where Dependency Graph/GHAS is off; T-144)
         if: github.event_name == 'pull_request'
         continue-on-error: true
-        uses: actions/dependency-review-action@v5
+        uses: actions/dependency-review-action@v4
         with:
           fail-on-severity: high
