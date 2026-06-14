@@ -29,7 +29,7 @@ jobs:
         # Trim per project: keep only the languages actually present.
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
 
       - name: Detect language presence
         id: detect
@@ -57,14 +57,14 @@ jobs:
 
       - name: Initialize CodeQL
         if: steps.detect.outputs.present == 'true'
-        uses: github/codeql-action/init@v4
+        uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}
           queries: security-extended
 
       - name: Autobuild
         if: steps.detect.outputs.present == 'true'
-        uses: github/codeql-action/autobuild@v4
+        uses: github/codeql-action/autobuild@v3
 
       # FINDING-27 (live-e2e 2026-06-13): analyze uploads results to GitHub Code
       # Scanning, which requires Code Security / GHAS. On a repo without it the
@@ -75,6 +75,6 @@ jobs:
       - name: Perform analysis (advisory — needs Code Security/GHAS)
         if: steps.detect.outputs.present == 'true'
         continue-on-error: true
-        uses: github/codeql-action/analyze@v4
+        uses: github/codeql-action/analyze@v3
         with:
           category: "/language:${{ matrix.language }}"

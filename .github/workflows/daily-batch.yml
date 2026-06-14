@@ -72,7 +72,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
       - name: Install osv-scanner CLI (pinned)
         env:
           OSV_VERSION: v2.3.8
@@ -85,18 +85,29 @@ jobs:
       - name: Scan lockfiles against OSV.dev (gates on exit code)
         run: |
           set -uo pipefail
-          # Exit codes: 0 = no vulns; 1 = vulns found (BLOCK); >1 = scan/infra
-          # error. Block on 1; treat a tool/infra error (network, parse) as an
-          # advisory warning so a transient failure can't false-block a merge.
+          # v2 syntax: the directory is the FINAL positional arg, AFTER flags
+          # (`scan source --recursive .`). An earlier `-r --no-ignore ./` made the
+          # walk start at "/" and report "No package sources found" — a scan of
+          # NOTHING that still looked green. Capture output so we can tell "clean"
+          # apart from "scanned nothing".
+          # Exit codes: 0 = no vulns; 1 = vulns found (BLOCK); 128 = no package
+          # sources found; other >1 = scan/infra error.
           set +e
-          osv-scanner scan source -r --no-ignore ./
+          out="$(osv-scanner scan source --recursive --verbosity=info . 2>&1)"
           rc=$?
           set -e
+          echo "$out"
           if [ "$rc" -eq 0 ]; then
-            echo "osv-scanner: no known vulnerabilities."
+            echo "osv-scanner: no known vulnerabilities in the scanned lockfiles."
           elif [ "$rc" -eq 1 ]; then
             echo "::error::osv-scanner found known vulnerabilities in committed dependencies. See log above; update the flagged packages."
             exit 1
+          elif echo "$out" | grep -qi 'No package sources found'; then
+            # The repo committed no lockfile (package-lock.json / requirements.txt
+            # / go.sum / Cargo.lock / ...). There is genuinely nothing to scan —
+            # NOT a clean bill of health. Pass the job (can't gate what isn't
+            # there) but make the absence LOUD so it can't masquerade as coverage.
+            echo "::warning::osv-scanner found NO package-source/lockfile to scan — dependency CVE coverage is effectively OFF for this repo. Commit a lockfile (e.g. package-lock.json) to enable it."
           else
             echo "::warning::osv-scanner exited $rc (scan/infra error, not a vuln verdict) — advisory this run. Re-run daily-batch to retry."
           fi
@@ -128,7 +139,7 @@ jobs:
           [ "$status" = "success" ] || exit 1
       - name: Upload result
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: daily-batch-result
           path: daily-batch-status.txt

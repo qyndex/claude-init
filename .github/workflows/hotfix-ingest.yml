@@ -37,7 +37,7 @@ jobs:
       UNLEASH_URL: ${{ vars.UNLEASH_URL }}
       UNLEASH_API_TOKEN: ${{ secrets.UNLEASH_API_TOKEN }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 

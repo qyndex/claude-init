@@ -43,6 +43,7 @@ jobs:
           fi
 
       - name: Archive completed specs
+        id: archive
         env:
           QUARTER: ${{ steps.quarter.outputs.label }}
         run: |
@@ -82,9 +83,9 @@ jobs:
           echo "moved=$moved" >> "$GITHUB_OUTPUT"
 
       - name: Open PR with archived specs
-        if: steps.quarter.outputs.label != '' && env.moved != '0'
+        if: steps.quarter.outputs.label != '' && steps.archive.outputs.moved != '0'
         env:
-          moved: ${{ steps.quarterly-archive.outputs.moved || '0' }}
+          moved: ${{ steps.archive.outputs.moved || '0' }}
           QUARTER: ${{ steps.quarter.outputs.label }}
           GH_TOKEN: ${{ github.token }}
         run: |

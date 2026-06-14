@@ -41,6 +41,7 @@ jobs:
             case "$glob" in ''|'#'*) continue ;; esac
             # shell-glob match each changed path against the pattern
             while IFS= read -r f; do
+              # shellcheck disable=SC2254 # JUSTIFIED: $glob MUST expand as a glob pattern here — that is the match mechanism (adr-surface patterns vs changed paths); quoting would force literal matching and break the gate. ISSUE: #2
               case "$f" in
                 $glob) touched_arch="$touched_arch $f" ;;
               esac
