@@ -26,7 +26,7 @@ jobs:
       RUN_URL: ${{ github.event.workflow_run.html_url }}
       HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
         with:
           ref: ${{ env.HEAD_SHA }}
           fetch-depth: 0
