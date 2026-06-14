@@ -30,7 +30,12 @@ concurrency:
 
 jobs:
   review:
-    if: github.event.pull_request.draft == false
+    # Skip drafts + Dependabot PRs (T-155): dependabot-triggered runs don't get
+    # regular org/repo Actions secrets, so the Anthropic credential is absent and
+    # this gating job could only hard-fail. Dependency-only PRs change no app
+    # code (semgrep/codeql/dependency-review still cover them). A skipped
+    # required check counts as passing, unblocking the PR.
+    if: github.event.pull_request.draft == false && github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
