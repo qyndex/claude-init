@@ -87,4 +87,10 @@ Paste before `## Spec 003 critical path`. tasks/TASKS.md is constitution-class.
   files: .github/workflows/claude-security.yml, .github/workflows/claude.yml, .github/workflows/daily-failure-autofix.yml, .github/workflows/daily-stale-deps.yml, .github/workflows/hotfix-ingest.yml
   accept: for f in claude-security claude daily-failure-autofix daily-stale-deps hotfix-ingest; do grep -q 'CLAUDE_CODE_OAUTH_TOKEN' ".github/workflows/$f.yml" || exit 1; done; ! grep -qE '^\s*uses:.*claude-code-security-review' .github/workflows/claude-security.yml
   owner: implementer
+
+- [ ] T-154  | spec:004  | phase:7  | priority: medium  | created: 2026-06-13  | last_touched: 2026-06-13  | deps: T-151  | parallel: yes  | est: 5m
+  summary: FINDING-29 (live-e2e 2026-06-13, SANDBOX-APP finding, not a harness defect) — the osv-scanner CLI gate (T-151) ran correctly against the harness-e2e-sandbox TODO app but emitted "No package sources found" and the workflow's "::warning:: dependency CVE coverage is effectively OFF — commit a lockfile" branch, because the sandbox app declares deps (Express 5) yet commits NO lockfile (no package-lock.json / npm-shrinkwrap.json / yarn.lock / pnpm-lock.yaml). With no lockfile, osv-scanner (and any SCA tool) has zero input — dependency CVE scanning silently covers nothing. This is the kind of gap the harness should make impossible to ship unnoticed: the daily-batch warning surfaces it now (good), but the greenfield setup path should also REQUIRE a committed lockfile for any project declaring runtime deps. FIX (sandbox side): run `npm install` and commit package-lock.json so osv has lockfiles to scan; re-dispatch daily-batch and confirm osv-scanner reports a real package count (not "No package sources"). FIX (harness side, optional follow-up): add a setup.sh / harness-doctor.sh check that warns when package.json has dependencies but no lockfile is committed.
+  files: (sandbox) package-lock.json
+  accept: test -f package-lock.json || test -f npm-shrinkwrap.json || test -f yarn.lock || test -f pnpm-lock.yaml
+  owner: implementer
 ```
