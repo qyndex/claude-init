@@ -111,6 +111,6 @@ Paste before `## Spec 003 critical path`. tasks/TASKS.md is constitution-class.
 - [ ] T-157  | spec:004  | phase:7  | priority: high  | created: 2026-06-14  | last_touched: 2026-06-14  | deps: T-153  | parallel: yes  | est: 5m
   summary: FINDING-32 (live-e2e 2026-06-14) — the GATING security-review (claude-security.yml) hard-failed on PR #10 with "Execution failed: Reached maximum number of turns (15)". The OAuth credential resolved fine and the agent ran, but `--max-turns 15` was too tight for the prescribed multi-pass review (read diff → read surrounding code for each hunk → form severity-tagged findings → re-verify EACH finding by re-reading → post inline comments) on a multi-file PR — and claude-code-action treats turn-exhaustion as exit 1, so a NON-finding (the agent simply ran out of budget) hard-blocks the merge gate. FIX: raise to --max-turns 40 (claude-review.yml has no cap and passed; pr-review.yml uses 20). Still bounded so a runaway can't burn unbounded subscription turns. Verified live: security-review re-run on PR #10 completed within budget and posted its re-verification marker.
   files: .github/workflows/claude-security.yml
-  accept: grep -qE 'max-turns 40' .github/workflows/claude-security.yml && ! grep -qE 'max-turns 15' .github/workflows/claude-security.yml
+  accept: grep -qE 'claude_args:.*--max-turns 40' .github/workflows/claude-security.yml && ! grep -qE 'claude_args:.*--max-turns 15' .github/workflows/claude-security.yml
   owner: implementer
 ```
