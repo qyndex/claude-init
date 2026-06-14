@@ -403,6 +403,7 @@ step "Anthropic credential preflight (e2e-audit ci-gates-4)"
 # Either secret satisfies the gate: CLAUDE_CODE_OAUTH_TOKEN (Pro/Max
 # subscription via 'claude setup-token') or ANTHROPIC_API_KEY (metered API).
 if command -v gh >/dev/null 2>&1 && gh auth status >/dev/null 2>&1 && git config --get remote.origin.url >/dev/null 2>&1; then
+  # JUSTIFIED: gh-list failure (no auth/remote) yields an empty list — the grep branches below then fall through to the "no credential" warn, which is the correct outcome, not a crash
   secrets_list="$(gh secret list 2>/dev/null || true)"
   if echo "$secrets_list" | grep -qE '^CLAUDE_CODE_OAUTH_TOKEN'; then
     ok "Anthropic credential: CLAUDE_CODE_OAUTH_TOKEN present (subscription — no metered spend)"

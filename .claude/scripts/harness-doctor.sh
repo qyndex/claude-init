@@ -367,6 +367,7 @@ printf ']\n' >> "$result_file"
 if [ "$JSON_MODE" -eq 1 ]; then
   cat "$result_file"
 else
+  # JUSTIFIED: jq over the result file — a missing/unparseable file yields count 0, which the >0 gate below treats as "no failures recorded"; the 2>/dev/null hides only the jq parse noise
   fail_count=$(jq '[.[] | select(.status=="fail")] | length' "$result_file" 2>/dev/null || echo 0)
   total=$(jq 'length' "$result_file" 2>/dev/null || echo 0)
   printf '\n%s check(s), %s failure(s)\n' "$total" "$fail_count"
