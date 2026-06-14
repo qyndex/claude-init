@@ -1,0 +1,6 @@
+# T-154 GREEN — accept run against the corrected osv invocation (this PR's daily-batch.yml)
+# accept: grep -q 'osv-scanner scan source' daily-batch.yml && grep -q 'No package sources found' daily-batch.yml
+$ grep -q 'osv-scanner scan source' .github/workflows/daily-batch.yml && grep -q 'No package sources found' .github/workflows/daily-batch.yml; echo exit=$?
+exit=0
+# GREEN confirmed: corrected file has 'scan source --recursive .' AND the 'No package sources found' no-lockfile warning branch — accept PASSES (exit=0)
+# Live proof: osv-scanner v2.3.8 CLI scanned 265 packages on harness-e2e-sandbox (real lockfile); claude-init has no app stack so emits the no-lockfile advisory warning.

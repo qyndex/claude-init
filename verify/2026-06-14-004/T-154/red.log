@@ -1,0 +1,5 @@
+# T-154 RED — accept run against the buggy osv invocation (origin/main before this PR)
+# accept: grep -q 'osv-scanner scan source' daily-batch.yml && grep -q 'No package sources found' daily-batch.yml
+$ grep -q 'osv-scanner scan source' /tmp/t154-old.yml && grep -q 'No package sources found' /tmp/t154-old.yml; echo exit=$?
+exit=1
+# RED confirmed: old file has 'scan source' but NOT the 'No package sources found' no-lockfile branch — accept FAILS (exit=1)
