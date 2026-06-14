@@ -23,7 +23,7 @@ jobs:
     outputs:
       stacks: ${{ steps.scan.outputs.stacks }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - id: scan
         run: |
           stacks=$(bash .claude/scripts/detect-stacks.sh | jq -c '.stacks')
@@ -42,7 +42,7 @@ jobs:
       matrix:
         stack: ${{ fromJson(needs.detect.outputs.stacks) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Mutation test changed critical files

@@ -49,7 +49,7 @@ jobs:
   api-perf:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - id: detect
         run: |
           if [ -f pyproject.toml ] || [ -f go.mod ]; then echo "exists=1" >> "$GITHUB_OUTPUT"; else echo "exists=0" >> "$GITHUB_OUTPUT"; echo "no pyproject.toml/go.mod — skipping api perf"; fi
