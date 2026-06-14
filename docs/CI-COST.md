@@ -116,3 +116,13 @@ After Batch B:
 - A failing PR ships against unchecked code IF the developer skips the local pre-push hook AND the change introduces a new issue that didn't exist at 8am. Merge-gate blocks merge if daily-batch is failing, but doesn't catch "fresh damage" between 8am and now.
 - Mitigation: keep `merge-gate` failure-mode hard (block, don't warn). The autofix loop closes within ~1 hour usually.
 - `e2e-preview` still per-PR-trigger via manual `gh workflow run`; deploy-status-driven workflows (lighthouse on deployment) still fire as needed.
+
+## Live-E2E learnings (2026-06, spec 004)
+
+Findings from running the harness end-to-end against a private Team-plan repo with a real app. Each is fixed in the workflows; recorded here so future repos aren't surprised.
+
+- **Dependabot PRs don't get your Actions secrets.** GitHub runs dependabot-triggered workflows in a restricted context that withholds regular org/repo Actions secrets (only the separate *Dependabot secrets* scope is exposed). A gating LLM check (`claude-security`/`claude-review`) therefore reads `HAS_TOKEN=false` and hard-fails on every Dependabot PR. The harness skips those jobs on `github.actor == 'dependabot[bot]'` — dependency-only PRs change no app code, so semgrep/codeql/dependency-review still gate them (T-155).
+- **GHAS-gated uploads degrade, they don't block.** Code Scanning (SARIF upload) needs GitHub Advanced Security, unavailable on private Team-plan repos. semgrep/codeql make the *upload* advisory (the jq/analysis stays the gate); osv-scanner runs as a **CLI** gating on its exit code instead of the reusable workflow's SARIF upload (T-151).
+- **A workflow that edits an OIDC review workflow can't pass its own review.** `claude-code-action`'s OIDC app-token exchange requires the workflow file to match the default branch, so a PR editing `claude-security.yml` always fails its own `security-review` ("Workflow validation failed… this is normal"). Merge it; the next PR validates clean.
+- **Scanners are silent until there's something to scan.** license-check (exclude the project's own `name@version`, not the bare name), perf-budget (gate on a `build` script, not just `package.json`), and osv-scanner (needs a committed lockfile) all looked green on an empty repo and only exercised real logic once the app landed. Test gates against a repo that actually has the artifact (T-156).
+- **Bound the review turn budget, but not too tight.** `--max-turns 15` exhausted the security agent's multi-pass review and hard-failed the gate on a non-finding; 40 lets it finish while still capping runaway spend (T-157).
