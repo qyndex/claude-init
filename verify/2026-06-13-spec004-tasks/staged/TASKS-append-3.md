@@ -93,4 +93,10 @@ Paste before `## Spec 003 critical path`. tasks/TASKS.md is constitution-class.
   files: (sandbox) package-lock.json
   accept: test -f package-lock.json || test -f npm-shrinkwrap.json || test -f yarn.lock || test -f pnpm-lock.yaml
   owner: implementer
+
+- [ ] T-155  | spec:004  | phase:7  | priority: high  | created: 2026-06-14  | last_touched: 2026-06-14  | deps: T-153  | parallel: yes  | est: 10m
+  summary: FINDING-30 (live-e2e 2026-06-14) — the GATING claude-security.yml + claude-review.yml can NEVER pass on a Dependabot PR. GitHub runs dependabot-triggered workflows in a RESTRICTED context that does not receive regular Actions secrets (org OR repo) — only secrets placed in the separate "Dependabot secrets" scope are exposed. So on PR #6 (dependabot) the preflight read HAS_KEY=false AND HAS_TOKEN=false despite a valid org-level CLAUDE_CODE_OAUTH_TOKEN, and the gating security review hard-failed (exit 1). Any required LLM-credentialed check thus blocks every Dependabot PR forever. FIX options (pick per-repo): (a) set the credential ALSO as a Dependabot secret: `gh secret set CLAUDE_CODE_OAUTH_TOKEN --app dependabot` (org or repo) — simplest, keeps the gate; (b) gate claude-security/claude-review on `if: github.actor != 'dependabot[bot]'` so dependency-only PRs skip the LLM scan (they change no app code — semgrep/codeql/dependency-review still cover them), and document that the gate is N/A for dependabot PRs in the ruleset; (c) move LLM review to a pull_request_target-based workflow with explicit, audited checkout (higher risk — NOT recommended). RECOMMEND (a)+(b): set the dependabot secret AND skip the LLM agent on pure-dependabot PRs. Update setup.sh/harness-doctor to also check for the dependabot-scoped secret, and docs/ISSUE-LIFECYCLE or a CI-COST note to record the dependabot secret-scoping gotcha.
+  files: .github/workflows/claude-security.yml, .github/workflows/claude-review.yml, .claude/scripts/setup.sh, .claude/scripts/harness-doctor.sh
+  accept: grep -qE "github.actor.*dependabot|dependabot.*secret" .github/workflows/claude-security.yml || grep -qiE 'dependabot.*secret' docs/CI-COST.md
+  owner: implementer
 ```
