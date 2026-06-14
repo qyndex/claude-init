@@ -21,11 +21,11 @@ jobs:
   bundle-budget:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
       - id: detect
         run: |
           if [ -f package.json ]; then echo "exists=1" >> "$GITHUB_OUTPUT"; else echo "exists=0" >> "$GITHUB_OUTPUT"; echo "no package.json — skipping bundle budget"; fi
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v4
         if: steps.detect.outputs.exists == '1'
         with: { node-version-file: 'package.json' }
       - if: steps.detect.outputs.exists == '1'
