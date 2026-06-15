@@ -55,7 +55,13 @@ if [ "${TEMPLATE_CLEAN:-1}" = "1" ] && ! printf '%s' "$origin_url" | grep -q "cl
   if [ -f tasks/TASKS.md ] && grep -qE '^- \[.\] T-[0-9]+.*spec:00[1-3]' tasks/TASKS.md; then
     mkdir -p "$hist"
     cp tasks/TASKS.md "$hist/TASKS.factory.md"
+    # Strip factory task lines referencing the archived specs 001-003 ANYWHERE
+    # in the file (not just under ## Active). Some factory task rows (e.g. the
+    # spec-003 phase-9 tasks) sit ABOVE ## Active; leaving them dangles a
+    # spec:00[1-3] ref after the spec file is moved to factory-history, which
+    # trips validate.sh's artifacts gate on the fresh repo.
     awk '
+      /^- \[.\] T-[0-9]+.*spec:00[1-3]([^0-9]|$)/ {next}
       /^## Active$/ {print; print ""; print "<!-- queue cleaned by setup.sh template-clean — factory tasks archived in docs/factory-history/ -->"; act=1; next}
       act && /^## / {print ""; print; next}
       act {next}

@@ -60,8 +60,16 @@ ts="$(date +%Y%m%d-%H%M%S)"
 # .brownfield-backup/<ts>/.brownfield-backup/<ts>/… ad nauseam). Sibling dir is safe.
 BK=".brownfield-backup/$ts"
 REPORT="ADOPTION-REPORT.md"
-# Factory owns PROCESS. These dirs/files are overwritten (after backup).
-FACTORY_DIRS="agents skills commands hooks scripts routines statuslines output-styles"
+# Factory owns PROCESS. These dirs are overwritten (after backup) — the harness
+# is the sole author of agents/skills/scripts/routines/statuslines/output-styles,
+# so a same-named file is a stale factory copy, not the project's own work.
+FACTORY_DIRS="agents skills scripts routines statuslines output-styles"
+# commands + hooks are MIXED: the factory ships some, but a brownfield repo
+# legitimately authors its own (e.g. /deploy, pre-push-security.sh). Copy these
+# NO-CLOBBER so the project's same-named file is PRESERVED, and report the
+# collision as an [OQ] for human resolution — never silently overwrite custom
+# automation (the previous cp -R clobbered them).
+MERGE_DIRS="commands hooks"
 FACTORY_FILES="CLAUDE.md settings.json"
 
 run() { [ "$DRY" = 1 ] && echo "[dry-run] $*" || eval "$*"; }
@@ -125,6 +133,24 @@ for d in $FACTORY_DIRS; do
   run "mkdir -p '.claude/$d'"
   run "cp -R '$FROM/.claude/$d/.' '.claude/$d/'"
   manifest overwritten ".claude/$d/"
+done
+# Mixed dirs (commands/hooks): NO-CLOBBER — preserve the project's own files,
+# add the factory's, and record any same-name collision as an [OQ].
+merge_collisions=""
+for d in $MERGE_DIRS; do
+  [ -d "$FROM/.claude/$d" ] || continue
+  run "mkdir -p '.claude/$d'"
+  # Detect collisions BEFORE the no-clobber copy (cp -Rn would silently keep theirs).
+  if [ -d ".claude/$d" ]; then
+    for src in "$FROM/.claude/$d/"*; do
+      [ -e "$src" ] || continue
+      base="$(basename "$src")"
+      [ -e ".claude/$d/$base" ] && merge_collisions="$merge_collisions .claude/$d/$base"
+    done
+  fi
+  # JUSTIFIED: cp -n exits non-zero when it skips a colliding file (that is the no-clobber WIN, not an error) — the collision is already captured in merge_collisions above and reported as an [OQ]; swallow so the reconcile doesn't abort on the very behavior we want
+  run "cp -Rn '$FROM/.claude/$d/.' '.claude/$d/' 2>/dev/null || true"
+  manifest added ".claude/$d/ (no-clobber)"
 done
 for f in $FACTORY_FILES; do
   [ -f "$FROM/.claude/$f" ] && { run "cp '$FROM/.claude/$f' '.claude/$f'"; manifest overwritten ".claude/$f"; }
@@ -218,8 +244,11 @@ if [ "$DRY" = 0 ]; then
     echo
     echo "## Existing \`.claude/\` collision map (reconcile $ts)"
     echo "- Backup of your original \`.claude/\`: \`$BK\` (gitignored). MANIFEST.txt lists every created/overwritten path; undo with \`bash .claude/scripts/reconcile-claude-dir.sh --revert $ts\`."
-    echo "- **Preserved, never overwritten:** \`settings.local.json\`, \`.claude/state/\`, \`.claude/memory/\`, existing \`.claude/rules/*\`, \`conventions.yml\`, your secrets."
-    echo "- **Factory now governs (overwritten, backed up):** agents, skills, commands, hooks, scripts, routines, statuslines, output-styles, CLAUDE.md, settings.json."
+    echo "- **Preserved, never overwritten:** \`settings.local.json\`, \`.claude/state/\`, \`.claude/memory/\`, existing \`.claude/rules/*\`, \`conventions.yml\`, your secrets, **and your own \`.claude/commands/*\` + \`.claude/hooks/*\` (no-clobber — factory adds alongside, never replaces)**."
+    echo "- **Factory now governs (overwritten, backed up):** agents, skills, scripts, routines, statuslines, output-styles, CLAUDE.md, settings.json."
+    [ -n "${merge_collisions# }" ] && {
+      echo "- [OQ] **Command/hook name collision** — these factory files were NOT installed because your repo already has a file of the same name (yours kept):${merge_collisions}. Decide per file: keep yours, adopt the factory's (copy from \`$BK\`), or rename. The factory version sits in the backup."
+    }
     [ -n "$conflict_claude" ] && {
       echo "- Your original CLAUDE.md → \`.claude/CLAUDE.md.brownfield-orig\`. The factory CLAUDE.md (8-phase workflow, commit protocol, gates) governs process; **migrate your project conventions into \`AGENTS.md\`**."
       echo "- [OQ] Reconcile CLAUDE.md: review \`.brownfield-orig\` vs factory; decide per axis (factory wins on process; your conventions → AGENTS.md). Resolve via /clarify."
