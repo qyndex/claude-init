@@ -152,6 +152,16 @@ bash .claude/scripts/reconcile-claude-dir.sh --from /tmp/claude-init --into .
 
 `setup.sh` auto-detects a non-factory `.claude/CLAUDE.md` (by checking for "Karpathy's Four Principles") and halts with instructions. Override: `FORCE_GREENFIELD=1 bash .claude/scripts/setup.sh`.
 
+**Upgrading an already-adopted repo to a newer factory:** re-run reconcile with `--upgrade`:
+
+```bash
+git -C /tmp/claude-init archive HEAD | tar -x -C /tmp/factory
+bash .claude/scripts/reconcile-claude-dir.sh --from /tmp/factory --into . --upgrade
+bash .claude/scripts/setup.sh
+```
+
+Default reconcile no-clobbers `commands/`/`hooks/`/`.github/` (adoption-safe) and so won't *update* factory files on a re-run. `--upgrade` refreshes **factory-owned** files (same name as a file the factory ships) to the new version — backed up to `.brownfield-backup/<ts>/` (`.claude/` + `.github/` + `docs/`), change reported — while preserving your own commands/hooks/workflows and never touching `specs/`/`plans/`/`tasks/` or application source. See [docs/ADOPTION.md](docs/ADOPTION.md#troubleshooting).
+
 ## MCP server model
 
 Three servers are `alwaysLoad: true` (filesystem, git, github). All others are **deferred via Tool Search** (`ENABLE_TOOL_SEARCH=true` in settings.json) — their schemas load on-demand to preserve context budget.

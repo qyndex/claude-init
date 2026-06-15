@@ -15,12 +15,18 @@
 #   reconcile-claude-dir.sh --revert <ts> [--into <repo-dir>]
 
 set -uo pipefail
-FROM=""; INTO="$(pwd)"; DRY=0; REVERT=""
+FROM=""; INTO="$(pwd)"; DRY=0; REVERT=""; UPGRADE=0
 while [ $# -gt 0 ]; do case "$1" in
   --from) FROM="${2:-}"; shift 2 ;;
   --into) INTO="${2:-}"; shift 2 ;;
   --revert) REVERT="${2:-}"; shift 2 ;;
   --dry-run) DRY=1; shift ;;
+  # --upgrade: re-reconcile an ALREADY-adopted repo onto a newer factory. In this
+  # mode a same-named file the factory ALSO ships is treated as factory-owned and
+  # UPDATED to the new version (backed up first, collision reported), instead of the
+  # default adoption behavior that no-clobbers it. Files the factory does NOT ship
+  # (the project's own commands/hooks/workflows) are still preserved either way.
+  --upgrade) UPGRADE=1; shift ;;
   *) shift ;;
 esac; done
 
@@ -136,22 +142,39 @@ for d in $FACTORY_DIRS; do
 done
 # Mixed dirs (commands/hooks): NO-CLOBBER — preserve the project's own files,
 # add the factory's, and record any same-name collision as an [OQ].
-merge_collisions=""
+merge_collisions=""; merge_updated=""
 for d in $MERGE_DIRS; do
   [ -d "$FROM/.claude/$d" ] || continue
   run "mkdir -p '.claude/$d'"
-  # Detect collisions BEFORE the no-clobber copy (cp -Rn would silently keep theirs).
+  # Detect collisions BEFORE copying (cp -Rn would silently keep theirs). Recurse with
+  # find — MERGE_DIRS have subdirs (commands/swarm/*), so a top-level glob misses them.
   if [ -d ".claude/$d" ]; then
-    for src in "$FROM/.claude/$d/"*; do
-      [ -e "$src" ] || continue
-      base="$(basename "$src")"
-      [ -e ".claude/$d/$base" ] && merge_collisions="$merge_collisions .claude/$d/$base"
-    done
+    while IFS= read -r rel; do
+      rel="${rel#./}"
+      src="$FROM/.claude/$d/$rel"
+      [ -e ".claude/$d/$rel" ] || continue
+      # Only a DIFFERING same-name file is interesting (identical = nothing to do).
+      cmp -s "$src" ".claude/$d/$rel" && continue
+      if [ "$UPGRADE" = 1 ]; then
+        # Factory ships this name → factory-owned → UPDATE it (already backed up to $BK).
+        run "cp '$src' '.claude/$d/$rel'"
+        merge_updated="$merge_updated .claude/$d/$rel"
+      else
+        merge_collisions="$merge_collisions .claude/$d/$rel"
+      fi
+    done < <(cd "$FROM/.claude/$d" && find . -type f 2>/dev/null)
   fi
-  # JUSTIFIED: cp -n exits non-zero when it skips a colliding file (that is the no-clobber WIN, not an error) — the collision is already captured in merge_collisions above and reported as an [OQ]; swallow so the reconcile doesn't abort on the very behavior we want
+  # NO-CLOBBER pass: adds the factory's NEW files; in upgrade mode the differing
+  # factory-owned files were already overwritten above, and the project's OWN files
+  # (names the factory doesn't ship) are untouched by both passes.
+  # JUSTIFIED: cp -n exits non-zero when it skips a colliding file (the no-clobber WIN, not an error) — collisions are captured above and reported; swallow so reconcile doesn't abort on the very behavior we want
   run "cp -Rn '$FROM/.claude/$d/.' '.claude/$d/' 2>/dev/null || true"
-  manifest added ".claude/$d/ (no-clobber)"
+  manifest added ".claude/$d/ (no-clobber$([ "$UPGRADE" = 1 ] && echo '; factory files updated'))"
 done
+if [ "$UPGRADE" = 1 ] && [ -n "${merge_updated# }" ]; then
+  # shellcheck disable=SC2086
+  echo "  .claude commands/hooks: $(set -- $merge_updated; echo $#) factory file(s) updated (backed up to $BK)"
+fi
 for f in $FACTORY_FILES; do
   [ -f "$FROM/.claude/$f" ] && { run "cp '$FROM/.claude/$f' '.claude/$f'"; manifest overwritten ".claude/$f"; }
 done
@@ -181,6 +204,24 @@ for d in $SCAFFOLD_DIRS; do
   # -n = no-clobber: copies factory templates/scaffold without touching the repo's own files.
   run "cp -Rn '$FROM/$d/.' '$d/' 2>/dev/null || true"
 done
+# Upgrade mode: refresh factory-OWNED docs (the harness ships docs/AUTOPILOT.md,
+# ARCHITECTURE.md, PLAYBOOK.md, …). The no-clobber scaffold pass above leaves them
+# on their stale version; a docs file the factory ships is factory-owned, so update
+# it. Project-authored docs (names the factory doesn't ship) are untouched. specs/
+# plans/tasks/initiatives are NEVER refreshed — those are the project's own content.
+docs_updated=0
+if [ "$UPGRADE" = 1 ] && [ -d "$FROM/docs" ]; then
+  while IFS= read -r f; do
+    f="${f#./}"
+    if [ -e "docs/$f" ] && ! cmp -s "$FROM/docs/$f" "docs/$f"; then
+      run "mkdir -p '$BK/docs/$(dirname "$f")'"
+      run "cp 'docs/$f' '$BK/docs/$f' 2>/dev/null || true"
+      run "cp '$FROM/docs/$f' 'docs/$f'"
+      docs_updated=$((docs_updated + 1))
+    fi
+  done < <(cd "$FROM/docs" && find . -type f 2>/dev/null)
+  [ "$docs_updated" -gt 0 ] && echo "  docs: $docs_updated factory doc(s) updated (backed up to $BK/docs/)"
+fi
 # .gitignore: append factory entries the repo lacks rather than overwriting (setup.sh also
 # does this idempotently, but doing it here keeps a reconcile-only run consistent).
 if [ -f "$FROM/.gitignore" ] && [ ! -e .gitignore ]; then
@@ -198,12 +239,26 @@ if [ -d "$FROM/.github" ]; then
   # JUSTIFIED: ls probe — no pre-existing workflows is the common case and yields an empty inventory
   preexisting_ci="$(ls .github/workflows/*.yml .github/workflows/*.yaml 2>/dev/null | tr '\n' ' ' || true)"
   run "mkdir -p .github"
+  # Upgrade mode overwrites factory-owned .github files — back the existing tree up first
+  # (the default .claude/ backup at $BK does not cover .github/). Reversible via $BK.
+  if [ "$UPGRADE" = 1 ] && [ -d .github ]; then
+    run "mkdir -p '$BK/.github'"
+    # JUSTIFIED: cosmetic per-entry copy gripes (odd perms) must not abort upgrade; regular files are still backed up, preserving reversibility
+    run "cp -R .github/. '$BK/.github/' 2>/dev/null || true"
+  fi
+  gh_updated=0
   while IFS= read -r f; do
     f="${f#./}"
     if [ -e ".github/$f" ]; then
       if ! cmp -s "$FROM/.github/$f" ".github/$f"; then
-        gh_collisions="${gh_collisions}  - \`.github/$f\` — exists in both and DIFFERS; the repo's version was kept.
+        if [ "$UPGRADE" = 1 ]; then
+          # Factory ships this workflow/action → factory-owned → UPDATE (backed up to $BK below).
+          run "cp '$FROM/.github/$f' '.github/$f'"
+          gh_updated=$((gh_updated + 1))
+        else
+          gh_collisions="${gh_collisions}  - \`.github/$f\` — exists in both and DIFFERS; the repo's version was kept.
 "
+        fi
       fi
     else
       manifest created ".github/$f"
@@ -211,7 +266,7 @@ if [ -d "$FROM/.github" ]; then
     fi
   done < <(cd "$FROM/.github" && find . -type f 2>/dev/null)
   run "cp -Rn '$FROM/.github/.' '.github/' 2>/dev/null || true"
-  echo "  .github: $gh_created factory file(s) added (no-clobber)$([ -n "$gh_collisions" ] && echo '; collisions → [OQ]')"
+  echo "  .github: $gh_created factory file(s) added (no-clobber)$([ "$UPGRADE" = 1 ] && [ "$gh_updated" -gt 0 ] && echo "; $gh_updated factory file(s) updated")$([ -n "$gh_collisions" ] && echo '; collisions → [OQ]')"
 fi
 # Git-hook managers that can collide with the factory commit protocol (husky/lefthook/
 # pre-commit rejecting `WIP:` subjects + pre-bash-guard blocking --no-verify = deadlock).
