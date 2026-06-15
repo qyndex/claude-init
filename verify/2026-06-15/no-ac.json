@@ -1,0 +1,6 @@
+{
+  "kind": "harness-maintenance",
+  "reason": "Commits accumulated harness-generated state (memory.proposed/ ADRs+incidents+rollups, spec-004 STATE.md). Touches only .claude/ + initiatives/ — no app source, no spec-backed AC.",
+  "maintains": [".claude/memory.proposed/", "initiatives/active/spec-004-ci-gates-fail-own-code.STATE.md"],
+  "date": "2026-06-15"
+}
