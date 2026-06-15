@@ -142,10 +142,12 @@ When adopting an existing project (not greenfield setup):
 ```bash
 # From the target repo root
 git clone https://github.com/<org>/claude-init /tmp/claude-init
-git -C /tmp/claude-init archive HEAD | tar -x -C .   # git-aware: tracked files only — cp -r leaks gitignored runtime state + settings.local.json
+# Stage the factory OUTSIDE the repo, then let reconcile copy SELECTIVELY. Do NOT
+# `tar -x -C .` straight into the repo root — the factory ships its own README.md +
+# CLAUDE.md, and a direct overlay silently clobbers the project's with no backup.
+mkdir -p /tmp/factory && git -C /tmp/claude-init archive HEAD | tar -x -C /tmp/factory
+bash .claude/scripts/reconcile-claude-dir.sh --from /tmp/factory --into .   # selective + backs up any root file it must overwrite
 bash .claude/scripts/setup.sh
-# If .claude/CLAUDE.md already exists and isn't factory-format:
-bash .claude/scripts/reconcile-claude-dir.sh --from /tmp/claude-init --into .
 # Then run the six-phase adoption guide:
 /adopt start    # see docs/ADOPTION.md
 ```

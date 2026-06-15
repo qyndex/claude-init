@@ -198,6 +198,14 @@ SCAFFOLD_FILES=".mcp.json OKRs.md roadmap.md slo.yml"
 # NOT included: .gitleaks.toml + release-please-* — those activate secret-scan /
 # release-automation policy the adopting project must opt into deliberately.
 ROOT_CONFIG_FILES="commitlint.config.mjs codecov.yml .shellcheckrc .editorconfig"
+# F5 (qynise-reverify 2026-06-15): the factory ships its own README.md + root
+# CLAUDE.md. These are PROJECT-OWNED in a brownfield repo — the factory copies are
+# templates/dev-guide for the factory itself. NEVER overwrite them (not on adopt,
+# not on --upgrade): copy only when ABSENT, and if one somehow already exists when
+# we'd create it, back it up first so the action stays reversible. This is the
+# selective guard that makes the staged-factory flow (docs: tar -x -C /tmp/factory)
+# safe even if someone re-points --from at a tree that overlays root.
+ROOT_OWNED_FILES="README.md CLAUDE.md"
 SCAFFOLD_DIRS="specs plans tasks docs initiatives .swarms"
 for f in $SCAFFOLD_FILES; do
   [ -f "$FROM/$f" ] && [ ! -e "$f" ] && { run "cp '$FROM/$f' '$f'"; manifest created "$f"; }
@@ -211,6 +219,17 @@ for f in $ROOT_CONFIG_FILES; do
     # JUSTIFIED: cosmetic per-entry copy gripe must not abort the upgrade; the config is still backed up before the overwrite below, preserving reversibility
     run "mkdir -p '$BK'"; run "cp '$f' '$BK/$f' 2>/dev/null || true"
     run "cp '$FROM/$f' '$f'"; manifest overwritten "$f"
+  fi
+done
+# Project-owned root files (F5): copy ONLY when absent; if present, leave the
+# project's untouched and back up before any (defensive) create so nothing is ever
+# lost silently. Never overwrite on --upgrade — these belong to the project.
+for f in $ROOT_OWNED_FILES; do
+  [ -f "$FROM/$f" ] || continue
+  if [ ! -e "$f" ]; then
+    run "cp '$FROM/$f' '$f'"; manifest created "$f"
+  else
+    manifest added "$f (project-owned — left untouched; factory copy not applied)"
   fi
 done
 # Factory dev artifacts that must NOT leak into an adopted repo's live set: the
