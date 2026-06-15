@@ -545,15 +545,18 @@ for kind in specs plans; do
   for f in "$kind"/active/*.md; do
     [ -f "$f" ] || continue
     base=$(basename "$f" .md)
-    file_id="${base%%-*}"
     if [ "$(head -1 "$f")" != "---" ]; then
       fail "$f: no leading frontmatter block"
       artifact_bad=$((artifact_bad+1)); continue
     fi
     fm_id=$(fm_field "$f" id)
     fm_status=$(fm_field "$f" status)
-    if [ "$fm_id" != "$file_id" ]; then
-      fail "$f: frontmatter id '$fm_id' != filename prefix '$file_id'"
+    # The filename must START with the frontmatter id followed by '-'. This accepts
+    # BOTH the single-token scheme (001-todo-app → id 001) and multi-token ids
+    # (R-052-gdpr → id R-052). A naive cut at the first '-' (${base%%-*}) wrongly
+    # rejected real PREFIX-NNN id schemes (e.g. an R-NNN spec corpus, 173 false fails).
+    if [ "$base" != "$fm_id" ] && [ "${base#"$fm_id"-}" = "$base" ]; then
+      fail "$f: frontmatter id '$fm_id' is not the filename prefix (expected filename to start '$fm_id-')"
       artifact_bad=$((artifact_bad+1))
     fi
     if ! printf '%s' "$fm_status" | grep -qE "^($enum)$"; then

@@ -1,0 +1,5 @@
+--- GREEN proof (patched logic) ---
+PASS: R-052-gdpr accepts id R-052
+PASS: 001-todo accepts id 001
+PASS: R-052-gdpr rejects wrong id R-053
+PASS: R-1-x rejects R-12 (substring guard)
