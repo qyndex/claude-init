@@ -1,0 +1,4 @@
+RED — before the fix (real qynise upgrade this session):
+  - commitlint.yml shipped but commitlint.config.mjs NOT copied → commitlint [empty-rules] fail
+  - factory dev specs/plans 001-003 re-added by SCAFFOLD no-clobber after setup.sh archived them
+    → "specs: duplicate ids 001 002 003" validate fail + 3 stale factory specs in active

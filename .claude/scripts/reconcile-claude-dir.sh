@@ -189,20 +189,53 @@ done
 # Without this, a reconcile-only install leaves ~20 scaffold files missing (validate.sh
 # [scaffold]/[memory]/[swarm]/[mcp] failures).
 SCAFFOLD_FILES=".mcp.json OKRs.md roadmap.md slo.yml"
+# Repo-root config files the factory's CI gates require (commitlint.yml needs
+# commitlint.config.mjs, codecov.yml backs the coverage gate). The OLD reconcile
+# never copied these, so an adopted repo got the WORKFLOW but not its config →
+# commitlint failed [empty-rules]. Copy no-clobber on adopt; refresh on --upgrade.
+# NOT included: .gitleaks.toml + release-please-* — those activate secret-scan /
+# release-automation policy the adopting project must opt into deliberately.
+ROOT_CONFIG_FILES="commitlint.config.mjs codecov.yml"
 SCAFFOLD_DIRS="specs plans tasks docs initiatives .swarms"
 for f in $SCAFFOLD_FILES; do
   [ -f "$FROM/$f" ] && [ ! -e "$f" ] && { run "cp '$FROM/$f' '$f'"; manifest created "$f"; }
 done
+for f in $ROOT_CONFIG_FILES; do
+  [ -f "$FROM/$f" ] || continue
+  if [ ! -e "$f" ]; then
+    run "cp '$FROM/$f' '$f'"; manifest created "$f"
+  elif [ "$UPGRADE" = 1 ] && ! cmp -s "$FROM/$f" "$f"; then
+    # factory-owned config → refresh on upgrade (backed up to $BK)
+    # JUSTIFIED: cosmetic per-entry copy gripe must not abort the upgrade; the config is still backed up before the overwrite below, preserving reversibility
+    run "mkdir -p '$BK'"; run "cp '$f' '$BK/$f' 2>/dev/null || true"
+    run "cp '$FROM/$f' '$f'"; manifest overwritten "$f"
+  fi
+done
+# Factory dev artifacts that must NOT leak into an adopted repo's live set: the
+# harness ships specs/plans 001-003 + memory ADRs + initiative STATE files for its
+# OWN development. setup.sh template-clean archives them to docs/factory-history/,
+# but a no-clobber SCAFFOLD copy would RE-ADD them (they're absent post-clean, so
+# cp -Rn happily re-creates them) → duplicate-id + stale-spec validate failures in
+# the adopted repo. Skip them in the copy: an adopted repo authors its own 001+.
+factory_skip() {  # $1 = relative path under the scaffold dir $2
+  case "$2/$1" in
+    specs/active/00[1-3]-*.md|plans/active/00[1-3]-*.md|initiatives/active/*.STATE.md) return 0 ;;
+  esac
+  return 1
+}
 for d in $SCAFFOLD_DIRS; do
   [ -d "$FROM/$d" ] || continue
   run "mkdir -p '$d'"
-  # Record which files the no-clobber copy will CREATE — --revert deletes exactly these.
   while IFS= read -r f; do
     f="${f#./}"
-    [ -e "$d/$f" ] || manifest created "$d/$f"
+    factory_skip "$f" "$d" && continue
+    # Copy each non-skipped factory file individually, no-clobber, recording creates.
+    if [ ! -e "$d/$f" ]; then
+      run "mkdir -p '$d/$(dirname "$f")'"
+      run "cp '$FROM/$d/$f' '$d/$f'"
+      manifest created "$d/$f"
+    fi
   done < <(cd "$FROM/$d" && find . -type f 2>/dev/null)
-  # -n = no-clobber: copies factory templates/scaffold without touching the repo's own files.
-  run "cp -Rn '$FROM/$d/.' '$d/' 2>/dev/null || true"
 done
 # Upgrade mode: refresh factory-OWNED docs (the harness ships docs/AUTOPILOT.md,
 # ARCHITECTURE.md, PLAYBOOK.md, …). The no-clobber scaffold pass above leaves them

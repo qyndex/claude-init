@@ -1,0 +1,5 @@
+GREEN — reconcile 3-gap fix (tested vs qynise 021a3632 --upgrade, 2026-06-15)
+  G-A root configs: commitlint.config.mjs + codecov.yml now land (adopt) / refresh (--upgrade)
+  G-B dev-spec leak: factory specs/plans 001-003 + initiative STATE files SKIPPED — 0 leaked
+  app code: 0 files modified by reconcile
+  33 commands/hooks + 9 docs refreshed; customs preserved
