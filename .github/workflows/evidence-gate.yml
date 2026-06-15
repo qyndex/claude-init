@@ -51,7 +51,7 @@ jobs:
 
             # App-source surfaces that ALWAYS demand evidence (deny-list, not allow-list,
             # so a new top-level app dir can't silently slip through the maintenance hatch).
-            appsrc=$(echo "$changed" | grep -vE '^(docs/|specs/|plans/|tasks/|verify/|README|CHANGELOG|\.claude/|\.github/|\.mcp\.json$|\.gitignore$|\.gitleaks\.toml$|.*\.md$)' || true)
+            appsrc=$(echo "$changed" | grep -vE '^(docs/|specs/|plans/|tasks/|verify/|README|CHANGELOG|\.claude/|\.github/|\.mcp\.json$|\.gitignore$|\.gitleaks\.toml$|\.shellcheckrc$|.*\.md$)' || true)
 
             if [ "$kind" = "harness-maintenance" ]; then
               if [ -z "$appsrc" ]; then
