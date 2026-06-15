@@ -1,0 +1,6 @@
+{
+  "kind": "harness-maintenance",
+  "reason": "Exempt factory-shipped root configs (.editorconfig, codecov.yml, commitlint.config.mjs) from evidence-gate appsrc deny-list — same class as the .shellcheckrc fix. These are the ROOT_CONFIG_FILES reconcile ships; a harness-maintenance PR touching them must not be flagged as app source.",
+  "maintains": [".github/workflows/evidence-gate.yml"],
+  "date": "2026-06-15"
+}
