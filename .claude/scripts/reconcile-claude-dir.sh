@@ -190,12 +190,14 @@ done
 # [scaffold]/[memory]/[swarm]/[mcp] failures).
 SCAFFOLD_FILES=".mcp.json OKRs.md roadmap.md slo.yml"
 # Repo-root config files the factory's CI gates require (commitlint.yml needs
-# commitlint.config.mjs, codecov.yml backs the coverage gate). The OLD reconcile
-# never copied these, so an adopted repo got the WORKFLOW but not its config →
-# commitlint failed [empty-rules]. Copy no-clobber on adopt; refresh on --upgrade.
+# commitlint.config.mjs, codecov.yml backs the coverage gate, .shellcheckrc backs
+# the harness-validate shellcheck-on-hooks gate, .editorconfig backs style). The
+# OLD reconcile never copied these, so an adopted repo got the WORKFLOW but not its
+# config → commitlint failed [empty-rules] / shellcheck failed on factory hooks the
+# .shellcheckrc deliberately exempts. Copy no-clobber on adopt; refresh on --upgrade.
 # NOT included: .gitleaks.toml + release-please-* — those activate secret-scan /
 # release-automation policy the adopting project must opt into deliberately.
-ROOT_CONFIG_FILES="commitlint.config.mjs codecov.yml"
+ROOT_CONFIG_FILES="commitlint.config.mjs codecov.yml .shellcheckrc .editorconfig"
 SCAFFOLD_DIRS="specs plans tasks docs initiatives .swarms"
 for f in $SCAFFOLD_FILES; do
   [ -f "$FROM/$f" ] && [ ! -e "$f" ] && { run "cp '$FROM/$f' '$f'"; manifest created "$f"; }

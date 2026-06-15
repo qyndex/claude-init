@@ -99,8 +99,14 @@ fi
 # ─── Stale-version scan (Spec 003 AC-12) ──────────────────────────────────────
 # Agent frontmatter normalizes opus-4-7 → opus, so a tier check can't catch a
 # workflow/doc that pins the *superseded* version. Scan .github/workflows/** and
-# docs/** for the now-stale literal so a model bump can't strand them. The stale
-# version is whatever §V no longer lists; today that is opus 4.7.
+# docs/** for the now-stale literal so a model bump can't strand a LIVE pin. The
+# stale version is whatever §V no longer lists; today that is opus 4.7.
+#
+# Exclude archival/historical doc trees: test-run logs and factory-history record
+# what *did* run on a past date (e.g. "| Runner | Claude Opus 4.7 |") — they are
+# immutable transcripts, not live config. Rewriting them would falsify history, and
+# AC-12's intent is "no live pin stranded", not "no doc may mention a prior model".
+# A path segment named test-runs/, factory-history/, or archive/ marks such a tree.
 STALE_PATTERN='claude-opus-4-7|opus-4-7|Opus 4\.7'
 stale_hits=0
 while IFS= read -r f; do
@@ -111,7 +117,9 @@ while IFS= read -r f; do
     stale_hits=$((stale_hits + 1))
   fi
 # JUSTIFIED: find 2>/dev/null hides absent dirs; empty result = nothing to scan, not an error
-done < <(find "$ROOT/.github/workflows" "$ROOT/docs" -type f \( -name '*.yml' -o -name '*.yaml' -o -name '*.md' \) 2>/dev/null)
+done < <(find "$ROOT/.github/workflows" "$ROOT/docs" \
+  \( -path '*/test-runs/*' -o -path '*/factory-history/*' -o -path '*/archive/*' \) -prune -o \
+  -type f \( -name '*.yml' -o -name '*.yaml' -o -name '*.md' \) -print 2>/dev/null)
 
 # STALE_SCAN_ONLY=1 → run only the stale scan (used by AC-12 test fixtures).
 if [ "${STALE_SCAN_ONLY:-0}" = "1" ]; then
