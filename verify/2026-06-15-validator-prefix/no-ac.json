@@ -1,0 +1,6 @@
+{
+  "kind": "harness-maintenance",
+  "reason": "validate.sh multi-token id fix + reconcile --upgrade mode + docs. Touches only .claude/scripts, docs/, CLAUDE.md, verify/ — harness-internal with no spec-backed AC. Logic covered by red/green ledgers under verify/2026-06-15-{validator-prefix,reconcile-upgrade}/.",
+  "maintains": [".claude/scripts/validate.sh", ".claude/scripts/reconcile-claude-dir.sh", "docs/ADOPTION.md"],
+  "date": "2026-06-15"
+}
