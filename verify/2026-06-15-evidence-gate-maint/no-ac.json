@@ -1,0 +1,8 @@
+{
+  "kind": "harness-maintenance",
+  "reason": "Extends the evidence-gate escape hatch with a harness-maintenance scope. This PR touches only .github/workflows + verify/ + docs — harness-internal paths with no spec-backed, browser-testable acceptance criterion, so the AC-proof path cannot apply. Without this scope every scripts/hooks/workflow fix must be admin-bypassed (cf. PR #13, #14).",
+  "maintains": [
+    ".github/workflows/evidence-gate.yml"
+  ],
+  "date": "2026-06-15"
+}
