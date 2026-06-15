@@ -62,13 +62,19 @@ extract_mappings() {
 root_mappings=$(extract_mappings "CLAUDE.md")
 claude_mappings=$(extract_mappings ".claude/CLAUDE.md")
 
-if [ -z "$root_mappings" ]; then
-  echo "ERROR: could not extract model mappings from CLAUDE.md" >&2
+# The constitution (.claude/CLAUDE.md) is the AUTHORITATIVE §V table — it must
+# always parse. The root CLAUDE.md is the developer guide in greenfield (mirrors
+# the table) but in BROWNFIELD it is the adopted project's own file, which has no
+# §V model table — that's expected, not drift. So: require the table in the
+# constitution; only cross-diff against root CLAUDE.md when root actually has one.
+if [ -z "$claude_mappings" ]; then
+  echo "ERROR: could not extract model mappings from .claude/CLAUDE.md (the constitution must carry the §V table)" >&2
   exit 1
 fi
-if [ -z "$claude_mappings" ]; then
-  echo "ERROR: could not extract model mappings from .claude/CLAUDE.md" >&2
-  exit 1
+
+if [ -z "$root_mappings" ]; then
+  echo "Model routing table present in .claude/CLAUDE.md §V; root CLAUDE.md has no §V table (brownfield project guide) — cross-file diff skipped."
+  exit 0
 fi
 
 diff_out=$(diff <(echo "$root_mappings") <(echo "$claude_mappings") || true)

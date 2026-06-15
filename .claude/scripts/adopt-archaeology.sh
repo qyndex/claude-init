@@ -110,14 +110,26 @@ if [ -f .claude/commands/deps-audit.md ] && [ -x .claude/scripts/detect-stacks.s
 fi
 
 # ─── 5. Security snapshot (best-effort, read-only) ────────────────────────
-sec_out="(semgrep not available)"
+# A MISSING scanner is NOT "clean" — adoption pulls untrusted legacy code under
+# autonomy, so an un-run SAST/secret scan is a coverage HOLE that must be loud and
+# actionable, not a quiet "(not available)" that reads like a pass.
+sec_missing=0; secrets_missing=0
 if command -v semgrep >/dev/null 2>&1; then
   # JUSTIFIED: semgrep/jq stderr suppressed — a scan error or unparseable output falls through to the "?" literal, a read-only best-effort snapshot
   sec_count=$(semgrep --config auto --quiet --json 2>/dev/null | jq '.results | length' 2>/dev/null || echo "?")
   sec_out="semgrep --config auto found ${sec_count} finding(s) (review before clearing false positives)."
+else
+  sec_missing=1
+  sec_out="⚠️ NOT SCANNED — semgrep is not installed, so SAST coverage is OFF for this adoption. Install it (\`pipx install semgrep\` or \`brew install semgrep\`) and re-run \`/adopt start\` before trusting any autonomy on this code."
+  echo "::warning::adopt-archaeology: semgrep absent — SAST scan SKIPPED, not clean. Install semgrep and re-run /adopt start." >&2
 fi
-secrets_out="(gitleaks not available)"
-command -v gitleaks >/dev/null 2>&1 && secrets_out="run \`gitleaks detect\` — confirm no committed secrets before adoption."
+if command -v gitleaks >/dev/null 2>&1; then
+  secrets_out="run \`gitleaks detect\` — confirm no committed secrets before adoption."
+else
+  secrets_missing=1
+  secrets_out="⚠️ NOT SCANNED — gitleaks is not installed, so committed-secret detection is OFF. Install it (\`brew install gitleaks\`) and run \`gitleaks detect\` before adoption."
+  echo "::warning::adopt-archaeology: gitleaks absent — secret scan SKIPPED, not clean. Install gitleaks and re-run." >&2
+fi
 
 # ─── 6. Coverage baseline (best-effort — records the floor we must not drop below) ──
 : > "$COV"
@@ -215,6 +227,8 @@ codemod / sprout-method.
 - [OQ] Confirm the legacy-safety manifest globs above are correct (too broad? too narrow?).
 - [OQ] What is the real current test-coverage % (the floor we must not regress)?
 - [OQ] Any zones that must NEVER be touched by autonomy (compliance-frozen code)?
+$([ "$sec_missing" = 1 ] && printf '%s\n' "- [OQ] **SAST not run** — semgrep absent; install it and re-run \`/adopt start\` so the security snapshot reflects a real scan, not a skipped one. Do NOT approve Phase 1 treating the missing scan as clean.")
+$([ "$secrets_missing" = 1 ] && printf '%s\n' "- [OQ] **Secret scan not run** — gitleaks absent; install it and run \`gitleaks detect\` before adoption. An un-scanned legacy repo may carry committed secrets.")
 
 ## Phase gate status
 - [x] Phase 1 (Archaeology) — complete, awaiting human approval
