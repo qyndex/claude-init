@@ -1,0 +1,9 @@
+- id: prefer-rg-over-grep
+  trigger: "searching repo for symbol"
+  action: "use rg --type instead of grep -r"
+  confidence: 0.85
+  domain: search
+  status: project
+  created: 2026-06-01
+  reinforced: 7
+  last_seen: 2026-06-12
