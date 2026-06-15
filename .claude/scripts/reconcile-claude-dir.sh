@@ -215,6 +215,7 @@ if [ "$UPGRADE" = 1 ] && [ -d "$FROM/docs" ]; then
     f="${f#./}"
     if [ -e "docs/$f" ] && ! cmp -s "$FROM/docs/$f" "docs/$f"; then
       run "mkdir -p '$BK/docs/$(dirname "$f")'"
+      # JUSTIFIED: cosmetic per-entry copy gripe (odd perms) must not abort the upgrade; the doc is still backed up before the overwrite below, preserving reversibility
       run "cp 'docs/$f' '$BK/docs/$f' 2>/dev/null || true"
       run "cp '$FROM/docs/$f' 'docs/$f'"
       docs_updated=$((docs_updated + 1))
