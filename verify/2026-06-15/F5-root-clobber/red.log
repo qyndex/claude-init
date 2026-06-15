@@ -1,0 +1,4 @@
+F5 RED — documented brownfield `tar -x -C .` step clobbers project root files
+Fixture: target repo with own README.md ("PROJECT OWN README…")
+Action:  factory README.md/CLAUDE.md extracted straight into target root (old flow)
+Result:  ✗ RED reproduced: README now reads "FACTORY HARNESS README" — project content LOST, no backup

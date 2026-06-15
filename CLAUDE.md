@@ -142,15 +142,27 @@ When adopting an existing project (not greenfield setup):
 ```bash
 # From the target repo root
 git clone https://github.com/<org>/claude-init /tmp/claude-init
-git -C /tmp/claude-init archive HEAD | tar -x -C .   # git-aware: tracked files only — cp -r leaks gitignored runtime state + settings.local.json
+# Stage the factory OUTSIDE the repo, then let reconcile copy SELECTIVELY. Do NOT
+# `tar -x -C .` straight into the repo root — the factory ships its own README.md +
+# CLAUDE.md, and a direct overlay silently clobbers the project's with no backup.
+mkdir -p /tmp/factory && git -C /tmp/claude-init archive HEAD | tar -x -C /tmp/factory
+bash .claude/scripts/reconcile-claude-dir.sh --from /tmp/factory --into .   # selective + backs up any root file it must overwrite
 bash .claude/scripts/setup.sh
-# If .claude/CLAUDE.md already exists and isn't factory-format:
-bash .claude/scripts/reconcile-claude-dir.sh --from /tmp/claude-init --into .
 # Then run the six-phase adoption guide:
 /adopt start    # see docs/ADOPTION.md
 ```
 
 `setup.sh` auto-detects a non-factory `.claude/CLAUDE.md` (by checking for "Karpathy's Four Principles") and halts with instructions. Override: `FORCE_GREENFIELD=1 bash .claude/scripts/setup.sh`.
+
+**Upgrading an already-adopted repo to a newer factory:** re-run reconcile with `--upgrade`:
+
+```bash
+git -C /tmp/claude-init archive HEAD | tar -x -C /tmp/factory
+bash .claude/scripts/reconcile-claude-dir.sh --from /tmp/factory --into . --upgrade
+bash .claude/scripts/setup.sh
+```
+
+Default reconcile no-clobbers `commands/`/`hooks/`/`.github/` (adoption-safe) and so won't *update* factory files on a re-run. `--upgrade` refreshes **factory-owned** files (same name as a file the factory ships) to the new version — backed up to `.brownfield-backup/<ts>/` (`.claude/` + `.github/` + `docs/`), change reported — while preserving your own commands/hooks/workflows and never touching `specs/`/`plans/`/`tasks/` or application source. See [docs/ADOPTION.md](docs/ADOPTION.md#troubleshooting).
 
 ## MCP server model
 

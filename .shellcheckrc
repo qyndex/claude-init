@@ -38,6 +38,10 @@
 #            an explicit, easily-extended enumeration (e.g. the smoke-cmd list).
 #   SC2046/SC2188 — word-splitting / bare redirect on controlled, space-free
 #            inputs in report generators; verified benign at each site.
+#   SC2004 — "$/${} unnecessary on arithmetic vars": pure style. `$((x + $y))`
+#            and `$((x + y))` are identical inside (( )); the leading $ is a
+#            harmless readability preference, not a bug. Disable repo-wide so a
+#            custom hook's `$((ERRORS + $N))` doesn't fail the gate over cosmetics.
 # (SC1010 was a real find — `local done` reserved-word collision — and was FIXED
 #  by renaming to done_count, not suppressed.)
-disable=SC2012,SC2011,SC1091,SC2016,SC2221,SC2222,SC2164,SC2034,SC2155,SC2319,SC2010,SC2043,SC2045,SC2046,SC2188
+disable=SC2012,SC2011,SC1091,SC2016,SC2221,SC2222,SC2164,SC2034,SC2155,SC2319,SC2010,SC2043,SC2045,SC2046,SC2188,SC2004

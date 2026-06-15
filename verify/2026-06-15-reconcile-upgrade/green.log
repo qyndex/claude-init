@@ -1,0 +1,8 @@
+GREEN — reconcile --upgrade mode (tested against qynise 021a3632 worktree, 2026-06-15)
+  factory commands/hooks updated: 33 (incl. commands/swarm/* subdir — recursion fix)
+  factory docs updated:           9
+  factory-owned files updated to latest; qynise-custom files (e.g. adr-drift-check.yml) preserved
+  app source:        4945/4945 OK (shasum -c)  — zero app code touched
+  specs/active:      167/167 OK (shasum -c)    — project content preserved
+  custom hooks lost: 0
+  backup:            .brownfield-backup/<ts>/ (.claude + .github + docs) — reversible

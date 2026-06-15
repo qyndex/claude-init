@@ -1,0 +1,8 @@
+F5 GREEN — staged-factory flow + reconcile ROOT_OWNED_FILES guard
+Fixture: same target with own README.md + root CLAUDE.md
+Action:  reconcile-claude-dir.sh --from <staged factory> --into .
+Result:  reconcile exit 0
+  ✓ project README preserved (sha 0a387308…)
+  ✓ project README content intact ("PROJECT OWN…")
+  ✓ project root CLAUDE.md intact ("project own root…")
+  manifest: "README.md (project-owned — left untouched; factory copy not applied)"

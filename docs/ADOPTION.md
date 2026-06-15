@@ -174,6 +174,31 @@ root, auto-gitignored) and your originals are kept as `*.brownfield-orig`. The b
 `bash .claude/scripts/reconcile-claude-dir.sh --revert <ts>` — it restores your original `.claude/`
 and deletes the manifest-listed created files (scaffold, .github gates, .mcp.json, …).
 
+**"Upgrading an already-adopted repo to a newer harness."** Re-run reconcile with `--upgrade`:
+
+```bash
+git -C /tmp/claude-init archive HEAD | tar -x -C /tmp/factory   # or any clone of the new factory
+bash .claude/scripts/reconcile-claude-dir.sh --from /tmp/factory --into . --upgrade
+bash .claude/scripts/setup.sh
+```
+
+Default (adoption) reconcile no-clobbers `commands/`, `hooks/`, and `.github/` so it never
+touches a file you might have authored — but that also means it won't *update* factory-owned
+files on a re-run. `--upgrade` flips this for **factory-owned** files only: a same-named file
+the factory ships (e.g. `hooks/pre-bash-dep-freshness.sh`, `commands/swarm/*`,
+`.github/workflows/evidence-gate.yml`, `docs/AUTOPILOT.md`) is refreshed to the new version
+(backed up first, change reported); files the factory does **not** ship (your own `/deploy`
+command, custom hooks, custom workflows) are still preserved. Your `specs/`, `plans/`, `tasks/`,
+and application source are never touched. Repo-root factory configs the CI gates need
+(`commitlint.config.mjs`, `codecov.yml`) are copied on first adoption and refreshed on
+`--upgrade` — without them the factory's `commitlint.yml` workflow fails `[empty-rules]`.
+The factory's OWN development specs/plans (`001`–`003`) and initiative STATE files are
+never copied into your live set (they'd collide on id and dangle pointers); your project
+authors its own `001`+. Everything overwritten lands in `.brownfield-backup/<ts>/` (covering
+`.claude/`, `.github/`, `docs/`, and the root configs), so the change is reversible. After
+upgrading, run `bash .claude/scripts/validate.sh` — remaining failures are your project's own
+corpus drift, not the upgrade.
+
 ---
 
 ## Wiring customer-feedback intake (optional, post-adoption)

@@ -1,0 +1,6 @@
+RED — default (no --upgrade) reconcile on an already-adopted repo:
+  42 factory files (hooks, commands/swarm/*, .github, docs) kept their STALE adoption-time
+  versions because MERGE_DIRS/.github copy no-clobber and docs/ is never refreshed.
+  Result: qynise stayed on #318 hook/command/doc versions after "upgrading" to latest main;
+  12 validate.sh failures (ephemeral-verb, handoff-dialect, OAuth, doc-nits) persisted that
+  the latest factory had already fixed. Root cause of the upgrade-miss.
