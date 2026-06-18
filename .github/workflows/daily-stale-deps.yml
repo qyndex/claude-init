@@ -30,7 +30,7 @@ jobs:
     outputs:
       stacks: ${{ steps.scan.outputs.stacks }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - id: scan
         run: |
           stacks=$(bash .claude/scripts/detect-stacks.sh | jq -c '.stacks')
@@ -57,7 +57,7 @@ jobs:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Install claude CLI
@@ -79,7 +79,7 @@ jobs:
         run: bash .claude/scripts/stale-deps/bump-loop.sh "$STACK_NAME"
       - name: Upload per-stack artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: stale-deps-${{ matrix.stack }}
           path: /tmp/bump-results-${{ matrix.stack }}
@@ -92,9 +92,9 @@ jobs:
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: /tmp/all-artifacts
       - name: Aggregate
