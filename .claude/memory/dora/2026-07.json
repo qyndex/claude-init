@@ -1,0 +1,1 @@
+{"period":"month","since":"2026-06-01T12:37:26+00:00","computed_at":"2026-07-01T12:37:27+00:00","deployment_frequency":{"deploys":52,"per_day":"1.73"},"lead_time_for_changes_hours":null,"change_failure_rate_pct":0.0,"time_to_restore_hours":null,"dora_band":"high"}
