@@ -2,7 +2,7 @@
 id: 001
 slug: harness-hardening
 status: approved
-spec: specs/active/001-harness-hardening.md
+spec: specs/archive/2026-Q3/001-harness-hardening.md
 owner: "@claude"
 created: 2026-05-28
 updated: 2026-05-28
@@ -11,7 +11,7 @@ phases: 7
 
 # Plan 001: Harness Hardening — From documentation-theater to evidence-backed enforcement
 
-> Implementation plan for `specs/active/001-harness-hardening.md`. Every plan element traces back to an acceptance criterion in the spec.
+> Implementation plan for `specs/archive/2026-Q3/001-harness-hardening.md`. Every plan element traces back to an acceptance criterion in the spec.
 
 ## TL;DR
 
@@ -512,7 +512,7 @@ New trace spans (already wired by Anthropic-native OTEL; new span names):
 
 ## References
 
-- Spec: `specs/active/001-harness-hardening.md` (27 ACs across 7 phases)
+- Spec: `specs/archive/2026-Q3/001-harness-hardening.md` (27 ACs across 7 phases)
 - Incident: `.claude/memory/incidents/2026-05-28-sec-constitution-unprotected.md` (SEV1 root cause)
 - Research brief: `docs/research/claw-code-audit-2026-05-28.md` (the six adoption patterns adopted in Phase 5)
 - Five-agent audit synthesis: this conversation, 2026-05-28 (architect/security/reviewer/verifier/researcher synthesis that produced the spec)

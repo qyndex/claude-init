@@ -2,7 +2,7 @@
 id: 003
 slug: audit-round2-remediation
 status: approved
-spec: specs/active/003-audit-round2-remediation.md
+spec: specs/archive/2026-Q3/003-audit-round2-remediation.md
 created: 2026-05-29
 updated: 2026-05-29
 ---

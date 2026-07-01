@@ -2,7 +2,7 @@
 id: 002
 slug: audit-remediation
 status: approved
-spec: specs/active/002-audit-remediation.md
+spec: specs/archive/2026-Q3/002-audit-remediation.md
 owner: "@claude"
 created: 2026-05-29
 updated: 2026-05-29
@@ -11,7 +11,7 @@ phases: 8
 
 # Plan 002: Audit Remediation — Bug fixes, gap closures, claw-code adoptions
 
-> Implementation plan for `specs/active/002-audit-remediation.md`. Every plan element traces back to one of 40 acceptance criteria across 8 phases. The plan adds **no new layers** to the harness stack — every change is a surgical edit to an existing `.claude/hooks/*.sh`, `.claude/scripts/*.sh`, `.claude/settings.json`, `.github/workflows/*.yml`, or `.swarms/templates/*.yaml`, plus a small set of new scripts, hooks, agents, skills, and CI workflows enumerated in Dependencies.
+> Implementation plan for `specs/archive/2026-Q3/002-audit-remediation.md`. Every plan element traces back to one of 40 acceptance criteria across 8 phases. The plan adds **no new layers** to the harness stack — every change is a surgical edit to an existing `.claude/hooks/*.sh`, `.claude/scripts/*.sh`, `.claude/settings.json`, `.github/workflows/*.yml`, or `.swarms/templates/*.yaml`, plus a small set of new scripts, hooks, agents, skills, and CI workflows enumerated in Dependencies.
 
 ## TL;DR
 
@@ -646,8 +646,8 @@ New `harness-doctor.sh` checks (in addition to the 14 `validate.sh` categories):
 
 ### Spec + ADRs + patterns + incidents consulted (Step 3 evidence)
 
-- **Spec**: `specs/active/002-audit-remediation.md`
-- **Predecessor spec**: `specs/active/001-harness-hardening.md` (atomic-write lib, evidence-gate, constitution guard — all reused)
+- **Spec**: `specs/archive/2026-Q3/002-audit-remediation.md`
+- **Predecessor spec**: `specs/archive/2026-Q3/001-harness-hardening.md` (atomic-write lib, evidence-gate, constitution guard — all reused)
 - **Incident**: `.claude/memory/incidents/2026-05-28-sec-constitution-unprotected.md` (the SEV1 that motivated Phase 1 hardening; AC-1/AC-2/AC-4 all derive from it)
 - **Research brief**: `docs/research/claw-code-audit-2026-05-28.md` (Phase 6 adoption analysis; primary source for AC-31..AC-36)
 - **Constitution**: `.claude/CLAUDE.md` §V (model routing — AC-7), §VII (verification — AC-1/AC-3), §X (security — Phase 5), §XV (handoff contract — AC-25), §XVI (issue projection — AC-20)

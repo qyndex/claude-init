@@ -906,7 +906,7 @@ End-to-end critical path: T-059 → T-063 → T-066 → T-073 → T-081 → T-08
 
 - [x] T-127 | spec:003 | phase:5 | priority: medium | created: 2026-05-29 | last_touched: 2026-05-29 | deps: none | parallel: no | est: 5m
       summary: add spec-status-sync.sh (approved→shipped when all spec tasks done); call from post-write-roadmap.sh on TASKS.md change; ship specs 001+002; tighten stale-spec-check.yml to flag 100%-complete approved specs (AC-15, AC-16, AC-17)
-      files: .claude/scripts/spec-status-sync.sh, .claude/hooks/post-write-roadmap.sh, specs/active/001-harness-hardening.md, specs/active/002-audit-remediation.md, .github/workflows/stale-spec-check.yml
+      files: .claude/scripts/spec-status-sync.sh, .claude/hooks/post-write-roadmap.sh, specs/archive/2026-Q3/001-harness-hardening.md, specs/archive/2026-Q3/002-audit-remediation.md, .github/workflows/stale-spec-check.yml
       accept: bash verify/2026-05-29-003/T-127-accept.sh
       owner: implementer
 
