@@ -19,7 +19,7 @@ jobs:
     env:
       PLAYWRIGHT_BASE_URL: ${{ github.event.deployment_status.target_url }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Setup Node
         uses: actions/setup-node@v6

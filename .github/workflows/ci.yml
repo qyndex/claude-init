@@ -23,7 +23,7 @@ jobs:
       stack: ${{ steps.detect.outputs.stack }}
       pm: ${{ steps.detect.outputs.pm }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - id: detect
         run: |
           set -e
@@ -46,7 +46,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
