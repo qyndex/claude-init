@@ -18,12 +18,12 @@ jobs:
     if: ${{ hashFiles('**/*.tf') != '' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: hashicorp/setup-terraform@v4
       - run: terraform fmt -check -recursive
       - uses: terraform-linters/setup-tflint@v6
       - run: tflint --recursive
-      - uses: bridgecrewio/checkov-action@fa9edf8f0a491c59a924ea6accd5bdcf07752cff # master 2026-05-29
+      - uses: bridgecrewio/checkov-action@7b972723c44fb3d256283fac96fae5d7c1894bb7 # master 2026-05-29
         with:
           framework: terraform
           soft_fail: false
@@ -33,7 +33,7 @@ jobs:
     if: ${{ hashFiles('**/Dockerfile*') != '' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: hadolint/hadolint-action@v3.3.0
         with:
           dockerfile: Dockerfile
@@ -43,7 +43,7 @@ jobs:
     if: ${{ hashFiles('**/*.sh') != '' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: ludeeus/action-shellcheck@00b27aa7cb85167568cb48a3838b75f4265f2bca # master 2026-05-29
         with:
           severity: warning
@@ -53,7 +53,7 @@ jobs:
     if: ${{ hashFiles('**/*.sql') != '' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - run: |
           pip install --quiet sqlfluff
           sqlfluff lint --dialect=ansi .
