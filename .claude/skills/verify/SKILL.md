@@ -22,6 +22,11 @@ Run the app. Exercise the user journey. Capture evidence. Mark PASS or FAIL.
 4. Walk the negative paths (bad input, missing auth, etc.).
 5. Save artifacts under `verify/<date>-<feature>/`.
 6. Write the report.
+7. **Sync living state (M-06 — network boundary).** Verify is a network boundary: refresh `initiatives/active/<id>.STATE.md` so the always-current answer reflects this run. Grep-gated so it's a no-op when the script is absent:
+   ```bash
+   grep -ql 'initiative-state.sh sync' .claude/scripts/initiative-state.sh 2>/dev/null \
+     && bash .claude/scripts/initiative-state.sh sync || true
+   ```
 
 ## Evidence types
 

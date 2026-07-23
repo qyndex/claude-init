@@ -29,7 +29,12 @@ phase=""
 if [ -f .swarms/coordinator/workflow-state.json ] && command -v jq >/dev/null 2>&1; then
   # JUSTIFIED: the redirect drops jq stderr on a malformed state file — phase stays empty and the context block simply omits the phase line
   phase=$(jq -r '.phase // ""' .swarms/coordinator/workflow-state.json 2>/dev/null)
-  # workflow-state.sh derives spec/plan from `ls -t` but we can re-resolve here
+  # M-05c: read the spec/plan workflow-state.sh persisted — the SAME ones its
+  # phase logic keyed on. Re-resolving via `ls -t` here is an mtime lottery: with
+  # two active specs a child could inherit a different spec than the parent used.
+  # JUSTIFIED: an old state file (pre-M-05c) has no .spec key → jq yields "" and the ls -t fallback below still applies
+  spec=$(jq -r '.spec // ""' .swarms/coordinator/workflow-state.json 2>/dev/null)
+  plan=$(jq -r '.plan // ""' .swarms/coordinator/workflow-state.json 2>/dev/null)
 fi
 
 # Fall back to ls -t if state file is missing/empty
@@ -60,6 +65,15 @@ if [ -x .claude/scripts/memory-recall.sh ]; then
   recall_paths=""
   [ -n "$spec" ] && recall_paths="$spec"
   [ -n "$plan" ] && recall_paths="$recall_paths $plan"
+  # M-15: scope subagent recall to the TASK CODE it will touch, not just the spec/
+  # plan markdown. The in-progress task line carries `files: a, b, c`; recall on
+  # those paths surfaces memory about the code, which is what the child needs.
+  if [ -f tasks/TASKS.md ]; then
+    # JUSTIFIED: no in-progress task (grep exit 1) or no files: marker yields empty — recall just falls back to spec/plan scope
+    task_files=$(grep -m1 -E '^- \[~\] T-[0-9]+' tasks/TASKS.md 2>/dev/null \
+      | grep -oE 'files:[^|]*' | sed 's/^files: *//' | tr ',' ' ' || true)
+    [ -n "$task_files" ] && recall_paths="$recall_paths $task_files"
+  fi
   if [ -n "$recall_paths" ]; then
     # JUSTIFIED: recall is best-effort enrichment — failure or no matches yields empty and the line is omitted
     recall=$(bash .claude/scripts/memory-recall.sh --paths "$recall_paths" --limit 3 2>/dev/null | tr '\n' ' ' | head -c 400)

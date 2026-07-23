@@ -105,6 +105,30 @@ jobs:
           bash .claude/scripts/test/loop-control.sh
           bash .claude/scripts/test/oq-aging.sh
 
+      - name: Harness test suite (M-00 - every test/*.sh must run somewhere)
+        run: |
+          # 2026-07 memory audit: 13 of 15 test/*.sh ran in no workflow (dead tests).
+          # Run them all so the validate.sh dead-test detector stays satisfiable.
+          # loop-control.sh + oq-aging.sh run above; security-invariants.sh is
+          # advisory below (2 pre-existing out-of-scope failures).
+          fails=0
+          for t in .claude/scripts/test/*.sh; do
+            b=$(basename "$t")
+            case "$b" in
+              loop-control.sh|oq-aging.sh) continue ;;
+              security-invariants.sh) continue ;;
+            esac
+            echo "-- $b"
+            if ! bash "$t"; then echo "::error::harness test failed: $b"; fails=$((fails + 1)); fi
+          done
+          test "$fails" -eq 0
+
+      - name: Security invariants (advisory - 2 known out-of-scope failures)
+        continue-on-error: true
+        run: |
+          bash .claude/scripts/test/security-invariants.sh \
+            || echo "::warning::security-invariants.sh has known failures - see triage.txt"
+
       - name: TDD ledger gate (server-side — SKIP_* cannot apply here)
         run: bash .claude/scripts/check-tdd-ledger.sh
 

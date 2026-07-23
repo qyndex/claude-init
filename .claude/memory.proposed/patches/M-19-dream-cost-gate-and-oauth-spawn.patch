@@ -1,48 +1,41 @@
 diff --git a/.claude/hooks/auto-dream-check.sh b/.claude/hooks/auto-dream-check.sh
-index 6b07a4f..5089762 100755
+index bc344f1..3bfbdac 100755
 --- a/.claude/hooks/auto-dream-check.sh
 +++ b/.claude/hooks/auto-dream-check.sh
-@@ -112,12 +112,39 @@ if command -v claude >/dev/null 2>&1; then
+@@ -117,6 +117,21 @@ if command -v claude >/dev/null 2>&1; then
      cand_note=" ALSO: read ${cand_file}; for each candidate without consumed:true, invoke the skill-creator skill to draft a proposal under .claude/memory.proposed/skills/<suggested_slug>/ (proposal only — never activate), then rewrite that candidate line adding consumed:true."
    fi
  
 +  # M-19 (O-7 HIGH-1): the cost gate (pre-spawn-cost-gate.sh) only intercepts
-+  # Claude's OWN tool-mediated `claude -p` calls — it NEVER sees this hook's
-+  # nohup spawn. So check the monthly cap inline here, mirroring the lock-skip
-+  # above: refresh the summary, skip+log at >=100%. Fail-open (missing summary →
-+  # proceed) to match the gate's own posture.
-+  # JUSTIFIED: best-effort cost refresh — a failing report leaves pct empty → ${pct:-0} treats it as 0% and the dream proceeds (fail-open, same as the gate)
++  # Claude's OWN tool-mediated `claude -p` calls — it NEVER sees this hook's nohup
++  # spawn. So check the monthly cap inline here: refresh the summary, skip+log at
++  # >=100%. Fail-open (missing summary -> proceed) to match the gate's own posture.
++  # JUSTIFIED: best-effort cost refresh — a failing report leaves pct empty -> ${pct:-0} treats it as 0% and the dream proceeds (fail-open, same as the gate)
 +  bash .claude/scripts/cost-report.sh month >/dev/null 2>&1 || true
 +  pct=$(jq -r '.pct_used' .claude/hooks/.log/cost-summary.json 2>/dev/null | cut -d. -f1)
 +  if [ "${pct:-0}" -ge 100 ]; then
-+    echo "[$(date -Iseconds)] dream skipped: monthly cost cap reached (${pct}%) — not spawning" \
-+      >> .claude/hooks/.log/dream.log
++    echo "[$(date -Iseconds)] dream skipped: monthly cost cap reached (${pct}%) — not spawning" >> .claude/hooks/.log/dream.log
 +    # Do NOT stamp success — a skipped dream is not a completed one (M-02 discipline).
 +    rm -f "$lock_file"
 +    exit 0
 +  fi
 +
-+  # M-19: spawn via the metabolism seam (M-01b) — drops `--bare`/CLAUDE_CODE_SIMPLE
-+  # so the OAuth session is honored (this spawn site still used raw `--bare`, the
-+  # bug M-01b fixed for the seam callers). The seam returns the child's rc, so we
-+  # stamp last_run_epoch ONLY on success — auth-absent/failed dreams fail LOUD and
-+  # leave the state unstamped (M-19: no false success; M-02: failure IS failure).
 +  dream_log=".claude/hooks/.log/dream-$(date +%Y%m%d-%H%M%S).log"
    nohup bash -c "
      set -uo pipefail
--    claude -p --bare 'Invoke the dream skill: consolidate .claude/memory.proposed/ and .claude/memory/.cache/checkpoints/ since $last_run. Keep .claude/memory.proposed/MEMORY.md under 200 lines. Do NOT touch .claude/memory/ (canonical) — only the .proposed copy.${cand_note}' 2>&1 \
--      > .claude/hooks/.log/dream-$(date +%Y%m%d-%H%M%S).log
--    # Update state on success
--    printf '{\"last_run_epoch\":%d,\"session_count\":0,\"awaiting_review\":true}' \"\$(date +%s)\" > '$state_file'
-+    # shellcheck source=.claude/scripts/lib/metabolism-spawn.sh
-+    . .claude/scripts/lib/metabolism-spawn.sh
-+    if metabolism_spawn \"\${DREAM_TIMEOUT:-600}\" 'Invoke the dream skill: consolidate .claude/memory.proposed/ and .claude/memory/.cache/checkpoints/ since $last_run. Keep .claude/memory.proposed/MEMORY.md under 200 lines. Do NOT touch .claude/memory/ (canonical) — only the .proposed copy.${cand_note}' > '$dream_log' 2>&1; then
-+      # Stamp success ONLY on rc 0.
-+      printf '{\"last_run_epoch\":%d,\"session_count\":0,\"awaiting_review\":true}' \"\$(date +%s)\" > '$state_file'
+     # M-01b: spawn via the metabolism seam — drops --bare so the operator's OAuth
+@@ -125,8 +140,13 @@ if command -v claude >/dev/null 2>&1; then
+     # the spawn exit so a FAILED dream never records false success.
+     . .claude/scripts/lib/metabolism-spawn.sh
+     if metabolism_spawn \${DREAM_TIMEOUT:-300} 'Invoke the dream skill: consolidate .claude/memory.proposed/ and .claude/memory/.cache/checkpoints/ since $last_run. Keep .claude/memory.proposed/MEMORY.md under 200 lines. Do NOT touch .claude/memory/ (canonical) — only the .proposed copy.${cand_note}' 2>&1 \
+-         > .claude/hooks/.log/dream-$(date +%Y%m%d-%H%M%S).log; then
++         > '$dream_log'; then
+       printf '{\"last_run_epoch\":%d,\"session_count\":0,\"awaiting_review\":true}' \"\$(date +%s)\" > '$state_file'
 +    else
++      # M-19: fail LOUD — an auth-absent/failed dream leaves the state UNSTAMPED
++      # (M-02: failure IS failure; no false success) and logs the rc for the probe.
 +      rc=\$?
 +      echo \"[\$(date -Iseconds)] dream FAILED (rc \$rc) — state NOT stamped (auth-absent or spawn error); see $dream_log\" >> .claude/hooks/.log/dream.log
-+    fi
+     fi
      rm -f '$lock_file'
    " > /dev/null 2>&1 &
- 

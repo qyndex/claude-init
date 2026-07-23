@@ -933,21 +933,21 @@ Operator-apply tasks (settings.json / .github / constitution): T-113, T-114, T-1
 ## Archive
 
 Move completed batches here when the plan ships. Keep the file < 2000 lines. When this file exceeds 2000 lines, move ARCHIVE section to `tasks/archive/TASKS-<YYYY-Q>.md` (see `.claude/routines/quarterly-archive.yml`).
-- [ ] T-140  | spec:004  | phase:1  | priority: high  | created: 2026-06-13  | last_touched: 2026-06-13  | deps:  | parallel: no  | est: 5m
-- [ ] T-141  | spec:004  | phase:4  | priority: medium  | created: 2026-06-13  | last_touched: 2026-06-13  | deps:  | parallel: yes  | est: 3m
-- [ ] T-142  | spec:004  | phase:7  | priority: medium  | created: 2026-06-13  | last_touched: 2026-06-13  | deps:  | parallel: yes  | est: 3m
-- [ ] T-143  | spec:004  | phase:7  | priority: high  | created: 2026-06-13  | last_touched: 2026-06-13  | deps:  | parallel: yes  | est: 5m
-- [ ] T-144  | spec:004  | phase:7  | priority: high  | created: 2026-06-13  | last_touched: 2026-06-13  | deps:  | parallel: yes  | est: 3m
-- [ ] T-145  | spec:004  | phase:6  | priority: high  | created: 2026-06-13  | last_touched: 2026-06-13  | deps:  | parallel: yes  | est: 5m
-- [ ] T-146  | spec:004  | phase:6  | priority: medium  | created: 2026-06-13  | last_touched: 2026-06-13  | deps:  | parallel: yes  | est: 3m
-- [ ] T-147  | spec:004  | phase:7  | priority: high  | created: 2026-06-13  | last_touched: 2026-06-13  | deps:  | parallel: yes  | est: 5m
-- [ ] T-148  | spec:004  | phase:7  | priority: high  | created: 2026-06-13  | last_touched: 2026-06-13  | deps:  | parallel: yes  | est: 5m
-- [ ] T-149  | spec:004  | phase:7  | priority: high  | created: 2026-06-13  | last_touched: 2026-06-13  | deps:  | parallel: yes  | est: 5m
-- [ ] T-150  | spec:004  | phase:7  | priority: high  | created: 2026-06-13  | last_touched: 2026-06-13  | deps:  | parallel: yes  | est: 5m
-- [ ] T-151  | spec:004  | phase:7  | priority: high  | created: 2026-06-13  | last_touched: 2026-06-13  | deps:  | parallel: yes  | est: 5m
-- [ ] T-152  | spec:004  | phase:7  | priority: high  | created: 2026-06-13  | last_touched: 2026-06-13  | deps:  | parallel: yes  | est: 5m
-- [ ] T-153  | spec:004  | phase:7  | priority: high  | created: 2026-06-13  | last_touched: 2026-06-13  | deps:  | parallel: yes  | est: 10m
+- [s] T-140  | spec:004  | phase:1  | priority: high  | created: 2026-06-13  | last_touched: 2026-06-13  | deps:  | parallel: no  | est: 5m
+- [s] T-141  | spec:004  | phase:4  | priority: medium  | created: 2026-06-13  | last_touched: 2026-06-13  | deps:  | parallel: yes  | est: 3m
+- [s] T-142  | spec:004  | phase:7  | priority: medium  | created: 2026-06-13  | last_touched: 2026-06-13  | deps:  | parallel: yes  | est: 3m
+- [s] T-143  | spec:004  | phase:7  | priority: high  | created: 2026-06-13  | last_touched: 2026-06-13  | deps:  | parallel: yes  | est: 5m
+- [s] T-144  | spec:004  | phase:7  | priority: high  | created: 2026-06-13  | last_touched: 2026-06-13  | deps:  | parallel: yes  | est: 3m
+- [s] T-145  | spec:004  | phase:6  | priority: high  | created: 2026-06-13  | last_touched: 2026-06-13  | deps:  | parallel: yes  | est: 5m
+- [s] T-146  | spec:004  | phase:6  | priority: medium  | created: 2026-06-13  | last_touched: 2026-06-13  | deps:  | parallel: yes  | est: 3m
+- [s] T-147  | spec:004  | phase:7  | priority: high  | created: 2026-06-13  | last_touched: 2026-06-13  | deps:  | parallel: yes  | est: 5m
+- [s] T-148  | spec:004  | phase:7  | priority: high  | created: 2026-06-13  | last_touched: 2026-06-13  | deps:  | parallel: yes  | est: 5m
+- [s] T-149  | spec:004  | phase:7  | priority: high  | created: 2026-06-13  | last_touched: 2026-06-13  | deps:  | parallel: yes  | est: 5m
+- [s] T-150  | spec:004  | phase:7  | priority: high  | created: 2026-06-13  | last_touched: 2026-06-13  | deps:  | parallel: yes  | est: 5m
+- [s] T-151  | spec:004  | phase:7  | priority: high  | created: 2026-06-13  | last_touched: 2026-06-13  | deps:  | parallel: yes  | est: 5m
+- [s] T-152  | spec:004  | phase:7  | priority: high  | created: 2026-06-13  | last_touched: 2026-06-13  | deps:  | parallel: yes  | est: 5m
+- [s] T-153  | spec:004  | phase:7  | priority: high  | created: 2026-06-13  | last_touched: 2026-06-13  | deps:  | parallel: yes  | est: 10m
 - [x] T-154  | spec:004  | phase:7  | priority: medium  | created: 2026-06-13  | last_touched: 2026-06-14  | deps: T-151  | parallel: yes  | est: 5m
-- [ ] T-155  | spec:004  | phase:7  | priority: high  | created: 2026-06-14  | last_touched: 2026-06-14  | deps: T-153  | parallel: yes  | est: 10m
-- [ ] T-156  | spec:004  | phase:7  | priority: high  | created: 2026-06-14  | last_touched: 2026-06-14  | deps: T-151  | parallel: yes  | est: 10m
-- [ ] T-157  | spec:004  | phase:7  | priority: high  | created: 2026-06-14  | last_touched: 2026-06-14  | deps: T-153  | parallel: yes  | est: 5m
+- [s] T-155  | spec:004  | phase:7  | priority: high  | created: 2026-06-14  | last_touched: 2026-06-14  | deps: T-153  | parallel: yes  | est: 10m
+- [s] T-156  | spec:004  | phase:7  | priority: high  | created: 2026-06-14  | last_touched: 2026-06-14  | deps: T-151  | parallel: yes  | est: 10m
+- [s] T-157  | spec:004  | phase:7  | priority: high  | created: 2026-06-14  | last_touched: 2026-06-14  | deps: T-153  | parallel: yes  | est: 5m

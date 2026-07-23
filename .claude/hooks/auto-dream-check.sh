@@ -18,9 +18,14 @@ if [ -f "$state_file" ]; then
   last_run=$(jq -r '.last_run_epoch // 0' "$state_file" 2>/dev/null)
   # JUSTIFIED: jq error output discarded — same; a corrupt state file degrades to a session_count of 0 rather than crashing the Stop hook
   session_count=$(jq -r '.session_count // 0' "$state_file" 2>/dev/null)
+  # M-02: preserve a pending review across sub-threshold sessions — the early
+  # exits below rewrote state WITHOUT awaiting_review, silently clearing a dream
+  # that was still awaiting operator review.
+  awaiting_review=$(jq -r '.awaiting_review // false' "$state_file" 2>/dev/null)
 else
   last_run=0
   session_count=0
+  awaiting_review=false
 fi
 
 # Increment session count
@@ -41,13 +46,13 @@ twenty_four_hours=$((24 * 3600))
 
 # Should we dream?
 if [ "$elapsed" -lt "$twenty_four_hours" ]; then
-  # Just persist the session count and exit
-  printf '{"last_run_epoch":%d,"session_count":%d}' "$last_run" "$session_count" > "$state_file"
+  # Just persist the session count and exit (M-02: keep awaiting_review intact)
+  printf '{"last_run_epoch":%d,"session_count":%d,"awaiting_review":%s}' "$last_run" "$session_count" "$awaiting_review" > "$state_file"
   exit 0
 fi
 
 if [ "$session_count" -lt 5 ]; then
-  printf '{"last_run_epoch":%d,"session_count":%d}' "$last_run" "$session_count" > "$state_file"
+  printf '{"last_run_epoch":%d,"session_count":%d,"awaiting_review":%s}' "$last_run" "$session_count" "$awaiting_review" > "$state_file"
   exit 0
 fi
 
@@ -112,12 +117,37 @@ if command -v claude >/dev/null 2>&1; then
     cand_note=" ALSO: read ${cand_file}; for each candidate without consumed:true, invoke the skill-creator skill to draft a proposal under .claude/memory.proposed/skills/<suggested_slug>/ (proposal only — never activate), then rewrite that candidate line adding consumed:true."
   fi
 
+  # M-19 (O-7 HIGH-1): the cost gate (pre-spawn-cost-gate.sh) only intercepts
+  # Claude's OWN tool-mediated `claude -p` calls — it NEVER sees this hook's nohup
+  # spawn. So check the monthly cap inline here: refresh the summary, skip+log at
+  # >=100%. Fail-open (missing summary -> proceed) to match the gate's own posture.
+  # JUSTIFIED: best-effort cost refresh — a failing report leaves pct empty -> ${pct:-0} treats it as 0% and the dream proceeds (fail-open, same as the gate)
+  bash .claude/scripts/cost-report.sh month >/dev/null 2>&1 || true
+  pct=$(jq -r '.pct_used' .claude/hooks/.log/cost-summary.json 2>/dev/null | cut -d. -f1)
+  if [ "${pct:-0}" -ge 100 ]; then
+    echo "[$(date -Iseconds)] dream skipped: monthly cost cap reached (${pct}%) — not spawning" >> .claude/hooks/.log/dream.log
+    # Do NOT stamp success — a skipped dream is not a completed one (M-02 discipline).
+    rm -f "$lock_file"
+    exit 0
+  fi
+
+  dream_log=".claude/hooks/.log/dream-$(date +%Y%m%d-%H%M%S).log"
   nohup bash -c "
     set -uo pipefail
-    claude -p --bare 'Invoke the dream skill: consolidate .claude/memory.proposed/ and .claude/memory/.cache/checkpoints/ since $last_run. Keep .claude/memory.proposed/MEMORY.md under 200 lines. Do NOT touch .claude/memory/ (canonical) — only the .proposed copy.${cand_note}' 2>&1 \
-      > .claude/hooks/.log/dream-$(date +%Y%m%d-%H%M%S).log
-    # Update state on success
-    printf '{\"last_run_epoch\":%d,\"session_count\":0,\"awaiting_review\":true}' \"\$(date +%s)\" > '$state_file'
+    # M-01b: spawn via the metabolism seam — drops --bare so the operator's OAuth
+    # session authenticates (--bare and CLAUDE_CODE_SIMPLE both suppress OAuth,
+    # tested 2026-07-23) under a portable timeout. M-02: gate the state stamp on
+    # the spawn exit so a FAILED dream never records false success.
+    . .claude/scripts/lib/metabolism-spawn.sh
+    if metabolism_spawn \${DREAM_TIMEOUT:-300} 'Invoke the dream skill: consolidate .claude/memory.proposed/ and .claude/memory/.cache/checkpoints/ since $last_run. Keep .claude/memory.proposed/MEMORY.md under 200 lines. Do NOT touch .claude/memory/ (canonical) — only the .proposed copy.${cand_note}' 2>&1 \
+         > '$dream_log'; then
+      printf '{\"last_run_epoch\":%d,\"session_count\":0,\"awaiting_review\":true}' \"\$(date +%s)\" > '$state_file'
+    else
+      # M-19: fail LOUD — an auth-absent/failed dream leaves the state UNSTAMPED
+      # (M-02: failure IS failure; no false success) and logs the rc for the probe.
+      rc=\$?
+      echo \"[\$(date -Iseconds)] dream FAILED (rc \$rc) — state NOT stamped (auth-absent or spawn error); see $dream_log\" >> .claude/hooks/.log/dream.log
+    fi
     rm -f '$lock_file'
   " > /dev/null 2>&1 &
 

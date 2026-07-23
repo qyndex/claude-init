@@ -19,8 +19,11 @@ if git rev-parse --git-dir >/dev/null 2>&1; then
   uncommitted=$(git status --porcelain 2>/dev/null | wc -l | tr -d ' ')
   pending_tasks=0
   if [ -f tasks/TASKS.md ]; then
+    # M-07-state (folded gap): the bare '^- \[ \]' also matched the TASKS.md format
+    # template line ('- [ ] T-<id> | ...') at the top, inflating the boot count.
+    # Require a real T-<number> id, matching the hardened session-start-context.sh.
     # JUSTIFIED: grep -c exits 1 with stderr when no pending tasks match; suppressed + `|| echo 0` so an empty backlog reports 0 in the boot banner
-    pending_tasks=$(grep -c '^- \[ \]' tasks/TASKS.md 2>/dev/null || echo 0)
+    pending_tasks=$(grep -cE '^- \[ \] T-[0-9]+' tasks/TASKS.md 2>/dev/null || echo 0)
   fi
 
   ctx="Repo: $(basename "$(pwd)") | Branch: $branch | Last commit: $last_commit | Uncommitted files: $uncommitted | Pending tasks: $pending_tasks"
