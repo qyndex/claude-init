@@ -1,0 +1,26 @@
+diff --git a/.claude/hooks/session-start-context.sh b/.claude/hooks/session-start-context.sh
+index 736c71f..a1e032d 100755
+--- a/.claude/hooks/session-start-context.sh
++++ b/.claude/hooks/session-start-context.sh
+@@ -125,6 +125,21 @@ if [ -x .claude/scripts/initiative-state.sh ]; then
+   [ -n "$init_line" ] && ctx_parts+=("$init_line")
+ fi
+ 
++# ─── M-22: hot.md session cache ─────────────────────────────────────────
++# A tiny capped digest (in-progress task + last few completed + top recall) that
++# the boot regenerates cheaply (~65ms) and injects, so a fresh session opens with
++# the hottest context already loaded. Regenerated every boot (session-specific,
++# not daily-gated like the heavier heal above).
++if [ -x .claude/scripts/hot-cache.sh ]; then
++  # JUSTIFIED: best-effort — a failing regen leaves the prior hot.md (or none); injection just uses whatever is current
++  bash .claude/scripts/hot-cache.sh >/dev/null 2>&1 || true
++  if [ -f .claude/memory/.cache/hot.md ]; then
++    # Drop the volatile `generated:` line; inject the body as one compact block.
++    hot=$(grep -v '^generated:' .claude/memory/.cache/hot.md 2>/dev/null | tr '\n' ' ' | head -c 500)
++    [ -n "${hot// /}" ] && ctx_parts+=("[hot] $hot")
++  fi
++fi
++
+ # ─── Memory recall (memory-system review §7.3 — the read path) ──────────
+ # Top-3 index entries whose paths_touched intersect the current working set.
+ if [ -x .claude/scripts/memory-recall.sh ]; then
