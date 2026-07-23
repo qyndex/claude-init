@@ -1,0 +1,38 @@
+diff --git a/.github/workflows/reverse-drift.yml b/.github/workflows/reverse-drift.yml
+new file mode 100644
+index 0000000..b8f5349
+--- /dev/null
++++ b/.github/workflows/reverse-drift.yml
+@@ -0,0 +1,32 @@
++name: Reverse Drift Guard
++
++# M-07-guard + M-06b — POST-MERGE reverse-drift detector + merge-boundary
++# STATE writer. Runs ONLY on push:main (post-merge), NEVER on pull_request:
++# WIP branches legitimately carry `Task: T-NNN` trailers for in-progress `[ ]`
++# tasks, so a PR-time check would false-positive. Both steps are advisory —
++# reverse-drift-check.sh always exits 0, and the STATE sync is best-effort.
++
++on:
++  push:
++    branches: [main]
++
++permissions:
++  contents: read
++
++jobs:
++  reverse-drift:
++    runs-on: ubuntu-latest
++    steps:
++      - uses: actions/checkout@v4
++        with:
++          # Full history so ${{ github.event.before }}..HEAD resolves the merge.
++          fetch-depth: 0
++
++      - name: Reverse-drift guard (advisory — shipped work still marked [ ])
++        env:
++          GITHUB_EVENT_BEFORE: ${{ github.event.before }}
++        run: bash .claude/scripts/reverse-drift-check.sh
++
++      - name: Initiative STATE sync (M-06b — third writer site, merge boundary)
++        continue-on-error: true
++        run: bash .claude/scripts/initiative-state.sh sync
