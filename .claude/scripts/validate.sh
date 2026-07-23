@@ -1002,6 +1002,45 @@ fi
   || note "dead-test detector armed (advisory until the M-00 glob runner is installed)"
 echo
 
+# ─── [liveness] promoted metabolism gate (M-04-promote) ──────────────────
+# Per the plan's final item + O-7 MEDIUM-1: promote ONLY the branch-local,
+# deterministic committed-index-staleness check to a REQUIRED gate. The dream-
+# recency and rollup-freshness checks stay ADVISORY in harness-doctor (they read
+# runtime logs / need an externally-supplied wall-clock week — not derivable from
+# the committed tree, so they'd reintroduce the wall-clock wedge Correction 3
+# forbids). Env knobs mirror harness-doctor's so fixtures and the promotion PR can
+# steer it. LIVENESS_SOFT=1 downgrades the hard fail to a warning (the grace the
+# promotion PR runs under before the hard flip). No raw `date +%s` window
+# comparison here — freshness is a pure mtime ordering of committed files.
+LIVENESS_INDEX="${LIVENESS_INDEX:-.claude/memory/index.jsonl}"
+LIVENESS_MEMORY_DIR="${LIVENESS_MEMORY_DIR:-.claude/memory}"
+liveness_stale=0; liveness_detail=""
+if [ -f "$LIVENESS_INDEX" ]; then
+  idx_mtime=$(stat -f %m "$LIVENESS_INDEX" 2>/dev/null || stat -c %Y "$LIVENESS_INDEX" 2>/dev/null || echo 0)
+  # JUSTIFIED: find may traverse a dir with no .md yet — empty result means "no memory to be stale against" (fresh)
+  newest_md=$(find "$LIVENESS_MEMORY_DIR" -name '*.md' -type f -exec stat -f '%m %N' {} \; 2>/dev/null \
+    || find "$LIVENESS_MEMORY_DIR" -name '*.md' -type f -printf '%T@ %p\n' 2>/dev/null)
+  newest_md_mtime=$(printf '%s\n' "$newest_md" | sort -rn | head -1 | cut -d' ' -f1)
+  newest_md_mtime=${newest_md_mtime%.*}; newest_md_mtime=${newest_md_mtime:-0}
+  if [ "$newest_md_mtime" -gt "$idx_mtime" ]; then
+    liveness_stale=1
+    liveness_detail="committed memory index ($LIVENESS_INDEX) is STALE — older than the newest committed memory .md. Reindex: bash .claude/scripts/memory-index.sh rebuild (override path: LIVENESS_INDEX)"
+  fi
+else
+  liveness_stale=1
+  liveness_detail="no committed memory index at $LIVENESS_INDEX — build it: bash .claude/scripts/memory-index.sh rebuild (override path: LIVENESS_INDEX)"
+fi
+if [ "$liveness_stale" -eq 1 ]; then
+  if [ "${LIVENESS_SOFT:-0}" = "1" ]; then
+    warn "[liveness] $liveness_detail (soft/advisory: LIVENESS_SOFT=1)"
+  else
+    fail "[liveness] $liveness_detail (grace: run with LIVENESS_SOFT=1 to downgrade to a warning)"
+  fi
+else
+  ok "[liveness] committed index fresh — index mtime ≥ newest committed memory .md"
+fi
+echo
+
 # ─── Summary ────────────────────────────────────────────────────────────
 echo "─────────────────────────────────────"
 if [ "$fails" -gt 0 ]; then
