@@ -183,6 +183,24 @@ fi
 ok "validated $fm_count frontmatter blocks ($fm_bad bad)"
 echo
 
+# ─── 3b. ADR single-schema (M-10) ───────────────────────────────────────
+# Frontmatter `status:`/`supersedes` is the SOLE home for ADR status. The old
+# body bullets (`- **Status**:`, `- **Supersedes**:`, `- **superseded_by**:`)
+# duplicated it and drifted; reject them so the split can't reappear.
+echo "[adr-single-schema]"
+adr_schema_bad=0
+while IFS= read -r -d '' f; do
+  [ -f "$f" ] || continue
+  case "$(basename "$f")" in 0000-template.md|README.md) continue ;; esac
+  if grep -qE '^- \*\*Status\*\*:|^- \*\*Supersedes\*\*:|^- \*\*superseded_by\*\*:' "$f"; then
+    fail "ADR body-bullet status/supersedes (use frontmatter only — M-10): $f"
+    adr_schema_bad=$((adr_schema_bad + 1))
+  fi
+# JUSTIFIED: find -print0 feed — 2>/dev/null hides an absent decisions/ dir (valid in a fresh repo); no ADRs means nothing to check
+done < <(find .claude/memory/decisions -name '*.md' -type f -print0 2>/dev/null)
+ok "ADR single-schema: $adr_schema_bad body-bullet violation(s)"
+echo
+
 # ─── 4. Executable shell files ──────────────────────────────────────────
 echo "[executables]"
 while IFS= read -r -d '' f; do

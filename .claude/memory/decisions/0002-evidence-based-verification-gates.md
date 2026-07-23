@@ -10,7 +10,6 @@ metadata:
 
 # ADR-0002: Verification requires durable artifacts, not attestations
 
-- **Status**: accepted
 - **Date**: 2026-05-25
 - **Deciders**: @shravanjha
 - **Owners**: [@shravanjha]
@@ -20,8 +19,6 @@ metadata:
 - **Context**: Round 10 audit — "done" claims with no artifacts; .claude/CLAUDE.md §VII
 - **Tags**: architecture
 - **subsystem**: verification
-- **Supersedes**:
-- **superseded_by**:
 - **orphaned_from**:
 
 ## Context

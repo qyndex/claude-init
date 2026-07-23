@@ -60,7 +60,6 @@ sed -e "s/^name: 0000-decision-template/name: ${next}-${slug}/" \
     -e "s/  status: template/  status: proposed/" \
     -e "s/^created: YYYY-MM-DD/created: ${today}/" \
     -e "s/# ADR-0000: <Decision Title>/# ADR-${next}: ${title}/" \
-    -e "s/- \*\*Status\*\*: proposed | accepted | superseded by ADR-XXXX | deprecated/- **Status**: proposed/" \
     -e "s/- \*\*Date\*\*: YYYY-MM-DD/- **Date**: ${today}/" \
     -e "s/- \*\*written_by\*\*: human | architect | dream | reviewer | debugger | security   # Round 5 C2 — provenance/- **written_by**: ${by}/" \
     -e "s|- \*\*source_session\*\*: <session-id>.*|- **source_session**: ${session_id}|" \
