@@ -22,6 +22,11 @@ set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$ROOT"
 
+# M-10-lock: all memory-plane writers share ONE lock so a backgrounded dream's
+# rollup can't interleave with a live session's write and clobber a rollup file.
+# shellcheck source=lib/with-lock.sh
+. "$(dirname "$0")/lib/with-lock.sh"
+
 RDIR=".claude/memory/rollups"
 mkdir -p "$RDIR"
 
@@ -65,7 +70,8 @@ cmd_weekly() {
     # JUSTIFIED: pre-sync repos have no STATE.md — placeholder is correct
     cat initiatives/active/*.STATE.md 2>/dev/null | grep -E '^\- \*\*(phase|tasks)\*\*' | head -6 || echo "_(no STATE.md yet)_"
   } > "$tmp" || die "failed writing $tmp"
-  cap_install "$tmp" "$file"
+  # M-10-lock: serialize the tracked-file install against a concurrent memory-plane writer.
+  with_lock "memory-plane" cap_install "$tmp" "$file"
   echo "memory-rollup: wrote $file"
 }
 
@@ -88,7 +94,8 @@ aggregate() { # parent_file title child_glob...
            END{printf "- %d commits, %d tasks completed%s\n", cc+0, tt+0, buf}' "$child"
     done
   } > "$tmp" || die "failed writing $tmp"
-  cap_install "$tmp" "$parent"
+  # M-10-lock: serialize the tracked-file install against a concurrent memory-plane writer.
+  with_lock "memory-plane" cap_install "$tmp" "$parent"
   echo "memory-rollup: wrote $parent"
 }
 

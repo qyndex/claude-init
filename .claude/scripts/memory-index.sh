@@ -18,6 +18,12 @@ set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$ROOT"
 
+# M-10-lock: all memory-plane writers share ONE lock so a backgrounded dream's
+# rebuild can't interleave with a live PostToolUse `touch` (post-write-format.sh)
+# and silently drop the just-written entry. mkdir-atomic, ships everywhere.
+# shellcheck source=lib/with-lock.sh
+. "$(dirname "$0")/lib/with-lock.sh"
+
 INDEX=".claude/memory/index.jsonl"
 mkdir -p .claude/memory
 
@@ -132,8 +138,8 @@ cmd="${1:-help}"
 # JUSTIFIED: when invoked with no args the shift has nothing to drop and exits non-zero — harmless, the fallback keeps the script going to the help case
 shift || true
 
-case "$cmd" in
-  backfill|rebuild)
+# M-10-lock: the two write paths are functions so with_lock can wrap them.
+_rebuild_index() {
     echo "→ Building memory index..."
     > "$INDEX"
     count=0
@@ -172,6 +178,26 @@ case "$cmd" in
     fi
 
     echo "✓ Indexed $count memory artifacts → $INDEX"
+}
+
+_touch_index() {
+    local file="$1"
+    entry=$(build_entry "$file") || return 0
+    [ -z "$entry" ] && return 0
+
+    id=$(echo "$entry" | jq -r .id)
+    # Remove old entry, append new
+    tmp=$(mktemp)
+    # JUSTIFIED: filters the prior entry for this id out of the index; a missing or single-line index makes grep find nothing and exit non-zero, so the fallback keeps the temp file empty and the fresh entry is appended below
+    grep -v "\"id\":\"$id\"" "$INDEX" 2>/dev/null > "$tmp" || true
+    echo "$entry" >> "$tmp"
+    mv "$tmp" "$INDEX"
+}
+
+case "$cmd" in
+  backfill|rebuild)
+    # M-10-lock: serialize the truncate-then-rewrite against any concurrent touch.
+    with_lock "memory-plane" _rebuild_index
     ;;
 
   touch)
@@ -184,17 +210,8 @@ case "$cmd" in
       .claude/memory/*) ;;
       *) exit 0 ;;  # Not a memory file; nothing to index
     esac
-
-    entry=$(build_entry "$file") || exit 0
-    [ -z "$entry" ] && exit 0
-
-    id=$(echo "$entry" | jq -r .id)
-    # Remove old entry, append new
-    tmp=$(mktemp)
-    # JUSTIFIED: filters the prior entry for this id out of the index; a missing or single-line index makes grep find nothing and exit non-zero, so the fallback keeps the temp file empty and the fresh entry is appended below
-    grep -v "\"id\":\"$id\"" "$INDEX" 2>/dev/null > "$tmp" || true
-    echo "$entry" >> "$tmp"
-    mv "$tmp" "$INDEX"
+    # M-10-lock: serialize the read-modify-write against a concurrent rebuild.
+    with_lock "memory-plane" _touch_index "$file"
     ;;
 
   query)

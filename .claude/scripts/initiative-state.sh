@@ -19,6 +19,13 @@ set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$ROOT"
 
+# M-10-lock: all memory-plane writers share ONE lock so a backgrounded dream's
+# sync can't interleave with a live session's STATE.md write. Locked at per-spec
+# write granularity (inside sync_one_spec) so a multi-spec sync loop doesn't hold
+# the lock across the whole loop.
+# shellcheck source=lib/with-lock.sh
+. "$(dirname "$0")/lib/with-lock.sh"
+
 STATE_DIR=".claude/state"
 INIT_DIR="initiatives/active"
 
@@ -116,6 +123,12 @@ sync_one_spec() {
   local state_file="$INIT_DIR/${init_base}.STATE.md" ts
   ts=$(date -Iseconds)
 
+  # M-10-lock: the two-command write (build .tmp, then head→final install) is not
+  # atomic — a concurrent memory-plane writer could clobber it. Wrapped in the
+  # shared lock at per-spec granularity so a multi-spec cmd_sync loop only holds
+  # the lock for one spec's write, not the whole loop. Dynamic scoping keeps the
+  # enclosing locals (spec, phase, tasks_*, etc.) visible to the nested writer.
+  _write_state_file() {
   {
     echo "# STATE — ${init_base}"
     echo
@@ -149,6 +162,8 @@ sync_one_spec() {
 
   head -n 60 "${state_file}.tmp" > "$state_file" && rm -f "${state_file}.tmp" \
     || die "failed installing $state_file"
+  }
+  with_lock "memory-plane" _write_state_file
 
   echo "initiative-state: synced $state_file (phase=$phase tasks=$((tasks_done + tasks_shipped))/${tasks_total})"
 }

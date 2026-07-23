@@ -19,6 +19,11 @@ set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$ROOT"
 
+# M-10-lock: all memory-plane writers share ONE lock so a backgrounded dream's
+# rewrite can't interleave with a live session's enforce and clobber MEMORY.md.
+# shellcheck source=lib/with-lock.sh
+. "$(dirname "$0")/lib/with-lock.sh"
+
 MAX_LINES="${MEMORY_MAX_LINES:-200}"
 WARN_LINES="${MEMORY_WARN_LINES:-150}"
 HARD_FAIL_LINES="${MEMORY_HARD_FAIL_LINES:-300}"
@@ -34,31 +39,9 @@ fi
 
 lines=$(wc -l < "$memory_file" | tr -d ' ')
 
-case "$MODE" in
-  check)
-    if [ "$lines" -ge "$HARD_FAIL_LINES" ]; then
-      echo "MEMORY.md is $lines lines (HARD FAIL > $HARD_FAIL_LINES)"
-      echo "Run: bash .claude/scripts/memory-gc.sh enforce"
-      exit 2
-    elif [ "$lines" -ge "$MAX_LINES" ]; then
-      echo "MEMORY.md is $lines lines (> $MAX_LINES cap). Run: /dream"
-      exit 1
-    elif [ "$lines" -ge "$WARN_LINES" ]; then
-      echo "MEMORY.md is $lines lines (approaching $MAX_LINES cap). Consider: /dream"
-      exit 0
-    else
-      echo "MEMORY.md: $lines lines / $MAX_LINES cap (healthy)"
-      exit 0
-    fi
-    ;;
-
-  enforce)
-    # Evict by last_accessed date (oldest-first) rather than by file position.
-    # Entries without last_accessed frontmatter are treated as epoch 0 (oldest).
-    if [ "$lines" -le "$MAX_LINES" ]; then
-      echo "MEMORY.md within cap; no enforcement needed"
-      exit 0
-    fi
+# M-10-lock: enforce's mutating read-modify-write (archive + prune + tmp→final
+# rename), extracted into a function so with_lock can serialize it.
+_enforce_prune() {
     archive=".claude/memory/.archive/MEMORY-$(date +%Y%m%d-%H%M%S).md"
     mkdir -p "$(dirname "$archive")"
     cp "$memory_file" "$archive"
@@ -133,6 +116,36 @@ case "$MODE" in
     # JUSTIFIED: atomic rename prevents a partial write leaving MEMORY.md empty
     mv "$memory_file.tmp" "$memory_file"
     echo "Enforced MEMORY.md cap: kept $available entries, evicted $evicted; backup at $archive"
+}
+
+case "$MODE" in
+  check)
+    if [ "$lines" -ge "$HARD_FAIL_LINES" ]; then
+      echo "MEMORY.md is $lines lines (HARD FAIL > $HARD_FAIL_LINES)"
+      echo "Run: bash .claude/scripts/memory-gc.sh enforce"
+      exit 2
+    elif [ "$lines" -ge "$MAX_LINES" ]; then
+      echo "MEMORY.md is $lines lines (> $MAX_LINES cap). Run: /dream"
+      exit 1
+    elif [ "$lines" -ge "$WARN_LINES" ]; then
+      echo "MEMORY.md is $lines lines (approaching $MAX_LINES cap). Consider: /dream"
+      exit 0
+    else
+      echo "MEMORY.md: $lines lines / $MAX_LINES cap (healthy)"
+      exit 0
+    fi
+    ;;
+
+  enforce)
+    # Evict by last_accessed date (oldest-first) rather than by file position.
+    # Entries without last_accessed frontmatter are treated as epoch 0 (oldest).
+    if [ "$lines" -le "$MAX_LINES" ]; then
+      echo "MEMORY.md within cap; no enforcement needed"
+      exit 0
+    fi
+    # M-10-lock: the read-modify-write that rewrites MEMORY.md is wrapped so a
+    # concurrent memory-plane writer can't clobber the tmp→final rename.
+    with_lock "memory-plane" _enforce_prune
     ;;
 
   archive)

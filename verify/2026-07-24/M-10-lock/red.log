@@ -1,0 +1,3 @@
+  - initiative-state.sh wraps a write in with_lock "memory-plane"
+passed: 3
+failed: 8
