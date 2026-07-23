@@ -33,6 +33,13 @@ echo "→ Phase 1: Archaeology (read-only) for $(basename "$ROOT")"
 if [ -f .claude/scripts/atlas-refresh.sh ]; then
   bash .claude/scripts/atlas-refresh.sh >/dev/null 2>&1 || echo "  (atlas-refresh had warnings)"
 fi
+# M-23-26: also run the M-09a endpoint scraper so archaeology emits a route
+# inventory (Flask/Express/Next), not just directory names — the adopted repo's
+# API surface is exactly what the later phases need to reason about.
+if [ -x .claude/scripts/atlas-endpoints.sh ]; then
+  # JUSTIFIED: best-effort — a repo with no recognizable routes emits an empty inventory, not an error
+  bash .claude/scripts/atlas-endpoints.sh >/dev/null 2>&1 || echo "  (atlas-endpoints had warnings)"
+fi
 stacks="unknown"
 if [ -f .claude/scripts/detect-stacks.sh ]; then
   # JUSTIFIED: detect-stacks stderr suppressed — a probe failure falls through to the empty-object literal, which downstream renders as "unknown"

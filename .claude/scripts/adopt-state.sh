@@ -115,6 +115,13 @@ case "$cmd" in
     [ -f "$STATE" ] || { echo "adopt-state: no adoption in progress"; exit 1; }
     tmp="$STATE.tmp.$$"
     jq --arg now "$(date -Iseconds)" '.phase=6 | .phase_name="handoff" | .status="complete" | .completed_at=$now' "$STATE" > "$tmp" && mv "$tmp" "$STATE"
+    # M-23-26: bootstrap the living initiative STATE so an adopted repo lands with
+    # a machine-current STATE.md, not empty (the always-current answer must exist
+    # from day one, per §IX). Best-effort — a pre-spec repo simply has no spec to sync.
+    if [ -x .claude/scripts/initiative-state.sh ]; then
+      # JUSTIFIED: sync is best-effort at adoption handoff — no active spec yields the "nothing to sync" path, not a failure
+      bash .claude/scripts/initiative-state.sh sync >/dev/null 2>&1 || true
+    fi
     echo "✓ adoption complete — repo now uses the standard 8-phase workflow"
     ;;
   *) echo "Usage: adopt-state.sh {init|show|phase|status|set <n> <name>|approve <n>|gate <n>|complete}"; exit 1 ;;
