@@ -45,7 +45,7 @@ extract_paths_touched() {
   # Grep paths mentioned in the body (lines with file:// or src/ or src/**/ patterns)
   local file="$1"
   # JUSTIFIED: a memory file with no code-path mentions makes grep exit 1 — the pipeline then produces an empty JSON array via jq, the correct "no paths_touched" value
-  grep -oE '`[a-zA-Z0-9_./-]+\.(ts|tsx|js|jsx|py|go|rs|java|kt|sql|md|yml|yaml|json)`' "$file" 2>/dev/null \
+  grep -oE '`[a-zA-Z0-9_./-]+\.(ts|tsx|js|jsx|py|go|rs|java|kt|sql|md|yml|yaml|json|sh|css|html|toml)`' "$file" 2>/dev/null \
     | sed 's/`//g' \
     | sort -u \
     | head -20 \

@@ -67,7 +67,12 @@ jq -cs --arg paths "$paths" --argjson now "$now" --argjson limit "$limit" '
       | (if $st == "quarantined" or (($e.superseded_by // "") != "") then -5 else 0 end) as $penalty
       | $e + {score: ($hits * 10 + $recency + $stbonus + $penalty), hits: $hits}
     )
-  | map(select(.score > 0))
+  # M-13: noise floor. Surface an entry only when it actually MATCHES the working
+  # set (hits > 0). Recency/status are tiebreakers among matches, never enough to
+  # surface a bonus-only entry — that made an unrelated path return ~20 noise lines.
+  # A superseded/quarantined match (penalty -5) is also dropped: -5 outweighs a
+  # single hit (+10) only past 2 hits, so keep the explicit score guard too.
+  | map(select(.hits > 0 and .score > 0))
   | sort_by(-.score)
   | .[0:$limit]
   | .[]
