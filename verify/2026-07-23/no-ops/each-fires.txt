@@ -1,0 +1,15 @@
+M-03 — the four silent no-ops now fire, 2026-07-23
+test/no-ops-fire.sh: 3/4 on branch (post-write-format via staged patch) → 4/4 with patch applied.
+
+a) post-write-format.sh (GUARDED → patch M-03-post-write-format-memory-glob.patch):
+   normalize absolute file_path → repo-relative (Write tool emits absolute paths,
+   so the relative memory-index/atlas case globs never matched); widen memory
+   glob to 3 levels so nested patterns/<fw>/x.md refresh the index.
+b) adr-new.sh:74 — memory-index.sh (argless → help, indexed nothing) → 'rebuild'.
+c) memory-gc.sh — last_accessed: is never WRITTEN by any script, so eviction
+   sorted every entry as epoch 0 (inert LRU). Added git-cs/stat-mtime recency
+   fallback so oldest-first eviction actually distinguishes files. Behavioral
+   check: 2020 file sorts before 2026 file. (Non-recursive — no frontmatter writer.)
+d) memory-promote.sh — sed targeted only the optional body '- **Status**' bullet
+   (5/12 files have it); now also mutates frontmatter 'status:' (all 12 carry it)
+   for both promote (emerging→established) and quarantine. Behavioral check passes.

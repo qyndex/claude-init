@@ -75,12 +75,29 @@ case "$MODE" in
     grep -n '^- \[' "$memory_file" | while IFS=: read -r lineno rest; do
       # Extract the linked file path from the markdown link, e.g. [Title](decisions/foo.md)
       linked_file=$(echo "$rest" | grep -oE '\([^)]+\.md\)' | tr -d '()' | head -1)
-      # Get last_accessed from the linked file's frontmatter (YYYY-MM-DD or epoch 0)
+      # Get last_accessed from the linked file's frontmatter (YYYY-MM-DD or epoch 0).
+      # M-03: no script ever WRITES last_accessed: — so it was absent everywhere and
+      # every entry sorted as "0000-00-00" (all equally oldest), making the LRU
+      # eviction inert. Fall back to the file's real recency: git last-commit date,
+      # then filesystem mtime, so eviction is genuinely oldest-first even without
+      # an explicit last_accessed: stamp.
       last_accessed="0000-00-00"
       if [ -n "$linked_file" ] && [ -f ".claude/memory/$linked_file" ]; then
         la=$(grep -m1 '^last_accessed:' ".claude/memory/$linked_file" 2>/dev/null \
              | sed 's/last_accessed:[[:space:]]*//' | tr -d '"' | xargs)
-        [ -n "$la" ] && last_accessed="$la"
+        if [ -n "$la" ]; then
+          last_accessed="$la"
+        else
+          # JUSTIFIED: git log may be empty for an uncommitted file → fall back to mtime;
+          # stderr muted because both fallbacks are best-effort recency signals
+          la=$(git log -1 --format=%cs -- ".claude/memory/$linked_file" 2>/dev/null)
+          if [ -z "$la" ]; then
+            # BSD stat (-f %Sm) then GNU stat (-c %y); take the date portion
+            la=$(stat -f '%Sm' -t '%Y-%m-%d' ".claude/memory/$linked_file" 2>/dev/null \
+                 || stat -c '%y' ".claude/memory/$linked_file" 2>/dev/null | cut -d' ' -f1)
+          fi
+          [ -n "$la" ] && last_accessed="$la"
+        fi
       fi
       printf '%s\t%s\t%s\n' "$last_accessed" "$lineno" "$rest"
     done | sort -t$'\t' -k1,1r -k2,2n > "$tmp_dir/sorted.tsv"
