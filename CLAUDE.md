@@ -72,7 +72,7 @@ Agents         .claude/agents/{core,quality,specialists}/*.md
 Discipline     skills: tdd-loop, browser-e2e, security-guard, token-budget, etc.
 Memory         .claude/memory/{MEMORY.md, decisions/, patterns/, incidents/, playbooks/}
 Hooks          .claude/hooks/*.sh         — deterministic guardrails (fire before the classifier)
-Scripts        .claude/scripts/*.sh       — ~60 operational utilities
+Scripts        .claude/scripts/*.sh       — ~90 operational utilities
 CI             .github/workflows/         — GitHub Actions gates
 Artifacts      specs/ plans/ tasks/ verify/ docs/
 Swarm          .swarms/{coordinator,streams,templates}/
@@ -206,6 +206,21 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 WIP checkpoints: `WIP: <6-word decision>` subject, squash-filtered before PR via `bash .claude/scripts/squash-wip.sh`.
 
 Every `eslint-disable`, `# noqa`, `# type: ignore` requires `JUSTIFICATION:` and `ISSUE: #N` within 3 lines. Security disables require an ADR. Enforced by `lint-exception-audit.yml`.
+
+## PRs in this repo: the evidence-gate escape hatch
+
+`evidence-gate` is a required merge check that expects a fresh `verify/<date>/evidence.json` bundle in every PR's diff. PRs on this repo are almost always harness maintenance (no application source), so they use the opt-in escape hatch instead: commit a `verify/<date>-<slug>/no-ac.json` in the PR:
+
+```json
+{
+  "kind": "harness-maintenance",
+  "reason": "<why no AC evidence applies>",
+  "maintains": ["<paths this PR services>"],
+  "date": "YYYY-MM-DD"
+}
+```
+
+`kind: "docs-only"` covers pure-docs diffs. The hatch is rejected if the PR touches application source — those still need a full evidence bundle. Factory-shipped root configs (`.editorconfig`, `codecov.yml`, `commitlint.config.mjs`, `.shellcheckrc`) are exempt from the app-source deny-list (`.github/workflows/evidence-gate.yml`).
 
 ## Security invariants (never break)
 

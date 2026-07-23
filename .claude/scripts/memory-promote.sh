@@ -64,7 +64,11 @@ declare -i promoted=0 demoted=0 quarantined=0 stale_flagged=0
       awk -F'/' '{print $1"/"$2}' | sort -u | wc -l | tr -d ' ')
 
     if [ "$commits_count" -ge 3 ] && [ "$distinct_mods" -ge 2 ]; then
-      sed -i.bak "s/^- \\*\\*Status\\*\\*: emerging/- **Status**: established/" "$path"
+      # M-03: mutate the FRONTMATTER status: (the field every memory file carries),
+      # not only the optional body "- **Status**" bullet — most files have no such
+      # bullet, so the body-only sed was a silent no-op that never promoted them.
+      sed -i.bak -e "s/^status: emerging/status: established/" \
+                 -e "s/^- \\*\\*Status\\*\\*: emerging/- **Status**: established/" "$path"
       rm -f "${path}.bak"
       echo "- $id (commits=$commits_count, modules=$distinct_mods)"
       promoted+=1
@@ -112,9 +116,11 @@ declare -i promoted=0 demoted=0 quarantined=0 stale_flagged=0
     recurred=$(grep -oE 'recurred_anti:\s*[0-9]+' "$f" 2>/dev/null | head -1 | grep -oE '[0-9]+$' || echo 0)
     if [ "$recurred" -ge 3 ]; then
       id=$(basename "$f" .md)
-      # Don't double-quarantine
-      if ! grep -q '^- \*\*Status\*\*: quarantined' "$f"; then
-        sed -i.bak 's/^- \*\*Status\*\*: \(established\|emerging\)/- **Status**: quarantined/' "$f"
+      # Don't double-quarantine (check frontmatter — the authoritative field)
+      if ! grep -qE '^status: quarantined' "$f"; then
+        # M-03: mutate frontmatter status: as well as the optional body bullet.
+        sed -i.bak -e 's/^status: \(established\|emerging\)/status: quarantined/' \
+                   -e 's/^- \*\*Status\*\*: \(established\|emerging\)/- **Status**: quarantined/' "$f"
         rm -f "${f}.bak"
         echo "- $id (recurred_anti=$recurred — consider /codify-rule)"
         quarantined+=1

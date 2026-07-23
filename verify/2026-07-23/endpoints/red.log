@@ -1,0 +1,10 @@
+# TDD ledger — red — M-09a
+ledger_format: 2
+timestamp: 2026-07-23T23:56:15+10:00
+command: bash .claude/scripts/test/atlas-endpoints.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+scraper missing: /Volumes/M/sourcecode/qyndex/claude-init/.claude/scripts/atlas-endpoints.sh
+passed: 0
+failed: 1

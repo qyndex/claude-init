@@ -1,0 +1,8 @@
+# TDD ledger — green — M-09a
+ledger_format: 2
+timestamp: 2026-07-23T23:59:52+10:00
+command: bash .claude/scripts/test/atlas-endpoints.sh
+exit_code: 0
+---
+passed: 17
+failed: 0

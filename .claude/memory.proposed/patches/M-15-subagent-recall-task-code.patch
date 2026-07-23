@@ -1,0 +1,20 @@
+diff --git a/.claude/hooks/subagent-context.sh b/.claude/hooks/subagent-context.sh
+index a0631a1..e60ec96 100755
+--- a/.claude/hooks/subagent-context.sh
++++ b/.claude/hooks/subagent-context.sh
+@@ -60,6 +60,15 @@ if [ -x .claude/scripts/memory-recall.sh ]; then
+   recall_paths=""
+   [ -n "$spec" ] && recall_paths="$spec"
+   [ -n "$plan" ] && recall_paths="$recall_paths $plan"
++  # M-15: scope subagent recall to the TASK CODE it will touch, not just the spec/
++  # plan markdown. The in-progress task line carries `files: a, b, c`; recall on
++  # those paths surfaces memory about the code, which is what the child needs.
++  if [ -f tasks/TASKS.md ]; then
++    # JUSTIFIED: no in-progress task (grep exit 1) or no files: marker yields empty — recall just falls back to spec/plan scope
++    task_files=$(grep -m1 -E '^- \[~\] T-[0-9]+' tasks/TASKS.md 2>/dev/null \
++      | grep -oE 'files:[^|]*' | sed 's/^files: *//' | tr ',' ' ' || true)
++    [ -n "$task_files" ] && recall_paths="$recall_paths $task_files"
++  fi
+   if [ -n "$recall_paths" ]; then
+     # JUSTIFIED: recall is best-effort enrichment — failure or no matches yields empty and the line is omitted
+     recall=$(bash .claude/scripts/memory-recall.sh --paths "$recall_paths" --limit 3 2>/dev/null | tr '\n' ' ' | head -c 400)

@@ -183,6 +183,24 @@ fi
 ok "validated $fm_count frontmatter blocks ($fm_bad bad)"
 echo
 
+# ─── 3b. ADR single-schema (M-10) ───────────────────────────────────────
+# Frontmatter `status:`/`supersedes` is the SOLE home for ADR status. The old
+# body bullets (`- **Status**:`, `- **Supersedes**:`, `- **superseded_by**:`)
+# duplicated it and drifted; reject them so the split can't reappear.
+echo "[adr-single-schema]"
+adr_schema_bad=0
+while IFS= read -r -d '' f; do
+  [ -f "$f" ] || continue
+  case "$(basename "$f")" in 0000-template.md|README.md) continue ;; esac
+  if grep -qE '^- \*\*Status\*\*:|^- \*\*Supersedes\*\*:|^- \*\*superseded_by\*\*:' "$f"; then
+    fail "ADR body-bullet status/supersedes (use frontmatter only — M-10): $f"
+    adr_schema_bad=$((adr_schema_bad + 1))
+  fi
+# JUSTIFIED: find -print0 feed — 2>/dev/null hides an absent decisions/ dir (valid in a fresh repo); no ADRs means nothing to check
+done < <(find .claude/memory/decisions -name '*.md' -type f -print0 2>/dev/null)
+ok "ADR single-schema: $adr_schema_bad body-bullet violation(s)"
+echo
+
 # ─── 4. Executable shell files ──────────────────────────────────────────
 echo "[executables]"
 while IFS= read -r -d '' f; do
@@ -947,6 +965,80 @@ for wf in .github/workflows/*.yml .github/workflows/*.yaml; do
   fi
 done
 [ "$auth_bad" -eq 0 ] && ok "every Anthropic-auth workflow offers the OAuth token (API key is fallback only)"
+echo
+
+# ─── dead-test detector (M-00) ──────────────────────────────────────────
+# Every .claude/scripts/test/*.sh must be referenced by at least one workflow
+# under .github/workflows/, otherwise it is a dead test that proves nothing —
+# exactly how the 2026-07 memory audit's 87 gaps shipped "green". Reference by
+# the "test/<name>" path fragment (matches `bash .claude/scripts/test/x.sh`).
+echo "[dead-tests]"
+# A test is "live" if a workflow either (a) invokes it explicitly by path
+# (test/<name>) or (b) loops the whole directory via a scripts/test/*.sh glob.
+# Correction-3 wedge avoidance (M-00): until a runner exists, an unreferenced
+# test is a WARNING (with the install pointer), not a hard fail — otherwise this
+# check reds main on the very PR that adds the runner. Once a glob runner is
+# present, everything is covered and this passes; a future named-only runner that
+# omits a NEW test is the only hard-fail path (regression, not chicken-and-egg).
+dead_tests=0
+if [ -d .claude/scripts/test ]; then
+  # The end state is a directory-glob runner (M-00 patch) that covers every test.
+  # Until it is installed, unreferenced tests are WARNINGS (with the install
+  # pointer) so this check never reds the PR that introduces the runner. Once the
+  # glob runner is present, every test is covered → pass. This is the same
+  # advisory-first→required-later sequencing Correction 3 mandates for liveness.
+  # JUSTIFIED: grep -q presence probe; 2>/dev/null hides "no workflows dir" on a fresh repo
+  glob_runner=0
+  grep -rqE 'scripts/test/\*\.sh' .github/workflows/ 2>/dev/null && glob_runner=1
+  for t in .claude/scripts/test/*.sh; do
+    [ -f "$t" ] || continue
+    b=$(basename "$t")
+    [ "$glob_runner" -eq 1 ] && continue
+    grep -rqF "test/$b" .github/workflows/ 2>/dev/null && continue
+    warn "dead test (no glob CI runner yet): .claude/scripts/test/$b — apply .claude/memory.proposed/patches/M-00-harness-test-runner.patch"
+  done
+fi
+[ "${glob_runner:-0}" -eq 1 ] && ok "test/*.sh covered by a directory-glob CI runner" \
+  || note "dead-test detector armed (advisory until the M-00 glob runner is installed)"
+echo
+
+# ─── [liveness] promoted metabolism gate (M-04-promote) ──────────────────
+# Per the plan's final item + O-7 MEDIUM-1: promote ONLY the branch-local,
+# deterministic committed-index-staleness check to a REQUIRED gate. The dream-
+# recency and rollup-freshness checks stay ADVISORY in harness-doctor (they read
+# runtime logs / need an externally-supplied wall-clock week — not derivable from
+# the committed tree, so they'd reintroduce the wall-clock wedge Correction 3
+# forbids). Env knobs mirror harness-doctor's so fixtures and the promotion PR can
+# steer it. LIVENESS_SOFT=1 downgrades the hard fail to a warning (the grace the
+# promotion PR runs under before the hard flip). No raw `date +%s` window
+# comparison here — freshness is a pure mtime ordering of committed files.
+LIVENESS_INDEX="${LIVENESS_INDEX:-.claude/memory/index.jsonl}"
+LIVENESS_MEMORY_DIR="${LIVENESS_MEMORY_DIR:-.claude/memory}"
+liveness_stale=0; liveness_detail=""
+if [ -f "$LIVENESS_INDEX" ]; then
+  idx_mtime=$(stat -f %m "$LIVENESS_INDEX" 2>/dev/null || stat -c %Y "$LIVENESS_INDEX" 2>/dev/null || echo 0)
+  # JUSTIFIED: find may traverse a dir with no .md yet — empty result means "no memory to be stale against" (fresh)
+  newest_md=$(find "$LIVENESS_MEMORY_DIR" -name '*.md' -type f -exec stat -f '%m %N' {} \; 2>/dev/null \
+    || find "$LIVENESS_MEMORY_DIR" -name '*.md' -type f -printf '%T@ %p\n' 2>/dev/null)
+  newest_md_mtime=$(printf '%s\n' "$newest_md" | sort -rn | head -1 | cut -d' ' -f1)
+  newest_md_mtime=${newest_md_mtime%.*}; newest_md_mtime=${newest_md_mtime:-0}
+  if [ "$newest_md_mtime" -gt "$idx_mtime" ]; then
+    liveness_stale=1
+    liveness_detail="committed memory index ($LIVENESS_INDEX) is STALE — older than the newest committed memory .md. Reindex: bash .claude/scripts/memory-index.sh rebuild (override path: LIVENESS_INDEX)"
+  fi
+else
+  liveness_stale=1
+  liveness_detail="no committed memory index at $LIVENESS_INDEX — build it: bash .claude/scripts/memory-index.sh rebuild (override path: LIVENESS_INDEX)"
+fi
+if [ "$liveness_stale" -eq 1 ]; then
+  if [ "${LIVENESS_SOFT:-0}" = "1" ]; then
+    warn "[liveness] $liveness_detail (soft/advisory: LIVENESS_SOFT=1)"
+  else
+    fail "[liveness] $liveness_detail (grace: run with LIVENESS_SOFT=1 to downgrade to a warning)"
+  fi
+else
+  ok "[liveness] committed index fresh — index mtime ≥ newest committed memory .md"
+fi
 echo
 
 # ─── Summary ────────────────────────────────────────────────────────────

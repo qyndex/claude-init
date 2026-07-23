@@ -60,7 +60,6 @@ sed -e "s/^name: 0000-decision-template/name: ${next}-${slug}/" \
     -e "s/  status: template/  status: proposed/" \
     -e "s/^created: YYYY-MM-DD/created: ${today}/" \
     -e "s/# ADR-0000: <Decision Title>/# ADR-${next}: ${title}/" \
-    -e "s/- \*\*Status\*\*: proposed | accepted | superseded by ADR-XXXX | deprecated/- **Status**: proposed/" \
     -e "s/- \*\*Date\*\*: YYYY-MM-DD/- **Date**: ${today}/" \
     -e "s/- \*\*written_by\*\*: human | architect | dream | reviewer | debugger | security   # Round 5 C2 — provenance/- **written_by**: ${by}/" \
     -e "s|- \*\*source_session\*\*: <session-id>.*|- **source_session**: ${session_id}|" \
@@ -70,7 +69,10 @@ sed -e "s/^name: 0000-decision-template/name: ${next}-${slug}/" \
     "$TEMPLATE" > "$out"
 
 # Keep the recall index current
+# M-03: memory-index.sh with NO subcommand prints help and indexes nothing — the
+# new ADR never entered the index. Pass `rebuild` (a real subcommand) so the ADR
+# is actually indexed.
 # JUSTIFIED: index rebuild is best-effort — a failure leaves the new ADR discoverable by path; doctor flags stale indexes
-bash .claude/scripts/memory-index.sh >/dev/null 2>&1 || true
+bash .claude/scripts/memory-index.sh rebuild >/dev/null 2>&1 || true
 
 echo "$out"

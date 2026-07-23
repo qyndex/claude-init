@@ -1,0 +1,6 @@
+  - validate.sh has a liveness gate
+  - gate checks committed-index staleness (branch-local)
+  - LIVENESS_SOFT=1 downgrades a stale index to a warning (grace)
+  - real repo is GREEN on the promoted liveness gate (index fresh)
+passed: 1
+failed: 4

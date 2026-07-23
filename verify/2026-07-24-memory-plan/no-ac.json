@@ -1,0 +1,11 @@
+{
+  "kind": "harness-maintenance",
+  "reason": "memory-metabolism implementation plan (5 phases, ~27 items) — .claude/ scripts, hooks, memory plane, and validate.sh liveness gate only; no application source changed",
+  "maintains": [
+    ".claude/scripts",
+    ".claude/hooks",
+    ".claude/memory",
+    ".claude/skills"
+  ],
+  "date": "2026-07-24"
+}

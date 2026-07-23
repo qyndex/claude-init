@@ -10,7 +10,6 @@ metadata:
 
 # ADR-0001: Sonnet-by-default model routing; Opus reserved for hard-thinking agents
 
-- **Status**: accepted
 - **Date**: 2026-05-20
 - **Deciders**: @shravanjha
 - **Owners**: [@shravanjha]
@@ -20,8 +19,6 @@ metadata:
 - **Context**: Round 5 cost audit (docs/RESEARCH.md cost-routing section); .claude/CLAUDE.md §V
 - **Tags**: architecture
 - **subsystem**: model-routing
-- **Supersedes**:
-- **superseded_by**:
 - **orphaned_from**:
 
 ## Context

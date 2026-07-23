@@ -1,0 +1,1290 @@
+{
+  "generated": "2026-07-23",
+  "method": "5 adversarial plan reviewers (1 lost to schema-retry cap: completeness) + high-effort synthesis; workflow wf_60684cb1-e2b; author-verified corrections on-disk",
+  "verdict": "The §6 plan's DIAGNOSIS is sound and its Phase 0→5 dependency spine is broadly correct, but it is NOT safe to build as written. Five corrections are load-bearing: (1) The §6 item 0.1 root-cause for headless auth is WRONG — the fix-correctness + testability reviewers proved on this machine that CLAUDE_CONFIG_DIR is ALREADY inherited by the exact nohup spawns, and credentials live in the macOS keychain, so \"capture CLAUDE_CONFIG_DIR at SessionStart and re-export it\" changes nothing. The metabolism must be re-diagnosed against a REPRODUCED detached-spawn failure (likely keychain-unavailable-to-no-TTY or expired token → apiKeyHelper/ANTHROPIC_API_KEY in spawn env), and the witness has a SECOND, independent root cause the plan misses entirely: pre-compact-witness.sh:68 uses `timeout 120` which is not installed on stock macOS (no timeout/gtimeout), so witnesses fail with 'command not found' regardless of auth. (2) A META blocker: NO CI runner executes .claude/scripts/test/*.sh — harness-validate.yml runs only loop-control.sh + oq-aging.sh, and test-unit.sh short-circuits to exit 0 on this shell-only repo. Every red-before/green-after test the plan calls for is a file that never runs; this is exactly how 87 gaps shipped green. Wiring a memory-test runner + a dead-test detector into CI must be item ZERO, before any other test is meaningful. (3) Item 0.4 (liveness probes) is mis-sequenced into a repo-bricking wedge: putting hard-FAIL clock-relative probes into validate.sh — consumed by the REQUIRED harness-validate gate with no escape hatch (the evidence-gate maintenance hatch does NOT cover harness-validate) — reds main for EVERY PR the instant it lands, because index/dream/rollup are all dead today, blocking the very fixes that would make them green. Liveness must ship advisory-in-harness-doctor FIRST and be promoted to required-in-validate.sh LAST, with env-overridable thresholds/paths so the promotion PR can prove-green. (4) Item 7 (flip spec-004 to [x]) as written HARD-FAILS its own required gate: check-tdd-ledger.sh (LEDGER_ENFORCE_FROM=111) demands red.log+green.log for every [x] task ≥111; only T-154 has them, so flipping T-140..T-157 fails harness-validate AND evidence-gate's verify.sh re-exec. Record shipped-state via SHIPPED.md (item 8) or an `[s]` shipped-class marker instead of bare [x], land item 8 BEFORE item 7's reconcile, and make the reverse-drift guard a POST-MERGE advisory (push:main trigger) that lands AFTER the reconcile — never a pull_request gate (WIP branches legitimately carry Task: trailers for still-[ ] tasks). (5) Several intra-phase orderings must be made explicit: 0.3 (working reindex/touch) gates item 5b (boot rebuild), items 10→11 (one-schema before executable supersession), 13+14 must ship together (sh-index is noise without the noise-floor fix), and item 5's boot auto-sync must land AFTER item 7's ledger repair or it rewrites STATE.md with the same wrong content plus a fresh timestamp, defeating the staleness banner. With these corrections the plan is buildable as ~15 harness-maintenance PRs, each mergeable through the evidence-gate maintenance hatch (no browser ACs needed for .claude/.github-only diffs).",
+  "corrections": [
+    {
+      "plan_item": "0.1 Fix headless auth (background-claude-auth-dead)",
+      "correction": "Do NOT implement the 'capture CLAUDE_CONFIG_DIR at SessionStart and re-export into spawns' remedy. It is a fix for a non-reproducible mechanism: the nohup subshells at auto-dream-check.sh:115, instinct-extract.sh:71, pre-compact-witness.sh:63 ALREADY inherit CLAUDE_CONFIG_DIR, and credentials resolve from the macOS keychain (svce 'Claude Code-credentials') + ~/.claude/.credentials.json, not a per-config-dir file. Re-scope 0.1 to: (a) ship a falsifiable auth PROBE (`claude -p 'ok'`) in harness-doctor FIRST and let its captured exit-code+stderr in the operator's real detached launch context drive the diagnosis; (b) if the probe fails, the real fix is an apiKeyHelper or ANTHROPIC_API_KEY exported into the spawn env (keychain unreachable to detached/no-TTY processes), NOT CLAUDE_CONFIG_DIR.",
+      "reason": "fix-correctness reviewer proved live: nohup inherits the var; `claude -p` returned exit 0 both with and without CLAUDE_CONFIG_DIR set; nothing in .claude sets/captures a config-dir. A fix targeting the wrong mechanism silently leaves 30+ downstream gaps dead after 'resuscitation'."
+    },
+    {
+      "plan_item": "0.1 / witness pipeline (checkpoint-pipeline-stalled)",
+      "correction": "Add a SECOND, independent root cause to the witness fix that 0.1 (auth) does not touch: pre-compact-witness.sh:68 pipes through `timeout 120 claude ...`, but `timeout`/`gtimeout` are absent on stock macOS, so the command dies with 'command not found', `|| echo ''` yields an empty brief, and the log records 'witness returned empty' (16 entries). Replace `timeout 120` with a portable guard (detect gtimeout/timeout, else drop it since the spawn is already detached) AND rewrite the placeholder header to 'witness failed — snapshot only' on empty return. Add `timeout` availability to harness-doctor's environment probe.",
+      "reason": "fix-correctness reviewer: `command -v timeout` and `command -v gtimeout` both not found live; the other two spawn sites use bare nohup without timeout so are unaffected — the plan's single-root-cause (auth) framing masks this, and witnesses stay empty after 0.1."
+    },
+    {
+      "plan_item": "META — no runner wires the memory test suite into CI",
+      "correction": "Add item 0.0 (Phase 0, FIRST): a `Memory metabolism tests` step in harness-validate.yml that loops `for t in memory-system gc-suite liveness-probe dream-state supersession recall-retrieval ledger-drift ...; do bash .claude/scripts/test/$t.sh || fail=1; done`, PLUS a validate.sh category that FAILS if any .claude/scripts/test/*.sh exists but no workflow references it (dead-test detection). Nothing below is a real merge gate until this exists.",
+      "reason": "testability reviewer confirmed: harness-validate.yml:105-106 runs only loop-control.sh+oq-aging.sh; test-unit.sh:19-22 detects no language stacks and exits 0 on claude-init; verify.sh has no scripts/test/ loop. memory-system.sh and gc-suite.sh already exist on disk but are referenced by no workflow — exactly how 87 gaps shipped green."
+    },
+    {
+      "plan_item": "0.4 Add a liveness self-test to validate.sh",
+      "correction": "Split into two lands. FIRST PR: probes go into harness-doctor.sh ONLY (advisory, not in main-protection.json). LAST PR of the chain: promote the SAME probes into validate.sh (required) only after 0.1+0.2+0.3+5+18 have landed and a green run proves index/dream/rollup are alive; add a LIVENESS_SOFT=1 grace/env-skip so the promotion PR itself can prove-green before flipping to hard-fail. Make every threshold and target path env-overridable (LIVENESS_NOW, LIVENESS_INDEX, age windows) mirroring gc-suite.sh's GC_VERIFY_AGE_DAYS precedent.",
+      "reason": "sequencing + blast-radius reviewers: validate.sh feeds the REQUIRED harness-validate gate (fails on overall==fail) with NO pull_request paths filter and NO maintenance escape hatch (the evidence-gate hatch only covers the evidence-gate job). Every liveness condition is TRUE today (index 41d frozen, dream 6/6 failed, rollups frozen at W24, checkpoint 38d pending), so an in-validate.sh land reds main for ALL PRs including the fix PRs — a chicken-and-egg wedge. Also untestable as-specified without env-overridable clock/paths."
+    },
+    {
+      "plan_item": "7 Repair the ledger — flip spec-004 to [x]",
+      "correction": "Do NOT flip T-140..T-153,T-155..T-157 to bare [x]. That HARD-FAILS check-tdd-ledger.sh (LEDGER_ENFORCE_FROM=111, requires committed red.log+green.log for every [x] ≥111; only T-154 has them), which runs in required harness-validate AND is re-executed by verify.sh inside evidence-gate. Instead: (A) record spec-004 completion in item 8's specs/SHIPPED.md and/or an `[s]`/shipped-class terminal marker that skips the red/green requirement, leaving the 17 lines non-[x]; OR (B) if [x] is mandatory, first backfill red.log/green.log for T-140..T-157 from the PR #13 evidence bundle (verify/2026-06-14-004/ + EVIDENCE.md) THEN flip. Land item 8 BEFORE item 7's reconcile so shipped-state has a durable home. Commit the reconcile as a harness-maintenance no-ac.json PR (TASKS.md is not app-source).",
+      "reason": "blast-radius + sequencing reviewers: reproduced that only T-154 has ledger logs; the reconcile as described cannot pass its own required gate. SKIP_TDD_LEDGER was removed server-side per evidence-gate.yml:157 so it can't be used."
+    },
+    {
+      "plan_item": "7 reverse-drift CI check vs validate.sh 'missing accept:' sub-clause",
+      "correction": "The reverse-drift guard and the 'validate.sh fails task lines missing summary:/accept:' sub-clause must land in a LATER PR than the spec-004 reconcile, and the reverse-drift guard must trigger on push:branches:[main] (post-merge, advisory/issue-opening) NOT pull_request. Adding either as a required/pull_request gate before the reconcile reds main immediately: PR #13 (already merged) carries Task: T-140..T-157 trailers while those tasks are still [ ], and WIP feature branches legitimately carry Task: trailers for still-[ ] tasks per squash-wip.sh convention + §VI (every commit needs a Task: trailer). Also: add accept: sub-lines in a SEPARATE later PR from the [x]/marker flip (adding accept: re-arms verify.sh's accept-rerun against the flipped lines).",
+      "reason": "blast-radius reviewers: a pull_request reverse-drift gate false-positives on every in-progress branch; the bare TASKS.md lines lack accept: so accept-rerun currently skips them — the same item's proposed validate.sh 'missing accept:' rule would RED-fail those exact 17 lines before repair."
+    },
+    {
+      "plan_item": "9 Atlas v2 (ENDPOINTS.md + JOURNEYS.md)",
+      "correction": "Split item 9. Ship ENDPOINTS.md (pure per-stack source scraper in atlas-refresh.sh + committed fixture app trees under test/fixtures/atlas/{flask,express,next}/) as an INDEPENDENT PR that can land any time after Phase 0 — it depends on nothing downstream. DEFER JOURNEYS.md and the endpoint↔evidence-bundle HAR-join to AFTER item 8's evidence index/registry exists (the join needs the durable evidence index item 8 introduces, plus a fixture HAR the plan omits). Do the CI merge-boundary atlas-refresh wiring together with item 6's network-boundary wiring so the boundary plumbing is added once.",
+      "reason": "sequencing + testability reviewers: ENDPOINTS is independent but bundled with the 8-dependent JOURNEYS/evidence-join, obscuring that ENDPOINTS can ship in Phase 1 while JOURNEYS must wait; the HAR-join as bundled has no test fixture spec."
+    },
+    {
+      "plan_item": "11 vs 10 (executable supersession)",
+      "correction": "Make explicit: item 11 (adr-new.sh --supersedes) requires BOTH item 10 (frontmatter is sole home of status/supersedes/superseded_by; 3 existing ADRs migrated) AND item 0.3 (working reindex/touch) to have landed first — sequence 0.3 → 10 → 11. 11's reindex step cannot work while adr-new.sh's reindex is the argless help no-op. Migrate all body-bullet files AND flip the validate.sh body-bullet rejection in ONE atomic PR (item 10) with an index rebuild in the same PR, so the new rule never sees an unmigrated file and no recall-breaking reindex is needed. Mark the agent-prompt consumers (architect/security/reviewer 'filter superseded') and the §V constitution auto-amend as UNTESTABLE/constitution-blocked — the achievable guarantee is that the mechanical consumers (index, recall, CI consistency check) converge and the ADR-vs-§V contradiction is DETECTED, not that the constitution self-heals.",
+      "reason": "sequencing + testability reviewers: status/superseded_by are split-brain in the markdown source; 11 before 10 flips one representation while the other stays stale and recall's status:superseded filter (index-backed) won't converge. .claude/CLAUDE.md is pre-edit-constitution-guard write-blocked so no test can make §V self-amend."
+    },
+    {
+      "plan_item": "5 (SessionStart auto-sync/rebuild/atlas) vs 0.3 and 7",
+      "correction": "Split item 5 into 5a (extend SessionStart matcher to clear|compact — a pure settings.json edit, no dependency, land early) and 5b (boot auto-sync + memory-index rebuild + atlas-refresh on staleness). Land 5b AFTER 0.3 (so the boot rebuild path actually writes) AND AFTER item 7's ledger repair + per-spec STATE filter (so auto-sync writes CORRECT state rather than rewriting STATE.md with the same wrong 'specifying 1/18' content plus a fresh timestamp, which would defeat the staleness banner that currently at least flags it). Time-box or background atlas-refresh at boot (it scans the tree, may exceed 1s on a large adopted repo); run initiative-state sync + memory-index rebuild synchronously (both cheap, no claude spawn). Decide whether boot-time writes stage/commit or stay working-tree (STATE.md is committed-tracked; boot writes dirty the tree).",
+      "reason": "sequencing + blast-radius reviewers: 5 before 0.3 runs a rebuild the on-write path can't support; 5 before 7 makes wrong state look fresh; initiative-state.sh sync reads phase from the stale .swarms coordinator file + drifted TASKS.md until 7 lands."
+    },
+    {
+      "plan_item": "6 (network-boundary sync — CI post-merge committer)",
+      "correction": "Land item 6's sync CALL into /ship and /verify skill prose first (grep-gated by a validate.sh check that ship/SKILL.md contains 'initiative-state.sh sync'; mark the LLM-actually-runs-it path UNTESTABLE). For the CI writer, prefer committing STATE.md on the PR branch pre-merge (in /ship) over a post-merge raw push to main — main-protection.json requires required_signatures + required_linear_history with an EMPTY bypass_actors list, so a bot push to main is rejected. If a post-merge committer is truly needed, route it through the existing auto-merge.yml machinery / a provisioned bypass_actor, not a raw push.",
+      "reason": "testability + sequencing reviewers: skills are LLM prose (untestable directly); a raw CI push to main trips required_signatures/linear_history with no bypass path provisioned."
+    },
+    {
+      "plan_item": "13 (noise floor) + 14 (sh-index)",
+      "correction": "Ship items 13 (require hits>0, not score>0) and 14 (whitelist += sh/bash/css/html/toml) in the SAME PR, and rebuild index.jsonl in that PR. 14 alone leaves recall padding with hits=0 seed patterns; 13 alone leaves .sh paths unindexable so path-recall still can't match shell work. Strengthen memory-system.sh:43-46 to assert the OUTPUT is EMPTY (`wc -l -eq 0`) for an unrelated path — the current test only checks the 'matches working set' marker is absent, which is precisely why the noise floor slipped through.",
+      "reason": "fix-correctness + testability reviewers: both CRIT gaps; neither alone makes path-recall useful; the existing test is the one that failed to catch the noise floor."
+    },
+    {
+      "plan_item": "20 (graph approximation) internal ordering",
+      "correction": "State the dependencies: 0.3 (working reindex) → 13 (noise floor) → 20. Land the back_ref matcher fix (normalize ADR-NNNN↔slug) + the self-reference-pollution fix (refs-self-reference-pollution) as ONE PR before enabling any one-hop recall traversal, so traversal never runs over self-edges or amplifies the noise floor. Adopt [[slug]] wikilinks only after the matcher fix (or use slug ids that already match .id==$t).",
+      "reason": "sequencing reviewer: 20 depends on 0.3 (re-index after edges written) and 13 (else one-hop expansion amplifies the noise floor); the plan places 20 correctly in Phase 4 but omits the 0.3→20 and 13→20 dependencies."
+    },
+    {
+      "plan_item": "12 (MEMORY.md as projection)",
+      "correction": "Generate ONLY between explicit delimiter markers (<!-- BEGIN:auto-decisions -->..<!-- END -->) rewritten in place — never overwrite the whole file, which is hand-authored (taxonomy prose block + 'Add a one-line entry below', last two commits human scaffold a371b77/780fa60). Preserve the hand-written taxonomy/header. Reconcile ownership with dream + memory-gc (both already mutate MEMORY.md and the 200-line cap) so a generator and dream don't race — prefer making it a dream-step-owned or single-writer path. State explicitly which MEMORY.md is targeted (repo .claude/memory/MEMORY.md, NOT the operator auto-memory under ~/.claude-qyndex/).",
+      "reason": "blast-radius reviewer: MEMORY.md is NOT machine-owned today; a whole-file generator clobbers hand-written structure and can race dream/memory-gc; two distinct MEMORY.md files exist."
+    }
+  ],
+  "implementation_plan": [
+    {
+      "id": "M-00",
+      "phase": "Phase 0",
+      "title": "Wire a memory-test runner + dead-test detector into CI",
+      "gaps_closed": [
+        "no-organic-memory-produced"
+      ],
+      "change": "harness-validate.yml: add a `Memory metabolism tests` step after the loop-control/oq-aging step that runs `for t in memory-system gc-suite; do bash .claude/scripts/test/$t.sh || fail=1; done; exit $fail` and grows as new test files land. validate.sh: add a `[test-wiring]` category that fails when any .claude/scripts/test/*.sh exists but is referenced by no .github/workflows/*.yml (dead-test detection).",
+      "test_file": ".claude/scripts/test/test-wiring.sh (+ validate.sh [test-wiring] check)",
+      "red_assertion": "Before: grep of .github/workflows/*.yml for 'scripts/test/memory-system' returns nothing; test-wiring.sh asserts memory-system.sh is unreferenced → FAIL (dead test present).",
+      "green_assertion": "After: harness-validate.yml references the memory tests; test-wiring.sh finds every scripts/test/*.sh referenced by a workflow → PASS.",
+      "artifact": "verify/<date>/test-wiring/referenced-tests.txt (list of test files + the workflow that runs each)",
+      "ci_wiring": "New required step inside the existing required harness-validate job; validate.sh [test-wiring] category enters the harness-validate overall==fail decision.",
+      "constitution_blocked": false,
+      "depends_on": []
+    },
+    {
+      "id": "M-01a",
+      "phase": "Phase 0",
+      "title": "Auth + timeout liveness PROBE in harness-doctor (advisory)",
+      "gaps_closed": [
+        "background-claude-auth-dead",
+        "headless-claude-auth-dead"
+      ],
+      "change": "harness-doctor.sh: add add_result probes — (1) `claude -p 'ok'` run under the same detached/no-TTY context as the spawns, FAIL on non-zero/'Not logged in'; (2) `command -v timeout || command -v gtimeout` availability, FAIL if absent. Capture exit code + stderr to a durable log so the real auth mechanism can be diagnosed from evidence (NOT assumed).",
+      "test_file": ".claude/scripts/test/headless-auth.sh",
+      "red_assertion": "Before: no auth/timeout probe exists in harness-doctor.sh; test asserting a probe with a fake `claude` shim reports its result → FAIL (no probe).",
+      "green_assertion": "After: with a fake `claude` PATH shim exiting non-zero, harness-doctor auth probe reports fail (advisory); with exit 0 shim, reports pass. timeout-absence probe reports fail when neither binary is on PATH.",
+      "artifact": "verify/<date>/headless-auth/{probe.json,claude-stderr.log}",
+      "ci_wiring": "harness-doctor is advisory (absent from main-protection.json) — probe is operator-run, not a merge gate. Test enters CI via M-00 runner.",
+      "constitution_blocked": false,
+      "depends_on": [
+        "M-00"
+      ]
+    },
+    {
+      "id": "M-01b",
+      "phase": "Phase 0",
+      "title": "Fix the reproduced spawn failure (auth env + portable timeout)",
+      "gaps_closed": [
+        "background-claude-auth-dead",
+        "checkpoint-pipeline-stalled",
+        "instinct-pipeline-zero-yield",
+        "canonical-memory-frozen"
+      ],
+      "change": "Refactor the inline nohup spawn in auto-dream-check.sh into a callable seam (function/script) so it is testable. Based on M-01a's REPRODUCED failure: if keychain is unreachable to detached procs, export apiKeyHelper/ANTHROPIC_API_KEY into the spawn env (NOT CLAUDE_CONFIG_DIR, already inherited). In pre-compact-witness.sh replace `timeout 120` with a portable guard (gtimeout/timeout detect, else background-kill or drop) and rewrite the placeholder header to 'witness failed — snapshot only' on empty return. Cap instinct-extract retries after N consecutive failures.",
+      "test_file": ".claude/scripts/test/headless-auth.sh (extend)",
+      "red_assertion": "Before: inject a fake `claude` shim that echoes $ANTHROPIC_API_KEY-presence and the spawn wrapper does not pass it → log lacks the propagated marker → FAIL. Witness with no `timeout` on PATH → empty brief, placeholder unchanged → FAIL.",
+      "green_assertion": "After: spawn wrapper propagates the auth env (marker present in shim output); witness with no timeout completes and rewrites header to 'witness failed — snapshot only' on empty → PASS.",
+      "artifact": "verify/<date>/headless-auth/{propagated.log,witness-header.txt}",
+      "ci_wiring": "Test via M-00 runner (required). The hook edits are advisory-tested (real auth un-runnable in CI).",
+      "constitution_blocked": false,
+      "depends_on": [
+        "M-01a"
+      ]
+    },
+    {
+      "id": "M-02",
+      "phase": "Phase 0",
+      "title": "Record dream failure as failure (exit-gated state, flag preserved)",
+      "gaps_closed": [
+        "dream-failure-recorded-as-success",
+        "dream-false-success-recorded",
+        "awaiting-review-flag-dropped",
+        "dream-state-flag-dropped",
+        "last-dream-field-mismatch",
+        "last-dream-key-mismatch"
+      ],
+      "change": "auto-dream-check.sh: chain the .dream-state.json stamp on claude exit 0 (`claude ... && printf success || { log FAILED; rm -rf .claude/memory.proposed; }`); roll back the phantom .memory.proposed mirror on failure; read-modify-write state via jq to preserve awaiting_review on the <24h/<5-session early-exit branches; single key last_run_epoch everywhere. session-start-context.sh:137: read `.last_run_epoch // 0` with strftime formatting.",
+      "test_file": ".claude/scripts/test/dream-state.sh",
+      "red_assertion": "Before (TEST_SYNC=1, fake claude exit 1): jq '.last_run_epoch' on the temp state file equals injected now (false success) AND .memory.proposed mirror remains → FAIL.",
+      "green_assertion": "After: on exit 1, last_run_epoch unchanged + FAILED line appended + mirror removed; on prior awaiting_review:true early-exit, .awaiting_review survives; reader and writer both use last_run_epoch → PASS.",
+      "artifact": "verify/<date>/dream-state/{false-success.log,flag-preserved.log}",
+      "ci_wiring": "Test via M-00 runner (required).",
+      "constitution_blocked": false,
+      "depends_on": [
+        "M-00"
+      ]
+    },
+    {
+      "id": "M-03",
+      "phase": "Phase 0",
+      "title": "Fix the silent no-ops (index touch, adr reindex, promote frontmatter, gc order)",
+      "gaps_closed": [
+        "on-write-index-maintenance-dead",
+        "index-frozen-touch-never-fires",
+        "touch-glob-misses-nested-memory",
+        "adr-new-reindex-noop",
+        "adr-new-noop-reindex",
+        "promote-sed-targets-nonexistent-lines",
+        "pattern-promotion-cannot-fire",
+        "memory-gc-evicts-newest",
+        "gc-evicts-newest-first"
+      ],
+      "change": "post-write-format.sh: normalize `path=\"${path#$(pwd)/}\"` at line 9 BEFORE all case blocks (fixes memory-touch, atlas-dirty, skill-registry cases); extend memory glob to include `.claude/memory/*/*/*.md` (3-level). adr-new.sh:74: `memory-index.sh touch \"$out\"`, drop `>/dev/null 2>&1 || true`. memory-promote.sh: mutate YAML frontmatter `status:`, gate the promoted counter + audit echo on sed actually changing the file; add a verified_in_commits appender or drop the field. memory-gc.sh: keep-tail/evict-head fallback when last_accessed absent (option b).",
+      "test_file": ".claude/scripts/test/memory-system.sh (extend) + reuse gc-suite.sh idiom",
+      "red_assertion": "Before: write an absolute-path memory file via the hook → index.jsonl gains no entry; adr-new prints help, index unchanged; promote reports promoted=N over a file it never mutated; gc keeps head/evicts newest → all FAIL.",
+      "green_assertion": "After: absolute-path write adds the index entry (incl 3-level patterns/cross/); adr-new adds the new id to index.jsonl; promote flips frontmatter status and promoted==grep-delta; gc keeps newest-appended tail → PASS.",
+      "artifact": "verify/<date>/no-ops/{index-touch.json,adr-reindex.json,promote-counter.txt,gc-order.txt}",
+      "ci_wiring": "Test via M-00 runner (required). post-write-format.sh is a hook (agent-editable; not constitution-blocked).",
+      "constitution_blocked": false,
+      "depends_on": [
+        "M-00"
+      ]
+    },
+    {
+      "id": "M-04",
+      "phase": "Phase 0",
+      "title": "Liveness probes in harness-doctor (advisory, env-parameterized)",
+      "gaps_closed": [
+        "no-scheduler-ever-installed",
+        "atlas-frozen-56d-and-born-invalid",
+        "overnight-watchdog-uses-mtime",
+        "witness-pending-no-retry",
+        "witness-dead-never-remediated",
+        "stale-inflight-content-lost"
+      ],
+      "change": "harness-doctor.sh: add add_result liveness checks (index mtime vs newest memory file, dream last-success age, rollup gap, '(pending)' checkpoint age) — each reads LIVENESS_NOW / LIVENESS_INDEX / age windows from env (default real values). On WITNESS-DEAD/stale-inflight, archive the artifact (mirror the in-flight rename) and keep a persistent 'awaiting review' pointer. These are ADVISORY (harness-doctor only) this PR.",
+      "test_file": ".claude/scripts/test/liveness-probe.sh",
+      "red_assertion": "Before: no liveness checks in harness-doctor; fixture with an 8-day-old index + newer topic file → no probe reports it → FAIL.",
+      "green_assertion": "After (env-overridden clock/paths on a temp tree): backdated index → probe returns fail; fresh index → pass; stale checkpoint archived + one-shot warning → PASS.",
+      "artifact": "verify/<date>/liveness-probe/report.json (harness-doctor --json over the fixture)",
+      "ci_wiring": "harness-doctor advisory (not in main-protection.json). Test via M-00 runner. NOT in validate.sh yet — promoted in M-20.",
+      "constitution_blocked": false,
+      "depends_on": [
+        "M-00"
+      ]
+    },
+    {
+      "id": "M-05a",
+      "phase": "Phase 1",
+      "title": "Extend SessionStart matcher to clear|compact",
+      "gaps_closed": [
+        "no-boot-context-after-clear-or-compact"
+      ],
+      "change": "settings.json: change the SessionStart matcher from 'startup|resume' to 'startup|resume|clear|compact' for the three SessionStart hooks.",
+      "test_file": "validate.sh [session-boot-matcher] structural check",
+      "red_assertion": "Before: `jq '.hooks.SessionStart[].matcher'` lacks 'clear'/'compact' → validate check FAILS.",
+      "green_assertion": "After: matcher contains both clear and compact → PASS.",
+      "artifact": "verify/<date>/matcher/settings-matcher.txt",
+      "ci_wiring": "validate.sh category → required harness-validate. Pure structural grep, no clock/metabolism dependency.",
+      "constitution_blocked": false,
+      "depends_on": []
+    },
+    {
+      "id": "M-07-data",
+      "phase": "Phase 1",
+      "title": "Reconcile spec-004 shipped-state WITHOUT bare [x]",
+      "gaps_closed": [
+        "tasks-ledger-contradicts-shipped-reality",
+        "state-md-stale-and-semantically-wrong"
+      ],
+      "change": "Do NOT flip T-140..T-157 to bare [x]. Record spec-004 completion via item-8 SHIPPED.md (M-08) and/or an `[s]` shipped-class terminal marker recognized by next-task.sh/counts; leave the 17 lines non-[x] so check-tdd-ledger is untouched. Correct the STATE.md per-spec content in the same PR. Commit as harness-maintenance no-ac.json.",
+      "test_file": ".claude/scripts/test/ledger-drift.sh (reconcile leg)",
+      "red_assertion": "Before: tasks/TASKS.md shows spec-004 17/18 [ ] though PR #13 (5ab9847) merged; SHIPPED.md has no spec-004 row → FAIL.",
+      "green_assertion": "After: SHIPPED.md carries spec-004 (PR #13, date, evidence path) OR the 17 lines are `[s]`; check-tdd-ledger.sh + verify.sh accept-rerun still PASS (no new [x] ≥111 without ledger).",
+      "artifact": "verify/<date>/ledger-drift/reconcile-report.txt + specs/SHIPPED.md snapshot",
+      "ci_wiring": "harness-maintenance no-ac.json PR (TASKS.md not app-source). Test via M-00 runner.",
+      "constitution_blocked": false,
+      "depends_on": [
+        "M-08"
+      ]
+    },
+    {
+      "id": "M-07-state",
+      "phase": "Phase 1",
+      "title": "Per-spec STATE filter + ground-truth phase + all-initiative sync",
+      "gaps_closed": [
+        "next-tasks-cross-spec-contamination",
+        "state-does-not-answer-shipped",
+        "multi-initiative-rot",
+        "divergent-next-task-derivations"
+      ],
+      "change": "initiative-state.sh: per-spec filter on the 'next unblocked' grep (use next-task.sh --all, not raw file-order grep); derive phase per-initiative from TASKS.md ground truth instead of the global .swarms coordinator file; sync ALL active initiatives, not newest-by-mtime. Replace the raw greps in session-start-context.sh:128 and initiative-state.sh:115 with next-task.sh.",
+      "test_file": ".claude/scripts/test/ledger-drift.sh (state-filter leg)",
+      "red_assertion": "Before: a two-spec fixture → spec-004 STATE.md lists spec-003 tasks (T-129/130/131) → FAIL.",
+      "green_assertion": "After: spec-004 STATE lists only spec:004 eligible tasks; phase reflects TASKS.md ground truth → PASS.",
+      "artifact": "verify/<date>/ledger-drift/state-filter.txt",
+      "ci_wiring": "harness-maintenance PR; test via M-00 runner.",
+      "constitution_blocked": false,
+      "depends_on": [
+        "M-07-data"
+      ]
+    },
+    {
+      "id": "M-08",
+      "phase": "Phase 1",
+      "title": "Durable SHIPPED registry + evidence index with supersession",
+      "gaps_closed": [
+        "nothing-injects-shipped-state",
+        "no-durable-verified-journey-registry",
+        "specs-active-never-archived",
+        "conflicting-evidence-bundles-no-supersession",
+        "overnight-report-frozen-no-freshness-contract"
+      ],
+      "change": "Ship-time appends one line/spec to specs/SHIPPED.md (spec, PR, merge date, evidence path, verified journeys); spec file moves active/→shipped/; session-start-context.sh injects the last 3 shipped lines. Evidence bundles get index entries with supersession pointers (latest verdict wins).",
+      "test_file": ".claude/scripts/test/shipped-registry.sh",
+      "red_assertion": "Before: after a fixture ship, specs/SHIPPED.md absent/unchanged + spec still in active/ + boot banner has no shipped line → FAIL.",
+      "green_assertion": "After: SHIPPED.md has the row, spec moved to shipped/, boot banner contains the last shipped line, evidence index resolves latest-wins → PASS.",
+      "artifact": "verify/<date>/shipped-registry/{SHIPPED.md,boot-banner.txt}",
+      "ci_wiring": "Test via M-00 runner (required).",
+      "constitution_blocked": false,
+      "depends_on": [
+        "M-00"
+      ]
+    },
+    {
+      "id": "M-05b",
+      "phase": "Phase 1",
+      "title": "Boot auto-sync + index rebuild + time-boxed atlas on staleness",
+      "gaps_closed": [
+        "single-writer-sessionend",
+        "sync-only-at-session-end",
+        "staleness-warning-advisory-only",
+        "state-sync-only-on-graceful-end",
+        "subagent-gets-stale-state-as-current",
+        "memory-index-rot-feeds-recall"
+      ],
+      "change": "session-start-context.sh + subagent-context.sh: on staleness, RUN initiative-state.sh sync + memory-index.sh rebuild synchronously (cheap, no claude spawn) and atlas-refresh time-boxed/backgrounded; warnings become remediations. subagent-context.sh: reuse the 168h check — when stale, inject 're-derive from TASKS.md' instead of 'machine-current'.",
+      "test_file": ".claude/scripts/test/memory-system.sh (boot-sync leg)",
+      "red_assertion": "Before: backdate STATE.md mtime, run boot path → STATE unchanged, still warned → FAIL.",
+      "green_assertion": "After: boot path re-syncs STATE.md (mtime advanced, phase corrected) and rebuilds a stale index → PASS.",
+      "artifact": "verify/<date>/boot-sync/state-before-after.diff",
+      "ci_wiring": "Test via M-00 runner. session-start-context.sh/subagent-context.sh are hooks (agent-editable).",
+      "constitution_blocked": false,
+      "depends_on": [
+        "M-03",
+        "M-07-state"
+      ]
+    },
+    {
+      "id": "M-06",
+      "phase": "Phase 1",
+      "title": "Wire network-boundary sync into /ship + /verify (+ pre-merge STATE commit)",
+      "gaps_closed": [
+        "single-writer-sessionend",
+        "sync-only-at-session-end"
+      ],
+      "change": "ship/SKILL.md + verify path: add an `initiative-state.sh sync` invocation; prefer committing STATE.md on the PR branch pre-merge (in /ship) over a post-merge push to main (main-protection.json requires signatures + linear history with empty bypass_actors). validate.sh grep check that ship/SKILL.md references the sync string.",
+      "test_file": "validate.sh [ship-sync-wired] grep check",
+      "red_assertion": "Before: grep 'initiative-state.sh sync' ship/SKILL.md → nothing → FAIL.",
+      "green_assertion": "After: ship/SKILL.md contains the sync invocation → PASS. (LLM-actually-runs-it marked UNTESTABLE.)",
+      "artifact": "verify/<date>/ship-sync/ship-skill-grep.txt",
+      "ci_wiring": "validate.sh category → required harness-validate. Pure grep, no metabolism dependency.",
+      "constitution_blocked": false,
+      "depends_on": []
+    },
+    {
+      "id": "M-09a",
+      "phase": "Phase 1",
+      "title": "Atlas v2 ENDPOINTS.md (independent stack scraper)",
+      "gaps_closed": [
+        "atlas-has-no-endpoint-inventory",
+        "atlas-staleness-warn-only-never-refreshed",
+        "atlas-stale-by-design"
+      ],
+      "change": "atlas-refresh.sh: emit ENDPOINTS.md (route table per stack — Flask blueprints, Express routers, Next.js app routes). Commit fixture app trees under test/fixtures/atlas/{flask,express,next}/. Refresh at the CI merge boundary (wired with M-06's boundary plumbing).",
+      "test_file": ".claude/scripts/test/atlas-endpoints.sh",
+      "red_assertion": "Before: ENDPOINTS.md absent or emits only 'Route root: <dir>' → FAIL.",
+      "green_assertion": "After: each fixture stack's known routes+methods appear in ENDPOINTS.md → PASS.",
+      "artifact": "test/fixtures/atlas/* (committed) + verify/<date>/atlas-endpoints/ENDPOINTS.md",
+      "ci_wiring": "Test via M-00 runner (required).",
+      "constitution_blocked": false,
+      "depends_on": [
+        "M-00"
+      ]
+    },
+    {
+      "id": "M-07-guard",
+      "phase": "Phase 1",
+      "title": "Reverse-drift guard (post-merge, advisory) + accept:/summary: structural check",
+      "gaps_closed": [
+        "tasks-ledger-contradicts-shipped-reality"
+      ],
+      "change": "New workflow on push:branches:[main] (NOT pull_request) that opens an issue / reconciles when a merged commit's Task: trailers reference tasks still [ ] (sourced from PR body/enumerated trailers, tested against #13's squash format). Separately, a validate.sh check that actionable implementer task lines carry summary:/accept: sub-blocks — lands AFTER M-07-data, and accept: sub-lines for spec-004 added in a still-later PR.",
+      "test_file": ".claude/scripts/test/ledger-drift.sh (guard leg)",
+      "red_assertion": "Before: fixture with a merged-PR trailer referencing a [ ] task → no gate flags it → FAIL.",
+      "green_assertion": "After: reverse-drift guard flags/reconciles it; fixture with a WIP branch carrying [ ] trailers does NOT false-positive (push:main scope) → PASS.",
+      "artifact": "verify/<date>/ledger-drift/guard-report.txt",
+      "ci_wiring": "push:branches:[main] workflow, advisory (NOT in main-protection.json this cycle). Promote to required next cycle after proving green.",
+      "constitution_blocked": false,
+      "depends_on": [
+        "M-07-data",
+        "M-07-state"
+      ]
+    },
+    {
+      "id": "M-10",
+      "phase": "Phase 2",
+      "title": "One schema — frontmatter is sole home of status/supersedes; migrate 3 ADRs",
+      "gaps_closed": [
+        "status-field-split-brain",
+        "index-lifecycle-partial",
+        "contradiction-detector-wrong-fields"
+      ],
+      "change": "Migrate all body-bullet status/superseded_by/last_verified forms to frontmatter across the 3 real ADRs + 0000-template; add a validate.sh check rejecting the body-bullet form; rebuild index.jsonl — ALL in ONE atomic PR so the new rule never sees an unmigrated file.",
+      "test_file": ".claude/scripts/test/memory-system.sh (schema leg)",
+      "red_assertion": "Before: a fixture ADR with '- **Status**:' body bullet passes validate.sh; migrated ADR index entry has empty last_verified → FAIL.",
+      "green_assertion": "After: body-bullet ADR fails validate.sh; migrated ADRs' index entries carry non-empty last_verified/superseded_by → PASS.",
+      "artifact": "verify/<date>/schema/index-fields.json",
+      "ci_wiring": "validate.sh category → required harness-validate; migration in same PR keeps it green on arrival. Test via M-00 runner.",
+      "constitution_blocked": false,
+      "depends_on": [
+        "M-03"
+      ]
+    },
+    {
+      "id": "M-11",
+      "phase": "Phase 2",
+      "title": "Executable ADR supersession + latest-wins convergence (mechanical consumers)",
+      "gaps_closed": [
+        "adr-supersession-never-executes",
+        "supersede-edge-never-written",
+        "adr0001-reversal-does-not-converge",
+        "dream-supersede-machinery-wedged",
+        "supersede-hygiene-human-only",
+        "stale-model-literal-hardcoded",
+        "deprecations-registry-write-only"
+      ],
+      "change": "adr-new.sh --supersedes ADR-NNNN: flip old ADR frontmatter status:superseded, write both edges, reindex (now works post-M-03). memory-recall filters status:superseded. Add a CI consistency check ADR-vs-§V (warn) and derive check-model-consistency.sh's stale set by diffing agent frontmatter vs §V-declared set (un-hardcode the literal). Agent-prompt consumers + §V auto-amend marked UNTESTABLE/constitution-blocked.",
+      "test_file": ".claude/scripts/test/supersession.sh",
+      "red_assertion": "Before: adr-new.sh has no --supersedes; recall's -5 superseded penalty is dead (superseded_by always empty) → FAIL.",
+      "green_assertion": "After: --supersedes flips old ADR frontmatter + both edges + index; memory-recall excludes/penalizes the old ADR; ADR-vs-§V contradiction DETECTED → PASS.",
+      "artifact": "verify/<date>/supersession/{edges.json,recall-before-after.txt,consistency-warn.txt}",
+      "ci_wiring": "Test via M-00 runner (required). check-model-consistency is model-consistency.yml (required). The §V edit path is constitution-blocked — only DETECTION is tested.",
+      "constitution_blocked": false,
+      "depends_on": [
+        "M-03",
+        "M-10"
+      ]
+    },
+    {
+      "id": "M-12",
+      "phase": "Phase 2",
+      "title": "MEMORY.md Decisions/Patterns projected between delimiter markers",
+      "gaps_closed": [
+        "memory-md-decisions-stale",
+        "canonical-memory-frozen"
+      ],
+      "change": "Generate ONLY between <!-- BEGIN:auto-decisions -->..<!-- END --> markers rewritten in place from index.jsonl; preserve hand-written taxonomy/header. Single-writer (dream-step or generator, not both) to avoid racing memory-gc. validate.sh correspondence check: every non-superseded index decision appears in MEMORY.md.",
+      "test_file": ".claude/scripts/test/memory-system.sh (projection leg)",
+      "red_assertion": "Before: MEMORY.md Decisions shows '(none yet)' while decisions/0001-0003 exist → FAIL.",
+      "green_assertion": "After: generator populates 3 decision rows between markers; correspondence check passes; hand-written header untouched → PASS.",
+      "artifact": "verify/<date>/memory-projection/MEMORY.md",
+      "ci_wiring": "validate.sh correspondence category → required harness-validate. Test via M-00 runner.",
+      "constitution_blocked": false,
+      "depends_on": [
+        "M-03",
+        "M-10"
+      ]
+    },
+    {
+      "id": "M-13-14",
+      "phase": "Phase 3",
+      "title": "Kill recall noise floor + index sh/css/html/toml (ship together, rebuild)",
+      "gaps_closed": [
+        "recall-noise-floor",
+        "sh-paths-unindexable",
+        "silent-empty-recall",
+        "advisory-path-never-used"
+      ],
+      "change": "memory-recall.sh: filter select(.hits>0) (status/recency become tie-breakers only); empty is valid. memory-index.sh:42: whitelist += sh|bash|zsh|css|html|toml|cfg|ini (or invert to binary blacklist); drop bare-basename/leading-slash extractions; rebuild index.jsonl in the same PR.",
+      "test_file": ".claude/scripts/test/memory-system.sh (strengthen recall leg)",
+      "red_assertion": "Before: `memory-recall.sh --paths zzz/x --limit 20 | wc -l` = 20 noise lines; `jq 'select(.paths_touched|any(test(\"\\\\.sh$\")))'` = 0 → FAIL.",
+      "green_assertion": "After: unrelated path returns 0 lines; a path-intersecting fixture still returns its entry; a .sh-referencing memory entry carries the .sh path post-rebuild → PASS.",
+      "artifact": "verify/<date>/recall/{unrelated-empty.txt,related-hit.txt,sh-index.json}",
+      "ci_wiring": "Test via M-00 runner (required).",
+      "constitution_blocked": false,
+      "depends_on": [
+        "M-03"
+      ]
+    },
+    {
+      "id": "M-15-16-17",
+      "phase": "Phase 3",
+      "title": "Subagent recall scope + content/trailer recall + reachable archives",
+      "gaps_closed": [
+        "subagent-recall-wrong-scope",
+        "no-content-retrieval",
+        "archives-unretrievable",
+        "mtime-recency-fragile"
+      ],
+      "change": "Extract subagent-context.sh path-grep into a testable helper; recall on the task's code paths (files:/plan-phase), not spec/plan markdown. Add memory-recall.sh --grep <term> (body + git log --grep over Constraint/Rejected/Directive trailers). Index archived files with superseded_by chains; --include-archived follows them. Stamp modified: frontmatter on writes (v2.1.214 parity).",
+      "test_file": ".claude/scripts/test/content-recall.sh + archives leg in memory-system.sh",
+      "red_assertion": "Before: --grep subcommand absent/empty on a fixture containing the term; archive dir excluded from index; recall recency uses mtime → FAIL.",
+      "green_assertion": "After: --grep returns the fixture file; trailer-recall surfaces a fixture commit; --include-archived resolves the chain head; recency uses modified: after touch-reset → PASS.",
+      "artifact": "verify/<date>/content-recall/{grep-hit.txt,trailer-hit.txt,archives.txt}",
+      "ci_wiring": "Test via M-00 runner (required).",
+      "constitution_blocked": false,
+      "depends_on": [
+        "M-13-14"
+      ]
+    },
+    {
+      "id": "M-18",
+      "phase": "Phase 4",
+      "title": "Deterministic rollup trigger + weekly backfill + period-close regen",
+      "gaps_closed": [
+        "rollup-no-deterministic-trigger",
+        "rollup-chain-dead-with-dream",
+        "rollup-chain-untriggered",
+        "rollup-parents-frozen-premature"
+      ],
+      "change": "Add `memory-rollup.sh auto` to a weekly CI job + a session-start week-boundary fallback. cmd_weekly accepts a target week (backfill W25–W30). month/quarter regenerate at period close via a ROLLUP_NOW env clock; fix the monthly→quarterly parser that zeroes counts.",
+      "test_file": ".claude/scripts/test/memory-system.sh (rollup-backfill leg)",
+      "red_assertion": "Before: `memory-rollup.sh weekly 2026-W25` ignores the arg (only builds current week); quarterly aggregation zeroes monthly counts → FAIL.",
+      "green_assertion": "After: 2026-W25.md created from the arg; ROLLUP_NOW at a month boundary regenerates the parent with correct counts → PASS.",
+      "artifact": "verify/<date>/rollup-backfill/2026-W25.md",
+      "ci_wiring": "New weekly CI job (schedule cron, advisory like daily-batch). Test via M-00 runner.",
+      "constitution_blocked": false,
+      "depends_on": [
+        "M-00"
+      ]
+    },
+    {
+      "id": "M-20",
+      "phase": "Phase 4",
+      "title": "Graph: back_ref matcher + self-ref fix + [[slug]] wikilinks",
+      "gaps_closed": [
+        "no-memory-graph-exists",
+        "back-ref-matcher-broken",
+        "refs-self-reference-pollution",
+        "obsidian-vault-viable-but-not-sufficient",
+        "nothing-refreshes-graphify"
+      ],
+      "change": "memory-index.sh: normalize ADR-NNNN↔slug in the back_ref matcher; exclude self-edges; adopt [[slug]] wikilinks in bodies (parser already exists). Ship matcher + self-ref fix as one PR before any one-hop recall traversal. Catalogue graphiti-mcp (version-pinned) in _disabled_examples.",
+      "test_file": ".claude/scripts/test/memory-system.sh (graph leg, using memory-index.sh verify)",
+      "red_assertion": "Before: `memory-index.sh verify` reports 9 asymmetries; back_refs [] for a fixture ADR-NNNN ref → FAIL.",
+      "green_assertion": "After: verify reports 0 asymmetries; back_refs populated; self-edges absent; [[slug]] edge appears → PASS.",
+      "artifact": "verify/<date>/graph/verify-report.txt",
+      "ci_wiring": "Test via M-00 runner (required).",
+      "constitution_blocked": false,
+      "depends_on": [
+        "M-03",
+        "M-13-14"
+      ]
+    },
+    {
+      "id": "M-21-22",
+      "phase": "Phase 4",
+      "title": "Deterministic ledger decay + hot.md session cache",
+      "gaps_closed": [
+        "stale-inflight-content-lost"
+      ],
+      "change": "Extend gc-tasks.sh (DETERMINISTIC, not dream) to collapse long-closed [x] blocks to one-liners at a line cap, live tasks untouched; hash-suffixed task IDs. session-end writes hot.md (~500-word cap); session-start injects it; stale in-flight brief stays pointer-referenced until reviewed.",
+      "test_file": ".claude/scripts/test/hot-cache.sh + ledger-decay leg in gc-suite.sh",
+      "red_assertion": "Before: old [x] blocks stay full-length; no hot.md written/injected → FAIL.",
+      "green_assertion": "After: old blocks collapsed to one-liners (live untouched); hot.md ≤ cap and boot banner references it → PASS.",
+      "artifact": "verify/<date>/{ledger-decay/TASKS.md,hot-cache/hot.md}",
+      "ci_wiring": "Test via M-00 runner (required).",
+      "constitution_blocked": false,
+      "depends_on": [
+        "M-00"
+      ]
+    },
+    {
+      "id": "M-19",
+      "phase": "Phase 4",
+      "title": "Separate sleep agent — scheduled dream + same-machine fallback trigger",
+      "gaps_closed": [
+        "no-scheduler-ever-installed",
+        "rollup-chain-dead-with-dream",
+        "instinct-backlog-never-distilled"
+      ],
+      "change": "Dream runs as a scheduled Cloud Routine + a same-machine fallback reusing the interactive session's fixed auth (M-01b). Test ONLY the deterministic fallback trigger (stale last_run_epoch + auth-present → spawn attempted; auth-absent → loud fail, no false success). Mark ADD/UPDATE/DELETE/NOOP reconciliation UNTESTABLE-by-rig (LLM prose) unless extracted to a deterministic diff script.",
+      "test_file": ".claude/scripts/test/dream-state.sh (fallback-trigger leg — reuses M-02 fixtures)",
+      "red_assertion": "Before: stale last_run_epoch + auth-absent shim → false success stamped → FAIL.",
+      "green_assertion": "After: auth-absent → loud fail + no state stamp; auth-present → spawn attempted → PASS.",
+      "artifact": "verify/<date>/dream-fallback/trigger.log",
+      "ci_wiring": "Test via M-00 runner. Cloud Routine install is operator-run.",
+      "constitution_blocked": false,
+      "depends_on": [
+        "M-01b",
+        "M-02",
+        "M-18"
+      ]
+    },
+    {
+      "id": "M-23-26",
+      "phase": "Phase 5",
+      "title": "Brownfield: archaeology, clean seeding, user-state mirror, initiative bootstrap",
+      "gaps_closed": [
+        "no-history-backfill",
+        "factory-memory-pollution",
+        "dangling-index-after-template-clean",
+        "seed-auto-overbroad",
+        "user-state-mirror-wrong-home",
+        "no-brownfield-initiative-bootstrap",
+        "upgrade-never-refreshes-memory-templates"
+      ],
+      "change": "/adopt: git-archaeology phase (ADR backfill stubs under decisions/imported/ marked draft with provenance; endpoint inventory via M-09a; SHIPPED.md reconstruction from merge history; hotspots→characterize). setup/reconcile excludes factory rollups+index; seed-patterns.sh seeds only detected frameworks; template-clean rebuilds index.jsonl; validate.sh 'every index path exists' check. mirror-user-state.sh: `${CLAUDE_CONFIG_DIR:-$HOME/.claude}` + loud non-zero on empty tar. /adopt closes by creating first initiative + STATE.md.",
+      "test_file": ".claude/scripts/test/{clean-seeding.sh,user-state-mirror.sh,adopt-bootstrap.sh}",
+      "red_assertion": "Before: after fixture setup, index.jsonl points at moved/absent paths + Flask patterns in a Django fixture; empty tar exits 0; no STATE.md post-adopt → FAIL.",
+      "green_assertion": "After: no dangling index paths, framework-scoped seeds, archive stubs stamped, non-empty archive from CLAUDE_CONFIG_DIR, STATE.md bootstrapped → PASS. ADR-classification accuracy marked UNTESTABLE (human-triage-gated).",
+      "artifact": "verify/<date>/{clean-seeding/index-integrity.txt,user-state-mirror/manifest.json,adopt-bootstrap/STATE.md}",
+      "ci_wiring": "Test via M-00 runner (required), using committed fixtures under test/fixtures/adopt/.",
+      "constitution_blocked": false,
+      "depends_on": [
+        "M-08",
+        "M-09a",
+        "M-13-14"
+      ]
+    },
+    {
+      "id": "M-04-promote",
+      "phase": "Phase 5",
+      "title": "Promote liveness probes into validate.sh (required) — LAST",
+      "gaps_closed": [
+        "no-scheduler-ever-installed",
+        "atlas-frozen-56d-and-born-invalid",
+        "canonical-memory-frozen"
+      ],
+      "change": "Move the M-04 env-parameterized liveness probes into validate.sh as a required category, gated behind a LIVENESS_SOFT=1 grace so the promotion PR can prove-green. Only after M-01b/M-02/M-03/M-05b/M-18 have landed and a green run proves index/dream/rollup are alive. Gate on committed-state liveness a PR can fix (index older than newest committed memory file — branch-local, deterministic), NOT clock-since-last-dream.",
+      "test_file": ".claude/scripts/test/liveness-probe.sh (validate.sh integration leg)",
+      "red_assertion": "Before: validate.sh has no liveness category (time-invariant); fixture with a stale committed index → validate does not fail → FAIL.",
+      "green_assertion": "After: validate.sh fails on committed-state staleness (env-overridden fixture); real repo is green because the metabolism now runs → PASS.",
+      "artifact": "verify/<date>/liveness-promote/validate-report.json",
+      "ci_wiring": "validate.sh category → required harness-validate. MUST be the last chain PR; LIVENESS_SOFT grace + deterministic branch-local check avoid bricking main.",
+      "constitution_blocked": false,
+      "depends_on": [
+        "M-01b",
+        "M-02",
+        "M-03",
+        "M-05b",
+        "M-18",
+        "M-04"
+      ]
+    }
+  ],
+  "landing_order": [
+    {
+      "pr": "PR1 — CI test runner + dead-test detector",
+      "items": [
+        "M-00"
+      ],
+      "rationale": "Nothing below is a real merge gate until a workflow executes .claude/scripts/test/*.sh. Ship first so every subsequent red/green becomes enforceable. Harness-maintenance no-ac.json PR (.claude/.github only)."
+    },
+    {
+      "pr": "PR2 — Auth/timeout probe (advisory) + record-failure-as-failure",
+      "items": [
+        "M-01a",
+        "M-02"
+      ],
+      "rationale": "M-02 is a hard co-dependency of any liveness signal — without it a failed dream still stamps success and every probe reads green over a dead loop. M-01a ships the falsifiable probe that DRIVES the real auth diagnosis rather than assuming a mechanism."
+    },
+    {
+      "pr": "PR3 — Real spawn fix (auth env + portable timeout)",
+      "items": [
+        "M-01b"
+      ],
+      "rationale": "Applies the fix the reproduced M-01a failure justifies; refactors the spawn into a testable seam. Operator-apply may be needed for the real auth secret but the code seam + timeout fix land here."
+    },
+    {
+      "pr": "PR4 — Silent no-ops (index touch, adr reindex, promote frontmatter, gc order)",
+      "items": [
+        "M-03"
+      ],
+      "rationale": "Gates M-05b (boot rebuild), M-10/M-11 (reindex), M-13-14, M-20 — the working reindex/touch is a prerequisite for all of them."
+    },
+    {
+      "pr": "PR5 — Liveness probes in harness-doctor (advisory)",
+      "items": [
+        "M-04"
+      ],
+      "rationale": "Surfaces the dead metabolism LOUDLY but NON-BLOCKING (harness-doctor is not a required gate). Never touches validate.sh here — that is the wedge the sequencing reviewer flagged."
+    },
+    {
+      "pr": "PR6 — SessionStart matcher clear|compact + /ship,/verify sync wiring",
+      "items": [
+        "M-05a",
+        "M-06"
+      ],
+      "rationale": "Pure settings.json + skill-prose edits with no metabolism dependency; both are structural grep-gated in validate.sh and safe to land early."
+    },
+    {
+      "pr": "PR7 — SHIPPED registry + evidence index",
+      "items": [
+        "M-08"
+      ],
+      "rationale": "Must exist BEFORE the spec-004 reconcile so shipped-state has a durable home that doesn't abuse the [x] marker."
+    },
+    {
+      "pr": "PR8 — spec-004 data reconcile (SHIPPED.md / [s], not bare [x]) + per-spec STATE filter",
+      "items": [
+        "M-07-data",
+        "M-07-state"
+      ],
+      "rationale": "Records shipped-state without failing check-tdd-ledger; corrects STATE.md content. Lands after M-08 gives it a home; before M-05b so boot auto-sync writes correct state."
+    },
+    {
+      "pr": "PR9 — Boot auto-sync/rebuild/atlas on staleness",
+      "items": [
+        "M-05b"
+      ],
+      "rationale": "Depends on M-03 (rebuild works) AND M-07-data/state (auto-sync writes correct state, not wrong-state-with-fresh-timestamp)."
+    },
+    {
+      "pr": "PR10 — Reverse-drift guard (post-merge advisory) + ENDPOINTS scraper",
+      "items": [
+        "M-07-guard",
+        "M-09a"
+      ],
+      "rationale": "Guard lands AFTER the reconcile and only as a push:main advisory (never pull_request — WIP branches carry [ ] trailers). ENDPOINTS is independent and can ride along."
+    },
+    {
+      "pr": "PR11 — One schema (migrate 3 ADRs + reject body-bullet, rebuild index)",
+      "items": [
+        "M-10"
+      ],
+      "rationale": "Atomic: migrate + flip the validate.sh rule + rebuild in one PR so the new rule never sees an unmigrated file. Depends on M-03."
+    },
+    {
+      "pr": "PR12 — Executable supersession + MEMORY.md projection",
+      "items": [
+        "M-11",
+        "M-12"
+      ],
+      "rationale": "Both depend on M-10 (single schema) + M-03 (working reindex). MEMORY.md projected only between delimiter markers to avoid clobbering hand-written structure."
+    },
+    {
+      "pr": "PR13 — Recall noise floor + sh-index (together, rebuild)",
+      "items": [
+        "M-13-14"
+      ],
+      "rationale": "Must ship together — sh-index is noise without the hits>0 filter, and the filter can't match .sh work without the index. Depends on M-03."
+    },
+    {
+      "pr": "PR14 — Subagent scope + content/trailer/archive recall",
+      "items": [
+        "M-15-16-17"
+      ],
+      "rationale": "Builds on the fixed recall scoring from M-13-14."
+    },
+    {
+      "pr": "PR15 — Rollup trigger/backfill + graph + ledger-decay/hot.md + dream fallback",
+      "items": [
+        "M-18",
+        "M-20",
+        "M-21-22",
+        "M-19"
+      ],
+      "rationale": "Graph depends on M-13-14 (noise floor) + M-03; dream fallback depends on M-01b/M-02/M-18. All deterministic-testable except the LLM reconciliation (marked untestable)."
+    },
+    {
+      "pr": "PR16 — Brownfield bootstrap (archaeology, clean seeding, mirror, initiative)",
+      "items": [
+        "M-23-26"
+      ],
+      "rationale": "Lands with the next adoption; depends on M-08 (SHIPPED reconstruction), M-09a (endpoint inventory), M-13-14 (index integrity). Independent of the metabolism chain otherwise."
+    },
+    {
+      "pr": "PR17 (LAST) — Promote liveness probes into validate.sh (required)",
+      "items": [
+        "M-04-promote"
+      ],
+      "rationale": "Only after M-01b/M-02/M-03/M-05b/M-18 have landed and a green run proves index/dream/rollup are alive. LIVENESS_SOFT grace + branch-local committed-state check so the promotion PR proves-green before flipping to hard-fail — this is the item that keeps this report from being written a third time, and it MUST be last so it never reds main before its own preconditions exist."
+    }
+  ],
+  "open_questions": [
+    "M-01b auth mechanism is UNRESOLVED pending an operator-run reproduction: the plan's original CLAUDE_CONFIG_DIR remedy was disproven live (env already inherited; creds in keychain). The operator must run the exact detached spawn in their real launch context and capture `claude -p 'ok'` exit code + stderr. If it now succeeds, the auth gaps may be latent-resolved and 0.1 re-scopes to just the timeout fix + probe; if it fails, is the remedy an apiKeyHelper, an exported ANTHROPIC_API_KEY, or a keychain-access-for-detached-process fix? This decision blocks the concrete edit in M-01b.",
+    "Constitution-apply gate: M-05a edits settings.json and several items edit hooks under .claude/. Hooks are agent-editable, but confirm whether the operator wants the Phase-0/1 hook edits applied via the operator/FORCE path (memory notes record a staged-fix-then-operator-install pattern for prior audits). Which items, if any, need operator sign-off before push?",
+    "M-07-data marker choice: use specs/SHIPPED.md alone, an `[s]` shipped-class TASKS.md marker, OR backfill red.log/green.log for T-140..T-157 from the 2026-06-14 evidence bundle then flip to [x]? Each has different downstream effects on next-task.sh counts, verify.sh accept-rerun, and the reverse-drift guard. Operator to pick before PR8.",
+    "M-06 CI writer: accept the recommendation to commit STATE.md pre-merge on the PR branch (avoids the main-write signing problem entirely), or provision a bypass_actor / auto-merge path for a genuine post-merge committer? main-protection.json bypass_actors is currently empty.",
+    "M-04-promote threshold policy: the plan gates only on branch-local committed-state liveness (index older than newest committed memory file) and EXCLUDES clock-since-last-dream from the required validate.sh path. Confirm the operator accepts that clock-relative dream/rollup staleness stays advisory (harness-doctor + weekly cron issue) rather than a required PR gate — otherwise the wedge risk returns.",
+    "M-19 dream reconciliation (ADD/UPDATE/DELETE/NOOP) is LLM-behavioral and untestable by the shell rig as it lives in dream/SKILL.md prose. Does the operator want it extracted into a deterministic diff script (old+new memory → diff) so it becomes fixture-testable, accepted as LLM-behavioral (untested), or deferred?"
+  ],
+  "review_findings": [
+    {
+      "plan_item": "0.1 Fix headless auth (background-claude-auth-dead)",
+      "kind": "wrong-fix",
+      "severity": "blocker",
+      "detail": "The fix's root-cause claim — that hook-spawned `claude -p` resolves the default config dir instead of the operator's CLAUDE_CONFIG_DIR, and the remedy is to capture CLAUDE_CONFIG_DIR at SessionStart and re-export it into spawns — is not reproducible and is contradicted by the environment. I proved CLAUDE_CONFIG_DIR is ALREADY inherited by a nohup background subshell (the exact spawn mechanism at auto-dream-check.sh:115, instinct-extract.sh:71, pre-compact-witness.sh:63). `claude -p` authenticated (exit 0, no 'Not logged in') BOTH with the operator dir set AND with it unset — because credentials live in the macOS keychain (svce 'Claude Code-credentials', user-scoped, reachable by any subshell) and in ~/.claude/.credentials.json, not in a per-config-dir file. So re-exporting a value that is already present changes nothing. If auth truly failed historically it was for a different reason (expired/absent token at spawn time, or detached-process keychain access), which this fix does not address. Since the plan hangs 30+ downstream gaps on 0.1, a fix targeting the wrong mechanism silently leaves the metabolism dead after 'resuscitation.'",
+      "evidence": "Proven live: `nohup bash -c 'echo $CLAUDE_CONFIG_DIR'` → prints /Users/shravanjha/.claude-qyndex (inherited). `security find-generic-password -s 'Claude Code-credentials'` → exists (keychain). ls $CLAUDE_CONFIG_DIR → no .credentials.json; ~/.claude/.credentials.json exists (mtime today). `claude -p` ran exit 0 both with and without CLAUDE_CONFIG_DIR set. Spawn sites: auto-dream-check.sh:115-122, instinct-extract.sh:71, pre-compact-witness.sh:63-96 — none reference CLAUDE_CONFIG_DIR; nothing in .claude sets/captures a config-dir (grep found only the observations.jsonl:7 export echo).",
+      "recommendation": "Before implementing, reproduce the actual failure: run the exact detached spawn and capture the claude exit code + stderr in the operator's real launch context. If it now succeeds, the auth gaps may already be latent-resolved and the fix must be re-scoped to a real, reproduced failure (e.g., keychain unavailable to detached/no-TTY processes → use an apiKeyHelper or ANTHROPIC_API_KEY in the spawn env, not CLAUDE_CONFIG_DIR). Ship the harness-doctor auth PROBE (`claude -p 'ok'` that FAILs) first as the falsifiable liveness gate, and let the probe — not an assumed mechanism — drive the fix.",
+      "dimension": "fix-correctness"
+    },
+    {
+      "plan_item": "0.1 / witness pipeline (pre-compact-witness, checkpoint-pipeline-stalled)",
+      "kind": "incomplete-fix",
+      "severity": "high",
+      "detail": "The plan attributes the 100% empty-witness rate solely to auth (root cause A) and expects 0.1 to fix it. But pre-compact-witness.sh:68 pipes through `timeout 120 claude ...`, and `timeout` is NOT installed on stock macOS (no `timeout`, no `gtimeout` on this machine). When `timeout` is absent the command fails with 'command not found', the `|| echo ''` yields an empty brief, and the log records 'witness subagent returned empty' — the exact observed symptom (16 entries). This is an independent root cause that fix 0.1 (auth) would not touch, so witness briefs would STILL be empty after 0.1 ships. The other two spawn sites use `nohup ... claude` without timeout and so are not affected by this specific bug, which is why the plan's single-root-cause framing masks it.",
+      "evidence": "`command -v timeout` → not found; `command -v gtimeout` → not found (live). pre-compact-witness.sh:67-69 `tail -200 ... | timeout 120 claude -p --bare ... || echo ''`. precompact.log has 16 'witness subagent returned empty' entries (gaps.json checkpoint-pipeline-stalled verdict). instinct-extract.sh:71 and auto-dream-check.sh:117 do NOT use timeout.",
+      "recommendation": "In the witness fix, replace `timeout 120` with a portable guard (e.g. detect gtimeout/timeout and fall back to a background-kill wrapper, or drop it since the spawn is already detached), AND rewrite the placeholder header to 'witness failed — snapshot only' when the brief returns empty (as gaps.json proposes). Add `timeout` availability to harness-doctor's environment probe. Treat auth and timeout as two distinct root causes.",
+      "dimension": "fix-correctness"
+    },
+    {
+      "plan_item": "0.2 Record failure as failure (dream-false-success-recorded)",
+      "kind": "confirmed-sound",
+      "severity": "medium",
+      "detail": "The fix is correct and will work. auto-dream-check.sh:115-122 wraps the dream in `nohup bash -c \"... claude -p --bare '...' > log ; printf '{...last_run_epoch...awaiting_review:true}' > state ; rm lock\"` — the state stamp (line 120) runs unconditionally after the claude line (117) with no `&&` and no set -e (script is `set -uo pipefail` only), so a failed spawn is recorded as success. I confirmed `claude -p` returns NON-ZERO on auth failure (instinct-extract.sh:71 uses `if claude -p ...; then` and correctly logs 'EXTRACTION FAILED' 79 times), so chaining the state write on `&&` will reliably distinguish failure. The plan's remedy (stamp only on exit 0, roll back the .proposed mirror on failure, single-key last_run_epoch) is sound. Caveat: the fix must be applied inside the nohup subshell string, and the rollback must also remove the phantom .memory.proposed mirror (created at line 96-97 BEFORE the spawn) or the awaiting_review gate still arms over an empty proposal.",
+      "evidence": "auto-dream-check.sh:117 (claude line) → :120 (unconditional printf state) with `;` separators inside the nohup bash -c; script header `set -uo pipefail` (line 7, no -e). Non-zero exit on failure proven by instinct.log: 79 'EXTRACTION FAILED' via instinct-extract.sh:71's `if claude...; then/else`. Mirror created at auto-dream-check.sh:96-97 before spawn.",
+      "recommendation": "Confirm-sound. Ensure the `||` failure arm also `rm -rf .claude/memory.proposed` (or restores it) so the E5 awaiting_review gate (line 64-73) doesn't block future dreams behind a phantom proposal — the plan mentions rolling back the mirror; keep that explicit in the implementation.",
+      "dimension": "fix-correctness"
+    },
+    {
+      "plan_item": "0.3 post-write-format absolute-path no-op (on-write-index-maintenance-dead)",
+      "kind": "confirmed-sound",
+      "severity": "medium",
+      "detail": "Confirmed and the fix mechanism is right, but the plan understates scope. post-write-format.sh:8 takes `path` raw from tool_input.file_path (absolute), then :60 case-matches RELATIVE globs `.claude/memory/*.md|.claude/memory/*/*.md` — never fires on absolute paths. The plan's `path=\"${path#$(pwd)/}\"` normalization is correct (instinct-observer.sh:48-49 already does exactly this). Two understatements: (1) the same absolute-path defect also disables the atlas-dirty case (:69) and the skill-registry regen case (:77) — the fix must normalize once before all three case blocks, not just the memory one; (2) patterns live at `.claude/memory/patterns/cross/*.md` = THREE path levels, but :60 only globs two levels — the plan's '+3-level nesting' note is necessary and correct, but should be stated as required, not optional.",
+      "evidence": "post-write-format.sh:8 (raw path), :59-64 (relative memory globs, 2-level), :68-73 (atlas-dirty relative globs), :76-81 (skill-registry relative glob). instinct-observer.sh:48-49 strips $(pwd)/. Pattern files at .claude/memory/patterns/cross/repository-pattern.md (3 levels). gaps.json on-write-index-maintenance-dead verdict flags the skill-registry case too.",
+      "recommendation": "Normalize `path=\"${path#$(pwd)/}\"` at line 9 (before any case), and extend the memory glob to include `.claude/memory/*/*/*.md`. Fix atlas-dirty (:69) and skill-registry (:77) cases in the same pass since they share the defect.",
+      "dimension": "fix-correctness"
+    },
+    {
+      "plan_item": "0.3 adr-new reindex no-op (adr-new-reindex-noop)",
+      "kind": "confirmed-sound",
+      "severity": "medium",
+      "detail": "Confirmed. adr-new.sh:74 calls `bash .claude/scripts/memory-index.sh >/dev/null 2>&1 || true` with no subcommand → memory-index.sh:131 `cmd=\"${1:-help}\"` → default case prints usage and exits 0. The plan's fix `memory-index.sh touch \"$out\"` is correct AND verified viable: memory-index.sh's touch path (line 184) guards on `.claude/memory/*` and the ADR output path is `.claude/memory/decisions/NNNN-*.md`, which matches the guard, so a real index entry will be built. Dropping the stdout/stderr muting (as the plan says) is also right so failures surface.",
+      "evidence": "adr-new.sh:74 (no-subcommand call). memory-index.sh:131 (cmd default=help), :245-258 (default case cats usage). memory-index.sh:184 touch guard `.claude/memory/*) ;;` — ADR path decisions/*.md matches.",
+      "recommendation": "Confirm-sound. Use `touch \"$out\"` (cheaper than `rebuild`) and drop the `>/dev/null 2>&1 || true` so a genuine index failure is visible.",
+      "dimension": "fix-correctness"
+    },
+    {
+      "plan_item": "0.3 promote sed targets nonexistent body lines (promote-sed-targets-nonexistent-lines / pattern-promotion-cannot-fire)",
+      "kind": "confirmed-sound",
+      "severity": "medium",
+      "detail": "Confirmed on all legs. memory-promote.sh:69 runs `sed 's/^- \\*\\*Status\\*\\*: emerging/.../'` and :117 the quarantine equivalent — targeting a body-bullet form. No real pattern file contains that line (only 0000-template.md:13 does); all pattern files use frontmatter `status: established`. Worse, `promoted+=1` and the audit echo fire unconditionally inside the `if` (commits>=3 && mods>=2) regardless of whether sed changed anything — so the audit can report a promotion that never happened. The plan's fix (mutate frontmatter `status:`, count only when the file actually changed) is correct. Additional real blocker the plan should preserve: no writer ever creates `status: emerging` and no script populates `verified_in_commits` (all `[]`), so even a fixed sed has nothing to promote — the plan's suggestion to add a verified_in_commits appender or drop the field is the necessary complement.",
+      "evidence": "memory-promote.sh:69 (emerging→established body sed), :70 `promoted+=1` unconditional, :117 (quarantine body sed). grep '- **Status**' in patterns/ → only 0000-template.md:13. All pattern frontmatter `status: established`, `verified_in_commits: []`, `written_by: seed-patterns` (repository-pattern.md:8). gaps.json pattern-promotion-cannot-fire verdict confirms all three legs.",
+      "recommendation": "Confirm-sound. Mutate frontmatter; gate the counter/audit on `sed` actually changing the file (compare pre/post or check grep). Also implement the verified_in_commits writer or drop it from the criteria, else promotion still can't fire.",
+      "dimension": "fix-correctness"
+    },
+    {
+      "plan_item": "0.3 last-dream key mismatch (last-dream-key-mismatch)",
+      "kind": "confirmed-sound",
+      "severity": "low",
+      "detail": "Confirmed. session-start-context.sh:137 reads `.last_run` while every writer (auto-dream-check.sh:45,50,71,120) writes `last_run_epoch`; render-overnight-report.sh:62 reads the correct key. The banner always prints 'never'. The plan bundles this into 0.2. Correct fix: read `.last_run_epoch // 0` and strftime-format it (a bare epoch would be unreadable). Note the gap register ADJUSTED this to LOW because it only feeds the informational boot banner — the actual dream scheduling reads the correct key — so this is cosmetic, not part of the functional metabolism failure. Fine to fix but it does not gate anything.",
+      "evidence": "session-start-context.sh:137 `jq -r '.last_run // \"never\"'`. Writers auto-dream-check.sh:45,50,71,120 all `last_run_epoch`. render-overnight-report.sh:62 reads `.last_run_epoch`. Live .dream-state.json = {\"last_run_epoch\":1784798082,...}. gaps.json last-dream-field-mismatch verdict = ADJUSTED to low.",
+      "recommendation": "Confirm-sound but low priority. Change to `.last_run_epoch // 0` with date formatting. Don't let it consume Phase-0 sequencing weight.",
+      "dimension": "fix-correctness"
+    },
+    {
+      "plan_item": "0.3 GC evicts newest (gc-evicts-newest / memory-gc-evicts-newest)",
+      "kind": "confirmed-sound",
+      "severity": "medium",
+      "detail": "Confirmed inverted-LRU. memory-gc.sh:82 defaults last_accessed='0000-00-00'; no writer anywhere sets the field (grep found only memory-gc.sh + log echoes). All entries tie, so `sort -k1,1r -k2,2n` then `head -n available` (:99) keeps the lowest line numbers = top of file = oldest, evicting the newest-appended bottom entries. The plan offers two fixes: (a) write last_accessed on recall hits, or (b) keep-tail/evict-head fallback. Option (b) is the sound, surgical one. Option (a) is riskier than the plan implies: memory-recall.sh reads the INDEX, so stamping last_accessed would require write-on-read into each linked file's frontmatter (a side-effect on a read path, plus re-index) — more surface, and it wouldn't help until enough reads accumulate. Recommend the plan commit to (b).",
+      "evidence": "memory-gc.sh:79-101 (default '0000-00-00', sort -k1,1r -k2,2n, head -n available keeps low line numbers). grep last_accessed across scripts/hooks → only memory-gc.sh references it. Latent today (MEMORY.md <200 lines) but fires on first over-budget enforce. gaps.json memory-gc-evicts-newest verdict CONFIRMED.",
+      "recommendation": "Adopt the keep-tail/evict-head fallback (option b) as the primary fix; treat 'stamp last_accessed on recall' as a separate, later enhancement, not the mechanism GC ordering depends on.",
+      "dimension": "fix-correctness"
+    },
+    {
+      "plan_item": "7 Repair and guard the ledger (tasks-ledger-contradicts-shipped-reality)",
+      "kind": "confirmed-sound",
+      "severity": "high",
+      "detail": "The premise is fully confirmed: TASKS.md lists spec-004 as 17/18 `[ ]` pending (only T-154 is `[x]`), yet PR #13 (commit 5ab9847 'fix(004): land spec-004 CI-gate corrections on main (T-140..T-157)') was merged. The one-time reconcile (flip to `[x]`) is correct. The reverse-drift CI check ('fail when a merged PR's Task: trailers reference tasks still `[ ]`') is mechanically sound but has an implementation dependency the plan glosses: the landing commit is a SQUASH merge, so the reverse-drift check must parse enumerated Task: trailers (T-140..T-157) out of squashed commit bodies — this only works if squash commits carry all constituent Task: trailers, which is not guaranteed by squash-wip.sh. Verify trailer preservation or the check will have blind spots.",
+      "evidence": "tasks/TASKS.md:936-953 spec-004 rows all `[ ]` except :950 T-154 `[x]`. git log: 5ab9847 'fix(004): land spec-004 CI-gate corrections on main (T-140..T-157) (#13)'. Memory note spec004-staged-vs-main-gap confirms PR #13 squash-merge 5ab9847. gaps.json tasks-ledger-contradicts-shipped-reality is CRIT.",
+      "recommendation": "Confirm-sound. For the CI check, source Task references from PR body/title (which enumerates T-140..T-157) or from the PR's commit list before squash, not solely the squashed trailer — and test against the actual #13 squash commit format.",
+      "dimension": "fix-correctness"
+    },
+    {
+      "plan_item": "14 Index what the project is made of (sh-paths-unindexable)",
+      "kind": "confirmed-sound",
+      "severity": "high",
+      "detail": "Confirmed. memory-index.sh:42 extension whitelist `\\.(ts|tsx|js|jsx|py|go|rs|java|kt|sql|md|yml|yaml|json)` omits sh/bash/css/html/toml, so no memory entry can carry a hook/script path in paths_touched — path-recall is structurally dead for this shell-only harness. The plan's fix (add sh|bash|css|html|toml, or invert to a binary blacklist) is correct and low-risk. Secondary correctness note the plan should keep: fixing the whitelist only helps AFTER a rebuild AND after the noise-floor fix (13) — otherwise recall still pads with hits=0 seed patterns. Fixes 13+14 must ship together to make path-recall actually useful; neither alone suffices.",
+      "evidence": "memory-index.sh:42 regex (no sh). gaps.json sh-paths-unindexable: 0 entries with .sh in paths_touched; memory-recall.sh:60 bidirectional startswith can't match bare basenames. Recall noise-floor at memory-recall.sh:63-70 select(.score>0). Both CRIT in gaps.json.",
+      "recommendation": "Confirm-sound. Ship fix 14 with fix 13 (noise floor → require hits>0) and rebuild the index in the same change, or path-recall stays noise even with .sh indexed.",
+      "dimension": "fix-correctness"
+    },
+    {
+      "plan_item": "5 Sync at boot (single-writer-sessionend / staleness-warning-advisory-only)",
+      "kind": "confirmed-sound",
+      "severity": "medium",
+      "detail": "The claim that initiative-state.sh sync is deterministic and safe to run at SessionStart is correct: cmd_sync (initiative-state.sh:39) contains no `claude -p` spawn — it is pure shell/git, so it will not incur LLM latency or the auth problem. Running it (plus memory-index rebuild and atlas-refresh) on staleness at SessionStart is sound. One correctness caveat: the plan bundles `atlas-refresh.sh` into the boot self-heal, but atlas refresh may not be <1s on a large adopted repo (it scans the tree); gating it behind the staleness check as the plan says is fine, but it should be time-boxed/backgrounded so a cold boot on a big repo doesn't stall. initiative-state sync and memory-index rebuild are genuinely cheap; atlas is the outlier.",
+      "evidence": "initiative-state.sh:39 cmd_sync, :155 sync dispatch — no claude spawn in the sync path (grep 'claude -p' → none). Contrast the LLM-spawning scripts. Fix targets session-start-context.sh / subagent-context.sh which are write-blocked (constitution guard).",
+      "recommendation": "Confirm-sound. Keep atlas-refresh time-boxed or backgrounded at boot; run initiative-state sync + memory-index rebuild synchronously (both cheap).",
+      "dimension": "fix-correctness"
+    },
+    {
+      "plan_item": "Phase 0 apply mechanics (all hook/CLAUDE.md edits)",
+      "kind": "constitution-blocked",
+      "severity": "medium",
+      "detail": "Most Phase-0 code fixes edit files the constitution guard write-blocks for agents: auto-dream-check.sh, pre-compact-witness.sh, post-write-format.sh, session-start-context.sh, subagent-context.sh are all under .claude/hooks/, and fix 11/section edits touch .claude/CLAUDE.md. pre-edit-constitution-guard.sh exits 2 on Write/Edit/NotebookEdit to these. The plan sequences fixes by dependency but does not flag that every Phase-0 hook edit requires an operator/FORCE apply (the harness cannot self-heal its own metabolism autonomously). This is a real sequencing constraint: the 'days' estimate for Phase 0 assumes operator availability at apply time, and the memory notes (harness-gap-audit, e2e-delivery-audit) already record that staged fixes need operator install before push.",
+      "evidence": "pre-edit-constitution-guard.sh:2 'blocks agent writes to constitution-class files', :10 'deny-listed path → exit 2'. Target files auto-dream-check.sh, pre-compact-witness.sh, post-write-format.sh (all .claude/hooks/). CLAUDE.md §X + root CLAUDE.md security invariants list the block. Memory notes confirm staged-fix operator-install pattern.",
+      "recommendation": "Add an explicit 'operator-apply' gate to Phase 0 in §6: enumerate which fixes are write-blocked, and require they be applied via the operator/FORCE path with validate.sh + the test rig re-run before push. Don't present Phase 0 as agent-autonomous.",
+      "dimension": "fix-correctness"
+    },
+    {
+      "plan_item": "11 Executable supersession — un-hardcode stale literal (check-model-consistency)",
+      "kind": "confirmed-sound",
+      "severity": "low",
+      "detail": "Confirmed the target exists: check-model-consistency.sh:110 has `STALE_PATTERN='claude-opus-4-7|opus-4-7|Opus 4\\.7'` — a hardcoded stale-model literal that must be hand-updated each model bump. The plan's 'un-hardcode its stale-model literal' addresses a real maintenance hazard. This is a correct, low-risk sub-fix. It is orthogonal to the ADR-supersession core of fix 11 and could ship independently.",
+      "evidence": "check-model-consistency.sh:103 comment 'stale version is whatever §V no longer lists; today that is opus 4.7', :110 STALE_PATTERN hardcoded literal.",
+      "recommendation": "Confirm-sound. Derive the stale set by diffing agent frontmatter model ids against the §V-declared allowed set, rather than a hand-maintained literal.",
+      "dimension": "fix-correctness"
+    },
+    {
+      "plan_item": "0.4 (liveness self-test in validate.sh)",
+      "kind": "wrong-sequence",
+      "severity": "blocker",
+      "detail": "0.4 puts hard-FAIL liveness probes (index mtime>7d, dream last-success>7d, rollup gap>2wk, (pending) checkpoints>2d) into validate.sh, but validate.sh is consumed by the REQUIRED harness-validate gate which fails on overall==fail. Today every one of those conditions is true (index frozen Jun 12 = 41d; dream 100% failed; rollups frozen at W24; the 610ae775 checkpoint has been (pending) 38d). So the instant 0.4 merges — while 0.1/0.2/0.3 have only just started or are on separate PRs — harness-validate goes RED on main and blocks ALL subsequent PRs, including the very fixes (0.1 auth, 5 boot-sync, 18 rollup-trigger) that would make the probes green. 0.4 is listed as peer to 0.1-0.3 inside Phase 0 but actually has a hard dependency on all of them (and on Phase-1 item 5 and Phase-4 item 18) being live first. The plan's own §8 meta-lesson names 0.4 'the one item that prevents this report a third time,' yet ordering it wrong bricks the repo.",
+      "evidence": "harness-validate.yml:91 `test \"$overall\" != \"fail\"`; validate.sh:62-66 (fails counter) and :54 `overall = (tfail>0?\"fail\":...)`; main-protection.json required_status_checks includes `harness-validate`; audit gaps memory-index-rot-feeds-recall (index mtime Jun 12), background-claude-auth-dead (dream 6/6 fail), rollup-no-deterministic-trigger (W24 frozen), witness-dead-never-remediated (38d pending)",
+      "recommendation": "Split 0.4 into two lands. (a) Ship the probes in harness-doctor.sh ONLY (advisory — not in rulesets; confirmed harness-doctor absent from main-protection.json) as the FIRST Phase-0 PR, so the dead metabolism is surfaced loudly but non-blocking. (b) Promote the same probes into validate.sh (required) as the FINAL Phase-0/1 PR, only AFTER 0.1+0.2+0.3+5+18 have landed and a green run proves index/dream/rollup are actually alive. Add a grace-window/env-skip (e.g. LIVENESS_SOFT=1) so the promotion PR itself can prove-green before flipping to hard-fail.",
+      "dimension": "sequencing"
+    },
+    {
+      "plan_item": "7 (repair and guard the ledger — spec-004 → [x])",
+      "kind": "incomplete-fix",
+      "severity": "blocker",
+      "detail": "Item 7's one-time reconcile flips T-140..T-153,T-155..T-157 from [ ] to [x]. check-tdd-ledger.sh (REQUIRED via harness-validate.yml:109) fails any [x] task lacking paired red.log+green.log under verify/. On disk only T-154 has them; the other 17 have none. So the reconcile PR as described cannot pass its own required gate. Additionally these TASKS.md lines are bare single-line entries with NO accept:/summary: sub-blocks, so the plan's companion clause 'validate.sh should fail task lines missing summary:/accept: sub-blocks' would RED-fail these exact 17 lines — and verify.sh's accept-rerun (evidence-gate re-exec on head, verify.sh:435) extracts an empty accept for a flipped task with no accept: line.",
+      "evidence": "check-tdd-ledger.sh:5-13,57-75 (red+green required for every [x]); harness-validate.yml:109; `find verify -path '*/T-1[45][0-9]/green.log'` → only T-154; tasks/TASKS.md:936-953 all single-line, no accept:/summary: sub-lines (reproduced sed 930,960); verify.sh:424-457 accept-rerun on newly-[x] tasks",
+      "recommendation": "Reconcile via a NON-[x] terminal marker or reconstruct the ledger artifacts. Two viable orders: (A) add a `[s]`/`shipped`-class marker (skips the red/green requirement) or record spec-004 completion in the new SHIPPED.md (item 8) WITHOUT flipping the 17 [x] — then check-tdd-ledger is untouched; (B) if [x] is required, first backfill red.log/green.log for T-140..T-157 from the PR #13 evidence bundle (verify/2026-06-14-004/ + EVIDENCE.md) and add accept: sub-blocks, THEN flip. Either way item 7 must NOT land before item 8's SHIPPED registry gives a home for shipped-state, and the 'validate.sh fails lines missing accept:' sub-clause and the 'reverse-drift CI check' must land in a LATER PR than the reconcile — otherwise they fail on spec-004 before it is repaired.",
+      "dimension": "sequencing"
+    },
+    {
+      "plan_item": "7 (reverse-drift CI check) vs 8 (SHIPPED registry)",
+      "kind": "wrong-sequence",
+      "severity": "high",
+      "detail": "Item 7 adds 'a CI check on main that fails when a merged PR's Task: trailers reference tasks still [ ]' (reverse-drift). If this check is added as a required/main gate before the spec-004 reconcile has landed, it fails immediately on the existing history: PR #13 (merged) carries Task: T-140..T-157 trailers while those tasks are still [ ]. So the guard-add PR bricks main by design. The plan lists reconcile and the guard as one item ('7') with no internal order. Symmetrically, the durable answer to shipped-state lives in item 8's SHIPPED.md, which must exist before item 7's reconcile can record 'where did spec-004 go' without abusing the [x] marker (see prior finding).",
+      "evidence": "plan §6 item 7 text; audit tasks-ledger-contradicts-shipped-reality verdict (PR #13 Task trailers vs [ ] tasks); item 8 introduces specs/SHIPPED.md",
+      "recommendation": "Order within/across 7-8 explicitly: (1) item 8 SHIPPED.md schema + ship-time appender FIRST; (2) item 7 data reconcile (flip/mark spec-004, append to SHIPPED.md) SECOND; (3) item 7 reverse-drift CI guard LAST, and add it as ADVISORY (not in main-protection.json) for one cycle, promoting to required only after the reconcile proves the guard green on main. Never add the guard in the same PR as, or before, the data repair.",
+      "dimension": "sequencing"
+    },
+    {
+      "plan_item": "9 (Atlas v2 — ENDPOINTS.md + JOURNEYS.md)",
+      "kind": "wrong-sequence",
+      "severity": "medium",
+      "detail": "Item 9 emits both ENDPOINTS.md (route table per stack) and JOURNEYS.md 'from tagged Playwright specs + evidence index', and the proposed endpoint fix cross-links 'each endpoint to the latest evidence bundle that exercised it (join on network.har).' That join depends on the evidence index / verify REGISTRY introduced in item 8 (durable evidence index with supersession). So JOURNEYS.md and the endpoint↔evidence link in 9 depend on 8 landing first; ENDPOINTS.md alone (pure source scrape) is independent and can land earlier. The plan places 9 after 8 in sequence (good) but bundles the independent ENDPOINTS scrape with the 8-dependent JOURNEYS/evidence-join under one item, obscuring that ENDPOINTS can ship in Phase 1 while JOURNEYS must wait for the registry.",
+      "evidence": "plan §6 items 8 (evidence bundles get index entries with supersession) and 9 (JOURNEYS from evidence index; endpoint↔evidence HAR join); audit atlas-has-no-endpoint-inventory (atlas-refresh.sh:231-234 dir-names only), no-durable-verified-journey-registry (no evidence index exists)",
+      "recommendation": "Split item 9: ship ENDPOINTS.md (stack route scraper in atlas-refresh.sh) as an independent PR that can land any time after Phase 0 (it depends on nothing downstream). Defer JOURNEYS.md and the endpoint↔evidence-bundle join to AFTER item 8's evidence index/REGISTRY exists. Do the CI-merge-boundary refresh wiring (the part of 9 that runs atlas-refresh in CI) together with item 6's network-boundary wiring so the boundary plumbing is added once.",
+      "dimension": "sequencing"
+    },
+    {
+      "plan_item": "11 vs 10 (executable supersession depends on one-schema)",
+      "kind": "wrong-sequence",
+      "severity": "medium",
+      "detail": "Item 11 (adr-new.sh --supersedes flips old ADR's frontmatter, writes both edges, reindexes; recall filters status:superseded) is only correct if item 10 (frontmatter is the SOLE home of status/supersedes/superseded_by; body bullets migrated) has already landed. Today status/superseded_by live split-brain: index reads frontmatter, templates/promote/adr-walk write body bullets, and superseded_by is empty in every index entry — so if 11 lands before 10, --supersedes would flip whichever representation it targets while the OTHER stays stale, and recall's status:superseded filter (which reads the frontmatter/index) still won't converge. The plan lists 10 before 11 within Phase 2 (correct), but does not flag that 11's index-reindex step also depends on the Phase-0 item 0.3 fix (adr-new reindex no-op + on-write touch) actually working — 11 cannot 'reindex' if the reindex path is still the argless help no-op.",
+      "evidence": "audit status-field-split-brain (memory-index.sh:24-36 frontmatter-only vs 0000-template body bullets; superseded_by empty), adr-supersession-never-executes, adr-new-reindex-noop (adr-new.sh:74 argless memory-index.sh); plan items 10, 11, 0.3",
+      "recommendation": "Keep 10 before 11, and add an explicit dependency note: 11 requires BOTH 10 (single schema) AND 0.3 (working reindex/touch) to have landed. Sequence: 0.3 → 10 → 11. Add a validate.sh check (from 10) that frontmatter and any residual body Status agree, landing WITH 10's migration of the 3 existing ADRs so the check is green on arrival.",
+      "dimension": "sequencing"
+    },
+    {
+      "plan_item": "0.1 vs 0.4 (auth fix vs liveness probe — the prompt's TDD question)",
+      "kind": "wrong-sequence",
+      "severity": "high",
+      "detail": "Direct answer to the prompt's probe: writing the dream/instinct/witness liveness probes (0.4) BEFORE the auth fix (0.1) lands is NOT safe TDD-red in this harness, because the probe's target gate (harness-validate via validate.sh) is a shared REQUIRED merge gate, not a task-scoped test. A normal red-first test fails only its own task's ledger; a red validate.sh category fails EVERY PR to main. So the usual 'write the failing test first' discipline is inverted for gates that live in validate.sh. The auth fix itself (0.1) also has a subtlety: it edits hooks (auto-dream-check.sh, instinct-extract.sh, pre-compact-witness.sh) — hooks are constitution-class write-blocked for agents (pre-edit-constitution-guard covers .claude/CLAUDE.md; hooks are editable by agents but the plan should confirm), and 0.1's harness-doctor auth-probe must be advisory-only for the same reason as 0.4.",
+      "evidence": "prompt probe; harness-validate.yml:91 (shared gate); audit background-claude-auth-dead (spawn sites auto-dream-check.sh, instinct-extract.sh:71, pre-compact-witness.sh); dream-failure-recorded-as-success (0.2 must land with 0.1 or false-success masks the probe)",
+      "recommendation": "Land 0.1 (auth) + 0.2 (record-failure-as-failure) together FIRST — 0.2 is a hard co-dependency of any liveness probe because without it a failed dream still stamps success and the probe reads green over a dead loop. Then land 0.3 (silent no-ops incl. reindex). Only then land 0.4, and land it advisory-in-harness-doctor first, required-in-validate.sh last (see the 0.4 finding). Do not author the validate.sh liveness category as a red-first test.",
+      "dimension": "sequencing"
+    },
+    {
+      "plan_item": "5 (sync/rebuild/atlas-refresh at boot) vs 0.3 (fix silent no-ops)",
+      "kind": "wrong-sequence",
+      "severity": "medium",
+      "detail": "Item 5 has SessionStart auto-run `memory-index.sh rebuild` when stale. But item 0.3 is what makes the index actually rebuildable/writable on the real absolute-path Write flow (post-write-format glob fix) and gives adr-new/adr-walk a real rebuild subcommand. If 5 lands before 0.3, the boot 'rebuild' will run but the on-write maintenance it is compensating for is still dead, and 5's rebuild call could invoke the same argless no-op path if it reuses adr-new's pattern. Also 5's SessionStart matcher extension to clear|compact (from no-boot-context-after-clear-or-compact) is independent and safe to land anytime. These are separable; the plan bundles them.",
+      "evidence": "plan items 5, 0.3; audit index-frozen-touch-never-fires (post-write-format.sh:8/60 relative-glob, memory-index.sh:131 help-default), on-write-index-maintenance-dead; settings.json:390 matcher startup|resume",
+      "recommendation": "Land 0.3 (reindex/touch actually work) before item 5's auto-rebuild-at-boot. The matcher extension (clear|compact) can ship independently and early — it is a settings.json edit with no dependency. Split item 5 into (5a) matcher extension [early], (5b) boot auto-sync/rebuild/atlas [after 0.3].",
+      "dimension": "sequencing"
+    },
+    {
+      "plan_item": "20 (graph approximation) internal ordering",
+      "kind": "wrong-sequence",
+      "severity": "low",
+      "detail": "Item 20 correctly identifies that fixing the back_ref matcher must precede adopting [[slug]] wikilinks (the audit's obsidian-vault-viable-but-not-sufficient shows slug wikilinks sidestep the broken ADR-NNNN matcher, so wikilink adoption depends on either the matcher fix OR using slug ids). But 20 also depends on 0.3 (working touch/rebuild) to re-index after edges are written, and on the recall one-hop expansion which depends on item 13's noise-floor fix having redefined scoring — otherwise one-hop expansion amplifies the noise floor. The plan places 20 in Phase 4 after 13, which is correct, but does not state the 13→20 and 0.3→20 dependencies.",
+      "evidence": "audit back-ref-matcher-broken (memory-index.sh:165), obsidian-vault-viable-but-not-sufficient (slug wikilinks match .id==$t), recall-noise-floor; plan items 13, 20, 0.3",
+      "recommendation": "Confirm the stated Phase-4-after-Phase-3 order holds for 20 specifically: 0.3 (reindex) → 13 (noise floor) → 20 (fix matcher, then wikilinks, then one-hop expansion). Land the back_ref matcher fix + self-ref pollution fix (refs-self-reference-pollution) as one PR before any one-hop traversal is enabled, so traversal never runs over self-edges.",
+      "dimension": "sequencing"
+    },
+    {
+      "plan_item": "6 (network-boundary sync in /ship, /verify, post-merge CI)",
+      "kind": "incomplete-fix",
+      "severity": "medium",
+      "detail": "Item 6 wires initiative-state.sh sync into /ship, /verify, and a post-merge CI job that 'commits the result.' A post-merge CI job that commits STATE.md to main must not itself trip the required gates (harness-validate, evidence-gate) — a push to main that re-runs those gates on a STATE.md-only change is fine for harness-validate but evidence-gate runs on pull_request only (evidence-gate.yml:8), so a direct push-to-main by CI bypasses it (acceptable) yet interacts with required_linear_history + required_signatures in main-protection.json (a bot commit must be signed / use the auto-merge path). This is a landing-mechanics dependency the plan omits: item 6's CI committer depends on a signing/bypass path existing.",
+      "evidence": "plan item 6; evidence-gate.yml:7-10 (pull_request only); main-protection.json rules include required_signatures, required_linear_history, bypass_actors:[] (empty)",
+      "recommendation": "Land item 6's CI auto-commit through the existing auto-merge.yml machinery or a bypass_actor, not a raw push (bypass_actors is currently empty — a bot push to main will be rejected). Sequence: add the sync CALL to /ship and /verify skills first (no main-write, safe), then wire the CI committer only after a signing/bypass path is provisioned. Prefer committing STATE.md on the PR branch pre-merge (in /ship) over a post-merge push, avoiding the main-write problem entirely.",
+      "dimension": "sequencing"
+    },
+    {
+      "plan_item": "Phase 0-5 overall (PR landing order + evidence-gate escape hatch)",
+      "kind": "confirmed-sound",
+      "severity": "low",
+      "detail": "The macro claim — Phase 0 (auth+failure-recording+no-ops) unblocks the LLM-dependent gaps in Phases 3-4 (dream/instinct/rollup/consolidation), and the deterministic boot/ledger/atlas work in Phases 1-2 does not depend on the LLM metabolism — is correct against the code: items 5,6,7,8,10,11,12,13,14,15,16,17 are all deterministic-script edits with no dependency on 0.1's LLM fix. And every memory-plane PR is mergeable through the evidence-gate harness-maintenance escape hatch (kind=harness-maintenance no-ac.json), so these .claude/.github-only PRs do NOT need browser ACs — a real enabler the plan doesn't mention but which makes the many small PRs feasible.",
+      "evidence": "evidence-gate.yml:30-75 (harness-maintenance escape hatch for .claude/.github-only diffs); plan §6 phase structure; verified no Phase 1-2 item calls the LLM-spawn path",
+      "recommendation": "Adopt this PR-by-PR order (each a harness-maintenance no-ac.json PR): PR1=0.4-probes-in-doctor(advisory)+0.1+0.2(auth+failure-recording, co-required); PR2=0.3(reindex/touch/promote-frontmatter/gc-order); PR3=5a(matcher clear|compact)+staleness-auto-sync; PR4=8(SHIPPED.md+evidence index); PR5=7 data reconcile (mark spec-004 via SHIPPED.md or backfilled ledger, NOT bare [x]); PR6=7 reverse-drift guard (advisory→required next cycle); PR7=9a ENDPOINTS scrape; PR8=10 one-schema+migrate 3 ADRs; PR9=11 executable supersession; PR10=13+14 recall noise-floor+sh-index; PR11=16/17 content+archive recall; PR12=18 rollup trigger; PR13=9b JOURNEYS+endpoint-evidence join; PR14=20 graph; LAST=promote 0.4 liveness probes into validate.sh (required) once green. Brownfield items 23-26 land with the next adoption, independent of this chain.",
+      "dimension": "sequencing"
+    },
+    {
+      "plan_item": "META (all §6 items) — no runner wires the memory test suite into CI",
+      "kind": "untestable",
+      "severity": "blocker",
+      "detail": "The plan repeatedly implies 'add a red-before/green-after test', but the harness has NO automated invoker for .claude/scripts/test/memory-system.sh or gc-suite.sh. Confirmed: harness-validate.yml runs only loop-control.sh + oq-aging.sh (lines 105-106); ci.yml runs test-unit.sh which detects language stacks and prints 'no language stacks detected — nothing to test (docs/shell-only repo)' then exits 0 (test-unit.sh:19-22) for claude-init itself; verify.sh has no scripts/test/ loop. So a new test asserting a memory fix is a file that never executes on any PR — exactly how 87 gaps shipped green.",
+      "evidence": ".github/workflows/harness-validate.yml:105-106 (only loop-control.sh, oq-aging.sh); .claude/scripts/test-unit.sh:19-22 (shell-only → exit 0); grep for 'scripts/test' in verify.sh returns only test-integration-coverage.sh (verify.sh:476); ls .claude/scripts/test/ shows memory-system.sh + gc-suite.sh present but ungrepped in any .github/workflows/*.yml",
+      "recommendation": "Make Phase 0 item 0 a wiring step: add a `Memory metabolism tests` step to harness-validate.yml that runs `for t in memory-system gc-suite liveness-probe dream-state supersession recall retrieval; do bash .claude/scripts/test/$t.sh || fail=1; done`. Only after this step exists does any red-before/green-after assertion below become a real merge gate. Add a validate.sh category that FAILS if a .claude/scripts/test/*.sh file exists but no workflow references it (dead-test detection).",
+      "dimension": "testability"
+    },
+    {
+      "plan_item": "0.1 Fix headless auth",
+      "kind": "untestable",
+      "severity": "blocker",
+      "detail": "Cannot test against real Anthropic auth in CI. The plan says 'propagate CLAUDE_CONFIG_DIR + check exit code + treat non-zero as failure' but never says how it is verified. The only CI-safe test is to inject a fake `claude` shim on PATH that echoes the current CLAUDE_CONFIG_DIR (asserting the spawn INHERITED it) and, in a second fixture, exits non-zero printing 'Not logged in' (asserting the wrapper treats it as failure and does NOT stamp success). Testing 'the env is propagated' is the correct, achievable target; 'the spawn authenticates' is not.",
+      "evidence": "auto-dream-check.sh spawn block uses bare `claude -p --bare` inside a nohup bash -c with no CLAUDE_CONFIG_DIR export; instinct-extract.sh:71 `if claude -p --bare --model \"$MODEL\"...`; pre-compact-witness.sh:63-69 `timeout 120 claude -p --bare`; gaps.json background-claude-auth-dead confirms CLAUDE_CONFIG_DIR=$HOME/.claude-qyndex is the root cause",
+      "recommendation": "Test file: .claude/scripts/test/headless-auth.sh. Fixture: `mkdir tmpbin; printf '#!/usr/bin/env bash\\necho \"CONFIG=$CLAUDE_CONFIG_DIR\"; exit 0\\n' >tmpbin/claude; chmod +x; PATH=tmpbin:$PATH CLAUDE_CONFIG_DIR=/tmp/fake bash <spawn-wrapper>`. RED (pre-fix): captured log lacks 'CONFIG=/tmp/fake' (env not propagated). GREEN: log contains 'CONFIG=/tmp/fake'. Second fixture: fake claude exits 1 → assert .dream-state.json NOT updated (ties to item 2). Durable artifact: verify/<date>/headless-auth/{propagated.log,failure-not-stamped.log}. REQUIRES refactoring the inline nohup spawn in auto-dream-check.sh into a callable function/script so the test can invoke it without a real Stop hook — the plan must add that seam.",
+      "dimension": "testability"
+    },
+    {
+      "plan_item": "0.2 Record failure as failure (dream)",
+      "kind": "confirmed-sound",
+      "severity": "medium",
+      "detail": "This is deterministically testable and the most important test to write, because it is the bug that hid six weeks of death. The env-override idiom applies cleanly: point state_file at a temp path, inject a fake `claude` that exits non-zero, run the spawn, assert the state file was NOT stamped with a fresh last_run_epoch and awaiting_review was preserved. But the plan does not note that the spawn is currently an inline nohup bash -c string (auto-dream-check.sh) that races asynchronously — the test must make it synchronous (drop nohup/& in a TEST_SYNC=1 mode) to assert deterministically, else it is flaky.",
+      "evidence": "auto-dream-check.sh: the `printf '{\\\"last_run_epoch\\\":...,\\\"awaiting_review\\\":true}'` runs sequentially after `claude -p --bare` with no `&&`/exit-check, inside `nohup bash -c \"...\" &` (async); early-exit branches at the two `printf '{\"last_run_epoch\":%d,\"session_count\":%d}'` sites drop awaiting_review",
+      "recommendation": "Test file: .claude/scripts/test/dream-state.sh. Add a TEST_SYNC env that runs the spawn foreground. RED: fake-claude-exit-1 → jq '.last_run_epoch' on state file equals the injected now (false success). GREEN: on exit 1, last_run_epoch unchanged AND a FAILED line appended to dream log; on prior awaiting_review:true + early-exit, jq '.awaiting_review'==true survives. Also assert the single-key fix: writer and reader both use last_run_epoch (grep the reader in session-start-context.sh). Durable artifact: verify/<date>/dream-state/{false-success.log,flag-preserved.log}.",
+      "dimension": "testability"
+    },
+    {
+      "plan_item": "0.3 Fix the silent no-ops (index touch, adr reindex, promote sed, gc order)",
+      "kind": "confirmed-sound",
+      "severity": "medium",
+      "detail": "All four sub-fixes are deterministically testable and gc-suite.sh already demonstrates the pattern for the gc one. index-touch: write an absolute-path memory file via the hook's path-normalization and assert index.jsonl gains the entry (red: absolute path → no entry; green: entry present). adr-reindex: run adr-new.sh in a temp memory tree, assert the new ADR id appears in index.jsonl (red: help text printed, index unchanged; green: entry present). promote-sed: seed an emerging-status pattern in a fixture, run memory-promote, assert frontmatter status flipped to established AND the promoted counter matches actual mutations. gc-order: seed MEMORY.md over cap with distinguishable old/new entries, assert newest survives.",
+      "evidence": "post-write-format.sh:8,59-63 (relative-glob case on absolute path); memory-index.sh:131 cmd default help, adr-new.sh:74 argless call; memory-promote.sh:67 sed on '^- **Status**: emerging' (nonexistent line); memory-gc.sh:79-101 sort keeps head; gc-suite.sh:28-63 is the exact fixture idiom to copy",
+      "recommendation": "Extend .claude/scripts/test/memory-system.sh (or a new promote-gc.sh) with these four fixtures using MEMORY_DIR/INDEX env overrides mirroring gc-suite.sh's TASKS_FILE/GC_TASKS_LINE_CAP pattern. Each is red-before/green-after with a durable verify/<date>/ log. For promote-sed, ALSO assert the counter-vs-actual invariant (the audit's key point: counters must not lie) — assert `promoted=N` equals `grep -c 'status: established'` delta.",
+      "dimension": "testability"
+    },
+    {
+      "plan_item": "0.4 Add a liveness self-test to validate.sh/harness-doctor",
+      "kind": "untestable",
+      "severity": "high",
+      "detail": "This is the plan's flagship SRE fix and it is under-specified for testability in two ways. (1) The thresholds ('index mtime > 7d', 'dream last-success > 7d', 'rollup gap > 2 weeks') are time-relative; to test them without waiting real days the checks MUST read the 'now' reference and the age windows from env-overridable variables (like gc-suite.sh's GC_VERIFY_AGE_DAYS=30) and the target dirs from env (LIVENESS_INDEX, etc.). The plan says nothing about parameterizing them, so as-specified they are untestable except by touch-backdating real repo files, which pollutes the working tree. (2) harness-doctor already has an idiom (add_result NAME pass/fail/warn DETAIL) the new checks must use so the --json report stays parseable — the plan does not say to reuse it.",
+      "evidence": "harness-doctor.sh:113 uses `find ... -mtime +2` (hardcoded window, no env), :141-147 index check reads real .claude/memory/index.jsonl with no injectable path; gc-suite.sh:68 GC_VERIFY_AGE_DAYS=30 and :74 touch -t backdating is the ONLY testable-clock precedent; validate.sh emits per-category ok/fail/warn consumed by harness-validate.yml jq",
+      "recommendation": "Test file: .claude/scripts/test/liveness-probe.sh. Make each new check read `LIVENESS_NOW=${LIVENESS_NOW:-$(date +%s)}` and its dir/threshold from env. Fixture: create a temp memory tree, `touch -t` the index 8 days back with a newer topic file, set LIVENESS_INDEX to it → RED asserts the check returns fail; touch it fresh → GREEN asserts pass. Do the same for a dream-state with an old last_run_epoch and a rollups/ dir missing the current-week file. Durable artifact: verify/<date>/liveness-probe/report.json (the harness-doctor --json output over the fixture). The plan MUST add 'thresholds and target paths are env-overridable' as an explicit acceptance criterion or this item cannot have a red-before test.",
+      "dimension": "testability"
+    },
+    {
+      "plan_item": "5 Sync at boot + extend matcher to clear|compact",
+      "kind": "confirmed-sound",
+      "severity": "medium",
+      "detail": "Two separable, testable pieces. Sync-at-boot: run session-start-context.sh against a fixture with a backdated STATE.md and assert it re-synced (mtime advanced, phase corrected) rather than only warned — red before, green after. Matcher-extension is a STRUCTURAL check testable via validate.sh: assert settings.json SessionStart matcher string contains clear and compact. The plan omits that the boot hook is not currently structured to run in isolation (it assumes a live session) — the test needs the hook to be invocable with a fixture repo root, which may need a ROOT/CLAUDE_PROJECT_DIR override the plan should confirm exists.",
+      "evidence": "settings.json:390 matcher 'startup|resume'; session-start-context.sh:100-104 calls only `show`; initiative-state.sh sync is deterministic per memory-system.sh:14-16 which already invokes it in-repo",
+      "recommendation": "Structural: add to validate.sh a check `jq '.hooks.SessionStart[].matcher' | grep -q 'clear' && grep -q 'compact'`. Behavioral test in memory-system.sh: backdate STATE.md mtime, run the sync path, assert STATE.md mtime > backdate and phase != stale value. Durable artifact: verify/<date>/boot-sync/state-before-after.diff. RED: STATE unchanged after boot; GREEN: STATE re-synced.",
+      "dimension": "testability"
+    },
+    {
+      "plan_item": "6 Wire the documented network boundaries (/ship, /verify, CI post-merge)",
+      "kind": "incomplete-fix",
+      "severity": "high",
+      "detail": "The 'CI post-merge job calls sync and commits' half is testable only as a workflow-lint (assert a workflow step invokes initiative-state.sh sync) — you cannot run the actual post-merge commit in a unit test. But the '/ship and /verify call sync' half is a SKILL-prose change (ship/SKILL.md), which the harness has no mechanism to test at all — skills are markdown instructions to an LLM, not executable. So 'the release agent runs sync' is fundamentally unverifiable by the test rig; the best proxy is a grep-based validate.sh check that ship/SKILL.md and verify's path contain the sync invocation string. The plan treats this as done-when-wired but gives no gate proving the wiring stuck.",
+      "evidence": "gaps.json single-writer-sessionend: 'zero hits in .claude/skills/ (ship, verify)'; skills are SKILL.md prose (e.g. ship/SKILL.md) with no executable test harness; check-tdd-ledger.sh-style grep gates are the only precedent for asserting a documented step exists",
+      "recommendation": "Split into two testable checks. (a) Workflow-lint in validate.sh or a test: assert auto-merge.yml (or a post-merge.yml) contains a step running `initiative-state.sh sync`. (b) Prose-gate: a grep check that ship/SKILL.md references `initiative-state.sh sync`. Mark the LLM-actually-runs-it path explicitly UNTESTABLE and rely on the CI post-merge job (item's (a)) as the real guarantee — recommend making CI the authoritative writer, not the skill prose.",
+      "dimension": "testability"
+    },
+    {
+      "plan_item": "7 Repair and guard the ledger (reverse-drift detection)",
+      "kind": "confirmed-sound",
+      "severity": "high",
+      "detail": "The reverse-drift CI check is the single most valuable new test and it is deterministically fixture-able. Build a fixture repo with a merged-PR marker referencing T-XXX and a TASKS.md line still '[ ]' for that task → the check must fail (red-before is the current absence). Then flip to '[x]' → passes. The one-time reconcile (spec-004 → [x]) is a data migration, testable by asserting the specific lines flip. Per-spec filter on STATE.md 'next unblocked' is directly unit-testable against a two-spec fixture (assert spec-004 STATE lists only spec:004 tasks). This item maps cleanly onto verify.sh's existing accept-rerun machinery (verify.sh:427-460).",
+      "evidence": "tasks/TASKS.md:936-953 (T-140..T-157 pending though shipped); verify.sh:427-460 already re-runs accepts of newly-flipped [x] — the reverse direction (still-[ ] but accept passes) is the untested gap; initiative-state.sh:115 unfiltered grep vs :77 filtered count",
+      "recommendation": "Test file: .claude/scripts/test/ledger-drift.sh. Fixture TASKS.md with a '[ ]' task whose fixture accept exits 0 + a merged-PR trailer → RED: no gate catches it; GREEN: reverse-drift check flags/flips it. Separate fixture for the per-spec STATE filter. Durable artifact: verify/<date>/ledger-drift/drift-report.txt. Also add a validate.sh check that task lines carry summary:/accept: sub-blocks (the plan mentions this — it is a pure structural grep, cheap to test).",
+      "dimension": "testability"
+    },
+    {
+      "plan_item": "8 Durable SHIPPED registry",
+      "kind": "confirmed-sound",
+      "severity": "medium",
+      "detail": "Fully testable in the append-and-assert idiom. collect-evidence.sh (or a ship step) appends a line to specs/SHIPPED.md; test runs it against a fixture spec+evidence bundle and asserts the line exists with the right fields (spec, PR, date, evidence path). The spec active→shipped move is a filesystem assertion. Session-start injection of last-3-shipped is testable by running the boot hook against a fixture SHIPPED.md and grepping the emitted banner. Evidence supersession pointer is a JSON-field assertion. No LLM, no clock dependence beyond a fixed fixture.",
+      "evidence": "collect-evidence.sh writes bundles per gaps.json no-durable-verified-journey-registry; specs/archive/ empty per specs-active-never-archived; session-start-context.sh is the injection surface (already emits OVERNIGHT banner at :268-276, so an injection point precedent exists)",
+      "recommendation": "Test file: .claude/scripts/test/shipped-registry.sh. RED: after a fixture ship, specs/SHIPPED.md absent/unchanged and spec still in active/. GREEN: SHIPPED.md has the row, spec moved to shipped/, boot banner contains the last shipped line. Durable artifact: verify/<date>/shipped-registry/SHIPPED.md snapshot + boot-banner.txt.",
+      "dimension": "testability"
+    },
+    {
+      "plan_item": "9 Atlas v2 with API/journey inventory",
+      "kind": "incomplete-fix",
+      "severity": "medium",
+      "detail": "The route-extractor is testable per-stack with committed fixture app trees (a fixture Flask blueprint, an Express router, a Next.js app/route.ts) → assert ENDPOINTS.md lists the expected routes/methods. That is sound. BUT the plan says 'refresh at the merge boundary in CI' without noting that the extractor's correctness test needs those fixture trees COMMITTED as durable artifacts (test/fixtures/atlas/<stack>/), and the harness currently ships none. Also 'cross-link each endpoint to the latest evidence bundle' (join on network.har) is a second, harder assertion the plan bundles in but gives no test shape for — HAR-join correctness needs a fixture HAR, which the plan omits.",
+      "evidence": "atlas-refresh.sh:231-234 emits only 'Route root: <dir>'; no fixture app trees exist under .claude/scripts/test/; gaps.json atlas-has-no-endpoint-inventory",
+      "recommendation": "Test file: .claude/scripts/test/atlas-endpoints.sh with committed fixtures test/fixtures/atlas/{flask,express,next}/. RED: ENDPOINTS.md absent or dir-names only. GREEN: each fixture's known routes appear with methods. Split the HAR-join into a separate item with its own fixture HAR, or drop it from scope — as bundled it has no test spec. Durable artifact: committed fixtures + verify/<date>/atlas-endpoints/ENDPOINTS.md per stack.",
+      "dimension": "testability"
+    },
+    {
+      "plan_item": "10 One schema (frontmatter is sole home of status/supersedes/...)",
+      "kind": "confirmed-sound",
+      "severity": "medium",
+      "detail": "The validate.sh reject-body-bullet-form check is a pure structural grep, trivially testable: a fixture ADR with '- **Status**:' body bullet → validate fails; frontmatter-only → passes. The migration of the 3 real ADRs is testable by asserting no ADR retains the body-bullet forms and the index now reads non-empty last_verified/superseded_by for them. This closes the split-brain measurably.",
+      "evidence": "memory-index.sh:24-36 reads frontmatter only; 0000-template.md:13-27 has body-bullet superseded_by/last_verified; validate.sh:625-650 is the memory-section pattern to extend",
+      "recommendation": "Structural test in memory-system.sh: fixture ADR with body-bullet status → assert validate.sh flags it (RED before the check exists). Migration test: after migrating 0001, `jq '.last_verified' index entry` is non-empty (RED: empty; GREEN: 2026-06-12). Durable artifact: verify/<date>/schema/index-fields.json.",
+      "dimension": "testability"
+    },
+    {
+      "plan_item": "11 Executable supersession + latest-wins convergence",
+      "kind": "incomplete-fix",
+      "severity": "high",
+      "detail": "This is the operator's named hard case ('fixture ADR reversal + assert every consumer flips'). It is testable but ONLY if decomposed into the deterministic consumers — the plan lumps them. Testable deterministically: (a) adr-new.sh --supersedes flips the old ADR's frontmatter status + writes both edges → assert via jq on both files and index; (b) recall filters status:superseded → run memory-recall over a fixture where an ADR is superseded, assert it is absent/penalized; (c) validate.sh ADR-vs-constitution consistency check → fixture ADR contradicting §V fails. NOT testable by the rig: the agent-prompt consumers (architect/security/reviewer 'filter superseded') are LLM prose — 'every consumer flips' cannot be asserted for the prompt-based ones. And check-model-consistency.sh 'enforces the old decision until a human amends the constitution' is a CONSTITUTION-BLOCKED path (.claude/CLAUDE.md write-blocked for agents) — the convergence test can only assert the CI check DETECTS the ADR-vs-§V contradiction, not that it auto-resolves it.",
+      "evidence": "memory-promote.sh:14-17 documents but does not implement supersession; adr-new.sh:31-38 no --supersedes; memory-recall.sh:67 -5 penalty keyed on always-empty superseded_by; check-model-consistency.sh hardcodes STALE_PATTERN; .claude/CLAUDE.md is pre-edit-constitution-guard write-blocked — an agent cannot edit §V to make a full-convergence test pass",
+      "recommendation": "Test file: .claude/scripts/test/supersession.sh. Fixture: two ADRs; run `adr-new.sh --supersedes ADR-0001`. GREEN asserts: old ADR frontmatter status==superseded, superseded_by set, index rebuilt with both edges, memory-recall excludes/penalizes the old one. Add a SEPARATE validate.sh check: fixture ADR tagged subsystem:model-routing whose decision text conflicts with §V → warn. Explicitly mark the agent-prompt consumers and the §V auto-amend as UNTESTABLE/constitution-blocked; the achievable guarantee is 'the mechanical consumers (index, recall, CI consistency check) converge and the contradiction is DETECTED', not 'the constitution self-heals'. Durable artifact: verify/<date>/supersession/{edges.json,recall-before-after.txt,consistency-warn.txt}.",
+      "dimension": "testability"
+    },
+    {
+      "plan_item": "12 MEMORY.md as projection (generate Decisions/Patterns from index)",
+      "kind": "confirmed-sound",
+      "severity": "low",
+      "detail": "Deterministically testable: run the generator against a fixture index.jsonl with 3 ADRs, assert the MEMORY.md Decisions section lists exactly those 3 (not '(none yet)'). The invariant 'MEMORY.md can never contradict the ADR store' becomes a validate.sh check: assert every non-superseded index decision appears in MEMORY.md — itself testable with a fixture where one is missing (red) then present (green).",
+      "evidence": "MEMORY.md:20-24 '_(none yet)_' while decisions/0001-0003 exist; validate.sh memory section (595-650) checks existence/cap/frontmatter only, never MEMORY.md↔file correspondence",
+      "recommendation": "Test in memory-system.sh: fixture index with 3 decisions → RED: MEMORY.md Decisions '(none yet)'; GREEN: generator populates 3 rows and a validate.sh correspondence check passes. Durable artifact: verify/<date>/memory-projection/MEMORY.md.",
+      "dimension": "testability"
+    },
+    {
+      "plan_item": "13 Kill the noise floor (require path-intersection ≥1 or tag match)",
+      "kind": "confirmed-sound",
+      "severity": "high",
+      "detail": "This is the cleanest and most important read-path test, and memory-system.sh ALREADY has the fixture shape (lines 43-46 assert 'no working-set match for an unknown path'). The current test only checks the 'matches working set' marker is absent — it does NOT assert the OUTPUT is empty, which is why the noise floor slipped through. The fix test must assert `memory-recall.sh --paths zzz/nonexistent` returns ZERO lines (empty is valid). Red-before: 20 lines returned; green-after: 0 lines.",
+      "evidence": "memory-recall.sh:63-70 filter is select(.score>0) not hits>0; memory-system.sh:43-46 asserts only the marker absence, letting 20 noise lines pass — the existing test is precisely the one that failed to catch this",
+      "recommendation": "Strengthen memory-system.sh: for an unrelated path, assert `[ \"$(memory-recall.sh --paths zzz/x --limit 20 | wc -l)\" -eq 0 ]`. RED against current code; GREEN after the hits>0 filter. Also assert a path-INTERSECTING fixture still returns its entry (no false-negative regression). Durable artifact: verify/<date>/recall-noise/{unrelated-empty.txt,related-hit.txt}.",
+      "dimension": "testability"
+    },
+    {
+      "plan_item": "14 Index what the project is made of (add sh/css/html/toml)",
+      "kind": "confirmed-sound",
+      "severity": "high",
+      "detail": "Trivially and deterministically testable — and it must be, since it blocks all path-recall for this shell repo. Fixture memory file whose paths_touched should include a .sh path → after rebuild, `jq 'select(.paths_touched | any(test(\"\\\\.sh$\")))'` returns ≥1. Red-before: 0; green-after: ≥1. This directly matches the audit's own reproduction command.",
+      "evidence": "memory-index.sh:42 whitelist regex omits sh; gaps.json sh-paths-unindexable reproduced 0 entries with .sh",
+      "recommendation": "Test in memory-system.sh: seed a fixture incident referencing `.claude/hooks/foo.sh`, rebuild, assert the index entry carries that .sh path. RED before whitelist change; GREEN after. Durable artifact: verify/<date>/sh-index/paths.json.",
+      "dimension": "testability"
+    },
+    {
+      "plan_item": "15 Scope subagent recall to target code",
+      "kind": "confirmed-sound",
+      "severity": "medium",
+      "detail": "Testable by invoking the recall-scope logic (extracted from subagent-context.sh) against a fixture spec/plan whose bodies mention `payments/api.py`, and asserting recall runs on that code path — not the .md paths. The hitch the plan glosses: subagent-context.sh:57-66 is a hook that assumes a live Agent dispatch; the path-extraction logic must be pulled into a testable function/script for a fixture to drive it. The plan does not call out that seam.",
+      "evidence": "subagent-context.sh:61-65 recall_paths='$spec $plan' (markdown); gaps.json subagent-recall-wrong-scope reproduced 3 zero-hit patterns",
+      "recommendation": "Extract the file-path grep into a helper; test file feeds a fixture spec body containing a backticked code path → assert recall --paths includes that code path, not the .md. RED: recall scoped to .md → empty; GREEN: scoped to code path → relevant hit. Durable artifact: verify/<date>/subagent-scope/recall-paths.txt.",
+      "dimension": "testability"
+    },
+    {
+      "plan_item": "16 Content recall + trailer recall (--grep)",
+      "kind": "confirmed-sound",
+      "severity": "medium",
+      "detail": "Both halves deterministically testable. `memory-recall.sh --grep <term>` over a fixture memory tree containing that term in a body → assert the file is returned (red: subcommand doesn't exist / returns nothing; green: returns it). `git log --grep` over Constraint/Rejected/Directive trailers is testable with a fixture git repo (a commit carrying those trailers) — but this needs a throwaway git init in the test, which gc-suite.sh's mktemp idiom supports.",
+      "evidence": "memory-index.sh:207-217 metadata-only filters; commit protocol §VI trailers exist but no reader; grep for embedding/bm25 returns zero",
+      "recommendation": "Test file: .claude/scripts/test/content-recall.sh. RED: `--grep foobar` errors or empty on a fixture containing 'foobar'; GREEN: returns the file. Trailer half: `git init` a temp repo, commit with a Rejected: trailer, assert the trailer-recall surfaces it. Durable artifact: verify/<date>/content-recall/{grep-hit.txt,trailer-hit.txt}.",
+      "dimension": "testability"
+    },
+    {
+      "plan_item": "17 Reachable archives + modified: stamping",
+      "kind": "confirmed-sound",
+      "severity": "medium",
+      "detail": "Testable: index a fixture archive dir (currently excluded by memory-index.sh:150 '-not -path */.cache/*'), assert `--include-archived` returns it and follows a superseded_by chain to the head. The modified:-frontmatter-stamping (clone-reset-mtime resilience) is testable by writing a fixture memory file, asserting a `modified:` field is stamped, then `touch`-resetting mtime and asserting recall recency still uses the frontmatter date — mirroring the G45 precedent the audit cites.",
+      "evidence": "memory-index.sh:150 excludes .cache; gaps.json archives-unretrievable (0 index entries have superseded_by), mtime-recency-fragile (G45 fix at session-start-context.sh:211-215 not applied to index)",
+      "recommendation": "Test in a new archives.sh: fixture archive file + chain → RED: --include-archived returns nothing; GREEN: returns it and resolves the chain head. Separate assertion: after `touch -t` reset, recall recency ranks by `modified:` frontmatter, not mtime. Durable artifact: verify/<date>/archives/{include-archived.txt,mtime-immune.txt}.",
+      "dimension": "testability"
+    },
+    {
+      "plan_item": "18 Deterministic rollup trigger + backfill",
+      "kind": "confirmed-sound",
+      "severity": "medium",
+      "detail": "Testable and memory-system.sh:52-61 already exercises weekly/auto idempotency. The new pieces: (a) `cmd_weekly <YYYY-Www>` backfill — pass a target week to a fixture git repo, assert that week's rollup file is created; red-before: cmd_weekly ignores the arg / only builds current week. (b) month/quarter regenerate at period close — testable by injecting the 'now' date (env-overridable clock) so the test can simulate the 1st-of-month without waiting. The plan does not specify the clock injection, which is required for the period-close test.",
+      "evidence": "memory-rollup.sh:36 `date +%G-W%V` current-week only; :125-129 cmd_auto gates on file existence not period completion; memory-system.sh:52-61 already tests weekly+auto",
+      "recommendation": "Extend memory-system.sh: `memory-rollup.sh weekly 2026-W25` in a temp git repo → assert 2026-W25.md created (RED: arg ignored). For period-close, add ROLLUP_NOW env so a fixture can set 'now' to a month boundary and assert last month's parent regenerates. Durable artifact: verify/<date>/rollup-backfill/2026-W25.md. Requires the plan to make the date reference env-overridable.",
+      "dimension": "testability"
+    },
+    {
+      "plan_item": "19 Separate the sleep agent from the session",
+      "kind": "untestable",
+      "severity": "medium",
+      "detail": "The Cloud-Routine dream and the same-machine fallback both require a real `claude -p` spawn — untestable in CI for the same reason as 0.1. The Mem0 ADD/UPDATE/DELETE/NOOP reconciliation is LLM-mediated inside the dream skill (SKILL.md prose), so its correctness cannot be asserted by the shell rig. The only testable substrate is the DETERMINISTIC fallback trigger (does the scheduler/session-boundary fire the dream at all) and the auth-propagation seam (item 0.1). The reconciliation semantics themselves are LLM-behavioral and outside the rig.",
+      "evidence": "dream is a SKILL.md invoked via `claude -p --bare` in auto-dream-check.sh; the reconciliation rules live in dream/SKILL.md prose; no executable reconciliation function exists to unit-test",
+      "recommendation": "Test only what is deterministic: the fallback-trigger (fixture with stale last_run_epoch + auth-present → spawn attempted; auth-absent → loud fail, no false success — reuses 0.1/0.2 fixtures). Mark the ADD/UPDATE/DELETE/NOOP reconciliation UNTESTABLE-by-rig; if the harness wants it gated, the reconciliation must be extracted from SKILL.md prose into a deterministic script that takes old+new memory and emits a diff — only then is it fixture-testable. Recommend the plan add that extraction as a prerequisite or explicitly accept it as LLM-behavioral.",
+      "dimension": "testability"
+    },
+    {
+      "plan_item": "20 Graph approximation (fix back_ref matcher, [[slug]] wikilinks)",
+      "kind": "confirmed-sound",
+      "severity": "medium",
+      "detail": "Strongly testable and the harness already ships the assertion tool: `memory-index.sh verify` reports asymmetries (currently 9). Red-before: `verify` reports N asymmetries and back_refs are [] for a fixture with an ADR-NNNN ref. Green-after: matcher normalizes ADR-NNNN↔slug, `verify` reports 0 asymmetries, back_refs populated. [[slug]] wikilink parsing already exists (memory-index.sh:50-58) so a fixture with a [[slug]] link → assert the edge appears. Self-ref pollution: fixture ADR containing its own id → assert refs excludes self.",
+      "evidence": "memory-index.sh:165-170 matcher; `memory-index.sh verify` → 9 asymmetries live (gaps.json back-ref-matcher-broken); extract_refs parses [[slug]] at :50-58",
+      "recommendation": "Test in memory-system.sh: fixture decisions with cross-refs → RED: `memory-index.sh verify` non-zero asymmetries, back_refs empty; GREEN: 0 asymmetries, back_refs populated, self-edges absent. Durable artifact: verify/<date>/graph/verify-report.txt. This is the highest-confidence graph test because the checker already exists.",
+      "dimension": "testability"
+    },
+    {
+      "plan_item": "21 Ledger decay (collapse closed task blocks)",
+      "kind": "incomplete-fix",
+      "severity": "low",
+      "detail": "The deterministic part — collapsing long-closed [x] blocks to one-liners at a line cap — is testable in the gc-suite.sh idiom (gc-tasks.sh already archives old done tasks; this is adjacent). BUT the plan assigns the collapse to the dream pipeline ('dream collapses...'), which is LLM-mediated and untestable. If the collapse is deterministic shell it is testable; if it stays in dream prose it is not. The plan does not resolve which. Hash-suffixed task IDs are testable structurally (assert generated IDs match the hash pattern).",
+      "evidence": "gc-tasks.sh already archives old done/skipped tasks (gc-suite.sh:28-63 tests it); the plan phrases decay as a dream step, and dream is the never-run LLM pipeline",
+      "recommendation": "Keep ledger decay in DETERMINISTIC shell (extend gc-tasks.sh), NOT dream, so it is testable: fixture TASKS.md with old [x] blocks → assert collapsed to one-liners, live tasks untouched (RED/GREEN via env-override like gc-suite.sh). If it must live in dream, mark UNTESTABLE. Durable artifact: verify/<date>/ledger-decay/TASKS.md.",
+      "dimension": "testability"
+    },
+    {
+      "plan_item": "22 hot.md session cache",
+      "kind": "confirmed-sound",
+      "severity": "low",
+      "detail": "Deterministically testable: session-end writes hot.md; session-start injects it. Test the writer against a fixture session (assert hot.md created, ~500-word cap enforced) and the reader (assert boot banner contains hot.md content). Content QUALITY is LLM-dependent but the mechanism (write/cap/inject) is pure shell and testable. Also fixes stale-inflight-content-lost, which is separately testable (assert a stale in-flight brief remains pointer-referenced until reviewed).",
+      "evidence": "session-end.sh writes in-flight brief (precedent); session-start-context.sh:64-72 is the in-flight injection surface; gaps.json stale-inflight-content-lost",
+      "recommendation": "Test file: .claude/scripts/test/hot-cache.sh. RED: no hot.md written/injected; GREEN: hot.md exists ≤ word cap and boot banner references it; stale in-flight brief still pointer-referenced. Durable artifact: verify/<date>/hot-cache/{hot.md,boot-banner.txt}.",
+      "dimension": "testability"
+    },
+    {
+      "plan_item": "23 Memory archaeology in /adopt",
+      "kind": "untestable",
+      "severity": "high",
+      "detail": "The valuable half — 'git log --grep for decision-shaped commits → draft ADR stubs' and 'shipped-feature reconstruction from merge history' — is intended (per the plan and adr-kit pattern) as LLM-assisted drafting inside /adopt prose, which the rig cannot test. The DETERMINISTIC halves ARE testable against a committed fixture git repo: endpoint inventory (Atlas v2 pass — item 9's extractor) and hotspot list (adopt-archaeology.sh:44-56 already deterministic). But 'ADR backfill from archaeology' as specified is LLM classification of commit messages — no deterministic oracle, so no red/green assertion beyond 'a stub file was created'.",
+      "evidence": "adopt.md import is `find docs adr ... | head -50` (deterministic copy); adopt-archaeology.sh uses git log only for hotspots; the ADR-classification step is inherently judgment-based (which commits are 'decisions')",
+      "recommendation": "Test the deterministic sub-steps against a committed fixture repo under test/fixtures/adopt/: assert endpoint inventory + hotspots + shipped-from-tags are produced. For ADR backfill, the only testable assertion is 'N stub files created under decisions/imported/ marked draft' — assert the mechanism runs and stamps provenance, NOT the classification accuracy (mark that UNTESTABLE-by-rig, human-triage-gated). Durable artifact: verify/<date>/adopt-archaeology/ under a fixture.",
+      "dimension": "testability"
+    },
+    {
+      "plan_item": "24 Clean seeding (exclude factory memory, framework-scoped seeds, rebuild index)",
+      "kind": "confirmed-sound",
+      "severity": "high",
+      "detail": "The strongest brownfield test target and fully deterministic. Run setup.sh/reconcile against a fixture target repo and assert: factory rollups/patterns/index are NOT present in the cleaned tree; seed-patterns.sh seeds only the detected framework (fixture Django repo → no Flask patterns); template-clean rebuilds index.jsonl so no entry points at a moved path. Each is a filesystem/jq assertion. The 'every index path exists' check the plan mentions is a clean validate.sh addition, itself testable.",
+      "evidence": "reconcile-clause CLAUDE_SEED_DIRS cp -Rn (gaps.json factory-memory-pollution); setup.sh template-clean misses patterns/rollups/index (dangling-index-after-template-clean); seed-patterns.sh:30 language→every-framework",
+      "recommendation": "Test file: .claude/scripts/test/clean-seeding.sh using a fixture target repo (mktemp). RED: after setup, index.jsonl has entries pointing at moved/absent paths + Flask patterns in a Python-django fixture; GREEN: no dangling index paths, framework-scoped seeds only. Add validate.sh check 'every index.jsonl path exists on disk' (testable: inject a dangling entry → fail). Durable artifact: verify/<date>/clean-seeding/index-integrity.txt.",
+      "dimension": "testability"
+    },
+    {
+      "plan_item": "25 Fix user-state mirroring under CLAUDE_CONFIG_DIR",
+      "kind": "confirmed-sound",
+      "severity": "medium",
+      "detail": "Deterministically testable via env override — the fix itself is `${CLAUDE_CONFIG_DIR:-$HOME/.claude}`. Test: set CLAUDE_CONFIG_DIR to a temp dir containing a fixture projects/<slug> tree, run mirror-user-state.sh, assert the tar archive is non-empty and sourced from the CLAUDE_CONFIG_DIR path (red-before: hardcoded $HOME/.claude → empty archive; green-after: correct tree archived). The 'fail loudly on empty tar' sub-fix is also testable (assert non-zero exit / warning when the source is empty).",
+      "evidence": "mirror-user-state.sh:20-22 hardcodes $HOME/.claude/projects; manifest shows archive_size:'' (tar failed silently, 2>/dev/null); gaps.json user-state-mirror-wrong-home",
+      "recommendation": "Test file: .claude/scripts/test/user-state-mirror.sh. RED: with CLAUDE_CONFIG_DIR set + $HOME/.claude empty, archive is empty and exit is 0 (silent). GREEN: archives the CLAUDE_CONFIG_DIR tree; empty source → loud non-zero/warn. Durable artifact: verify/<date>/user-state-mirror/manifest.json with non-empty archive_size.",
+      "dimension": "testability"
+    },
+    {
+      "plan_item": "26 Initiative bootstrap for adoptions",
+      "kind": "confirmed-sound",
+      "severity": "low",
+      "detail": "Testable: run the /adopt closing step (or initiative-state.sh init) against a fixture adopted repo with an imported backlog, assert initiatives/active/<id>.STATE.md now exists and is non-empty (red-before: no STATE file exists post-adopt). Straightforward filesystem assertion. Note initiative-state.sh sync currently only regenerates a STATE for an EXISTING initiative, so the test also validates that a genuine `init` seam was added (not just sync).",
+      "evidence": "gaps.json no-brownfield-initiative-bootstrap: grep 'initiative' in adopt.md returns nothing; initiative-state.sh sync no-ops when no initiative exists (initiative-state.sh:57-60)",
+      "recommendation": "Test in a brownfield-fixture test: after the adopt-close step, assert initiatives/active/*.STATE.md exists with phase+tasks fields (reuse memory-system.sh:22-25 assertions). RED: no STATE file; GREEN: bootstrapped STATE from imported backlog. Durable artifact: verify/<date>/adopt-bootstrap/STATE.md.",
+      "dimension": "testability"
+    },
+    {
+      "plan_item": "7 (repair the ledger — flip spec-004 to [x])",
+      "kind": "breaks-existing",
+      "severity": "blocker",
+      "detail": "Flipping T-140..T-153,T-155..T-157 from [ ] to [x] in tasks/TASKS.md will HARD-FAIL check-tdd-ledger.sh, a required gate. That script (check-tdd-ledger.sh:35) sets LEDGER_ENFORCE_FROM=111 and enforces (line 55) a committed red.log+green.log pair for every [x] task numbered >=111. T-140..T-157 are all >=111, but only T-154 has ledger logs (find verify -path '*/T-140/red.log' etc. return empty for T-140/145/150/157; only T-154 has both). The gate runs in the required harness-validate context (harness-validate.yml:108-109) AND is re-run inside evidence-gate's G49 step which invokes verify.sh (evidence-gate.yml:158) which calls check-tdd-ledger.sh (verify.sh:414-422). The plan presents this flip as a benign 'one-time reconcile' with no mention of the ledger gate.",
+      "evidence": ".claude/scripts/check-tdd-ledger.sh:35,55,70-77; verify.sh:414-422; harness-validate.yml:108-109; evidence-gate.yml:158; find verify -path '*/T-140/red.log' -> empty, only T-154 has logs; tasks/TASKS.md:936-953",
+      "recommendation": "Do the flip via the harness-maintenance escape hatch (commit verify/<date>/no-ac.json kind=harness-maintenance — TASKS.md is not app-source, evidence-gate.yml:54 deny-list allows it) AND either (a) backfill red.log/green.log for T-140..T-157 from the 2026-06-14 evidence bundle, or (b) add these historical ids to a legacy exemption. Do NOT rely on SKIP_TDD_LEDGER — evidence-gate.yml:157 documents it was removed server-side. The plan must state which path.",
+      "dimension": "blast-radius"
+    },
+    {
+      "plan_item": "7 (accept-rerun interaction — question item b)",
+      "kind": "incomplete-fix",
+      "severity": "high",
+      "detail": "verify.sh accept-rerun (verify.sh:427-461) DOES re-run the accept: of every task newly flipped [x] on the branch — it greps `git diff base -- tasks/TASKS.md` for `+- [x] T-NNN` (line 435) and runs each accept: via bash -c (453). So spec-004 tasks are in scope. Mitigation: these TASKS.md lines are bare one-liners with NO accept: sub-line (tasks/TASKS.md:936-953), so the awk extractor (444-448) returns empty and the case '' guard (450) `continue`s — skipped, not failed. And spec-004's grep-based accepts pass on main per EVIDENCE.md. So the question's feared 'accepts FAIL against shipped-and-moved state' does NOT materialize for accept-rerun — but ONLY because the lines lack accept:, which is itself the validate.sh violation the SAME item 7 proposes to start FAILING. Adding the missing accept: lines re-arms accept-rerun against them.",
+      "evidence": "verify.sh:427-461 (435 diff-grep, 444-450 extraction+empty-guard, 453 bash -c); tasks/TASKS.md:936-953 (no accept: sub-block); gaps.json tasks-ledger-contradicts-shipped-reality note; EVIDENCE.md '12/12 grep accepts PASS'",
+      "recommendation": "Sequence item 7: flip to [x] FIRST while lines lack accept: (accept-rerun skips them) + land ledger backfill, THEN in a SEPARATE PR add accept: sub-lines and verify each passes on main before that PR. Never add accept: lines and flip [x] in the same PR.",
+      "dimension": "blast-radius"
+    },
+    {
+      "plan_item": "4 (liveness probes FAIL validate.sh / harness-doctor)",
+      "kind": "breaks-existing",
+      "severity": "blocker",
+      "detail": "validate.sh is today purely structural and time-invariant (grep for date/mtime/-newer in validate.sh returns only the report timestamp at line 24 — zero liveness gating). It runs in the required harness-validate gate with NO pull_request paths filter (harness-validate.yml:11, deliberate per lines 7-9) on EVERY PR to main. Making liveness probes FAIL (index mtime >7d, dream last-success >7d, rollup gap >2w, '(pending)' >2d) makes validate.sh pass/fail depend on wall-clock and metabolism health — DEAD today and staying dead until Phase 0.1 (auth fix) actually runs on the operator machine. Result: every PR (including the fix PRs) reds on liveness until the metabolism is resuscitated AND has run recently — a chicken-and-egg wedge where the fix cannot merge because the thing it fixes hasn't run.",
+      "evidence": "validate.sh:24 only date usage; grep 'mtime|-newer|-mtime|epoch' validate.sh -> none; harness-validate.yml:7-11 unfiltered pull_request 'REQUIRED merge gate... every PR'; harness-validate.yml:89-91 fails on overall==fail; rulesets/main-protection.json requires harness-validate; gaps.json background-claude-auth-dead (metabolism 100% dead)",
+      "recommendation": "Split item 4: put liveness probes in harness-doctor.sh (advisory, operator-run, NOT a required gate) and/or a separate cron workflow (like daily-batch) that opens an issue on failure — NOT in validate.sh's required PR path. If it must gate PRs, gate only on committed-state liveness a PR can fix (e.g. index.jsonl older than newest committed memory file — branch-local, deterministic) and EXCLUDE clock-since-last-dream. Order after Phase 0 lands and the metabolism has demonstrably run.",
+      "dimension": "blast-radius"
+    },
+    {
+      "plan_item": "0.4 escape-hatch interaction (question item a)",
+      "kind": "missing-item",
+      "severity": "high",
+      "detail": "The evidence-gate escape hatch does NOT shield liveness-probe failures — they are different required contexts. evidence-gate.yml's harness-maintenance/docs-only hatch (30-75) only short-circuits the evidence-gate job (sets docs_only=1, skipping AC-proof steps). validate.sh runs in the SEPARATE required harness-validate context (harness-validate.yml:62-91), which has no escape hatch. Both are required per rulesets/main-protection.json. So a liveness FAIL in validate.sh reds harness-validate on a harness-maintenance PR that the evidence hatch passed — the plan implies the maintenance hatch keeps such PRs green, which is false for the validate.sh path.",
+      "evidence": "evidence-gate.yml:30-75 (hatch scoped to evidence-gate job only); harness-validate.yml:62-91 (validate.sh --json, no hatch); rulesets/main-protection.json required contexts include both harness-validate and evidence-gate (jq confirmed)",
+      "recommendation": "State explicitly that item 4 liveness probes in validate.sh gate ALL PRs with no maintenance exemption — then either give harness-validate its own maintenance-aware skip for the liveness category, or (preferred) keep liveness out of validate.sh entirely.",
+      "dimension": "blast-radius"
+    },
+    {
+      "plan_item": "7 (ledger reverse-drift CI check — question item c)",
+      "kind": "untestable",
+      "severity": "high",
+      "detail": "The plan wants 'a CI check on main that fails when a merged PR's Task: trailers reference tasks still [ ]'. WIP-branch false-positive exposure is real and depends on the trigger, which the plan leaves unspecified. The repo's WIP convention (squash-wip.sh:2-11: WIP-subject commits are normal during long work, squashed at PR time) plus the §VI requirement that every commit carry a Task: trailer means a feature branch legitimately carries Task: trailers for tasks still [ ] until the work flips them. A pull_request trigger fires on every in-progress branch and false-positives on this normal mid-flight state. A push:branches:[main] (post-merge) trigger has near-zero false positives but is detection-after-the-fact, not a blocking gate. 'CI check on main' is ambiguous between the two; the audit never specifies.",
+      "evidence": "gaps.json tasks-ledger-contradicts-shipped-reality proposed_fix 'CI check on main that fails when a merged PR...'; squash-wip.sh:2,10-11; constitution §VI Task: trailer required on every commit; daily-batch.yml:6-8 is schedule cron (not push/PR)",
+      "recommendation": "Specify trigger = push:branches:[main] (post-merge reconcile-and-flip or open-an-issue), mirroring daily-batch's cron pattern, to avoid WIP-branch false positives. If a merge gate is truly wanted, scope it to Task: trailers on commits that are ancestors of the merge base AND whose spec has a PASS evidence.json in the tree — not any [ ] task referenced in the branch's WIP history.",
+      "dimension": "blast-radius"
+    },
+    {
+      "plan_item": "12 (generate MEMORY.md from index — question item e)",
+      "kind": "wrong-fix",
+      "severity": "high",
+      "detail": "MEMORY.md is NOT machine-owned today — it is hand-authored: it opens with a taxonomy prose block (memory-taxonomy list, 'Add a one-line entry below each time you write a new memory file', header) that no generator produces, and its last two commits are human scaffold commits (a371b77, 780fa60), zero machine rewrites. Item 12 'generate the Decisions/Patterns sections from the index' risks clobbering this hand-written structure if the generator overwrites the whole file or mis-delimits sections. Two MEMORY.md files exist: repo .claude/memory/MEMORY.md and the operator auto-memory under ~/.claude-qyndex/projects/.../memory/ — item 12 must be explicit which. Also the 200-line cap / dream / memory-gc already mutate MEMORY.md, so a generator and dream can race to own the same file.",
+      "evidence": ".claude/memory/MEMORY.md:1-20 (hand-written taxonomy prose + 'Add a one-line entry below'); git log MEMORY.md -> a371b77, 780fa60 (both human scaffold); constitution §IX / memory-gc.sh 200-line cap also mutates it; two distinct MEMORY.md files",
+      "recommendation": "Generate ONLY between explicit delimiter markers (e.g. <!-- BEGIN:auto-decisions -->..<!-- END -->) rewritten in place, never the whole file; preserve hand-written taxonomy/header. Reconcile ownership with dream/memory-gc (one writer, or make it dream-step-owned). State which MEMORY.md is targeted.",
+      "dimension": "blast-radius"
+    },
+    {
+      "plan_item": "13 (kill recall noise floor — question item f)",
+      "kind": "confirmed-sound",
+      "severity": "low",
+      "detail": "Making recall return empty (require hits>=1) does NOT trip any 'recall must be present' assumption — both automatic injection sites already treat empty recall as normal. subagent-context.sh:64-66 guards `[ -n \"$recall\" ] && ctx=...` with the comment 'recall is best-effort enrichment — failure or no matches yields empty and the line is omitted'; session-start-context.sh:110-111 guards `[ -n \"${recall// /}\" ] && ctx_parts+=(...)`. memory-recall.sh's header already claims 'empty when nothing relevant'. No hook, gate, or test asserts recall non-empty. So subagent-context simply injects no Memory-recall line — the designed behavior. Only downstream effect is removing the 3 noise lines.",
+      "evidence": ".claude/hooks/subagent-context.sh:64-66; .claude/hooks/session-start-context.sh:110-111; memory-recall.sh:8 'empty when nothing relevant'; grep for any non-empty recall assertion across hooks/scripts -> none",
+      "recommendation": "Proceed. Optionally check .claude/scripts/test/*.sh for a snapshot test asserting a fixed recall line count against the seed corpus (could over-fit), but the injection consumers themselves are safe.",
+      "dimension": "blast-radius"
+    },
+    {
+      "plan_item": "10 (one schema — frontmatter-only status/superseded_by)",
+      "kind": "incomplete-fix",
+      "severity": "medium",
+      "detail": "The fear that item 10 'invalidates the 27-entry index / breaks memory-recall mid-migration' is partly moot: index.jsonl ALREADY carries all target fields as first-class keys (jq: back_refs, created, last_verified, status, superseded_by, paths_touched, etc.), and memory-recall.sh reads status/superseded_by from the index (memory-recall.sh:62-67). The split-brain is in the MARKDOWN source (frontmatter vs body-bullet '- **Status**:'), per gaps.json status-field-split-brain — the INDEX schema does not change. The real mid-migration risk: if validate.sh starts REJECTING the body-bullet form (item 10) before every file is migrated, 0000-template.md and the 3 ADRs (which carry Status in BOTH places per gaps.json) fail validate.sh — reddening required harness-validate on the migration PR itself until all files are converted in the same PR.",
+      "evidence": "index.jsonl keys (jq) include status/superseded_by/last_verified/created/back_refs; memory-recall.sh:62-67; gaps.json status-field-split-brain (template has Status in both places); harness-validate.yml runs validate.sh as required gate",
+      "recommendation": "Migrate all body-bullet files AND flip the validate.sh rejection in ONE atomic PR so the new rule never sees an unmigrated file; rebuild index.jsonl in the same PR. Clarify item 10 targets markdown source, not index.jsonl — no recall-breaking reindex is needed.",
+      "dimension": "blast-radius"
+    },
+    {
+      "plan_item": "5 (SessionStart auto-sync + rebuild + atlas-refresh)",
+      "kind": "wrong-sequence",
+      "severity": "medium",
+      "detail": "Item 5 turns SessionStart warnings into remediations: run initiative-state.sh sync + memory-index.sh rebuild + atlas-refresh.sh inline when stale — all WRITE files at boot. Regression surface: (1) they dirty the working tree at boot (STATE.md is already an uncommitted working-tree diff now, per session git status), surprising git-status-sensitive automation and the ship/squash-wip flows; (2) initiative-state.sh sync currently reads phase from the stale global .swarms coordinator file and counts from the drifted TASKS.md (initiative-state.sh:71; gaps.json state-does-not-answer-shipped) — auto-syncing at boot BEFORE item 7's ledger repair lands REWRITES STATE.md with the same wrong 'specifying 1/18' content plus a fresh timestamp, defeating the staleness banner that at least currently flags it. Ordering: item 5 without item 7 makes wrong state look fresh.",
+      "evidence": "gaps.json single-writer-sessionend, state-does-not-answer-shipped, staleness-warning-advisory-only; initiative-state.sh:71 phase from .swarms/coordinator/workflow-state.json; STATE.md uncommitted working-tree diff (git status: M initiatives/active/spec-004-...STATE.md)",
+      "recommendation": "Land item 7 (per-spec filter, ground-truth phase, ledger repair) BEFORE item 5's auto-sync so auto-sync writes correct state. Decide whether boot-time writes stage/commit or stay working-tree (STATE.md is committed-tracked). Guard atlas/index rebuild behind the deterministic staleness check only — don't rebuild every boot (cache-warmth + churn).",
+      "dimension": "blast-radius"
+    }
+  ],
+  "review_assessments": [
+    {
+      "dimension": "fix-correctness",
+      "assessment": "I verified every load-bearing §6 fix against the code on disk. The plan is diagnostically excellent — its no-op findings (0.3) are all real and its proposed mechanisms for them are correct — but its single most important fix (Phase 0.1, headless auth) rests on a root-cause claim I could NOT reproduce and that the environment actively contradicts, which puts the whole \"unblocks 30+ gaps\" dependency chain at risk. Confirmed-sound: 0.2 (false-success guard), 0.3 no-ops (post-write-format absolute-path, adr-new reindex no-op, promote-sed body-line, last_run key mismatch, GC inverted-LRU), fix 7 (ledger contradiction), fix 14 (.sh unindexable), fix 11 stale-literal, fix 5 determinism. The biggest correctness gap is 0.1: `CLAUDE_CONFIG_DIR` is ALREADY inherited by nohup subshells (I proved it), and `claude -p` authenticates in this env both with and without it set — so \"propagate CLAUDE_CONFIG_DIR into spawns\" is likely a no-op that does not address the true failure. Separately, `pre-compact-witness.sh:68` uses `timeout`, which is absent on stock macOS — a distinct, unaddressed root cause for the 100% witness-empty rate that fix 0.1 would not fix. Every Phase-0 code fix also hits the constitution/hook write-block and needs an operator/FORCE apply, which the plan underweights as a sequencing constraint. Several fixes name only one of multiple identical-defect sites (post-write-format's atlas-dirty and skill-registry cases; the plan's \"+3-level nesting\" is needed but understated at pattern depth)."
+    },
+    {
+      "dimension": "sequencing",
+      "assessment": "The plan's Phase-0-first framing is directionally right — the headless-auth fix (0.1) genuinely unblocks the LLM-metabolism gaps, and most Phase 1-5 items are correctly downstream of it. But the plan treats \"ordered by dependency\" as if intra-item ordering and CI-gate interactions were free, and they are not. Three concrete sequencing hazards are verifiable on disk. (1) Item 0.4 as written (\"add a liveness self-test to validate.sh ... fail (not warn) on index stale / dead dream / rollup gap\") lands a hard-fail into a REQUIRED merge gate: harness-validate runs `validate.sh --json` and fails on `overall==fail` (harness-validate.yml:91; validate.sh:64 fails-counter → summary.overall), and every one of those liveness conditions is TRUE today — so shipping 0.4 before 0.1/0.2/0.3 actually cure the metabolism turns main red for all PRs. This is a Phase-0 item that depends on the rest of Phase 0, contradicting \"Phase 0 unblocks everything.\" (2) Item 7's \"one-time reconcile … spec-004 → [x]\" is not a doc edit: check-tdd-ledger.sh (required, run in harness-validate.yml:109) demands paired red.log+green.log for every [x] task, and only T-154 of T-140..T-157 has them on disk — flipping the other 17 fails the gate immediately. (3) The SHIPPED registry (8) and ledger reconcile (7) have a real ordering coupling the plan leaves implicit, and Atlas-v2 (9) internally must define ENDPOINTS before JOURNEYS references the endpoint join. None of these are refutations of the plan's goals — they are landing-order and gate-mechanics corrections. A safe PR sequence exists and is spelled out below; the key rule the plan omits is \"every liveness/validation gate must land AFTER the thing it checks is already green, and behind the harness-maintenance evidence-gate escape hatch.\""
+    },
+    {
+      "dimension": "testability",
+      "assessment": "The plan is well-grounded in verified defects, but on the TESTABILITY dimension it has one dominant, cross-cutting hole and a set of item-specific ones. THE DOMINANT HOLE: the harness has a `.claude/scripts/test/*.sh` rig, but `memory-system.sh` and `gc-suite.sh` are wired into NO automated runner — I confirmed only `loop-control.sh` and `oq-aging.sh` run in CI (harness-validate.yml:105-106), `ci.yml` runs `test-unit.sh` which is stack-language-only and exits 0 on this shell-only repo (test-unit.sh:19-22), and `verify.sh` never iterates `scripts/test/`. So every \"add a test\" the plan implies would be a dead file that proves nothing on PR unless the plan ALSO adds a runner step. This is the meta-lesson (§8) repeating: tests that \"proved code paths once, never that the metabolism is alive.\" Any fix plan must include, as an explicit item, wiring a `run-memory-tests` step into harness-validate.yml. SECOND: the plan is strong on the deterministic items (3, 5, 7, 10-16, 18, 20, 24) which test cleanly in the hermetic env-override idiom gc-suite.sh already models. THIRD: the genuinely hard items — 0.1 (auth), 0.4 (liveness probes), 2 (dream-records-failure), 11 (latest-wins convergence), 19 (sleep agent) — all involve a `claude -p` spawn that CANNOT run in CI. The plan gestures at \"add a preflight probe\" but never says the probe itself must be tested by INJECTING a fake `claude` on PATH; without that, the auth fix and every liveness probe are themselves untested. FOURTH: several structural checks the plan proposes for validate.sh/harness-doctor need injectable clocks/mtimes (liveness item 4) — testable only if the thresholds read env-overridable variables, which the plan does not specify. I give below, per §6 item, the concrete test file, red/green assertions, and durable artifact, and flag the 6 items that are untestable as-specified."
+    },
+    {
+      "dimension": "blast-radius",
+      "assessment": "The plan's Phase 0-1 fixes carry real, concrete regression risk to the required CI gate set, and the audit did not analyze blast radius. The single largest risk is item 7's one-time ledger repair (flip spec-004 T-140..T-157 to [x]): it collides with TWO independent required-gate mechanisms. verify.sh's accept-rerun (verify.sh:427-461) fires on any task whose `+- [x] T-NNN` appears in the branch diff, so the flip is in-scope; but because those TASKS.md lines lack accept: sub-lines the accept-rerun skips them — the real blocker is the SECOND mechanism, check-tdd-ledger.sh with LEDGER_ENFORCE_FROM=111, which hard-fails because T-140..T-157 are all ≥111 and only T-154 has committed red/green logs. That gate runs in required `harness-validate` AND is re-run inside evidence-gate's G49 verify.sh pass, so the repair PR reds itself unless logs are backfilled (SKIP is stripped server-side). Item 4 (liveness probes that FAIL validate.sh) is the second-largest risk: validate.sh is today purely structural/time-invariant and runs in the required, no-paths-filter `harness-validate` gate on EVERY PR — making it time-sensitive reds unrelated PRs when the metabolism is dead (its steady state today until Phase 0 lands), and evidence-gate's docs-only/harness-maintenance hatch does NOT cover harness-validate (separate required context). Items 13/recall consumers are SAFE — both injection sites already guard `[ -n \"$recall\" ]` and treat empty as normal. Item 12 (generate MEMORY.md) risks clobbering hand-written taxonomy prose and races dream for file ownership. Item 10's index-schema fear is partly moot (index.jsonl already carries all target fields) but the markdown-body migration still touches source files and can red validate.sh mid-migration. Item 7's reverse-drift check has genuine WIP-branch false-positive exposure depending on an unspecified trigger."
+    }
+  ]
+}

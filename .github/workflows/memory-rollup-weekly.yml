@@ -1,0 +1,58 @@
+name: Weekly memory rollup
+
+# M-18: deterministic weekly episodic rollup. Runs on a week-boundary schedule and
+# emits .claude/memory/rollups/YYYY-Www.md. To avoid the cross-machine race O-7
+# flagged (a CI runner and a local dream both writing the same rollup file — a
+# local mkdir-lock can't coordinate two filesystems), the job NEVER pushes to main
+# directly: it commits to a branch and opens a PR (same pattern as
+# quarterly-archive.yml). Git merge is the serialization point across machines.
+
+on:
+  schedule:
+    - cron: "0 5 * * 1" # Mondays 05:00 UTC (start of the ISO week)
+  workflow_dispatch:
+    inputs:
+      week:
+        description: "Target ISO week e.g. 2026-W30 (default: current)"
+        required: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  rollup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # rollup reads git history
+
+      - name: Generate weekly rollup
+        id: rollup
+        run: |
+          week="${{ github.event.inputs.week }}"
+          # memory-rollup.sh weekly [YYYY-Www] — arg honored (M-18); empty = current week.
+          bash .claude/scripts/memory-rollup.sh weekly $week
+          # Emit which file changed for the PR step.
+          echo "changed=$(git status --porcelain .claude/memory/rollups/ | head -1)" >> "$GITHUB_OUTPUT"
+
+      - name: Open PR with the rollup (never push to main directly)
+        if: steps.rollup.outputs.changed != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          week=$(date +%G-W%V)
+          branch="chore/memory-rollup-${week}"
+          git checkout -b "$branch"
+          git add .claude/memory/rollups/
+          git diff --cached --quiet && { echo "No rollup change."; exit 0; }
+          git commit -m "chore(memory): weekly rollup ${week}"
+          git push -u origin "$branch"
+          gh pr create \
+            --title "chore: weekly memory rollup ${week}" \
+            --body "Deterministic weekly episodic rollup (M-18). Merge serializes the write across machines (CI vs local dream)." \
+            --base main \
+            --head "$branch" || echo "PR may already exist for ${branch}"

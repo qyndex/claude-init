@@ -1,0 +1,5 @@
+  - missing patch: /Volumes/M/sourcecode/qyndex/claude-init/.claude/memory.proposed/patches/M-06-verify-skill-sync.patch
+  - missing patch: /Volumes/M/sourcecode/qyndex/claude-init/.claude/memory.proposed/patches/M-06-ship-skill-sync.patch
+  - M-06 patches apply onto the guarded skills
+passed: 0
+failed: 3

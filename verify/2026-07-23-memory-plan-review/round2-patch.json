@@ -1,0 +1,129 @@
+{
+  "r2_verdict": "CONDITIONAL-GO with mandatory patches. Round 2 re-verified round 1 on-disk and confirms the plan's spine (DAG soundness, 17-PR landing order, phase monotonicity — all verified clean) but found ONE round-1 correction that is itself wrong at the blocker level, and recovered the completeness dimension round 1 lost to the schema-retry cap. Definitive coverage tally: 87 distinct register gap ids; union of all 25 items' gaps_closed = 84 unique real ids (0 phantom); exactly 3 uncovered (boot-pending-count-unhardened, next-tasks-injection-surfaces-stale-pending, subagent-spec-resolution-still-mtime), all low-severity, none in any plan item. The 9 double-counted gap ids are legitimate complementary-split / near-duplicate mappings, NOT accounting inflation. Three material fixes are load-bearing before build: (1) the M-01a auth PROBE and the O-1 reproduction command must use `claude -p --bare` — the bare form omits the flag every real spawn uses, so the probe would falsely report the metabolism healthy while dream/witness stay dead (verified: pre-compact-witness.sh:68 and auto-dream-check.sh:117 both use --bare; bash.log:9028 isolates that --bare is the trigger); (2) one plan item must edit workflow-state.sh (currently 0 references across the whole plan) to persist spec/plan so subagent-context.sh stops resolving the child's spec by ls -t mtime lottery; (3) M-06/M-05b must partition single-writer-sessionend so a CRITICAL gap is not marked false-closed at PR6, three PRs before its boot writer lands, with the merge-CI writer site missing entirely. With these patches the plan is buildable as written.",
+  "r1_corrections_that_survived": [
+    "Correction 1 core claim SURVIVES: CLAUDE_CONFIG_DIR is already inherited by nohup subshells and 'capture + re-export config-dir' is a no-op — re-scope to a reproduced failure + auth-env (apiKeyHelper/ANTHROPIC_API_KEY). Only the probe COMMAND FORM was wrong (see r1_errors_found). Root-cause re-diagnosis and the auth-env remedy direction stand.",
+    "Correction 1b (second root cause) SURVIVES: pre-compact-witness.sh:68 pipes through `timeout 120` and neither timeout nor gtimeout exists on stock macOS — an independent witness-empty root cause; portable-guard fix confirmed on-disk (line 68).",
+    "Correction 2 (META, M-00) SURVIVES: no workflow runs .claude/scripts/test/*.sh; wiring a runner + dead-test detector as item zero remains the foundation every red/green depends on.",
+    "Correction 3 (liveness mis-sequenced into a validate.sh wedge; advisory-in-harness-doctor first, promote to required-in-validate.sh last behind LIVENESS_SOFT) SURVIVES.",
+    "Correction 4 (item 7 flip-to-[x] hard-fails check-tdd-ledger LEDGER_ENFORCE_FROM=111; use SHIPPED.md/[s], land M-08 before M-07-data) SURVIVES: verified only T-154 has red/green under verify/.",
+    "Correction 5 intra-phase orderings SURVIVE: M-03->M-05b, M-10->M-11, M-13-14 shipped together, M-05b after M-07 ledger repair — all confirmed against real file dependencies.",
+    "DAG integrity SURVIVES (round-2 cross-consistency confirmed-correct): no depends_on points to a later PR, no cycle, phases monotonic with PR order, no dup IDs, no item in two PRs, landing_order and implementation_plan mutually exhaustive; same-PR co-deps (M-07-state<-M-07-data PR8, M-19<-M-18 PR15) correctly co-located. Keep the DAG spine as ordering authority.",
+    "The 9 double-counted gap ids are LEGITIMATE (round-2 confirmed-correct): complementary splits (single-writer-sessionend/sync-only-at-session-end across M-05b/M-06; tasks-ledger-contradicts-shipped-reality across M-07-data/M-07-guard; canonical-memory-frozen across M-01b/M-12/M-04-promote) plus cross-dimension near-duplicate register pairs correctly mapped to one fix. Union math honest: 95 raw -> 84 unique -> 3 missing = 87."
+  ],
+  "r1_errors_found": [
+    {
+      "target": "M-01a.change + open_questions[0] (O-1) + plan.md:136 — auth probe command form",
+      "error": "The falsifiable auth probe is `claude -p 'ok'` (M-01a.change line 97, correction-1 line 8, open_questions[0] line 732, plan.md:136 reproduction command). But EVERY real detached spawn uses `claude -p --bare` (verified: pre-compact-witness.sh:68 `timeout 120 claude -p --bare ...`; auto-dream-check.sh:117 `claude -p --bare ...`). --bare is the actual failure trigger — bash.log:9028 records the operator isolating `claude -p --bare 'ok'` vs `claude -p 'ok'` precisely because bare is what breaks. A probe using `claude -p 'ok'` (no --bare) can return exit 0 while the --bare spawns fail 'Not logged in', so M-01a would report the metabolism HEALTHY while dream/witness/instinct stay dead — the exact false-green failure mode M-00/M-01a exist to prevent, and the O-1 operator reproduction would run the wrong command and wrongly conclude auth is fine.",
+      "fix": "Change every probe/reproduction command in M-01a.change, correction #1, open_questions[0], and plan.md:136 from `claude -p 'ok'` to `claude -p --bare 'ok'`. M-01a green_assertion must assert the fake claude shim is invoked WITH --bare and that a foreground non-bare success cannot mask a detached --bare failure; the probe must mirror the exact spawn form (nohup detached + --bare)."
+    },
+    {
+      "target": "plan.json verdict prose (line 4) — PR count self-inconsistency",
+      "error": "The verdict says '~15 harness-maintenance PRs' (twice) while landing_order has exactly 17 entries and plan.md says '17 PRs' / '~17'. A plan-patcher reconciling counts hits a contradiction; DAG+landing_order (17) is authoritative.",
+      "fix": "Change '~15 harness-maintenance PRs' to '17' in the plan.json verdict prose to match landing_order (len=17) and plan.md. Non-blocking but must be reconciled."
+    }
+  ],
+  "coverage_holes": [
+    {
+      "gap_id": "subagent-spec-resolution-still-mtime",
+      "severity": "medium",
+      "fix": "UNBUILDABLE within current plan: register fix requires persisting spec/plan into workflow-state.json (workflow-state.sh:126-131) and reading them in subagent-context.sh before the ls -t fallback — but workflow-state.sh persists only {phase,next,streak,warned_at,session_id} (verified :126-131; spec/plan computed at :37-38 but never serialized) and NO plan item touches workflow-state.sh (0 references in plan.json). Even after the whole plan lands, subagent-context.sh:37-38 still resolves the child's Current spec via `ls -t specs/active/*.md | head -1`. Fix via NEW item M-05c: edit workflow-state.sh to add spec/plan to the persisted JSON; edit subagent-context.sh:31-33 to read .spec/.plan before the ls -t fallback."
+    },
+    {
+      "gap_id": "boot-pending-count-unhardened",
+      "severity": "low",
+      "fix": "UNCOVERED: session-start.sh:23 still uses bare `grep -c '^- \\[ \\]' tasks/TASKS.md` (verified on disk), counting the Format-section template line at TASKS.md:8, so the boot banner reports N+1 pending. No plan item edits session-start.sh (only session-start-CONTEXT.sh, a different file, which ALREADY uses the hardened `grep -m3 -E '^- \\[ \\] T-[0-9]+'` form — session-start.sh:23 was simply missed). Fix: fold a one-liner into M-07-state: session-start.sh:23 -> `grep -cE '^- \\[ \\] T-[0-9]+' tasks/TASKS.md`; add boot-pending-count-unhardened to gaps_closed. Red: bare count vs hardened count differ by 1 on current TASKS.md."
+    },
+    {
+      "gap_id": "next-tasks-injection-surfaces-stale-pending",
+      "severity": "low",
+      "fix": "UNCOVERED as a distinct gap though M-07-state.change already names session-start-context.sh:128. M-07-state would incidentally fix the file-ORDER half but the register gap adds two omitted requirements: (a) exclude already-SHIPPED/[s]-class work from the injected 'Next tasks' line, and (b) annotate each injected task with last_touched age so a session spots rot. Fix: add next-tasks-injection-surfaces-stale-pending to M-07-state.gaps_closed AND extend its change to route session-start-context.sh:128 through `next-task.sh --all | head -3` with last_touched annotation and shipped-class exclusion. Shipped-exclusion leg depends on M-08 ([s]/shipped-class marker)."
+    }
+  ],
+  "plan_patches": [
+    {
+      "item": "M-01a",
+      "change": "In .change, replace probe `claude -p 'ok'` with `claude -p --bare 'ok'`; require the probe to run under the exact detached (nohup, no-TTY) form the spawns use; strengthen green_assertion to assert the fake claude shim is invoked WITH --bare and that a foreground/non-bare success does NOT mask a detached --bare failure.",
+      "reason": "Verified pre-compact-witness.sh:68 and auto-dream-check.sh:117 both use `claude -p --bare`; bash.log:9028 shows --bare is the failure trigger. A non-bare probe false-greens the whole metabolism."
+    },
+    {
+      "item": "open_questions[0] (O-1) + plan.md:136",
+      "change": "Change the operator reproduction command to `nohup bash -c \"claude -p --bare 'ok'; echo exit=$?\"` (add --bare).",
+      "reason": "The O-1 diagnostic must reproduce the actual --bare spawn; the current non-bare command lets the operator wrongly conclude auth is healthy."
+    },
+    {
+      "item": "M-06",
+      "change": "Make gaps_closed partition-clean: M-06 closes ONLY sync-only-at-session-end; REMOVE single-writer-sessionend from M-06.gaps_closed. Note that single-writer-sessionend needs three writer sites (boot=M-05b, ship/verify=M-06, merge-CI=M-06b) and is not closed until the last lands.",
+      "reason": "single-writer-sessionend's register fix requires writers at session-start + ship/verify + merge-CI. M-06 adds only ship/verify. Marking it closed at PR6 records a CRITICAL gap done 3 PRs before its boot writer (M-05b, PR9) lands and while the merge-CI writer does not exist — the exact false-close hazard."
+    },
+    {
+      "item": "M-05b",
+      "change": "Keep single-writer-sessionend in M-05b.gaps_closed but annotate that M-05b closes ONLY the boot-writer leg; single-writer-sessionend is marked truly-closed ONLY on the last writer site to land (M-06b at PR10, see new_items/landing_order).",
+      "reason": "Prevents the gaps_closed ledger from reading a distributed 3-site gap as complete before all sites exist."
+    },
+    {
+      "item": "M-07-guard",
+      "change": "No gaps_closed change, but note the merge-CI single-writer-sessionend writer is added as new item M-06b folded into M-07-guard's push:main workflow (M-07-guard already owns that workflow).",
+      "reason": "The audit register enumerates a merge-adjacent CI writer that NO current item provides; M-07-guard's push:main workflow is the cheapest home for it."
+    },
+    {
+      "item": "M-07-state",
+      "change": "Add boot-pending-count-unhardened AND next-tasks-injection-surfaces-stale-pending to gaps_closed. Extend .change: (1) session-start.sh:23 -> `grep -cE '^- \\[ \\] T-[0-9]+' tasks/TASKS.md` (harden the boot count, matching already-hardened session-start-context.sh:128); (2) route session-start-context.sh:128 through `next-task.sh --all | head -3` with last_touched-age annotation and [s]/shipped-class exclusion. Add M-08 to depends_on (shipped-class marker needed for the exclusion leg).",
+      "reason": "session-start.sh:23 verified bare-grep (counts template line at TASKS.md:8); next-tasks-injection gap adds shipped-exclusion + age-annotation the current change omits."
+    },
+    {
+      "item": "M-01b",
+      "change": "Add field `blocked_by_oq: [\"O-1\"]`, OR split into M-01b-seam (spawn-into-callable-seam refactor + portable timeout fix — buildable now, unblocked) and M-01b-auth (the auth-env edit — gated on O-1). depends_on stays [M-01a] but the auth-edit leg is human-gated.",
+      "reason": "plan.md:136 declares 'O-1 (blocks M-01b)' but M-01b.depends_on=[M-01a] only; M-01a is an advisory PROBE that captures evidence, it cannot make the operator's remedy decision. A plan-patcher walking depends_on schedules M-01b ready once M-01a lands while the auth edit is human-blocked. Encode the gate machine-side."
+    },
+    {
+      "item": "plan.json verdict prose",
+      "change": "Change '~15 harness-maintenance PRs' (both occurrences) to '17'.",
+      "reason": "landing_order has 17 entries; plan.md says 17. The '~15' is stale synthesis prose."
+    }
+  ],
+  "new_items": [
+    {
+      "id": "M-05c",
+      "phase": "Phase 1",
+      "title": "Persist spec/plan into workflow-state.json; subagent reads them before ls -t",
+      "change": "workflow-state.sh:126-131: add `spec` and `plan` (already computed at :37-38) to the persisted JSON object alongside phase/next/streak/warned_at/session_id. subagent-context.sh:31-33: read `.spec` and `.plan` from .swarms/coordinator/workflow-state.json (like the existing `.phase` read at :31) BEFORE the `ls -t specs/active/*.md | head -1` / `ls -t plans/active/*.md | head -1` fallbacks at :37-38, so a child inherits the SESSION's spec/plan not newest-by-mtime.",
+      "test_file": ".claude/scripts/test/subagent-spec-resolution.sh",
+      "red_assertion": "Before: two-active-spec fixture where newest-by-mtime (touch specs/active/002 last) != the spec in a hand-written workflow-state.json; run the subagent-context spec-resolution helper -> child gets mtime-newest 002 NOT workflow-state 001 -> FAIL. Also `jq 'has(\"spec\")' .swarms/coordinator/workflow-state.json` is false before the fix.",
+      "green_assertion": "After: workflow-state.sh writes spec/plan (jq has(\"spec\")==true); with workflow-state.spec=001 but 002 newest-by-mtime, the helper returns 001 (workflow-state wins over ls -t) -> PASS.",
+      "artifact": "verify/<date>/subagent-spec/state-vs-mtime.txt",
+      "depends_on": [
+        "M-05b"
+      ]
+    },
+    {
+      "id": "M-06b",
+      "phase": "Phase 1",
+      "title": "Merge-CI initiative-state sync writer (third single-writer-sessionend site)",
+      "change": "Fold into M-07-guard's push:branches:[main] workflow (do NOT add a new required gate): after a merge to main, run `initiative-state.sh sync` and commit STATE.md via the same non-raw-push path M-06 uses (pre-merge PR-branch commit preferred; if genuinely post-merge, route through auto-merge.yml / a provisioned bypass_actor — main-protection.json bypass_actors is empty so a raw bot push to main is rejected). Third of three single-writer-sessionend writer sites (boot=M-05b, ship/verify=M-06, merge-CI=here).",
+      "test_file": ".claude/scripts/test/ledger-drift.sh (merge-sync leg)",
+      "red_assertion": "Before: grep the push:main workflow for 'initiative-state.sh sync' -> nothing -> FAIL (only boot + ship writers exist; merge-boundary state never re-synced post-merge).",
+      "green_assertion": "After: the push:main workflow references `initiative-state.sh sync`; single-writer-sessionend now closed at all three sites -> PASS. Raw-push-to-main correctly NOT used.",
+      "artifact": "verify/<date>/merge-sync/workflow-grep.txt",
+      "depends_on": [
+        "M-07-guard",
+        "M-06"
+      ]
+    }
+  ],
+  "landing_order_changes": [
+    "Annotate PR3 (M-01b): 'auth-env edit BLOCKED until O-1 answered with a --bare reproduction; the spawn-seam refactor + portable-timeout fix ship regardless.' Encode via M-01b.blocked_by_oq:[O-1] or the M-01b-seam/M-01b-auth split.",
+    "Add M-05c to PR9 (co-located with M-05b, its depends_on). Both edit subagent-context.sh so co-locating avoids a merge conflict; M-05c also edits workflow-state.sh (a file no other PR touches).",
+    "Fold M-06b into PR10 (with M-07-guard, which owns the push:main workflow). single-writer-sessionend is truly-closed at PR10 (M-06b), NOT PR9 — update any completion-ledger reading of gaps_closed accordingly.",
+    "Add landing-order NOTE: single-writer-sessionend spans three PRs (PR6 M-06 network-boundary leg via sync-only-at-session-end, PR9 M-05b boot leg, PR10 M-06b merge-CI leg) and must not be reported closed until PR10. Do not treat gaps_closed as a per-PR completion ledger for distributed gaps.",
+    "M-07-state now depends_on [M-07-data, M-08] (was [M-07-data]) because its extended change adds shipped-class exclusion at session-start-context.sh:128 needing M-08's [s]/shipped-class marker. Ordering holds (M-08 PR7 < M-07-state PR8); record the new dependency edge."
+  ],
+  "updated_open_questions": [
+    "O-1 (REVISED, blocks M-01b auth leg): run the exact detached spawn form the hooks use — `nohup bash -c \"claude -p --bare 'ok'; echo exit=$?\"` (--bare is MANDATORY; the non-bare form false-passes). Capture exit code + stderr. If it fails 'Not logged in', pick: apiKeyHelper, exported ANTHROPIC_API_KEY in the spawn env, or keychain-ACL-for-detached-process. Environment-specific; blocks the concrete auth edit in M-01b.",
+    "O-2 (unchanged): which Phase-0/1 hook + settings.json edits (M-02, M-03, M-05a, M-05c incl. workflow-state.sh/subagent-context.sh) need operator/FORCE sign-off before push, per the staged-fix-then-operator-install pattern?",
+    "O-3 (unchanged): spec-004 marker choice — SHIPPED.md alone, [s] terminal marker, or backfill red/green then [x]? Each differs in next-task.sh counts, verify.sh accept-rerun, reverse-drift guard.",
+    "O-4 (unchanged, now also covers M-06b): commit STATE.md pre-merge on the PR branch (recommended) or provision a bypass_actor for the M-06b post-merge merge-CI committer? main-protection.json bypass_actors is empty.",
+    "O-5 (unchanged): confirm clock-relative dream/rollup staleness stays advisory (harness-doctor + weekly cron), with only branch-local committed-state staleness as the required validate.sh gate (M-04-promote), else the wedge risk returns.",
+    "O-6 (unchanged): extract dream ADD/UPDATE/DELETE/NOOP reconciliation into a deterministic diff script (fixture-testable) or accept as LLM-behavioral (untested)?",
+    "O-7 (NEW): the M-00 finding in the round-2 input arrived as a placeholder stub (detail/evidence/patch all literally 'test') with severity 'blocker' but no content. No actionable defect against M-00 could be verified — M-00 (CI test runner + dead-test detector) stands as round-1 authored. Confirm whether this was a lost/truncated reviewer output that needs re-running, or a no-op to discard."
+  ]
+}

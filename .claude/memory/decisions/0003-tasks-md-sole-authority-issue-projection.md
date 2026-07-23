@@ -10,7 +10,6 @@ metadata:
 
 # ADR-0003: tasks/TASKS.md is the sole task-state authority; GitHub Issues are a write-only projection
 
-- **Status**: accepted
 - **Date**: 2026-05-27
 - **Deciders**: @shravanjha
 - **Owners**: [@shravanjha]
@@ -20,8 +19,6 @@ metadata:
 - **Context**: Round 11 — split-brain risk between board state and ledger state; .claude/CLAUDE.md §XVI
 - **Tags**: architecture
 - **subsystem**: task-state
-- **Supersedes**:
-- **superseded_by**:
 - **orphaned_from**:
 
 ## Context

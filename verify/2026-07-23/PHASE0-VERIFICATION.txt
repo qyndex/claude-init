@@ -1,0 +1,18 @@
+PHASE-0 CONSOLIDATED VERIFICATION — 2026-07-23
+
+All 5 operator-install patches apply as a STACK with no conflict.
+With the full stack applied, every Phase-0 test passes 0-failures:
+  metabolism-spawn.sh: 6/6   dream-state.sh: 3/3   no-ops-fire.sh: 4/4
+  validate.sh [dead-tests]: green (glob runner present)
+  no live 'claude -p --bare' in any of the 3 metabolism spawn sites.
+
+OUT-OF-SCOPE FINDING (recorded, not fixed in Phase 0):
+  .claude/scripts/install-overnight-tasks.sh has 9 more 'claude -p --bare'
+  calls (scheduler registration, lines 35,52,62,71,77,83,93,108,118). These
+  are one-time setup calls that register cron tasks, NOT the dream/instinct/
+  witness metabolism the plan targets — but they'd hit the same OAuth failure.
+  Follow-up: route them through the metabolism seam (or confirm the scheduler
+  subcommand's auth path) in a later PR. Same root cause, different surface.
+
+SECURITY-INVARIANT follow-ups (from M-00 triage, out of scope):
+  INVARIANT-04 sandbox unset; INVARIANT-07 one destructive class not denied live.

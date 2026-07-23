@@ -1,0 +1,10 @@
+⚠ 0001-sonnet-default-model-routing → ADR-0001 but ADR-0001 does not back-ref 0001-sonnet-default-model-routing
+⚠ 0001-sonnet-default-model-routing → ADR-0002 but ADR-0002 does not back-ref 0001-sonnet-default-model-routing
+⚠ 0001-sonnet-default-model-routing → ADR-0003 but ADR-0003 does not back-ref 0001-sonnet-default-model-routing
+⚠ 0002-evidence-based-verification-gates → ADR-0001 but ADR-0001 does not back-ref 0002-evidence-based-verification-gates
+⚠ 0002-evidence-based-verification-gates → ADR-0002 but ADR-0002 does not back-ref 0002-evidence-based-verification-gates
+⚠ 0002-evidence-based-verification-gates → ADR-0003 but ADR-0003 does not back-ref 0002-evidence-based-verification-gates
+⚠ 0003-tasks-md-sole-authority-issue-projection → ADR-0001 but ADR-0001 does not back-ref 0003-tasks-md-sole-authority-issue-projection
+⚠ 0003-tasks-md-sole-authority-issue-projection → ADR-0002 but ADR-0002 does not back-ref 0003-tasks-md-sole-authority-issue-projection
+⚠ 0003-tasks-md-sole-authority-issue-projection → ADR-0003 but ADR-0003 does not back-ref 0003-tasks-md-sole-authority-issue-projection
+verify: 9 asymmetries

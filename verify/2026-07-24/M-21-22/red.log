@@ -1,0 +1,8 @@
+---
+passed: 7
+failed: 4
+  - ledger-decay exits 0
+  - old done task collapsed to terse form
+  - old done task verbose fields dropped
+  - old done task continuation dropped
+RED EXIT: 1

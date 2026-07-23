@@ -1,0 +1,8 @@
+=== RED: reverse-drift.sh (script + patch do not exist yet) ===
+  - FAIL: reverse-drift-check.sh exits 0 (advisory, never non-zero)
+  - FAIL: flags T-901 (shipped commit, task still [ ])
+  - FAIL: reports accept:/summary: presence as a secondary signal
+  - FAIL: M-07-guard workflow patch present
+passed: 2
+failed: 4
+EXIT=1

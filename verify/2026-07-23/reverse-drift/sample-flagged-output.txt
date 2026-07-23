@@ -1,0 +1,2 @@
+[reverse-drift] DRIFT: T-901 is [ ] (pending) in tasks/TASKS.md but a merged commit ships it (has accept:/summary: fields)
+[reverse-drift] 1 drifted task(s) — shipped work still marked [ ]. Reconcile via SHIPPED.md / [s] marker (advisory, non-blocking).

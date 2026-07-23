@@ -1,0 +1,6 @@
+  - index captures a .sh path in paths_touched (was excluded)
+  - index captures a .css path in paths_touched
+  - index captures a .toml path in paths_touched
+  - unrelated-path recall returns ZERO lines (noise floor killed, got 1)
+passed: 1
+failed: 4

@@ -109,6 +109,114 @@ fi
 
 # ─── Memory-plane health (memory-system review §7.6: failures must be loud) ──
 
+# M-01a — Metabolism liveness probe (advisory). The dream/instinct/witness spawns
+# call `claude -p --bare`; the 2026-07 audit found all three dead. This probe
+# MIRRORS THE REAL SPAWN FORM (--bare is mandatory — a non-bare probe authenticates
+# via OAuth and false-greens the metabolism, hiding the exact bug M-01b fixes).
+# Two independent failure modes are checked: (1) --bare auth ("Not logged in"),
+# (2) a portable `timeout` (absent on stock macOS → pre-compact-witness dies).
+# Skipped in CI (no interactive OAuth session) via HARNESS_DOCTOR_SKIP_SPAWN=1.
+if [ "${HARNESS_DOCTOR_SKIP_SPAWN:-0}" != "1" ] && command -v claude >/dev/null 2>&1; then
+  # JUSTIFIED: 2>&1 capture — we inspect stdout/stderr for the auth marker and need the exit code
+  probe_out=$(claude -p --bare 'reply with the single word ok' 2>&1); probe_rc=$?
+  if printf '%s' "$probe_out" | grep -qi 'not logged in'; then
+    add_result "metabolism: --bare spawn authenticates" "warn" "claude -p --bare → 'Not logged in' (rc=$probe_rc). The dream/instinct/witness spawns are DEAD. M-01b fix: drop --bare so OAuth is read (staged patch). --bare cannot read OAuth by design."
+  elif [ "$probe_rc" -ne 0 ]; then
+    add_result "metabolism: --bare spawn authenticates" "warn" "claude -p --bare exited $probe_rc (non-auth failure) — investigate before trusting the metabolism"
+  else
+    add_result "metabolism: --bare spawn authenticates" "pass" "claude -p --bare returned rc=0 (unexpected — --bare normally refuses OAuth; verify this is a real auth, not an echo)"
+  fi
+else
+  add_result "metabolism: --bare spawn authenticates" "warn" "spawn probe skipped (HARNESS_DOCTOR_SKIP_SPAWN=1 or claude not on PATH) — cannot confirm liveness"
+fi
+# Portable timeout — pre-compact-witness.sh:68 uses `timeout 120`; macOS lacks it.
+if command -v timeout >/dev/null 2>&1 || command -v gtimeout >/dev/null 2>&1; then
+  add_result "metabolism: portable timeout available" "pass" "$(command -v timeout gtimeout 2>/dev/null | head -1)"
+else
+  add_result "metabolism: portable timeout available" "warn" "no timeout/gtimeout on PATH — pre-compact-witness.sh:68 dies 'command not found' before claude runs (M-01b adds a portable guard)"
+fi
+
+# ─── M-04 liveness probes (ADVISORY — Correction 3) ─────────────────────────
+# Three deterministic "is the metabolism actually alive?" checks. ALL are warn/
+# pass only — NEVER fail. Hard-fail is deferred to M-04-promote (validate.sh).
+# Thresholds and target paths are env-overridable (mirrors gc-suite.sh's
+# GC_VERIFY_AGE_DAYS) so the tests can inject fixtures and the promotion PR can
+# prove-green.
+
+# 1. Stale committed index — branch-local, deterministic (Correction 3): warn if
+#    the committed index is OLDER (mtime) than the newest committed memory .md.
+#    A PR that reindexes fixes it, so the condition is falsifiable — unlike a
+#    wall-clock-since-dream check.
+LIVENESS_INDEX="${LIVENESS_INDEX:-.claude/memory/index.jsonl}"
+LIVENESS_MEMORY_DIR="${LIVENESS_MEMORY_DIR:-.claude/memory}"
+if [ -f "$LIVENESS_INDEX" ]; then
+  idx_mtime=$(stat -f %m "$LIVENESS_INDEX" 2>/dev/null || stat -c %Y "$LIVENESS_INDEX" 2>/dev/null || echo 0)
+  # JUSTIFIED: find may traverse a dir with no .md yet — empty result means "no memory to be stale against" (pass)
+  newest_md=$(find "$LIVENESS_MEMORY_DIR" -name '*.md' -type f -exec stat -f '%m %N' {} \; 2>/dev/null \
+    || find "$LIVENESS_MEMORY_DIR" -name '*.md' -type f -printf '%T@ %p\n' 2>/dev/null)
+  newest_md_mtime=$(printf '%s\n' "$newest_md" | sort -rn | head -1 | cut -d' ' -f1)
+  newest_md_mtime=${newest_md_mtime%.*}; newest_md_mtime=${newest_md_mtime:-0}
+  if [ "$newest_md_mtime" -gt "$idx_mtime" ]; then
+    add_result "memory: committed index fresh" "warn" "index ($LIVENESS_INDEX) is older than the newest committed memory .md — reindex: bash .claude/scripts/memory-index.sh rebuild (override path: LIVENESS_INDEX)"
+  else
+    add_result "memory: committed index fresh" "pass" "index mtime ≥ newest committed memory .md"
+  fi
+else
+  add_result "memory: committed index fresh" "warn" "no index at $LIVENESS_INDEX — build it: bash .claude/scripts/memory-index.sh rebuild (override path: LIVENESS_INDEX)"
+fi
+
+# 2. Dead dream — warn if the last N dream logs ALL indicate failure ("Not logged
+#    in" / no success marker), or if no dream has ever run. Threshold override
+#    LIVENESS_DREAM_FAILS (default 3).
+LIVENESS_DREAM_DIR="${LIVENESS_DREAM_DIR:-.claude/hooks/.log}"
+LIVENESS_DREAM_FAILS="${LIVENESS_DREAM_FAILS:-3}"
+# JUSTIFIED: ls-of-glob may match nothing — the empty list is the "no dream ever" branch
+recent_dreams=$(ls -t "$LIVENESS_DREAM_DIR"/dream-*.log 2>/dev/null | head -n "$LIVENESS_DREAM_FAILS")
+if [ -z "$recent_dreams" ]; then
+  add_result "memory: dream has run recently" "warn" "no dream has ever run ($LIVENESS_DREAM_DIR/dream-*.log absent) — the overnight /dream metabolism is dead (M-01b)"
+else
+  dream_ok=0
+  while IFS= read -r dl; do
+    [ -z "$dl" ] && continue
+    if ! grep -qiE 'not logged in|error|failed|fatal' "$dl" 2>/dev/null; then
+      dream_ok=1; break
+    fi
+  done <<< "$recent_dreams"
+  n_recent=$(printf '%s\n' "$recent_dreams" | grep -c .)
+  if [ "$dream_ok" -eq 1 ]; then
+    add_result "memory: dream has run recently" "pass" "a recent dream log ($n_recent inspected) shows a clean run"
+  else
+    add_result "memory: dream has run recently" "warn" "the last $n_recent dream log(s) all indicate failure (e.g. 'Not logged in') — the /dream metabolism is DEAD; fix the spawn (M-01b), threshold override LIVENESS_DREAM_FAILS"
+  fi
+fi
+
+# 3. Rollup gap — warn if the newest weekly rollup is more than N weeks behind the
+#    current week. The "current week" is deterministic ONLY via LIVENESS_NOW_WEEK
+#    (YYYY-Www); without it we cannot compute a testable gap, so we warn "unknown"
+#    rather than invent a wall-clock dependency (Correction 3).
+LIVENESS_ROLLUP_DIR="${LIVENESS_ROLLUP_DIR:-.claude/memory/rollups}"
+LIVENESS_ROLLUP_WEEKS="${LIVENESS_ROLLUP_WEEKS:-2}"
+# JUSTIFIED: ls-of-glob may match nothing — empty newest_roll falls into the "no rollup" warn
+newest_roll=$(ls "$LIVENESS_ROLLUP_DIR"/[0-9][0-9][0-9][0-9]-W[0-9][0-9].md 2>/dev/null | sed -E 's#.*/([0-9]{4})-W([0-9]{2})\.md#\1 \2#' | sort -rn | head -1)
+if [ -z "${LIVENESS_NOW_WEEK:-}" ]; then
+  add_result "memory: rollup freshness" "warn" "rollup freshness unknown (set LIVENESS_NOW_WEEK=YYYY-Www) — no deterministic clock, refusing to guess the current week (Correction 3)"
+elif [ -z "$newest_roll" ]; then
+  add_result "memory: rollup freshness" "warn" "no weekly rollup (YYYY-Www.md) under $LIVENESS_ROLLUP_DIR — the weekly rollup metabolism has never produced one"
+else
+  now_yr=${LIVENESS_NOW_WEEK%%-W*}; now_wk=${LIVENESS_NOW_WEEK##*-W}
+  roll_yr=$(printf '%s' "$newest_roll" | cut -d' ' -f1); roll_wk=$(printf '%s' "$newest_roll" | cut -d' ' -f2)
+  # Weeks-behind = (now_year*53 + now_week) - (roll_year*53 + roll_week). 53 avoids
+  # cross-year underflow; exact ISO week math isn't needed for a >N-weeks-behind gate.
+  now_ord=$(( 10#$now_yr * 53 + 10#$now_wk ))
+  roll_ord=$(( 10#$roll_yr * 53 + 10#$roll_wk ))
+  gap=$(( now_ord - roll_ord ))
+  if [ "$gap" -gt "$LIVENESS_ROLLUP_WEEKS" ]; then
+    add_result "memory: rollup freshness" "warn" "newest rollup ${roll_yr}-W${roll_wk} is ${gap} weeks behind ${LIVENESS_NOW_WEEK} (>${LIVENESS_ROLLUP_WEEKS}) — the weekly rollup metabolism is behind (override LIVENESS_ROLLUP_WEEKS)"
+  else
+    add_result "memory: rollup freshness" "pass" "newest rollup ${roll_yr}-W${roll_wk} is within ${LIVENESS_ROLLUP_WEEKS} weeks of ${LIVENESS_NOW_WEEK}"
+  fi
+fi
+
 # Witness briefs stuck in "(pending)" — the async witness died without anyone noticing
 stuck_witness=$(find .claude/memory/.cache/checkpoints -name '*.md' -mtime +2 -exec grep -l '(pending)' {} \; 2>/dev/null | head -3 || true)
 if [ -z "$stuck_witness" ]; then

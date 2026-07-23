@@ -1,0 +1,10 @@
+  - 0001-sonnet-default-model-routing: no body '- **Status**:' bullet (frontmatter is sole home)
+  - 0001-sonnet-default-model-routing: no body '- **Supersedes/superseded_by**:' bullet
+  - 0002-evidence-based-verification-gates: no body '- **Status**:' bullet (frontmatter is sole home)
+  - 0002-evidence-based-verification-gates: no body '- **Supersedes/superseded_by**:' bullet
+  - 0003-tasks-md-sole-authority-issue-projection: no body '- **Status**:' bullet (frontmatter is sole home)
+  - 0003-tasks-md-sole-authority-issue-projection: no body '- **Supersedes/superseded_by**:' bullet
+  - validate.sh contains an ADR single-schema rule
+  - adr-new.sh no longer writes a body '- **Status**' bullet into new ADRs
+passed: 5
+failed: 8

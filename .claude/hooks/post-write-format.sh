@@ -11,6 +11,15 @@ if [ -z "$path" ] || [ ! -f "$path" ]; then
   exit 0
 fi
 
+# M-03: the memory-index and atlas-dirty case globs below are repo-RELATIVE
+# (.claude/memory/...), but the Write/Edit tool often reports an ABSOLUTE
+# file_path — so those cases never matched and the index touch never fired.
+# Normalize an absolute path under the repo root to a repo-relative one.
+repo_root=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+case "$path" in
+  "$repo_root"/*) path="${path#"$repo_root"/}" ;;
+esac
+
 mkdir -p .claude/hooks/.log
 log() { printf '%s %s\n' "$(date -Iseconds)" "$*" >> .claude/hooks/.log/format.log; }
 
@@ -56,8 +65,10 @@ case "$ext" in
 esac
 
 # Round 5 C1: maintain typed memory index on writes to .claude/memory/**
+# M-03: widened to 3 levels (…/*/*/*.md) so nested memory files (e.g.
+# patterns/flask/foo.md) also refresh the index; the 2-level glob missed them.
 case "$path" in
-  .claude/memory/*.md|.claude/memory/*/*.md)
+  .claude/memory/*.md|.claude/memory/*/*.md|.claude/memory/*/*/*.md)
     # JUSTIFIED: || true — index maintenance is a side effect; its failure must not fail the user's Write to memory
     bash .claude/scripts/memory-index.sh touch "$path" 2>>.claude/hooks/.log/format.log || true
     ;;

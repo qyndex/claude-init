@@ -1,0 +1,10 @@
+{
+  "spec": "004",
+  "commit": "5ab984753508248cea054e67dcc49cb0f3947214",
+  "generated_at": "2026-06-14T17:12:14+10:00",
+  "ac_total": 18,
+  "ac_proven": 18,
+  "verdict": "PASS",
+  "reconciled": true,
+  "reconcile_note": "M-07-data reverse-drift reconcile 2026-07-23. spec-004 (T-140..T-157) shipped to main via PR #13 (5ab9847) on 2026-06-14, but TASKS.md still showed [ ] 6 weeks later (the reverse-drift bug the memory audit found). This bundle records the shipped-state that predates the evidence.json format so the SHIPPED registry can list it. generated_at is set to the PR #13 merge time so latest-wins ordering reflects reality."
+}

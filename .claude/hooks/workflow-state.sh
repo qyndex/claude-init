@@ -122,12 +122,17 @@ fi
 
 # Persist
 # JUSTIFIED: jq -R only JSON-string-escapes a value; if jq is somehow unavailable the `|| echo '""'` writes an empty JSON string, keeping the state file valid JSON rather than emitting a raw unescaped value
-state_json=$(printf '{"phase":%s,"next":%s,"streak":%d,"warned_at":%d,"session_id":%s}' \
+# M-05c: persist spec/plan so subagent-context.sh reads the SAME spec the phase
+# logic keyed on — not its own `ls -t` re-resolution (mtime lottery: with two
+# active specs, a child could inherit a different spec than the parent computed).
+state_json=$(printf '{"phase":%s,"next":%s,"streak":%d,"warned_at":%d,"session_id":%s,"spec":%s,"plan":%s}' \
   "$(printf '%s' "$phase" | jq -R . 2>/dev/null || echo '""')" \
   "$(printf '%s' "$next_task" | jq -R . 2>/dev/null || echo '""')" \
   "$streak" \
   "$warned_at" \
-  "$(printf '%s' "$session_id" | jq -R . 2>/dev/null || echo '""')")
+  "$(printf '%s' "$session_id" | jq -R . 2>/dev/null || echo '""')" \
+  "$(printf '%s' "$spec" | jq -R . 2>/dev/null || echo '""')" \
+  "$(printf '%s' "$plan" | jq -R . 2>/dev/null || echo '""')")
 replace_atomic "$state_file" "$state_json"
 
 # Round 5 D5: emit full BREAK-LOOP block ONCE per stuck-phase, not every turn.
@@ -138,12 +143,14 @@ if [ "$streak" -ge 3 ] && [ "$warned_at" = "0" ]; then
   ctx="$ctx <warn>LOOP DETECTED: phase=\"$phase\" repeated $streak turns. BREAK-LOOP PROTOCOL: (1) /rewind to drop the last failed approach; (2) try a different angle — re-read the spec, ask the user a sharpening question; (3) if 2 doesn't unblock, invoke .claude/skills/self-heal (debugger → implementer); (4) if 3 cycles fail, escalate — mark task [!] in tasks/TASKS.md and surface in handoff.</warn>"
   # Mark warned so subsequent turns in this loop are quiet
   # JUSTIFIED: same JSON-string escaping of phase/next — `|| echo '""'` keeps the persisted warned-state valid JSON even with jq absent
-  warned_json=$(printf '{"phase":%s,"next":%s,"streak":%d,"warned_at":%d,"session_id":%s}' \
+  warned_json=$(printf '{"phase":%s,"next":%s,"streak":%d,"warned_at":%d,"session_id":%s,"spec":%s,"plan":%s}' \
     "$(printf '%s' "$phase" | jq -R . 2>/dev/null || echo '""')" \
     "$(printf '%s' "$next_task" | jq -R . 2>/dev/null || echo '""')" \
     "$streak" \
     "$streak" \
-    "$(printf '%s' "$session_id" | jq -R . 2>/dev/null || echo '""')")
+    "$(printf '%s' "$session_id" | jq -R . 2>/dev/null || echo '""')" \
+    "$(printf '%s' "$spec" | jq -R . 2>/dev/null || echo '""')" \
+    "$(printf '%s' "$plan" | jq -R . 2>/dev/null || echo '""')")
   replace_atomic "$state_file" "$warned_json"
 elif [ "$streak" -ge 3 ]; then
   # Already warned this phase — short reminder only, no full protocol.

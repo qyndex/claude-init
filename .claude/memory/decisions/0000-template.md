@@ -10,7 +10,6 @@ metadata:
 
 # ADR-0000: <Decision Title>
 
-- **Status**: proposed | accepted | superseded by ADR-XXXX | deprecated
 - **Date**: YYYY-MM-DD
 - **Deciders**: <names or @handles>
 - **Owners**: [@<human-owner>]    # who answers if this needs revisiting
@@ -20,8 +19,6 @@ metadata:
 - **Context**: link to the spec/plan/issue that triggered this decision
 - **Tags**: architecture | data | api | security | infra | ux
 - **subsystem**: <one-word grouping key — dream's contradiction detector compares ADRs sharing it (gap-audit G44)>
-- **Supersedes**: ADR-XXXX (if this replaces a prior decision)
-- **superseded_by**:               # filled in when a future ADR replaces this one
 - **orphaned_from**:               # Round 7 D — set if this ADR's parent initiative was abandoned/dropped. The technical claim may still be valid; the work that prompted it isn't. Extractor agent populates.
 
 ## Context

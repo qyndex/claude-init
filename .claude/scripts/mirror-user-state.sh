@@ -16,30 +16,43 @@ set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$ROOT"
 
+# M-23-26: user-state lives under CLAUDE_CONFIG_DIR when set (e.g. a per-tenant
+# ~/.claude-qyndex), NOT always $HOME/.claude. Hardcoding $HOME/.claude read the
+# WRONG dir on such installs → empty tar → silent false success. Derive the config
+# root from CLAUDE_CONFIG_DIR, falling back to $HOME/.claude for back-compat.
+cfg_root="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
 slug=$(pwd | sed 's|/|-|g')
-src="$HOME/.claude/projects/${slug}"
+src="$cfg_root/projects/${slug}"
 dst_dir=".claude/.user-state-mirror"
 dst_file="${dst_dir}/${slug}.tar.gz"
 mkdir -p "$dst_dir"
 
 if [ ! -d "$src" ]; then
-  echo "mirror: no user-state at $src — nothing to mirror" >&2
-  exit 0
+  # M-23-26: fail LOUD, not silent success. A mirror step that finds nothing is a
+  # real signal (wrong config dir, orphaned repo path) — exit non-zero so the
+  # caller/CI notices, rather than pretending a snapshot was taken.
+  echo "mirror: no user-state at $src (CLAUDE_CONFIG_DIR=${CLAUDE_CONFIG_DIR:-unset}) — nothing to mirror" >&2
+  exit 1
 fi
 
 # Use --exclude to drop large/regenerable artifacts (paste-cache, telemetry)
-tar -C "$HOME/.claude/projects" \
+# M-23-26: the slug ALWAYS starts with '-' (leading '/' → '-'), so a bare "$slug"
+# operand was parsed by tar as a flag ("Can't specify both -r and -c") and the
+# archive silently came out empty — the false-success this fix closes. Prefix
+# with './' (safe under -C) so it is unambiguously a path, and DON'T mute the real
+# error: fail loud if tar can't build the archive.
+tar -C "$cfg_root/projects" \
     --exclude='*/paste-cache/*' \
     --exclude='*/telemetry/*' \
     --exclude='*/ide/*' \
     --exclude='*/stats-cache.json' \
-    `# JUSTIFIED: tar stderr suppressed — "file changed as we read it" on live session files is benign for a best-effort snapshot; the archive is still usable` \
-    -czf "$dst_file" "$slug" 2>/dev/null
+    -czf "$dst_file" "./$slug" \
+  || { echo "mirror: tar failed to archive $src" >&2; exit 1; }
 
 # Include any todos referencing this project's session ids (best-effort)
-if [ -d "$HOME/.claude/tasks" ]; then
+if [ -d "$cfg_root/tasks" ]; then
   todos_tmp=$(mktemp -d)
-  for j in "$HOME"/.claude/tasks/*.json; do
+  for j in "$cfg_root"/tasks/*.json; do
     [ -f "$j" ] || continue
     # Heuristic: copy todos modified in the last 7 days
     # JUSTIFIED: find stderr suppressed — a file vanishing mid-loop (concurrent session) is benign; empty result just skips the copy

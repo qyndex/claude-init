@@ -18,6 +18,12 @@ set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$ROOT"
 
+# M-10-lock: all memory-plane writers share ONE lock so a backgrounded dream's
+# rebuild can't interleave with a live PostToolUse `touch` (post-write-format.sh)
+# and silently drop the just-written entry. mkdir-atomic, ships everywhere.
+# shellcheck source=lib/with-lock.sh
+. "$(dirname "$0")/lib/with-lock.sh"
+
 INDEX=".claude/memory/index.jsonl"
 mkdir -p .claude/memory
 
@@ -39,7 +45,7 @@ extract_paths_touched() {
   # Grep paths mentioned in the body (lines with file:// or src/ or src/**/ patterns)
   local file="$1"
   # JUSTIFIED: a memory file with no code-path mentions makes grep exit 1 — the pipeline then produces an empty JSON array via jq, the correct "no paths_touched" value
-  grep -oE '`[a-zA-Z0-9_./-]+\.(ts|tsx|js|jsx|py|go|rs|java|kt|sql|md|yml|yaml|json)`' "$file" 2>/dev/null \
+  grep -oE '`[a-zA-Z0-9_./-]+\.(ts|tsx|js|jsx|py|go|rs|java|kt|sql|md|yml|yaml|json|sh|css|html|toml)`' "$file" 2>/dev/null \
     | sed 's/`//g' \
     | sort -u \
     | head -20 \
@@ -93,6 +99,17 @@ build_entry() {
   local refs=$(extract_refs "$file")
   # JUSTIFIED: GNU-vs-BSD stat probe — whichever flag form the platform rejects is muted; the surviving form supplies mtime, and a vanished file leaves it empty (indexed as 0 downstream)
   local mtime=$(stat -f %m "$file" 2>/dev/null || stat -c %Y "$file" 2>/dev/null)
+  # M-17b: content-recency stamp. Prefer the file's own frontmatter modified:
+  # (else last_verified:) so `touch` doesn't inflate recency; fall back to mtime.
+  local modified=$(extract_field "$file" "modified")
+  [ -z "$modified" ] && modified=$(extract_field "$file" "last_verified")
+  [ -z "$modified" ] && modified="${mtime:-0}"
+  # M-17a: archived-entry marker, derived from the path — a file under
+  # .claude/memory/.archive/ is archived so recall can distinguish it.
+  local archived=false
+  case "$file" in
+    *.claude/memory/.archive/*) archived=true ;;
+  esac
 
   jq -nc \
     --arg path "$file" \
@@ -109,6 +126,8 @@ build_entry() {
     --argjson paths_touched "${paths_touched:-[]}" \
     --argjson refs "${refs:-[]}" \
     --arg mtime "${mtime:-0}" \
+    --arg modified "${modified:-0}" \
+    --argjson archived "$archived" \
     '{
       path: $path,
       id: $id,
@@ -124,7 +143,9 @@ build_entry() {
       paths_touched: $paths_touched,
       refs: $refs,
       back_refs: [],
-      mtime: ($mtime | tonumber)
+      mtime: ($mtime | tonumber),
+      modified: $modified,
+      archived: $archived
     }'
 }
 
@@ -132,8 +153,36 @@ cmd="${1:-help}"
 # JUSTIFIED: when invoked with no args the shift has nothing to drop and exits non-zero — harmless, the fallback keeps the script going to the help case
 shift || true
 
-case "$cmd" in
-  backfill|rebuild)
+# M-17a: emit the null-delimited memory file list. $1="include-archived" also
+# walks .claude/memory/.archive/; default EXCLUDES it. Two explicit find calls so
+# the code stays bash-3.2-safe (no empty-array-under-set-u expansion). JUSTIFIED
+# 2>/dev/null: mutes find traversal noise on a sparse tree — empty set is valid.
+_memory_find() {
+  if [ "${1:-}" = "include-archived" ]; then
+    find .claude/memory \
+      -name '*.md' \
+      -not -name '0000-template.md' \
+      -not -name 'in-flight*.md' \
+      -not -path '*/.cache/*' \
+      -not -path '*/audits/*' \
+      -type f -print0 2>/dev/null
+  else
+    find .claude/memory \
+      -name '*.md' \
+      -not -name '0000-template.md' \
+      -not -name 'in-flight*.md' \
+      -not -path '*/.cache/*' \
+      -not -path '*/audits/*' \
+      -not -path '*/.archive/*' \
+      -type f -print0 2>/dev/null
+  fi
+}
+
+# M-10-lock: the two write paths are functions so with_lock can wrap them.
+# M-17a: $1 = "include-archived" also walks .claude/memory/.archive/; default
+# EXCLUDES it (archived memories are recall-off unless explicitly asked for).
+_rebuild_index() {
+    local include_archived="${1:-}"
     echo "→ Building memory index..."
     > "$INDEX"
     count=0
@@ -143,13 +192,7 @@ case "$cmd" in
         echo "$entry" >> "$INDEX"
         count=$((count + 1))
       fi
-    done < <(find .claude/memory \
-      -name '*.md' \
-      -not -name '0000-template.md' \
-      -not -name 'in-flight*.md' \
-      -not -path '*/.cache/*' \
-      -not -path '*/audits/*' \
-      -type f -print0 2>/dev/null) # JUSTIFIED: mutes find traversal warnings on a sparse memory tree; an empty set just means zero artifacts to index
+    done < <(_memory_find "$include_archived") # JUSTIFIED: empty set means zero artifacts to index
 
     # Now walk forward refs to populate back_refs (second pass)
     if [ "$count" -gt 0 ]; then
@@ -160,11 +203,21 @@ case "$cmd" in
       while IFS= read -r line; do
         target=$(echo "$line" | jq -r .target)
         source=$(echo "$line" | jq -r .source)
-        # Find target in index, append source to back_refs
+        # M-20: normalize ADR-NNNN (token) ↔ NNNN-slug (id). The old matcher was
+        # `.id == $t or endswith($t)`, which never matched a token ref against a
+        # slug id → back_refs stayed empty and verify cried 9 false asymmetries.
+        # _adr_match: exact id, OR both sides' leading ADR-number agree.
+        # Self-edge guard: never back-ref a target to itself ($s != .id).
         jq -c --arg t "$target" --arg s "$source" '
-          if .id == $t or (.id | endswith($t)) then
-            .back_refs += [$s] | .back_refs |= unique
-          else . end
+          def num: (capture("(?<n>[0-9]+)") // {n:""}).n;
+          ($t | ltrimstr("ADR-")) as $tn
+          | ($t == .id
+             or (.id | endswith($t))
+             or (($t | test("^ADR-[0-9]+$")) and ((.id | num) == ($t | num) and ((.id | num) != ""))))
+            as $hit
+          | if $hit and $s != .id then
+              .back_refs += [$s] | .back_refs |= unique
+            else . end
         ' "$INDEX" > "$tmp"
         mv "$tmp" "$INDEX"
       done < "$tmp.refs"
@@ -172,6 +225,81 @@ case "$cmd" in
     fi
 
     echo "✓ Indexed $count memory artifacts → $INDEX"
+}
+
+# M-11: set-or-replace ONE frontmatter key, operating strictly inside the leading
+# `---` fence (never the body — avoids the sed-on-body class of bug M-03 fixed).
+# If the key exists it is replaced in place; otherwise it is appended just before
+# the closing fence. Idempotent.
+_fm_set() {
+  local file="$1" key="$2" val="$3" tmp
+  tmp=$(mktemp)
+  awk -v key="$key" -v val="$val" '
+    BEGIN { fm=0; done=0 }
+    /^---$/ {
+      if (fm==0) { fm=1; print; next }
+      # closing fence: append the key here if we never saw it
+      if (fm==1 && !done) { print key ": " val; done=1 }
+      fm=2; print; next
+    }
+    fm==1 && $0 ~ ("^" key ":") {
+      if (!done) { print key ": " val; done=1 }
+      next   # drop any duplicate/old line for this key
+    }
+    { print }
+  ' "$file" > "$tmp" && mv "$tmp" "$file"
+}
+
+_adr_path() { # <id-or-stem> → decisions file path, or empty
+  local id="$1" f
+  f=".claude/memory/decisions/${id}.md"
+  [ -f "$f" ] && { echo "$f"; return 0; }
+  # allow bare numeric / ADR-NNNN forms → match by prefix
+  id="${id#ADR-}"
+  for f in .claude/memory/decisions/${id}*.md; do
+    [ -f "$f" ] && { echo "$f"; return 0; }
+  done
+  return 1
+}
+
+_supersede() {
+  local old_id="$1" new_id="$2" old_f new_f old_num new_num
+  old_f=$(_adr_path "$old_id") || { echo "supersede: old ADR not found: $old_id" >&2; return 1; }
+  new_f=$(_adr_path "$new_id") || { echo "supersede: new ADR not found: $new_id" >&2; return 1; }
+  # Canonical ADR-NNNN tokens from the filename stems.
+  old_num="ADR-$(basename "$old_f" .md | grep -oE '^[0-9]+')"
+  new_num="ADR-$(basename "$new_f" .md | grep -oE '^[0-9]+')"
+
+  _fm_set "$old_f" "status" "superseded"
+  _fm_set "$old_f" "superseded_by" "$new_num"
+  _fm_set "$new_f" "supersedes" "$old_num"
+
+  # Rebuild so the index (and recall's -5 penalty) reflects the new frontmatter.
+  _rebuild_index >/dev/null
+  echo "✓ $new_num supersedes $old_num"
+}
+
+_touch_index() {
+    local file="$1"
+    entry=$(build_entry "$file") || return 0
+    [ -z "$entry" ] && return 0
+
+    id=$(echo "$entry" | jq -r .id)
+    # Remove old entry, append new
+    tmp=$(mktemp)
+    # JUSTIFIED: filters the prior entry for this id out of the index; a missing or single-line index makes grep find nothing and exit non-zero, so the fallback keeps the temp file empty and the fresh entry is appended below
+    grep -v "\"id\":\"$id\"" "$INDEX" 2>/dev/null > "$tmp" || true
+    echo "$entry" >> "$tmp"
+    mv "$tmp" "$INDEX"
+}
+
+case "$cmd" in
+  backfill|rebuild)
+    # M-17a: optional --include-archived also walks .claude/memory/.archive/.
+    inc=""
+    [ "${1:-}" = "--include-archived" ] && inc="include-archived"
+    # M-10-lock: serialize the truncate-then-rewrite against any concurrent touch.
+    with_lock "memory-plane" _rebuild_index "$inc"
     ;;
 
   touch)
@@ -184,17 +312,8 @@ case "$cmd" in
       .claude/memory/*) ;;
       *) exit 0 ;;  # Not a memory file; nothing to index
     esac
-
-    entry=$(build_entry "$file") || exit 0
-    [ -z "$entry" ] && exit 0
-
-    id=$(echo "$entry" | jq -r .id)
-    # Remove old entry, append new
-    tmp=$(mktemp)
-    # JUSTIFIED: filters the prior entry for this id out of the index; a missing or single-line index makes grep find nothing and exit non-zero, so the fallback keeps the temp file empty and the fresh entry is appended below
-    grep -v "\"id\":\"$id\"" "$INDEX" 2>/dev/null > "$tmp" || true
-    echo "$entry" >> "$tmp"
-    mv "$tmp" "$INDEX"
+    # M-10-lock: serialize the read-modify-write against a concurrent rebuild.
+    with_lock "memory-plane" _touch_index "$file"
     ;;
 
   query)
@@ -230,8 +349,22 @@ case "$cmd" in
     while IFS= read -r entry; do
       id=$(echo "$entry" | jq -r .id)
       for ref in $(echo "$entry" | jq -r '.refs[]'); do
+        # M-20: same ADR-NNNN ↔ NNNN-slug normalization as the back_ref pass, so
+        # a token ref against a slug id is not miscounted as an asymmetry.
+        # Self-ref ($ref resolves to $id itself) is skipped — not an asymmetry.
+        self=$(jq -r --arg t "$ref" --arg id "$id" '
+          def num: (capture("(?<n>[0-9]+)") // {n:""}).n;
+          select(.id == $id)
+          | (($t == .id) or (.id | endswith($t))
+             or (($t | test("^ADR-[0-9]+$")) and ((.id | num) == ($t | num) and ((.id | num) != ""))))
+        ' "$INDEX" 2>/dev/null | head -1)
+        [ "$self" = "true" ] && continue
         # JUSTIFIED: a ref pointing at an absent target yields no back_refs and exit non-zero — empty is the intended value, the symmetry check below then reports the asymmetry
-        target_back_refs=$(jq -r --arg t "$ref" 'select(.id == $t or (.id | endswith($t))) | .back_refs[]' "$INDEX" 2>/dev/null)
+        target_back_refs=$(jq -r --arg t "$ref" '
+          def num: (capture("(?<n>[0-9]+)") // {n:""}).n;
+          select(.id == $t or (.id | endswith($t))
+                 or (($t | test("^ADR-[0-9]+$")) and ((.id | num) == ($t | num) and ((.id | num) != ""))))
+          | .back_refs[]' "$INDEX" 2>/dev/null)
         if ! echo "$target_back_refs" | grep -q "^${id}$"; then
           echo "⚠ $id → $ref but $ref does not back-ref $id"
           issues=$((issues + 1))
@@ -242,6 +375,16 @@ case "$cmd" in
     [ "$issues" -eq 0 ]
     ;;
 
+  supersede)
+    # M-11: <old-id> <new-id> — flip old ADR frontmatter (status + superseded_by),
+    # stamp the new ADR (supersedes), rebuild. Locked (mutates + rebuilds index).
+    old_id="${1:-}"; new_id="${2:-}"
+    if [ -z "$old_id" ] || [ -z "$new_id" ]; then
+      echo "memory-index: supersede <old-adr-id> <new-adr-id>" >&2; exit 1
+    fi
+    with_lock "memory-plane" _supersede "$old_id" "$new_id"
+    ;;
+
   *)
     cat <<EOF
 memory-index.sh — typed memory manifest
@@ -250,6 +393,7 @@ Usage:
   $0 backfill                 # one-time: build initial index from existing files
   $0 rebuild                  # blow away + rebuild
   $0 touch <path>             # update index entry for one file (called from hook)
+  $0 supersede <old> <new>    # M-11: flip old ADR frontmatter + rebuild (recall -5)
   $0 query [filters]          # query the index
                               # filters: --type X --status Y --owner @u
                               #          --path-prefix src/ --tag auth

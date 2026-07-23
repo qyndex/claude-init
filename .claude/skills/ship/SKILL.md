@@ -25,6 +25,13 @@ Push, PR, CI, merge, deploy. With gates.
 2. **Collect evidence (Round 10 C)** — `bash .claude/scripts/collect-evidence.sh <spec-id>`. ABORT if it exits non-zero (an AC is unproven or smoke is red). This produces `verify/<date>-<feature>/pr-body.md`.
 3. **Commit the lightweight evidence** — `git add verify/<date>-<feature>/{EVIDENCE.md,pr-body.md,evidence.json,results.json,screenshots,traces}` (heavy binaries are gitignored + ride as CI artifacts).
 4. **Stage and commit** any final changes (CHANGELOG, version bump).
+4b. **Sync + commit living state (M-06 — network boundary, pre-merge on the PR branch).** Ship is a network boundary: refresh the STATE.md so the merged branch carries the current answer, and commit it BEFORE the push so it rides the PR (not stranded in a post-merge tree). Grep-gated:
+   ```bash
+   grep -ql 'initiative-state.sh sync' .claude/scripts/initiative-state.sh 2>/dev/null \
+     && bash .claude/scripts/initiative-state.sh sync || true
+   git add initiatives/active/*.STATE.md .claude/state/current-* 2>/dev/null || true
+   git diff --cached --quiet || git commit -m "chore(state): sync living STATE.md pre-merge (M-06)"
+   ```
 5. **Push the branch** (`git push -u origin <branch>`).
 6. **Open the PR with the evidence bundle as the body**:
    `gh pr create --body-file verify/<date>-<feature>/pr-body.md`

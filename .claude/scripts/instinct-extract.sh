@@ -68,7 +68,12 @@ if ! command -v claude >/dev/null 2>&1; then
 fi
 
 log=".claude/hooks/.log/instinct-extract-$(date +%Y%m%d-%H%M%S).log"
-if claude -p --bare --model "$MODEL" "$prompt" > "$log" 2>&1; then
+# M-01b: spawn via the metabolism seam — drops --bare so the operator's OAuth
+# session authenticates (--bare and CLAUDE_CODE_SIMPLE both suppress OAuth), under
+# a portable timeout. The `if` still gates state-stamping on exit 0 (no false success).
+# shellcheck source=.claude/scripts/lib/metabolism-spawn.sh
+. "$(dirname "$0")/lib/metabolism-spawn.sh"
+if metabolism_spawn "${INSTINCT_TIMEOUT:-120}" --model "$MODEL" "$prompt" > "$log" 2>&1; then
   echo "$total" > "$STATE"
   echo "[$(date -Iseconds)] extracted from $processed observations (offset $last → $total)" >> .claude/hooks/.log/instinct.log
 else

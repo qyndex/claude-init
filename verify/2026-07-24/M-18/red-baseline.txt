@@ -1,0 +1,2 @@
+(arg is silently ignored if cmd_weekly computes week=$(date +%G-W%V) with no $2 read)
+36:  week=$(date +%G-W%V)
