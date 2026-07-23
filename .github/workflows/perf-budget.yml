@@ -21,7 +21,7 @@ jobs:
   bundle-budget:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - id: detect
         # FINDING-31 (live-e2e 2026-06-14): the bundle budget only applies to a
         # project that actually BUILDS a frontend bundle. A backend-only app
@@ -36,7 +36,7 @@ jobs:
             echo "exists=0" >> "$GITHUB_OUTPUT"
             echo "no package.json build script — skipping bundle budget (backend-only or non-Node project)"
           fi
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         if: steps.detect.outputs.exists == '1'
         with: { node-version-file: 'package.json' }
       - if: steps.detect.outputs.exists == '1'
@@ -60,7 +60,7 @@ jobs:
   api-perf:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - id: detect
         run: |
           if [ -f pyproject.toml ] || [ -f go.mod ]; then echo "exists=1" >> "$GITHUB_OUTPUT"; else echo "exists=0" >> "$GITHUB_OUTPUT"; echo "no pyproject.toml/go.mod — skipping api perf"; fi

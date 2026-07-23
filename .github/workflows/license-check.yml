@@ -19,11 +19,11 @@ jobs:
   licenses-node:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - id: detect
         run: |
           if [ -f package.json ]; then echo "exists=1" >> "$GITHUB_OUTPUT"; else echo "exists=0" >> "$GITHUB_OUTPUT"; echo "no package.json — skipping node license check"; fi
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         if: steps.detect.outputs.exists == '1'
         with: { node-version-file: 'package.json' }
       - name: Install deps
@@ -49,11 +49,11 @@ jobs:
   licenses-python:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - id: detect
         run: |
           if [ -f pyproject.toml ]; then echo "exists=1" >> "$GITHUB_OUTPUT"; else echo "exists=0" >> "$GITHUB_OUTPUT"; echo "no pyproject.toml — skipping python license check"; fi
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         if: steps.detect.outputs.exists == '1'
         with: { python-version-file: 'pyproject.toml' }
       - if: steps.detect.outputs.exists == '1'
