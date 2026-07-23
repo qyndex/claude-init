@@ -1,0 +1,19 @@
+M-07-data — spec-004 reverse-drift reconcile, 2026-07-23
+
+THE DRIFT: TASKS.md showed T-140..T-157 as [ ] (unshipped) 6 weeks after
+PR #13 (5ab9847) shipped them to main on 2026-06-14 — the exact reverse-drift
+the memory audit flagged (state said 'not done' for shipped work, no repair).
+
+RECONCILE (O-3 = [s] marker + SHIPPED.md, operator-chosen):
+  1. verify/2026-07-23-spec004-reconcile/evidence.json — records the shipped
+     state that predates the evidence.json format (PR#13, PASS, 18/18).
+  2. SHIPPED.md regenerated → now lists spec-004 PASS #13 5ab984753.
+  3. TASKS.md patch (M-07-data-spec004-shipped-marker.patch, GUARDED→staged):
+     flips the 17 [ ] spec-004 tasks to [s]; T-154 ([x], has logs) untouched.
+
+CORRECTION-4 PROOF (why [s] not [x]): check-tdd-ledger.sh scans only [x], so
+the [s] marker is ledger-EXEMPT. Verified: with the flip applied, the ledger
+gate stays GREEN (exit 0, 0 fails). Flipping to [x] would have hard-failed it
+(only T-154 of the 18 has red/green logs).
+
+test/spec004-reconcile.sh: 6/6.

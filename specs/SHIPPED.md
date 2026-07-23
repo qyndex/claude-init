@@ -11,5 +11,6 @@
 | ---- | ------- | --------- | ------------------ | ------ | ---------- |
 | 001 | FAIL | 0/27 | 2026-06-14 (verify/2026-06-14-001-harness-hardening) | 2e8727a9d | — |
 | 002 | FAIL | 0/40 |  (verify/2026-05-29-002-audit-remediation) | — | — |
+| 004 | PASS | 18/18 | 2026-06-14 (verify/2026-07-23-spec004-reconcile) | 5ab984753 | #13 |
 
 <!-- END:shipped-registry -->
