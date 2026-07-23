@@ -1,0 +1,18 @@
+diff --git a/.claude/hooks/subagent-context.sh b/.claude/hooks/subagent-context.sh
+index a0631a1..647f545 100755
+--- a/.claude/hooks/subagent-context.sh
++++ b/.claude/hooks/subagent-context.sh
+@@ -29,7 +29,12 @@ phase=""
+ if [ -f .swarms/coordinator/workflow-state.json ] && command -v jq >/dev/null 2>&1; then
+   # JUSTIFIED: the redirect drops jq stderr on a malformed state file — phase stays empty and the context block simply omits the phase line
+   phase=$(jq -r '.phase // ""' .swarms/coordinator/workflow-state.json 2>/dev/null)
+-  # workflow-state.sh derives spec/plan from `ls -t` but we can re-resolve here
++  # M-05c: read the spec/plan workflow-state.sh persisted — the SAME ones its
++  # phase logic keyed on. Re-resolving via `ls -t` here is an mtime lottery: with
++  # two active specs a child could inherit a different spec than the parent used.
++  # JUSTIFIED: an old state file (pre-M-05c) has no .spec key → jq yields "" and the ls -t fallback below still applies
++  spec=$(jq -r '.spec // ""' .swarms/coordinator/workflow-state.json 2>/dev/null)
++  plan=$(jq -r '.plan // ""' .swarms/coordinator/workflow-state.json 2>/dev/null)
+ fi
+ 
+ # Fall back to ls -t if state file is missing/empty

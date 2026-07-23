@@ -1,0 +1,5 @@
+  - missing patch: /Volumes/M/sourcecode/qyndex/claude-init/.claude/memory.proposed/patches/M-05c-workflow-state-persist-spec-plan.patch
+  - missing patch: /Volumes/M/sourcecode/qyndex/claude-init/.claude/memory.proposed/patches/M-05c-subagent-read-spec-plan.patch
+  - M-05c patches apply onto the guarded hooks
+passed: 0
+failed: 3
