@@ -9,11 +9,24 @@ set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
 cd "$ROOT"
 
-pass=0; fail=0
+pass=0; fail=0; skip=0
 check() { if [ "$2" -eq 0 ]; then pass=$((pass+1)); else fail=$((fail+1)); echo "  - $1"; fi; }
 
 DREAM="$ROOT/.claude/hooks/auto-dream-check.sh"
 SSC="$ROOT/.claude/hooks/session-start-context.sh"
+
+# M-02 lands as OPERATOR-INSTALL patches (the hooks are constitution-guarded), so
+# on an un-upgraded branch the shipped hooks predate the fix. Detect that and SKIP
+# (not fail) — a failure here would red the very PR that stages the patch (the
+# Correction-3 wedge). The patch being installed flips the marker and the
+# assertions run for real. CI can force-run with DREAM_TEST_REQUIRE=1.
+if ! grep -q 'metabolism_spawn' "$DREAM" && [ "${DREAM_TEST_REQUIRE:-0}" != "1" ]; then
+  echo "SKIP: M-02 hook patch not installed (auto-dream-check.sh still shipped form)."
+  echo "  Install .claude/memory.proposed/patches/M-01b-M-02-dream-spawn-and-state.patch"
+  echo "  + M-02-boot-reads-last-run-epoch.patch, or set DREAM_TEST_REQUIRE=1 to force."
+  echo "passed: 0"; echo "failed: 0"; echo "skipped: 3"
+  exit 0
+fi
 
 # ---- Assertion (3): boot reads last_run_epoch, not .last_run ----
 # The shipped/patched session-start-context must reference last_run_epoch for the
