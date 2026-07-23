@@ -1,0 +1,3 @@
+M-05a — SessionStart matcher += clear|compact, 2026-07-23
+RED: shipped matcher 'startup|resume' → no boot context after /clear or compaction (2/4 fail).
+GREEN: patched to 'startup|resume|clear|compact' (4/4). settings.json guarded → staged patch.
