@@ -20,14 +20,25 @@ Add a one-line entry below each time you write a new memory file.
 ## Decisions
 
 <!-- Format: - [Title](decisions/file.md) — one-line hook -->
-
-_(none yet)_
+<!-- BEGIN:auto-decisions — machine-projected by memory-project.sh; do not hand-edit between markers -->
+- [0001-sonnet-default-model-routing](.claude/memory/decisions/0001-sonnet-default-model-routing.md)
+- [0002-evidence-based-verification-gates](.claude/memory/decisions/0002-evidence-based-verification-gates.md)
+- [0003-tasks-md-sole-authority-issue-projection](.claude/memory/decisions/0003-tasks-md-sole-authority-issue-projection.md)
+<!-- END:auto-decisions -->
 
 ## Patterns
 
 <!-- Format: - [Title](patterns/file.md) — one-line hook -->
-
-_(none yet)_
+<!-- BEGIN:auto-patterns — machine-projected by memory-project.sh; do not hand-edit between markers -->
+- [application-factory](.claude/memory/patterns/flask/application-factory.md)
+- [result-type](.claude/memory/patterns/cross/result-type.md)
+- [repository-pattern](.claude/memory/patterns/cross/repository-pattern.md)
+- [domain-events](.claude/memory/patterns/cross/domain-events.md)
+- [lazy-suspense-route-split](.claude/memory/patterns/react-vite/lazy-suspense-route-split.md)
+- [lifespan-context-manager](.claude/memory/patterns/fastapi/lifespan-context-manager.md)
+- [layered-architecture](.claude/memory/patterns/node-api/layered-architecture.md)
+- [server-vs-client-components](.claude/memory/patterns/nextjs/server-vs-client-components.md)
+<!-- END:auto-patterns -->
 
 ## Incidents
 

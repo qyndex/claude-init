@@ -1,0 +1,8 @@
+  - old ADR frontmatter status flipped to 'superseded'
+  - old ADR frontmatter carries superseded_by: ADR-0002
+  - new ADR frontmatter carries supersedes: ADR-0001
+  - index entry for old ADR has non-empty superseded_by (recall -5 penalty activates)
+  - idempotent: superseded_by not duplicated on re-run (got 0)
+  - supersede fails loudly on a missing old-ADR id
+passed: 2
+failed: 6

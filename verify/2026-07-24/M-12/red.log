@@ -1,0 +1,4 @@
+  - decisions block lists ADR 0001-alpha
+  - patterns block lists the gamma pattern
+passed: 4
+failed: 3

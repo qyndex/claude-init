@@ -180,6 +180,58 @@ _rebuild_index() {
     echo "✓ Indexed $count memory artifacts → $INDEX"
 }
 
+# M-11: set-or-replace ONE frontmatter key, operating strictly inside the leading
+# `---` fence (never the body — avoids the sed-on-body class of bug M-03 fixed).
+# If the key exists it is replaced in place; otherwise it is appended just before
+# the closing fence. Idempotent.
+_fm_set() {
+  local file="$1" key="$2" val="$3" tmp
+  tmp=$(mktemp)
+  awk -v key="$key" -v val="$val" '
+    BEGIN { fm=0; done=0 }
+    /^---$/ {
+      if (fm==0) { fm=1; print; next }
+      # closing fence: append the key here if we never saw it
+      if (fm==1 && !done) { print key ": " val; done=1 }
+      fm=2; print; next
+    }
+    fm==1 && $0 ~ ("^" key ":") {
+      if (!done) { print key ": " val; done=1 }
+      next   # drop any duplicate/old line for this key
+    }
+    { print }
+  ' "$file" > "$tmp" && mv "$tmp" "$file"
+}
+
+_adr_path() { # <id-or-stem> → decisions file path, or empty
+  local id="$1" f
+  f=".claude/memory/decisions/${id}.md"
+  [ -f "$f" ] && { echo "$f"; return 0; }
+  # allow bare numeric / ADR-NNNN forms → match by prefix
+  id="${id#ADR-}"
+  for f in .claude/memory/decisions/${id}*.md; do
+    [ -f "$f" ] && { echo "$f"; return 0; }
+  done
+  return 1
+}
+
+_supersede() {
+  local old_id="$1" new_id="$2" old_f new_f old_num new_num
+  old_f=$(_adr_path "$old_id") || { echo "supersede: old ADR not found: $old_id" >&2; return 1; }
+  new_f=$(_adr_path "$new_id") || { echo "supersede: new ADR not found: $new_id" >&2; return 1; }
+  # Canonical ADR-NNNN tokens from the filename stems.
+  old_num="ADR-$(basename "$old_f" .md | grep -oE '^[0-9]+')"
+  new_num="ADR-$(basename "$new_f" .md | grep -oE '^[0-9]+')"
+
+  _fm_set "$old_f" "status" "superseded"
+  _fm_set "$old_f" "superseded_by" "$new_num"
+  _fm_set "$new_f" "supersedes" "$old_num"
+
+  # Rebuild so the index (and recall's -5 penalty) reflects the new frontmatter.
+  _rebuild_index >/dev/null
+  echo "✓ $new_num supersedes $old_num"
+}
+
 _touch_index() {
     local file="$1"
     entry=$(build_entry "$file") || return 0
@@ -259,6 +311,16 @@ case "$cmd" in
     [ "$issues" -eq 0 ]
     ;;
 
+  supersede)
+    # M-11: <old-id> <new-id> — flip old ADR frontmatter (status + superseded_by),
+    # stamp the new ADR (supersedes), rebuild. Locked (mutates + rebuilds index).
+    old_id="${1:-}"; new_id="${2:-}"
+    if [ -z "$old_id" ] || [ -z "$new_id" ]; then
+      echo "memory-index: supersede <old-adr-id> <new-adr-id>" >&2; exit 1
+    fi
+    with_lock "memory-plane" _supersede "$old_id" "$new_id"
+    ;;
+
   *)
     cat <<EOF
 memory-index.sh — typed memory manifest
@@ -267,6 +329,7 @@ Usage:
   $0 backfill                 # one-time: build initial index from existing files
   $0 rebuild                  # blow away + rebuild
   $0 touch <path>             # update index entry for one file (called from hook)
+  $0 supersede <old> <new>    # M-11: flip old ADR frontmatter + rebuild (recall -5)
   $0 query [filters]          # query the index
                               # filters: --type X --status Y --owner @u
                               #          --path-prefix src/ --tag auth
