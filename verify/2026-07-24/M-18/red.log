@@ -1,0 +1,11 @@
+  - weekly <arg> writes the ARG week's file (2026-W25.md)
+  - the rollup body names the target week 2026-W25
+  - no wall-clock-week file written when an explicit week arg is given
+    missing 2026-W27
+    missing 2026-W28
+    missing 2026-W29
+  - backfill 2026-W27..2026-W30 emits all 4 week files
+grep: /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmp.9UK59QVmav/.claude/memory/rollups/2026-W25.md: No such file or directory
+grep: /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmp.9UK59QVmav/.claude/memory/rollups/2026-W25.md: No such file or directory
+passed: 2
+failed: 4
