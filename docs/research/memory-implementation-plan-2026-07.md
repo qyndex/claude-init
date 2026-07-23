@@ -13,10 +13,10 @@ The audit's **diagnosis is sound** and its Phase 0→5 dependency spine is broad
 ### Correction 1 (audit was WRONG) — the headline root cause is misdiagnosed
 The audit's root cause A said: hook-spawned `claude -p` resolves the *default* config dir instead of the operator's `CLAUDE_CONFIG_DIR`, fix = propagate the var. **This is verifiably false on this machine:**
 - `CLAUDE_CONFIG_DIR` is already `/Users/shravanjha/.claude-qyndex` and is inherited by `nohup` subshells (the exact spawn form). Propagating it is a no-op.
-- **But the failure is still real:** a `nohup bash -c "claude -p …"` spawn today reproduces `Not logged in · Please run /login` (exit 1) — *after* `claude` starts and reads settings. Interactive `claude` authenticates from the macOS keychain; a **detached/no-TTY background process cannot reach the keychain credential**, so auth works in a foreground shell and fails under `nohup`. The correct fix is an `apiKeyHelper` or an `ANTHROPIC_API_KEY` exported into the *spawn* environment — **not** `CLAUDE_CONFIG_DIR`, and it is operator-environment-specific (open question O-1).
-- **Second, independent root cause the audit missed entirely:** `pre-compact-witness.sh:68` runs `timeout 120 claude …`, but **`timeout`/`gtimeout` do not exist on stock macOS** (`command -v` → not found). The witness spawn dies with "command not found" *before `claude` runs at all* — fully explaining the 100% witness-empty rate, independent of auth. (The dream and instinct spawns use bare `nohup` without `timeout`, so they fail on auth only.)
+- **The real trigger is the `--bare` flag** (round-2 finding, reproduced foreground in the *same* shell, 2026-07-23): `claude -p 'reply OK'` **succeeds**, but `claude -p --bare 'reply OK'` fails with `Not logged in · Please run /login` (exit 1). Every real spawn uses `--bare` (`auto-dream-check.sh:117`, `instinct-extract.sh:71`, `pre-compact-witness.sh:68`), so all three are dead — but the cause is `--bare`, **not** detachment/keychain. My round-1 correction wrongly blamed "detached process can't reach the keychain" because my probe conflated `--bare` with `nohup`; isolating the flags disproves that. The fix is whatever makes `--bare` authenticate in this environment (an `apiKeyHelper` or exported `ANTHROPIC_API_KEY` in the spawn env, since `--bare` suppresses interactive/settings-based credential resolution) — operator-environment-specific (open question O-1). **The probe and the O-1 reproduction MUST use `--bare`**, or they false-green the whole metabolism.
+- **Second, independent root cause the audit missed entirely:** `pre-compact-witness.sh:68` runs `timeout 120 claude …`, but **`timeout`/`gtimeout` do not exist on stock macOS** (`command -v` → not found). The witness spawn dies with "command not found" *before `claude` runs at all* — a witness-empty cause on top of `--bare`. (The dream and instinct spawns use bare `nohup` without `timeout`, so they fail on `--bare` auth only.)
 
-**Consequence:** re-scope Phase 0.1 from "propagate the config dir" (a no-op) to "reproduce the detached-spawn failure with a falsifiable probe, then apply the auth+timeout fix the reproduction justifies."
+**Consequence:** re-scope Phase 0.1 from "propagate the config dir" (a no-op) to "reproduce the **`--bare`** spawn failure with a falsifiable probe that mirrors the exact spawn form, then apply the auth+timeout fix the reproduction justifies."
 
 ### Correction 2 (META blocker) — no CI runner executes the test suite
 The harness has `.claude/scripts/test/*.sh` (incl. `memory-system.sh`, `gc-suite.sh`) but **no workflow runs them**: `harness-validate.yml` runs only `loop-control.sh` + `oq-aging.sh`; `ci.yml`'s `test-unit.sh` detects no language stack and exits 0 on this shell-only repo; `verify.sh` has no `scripts/test/` loop. **Every "add a test" the plan calls for would be a dead file that proves nothing** — which is exactly how 87 gaps shipped "green". Wiring a memory-test runner **plus a dead-test detector** (fail if a `test/*.sh` exists that no workflow references) must be **item zero**. This is the §8 meta-lesson made executable.
@@ -45,8 +45,8 @@ Each item: **id · phase · what changes · test file · red (fails now) → gre
 | id | title | red → green | artifact | deps |
 |---|---|---|---|---|
 | **M-00** | Memory-test runner + dead-test detector in CI | Before: `memory-system.sh`/`gc-suite.sh` run in no workflow → dead-test check fails. After: a `Memory metabolism tests` step loops `test/*.sh`; validate.sh fails if any `test/*.sh` is unreferenced | `verify/<d>/ci-runner/run-log.txt` | — |
-| **M-01a** | Falsifiable auth+timeout **probe** in harness-doctor (advisory) | Before: no probe; metabolism silently dead. After: `claude -p 'ok'` exit+stderr and `command -v timeout` captured | `verify/<d>/auth-probe/probe.txt` | M-00 |
-| **M-01b** | Fix the **reproduced** spawn failure (auth env + portable timeout) | Before: `nohup claude -p` → "Not logged in"; `timeout 120` → command-not-found. After: spawn seam sources an auth-present env; `timeout` replaced by portable guard (detect g/timeout else drop) | `verify/<d>/spawn-fix/before-after.log` | M-01a |
+| **M-01a** | Falsifiable auth+timeout **probe** in harness-doctor (advisory) | Before: no probe; metabolism silently dead. After: `claude -p --bare 'ok'` exit+stderr (**`--bare` mandatory** — mirrors the real spawn form; a non-bare probe false-greens) and `command -v timeout` captured | `verify/<d>/auth-probe/probe.txt` | M-00 |
+| **M-01b** | Fix the **reproduced** spawn failure (auth env + portable timeout) — **auth leg gated on O-1** | Before: `claude -p --bare` → "Not logged in"; `timeout 120` → command-not-found. After: **M-01b-seam** (refactor spawn into a callable seam + portable `timeout` guard — buildable now) + **M-01b-auth** (auth-env edit the O-1 reproduction justifies — human-gated). | `verify/<d>/spawn-fix/before-after.log` | M-01a; auth leg `blocked_by_oq: O-1` |
 | **M-02** | Record dream **failure as failure** | Before: `auto-dream-check.sh:120` stamps `last_run_epoch` unconditionally; early-exits drop `awaiting_review`; boot reads `.last_run` not `.last_run_epoch`. After: stamp only on exit 0; preserve the flag; one key | `verify/<d>/dream-state/fixtures.txt` | M-00 |
 | **M-03** | Fix the silent no-ops | Before: `post-write-format.sh` relative globs vs absolute paths (touch never fires); `adr-new.sh:74` calls `memory-index.sh` with no subcommand (prints help); `memory-promote.sh` sed targets body lines no file has; gc `last_accessed` unwritten. After: absolute-path globs (+3-level); real `rebuild` subcommand; frontmatter mutation; gc order fixed | `verify/<d>/no-ops/each-fires.txt` | M-00 |
 | **M-04** | Liveness probes in **harness-doctor** (advisory, env-parameterized) | Before: dead metabolism is silent/warn-only. After: harness-doctor fails (advisory) on stale committed index / dead dream / rollup gap, thresholds env-overridable | `verify/<d>/liveness/doctor-report.json` | M-00 |
@@ -102,8 +102,8 @@ Each item: **id · phase · what changes · test file · red (fails now) → gre
 17 PRs, each a harness-maintenance diff (`.claude`/`.github`/`docs`/`specs` only) mergeable via the evidence-gate `no-ac.json` hatch. The ordering rule the audit omitted: **every validation/liveness gate lands AFTER the thing it checks is already green.**
 
 1. **PR1 · M-00** — CI test runner + dead-test detector. *Nothing below is enforceable until this exists.*
-2. **PR2 · M-01a, M-02** — auth/timeout probe (advisory) + record-failure-as-failure. *M-02 first so a failed dream stops reading green.*
-3. **PR3 · M-01b** — real spawn fix (the reproduction from PR2 justifies the auth+timeout edit).
+2. **PR2 · M-01a, M-02** — auth/timeout probe (advisory, **`--bare`**) + record-failure-as-failure. *M-02 first so a failed dream stops reading green.*
+3. **PR3 · M-01b** — spawn fix. *M-01b-seam (refactor + portable `timeout`) ships regardless; M-01b-auth is **BLOCKED until O-1** is answered with a `--bare` reproduction.*
 4. **PR4 · M-03** — silent no-ops (gates the boot rebuild + all reindex-dependent items).
 5. **PR5 · M-04** — liveness probes in **harness-doctor** (advisory, never validate.sh yet).
 6. **PR6 · M-05a, M-06** — SessionStart matcher + `/ship`,`/verify` sync wiring (pure settings/skill edits).
@@ -123,7 +123,7 @@ Each item: **id · phase · what changes · test file · red (fails now) → gre
 
 ## 3. How each hard-to-test item is actually tested (no real auth in CI)
 
-- **Auth/spawn fix (M-01b), dream-failure (M-02), sleep agent (M-19):** inject a **fake `claude` on `PATH`** (a stub script that echoes a fixture and exits 0 or 1). Assert the spawn seam propagates auth env and that a non-zero exit leaves the state file **unstamped**. No real API call.
+- **Auth/spawn fix (M-01b), dream-failure (M-02), sleep agent (M-19):** inject a **fake `claude` on `PATH`** (a stub that echoes a fixture and exits 0/1). *Precondition to verify when building:* the spawn must call `claude` by bare name (PATH-resolvable) for the stub to intercept — confirm at `auto-dream-check.sh:117` / `instinct-extract.sh:71`; if any site uses an absolute path, the stub test needs a `PATH`-shim wrapper instead. Assert the seam propagates auth env, passes `--bare`, and that a non-zero exit leaves the state file **unstamped**. No real API call.
 - **Liveness probes (M-04 / M-04-promote):** thresholds and target paths read **env-overridable variables** (mirroring `gc-suite.sh`'s `GC_VERIFY_AGE_DAYS`). Tests inject a stale committed fixture (`LIVENESS_INDEX=fixtures/stale-index.jsonl`) and assert red; the real repo passes because the metabolism runs.
 - **Latest-wins convergence (M-11):** a fixture ADR reversal → assert the old ADR's frontmatter flips to `superseded`, both edges are written, `memory-recall` excludes it, and the ADR-vs-§V consistency check fires. The §V self-amend and agent-prompt consumers are marked **untestable/constitution-blocked** — the achievable guarantee is *mechanical-consumer* convergence + contradiction *detection*.
 - **Rollup backfill (M-18):** `ROLLUP_NOW`/target-week env clock; assert `2026-W25.md` is created from the arg and a month-boundary regenerates the parent with correct counts.
@@ -131,17 +131,49 @@ Each item: **id · phase · what changes · test file · red (fails now) → gre
 
 ---
 
+## 3a. Round-2 review deltas (2026-07-23)
+
+A second independent review re-verified round 1's *own* corrections, recovered the completeness dimension round 1 lost, and checked buildability/consistency/second-order effects. Verdict: **CONDITIONAL-GO** — the plan's spine is sound (DAG verified: no later-PR deps, no cycles, phases monotonic, no dup/orphan items), but round 2 found one round-1 correction wrong at blocker level and 3 coverage holes.
+
+**Round-1 correction that was itself WRONG (reproduced):** the auth root cause. Round 1 blamed "detached/keychain unreachable"; round 2 proved (and I re-confirmed foreground) the trigger is the **`--bare` flag** — `claude -p 'ok'` succeeds, `claude -p --bare 'ok'` fails "Not logged in". Consequence: the probe and O-1 reproduction **must use `--bare`** or they false-green the metabolism. Already patched above (§0 correction 1, M-01a, O-1, §3 test note).
+
+**Round-1 corrections that survived unchanged:** the `--bare`/re-diagnosis direction (auth-env remedy), the second `timeout`-missing witness cause, the M-00 no-CI-runner meta-blocker, the liveness-wedge sequencing (advisory→required-last), the ledger `[x]` hard-fail (SHIPPED.md/`[s]`, only T-154 has red/green logs — re-verified), the intra-phase orderings, and the whole DAG/landing-order spine.
+
+**Coverage:** 87 register gaps; the 25 items' `gaps_closed` cover **84 unique real ids (0 phantom)**. Three low/medium gaps were dropped in the 87→84 consolidation and are now added:
+
+| gap (uncovered) | sev | fix | lands in |
+|---|---|---|---|
+| `boot-pending-count-unhardened` | low | `session-start.sh:23` bare `grep -c '^- \[ \]'` counts the template line at `TASKS.md:8` → `grep -cE '^- \[ \] T-[0-9]+'` (match already-hardened `session-start-context.sh:128`) | fold into **M-07-state** |
+| `next-tasks-injection-surfaces-stale-pending` | low | route `session-start-context.sh:128` through `next-task.sh --all \| head -3` with `last_touched` age + shipped-class exclusion | **M-07-state** (adds dep on M-08) |
+| `subagent-spec-resolution-still-mtime` | med | **new item M-05c** — `workflow-state.sh` persists `spec`/`plan` (computed at :37-38, never serialized); `subagent-context.sh:31-33` reads them before the `ls -t` mtime-lottery fallback | **new M-05c** |
+
+**New items:**
+- **M-05c** (Phase 1, PR9 with M-05b): persist spec/plan into `workflow-state.json` + read in `subagent-context.sh` before `ls -t`. Test `subagent-spec-resolution.sh`: two-active-spec fixture where newest-by-mtime ≠ workflow-state spec → child must inherit the workflow-state spec, not the mtime winner. **This is the only item that edits `workflow-state.sh`** (no round-1 item did).
+- **M-06b** (Phase 1, folded into M-07-guard's `push:main` workflow, PR10): the **third** `initiative-state.sh sync` writer site (merge boundary), after boot (M-05b) and ship/verify (M-06). Test `ledger-drift.sh` merge-sync leg: `push:main` workflow greps for `initiative-state.sh sync`. Uses the non-raw-push path (O-4).
+
+**Critical bookkeeping fix — `single-writer-sessionend` was false-closed:** round 1 marked this CRITICAL gap closed by both M-06 (PR6) and M-05b (PR9), but it needs **three** writer sites and isn't truly closed until the last (M-06b, PR10). Patched: M-06 closes only `sync-only-at-session-end`; the distributed gap is tracked across PR6/PR9/PR10 and `gaps_closed` is **not** a per-PR completion ledger for it.
+
+**Round-2 coverage caveat:** 3 of 6 round-2 reviewers (`verify-r1-corrections` beyond its one blocker finding, `buildability`, `test-realism`) emitted schema-stub output and `second-order-gaps` errored out — so **buildability, test-realism, and second-order-effects were NOT fully reviewed this round.** The `--bare` blocker, completeness map, and DAG-consistency results are solid (and I independently reproduced the blocker); the un-reviewed dimensions are flagged as O-7/residual risk, not cleared.
+
+Full round-2 patch data: [`verify/2026-07-23-memory-plan-review/round2-patch.json`](../../verify/2026-07-23-memory-plan-review/round2-patch.json).
+
 ## 4. Open questions (operator input before building)
 
-1. **O-1 (blocks M-01b):** run the exact detached spawn in your real launch context — `nohup bash -c "claude -p 'ok'; echo exit=$?"`. My run today reproduced `Not logged in · exit=1`. Confirm the remedy: `apiKeyHelper`, exported `ANTHROPIC_API_KEY` in the spawn env, or a keychain-ACL grant for detached processes. This is environment-specific and I won't guess it.
-2. **O-2 (constitution/hook apply):** M-02/M-03/M-05a edit hooks + settings.json. Hooks are agent-editable but prior audits used a stage-then-operator-install pattern. Which items, if any, need operator/FORCE sign-off before push?
+1. **O-1 (blocks M-01b-auth leg):** run the spawn form the hooks actually use — `nohup bash -c "claude -p --bare 'ok'; echo exit=$?"` (**`--bare` is mandatory**; `claude -p 'ok'` without it *succeeds* on this machine and would false-pass). Reproduced foreground today: `--bare` → `Not logged in`, non-bare → OK. Confirm the remedy that makes `--bare` authenticate: `apiKeyHelper`, exported `ANTHROPIC_API_KEY` in the spawn env, or another credential path `--bare` honors. Environment-specific; I won't guess it.
+2. **O-2 (constitution/hook apply):** M-02/M-03/M-05a/M-05c edit hooks + settings.json (M-05c touches `workflow-state.sh` + `subagent-context.sh`). Hooks are agent-editable but prior audits used a stage-then-operator-install pattern. Which items, if any, need operator/FORCE sign-off before push?
 3. **O-3 (spec-004 marker):** `SHIPPED.md` alone, an `[s]` terminal marker, or backfill red/green logs from the PR #13 bundle then `[x]`? Each has different downstream effects on `next-task.sh` counts and the reverse-drift guard.
 4. **O-4 (CI STATE writer):** commit STATE.md **pre-merge on the PR branch** (recommended — avoids the empty-`bypass_actors` main-write problem) or provision a bypass actor for a post-merge committer?
 5. **O-5 (liveness scope):** confirm clock-relative dream/rollup staleness stays **advisory** (harness-doctor + weekly cron issue), with only **branch-local committed-state** staleness as the required validate.sh gate — otherwise the wedge risk returns.
 6. **O-6 (dream reconciliation):** extract ADD/UPDATE/DELETE/NOOP into a deterministic diff script (fixture-testable) or accept it as LLM-behavioral (untested)?
+7. **O-7 (residual review — round 2):** buildability, test-realism, and second-order-effects were **not fully reviewed** (3 round-2 reviewers stubbed, 1 errored). Before building Phase 2+, re-run those three dimensions — the open second-order questions include: dream/instinct cost vs `pre-spawn-cost-gate.sh` once the metabolism is alive; concurrent dream + interactive session mutating `.claude/memory/` (locking/atomicity); M-05b boot-sync dirtying the git tree every session (STATE.md is tracked) vs the stop-verify gate; multi-user/parallel-swarm merge conflicts on `index.jsonl`/STATE.md/rollups.
 
 ---
 
 ## 5. Meta
 
-This review found the audit's own headline root cause wrong — proving the value of not letting the plan's author be its only reviewer. The pattern to internalize: the audit correctly identified the *symptom* (metabolism dead, "Not logged in" in the logs) but reached for a plausible *mechanism* (config-dir) without reproducing it; the real mechanisms (keychain-unreachable-under-nohup + missing `timeout`) needed a live probe to surface. Item **M-01a ships that probe first**, and item **M-04-promote** makes "is the metabolism actually alive?" a required, self-testing gate — so the diagnosis can never again be assertion instead of evidence.
+Three review layers, each catching the previous one's error — and each error was the *same kind*: a plausible mechanism asserted without reproduction.
+1. The **audit** said the dead metabolism was a `CLAUDE_CONFIG_DIR` propagation bug. Wrong — the var is already inherited.
+2. My **round-1 correction** said the cause was "keychain unreachable to a detached process." Also wrong — it conflated `--bare` with `nohup`.
+3. **Round 2** isolated the flags: the trigger is `--bare` alone (reproduced foreground, same shell). A probe built on either wrong mechanism would have reported the metabolism healthy while it stayed dead.
+
+The discipline this encodes: **reproduce before you diagnose, and mirror the exact failing invocation** (`--bare`, detached, real env) — a probe that tests a *near* form is worse than no probe, because it manufactures false confidence. Item **M-01a ships that probe (with `--bare`) first**; **M-00** makes the tests actually run in CI; **M-04-promote** makes "is the metabolism alive?" a required, self-testing gate. Together they ensure the diagnosis is never again assertion instead of evidence — and that no future reviewer, human or model, has to discover the same bug a fourth time.
