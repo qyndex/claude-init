@@ -1,0 +1,27 @@
+[
+  {
+    "check": "metabolism: --bare spawn authenticates",
+    "status": "warn",
+    "detail": "spawn probe skipped (HARNESS_DOCTOR_SKIP_SPAWN=1 or claude not on PATH) — cannot confirm liveness"
+  },
+  {
+    "check": "metabolism: portable timeout available",
+    "status": "warn",
+    "detail": "no timeout/gtimeout on PATH — pre-compact-witness.sh:68 dies 'command not found' before claude runs (M-01b adds a portable guard)"
+  },
+  {
+    "check": "memory: committed index fresh",
+    "status": "pass",
+    "detail": "index mtime ≥ newest committed memory .md"
+  },
+  {
+    "check": "memory: dream has run recently",
+    "status": "warn",
+    "detail": "the last 3 dream log(s) all indicate failure (e.g. 'Not logged in') — the /dream metabolism is DEAD; fix the spawn (M-01b), threshold override LIVENESS_DREAM_FAILS"
+  },
+  {
+    "check": "memory: rollup freshness",
+    "status": "warn",
+    "detail": "rollup freshness unknown (set LIVENESS_NOW_WEEK=YYYY-Www) — no deterministic clock, refusing to guess the current week (Correction 3)"
+  }
+]

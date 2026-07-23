@@ -1,0 +1,18 @@
+# TDD ledger — red — M-04
+ledger_format: 2
+timestamp: 2026-07-23T23:20:04+10:00
+command: bash .claude/scripts/test/liveness-probes.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+---
+passed: 1
+failed: 8
+  - stale index → warn
+  - fresh index → pass
+  - dead dream (3 failed) → warn
+  - recent dream success → pass
+  - no dream ever → warn
+  - rollup 6 weeks behind → warn
+  - rollup current week → pass
+  - rollup week unknown (no clock) → warn
