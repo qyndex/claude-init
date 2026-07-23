@@ -61,7 +61,7 @@ if command -v gitleaks >/dev/null 2>&1; then
   tmpf=$(mktemp)
   printf '%s' "$content" > "$tmpf"
   # JUSTIFIED: the redirect hides gitleaks progress chatter on stderr — only its exit status matters here, and a non-zero exit is handled by the block branch below
-  if ! gitleaks detect --no-banner --no-git --source "$tmpf" --redact -q 2>/dev/null; then
+  if ! gitleaks detect --no-banner --no-git --source "$tmpf" --redact --log-level error >/dev/null 2>&1; then
     rm -f "$tmpf"
     cat <<EOF
 {
