@@ -1,0 +1,23 @@
+diff --git a/.claude/hooks/session-start-context.sh b/.claude/hooks/session-start-context.sh
+index 7755e83..94fad83 100755
+--- a/.claude/hooks/session-start-context.sh
++++ b/.claude/hooks/session-start-context.sh
+@@ -134,7 +134,17 @@ fi
+ # ─── Dream state ────────────────────────────────────────────────────────
+ if [ -f .claude/memory/.cache/.dream-state.json ]; then
+   # JUSTIFIED: optional dream-state read — a corrupt cache yields empty, only affects an informational "Last dream:" line
+-  last_dream=$(jq -r '.last_run // "never"' .claude/memory/.cache/.dream-state.json 2>/dev/null)
++  # M-02: the writer stamps `last_run_epoch` (epoch seconds), never `.last_run`;
++  # reading `.last_run` always yielded "never". Read the real key and render it.
++  last_dream_epoch=$(jq -r '.last_run_epoch // 0' .claude/memory/.cache/.dream-state.json 2>/dev/null)
++  if [ "${last_dream_epoch:-0}" -gt 0 ] 2>/dev/null; then
++    # JUSTIFIED: date format differs GNU vs BSD; try BSD (-r) then GNU (-d @), else raw epoch
++    last_dream=$(date -r "$last_dream_epoch" '+%Y-%m-%d %H:%M' 2>/dev/null \
++      || date -d "@$last_dream_epoch" '+%Y-%m-%d %H:%M' 2>/dev/null \
++      || echo "epoch $last_dream_epoch")
++  else
++    last_dream="never"
++  fi
+   ctx_parts+=("Last dream: $last_dream")
+ fi
+ 

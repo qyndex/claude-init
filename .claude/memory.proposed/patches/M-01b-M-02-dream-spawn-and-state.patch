@@ -1,8 +1,40 @@
 diff --git a/.claude/hooks/auto-dream-check.sh b/.claude/hooks/auto-dream-check.sh
-index 6b07a4f..157ca6d 100755
+index 6b07a4f..bc344f1 100755
 --- a/.claude/hooks/auto-dream-check.sh
 +++ b/.claude/hooks/auto-dream-check.sh
-@@ -114,10 +114,15 @@ if command -v claude >/dev/null 2>&1; then
+@@ -18,9 +18,14 @@ if [ -f "$state_file" ]; then
+   last_run=$(jq -r '.last_run_epoch // 0' "$state_file" 2>/dev/null)
+   # JUSTIFIED: jq error output discarded — same; a corrupt state file degrades to a session_count of 0 rather than crashing the Stop hook
+   session_count=$(jq -r '.session_count // 0' "$state_file" 2>/dev/null)
++  # M-02: preserve a pending review across sub-threshold sessions — the early
++  # exits below rewrote state WITHOUT awaiting_review, silently clearing a dream
++  # that was still awaiting operator review.
++  awaiting_review=$(jq -r '.awaiting_review // false' "$state_file" 2>/dev/null)
+ else
+   last_run=0
+   session_count=0
++  awaiting_review=false
+ fi
+ 
+ # Increment session count
+@@ -41,13 +46,13 @@ twenty_four_hours=$((24 * 3600))
+ 
+ # Should we dream?
+ if [ "$elapsed" -lt "$twenty_four_hours" ]; then
+-  # Just persist the session count and exit
+-  printf '{"last_run_epoch":%d,"session_count":%d}' "$last_run" "$session_count" > "$state_file"
++  # Just persist the session count and exit (M-02: keep awaiting_review intact)
++  printf '{"last_run_epoch":%d,"session_count":%d,"awaiting_review":%s}' "$last_run" "$session_count" "$awaiting_review" > "$state_file"
+   exit 0
+ fi
+ 
+ if [ "$session_count" -lt 5 ]; then
+-  printf '{"last_run_epoch":%d,"session_count":%d}' "$last_run" "$session_count" > "$state_file"
++  printf '{"last_run_epoch":%d,"session_count":%d,"awaiting_review":%s}' "$last_run" "$session_count" "$awaiting_review" > "$state_file"
+   exit 0
+ fi
+ 
+@@ -114,10 +119,15 @@ if command -v claude >/dev/null 2>&1; then
  
    nohup bash -c "
      set -uo pipefail

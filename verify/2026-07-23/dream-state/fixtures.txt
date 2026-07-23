@@ -1,0 +1,16 @@
+M-02 — dream failure recorded as failure, 2026-07-23
+
+Three bugs, three fixtures (test/dream-state.sh, 0/3 red → 3/3 green):
+  1. auto-dream-check.sh: success stamp was UNCONDITIONAL after the spawn →
+     failed dream stamped last_run_epoch+awaiting_review=true (false success).
+     Fix: stamp inside 'if metabolism_spawn ...; then' (folded into the dream patch).
+  2. auto-dream-check.sh:45,50: sub-threshold early-exit writes dropped
+     awaiting_review → a pending review silently cleared. Fix: load it once,
+     include it in both early-exit writes.
+  3. session-start-context.sh:137: boot read '.last_run' but the writer only
+     ever emits 'last_run_epoch' → 'Last dream' always showed 'never'. Fix:
+     read last_run_epoch + render via portable date.
+
+Patches (both hooks constitution-guarded → operator-install):
+  M-01b-M-02-dream-spawn-and-state.patch  (supersedes M-01b-dream-spawn-seam.patch)
+  M-02-boot-reads-last-run-epoch.patch
