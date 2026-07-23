@@ -203,11 +203,21 @@ _rebuild_index() {
       while IFS= read -r line; do
         target=$(echo "$line" | jq -r .target)
         source=$(echo "$line" | jq -r .source)
-        # Find target in index, append source to back_refs
+        # M-20: normalize ADR-NNNN (token) ↔ NNNN-slug (id). The old matcher was
+        # `.id == $t or endswith($t)`, which never matched a token ref against a
+        # slug id → back_refs stayed empty and verify cried 9 false asymmetries.
+        # _adr_match: exact id, OR both sides' leading ADR-number agree.
+        # Self-edge guard: never back-ref a target to itself ($s != .id).
         jq -c --arg t "$target" --arg s "$source" '
-          if .id == $t or (.id | endswith($t)) then
-            .back_refs += [$s] | .back_refs |= unique
-          else . end
+          def num: (capture("(?<n>[0-9]+)") // {n:""}).n;
+          ($t | ltrimstr("ADR-")) as $tn
+          | ($t == .id
+             or (.id | endswith($t))
+             or (($t | test("^ADR-[0-9]+$")) and ((.id | num) == ($t | num) and ((.id | num) != ""))))
+            as $hit
+          | if $hit and $s != .id then
+              .back_refs += [$s] | .back_refs |= unique
+            else . end
         ' "$INDEX" > "$tmp"
         mv "$tmp" "$INDEX"
       done < "$tmp.refs"
@@ -339,8 +349,22 @@ case "$cmd" in
     while IFS= read -r entry; do
       id=$(echo "$entry" | jq -r .id)
       for ref in $(echo "$entry" | jq -r '.refs[]'); do
+        # M-20: same ADR-NNNN ↔ NNNN-slug normalization as the back_ref pass, so
+        # a token ref against a slug id is not miscounted as an asymmetry.
+        # Self-ref ($ref resolves to $id itself) is skipped — not an asymmetry.
+        self=$(jq -r --arg t "$ref" --arg id "$id" '
+          def num: (capture("(?<n>[0-9]+)") // {n:""}).n;
+          select(.id == $id)
+          | (($t == .id) or (.id | endswith($t))
+             or (($t | test("^ADR-[0-9]+$")) and ((.id | num) == ($t | num) and ((.id | num) != ""))))
+        ' "$INDEX" 2>/dev/null | head -1)
+        [ "$self" = "true" ] && continue
         # JUSTIFIED: a ref pointing at an absent target yields no back_refs and exit non-zero — empty is the intended value, the symmetry check below then reports the asymmetry
-        target_back_refs=$(jq -r --arg t "$ref" 'select(.id == $t or (.id | endswith($t))) | .back_refs[]' "$INDEX" 2>/dev/null)
+        target_back_refs=$(jq -r --arg t "$ref" '
+          def num: (capture("(?<n>[0-9]+)") // {n:""}).n;
+          select(.id == $t or (.id | endswith($t))
+                 or (($t | test("^ADR-[0-9]+$")) and ((.id | num) == ($t | num) and ((.id | num) != ""))))
+          | .back_refs[]' "$INDEX" 2>/dev/null)
         if ! echo "$target_back_refs" | grep -q "^${id}$"; then
           echo "⚠ $id → $ref but $ref does not back-ref $id"
           issues=$((issues + 1))

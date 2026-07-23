@@ -1,0 +1,5 @@
+  - ADR-NNNN ref populates the target slug-id's back_refs (id normalization)
+  - verify reports 0 asymmetries (was 9 false ones from the id/token mismatch)
+  - verify reports exactly 1 asymmetry for the one dangling ref (got 6)
+passed: 1
+failed: 3
