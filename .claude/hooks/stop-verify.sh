@@ -38,8 +38,11 @@ escalate_instead_of_block=0
 if [ "$stop_hook_active" = "true" ]; then
   escalate_instead_of_block=1
 elif [ -n "$session_id" ] && [ -f .claude/state/stop-verify-blocks.log ]; then
-  # JUSTIFIED: grep -c on a missing/empty log yields 0 via the fallback — absence of prior blocks is the normal case
-  prior_blocks=$(grep -c "	session=${session_id}	" .claude/state/stop-verify-blocks.log 2>/dev/null || echo 0)
+  # grep -c prints "0" AND exits 1 on zero matches — an `|| echo 0` fallback would
+  # append a second line ("0\n0") and break the -ge integer test below. Rely on the
+  # count grep prints (even on exit 1) and ${prior_blocks:-0} for the truly-empty
+  # (unreadable log) case only.
+  prior_blocks=$(grep -c "	session=${session_id}	" .claude/state/stop-verify-blocks.log 2>/dev/null || true)
   [ "${prior_blocks:-0}" -ge 3 ] && escalate_instead_of_block=1
 fi
 # Detect coordinator by agent_type field or by session context marker.
