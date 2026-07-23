@@ -109,6 +109,33 @@ fi
 
 # ─── Memory-plane health (memory-system review §7.6: failures must be loud) ──
 
+# M-01a — Metabolism liveness probe (advisory). The dream/instinct/witness spawns
+# call `claude -p --bare`; the 2026-07 audit found all three dead. This probe
+# MIRRORS THE REAL SPAWN FORM (--bare is mandatory — a non-bare probe authenticates
+# via OAuth and false-greens the metabolism, hiding the exact bug M-01b fixes).
+# Two independent failure modes are checked: (1) --bare auth ("Not logged in"),
+# (2) a portable `timeout` (absent on stock macOS → pre-compact-witness dies).
+# Skipped in CI (no interactive OAuth session) via HARNESS_DOCTOR_SKIP_SPAWN=1.
+if [ "${HARNESS_DOCTOR_SKIP_SPAWN:-0}" != "1" ] && command -v claude >/dev/null 2>&1; then
+  # JUSTIFIED: 2>&1 capture — we inspect stdout/stderr for the auth marker and need the exit code
+  probe_out=$(claude -p --bare 'reply with the single word ok' 2>&1); probe_rc=$?
+  if printf '%s' "$probe_out" | grep -qi 'not logged in'; then
+    add_result "metabolism: --bare spawn authenticates" "warn" "claude -p --bare → 'Not logged in' (rc=$probe_rc). The dream/instinct/witness spawns are DEAD. M-01b fix: drop --bare so OAuth is read (staged patch). --bare cannot read OAuth by design."
+  elif [ "$probe_rc" -ne 0 ]; then
+    add_result "metabolism: --bare spawn authenticates" "warn" "claude -p --bare exited $probe_rc (non-auth failure) — investigate before trusting the metabolism"
+  else
+    add_result "metabolism: --bare spawn authenticates" "pass" "claude -p --bare returned rc=0 (unexpected — --bare normally refuses OAuth; verify this is a real auth, not an echo)"
+  fi
+else
+  add_result "metabolism: --bare spawn authenticates" "warn" "spawn probe skipped (HARNESS_DOCTOR_SKIP_SPAWN=1 or claude not on PATH) — cannot confirm liveness"
+fi
+# Portable timeout — pre-compact-witness.sh:68 uses `timeout 120`; macOS lacks it.
+if command -v timeout >/dev/null 2>&1 || command -v gtimeout >/dev/null 2>&1; then
+  add_result "metabolism: portable timeout available" "pass" "$(command -v timeout gtimeout 2>/dev/null | head -1)"
+else
+  add_result "metabolism: portable timeout available" "warn" "no timeout/gtimeout on PATH — pre-compact-witness.sh:68 dies 'command not found' before claude runs (M-01b adds a portable guard)"
+fi
+
 # Witness briefs stuck in "(pending)" — the async witness died without anyone noticing
 stuck_witness=$(find .claude/memory/.cache/checkpoints -name '*.md' -mtime +2 -exec grep -l '(pending)' {} \; 2>/dev/null | head -3 || true)
 if [ -z "$stuck_witness" ]; then

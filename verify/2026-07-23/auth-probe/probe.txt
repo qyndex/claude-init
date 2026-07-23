@@ -1,0 +1,11 @@
+M-01a — falsifiable auth+timeout probe in harness-doctor (advisory)
+date: 2026-07-23
+
+LIVE probe (--bare mandatory, mirrors real spawn form):
+  [warn] metabolism: --bare spawn authenticates: claude -p --bare → 'Not logged in' (rc=1). The dream/instinct/witness spawns are DEAD. M-01b fix: drop --bare so OAuth is read (staged patch). --bare cannot read OAuth by design.
+  [warn] metabolism: portable timeout available: no timeout/gtimeout on PATH — pre-compact-witness.sh:68 dies 'command not found' before claude runs (M-01b adds a portable guard)
+
+CI/skip form (HARNESS_DOCTOR_SKIP_SPAWN=1) → advisory warn, no false-green.
+
+Both findings are WARN (advisory), never FAIL — the probe reports the dead
+metabolism loudly without red-wedging the harness-doctor gate. M-01b applies the fix.
