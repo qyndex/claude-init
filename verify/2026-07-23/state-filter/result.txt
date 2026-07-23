@@ -1,0 +1,14 @@
+M-07-state — per-spec STATE filter + ground-truth phase + all-initiative sync, 2026-07-24
+test/initiative-state-filter.sh: 6/6 (red-proved: breaking the all-specs loop → 3 fail).
+
+Fixes in initiative-state.sh:
+  - sync ALL active specs (was ls -t|head -1 = newest only → other specs' STATE rotted)
+  - count [s] shipped tasks (spec-004's reconciled tasks) in the total
+  - derive phase from GROUND TRUTH (this spec's task states) not the stale
+    .swarms/coordinator/workflow-state.json (which said 'specifying · 1/18' for shipped)
+  - spec-filter 'Next unblocked' + 'Blockers' (was listing spec-003 tasks under spec-004)
+Folded low gap (guarded → patch M-07-state-boot-pending-count.patch):
+  session-start.sh:23 bare grep counted the TASKS.md template line → require T-[0-9]+.
+
+Live sync now: 001 shipped 58/58, 002 shipped 52/52, 003 implementing 18/21, 004 implementing 1/18
+(004 → shipped 18/18 once the M-07-data [s] patch installs).

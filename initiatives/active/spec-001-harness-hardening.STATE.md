@@ -1,20 +1,18 @@
-# STATE — spec-003-audit-round2-remediation
+# STATE — spec-001-harness-hardening
 
 > Machine-rewritten by `.claude/scripts/initiative-state.sh sync` at network
 > boundaries (session end, ship, verify, merge). Do not hand-edit; history
 > lives in git. This is the always-current answer to "where is this initiative?"
 
 - **updated_at**: 2026-07-24T00:01:50+10:00
-- **phase**: implementing
-- **spec**: specs/active/003-audit-round2-remediation.md
+- **phase**: shipped
+- **spec**: specs/active/001-harness-hardening.md
 - **plan**: plans/active/003-audit-round2-remediation.md
-- **tasks**: 18/21 done · 0 shipped · 0 in-progress · 0 blocked · 3 pending
-- **open questions**: 0
+- **tasks**: 58/58 done · 2 shipped · 0 in-progress · 0 blocked · 0 pending
+- **open questions**: 1
 
 ## Next unblocked tasks
-- T-129  | spec:003  | phase:9  | priority: normal  | created: 2026-06-12  | last_touched: 2026-06-12  | deps:  | parallel: yes  | est: 5m
-- T-130  | spec:003  | phase:9  | priority: normal  | created: 2026-06-12  | last_touched: 2026-06-12  | deps:  | parallel: yes  | est: 4m
-- T-131  | spec:003  | phase:9  | priority: normal  | created: 2026-06-12  | last_touched: 2026-06-12  | deps:  | parallel: no  | est: 5m
+_(none)_
 
 ## Last 5 events (git)
 - 79b5e3c feat(atlas): add ENDPOINTS scraper for Flask/Express/Next route inventory

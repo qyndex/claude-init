@@ -36,11 +36,13 @@ current_initiative_file() {
   ls -t "$INIT_DIR"/*.md 2>/dev/null | grep -v '\.STATE\.md$' | head -1
 }
 
-cmd_sync() {
+sync_one_spec() {
   mkdir -p "$STATE_DIR" "$INIT_DIR"
 
   local spec spec_base spec_id init_file init_base
-  spec=$(current_spec)
+  # M-07-state: the spec to sync is passed in (all-initiative sync), falling back
+  # to the newest active spec for backward compatibility when called with no arg.
+  spec="${1:-$(current_spec)}"
   spec_base=""
   spec_id=""
   if [ -n "$spec" ]; then
@@ -66,9 +68,7 @@ cmd_sync() {
     || die "failed writing $STATE_DIR/current-spec"
 
   # ── Gather state ──
-  local phase plan tasks_total tasks_done tasks_prog tasks_blocked tasks_pending
-  # JUSTIFIED: missing/corrupt workflow-state.json degrades phase to "unknown" — advisory field
-  phase=$(jq -r '.phase // "unknown"' .swarms/coordinator/workflow-state.json 2>/dev/null || echo unknown)
+  local phase plan tasks_total tasks_done tasks_prog tasks_blocked tasks_pending tasks_shipped
   # JUSTIFIED: no active plan is valid pre-planning state — "none" sentinel
   plan=$(ls -t plans/active/*.md 2>/dev/null | head -1 || echo none)
 
@@ -83,7 +83,28 @@ cmd_sync() {
   tasks_prog=$(count_tasks '~')
   tasks_blocked=$(count_tasks b)
   tasks_pending=$(count_tasks ' ')
-  tasks_total=$((tasks_done + tasks_prog + tasks_blocked + tasks_pending))
+  # M-07-state: count [s] shipped tasks too (spec-004's reconciled tasks are [s]).
+  # Without this they vanish from the total and a fully-shipped spec looks empty.
+  tasks_shipped=$(count_tasks s)
+  tasks_total=$((tasks_done + tasks_prog + tasks_blocked + tasks_pending + tasks_shipped))
+
+  # M-07-state: derive phase from GROUND TRUTH (this spec's task states), not the
+  # global .swarms/coordinator/workflow-state.json — that stale swarm file made
+  # STATE.md report the wrong phase (e.g. "specifying · 1/18" for a shipped spec).
+  local terminal_done=$((tasks_done + tasks_shipped))
+  if [ "$tasks_total" -eq 0 ]; then
+    # No tasks for this spec yet — fall back to the workflow-state phase hint.
+    # JUSTIFIED: missing/corrupt workflow-state.json degrades to "specifying" (pre-task default)
+    phase=$(jq -r '.phase // "specifying"' .swarms/coordinator/workflow-state.json 2>/dev/null || echo specifying)
+  elif [ "$terminal_done" -eq "$tasks_total" ]; then
+    phase="shipped"
+  elif [ "$tasks_prog" -gt 0 ]; then
+    phase="implementing"
+  elif [ "$terminal_done" -gt 0 ]; then
+    phase="implementing"
+  else
+    phase="planned"
+  fi
 
   local oq_count=""
   if [ -n "$spec" ]; then
@@ -106,27 +127,46 @@ cmd_sync() {
     echo "- **phase**: $phase"
     echo "- **spec**: ${spec:-none}"
     echo "- **plan**: $plan"
-    echo "- **tasks**: ${tasks_done}/${tasks_total} done · ${tasks_prog} in-progress · ${tasks_blocked} blocked · ${tasks_pending} pending"
+    echo "- **tasks**: $((tasks_done + tasks_shipped))/${tasks_total} done · ${tasks_shipped} shipped · ${tasks_prog} in-progress · ${tasks_blocked} blocked · ${tasks_pending} pending"
     echo "- **open questions**: $oq_count"
     echo
     echo "## Next unblocked tasks"
-    # T-[0-9]+ guard: never pick up the TASKS.md format-template line
+    # T-[0-9]+ guard: never pick up the TASKS.md format-template line.
+    # M-07-state: filter by THIS spec's id — previously the unfiltered grep listed
+    # another spec's tasks as this spec's "next" (spec-003 tasks under spec-004).
     # JUSTIFIED: no pending tasks makes grep exit 1 — the placeholder line below covers it
-    grep -m3 -E '^- \[ \] T-[0-9]+' tasks/TASKS.md 2>/dev/null | sed 's/^- \[ \] */- /' || echo "_(none)_"
+    grep -m3 -E "^- \[ \] T-[0-9]+.*spec:${spec_id:-[0-9]+}" tasks/TASKS.md 2>/dev/null | sed 's/^- \[ \] */- /' || echo "_(none)_"
     echo
     echo "## Last 5 events (git)"
     # JUSTIFIED: empty repo makes log fail — empty section acceptable in the brief
     git log --oneline -5 2>/dev/null | sed 's/^/- /' || true
     echo
     echo "## Blockers"
+    # M-07-state: spec-filtered, same reason as Next unblocked tasks above.
     # JUSTIFIED: no blocked tasks makes grep exit 1 — placeholder covers it
-    grep -m5 -E '^- \[b\] T-[0-9]+' tasks/TASKS.md 2>/dev/null | sed 's/^- \[b\] */- /' || echo "_(none)_"
+    grep -m5 -E "^- \[b\] T-[0-9]+.*spec:${spec_id:-[0-9]+}" tasks/TASKS.md 2>/dev/null | sed 's/^- \[b\] */- /' || echo "_(none)_"
   } > "${state_file}.tmp" || die "failed writing ${state_file}.tmp"
 
   head -n 60 "${state_file}.tmp" > "$state_file" && rm -f "${state_file}.tmp" \
     || die "failed installing $state_file"
 
-  echo "initiative-state: synced $state_file (phase=$phase tasks=${tasks_done}/${tasks_total})"
+  echo "initiative-state: synced $state_file (phase=$phase tasks=$((tasks_done + tasks_shipped))/${tasks_total})"
+}
+
+cmd_sync() {
+  # M-07-state: sync ALL active specs, not just the newest-by-mtime. Previously
+  # only current_spec (ls -t | head -1) was synced, so a second active spec's
+  # STATE.md silently rotted. Loop every specs/active/*.md; if none, sync once
+  # with no spec (initiative-only / pre-spec project).
+  local synced=0 s
+  for s in specs/active/*.md; do
+    [ -f "$s" ] || continue
+    sync_one_spec "$s"
+    synced=$((synced + 1))
+  done
+  if [ "$synced" -eq 0 ]; then
+    sync_one_spec ""   # no active spec — initiative-only sync (unchanged behavior)
+  fi
 }
 
 cmd_show() {
