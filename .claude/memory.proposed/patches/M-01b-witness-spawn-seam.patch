@@ -1,0 +1,19 @@
+diff --git a/.claude/hooks/pre-compact-witness.sh b/.claude/hooks/pre-compact-witness.sh
+index 3077490..d322914 100755
+--- a/.claude/hooks/pre-compact-witness.sh
++++ b/.claude/hooks/pre-compact-witness.sh
+@@ -63,9 +63,13 @@ No preamble. Just the brief.'
+   nohup bash -c "
+     tmp=\"${brief_file}.tmp\"
+     set -uo pipefail
++    # M-01b: source the metabolism seam — drops --bare (OAuth) and supplies a
++    # PORTABLE timeout. The old 'timeout 120' died 'command not found' on stock
++    # macOS (no timeout binary), killing the witness before claude ran at all.
++    . .claude/scripts/lib/metabolism-spawn.sh
+     # JUSTIFIED: best-effort witness generation in a detached background job. A vanished transcript or timed-out/absent claude CLI yields an empty brief; the non-empty brief check below handles that without overwriting the synchronous git snapshot.
+     brief=\$(tail -200 '$transcript_path' 2>/dev/null | \\
+-            timeout 120 claude -p --bare --append-system-prompt \"$witness_prompt\" \\
++            metabolism_spawn \${WITNESS_TIMEOUT:-120} --append-system-prompt \"$witness_prompt\" \\
+               'Write the recovery brief now based on the transcript I just gave you.' 2>/dev/null || echo '')
+     if [ -n \"\$brief\" ]; then
+       {
