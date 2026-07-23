@@ -99,6 +99,17 @@ build_entry() {
   local refs=$(extract_refs "$file")
   # JUSTIFIED: GNU-vs-BSD stat probe — whichever flag form the platform rejects is muted; the surviving form supplies mtime, and a vanished file leaves it empty (indexed as 0 downstream)
   local mtime=$(stat -f %m "$file" 2>/dev/null || stat -c %Y "$file" 2>/dev/null)
+  # M-17b: content-recency stamp. Prefer the file's own frontmatter modified:
+  # (else last_verified:) so `touch` doesn't inflate recency; fall back to mtime.
+  local modified=$(extract_field "$file" "modified")
+  [ -z "$modified" ] && modified=$(extract_field "$file" "last_verified")
+  [ -z "$modified" ] && modified="${mtime:-0}"
+  # M-17a: archived-entry marker, derived from the path — a file under
+  # .claude/memory/.archive/ is archived so recall can distinguish it.
+  local archived=false
+  case "$file" in
+    *.claude/memory/.archive/*) archived=true ;;
+  esac
 
   jq -nc \
     --arg path "$file" \
@@ -115,6 +126,8 @@ build_entry() {
     --argjson paths_touched "${paths_touched:-[]}" \
     --argjson refs "${refs:-[]}" \
     --arg mtime "${mtime:-0}" \
+    --arg modified "${modified:-0}" \
+    --argjson archived "$archived" \
     '{
       path: $path,
       id: $id,
@@ -130,7 +143,9 @@ build_entry() {
       paths_touched: $paths_touched,
       refs: $refs,
       back_refs: [],
-      mtime: ($mtime | tonumber)
+      mtime: ($mtime | tonumber),
+      modified: $modified,
+      archived: $archived
     }'
 }
 
@@ -138,8 +153,36 @@ cmd="${1:-help}"
 # JUSTIFIED: when invoked with no args the shift has nothing to drop and exits non-zero — harmless, the fallback keeps the script going to the help case
 shift || true
 
+# M-17a: emit the null-delimited memory file list. $1="include-archived" also
+# walks .claude/memory/.archive/; default EXCLUDES it. Two explicit find calls so
+# the code stays bash-3.2-safe (no empty-array-under-set-u expansion). JUSTIFIED
+# 2>/dev/null: mutes find traversal noise on a sparse tree — empty set is valid.
+_memory_find() {
+  if [ "${1:-}" = "include-archived" ]; then
+    find .claude/memory \
+      -name '*.md' \
+      -not -name '0000-template.md' \
+      -not -name 'in-flight*.md' \
+      -not -path '*/.cache/*' \
+      -not -path '*/audits/*' \
+      -type f -print0 2>/dev/null
+  else
+    find .claude/memory \
+      -name '*.md' \
+      -not -name '0000-template.md' \
+      -not -name 'in-flight*.md' \
+      -not -path '*/.cache/*' \
+      -not -path '*/audits/*' \
+      -not -path '*/.archive/*' \
+      -type f -print0 2>/dev/null
+  fi
+}
+
 # M-10-lock: the two write paths are functions so with_lock can wrap them.
+# M-17a: $1 = "include-archived" also walks .claude/memory/.archive/; default
+# EXCLUDES it (archived memories are recall-off unless explicitly asked for).
 _rebuild_index() {
+    local include_archived="${1:-}"
     echo "→ Building memory index..."
     > "$INDEX"
     count=0
@@ -149,13 +192,7 @@ _rebuild_index() {
         echo "$entry" >> "$INDEX"
         count=$((count + 1))
       fi
-    done < <(find .claude/memory \
-      -name '*.md' \
-      -not -name '0000-template.md' \
-      -not -name 'in-flight*.md' \
-      -not -path '*/.cache/*' \
-      -not -path '*/audits/*' \
-      -type f -print0 2>/dev/null) # JUSTIFIED: mutes find traversal warnings on a sparse memory tree; an empty set just means zero artifacts to index
+    done < <(_memory_find "$include_archived") # JUSTIFIED: empty set means zero artifacts to index
 
     # Now walk forward refs to populate back_refs (second pass)
     if [ "$count" -gt 0 ]; then
@@ -248,8 +285,11 @@ _touch_index() {
 
 case "$cmd" in
   backfill|rebuild)
+    # M-17a: optional --include-archived also walks .claude/memory/.archive/.
+    inc=""
+    [ "${1:-}" = "--include-archived" ] && inc="include-archived"
     # M-10-lock: serialize the truncate-then-rewrite against any concurrent touch.
-    with_lock "memory-plane" _rebuild_index
+    with_lock "memory-plane" _rebuild_index "$inc"
     ;;
 
   touch)

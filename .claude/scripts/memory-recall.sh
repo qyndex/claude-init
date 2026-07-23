@@ -30,13 +30,37 @@ command -v jq >/dev/null 2>&1 || exit 0
 
 limit=5
 paths=""
+grep_term=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --paths) paths="$2"; shift 2 ;;
     --limit) limit="$2"; shift 2 ;;
+    --grep) grep_term="$2"; shift 2 ;;
     *) shift ;;
   esac
 done
+
+# M-16: --grep <term> content search. Complementary to the --paths working-set
+# match: collect ids of indexed entries whose FILE BODY contains the term, then
+# feed that id set into the scorer as a content-hit (unions with path-hits). Read
+# only — we grep the already-indexed files, never write. Empty when the term is
+# absent everywhere, so a bogus term surfaces nothing.
+grep_ids="[]"
+if [ -n "$grep_term" ]; then
+  grep_ids=$(
+    # JUSTIFIED: a term matched in no indexed file makes grep exit 1 — the id
+    # list is then correctly empty, and content-recall surfaces nothing.
+    jq -r '.path' "$INDEX" 2>/dev/null \
+      | while IFS= read -r p; do
+          [ -f "$p" ] || continue
+          if grep -qF -- "$grep_term" "$p" 2>/dev/null; then
+            basename "$p" .md
+          fi
+        done \
+      | sort -u | jq -R . | jq -sc .
+  )
+  [ -n "$grep_ids" ] || grep_ids="[]"
+fi
 
 if [ -z "$paths" ]; then
   # Working set: uncommitted changes + files in the last 3 commits.
@@ -48,7 +72,7 @@ fi
 now=$(date +%s)
 
 # Build a JSON array of the working-set paths once, then score every entry.
-jq -cs --arg paths "$paths" --argjson now "$now" --argjson limit "$limit" '
+jq -cs --arg paths "$paths" --argjson now "$now" --argjson limit "$limit" --argjson grepids "$grep_ids" '
   ($paths | split(" ") | map(select(length > 0))) as $ws
   | map(
       . as $e
@@ -58,7 +82,11 @@ jq -cs --arg paths "$paths" --argjson now "$now" --argjson limit "$limit" '
            # bind both sides explicitly — a bare `.` inside `x | startswith(.)`
            # rebinds to x and matches everything
            | select(($w | startswith($pt)) or ($pt | startswith($w)))
-         ] | length) as $hits
+         ] | length) as $pathhits
+      # M-16: content-hit from --grep. An id in $grepids counts as a hit so the
+      # entry clears the hits>0 noise floor and is surfaced (unions with paths).
+      | (if ($grepids | index($e.id)) then 1 else 0 end) as $grephit
+      | ($pathhits + $grephit) as $hits
       | ($e.status // "unknown") as $st
       | (if ($now - ($e.mtime // 0)) < 2592000 then 2
          elif ($now - ($e.mtime // 0)) < 7776000 then 1

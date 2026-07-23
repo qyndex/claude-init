@@ -1,0 +1,15 @@
+=== M-16 RED: recall-grep.sh ===
+  - --grep surfaces an entry whose body contains the term
+  - --grep + --paths still surfaces the content-hit entry
+passed: 2
+failed: 2
+exit: 
+=== M-17 RED: archives-and-modified.sh ===
+  - normal rebuild EXCLUDES archived entries (got 'oldghost')
+  - entry with frontmatter modified: carries that value (got 'null')
+  - entry without frontmatter modified: falls back to numeric mtime (got 'null')
+  - archived entry is marked archived:true (got 'null')
+  - live entry stays archived:false under --include-archived (got 'null')
+passed: 1
+failed: 5
+exit: 
