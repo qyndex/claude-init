@@ -1,0 +1,15 @@
+M-00 RED — dead-test detector (before fix), 2026-07-23T22:57:28+10:00
+test/*.sh unreferenced by any .github/workflows/:
+  DEAD: atomic-write.sh
+  DEAD: audit-doc-claims.sh
+  DEAD: check-model-consistency.sh
+  DEAD: gc-suite.sh
+  DEAD: lint-silent-failures.sh
+  DEAD: memory-system.sh
+  DEAD: pre-bash-dep-freshness.sh
+  DEAD: pre-bash-guard-bypass.sh
+  DEAD: pre-edit-constitution-guard.sh
+  DEAD: security-invariants.sh
+  DEAD: swarm-events-smoke.sh
+  DEAD: validate-json.sh
+  DEAD: workflow-state-no-git.sh

@@ -949,6 +949,41 @@ done
 [ "$auth_bad" -eq 0 ] && ok "every Anthropic-auth workflow offers the OAuth token (API key is fallback only)"
 echo
 
+# ─── dead-test detector (M-00) ──────────────────────────────────────────
+# Every .claude/scripts/test/*.sh must be referenced by at least one workflow
+# under .github/workflows/, otherwise it is a dead test that proves nothing —
+# exactly how the 2026-07 memory audit's 87 gaps shipped "green". Reference by
+# the "test/<name>" path fragment (matches `bash .claude/scripts/test/x.sh`).
+echo "[dead-tests]"
+# A test is "live" if a workflow either (a) invokes it explicitly by path
+# (test/<name>) or (b) loops the whole directory via a scripts/test/*.sh glob.
+# Correction-3 wedge avoidance (M-00): until a runner exists, an unreferenced
+# test is a WARNING (with the install pointer), not a hard fail — otherwise this
+# check reds main on the very PR that adds the runner. Once a glob runner is
+# present, everything is covered and this passes; a future named-only runner that
+# omits a NEW test is the only hard-fail path (regression, not chicken-and-egg).
+dead_tests=0
+if [ -d .claude/scripts/test ]; then
+  # The end state is a directory-glob runner (M-00 patch) that covers every test.
+  # Until it is installed, unreferenced tests are WARNINGS (with the install
+  # pointer) so this check never reds the PR that introduces the runner. Once the
+  # glob runner is present, every test is covered → pass. This is the same
+  # advisory-first→required-later sequencing Correction 3 mandates for liveness.
+  # JUSTIFIED: grep -q presence probe; 2>/dev/null hides "no workflows dir" on a fresh repo
+  glob_runner=0
+  grep -rqE 'scripts/test/\*\.sh' .github/workflows/ 2>/dev/null && glob_runner=1
+  for t in .claude/scripts/test/*.sh; do
+    [ -f "$t" ] || continue
+    b=$(basename "$t")
+    [ "$glob_runner" -eq 1 ] && continue
+    grep -rqF "test/$b" .github/workflows/ 2>/dev/null && continue
+    warn "dead test (no glob CI runner yet): .claude/scripts/test/$b — apply .claude/memory.proposed/patches/M-00-harness-test-runner.patch"
+  done
+fi
+[ "${glob_runner:-0}" -eq 1 ] && ok "test/*.sh covered by a directory-glob CI runner" \
+  || note "dead-test detector armed (advisory until the M-00 glob runner is installed)"
+echo
+
 # ─── Summary ────────────────────────────────────────────────────────────
 echo "─────────────────────────────────────"
 if [ "$fails" -gt 0 ]; then
