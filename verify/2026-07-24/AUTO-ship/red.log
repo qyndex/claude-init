@@ -1,0 +1,12 @@
+  - all-green PR: reports checks green
+  - all-green PR: arms gh pr merge --auto --squash
+  - all-green PR: applies the auto-merge-ok label
+  - one failing check: refuses with exit 3
+  - pending check: refuses (exit 3)
+  - skipped check: refuses (fail-closed on non-pass)
+  - no checks at all: refuses (fail-closed, not merge)
+  - no live ruleset: refuses (exit 4) — --auto would merge on empty checks
+  - already-merged PR: refuses
+  - the not-green refusal is present and unconditional
+passed: 5
+failed: 10

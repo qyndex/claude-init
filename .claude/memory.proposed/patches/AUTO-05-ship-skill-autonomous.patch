@@ -1,0 +1,40 @@
+diff --git a/.claude/skills/ship/SKILL.md b/.claude/skills/ship/SKILL.md
+index 0c24c38..781a238 100644
+--- a/.claude/skills/ship/SKILL.md
++++ b/.claude/skills/ship/SKILL.md
+@@ -38,12 +38,20 @@ Push, PR, CI, merge, deploy. With gates.
+ 7. **Wait for CI** (`gh pr checks --watch`) — `evidence-gate` is now a required check; it blocks merge if any AC is unproven.
+ 8. **Merge confirmation — mode-dependent (e2e-audit release-deploy-2):**
+    - **Interactive session** → ask the user to confirm merge. Their go is the gate.
+-   - **Auto mode** (Cloud Routine, `--bg`, overnight) → do NOT block on a human:
+-     defer to policy — apply the `auto-merge-ok` label (or use a `claude/overnight-*`
+-     branch) so `auto-merge.yml` arms native auto-merge; the live ruleset's required
+-     checks remain the real gate. If the label policy isn't configured, stop at
+-     "PR open + CI green" and surface it in the morning report — never improvise a merge.
+-9. **Squash-merge** (`gh pr merge --auto --squash --delete-branch`).
++   - **Auto mode** (Cloud Routine, `--bg`, overnight) → do NOT block on a human and
++     do NOT run a bare `gh pr merge`: defer to policy via the wrapper —
++     `bash .claude/scripts/autonomous-ship.sh <pr>`. It runs the green-gate (arms
++     native `gh pr merge --auto` ONLY when every required check is green, refuses
++     otherwise), applies the `auto-merge-ok` label after its own preflight, and
++     leaves the live ruleset's required checks as the real gate. If checks can't go
++     green, it refuses — stop at "PR open + CI red" and surface it in the morning
++     report; never improvise a merge.
++9. **Squash-merge.**
++   - **Interactive**: `gh pr merge --auto --squash --delete-branch` (after the user's go).
++   - **Auto mode**: `autonomous-ship.sh` (step 8) already armed the squash-merge; do not
++     re-run merge by hand. Once GitHub reports the PR merged, run
++     `bash .claude/scripts/reconcile-shipped.sh` to flip spec/initiative status → shipped
++     and append the merged PR + its proof pointers to the ship-log.
+ 10. **Release via release-please (e2e-audit release-deploy-6)** — release-please is the
+     SINGLE tag/changelog authority. Never `git tag` or `gh release create` by hand:
+     after the feature PR merges, release-please opens/updates its release PR from the
+@@ -58,7 +66,7 @@ Push, PR, CI, merge, deploy. With gates.
+ - **No bypass.** Required checks must be green.
+ - **No merge without a live ruleset.** "Required" checks only block when a server-side active branch ruleset exists — preflight step 0 is non-negotiable.
+ - **No `--force`.** Ever, on main/master.
+-- **Interactive: user confirms merge. Auto mode: policy confirms merge** — the `auto-merge-ok` label / `claude/overnight-*` pattern + green required checks on a LIVE ruleset (step 0). Auto mode never merges outside that policy.
++- **Interactive: user confirms merge. Auto mode: policy confirms merge via `autonomous-ship.sh`** — the wrapper green-gates + labels + arms `gh pr merge --auto`; a bare `gh pr merge` in auto mode is forbidden. Green required checks on a LIVE ruleset (step 0) remain the real gate. Auto mode never merges outside that policy.
+ - **User confirms deploy.** Production always requires explicit go — in auto mode the deploy environment's required reviewers are that gate (merge ≠ deploy).
+ - **ADR check (gap-audit G39/G40).** If the diff touches architectural surfaces (migrations, settings, auth, API contracts) and no `.claude/memory/decisions/` file is added/updated or cited in the plan's References, STOP and warn loudly — create the missing ADR via `adr-new.sh` before shipping. CI's adr-gate enforces the same rule.
+ 

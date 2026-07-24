@@ -1,0 +1,24 @@
+  - writes docs/briefings/<date>.md
+grep: /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmp.d6RzPQAjZ5/briefings/2026-07-23.md: No such file or directory
+  - briefing names the shipped PR #22
+grep: /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmp.d6RzPQAjZ5/briefings/2026-07-23.md: No such file or directory
+  - briefing cites the merge commit SHA (proof)
+grep: /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmp.d6RzPQAjZ5/briefings/2026-07-23.md: No such file or directory
+  - briefing links the PR URL
+grep: /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmp.d6RzPQAjZ5/briefings/2026-07-23.md: No such file or directory
+  - briefing lists spec 004
+grep: /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmp.d6RzPQAjZ5/briefings/2026-07-23.md: No such file or directory
+  - spec 004 shows evidence.json verdict INLINE (verifiable proof)
+grep: /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmp.d6RzPQAjZ5/briefings/2026-07-23.md: No such file or directory
+  - spec 004 links the evidence.json path
+grep: /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmp.d6RzPQAjZ5/briefings/2026-07-23.md: No such file or directory
+  - spec 999 (no evidence) is marked ⚠ UNPROVEN
+grep: /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmp.d6RzPQAjZ5/briefings/2026-07-23.md: No such file or directory
+  - briefing surfaces the key decisions
+grep: /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmp.d6RzPQAjZ5/briefings/2026-07-23.md: No such file or directory
+  - briefing states the proof policy (§VII.8)
+grep: /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmp.d6RzPQAjZ5/briefings/2099-01-01.md: No such file or directory
+  - empty day → honest 'nothing shipped' briefing
+  - absent ship-log → briefing still written, no crash
+passed: 1
+failed: 12

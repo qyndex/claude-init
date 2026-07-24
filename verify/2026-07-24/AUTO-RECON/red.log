@@ -1,0 +1,13 @@
+  - writes .claude/state/ship-log.jsonl
+  - record carries pr, mergeCommit, evidence[], decisions[], specs[] (proof fields)
+  - evidence[] path resolves to a real evidence.json on disk
+  - decisions[] pulls Constraint/Directive trailers from the merge commit
+.claude/scripts/test/reconcile-shipped.sh: line 39: /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmp.PBtNqwh4yo/state/ship-log.jsonl: No such file or directory
+.claude/scripts/test/reconcile-shipped.sh: line 41: /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmp.PBtNqwh4yo/state/ship-log.jsonl: No such file or directory
+.claude/scripts/test/reconcile-shipped.sh: line 42: [: : integer expression expected
+  - second run does not duplicate the PR record (dedupe by pr#)
+  - advances the merge watermark
+  - watermark = newest mergedAt
+  - --since after the merge → nothing to reconcile
+passed: 3
+failed: 8

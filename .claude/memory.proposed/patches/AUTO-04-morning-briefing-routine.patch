@@ -1,0 +1,99 @@
+diff --git a/.claude/routines/morning-briefing.yml b/.claude/routines/morning-briefing.yml
+new file mode 100644
+index 0000000..ccfaa34
+--- /dev/null
++++ b/.claude/routines/morning-briefing.yml
+@@ -0,0 +1,93 @@
++# Morning Briefing Routine — Cloud (claude.ai/code/routines)
++#
++# This file is a TEMPLATE for the Cloud Routine you configure once at:
++#   https://claude.ai/code/routines
++#
++# Copy the values below into the routine creation form. It is NOT directly
++# executable — Anthropic infra reads the routine config from your account.
++#
++# Documentation: https://code.claude.com/docs/en/routines
++
++# ─── UI field mapping (claude.ai/code/routines form) ────────────────────────
++# YAML key                  →  Routine creation form field
++# name                      →  "Name"
++# description               →  "Description"
++# schedule.cron             →  "Schedule" (cron format)
++# schedule.timezone         →  "Timezone"
++# repo.url                  →  "Repository URL"
++# repo.branch               →  "Base branch"
++# permission_mode           →  "Permission mode" (radio: default / acceptEdits / auto / bypassPermissions)
++# model                     →  "Model"
++# budgets.*                 →  "Budgets" section (separate inputs)
++# connectors                →  "Connectors" checklist
++# env                       →  "Environment variables" key-value editor
++# branch_permission.pattern →  "Branch restriction"
++# prompt                    →  "Prompt" (multi-line textarea — paste the entire `prompt: |` block)
++
++name: morning-briefing
++
++description: >
++  Morning digest at 07:00. Reconciles what actually merged overnight (status
++  flip + ship-log), then writes docs/briefings/<date>.md with the day's proof
++  artifacts and opens a briefing PR. Read-mostly report — no task work.
++
++schedule:
++  cron: "0 7 * * *" # 07:00 daily — lands after the 23:00 overnight-build window
++  timezone: "Etc/UTC" # set to your team's standup TZ if you prefer
++
++repo:
++  url: "" # paste your GitHub repo URL
++  branch: main # base branch to clone from
++
++permission_mode: auto
++# Anthropic Auto Mode: Sonnet 4.6 classifier reviews every tool call and
++# approves/denies without user prompts. PreToolUse hooks (.claude/hooks/) still
++# fire FIRST and hard-block destructive ops via exit code 2. This routine only
++# reconciles state and writes a report, so the risk surface is small — Auto Mode
++# is used for consistency with overnight-build/dream-cron.
++
++model: claude-sonnet-4-6 # the briefing is summarization + reconciliation; Sonnet suffices
++
++budgets:
++  max_wall_clock_minutes: 15 # it's a report, not a build
++  max_budget_usd: 2 # hard cap on Anthropic spend per run
++
++connectors:
++  - github # required for PR creation
++  # - slack                          # optional: ping the digest link to a channel
++
++env:
++  ENABLE_TOOL_SEARCH: "true"
++  CLAUDE_CODE_AUTO_COMPACT_WINDOW: "400000"
++
++branch_permission:
++  pattern: "claude/briefing-*" # routine can only push to these branches
++
++prompt: |
++  You are producing the morning briefing. This is a report run, not a build run —
++  do NOT pick up tasks, do NOT implement features.
++
++  PROCESS:
++  1. Reconcile what actually merged overnight and update the ledger:
++     `bash .claude/scripts/reconcile-shipped.sh` — flips spec status → shipped,
++     initiative STATE → shipped, and records each merged PR with its proof
++     pointers into .claude/state/ship-log.jsonl.
++  2. Generate the digest:
++     `bash .claude/scripts/daily-briefing.sh` — writes and commits
++     docs/briefings/$(date +%Y-%m-%d).md (morning digest with proof artifacts).
++  3. Publish it as a PR:
++     - Create/switch to the branch:
++       `git switch -c "claude/briefing-$(date +%Y-%m-%d)" 2>/dev/null || git switch "claude/briefing-$(date +%Y-%m-%d)"`
++     - Push: `git push -u origin "claude/briefing-$(date +%Y-%m-%d)"`
++     - Open the PR with the briefing as the body:
++       `gh pr create --title "docs(briefing): $(date +%Y-%m-%d)" --body-file "docs/briefings/$(date +%Y-%m-%d).md"`
++
++  HARD RULES:
++  - Auto Mode is ON — Sonnet 4.6 classifier on every tool call; hooks still fire FIRST.
++  - Never push to main or master directly; only to claude/briefing-* branches.
++  - Do NOT merge the briefing PR yourself. A briefing is docs-only; let the normal
++    merge policy (auto-merge.yml + green required checks) handle it. Never improvise a merge.
++  - Never commit .env, secrets, or anything blocked by pre-write-secret-scan.
++  - If reconcile-shipped.sh or daily-briefing.sh exits non-zero, do NOT fabricate a
++    briefing — open the PR with whatever the script produced and note the failure in
++    the PR body, or leave a comment on the previous briefing PR if none was produced.
