@@ -1,0 +1,13 @@
+  - harvest exits 0 on a trailer-bearing commit
+  - creates a new ADR file
+grep: : No such file or directory
+  - ADR status is proposed (draft-only)
+grep: : No such file or directory
+grep: : No such file or directory
+  - ADR carries the Constraint trailer
+grep: : No such file or directory
+  - ADR carries the Directive trailer
+grep: : No such file or directory
+  - ADR records a harvest_hash for dedupe
+passed: 3
+failed: 6

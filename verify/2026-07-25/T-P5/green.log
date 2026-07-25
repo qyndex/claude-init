@@ -1,0 +1,8 @@
+# TDD ledger — green — T-P5
+ledger_format: 2
+timestamp: 2026-07-25T19:46:09+10:00
+command: bash .claude/scripts/test/roadmap-trace.sh
+exit_code: 0
+---
+passed: 8
+failed: 0
