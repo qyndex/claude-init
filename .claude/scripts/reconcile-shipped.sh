@@ -165,6 +165,18 @@ fi
 [ -x .claude/scripts/initiative-state.sh ] && bash .claude/scripts/initiative-state.sh sync >/dev/null 2>&1 || true
 [ -x .claude/scripts/shipped-registry.sh ] && bash .claude/scripts/shipped-registry.sh >/dev/null 2>&1 || true
 
+# spec-005 G3: harvest each merged commit's decision trailers into a DRAFT ADR
+# (status: proposed). Draft-only + deduped by hash, so this is safe to run every
+# reconcile; a human accepts via /adr-walk. Best-effort — a harvest hiccup must not
+# fail the reconcile.
+if [ -x .claude/scripts/harvest-decisions.sh ]; then
+  while IFS= read -r rec; do
+    [ -z "$rec" ] && continue
+    hsha=$(printf '%s' "$rec" | jq -r '.mergeCommit // ""')
+    [ -n "$hsha" ] && bash .claude/scripts/harvest-decisions.sh "$hsha" >/dev/null 2>&1 || true
+  done < <(printf '%s' "$records")
+fi
+
 # Append records (dedupe by pr number: skip any pr already in the log).
 touch "$SHIP_LOG"
 while IFS= read -r rec; do

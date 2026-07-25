@@ -1,0 +1,16 @@
+# TDD ledger — red — T-P5
+ledger_format: 2
+timestamp: 2026-07-25T19:44:17+10:00
+command: bash .claude/scripts/test/roadmap-trace.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+  - AC-5a: validate.sh has a [roadmap-trace] block
+  - AC-5a: dangling roadmap spec ref is a warning (warn)
+  - AC-5a: warns on dangling roadmap spec ref 777
+  - AC-5a: exactly one dangling warning for the fixture
+  - AC-5a: roadmap/README.md documents the row schema
+grep: roadmap/ROADMAP.md: No such file or directory
+  - AC-5a: roadmap/ROADMAP.md seeded with a spec-referencing row
+passed: 2
+failed: 6

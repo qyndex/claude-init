@@ -1,0 +1,7 @@
+# TDD ledger — green — T-P4
+ledger_format: 2
+timestamp: 2026-07-25T19:40:09+10:00
+command: bash .claude/scripts/test/trace-mismatch.sh
+exit_code: 0
+---
+trace-mismatch: 7 passed, 0 failed

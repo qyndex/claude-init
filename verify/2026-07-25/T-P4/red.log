@@ -1,0 +1,8 @@
+# TDD ledger — red — T-P4
+ledger_format: 2
+timestamp: 2026-07-25T19:39:44+10:00
+command: bash .claude/scripts/test/trace-mismatch.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+script missing: /Volumes/M/sourcecode/qyndex/claude-init/.claude/scripts/trace-mismatch.sh

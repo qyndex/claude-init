@@ -1,0 +1,14 @@
+# TDD ledger — red — T-P6
+ledger_format: 2
+timestamp: 2026-07-25T19:47:43+10:00
+command: bash .claude/scripts/test/pivot-trace.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+  - AC-5b: validate.sh has a [pivot-trace] block
+  - AC-5b: dangling pivot target is a warning (warn)
+  - AC-5b: pivots/active/ directory exists
+  - AC-5b: warns on dangling pivot target 888
+  - AC-5b: exactly one dangling warning for the fixture
+passed: 5
+failed: 5
