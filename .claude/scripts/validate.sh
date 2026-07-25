@@ -1002,6 +1002,104 @@ fi
   || note "dead-test detector armed (advisory until the M-00 glob runner is installed)"
 echo
 
+# ─── [spec-plan-trace] every approved/shipped spec should have a plan (G1) ──
+# spec-005 AC-1: a requirement that is approved or shipped but has no plan is a
+# traceability hole (spec-004 shipped planless, unflagged). OQ-1 chose WARN-FIRST:
+# this is advisory so the current tree (spec-004) stays rc=0; a follow-up flips it
+# to required once the debt is paid. A plan "references" a spec when its frontmatter
+# `spec:` points at the spec file OR its own id matches the spec id. Dirs are
+# overridable (SPT_SPECS_DIR/SPT_PLANS_DIR) for hermetic tests.
+spt_specs="${SPT_SPECS_DIR:-specs}"
+spt_plans="${SPT_PLANS_DIR:-plans}"
+spt_planless=0
+for sf in "$spt_specs"/active/*.md "$spt_specs"/archive/*.md; do
+  [ -f "$sf" ] || continue
+  s_status=$(fm_field "$sf" status)
+  case "$s_status" in approved|shipped) ;; *) continue ;; esac
+  s_id=$(fm_field "$sf" id)
+  [ -n "$s_id" ] || s_id=$(basename "$sf" .md | grep -oE '^[A-Za-z0-9]+')
+  # A plan references this spec if any plan's frontmatter spec: resolves to this file
+  # (by basename) or its id equals the spec id.
+  found=0
+  for pf in "$spt_plans"/active/*.md "$spt_plans"/archive/*.md; do
+    [ -f "$pf" ] || continue
+    p_spec=$(fm_field "$pf" spec)
+    p_id=$(fm_field "$pf" id)
+    if [ "$(basename "${p_spec:-}")" = "$(basename "$sf")" ] || { [ -n "$p_id" ] && [ "$p_id" = "$s_id" ]; }; then
+      found=1; break
+    fi
+  done
+  if [ "$found" -eq 0 ]; then
+    warn "[spec-plan-trace] planless: spec $s_id ($sf) is '$s_status' but no plan references it — /plan $s_id (advisory per spec-005 OQ-1)"
+    spt_planless=$((spt_planless+1))
+  fi
+done
+[ "$spt_planless" -eq 0 ] && ok "[spec-plan-trace] every approved/shipped spec has a plan"
+echo
+
+# ─── [roadmap-trace] every roadmap spec:NNN ref should resolve (G5a) ──────
+# spec-005 AC-5a: OQ-3 chose WIRE (not de-scope). Each roadmap row may carry a
+# `spec:NNN` reference (schema: roadmap/README.md). A ref that resolves to no
+# specs/{active,archive}/NNN-*.md is a traceability hole. Advisory WARN (never a
+# hard fail — consistent with [spec-plan-trace]) so the real tree stays rc=0. Rows
+# without a spec: token are fine (not every item is specified yet). ROADMAP_FILE is
+# overridable for hermetic tests; defaults to roadmap/ROADMAP.md.
+roadmap_file="${ROADMAP_FILE:-roadmap/ROADMAP.md}"
+rt_dangling=0
+if [ -f "$roadmap_file" ]; then
+  # Extract every spec:NNN token (guarded: grep may match nothing → || true, and the
+  # sort dedupes so a spec cited twice is one check). set -o pipefail is not active in
+  # this script, but || true keeps a no-match grep from tripping any future pipefail.
+  refs=$(grep -oE 'spec:[0-9]+' "$roadmap_file" 2>/dev/null | sed 's/^spec://' | sort -u || true)
+  for nnn in $refs; do
+    # Check each dir separately: a combined `ls active/* archive/*` fails whenever
+    # EITHER glob is unmatched (bash passes the literal to ls, which errors), which
+    # would false-flag a spec present in only one dir. OR the two probes instead.
+    if ls specs/active/"$nnn"-*.md >/dev/null 2>&1 || ls specs/archive/"$nnn"-*.md >/dev/null 2>&1; then
+      continue
+    fi
+    warn "[roadmap-trace] dangling: roadmap ref spec:$nnn ($roadmap_file) resolves to no specs/{active,archive}/$nnn-*.md — /specify it or fix the ref (advisory per spec-005 AC-5a)"
+    rt_dangling=$((rt_dangling+1))
+  done
+  [ "$rt_dangling" -eq 0 ] && ok "[roadmap-trace] every roadmap spec:NNN ref resolves ($roadmap_file)"
+else
+  note "[roadmap-trace] no roadmap file at $roadmap_file (skipped)"
+fi
+echo
+
+# ─── [pivot-trace] every pivot target: should resolve (G5b) ──────────────
+# spec-005 AC-5b: OQ-3 chose WIRE. A pivot manifest in pivots/active/*.md carries a
+# frontmatter `target:` (the spec or initiative it pivots away from). A target that
+# resolves to neither a spec nor an initiative is a traceability hole. Advisory WARN
+# (never a hard fail — consistent with [spec-plan-trace]/[roadmap-trace]) so the real
+# tree stays rc=0. Resolution is prefix-tolerant: a `spec-004`/`004`/`plan-004` target
+# matches specs/{active,archive}/<core>-*.md OR initiatives/active/*<core>*.md. PIVOT_DIR
+# is overridable for hermetic tests; defaults to pivots.
+pivot_dir="${PIVOT_DIR:-pivots}"
+pt_dangling=0; pt_seen=0
+for pf in "$pivot_dir"/active/*.md; do
+  [ -f "$pf" ] || continue
+  pt_seen=$((pt_seen+1))
+  target=$(fm_field "$pf" target)
+  [ -n "$target" ] || continue
+  # Core id: strip a leading spec-/plan-/init- word prefix (spec-004 → 004) so both the
+  # bare-id and prefixed conventions resolve.
+  core=${target#spec-}; core=${core#plan-}; core=${core#init-}
+  if ls specs/active/"$core"-*.md >/dev/null 2>&1 \
+     || ls specs/archive/"$core"-*.md >/dev/null 2>&1 \
+     || ls initiatives/active/*"$core"*.md >/dev/null 2>&1; then
+    continue
+  fi
+  warn "[pivot-trace] dangling: pivot target '$target' ($pf) resolves to no spec or initiative — fix target:/target_kind: or create the artifact (advisory per spec-005 AC-5b)"
+  pt_dangling=$((pt_dangling+1))
+done
+if [ "$pt_seen" -eq 0 ]; then
+  note "[pivot-trace] no pivots in $pivot_dir/active (skipped)"
+elif [ "$pt_dangling" -eq 0 ]; then
+  ok "[pivot-trace] every pivot target resolves to a spec or initiative"
+fi
+echo
+
 # ─── [liveness] promoted metabolism gate (M-04-promote) ──────────────────
 # Per the plan's final item + O-7 MEDIUM-1: promote ONLY the branch-local,
 # deterministic committed-index-staleness check to a REQUIRED gate. The dream-

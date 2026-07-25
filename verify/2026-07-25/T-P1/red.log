@@ -1,0 +1,5 @@
+  - validate.sh has a spec→plan trace block
+  - planless spec is a warning (warn), per OQ-1 warn-first
+  - warns on approved/shipped spec 901 with no plan
+passed: 2
+failed: 3

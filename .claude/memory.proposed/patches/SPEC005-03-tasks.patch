@@ -1,0 +1,50 @@
+diff --git a/tasks/TASKS.md b/tasks/TASKS.md
+index 279fb1c..1f17561 100644
+--- a/tasks/TASKS.md
++++ b/tasks/TASKS.md
+@@ -951,3 +951,45 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
+ - [s] T-155  | spec:004  | phase:7  | priority: high  | created: 2026-06-14  | last_touched: 2026-06-14  | deps: T-153  | parallel: yes  | est: 10m
+ - [s] T-156  | spec:004  | phase:7  | priority: high  | created: 2026-06-14  | last_touched: 2026-06-14  | deps: T-151  | parallel: yes  | est: 10m
+ - [s] T-157  | spec:004  | phase:7  | priority: high  | created: 2026-06-14  | last_touched: 2026-06-14  | deps: T-153  | parallel: yes  | est: 5m
++
++- [s] T-158  | spec:005  | phase:1  | priority: high  | created: 2026-07-25  | last_touched: 2026-07-25  | deps:  | parallel: no  | est: 15m
++  summary: G1 spec→plan trace — validate.sh [spec-plan-trace] warns on approved/shipped spec with no plan (OQ-1 warn-first)
++  files: .claude/scripts/validate.sh
++  accept: bash .claude/scripts/test/spec-plan-trace.sh
++  owner: implementer
++
++- [s] T-159  | spec:005  | phase:1  | priority: high  | created: 2026-07-25  | last_touched: 2026-07-25  | deps:  | parallel: yes  | est: 15m
++  summary: G2 analyze-coverage.sh — emit .claude/state/analyze-<id>.json spec→task structural coverage
++  files: .claude/scripts/analyze-coverage.sh
++  accept: bash .claude/scripts/test/analyze-coverage.sh
++  owner: implementer
++
++- [s] T-160  | spec:005  | phase:1  | priority: high  | created: 2026-07-25  | last_touched: 2026-07-25  | deps:  | parallel: no  | est: 20m
++  summary: G3 harvest-decisions.sh — Constraint/Rejected/Directive trailers → draft proposed ADR, deduped, wired into reconcile-shipped
++  files: .claude/scripts/harvest-decisions.sh
++  accept: bash .claude/scripts/test/harvest-decisions.sh
++  owner: implementer
++
++- [s] T-161  | spec:005  | phase:1  | priority: high  | created: 2026-07-25  | last_touched: 2026-07-25  | deps:  | parallel: yes  | est: 15m
++  summary: G4 trace-mismatch.sh — flag SHIPPED.md FAIL/UNPROVEN vs task-done disagreements (reports real 001/002)
++  files: .claude/scripts/trace-mismatch.sh
++  accept: bash .claude/scripts/test/trace-mismatch.sh
++  owner: implementer
++
++- [s] T-162  | spec:005  | phase:1  | priority: normal  | created: 2026-07-25  | last_touched: 2026-07-25  | deps:  | parallel: yes  | est: 15m
++  summary: G5a roadmap→spec trace — validate.sh [roadmap-trace] + roadmap schema/README
++  files: .claude/scripts/validate.sh
++  accept: bash .claude/scripts/test/roadmap-trace.sh
++  owner: implementer
++
++- [s] T-163  | spec:005  | phase:1  | priority: normal  | created: 2026-07-25  | last_touched: 2026-07-25  | deps:  | parallel: no  | est: 20m
++  summary: G5b /pivot skill (staged patch) + pivots/active + validate.sh [pivot-trace]
++  files: .claude/scripts/validate.sh
++  accept: bash .claude/scripts/test/pivot-trace.sh
++  owner: implementer
++
++- [s] T-164  | spec:005  | phase:1  | priority: high  | created: 2026-07-25  | last_touched: 2026-07-25  | deps: T-158, T-159, T-160, T-161, T-162, T-163  | parallel: no  | est: 10m
++  summary: AC-6 verify sweep — validate rc=0, all spec-005 tests green, harvester dry-run on real commit, trace-mismatch reports 001/002
++  files: verify/2026-07-25
++  accept: bash .claude/scripts/validate.sh
++  owner: verifier

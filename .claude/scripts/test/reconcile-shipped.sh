@@ -16,7 +16,12 @@ cat > "$tmp/merged.json" <<'EOF'
 [{"number":22,"title":"feat: revive metabolism","mergedAt":"2026-07-23T23:36:39Z","mergeCommit":{"oid":"0d770c017dcef0f89a978068ba952f5e093ef9c7"},"url":"https://github.com/qyndex/claude-init/pull/22","headRefName":"harness/x"}]
 EOF
 
-run() { RECON_MERGED_JSON="$tmp/merged.json" RECON_STATE_DIR="$statedir" bash "$SCRIPT" "$@"; }
+# HARVEST_DECISIONS_DIR is isolated to the fixture so the harvester wired into
+# reconcile-shipped.sh NEVER writes a real ADR into .claude/memory/decisions/ during
+# a test run. (The fixture merge SHA also isn't a real commit, so with a fixture body
+# absent the harvester simply finds no trailers — but pin the dir regardless.)
+run() { RECON_MERGED_JSON="$tmp/merged.json" RECON_STATE_DIR="$statedir" \
+        HARVEST_DECISIONS_DIR="$tmp/decisions" bash "$SCRIPT" "$@"; }
 
 # (1) Produces a valid JSONL ship-log record for the merged PR.
 run >/dev/null 2>&1; rc=$?

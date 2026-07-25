@@ -1,0 +1,33 @@
+diff --git a/specs/active/005-traceability-and-decision-harvest.md b/specs/active/005-traceability-and-decision-harvest.md
+index 8ca1085..e84f8e5 100644
+--- a/specs/active/005-traceability-and-decision-harvest.md
++++ b/specs/active/005-traceability-and-decision-harvest.md
+@@ -1,11 +1,11 @@
+ ---
+ id: 005
+ slug: traceability-and-decision-harvest
+-status: draft
++status: approved
+ owner: "@claude"
+ human_owner: "@operator"
+ created: 2026-07-24
+-updated: 2026-07-24
++updated: 2026-07-25
+ complexity: L
+ objective: KR-PLATFORM
+ service_tier: T2
+@@ -64,9 +64,11 @@ In scope (each maps to an audited gap):
+ 
+ ## Open questions
+ 
+-- [OQ-1] G1: warn or hard-fail on planless approved spec? (Lean warn-first per advisory sequencing; confirm at /clarify.)
+-- [OQ-2] G3: draft ADRs into `.claude/memory/decisions/` directly (status: proposed) or into `.claude/memory.proposed/` for a review queue? (Lean decisions/ with status: proposed so /adr-walk sees them.)
+-- [OQ-3] G5: wire roadmap/pivot for real, or de-scope to template-only with honest docs? (Depends whether multi-quarter roadmapping is actually used here — likely de-scope for a single-maintainer harness.)
++Resolved at /clarify 2026-07-25:
++
++- [RESOLVED OQ-1] G1: **warn-first**, flip to required in a follow-up once existing planless specs (spec-004) get plans. Matches liveness-gate advisory→required sequencing.
++- [RESOLVED OQ-2] G3: harvested decisions land in **`.claude/memory/decisions/` as `status: proposed`** so `/adr-walk` surfaces them; a human flips `proposed → accepted`.
++- [RESOLVED OQ-3] G5: **wire roadmap→spec and pivot→spec for real** — resolvable references + a `/pivot` skill + `validate.sh` link checks.
+ 
+ ## Dependencies
+ 

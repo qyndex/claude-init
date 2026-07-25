@@ -1,0 +1,7 @@
+# TDD ledger — green — T-P2
+ledger_format: 2
+timestamp: 2026-07-25T19:39:13+10:00
+command: bash .claude/scripts/test/analyze-coverage.sh
+exit_code: 0
+---
+analyze-coverage: 13 passed, 0 failed

@@ -1,0 +1,18 @@
+{
+  "kind": "harness-maintenance",
+  "reason": "spec-005 traceability gap-closure: adds requirement-traceability tooling (spec->plan trace, analyze-coverage, decision harvest, SHIPPED<->task reconcile, roadmap/pivot wiring) to the harness. No application source; changes are shell scripts + their tests + validate.sh gates + spec/plan/roadmap scaffolding. Guarded edits (specs/active, tasks/TASKS.md) are staged as operator patches under .claude/memory.proposed/patches/, not force-written.",
+  "maintains": [
+    ".claude/scripts/analyze-coverage.sh",
+    ".claude/scripts/harvest-decisions.sh",
+    ".claude/scripts/reconcile-shipped.sh",
+    ".claude/scripts/trace-mismatch.sh",
+    ".claude/scripts/validate.sh",
+    "plans/active/005-traceability-and-decision-harvest.md",
+    "roadmap/",
+    "pivots/",
+    ".claude/memory.proposed/patches/SPEC005-01-clarify-resolved.patch",
+    ".claude/memory.proposed/patches/SPEC005-02-pivot-skill.patch",
+    ".claude/memory.proposed/patches/SPEC005-03-tasks.patch"
+  ],
+  "date": "2026-07-25"
+}
