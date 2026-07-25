@@ -1,0 +1,37 @@
+diff --git a/.claude/routines/overnight-build.yml b/.claude/routines/overnight-build.yml
+index dfe0de9..0179f0a 100644
+--- a/.claude/routines/overnight-build.yml
++++ b/.claude/routines/overnight-build.yml
+@@ -190,18 +190,28 @@ prompt: |
+      PROPOSE ONLY — never auto-promote to specs/. The morning report must say:
+      "backlog empty; proposed candidate <X> grounded in <FB-###/KR-###>".
+   1. Invoke the dream skill — consolidate .claude/memory/ and .claude/memory/.cache/checkpoints/
+-  2. Write OVERNIGHT_REPORT.md at repo root in NEXUS handoff format:
++  2. Reconcile what actually merged and update the ledger:
++     `bash .claude/scripts/reconcile-shipped.sh` — flips spec status → shipped,
++     initiative STATE → shipped, records each merged PR with its proof pointers
++     into .claude/state/ship-log.jsonl.
++  3. Write OVERNIGHT_REPORT.md at repo root in NEXUS handoff format:
+      - Tasks shipped (with PR URLs)
+      - Tasks aborted/escalated (with reasons + last 3 attempts)
+      - Decisions made (commit SHA citations)
+      - Open questions for human review
+      - Token + time spent
+-  3. Slack ping (if connector enabled): "Overnight run: <N> shipped, <M> open, <K> escalated. See OVERNIGHT_REPORT.md"
++  4. Slack ping (if connector enabled): "Overnight run: <N> shipped, <M> open, <K> escalated. See OVERNIGHT_REPORT.md"
+ 
+   HARD RULES:
+   - Auto Mode is ON — Sonnet 4.6 classifier on every tool call; hooks still fire FIRST
+-  - Never push to main or master; only to claude/overnight-* branches
+-  - Never auto-merge; humans review PRs
++  - Never push to main or master directly; only to claude/overnight-* branches
++  - Autonomous merge is via POLICY, never by hand: after opening a PR and running your
++    own reviewer + security preflight, call `bash .claude/scripts/autonomous-ship.sh <pr>`.
++    It arms native `gh pr merge --auto` ONLY when every required check is green; GitHub
++    then squash-merges server-side. NEVER run a bare `gh pr merge` yourself, NEVER force,
++    and NEVER merge without green checks — no green, no merge (autonomous-ship enforces this).
++    If checks can't go green (e.g. CI billing outage), leave the PR open and log it to the
++    briefing; do not improvise a merge.
+   - Never auto-modify a path listed in .claude/state/adopt/uncharacterized-paths.txt — if a
+     task needs it, STOP that task, log "ADOPT-BLOCKED", and require a characterization test
+     first (Feathers sprout/wrap). "No tests = no writes" on adopted legacy.

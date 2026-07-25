@@ -1,0 +1,14 @@
+diff --git a/.claude/settings.json b/.claude/settings.json
+index ec18383..7f8bd4a 100644
+--- a/.claude/settings.json
++++ b/.claude/settings.json
+@@ -243,6 +243,9 @@
+       "Bash(bash .claude/scripts/*:*)",
+       "Bash(bash .claude/hooks/*:*)",
+       "Bash(.claude/scripts/*:*)",
++      "Bash(bash .claude/scripts/autonomous-ship.sh:*)",
++      "Bash(bash .claude/scripts/reconcile-shipped.sh:*)",
++      "Bash(bash .claude/scripts/daily-briefing.sh:*)",
+       "Bash(node .claude/hooks/*:*)",
+       "Write(initiatives/**)",
+       "Write(.claude/rules/**)",

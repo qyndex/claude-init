@@ -1,0 +1,11 @@
+{
+  "kind": "harness-maintenance",
+  "reason": "autonomous merge + shipping harness tooling (.claude/scripts + staged guarded patches + ADR/spec docs); no application source changed",
+  "maintains": [
+    ".claude/scripts",
+    ".claude/memory/decisions",
+    "specs/active",
+    "verify"
+  ],
+  "date": "2026-07-24"
+}
