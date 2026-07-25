@@ -1,0 +1,15 @@
+{
+  "kind": "harness-maintenance",
+  "reason": "Applies the 8 pre-authored operator patches that finalize autonomous shipping + spec-005 traceability: 0-approval ruleset (matches live), autonomous-ship allow-list, overnight-build auto-merge policy, morning-briefing routine, autonomous /ship skill, /pivot skill, spec-005 approved, and its shipped tasks. No application source; changes are harness config (rulesets, routines, settings, skills) + spec/tasks ledger reconciliation. Each patch was explicitly approved by the operator via AskUserQuestion.",
+  "maintains": [
+    ".github/rulesets/main-protection.json",
+    ".claude/settings.json",
+    ".claude/routines/overnight-build.yml",
+    ".claude/routines/morning-briefing.yml",
+    ".claude/skills/ship/SKILL.md",
+    ".claude/skills/pivot/SKILL.md",
+    "specs/active/005-traceability-and-decision-harvest.md",
+    "tasks/TASKS.md"
+  ],
+  "date": "2026-07-25"
+}
