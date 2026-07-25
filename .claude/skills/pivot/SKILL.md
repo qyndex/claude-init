@@ -1,0 +1,54 @@
+---
+name: pivot
+description: Capture a mid-project pivot (drop, pause, supersede, stop a direction) into pivots/active/<slug>.md with a resolvable target: spec or initiative id and target_kind:. Records trigger, Lean-Startup pivot type, old/new direction, and cascade impact so the change is traceable, not silent.
+when_to_use: User says "we're pivoting", "drop/pause/kill this initiative", "supersede spec X", "we changed direction on", or a metric/customer signal forces abandoning an in-flight spec or initiative.
+argument-hint: "<verb> <target-id> — <one-line reason>"
+model: opus
+allowed-tools: Read, Write, Edit, Glob, Grep, TodoWrite
+---
+
+# Pivot
+
+Capture a mid-project change of direction as a durable, **traceable** manifest. A pivot
+that isn't written down is a silent scope change; this skill makes it an artifact whose
+`target:` resolves to the spec or initiative it pivots away from — checked by the
+`[pivot-trace]` block in `validate.sh`.
+
+## Process
+
+1. **Identify the target.** What are we pivoting away from? It must be a real
+   `specs/{active,archive}/<id>-*.md` or `initiatives/active/<id>*.md`. Set:
+   - `target:` — the id (e.g. `004` or `spec-004` or an initiative id)
+   - `target_kind:` — `specs` | `plans` | `initiatives`
+   - `target_path:` — the canonical relative path
+2. **Pick the verb** — `drop` | `pause` | `supersede` | `stop`.
+3. **Use the template** at `pivots/templates/pivot.md`. Fill: Trigger (quote the
+   metric/customer/dashboard), Lean-Startup pivot type, Old direction, New direction,
+   Affected cascade.
+4. **Allocate an id** — `PIV-NNN` = `max(existing PIV ids in pivots/active) + 1`.
+5. **Write** to `pivots/active/<slug>.md` where `<slug>` is a short kebab label
+   (e.g. `pivots/active/drop-004-ci-gates.md`).
+6. **Leave `status: proposed`** until a peer signoff flips it to `accepted` (one
+   reviewer is the gate — no committee).
+
+## Hard rules
+
+- **The target must resolve.** `validate.sh`'s `[pivot-trace]` block warns on any
+  `pivots/active/*.md` whose `target:` points at no spec or initiative. Don't ship a
+  dangling pivot.
+- **Quote the trigger.** A pivot needs evidence — a metric, a customer quote, an
+  incident — not a hunch.
+- **Don't cascade silently.** List the child specs/plans/tasks the pivot affects in the
+  Affected section so downstream state can be reconciled.
+- **Proposed until reviewed.** No self-approval; a pivot is reversible without ceremony
+  while `status: proposed`.
+
+## Output
+
+```
+pivots/active/<slug>.md   (status: proposed → accepted after peer signoff)
+```
+
+After save, notify the user: "Pivot pivots/active/<slug>.md captured (target: <target>,
+verb: <verb>). Awaiting one peer signoff to accept. Cascade: <N> child specs/plans/tasks
+affected."
