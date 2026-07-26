@@ -30,8 +30,12 @@ mkdir -p .claude/memory
 extract_field() {
   # Pulls one field from YAML frontmatter or markdown body. Returns "" if missing.
   local file="$1" field="$2"
+  # The fence match tolerates trailing whitespace / a CR (CRLF-checked-out files):
+  # a strict /^---$/ silently fails to toggle `fm` when the --- line carries a \r,
+  # so every field extracts "" — the CI-only "got ''" failures in the index tests.
   awk -v field="$field" '
-    /^---$/ { fm = !fm; next }
+    { sub(/\r$/, "") }
+    /^---[[:space:]]*$/ { fm = !fm; next }
     fm && $0 ~ "^" field ":" {
       sub("^" field ":[[:space:]]*", "")
       gsub(/"/, "")
