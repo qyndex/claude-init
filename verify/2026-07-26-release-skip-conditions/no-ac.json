@@ -1,0 +1,9 @@
+{
+  "kind": "harness-maintenance",
+  "reason": "Release-please PRs: the dispatch-gate design proved ineffective (workflow_dispatch check runs never enter the PR statusCheckRollup) while real per-PR workflows DO fire and evidence-gate/review legitimately fail on a version/changelog-only diff. Fix: release-fast-pass skip `if:` on each gating job (skipped required checks satisfy the ruleset), release-please.yml verifies the diff allowlist then close/reopens + arms auto-merge, gate workflow deleted. Ships as operator patch REL-03 (workflows are constitution-guarded).",
+  "maintains": [
+    ".claude/memory.proposed/patches-release/REL-03-release-skip-conditions.patch",
+    ".github/workflows/"
+  ],
+  "date": "2026-07-26"
+}

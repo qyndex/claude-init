@@ -4,7 +4,7 @@
 > boundaries (session end, ship, verify, merge). Do not hand-edit; history
 > lives in git. This is the always-current answer to "where is this initiative?"
 
-- **updated_at**: 2026-07-26T20:07:49+10:00
+- **updated_at**: 2026-07-26T21:31:05+10:00
 - **phase**: shipped
 - **spec**: specs/active/004-ci-gates-fail-own-code.md
 - **plan**: plans/active/005-traceability-and-decision-harvest.md
@@ -15,11 +15,11 @@
 _(none)_
 
 ## Last 5 events (git)
-- 46ceeb4 chore(ci): re-baseline silent-failure audit after reconcile-shipped line shift
-- c899fc2 fix(ci): make reconcile-shipped trailer harvest checkout-depth independent
-- 89b0734 fix(ci): harden M-00 runner against set -e abort (advisory arithmetic)
-- f8b9a33 fix(ci): finish GNU-stat portability sweep + patch-aware M-00 runner
-- 3c0dcff fix(ci): probe GNU stat -c %Y before BSD -f %m (empty-index root cause)
+- 31cc5d2 fix(release): release-fast-pass skip conditions in per-PR gates (REL-03)
+- 36c5eb6 fix(release): unblock release-please PRs — dispatch-gated automerge (#34)
+- c902979 docs(claude-md): sync hook-lifecycle table with settings.json (#33)
+- b559479 fix(ci): green the real post-billing CI failures (#32)
+- 0f27146 chore(memory): refresh atlas code-map + initiative ledger (#31)
 
 ## Blockers
 _(none)_

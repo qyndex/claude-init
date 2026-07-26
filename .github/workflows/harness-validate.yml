@@ -20,6 +20,12 @@ permissions:
 
 jobs:
   harness-validate:
+    # release-fast-pass: a bot-authored release-please PR changes only
+    # version/changelog files (verified by release-please.yml before it arms
+    # auto-merge) — skip; GitHub counts a skipped required check as satisfied.
+    if: >-
+      !(startsWith(github.head_ref, 'release-please--') &&
+        github.event.pull_request.user.login == 'github-actions[bot]')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7

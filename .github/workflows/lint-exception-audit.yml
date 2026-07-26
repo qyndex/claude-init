@@ -16,6 +16,12 @@ jobs:
   # Job id renamed audit → lint-exception-audit (e2e-audit ci-gates-1): the job id
   # IS the required-check context in main-protection.json — 'audit' was ambiguous.
   lint-exception-audit:
+    # release-fast-pass: a bot-authored release-please PR changes only
+    # version/changelog files (verified by release-please.yml before it arms
+    # auto-merge) — skip; GitHub counts a skipped required check as satisfied.
+    if: >-
+      !(startsWith(github.head_ref, 'release-please--') &&
+        github.event.pull_request.user.login == 'github-actions[bot]')
     runs-on: ubuntu-latest
     env:
       BASE_SHA: ${{ github.event.pull_request.base.sha }}
