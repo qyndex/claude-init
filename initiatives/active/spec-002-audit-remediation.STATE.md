@@ -4,7 +4,7 @@
 > boundaries (session end, ship, verify, merge). Do not hand-edit; history
 > lives in git. This is the always-current answer to "where is this initiative?"
 
-- **updated_at**: 2026-07-26T11:34:27+10:00
+- **updated_at**: 2026-07-26T20:07:49+10:00
 - **phase**: shipped
 - **spec**: specs/active/002-audit-remediation.md
 - **plan**: plans/active/005-traceability-and-decision-harvest.md
@@ -15,11 +15,11 @@
 _(none)_
 
 ## Last 5 events (git)
-- 5849cae docs: public-release onboarding + one-line installer + governance (#28)
-- 41534d4 chore(repo): gitignore regenerated state; commit initiative ledger (#27)
-- 47fe27f chore(harness): apply operator-approved autonomous-ship + spec-005 patches (#26)
-- 8a8c4ba feat(traceability): close spec-005 requirement-traceability gaps (#25)
-- 2075678 feat(ship): autonomous green-gated merge + proof-backed daily briefing (#23)
+- 46ceeb4 chore(ci): re-baseline silent-failure audit after reconcile-shipped line shift
+- c899fc2 fix(ci): make reconcile-shipped trailer harvest checkout-depth independent
+- 89b0734 fix(ci): harden M-00 runner against set -e abort (advisory arithmetic)
+- f8b9a33 fix(ci): finish GNU-stat portability sweep + patch-aware M-00 runner
+- 3c0dcff fix(ci): probe GNU stat -c %Y before BSD -f %m (empty-index root cause)
 
 ## Blockers
 _(none)_
