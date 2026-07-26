@@ -22,7 +22,16 @@ cd "$ROOT"
 # rebuild can't interleave with a live PostToolUse `touch` (post-write-format.sh)
 # and silently drop the just-written entry. mkdir-atomic, ships everywhere.
 # shellcheck source=lib/with-lock.sh
-. "$(dirname "$0")/lib/with-lock.sh"
+# Graceful fallback: if the lock helper isn't reachable (e.g. a test fixture that
+# copies only this script, or a partial checkout), define a no-op with_lock so the
+# rebuild still runs. The lock only serializes concurrent touch/rebuild; its absence
+# degrades to "no serialization", never to an empty index. Without this, a missing
+# lib/ left with_lock undefined → the rebuild aborted → every field extracted "".
+if [ -r "$(dirname "$0")/lib/with-lock.sh" ]; then
+  . "$(dirname "$0")/lib/with-lock.sh"
+else
+  with_lock() { shift; "$@"; }   # drop the lock-name arg, run the command directly
+fi
 
 INDEX=".claude/memory/index.jsonl"
 mkdir -p .claude/memory
