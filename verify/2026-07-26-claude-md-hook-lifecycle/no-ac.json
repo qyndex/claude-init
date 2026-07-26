@@ -1,6 +1,12 @@
 {
-  "kind": "docs-only",
-  "reason": "CLAUDE.md hook-lifecycle table drifted from settings.json — documents 7 registered hooks that were missing and corrects the script count; no behavior change",
-  "maintains": ["CLAUDE.md"],
+  "kind": "harness-maintenance",
+  "reason": "CLAUDE.md hook-lifecycle table drifted from settings.json (7 missing hooks, script count) + machine-maintained ledger refresh: spec-005 status flip to shipped, initiative STATE.md syncs, registry/index regen. No application source, no behavior change",
+  "maintains": [
+    "CLAUDE.md",
+    "specs/active/005-traceability-and-decision-harvest.md",
+    "initiatives/active/",
+    ".claude/memory/index.jsonl",
+    ".claude/skills/REGISTRY.md"
+  ],
   "date": "2026-07-26"
 }

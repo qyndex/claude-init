@@ -1,11 +1,11 @@
 ---
 id: 005
 slug: traceability-and-decision-harvest
-status: approved
+status: shipped
 owner: "@claude"
 human_owner: "@operator"
 created: 2026-07-24
-updated: 2026-07-25
+updated: 2026-07-26
 complexity: L
 objective: KR-PLATFORM
 service_tier: T2
