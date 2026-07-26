@@ -72,7 +72,7 @@ Agents         .claude/agents/{core,quality,specialists}/*.md
 Discipline     skills: tdd-loop, browser-e2e, security-guard, token-budget, etc.
 Memory         .claude/memory/{MEMORY.md, decisions/, patterns/, incidents/, playbooks/}
 Hooks          .claude/hooks/*.sh         — deterministic guardrails (fire before the classifier)
-Scripts        .claude/scripts/*.sh       — ~90 operational utilities
+Scripts        .claude/scripts/*.sh       — ~100 operational utilities
 CI             .github/workflows/         — GitHub Actions gates
 Artifacts      specs/ plans/ tasks/ verify/ docs/
 Swarm          .swarms/{coordinator,streams,templates}/
@@ -96,13 +96,16 @@ Routines       .claude/routines/          — Cloud Routine YAML (overnight-buil
 ## Hook lifecycle
 
 ```
-SessionStart      → session-start.sh + session-start-context.sh
-UserPromptSubmit  → user-prompt-context.sh, workflow-state.sh, skill-router.sh, session-heartbeat.sh
+SessionStart      → session-start.sh, session-start-context.sh, check-overnight-fired.sh
+UserPromptSubmit  → user-prompt-context.sh, workflow-state.sh, skill-router.sh, session-heartbeat.sh, context-monitor.sh
 PreToolUse:Bash   → pre-bash-guard.sh (exit 2 = hard block), pre-spawn-cost-gate.sh, pre-bash-dep-freshness.sh
-PreToolUse:Write|Edit|NotebookEdit → pre-edit-constitution-guard.sh, pre-write-secret-scan.sh (gitleaks)
-PreToolUse:Agent  → subagent-context.sh
-PostToolUse:Write → post-write-format.sh, instinct-observer.sh, post-write-roadmap.sh
+PreToolUse:Write|Edit|NotebookEdit → pre-edit-constitution-guard.sh, pre-write-secret-scan.sh (gitleaks), pre-edit-legacy-guard.sh, pre-lane-guard.sh
+PreToolUse:Agent|Task → pre-spawn-cost-gate.sh, subagent-context.sh
+PreToolUse:<MCP write tools> → pre-mcp-write-guard.sh (filesystem write/edit/move, github create_or_update_file/push_files)
+PostToolUse:Write|Edit → post-write-format.sh, instinct-observer.sh, post-write-roadmap.sh
 PostToolUse:Bash  → post-bash-log.sh, instinct-observer.sh
+PostToolUse:Skill → skill-use-log.sh
+PostToolUse:Read  → read-volume-nudge.sh
 Stop              → stop-verify.sh, auto-dream-check.sh, task-signature-detector.sh
 SubagentStop      → subagent-stop.sh
 PreCompact        → pre-compact-witness.sh (async witness brief)
@@ -162,7 +165,7 @@ bash .claude/scripts/reconcile-claude-dir.sh --from /tmp/factory --into . --upgr
 bash .claude/scripts/setup.sh
 ```
 
-Default reconcile no-clobbers `commands/`/`hooks/`/`.github/` (adoption-safe) and so won't *update* factory files on a re-run. `--upgrade` refreshes **factory-owned** files (same name as a file the factory ships) to the new version — backed up to `.brownfield-backup/<ts>/` (`.claude/` + `.github/` + `docs/`), change reported — while preserving your own commands/hooks/workflows and never touching `specs/`/`plans/`/`tasks/` or application source. See [docs/ADOPTION.md](docs/ADOPTION.md#troubleshooting).
+Default reconcile no-clobbers `commands/`/`hooks/`/`.github/` (adoption-safe) and so won't _update_ factory files on a re-run. `--upgrade` refreshes **factory-owned** files (same name as a file the factory ships) to the new version — backed up to `.brownfield-backup/<ts>/` (`.claude/` + `.github/` + `docs/`), change reported — while preserving your own commands/hooks/workflows and never touching `specs/`/`plans/`/`tasks/` or application source. See [docs/ADOPTION.md](docs/ADOPTION.md#troubleshooting).
 
 ## MCP server model
 

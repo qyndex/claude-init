@@ -1,0 +1,6 @@
+{
+  "kind": "docs-only",
+  "reason": "CLAUDE.md hook-lifecycle table drifted from settings.json — documents 7 registered hooks that were missing and corrects the script count; no behavior change",
+  "maintains": ["CLAUDE.md"],
+  "date": "2026-07-26"
+}
