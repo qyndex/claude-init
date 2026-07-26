@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640" font-family="'Segoe UI', -apple-system, Helvetica, Arial, sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0d1117"/>
+      <stop offset="1" stop-color="#161b22"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#7c5cff"/>
+      <stop offset="1" stop-color="#22d3ee"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1280" height="640" fill="url(#bg)"/>
+  <rect x="0" y="0" width="1280" height="8" fill="url(#accent)"/>
+
+  <!-- title -->
+  <text x="80" y="180" fill="#ffffff" font-size="72" font-weight="800">claude-init</text>
+  <text x="80" y="250" fill="#c9d1d9" font-size="34" font-weight="500">Turn Claude Code into an autonomous engineering team</text>
+  <text x="80" y="298" fill="#8b949e" font-size="28" font-weight="400">spec → plan → tasks → TDD → verify → review → ship</text>
+
+  <!-- install command chip -->
+  <rect x="80" y="360" width="1120" height="88" rx="14" fill="#010409" stroke="#30363d" stroke-width="1.5"/>
+  <text x="112" y="415" fill="#22d3ee" font-family="'JetBrains Mono','SF Mono',Menlo,monospace" font-size="27">$ curl -fsSL https://raw.githubusercontent.com/qyndex/claude-init/main/scripts/install.sh | bash</text>
+
+  <!-- feature pills -->
+  <g font-size="24" font-weight="600">
+    <rect x="80"  y="500" width="330" height="60" rx="30" fill="#1f2937"/>
+    <text x="112" y="539" fill="#e5e7eb">🏭  One command, any repo</text>
+    <rect x="435" y="500" width="300" height="60" rx="30" fill="#1f2937"/>
+    <text x="467" y="539" fill="#e5e7eb">🔒  Security-first hooks</text>
+    <rect x="760" y="500" width="340" height="60" rx="30" fill="#1f2937"/>
+    <text x="792" y="539" fill="#e5e7eb">✅  Evidence, not vibes</text>
+  </g>
+
+  <!-- corner mark -->
+  <text x="1200" y="180" fill="url(#accent)" font-size="72" font-weight="800" text-anchor="end">★</text>
+</svg>

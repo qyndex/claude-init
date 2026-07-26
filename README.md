@@ -1,6 +1,16 @@
-# Claude Code Golden Harness
+# claude-init — turn Claude Code into an autonomous engineering team, in one command
 
-> A production-grade `.claude/` starter that any project team can drop into a repo to get an autonomous, spec-driven, TDD-first, verification-gated, security-aware agent system in 15 minutes.
+> Drop a spec-driven, TDD-first, verification-gated, security-aware agent workflow into **any**
+> repo with a single line. Claude stops being a chat box and starts shipping like a disciplined
+> team: spec → plan → tasks → implement (strict TDD) → verify → review → ship.
+
+<!-- Add a demo GIF here for the biggest first-impression lift. See docs/DEMO.md to record one:
+     ![claude-init demo](docs/launch/demo.gif) -->
+
+**Why star this:**
+- 🏭 **One command, any repo** — greenfield or legacy. Safe reconcile, never clobbers your files.
+- 🔒 **Security-first** — hooks hard-block destructive commands + secret writes *before* the agent acts.
+- ✅ **Evidence, not vibes** — no task is "done" without a red→green TDD ledger and a passing verifier.
 
 [![Harness validate](https://img.shields.io/badge/harness-validated-brightgreen)](.github/workflows/harness-validate.yml)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-v2.1+-blue)](https://code.claude.com)
@@ -282,6 +292,12 @@ Everything else is in service of those three.
 - [disler/claude-code-hooks-mastery](https://github.com/disler/claude-code-hooks-mastery) — Hooks patterns
 
 Full reference list in [docs/RESEARCH.md](docs/RESEARCH.md).
+
+## Spread the word
+
+Found this useful? A ⭐ helps others discover it. Maintainers/promoters: the launch playbook
+(demo recording, social preview, HN/X/Reddit copy, awesome-list drafts) lives in
+[docs/LAUNCH.md](docs/LAUNCH.md).
 
 ## Contributing
 
