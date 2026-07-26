@@ -1,11 +1,11 @@
 blank_issues_enabled: false
 contact_links:
   - name: Spec-driven feature work
-    url: https://github.com/OWNER/REPO/blob/main/specs/templates/spec.md
+    url: https://github.com/qyndex/claude-init/blob/main/specs/templates/spec.md
     about: "Features start as a spec (/specify), not a hand-filed issue. The projector creates the GitHub issue automatically. File a Feature issue only for pre-spec capture."
   - name: Customer feedback
-    url: https://github.com/OWNER/REPO/blob/main/.claude/commands/feedback.md
+    url: https://github.com/qyndex/claude-init/blob/main/.claude/commands/feedback.md
     about: "Customer signal goes through /feedback intake, not issues — it gets triaged + linked to specs."
   - name: Security vulnerability (private)
-    url: https://github.com/OWNER/REPO/security/advisories/new
+    url: https://github.com/qyndex/claude-init/security/advisories/new
     about: "Report security issues privately via a draft advisory, never a public issue."

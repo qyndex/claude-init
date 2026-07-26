@@ -1,0 +1,6 @@
+{
+  "kind": "docs-only",
+  "reason": "Public-release onboarding: adds the one-line installer (scripts/install.sh, smoke-tested greenfield + brownfield), rewrites README quick-start to be safe (no README-clobbering tar), and adds CONTRIBUTING/SECURITY/CODE_OF_CONDUCT + fixes issue-template placeholder URLs. No application source; installer is adopter-run tooling, validated by shellcheck + live smoke test.",
+  "maintains": ["README.md", "CONTRIBUTING.md", "SECURITY.md", "CODE_OF_CONDUCT.md", "scripts/install.sh", ".github/ISSUE_TEMPLATE/config.yml"],
+  "date": "2026-07-26"
+}
