@@ -1,0 +1,11 @@
+{
+  "kind": "harness-maintenance",
+  "reason": "Release PRs (GITHUB_TOKEN-authored) never trigger pull_request workflows, so the 9 required ruleset contexts sit Expected forever and every release PR is unmergeable without a human close/reopen. Fix: release-please dispatches release-pr-gate.yml (workflow_dispatch is exempt from token trigger suppression) whose jobs carry the required-context names and each verifies the diff is strictly version/changelog files, then arms native auto-merge. Workflows ship as operator patches (constitution-guarded).",
+  "maintains": [
+    ".claude/scripts/assert-release-only-diff.sh",
+    ".claude/memory.proposed/patches-release/",
+    ".github/workflows/release-please.yml",
+    ".github/workflows/release-pr-gate.yml"
+  ],
+  "date": "2026-07-26"
+}
