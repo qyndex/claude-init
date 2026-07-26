@@ -119,6 +119,13 @@ jobs:
           # here by design — a merged patch also stops applying. Detect them by their
           # patch idiom and run them ADVISORY (reported, non-gating) instead of failing
           # the build. Behavior tests stay gating. Self-maintaining: no hardcoded list.
+          #
+          # set +e for the loop: the step shell runs with `-e`, under which
+          # `advisory=$((advisory + 1))` aborts the whole step whenever the
+          # arithmetic RESULT is 0 (bash treats `x=$((0))` as a failed command) —
+          # and, more importantly, a gating test's non-zero exit could abort before
+          # we count it. We collect failures explicitly and gate only on the count.
+          set +e
           fails=0; advisory=0
           for t in .claude/scripts/test/*.sh; do
             b=$(basename "$t")
@@ -130,14 +137,15 @@ jobs:
             if grep -qE 'memory\.proposed/patches|git apply' "$t"; then
               if ! bash "$t"; then
                 echo "::warning::patch-gated harness test advisory (patches not applied on main): $b"
-                advisory=$((advisory + 1))
+                advisory=$(( advisory + 1 ))
               fi
               continue
             fi
-            if ! bash "$t"; then echo "::error::harness test failed: $b"; fails=$((fails + 1)); fi
+            if ! bash "$t"; then echo "::error::harness test failed: $b"; fails=$(( fails + 1 )); fi
           done
           echo "patch-gated advisory failures (non-gating): $advisory"
-          test "$fails" -eq 0
+          if [ "$fails" -ne 0 ]; then echo "::error::$fails gating harness test(s) failed"; exit 1; fi
+          exit 0
 
       - name: Security invariants (advisory - 2 known out-of-scope failures)
         continue-on-error: true
