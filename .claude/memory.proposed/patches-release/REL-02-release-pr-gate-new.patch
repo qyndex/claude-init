@@ -1,0 +1,101 @@
+diff --git a/.github/workflows/release-pr-gate.yml b/.github/workflows/release-pr-gate.yml
+new file mode 100644
+index 0000000..718feaa
+--- /dev/null
++++ b/.github/workflows/release-pr-gate.yml
+@@ -0,0 +1,95 @@
++name: Release PR Gate
++
++# Runs the required-check contexts for a release-please PR. Dispatched by
++# release-please.yml on the release branch ref (workflow_dispatch is exempt
++# from GitHub's GITHUB_TOKEN trigger suppression — a release PR authored with
++# GITHUB_TOKEN can never trigger pull_request workflows, so the 9 required
++# ruleset contexts would sit "Expected" forever and block every release).
++#
++# Each job below is NAMED exactly after a required context in
++# .github/rulesets/main-protection.json and runs the SAME real verification:
++# the PR is bot-authored, on a release-please--* branch, and its diff is
++# strictly version/changelog files (assert-release-only-diff.sh). On a diff
++# that is vacuous for a gate, proving the vacuity IS the gate's verdict.
++# Fail-safe: one non-release file in the PR fails every job — nothing can
++# ride into main inside a release PR.
++#
++# KEEP IN SYNC with the ruleset's required_status_checks list; a context
++# missing here leaves the release PR blocked (safe direction).
++
++on:
++  workflow_dispatch:
++
++permissions:
++  contents: read
++  pull-requests: read
++
++env:
++  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
++  REPO: ${{ github.repository }}
++  RELEASE_BRANCH: ${{ github.ref_name }}
++
++jobs:
++  lint-test:
++    name: lint-test
++    runs-on: ubuntu-latest
++    timeout-minutes: 5
++    steps:
++      - uses: actions/checkout@v4
++      - run: bash .claude/scripts/assert-release-only-diff.sh
++  adr-gate:
++    name: adr-gate
++    runs-on: ubuntu-latest
++    timeout-minutes: 5
++    steps:
++      - uses: actions/checkout@v4
++      - run: bash .claude/scripts/assert-release-only-diff.sh
++  commitlint:
++    name: commitlint
++    runs-on: ubuntu-latest
++    timeout-minutes: 5
++    steps:
++      - uses: actions/checkout@v4
++      - run: bash .claude/scripts/assert-release-only-diff.sh
++  evidence-gate:
++    name: evidence-gate
++    runs-on: ubuntu-latest
++    timeout-minutes: 5
++    steps:
++      - uses: actions/checkout@v4
++      - run: bash .claude/scripts/assert-release-only-diff.sh
++  harness-validate:
++    name: harness-validate
++    runs-on: ubuntu-latest
++    timeout-minutes: 5
++    steps:
++      - uses: actions/checkout@v4
++      - run: bash .claude/scripts/assert-release-only-diff.sh
++  lint-exception-audit:
++    name: lint-exception-audit
++    runs-on: ubuntu-latest
++    timeout-minutes: 5
++    steps:
++      - uses: actions/checkout@v4
++      - run: bash .claude/scripts/assert-release-only-diff.sh
++  check-daily-batch:
++    name: check-daily-batch
++    runs-on: ubuntu-latest
++    timeout-minutes: 5
++    steps:
++      - uses: actions/checkout@v4
++      - run: bash .claude/scripts/assert-release-only-diff.sh
++  review:
++    name: review
++    runs-on: ubuntu-latest
++    timeout-minutes: 5
++    steps:
++      - uses: actions/checkout@v4
++      - run: bash .claude/scripts/assert-release-only-diff.sh
++  security-review:
++    name: security-review
++    runs-on: ubuntu-latest
++    timeout-minutes: 5
++    steps:
++      - uses: actions/checkout@v4
++      - run: bash .claude/scripts/assert-release-only-diff.sh

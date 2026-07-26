@@ -1,0 +1,67 @@
+diff --git a/.github/workflows/release-please.yml b/.github/workflows/release-please.yml
+index a77bfad..097b414 100644
+--- a/.github/workflows/release-please.yml
++++ tmp/rel-proposed/.github/workflows/release-please.yml
+@@ -2,14 +2,33 @@ name: Release Please
+ 
+ # Conventional Commits -> auto-generated CHANGELOG and release PRs.
+ # https://github.com/googleapis/release-please-action
++#
++# RELEASE-PR AUTOMERGE (operator decision 2026-07-26): release-please authors
++# its PR with GITHUB_TOKEN, and GitHub suppresses workflow triggers for events
++# created by that token — so no per-PR gate ever runs on a release PR and the
++# ruleset's required checks sit "Expected" forever (release PRs were
++# unmergeable without a human close/reopen). workflow_dispatch is EXEMPT from
++# that suppression, so this run dispatches release-pr-gate.yml on the release
++# branch: its jobs carry the required-context names and each runs a real
++# verification (diff is strictly version/changelog files). Then native
++# auto-merge is armed — the ruleset stays the gate.
++#
++# The cron exists because the auto-merge is performed by github-actions[bot],
++# whose merge push to main ALSO cannot trigger this workflow — without the
++# cron, the tag + GitHub release for a merged release PR would only be cut on
++# the next human push to main.
+ 
+ on:
+   push:
+     branches: [main]
++  schedule:
++    - cron: "0 5 * * *" # cut the tag/release after a bot-merged release PR
++  workflow_dispatch:
+ 
+ permissions:
+   contents: write
+   pull-requests: write
++  actions: write # dispatch release-pr-gate.yml on the release branch
+ 
+ jobs:
+   release-please:
+@@ -18,3 +37,28 @@ jobs:
+       - uses: googleapis/release-please-action@v5
+         with:
+           token: ${{ secrets.GITHUB_TOKEN }}
++
++      - name: Gate + arm auto-merge for the release PR
++        env:
++          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
++          REPO: ${{ github.repository }}
++        run: |
++          set -euo pipefail
++          pr_json=$(gh pr list --repo "$REPO" --state open \
++                      --json number,headRefName,author \
++                      --jq '[.[] | select(.headRefName | startswith("release-please--"))
++                                 | select(.author.login == "app/github-actions" or .author.login == "github-actions")]
++                            | .[0]')
++          if [ -z "$pr_json" ] || [ "$pr_json" = "null" ]; then
++            echo "no open release-please PR — nothing to gate"
++            exit 0
++          fi
++          pr=$(printf '%s' "$pr_json" | jq -r '.number')
++          branch=$(printf '%s' "$pr_json" | jq -r '.headRefName')
++
++          gh workflow run release-pr-gate.yml --repo "$REPO" --ref "$branch"
++          echo "dispatched release-pr-gate on $branch"
++
++          gh pr merge "$pr" --repo "$REPO" --auto --squash \
++            || echo "::notice::auto-merge already armed for #$pr" # JUSTIFIED: re-arming an armed PR exits 1 but is not a failure; the ruleset remains the merge gate. ISSUE: #34
++          echo "auto-merge armed for release PR #$pr"
