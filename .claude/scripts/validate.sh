@@ -1114,10 +1114,13 @@ LIVENESS_INDEX="${LIVENESS_INDEX:-.claude/memory/index.jsonl}"
 LIVENESS_MEMORY_DIR="${LIVENESS_MEMORY_DIR:-.claude/memory}"
 liveness_stale=0; liveness_detail=""
 if [ -f "$LIVENESS_INDEX" ]; then
-  idx_mtime=$(stat -f %m "$LIVENESS_INDEX" 2>/dev/null || stat -c %Y "$LIVENESS_INDEX" 2>/dev/null || echo 0)
+  idx_mtime=$(stat -c %Y "$LIVENESS_INDEX" 2>/dev/null || stat -f %m "$LIVENESS_INDEX" 2>/dev/null || echo 0)
   # JUSTIFIED: find may traverse a dir with no .md yet — empty result means "no memory to be stale against" (fresh)
-  newest_md=$(find "$LIVENESS_MEMORY_DIR" -name '*.md' -type f -exec stat -f '%m %N' {} \; 2>/dev/null \
-    || find "$LIVENESS_MEMORY_DIR" -name '*.md' -type f -printf '%T@ %p\n' 2>/dev/null)
+  # GNU `-printf '%T@'` first (BSD find lacks -printf); BSD `-exec stat -f` fallback.
+  # NOT `-exec stat -f` first: on GNU, stat -f is --file-system and prints garbage
+  # (see patterns/bsd-vs-gnu-stat-flag-collision) → the staleness compare never fires.
+  newest_md=$(find "$LIVENESS_MEMORY_DIR" -name '*.md' -type f -printf '%T@ %p\n' 2>/dev/null \
+    || find "$LIVENESS_MEMORY_DIR" -name '*.md' -type f -exec stat -f '%m %N' {} \; 2>/dev/null)
   newest_md_mtime=$(printf '%s\n' "$newest_md" | sort -rn | head -1 | cut -d' ' -f1)
   newest_md_mtime=${newest_md_mtime%.*}; newest_md_mtime=${newest_md_mtime:-0}
   if [ "$newest_md_mtime" -gt "$idx_mtime" ]; then
