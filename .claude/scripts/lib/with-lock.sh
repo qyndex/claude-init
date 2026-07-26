@@ -28,8 +28,10 @@ LOCK_WAIT_S="${LOCK_WAIT_S:-30}"      # give up acquiring after this many second
 
 # _lock_mtime <path> — epoch seconds of last modification (portable: GNU + BSD stat).
 _lock_mtime() {
-  # JUSTIFIED: GNU-vs-BSD stat probe — the platform-unsupported flag form is muted and the surviving form returns mtime; a vanished lockdir falls to 0, which the caller treats as "lock disappeared, retry" rather than infinitely old
-  stat -f %m "$1" 2>/dev/null || stat -c %Y "$1" 2>/dev/null || echo 0
+  # JUSTIFIED: GNU-vs-BSD stat probe — MUST try GNU `-c %Y` first. GNU `-f` is
+  # --file-system (prints fs info to stdout + exits 1), so a BSD-first order poisons
+  # the mtime on Linux and breaks the stale-lock age arithmetic. Vanished lockdir → 0.
+  stat -c %Y "$1" 2>/dev/null || stat -f %m "$1" 2>/dev/null || echo 0
 }
 
 # with_lock <name> <fn> [args...]

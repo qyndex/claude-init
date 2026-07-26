@@ -110,8 +110,11 @@ build_entry() {
   local recurred_at=$(extract_field "$file" "recurred_at")
   local paths_touched=$(extract_paths_touched "$file")
   local refs=$(extract_refs "$file")
-  # JUSTIFIED: GNU-vs-BSD stat probe — whichever flag form the platform rejects is muted; the surviving form supplies mtime, and a vanished file leaves it empty (indexed as 0 downstream)
-  local mtime=$(stat -f %m "$file" 2>/dev/null || stat -c %Y "$file" 2>/dev/null)
+  # JUSTIFIED: GNU-vs-BSD stat probe — MUST try GNU `-c %Y` first. GNU `-f` is
+  # --file-system (not BSD's format flag): `stat -f %m` on Linux PRINTS filesystem
+  # info to stdout AND exits 1, so a BSD-first `-f %m || -c %Y` order poisons $mtime
+  # with a multi-line string that breaks `jq | tonumber` → empty index (CI-only bug).
+  local mtime=$(stat -c %Y "$file" 2>/dev/null || stat -f %m "$file" 2>/dev/null)
   # M-17b: content-recency stamp. Prefer the file's own frontmatter modified:
   # (else last_verified:) so `touch` doesn't inflate recency; fall back to mtime.
   local modified=$(extract_field "$file" "modified")
