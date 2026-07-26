@@ -158,3 +158,17 @@ verify/.skip-log
 
 # Brownfield adoption backup (reconcile-claude-dir.sh — holds settings.local.json, never commit)
 .brownfield-backup/
+
+# Per-session local-state mirror — machine + absolute-path specific, binary tarball, regenerated every session
+.claude/.user-state-mirror/
+# Skill-router runtime cache — rebuilt from skill frontmatter on demand
+.claude/state/skill-triggers.tsv
+# Operational ruleset backups taken before a live gate change (point-in-time, not source)
+.claude/state/ruleset-*-backup-*.json
+# Metabolism / dream regenerated aggregates — memory.proposed is a review staging area, not committed source
+.claude/memory.proposed/atlas/
+.claude/memory.proposed/dora/
+.claude/memory.proposed/rollups/
+.claude/memory.proposed/decisions/
+# Dream-run instinct-extraction reports (machine-written verify output)
+verify/*-instinct-extraction/
