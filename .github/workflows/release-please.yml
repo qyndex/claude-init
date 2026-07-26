@@ -3,20 +3,25 @@ name: Release Please
 # Conventional Commits -> auto-generated CHANGELOG and release PRs.
 # https://github.com/googleapis/release-please-action
 #
-# RELEASE-PR AUTOMERGE (operator decision 2026-07-26): release-please authors
-# its PR with GITHUB_TOKEN, and GitHub suppresses workflow triggers for events
-# created by that token — so no per-PR gate ever runs on a release PR and the
-# ruleset's required checks sit "Expected" forever (release PRs were
-# unmergeable without a human close/reopen). workflow_dispatch is EXEMPT from
-# that suppression, so this run dispatches release-pr-gate.yml on the release
-# branch: its jobs carry the required-context names and each runs a real
-# verification (diff is strictly version/changelog files). Then native
-# auto-merge is armed — the ruleset stays the gate.
+# RELEASE-PR AUTOMERGE (operator decision 2026-07-26): a release PR changes
+# only version/changelog files, so the per-PR gates carry a release-fast-pass
+# skip condition (see the `if:` on each gating job) — GitHub counts a skipped
+# required check as satisfied. This workflow is the other half: it verifies
+# the release PR diff really is version/changelog-only
+# (assert-release-only-diff.sh — the fail-safe the skip conditions trust),
+# close/reopens the PR so every per-PR gate re-reports against the fresh head
+# SHA (required checks are per-SHA; a force-pushed head starts with none),
+# and arms native auto-merge. The ruleset stays the merge gate.
+#
+# NOTE (workflow_dispatch check runs do NOT count): an earlier design ran the
+# required contexts from a dispatched workflow on the release branch — its
+# check runs never enter the PR's statusCheckRollup. Only runs from the PR's
+# own pull_request events (or commit statuses) satisfy required checks.
 #
 # The cron exists because the auto-merge is performed by github-actions[bot],
-# whose merge push to main ALSO cannot trigger this workflow — without the
-# cron, the tag + GitHub release for a merged release PR would only be cut on
-# the next human push to main.
+# whose merge push to main cannot trigger this workflow — without the cron,
+# the tag + GitHub release for a merged release PR would only be cut on the
+# next human push to main.
 
 on:
   push:
@@ -28,7 +33,6 @@ on:
 permissions:
   contents: write
   pull-requests: write
-  actions: write # dispatch release-pr-gate.yml on the release branch
 
 jobs:
   release-please:
@@ -38,7 +42,9 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Gate + arm auto-merge for the release PR
+      - uses: actions/checkout@v4 # for assert-release-only-diff.sh
+
+      - name: Verify release PR diff, refresh checks, arm auto-merge
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
@@ -50,15 +56,22 @@ jobs:
                                  | select(.author.login == "app/github-actions" or .author.login == "github-actions")]
                             | .[0]')
           if [ -z "$pr_json" ] || [ "$pr_json" = "null" ]; then
-            echo "no open release-please PR — nothing to gate"
+            echo "no open release-please PR — nothing to do"
             exit 0
           fi
           pr=$(printf '%s' "$pr_json" | jq -r '.number')
           branch=$(printf '%s' "$pr_json" | jq -r '.headRefName')
 
-          gh workflow run release-pr-gate.yml --repo "$REPO" --ref "$branch"
-          echo "dispatched release-pr-gate on $branch"
+          # Fail-safe the skip conditions rely on: never arm a release PR
+          # whose diff strays outside the version/changelog allowlist.
+          RELEASE_BRANCH="$branch" bash .claude/scripts/assert-release-only-diff.sh
+
+          # Required checks are per-SHA; after release-please force-updates the
+          # branch the new head has none. Reopen fires the pull_request events
+          # so every gate re-reports (release-fast-pass makes them skip fast).
+          gh pr close "$pr" --repo "$REPO"
+          gh pr reopen "$pr" --repo "$REPO"
 
           gh pr merge "$pr" --repo "$REPO" --auto --squash \
             || echo "::notice::auto-merge already armed for #$pr" # JUSTIFIED: re-arming an armed PR exits 1 but is not a failure; the ruleset remains the merge gate. ISSUE: #34
-          echo "auto-merge armed for release PR #$pr"
+          echo "release PR #$pr verified, checks refreshed, auto-merge armed"

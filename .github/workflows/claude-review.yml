@@ -35,7 +35,13 @@ jobs:
     # this gating job could only hard-fail. Dependency-only PRs change no app
     # code (semgrep/codeql/dependency-review still cover them). A skipped
     # required check counts as passing, unblocking the PR.
-    if: github.event.pull_request.draft == false && github.actor != 'dependabot[bot]'
+    # release-fast-pass: a bot-authored release-please PR changes only
+    # version/changelog files (verified by release-please.yml before it arms
+    # auto-merge) — skip; GitHub counts a skipped required check as satisfied.
+    if: >-
+      github.event.pull_request.draft == false && github.actor != 'dependabot[bot]' &&
+      !(startsWith(github.head_ref, 'release-please--') &&
+        github.event.pull_request.user.login == 'github-actions[bot]')
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
