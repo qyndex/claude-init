@@ -1,11 +1,11 @@
 ---
 name: 0004-autonomous-green-gated-merge
-description: ADR-0004: Autonomous green-gated merge with zero-approval ruleset
+description: "ADR-0004: Autonomous green-gated merge with zero-approval ruleset"
 status: accepted
 created: 2026-07-24
 metadata:
   type: decision
-  status: proposed
+  status: accepted
 ---
 
 # ADR-0004: Autonomous green-gated merge with zero-approval ruleset
