@@ -1,0 +1,6 @@
+{
+  "kind": "docs-only",
+  "reason": "Launch/growth assets: outcome-first README hero, scripts/demo.sh (shellcheck-clean) + DEMO.md recording guide, social-preview.svg (well-formed), LAUNCH.md playbook, awesome-list submission drafts. No application source.",
+  "maintains": ["README.md", "scripts/demo.sh", "docs/DEMO.md", "docs/LAUNCH.md", "docs/launch/"],
+  "date": "2026-07-26"
+}
