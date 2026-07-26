@@ -181,6 +181,7 @@ _memory_find() {
 # M-10-lock: the two write paths are functions so with_lock can wrap them.
 # M-17a: $1 = "include-archived" also walks .claude/memory/.archive/; default
 # EXCLUDES it (archived memories are recall-off unless explicitly asked for).
+# shellcheck disable=SC2120  # JUSTIFICATION: $1 is optional (${1:-}); callers rebuild both with and without the archived flag. ISSUE: #29
 _rebuild_index() {
     local include_archived="${1:-}"
     echo "→ Building memory index..."

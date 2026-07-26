@@ -1,7 +1,7 @@
 ---
 name: pivot
-description: Capture a mid-project pivot (drop, pause, supersede, stop a direction) into pivots/active/<slug>.md with a resolvable target: spec or initiative id and target_kind:. Records trigger, Lean-Startup pivot type, old/new direction, and cascade impact so the change is traceable, not silent.
-when_to_use: User says "we're pivoting", "drop/pause/kill this initiative", "supersede spec X", "we changed direction on", or a metric/customer signal forces abandoning an in-flight spec or initiative.
+description: "Capture a mid-project pivot (drop, pause, supersede, stop a direction) into pivots/active/<slug>.md with a resolvable target (spec or initiative id) and target_kind. Records trigger, Lean-Startup pivot type, old/new direction, and cascade impact so the change is traceable, not silent."
+when_to_use: 'User says "we''re pivoting", "drop/pause/kill this initiative", "supersede spec X", "we changed direction on", or a metric/customer signal forces abandoning an in-flight spec or initiative.'
 argument-hint: "<verb> <target-id> — <one-line reason>"
 model: opus
 allowed-tools: Read, Write, Edit, Glob, Grep, TodoWrite

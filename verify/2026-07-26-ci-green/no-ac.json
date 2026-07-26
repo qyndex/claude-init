@@ -1,0 +1,6 @@
+{
+  "kind": "harness-maintenance",
+  "reason": "Green the real (post-billing-fix) CI failures: (1) pivot/SKILL.md malformed YAML frontmatter — unquoted colons in description broke the frontmatter parser (ScannerError); (2)(3) two SC2120 shellcheck warnings justified-disabled (both are optional-arg forwarders); (4) iac-scan shellcheck excludes verify/ frozen evidence snapshots (operator-approved). No application source.",
+  "maintains": [".claude/skills/pivot/SKILL.md", ".claude/scripts/memory-index.sh", ".claude/scripts/test/reconcile-shipped.sh", ".github/workflows/iac-scan.yml"],
+  "date": "2026-07-26"
+}

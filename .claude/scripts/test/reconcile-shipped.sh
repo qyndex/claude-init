@@ -20,6 +20,7 @@ EOF
 # reconcile-shipped.sh NEVER writes a real ADR into .claude/memory/decisions/ during
 # a test run. (The fixture merge SHA also isn't a real commit, so with a fixture body
 # absent the harvester simply finds no trailers — but pin the dir regardless.)
+# shellcheck disable=SC2120  # JUSTIFICATION: run() forwards "$@" so a caller CAN pass flags (e.g. --since); base cases invoke it argless by design. ISSUE: #29
 run() { RECON_MERGED_JSON="$tmp/merged.json" RECON_STATE_DIR="$statedir" \
         HARVEST_DECISIONS_DIR="$tmp/decisions" bash "$SCRIPT" "$@"; }
 
