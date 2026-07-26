@@ -97,11 +97,20 @@ while IFS= read -r pr; do
   if [ -z "$newest_merged" ] || [ "$mergedAt" \> "$newest_merged" ]; then newest_merged="$mergedAt"; fi
 
   # Decisions: pull the git-trailer decision fields from the merge commit body.
+  # RECON_COMMIT_BODY (test hook) supplies the body directly so the test does not
+  # depend on the fixture SHA being present in git history — CI checks out shallow
+  # (actions/checkout fetch-depth:1), so a historical merge commit is unreachable
+  # via `git log` and the trailer harvest would silently yield [].
   decisions="[]"
   if [ -n "$sha" ]; then
     # grep exits 1 on no match → the pipeline yields empty; `|| true` keeps it
     # running and the `[ -n ]` guard below falls back to [] so --argjson is valid.
-    d=$(git log -1 --format='%b' "$sha" 2>/dev/null \
+    if [ -n "${RECON_COMMIT_BODY:-}" ]; then
+      body="$RECON_COMMIT_BODY"
+    else
+      body=$(git log -1 --format='%b' "$sha" 2>/dev/null || true)
+    fi
+    d=$(printf '%s\n' "$body" \
       | grep -iE '^(Constraint|Rejected|Directive|Confidence|Scope-risk):' \
       | jq -R . | jq -s . 2>/dev/null || true)
     [ -n "$d" ] && decisions="$d"

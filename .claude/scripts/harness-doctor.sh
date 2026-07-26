@@ -150,10 +150,13 @@ fi
 LIVENESS_INDEX="${LIVENESS_INDEX:-.claude/memory/index.jsonl}"
 LIVENESS_MEMORY_DIR="${LIVENESS_MEMORY_DIR:-.claude/memory}"
 if [ -f "$LIVENESS_INDEX" ]; then
-  idx_mtime=$(stat -f %m "$LIVENESS_INDEX" 2>/dev/null || stat -c %Y "$LIVENESS_INDEX" 2>/dev/null || echo 0)
+  idx_mtime=$(stat -c %Y "$LIVENESS_INDEX" 2>/dev/null || stat -f %m "$LIVENESS_INDEX" 2>/dev/null || echo 0)
   # JUSTIFIED: find may traverse a dir with no .md yet — empty result means "no memory to be stale against" (pass)
-  newest_md=$(find "$LIVENESS_MEMORY_DIR" -name '*.md' -type f -exec stat -f '%m %N' {} \; 2>/dev/null \
-    || find "$LIVENESS_MEMORY_DIR" -name '*.md' -type f -printf '%T@ %p\n' 2>/dev/null)
+  # GNU `-printf '%T@'` first (BSD find lacks -printf); BSD `-exec stat -f` fallback.
+  # NOT `-exec stat -f` first: on GNU, stat -f is --file-system and prints garbage
+  # (see patterns/bsd-vs-gnu-stat-flag-collision) → the staleness compare never fires.
+  newest_md=$(find "$LIVENESS_MEMORY_DIR" -name '*.md' -type f -printf '%T@ %p\n' 2>/dev/null \
+    || find "$LIVENESS_MEMORY_DIR" -name '*.md' -type f -exec stat -f '%m %N' {} \; 2>/dev/null)
   newest_md_mtime=$(printf '%s\n' "$newest_md" | sort -rn | head -1 | cut -d' ' -f1)
   newest_md_mtime=${newest_md_mtime%.*}; newest_md_mtime=${newest_md_mtime:-0}
   if [ "$newest_md_mtime" -gt "$idx_mtime" ]; then
@@ -235,7 +238,7 @@ fi
 # Initiative STATE.md freshness (the always-current state answer; 7d budget)
 state_md=$(ls -t initiatives/active/*.STATE.md 2>/dev/null | head -1 || true)
 if [ -n "$state_md" ]; then
-  state_age_d=$(( ( $(date +%s) - $(stat -f %m "$state_md" 2>/dev/null || stat -c %Y "$state_md" 2>/dev/null || echo 0) ) / 86400 ))
+  state_age_d=$(( ( $(date +%s) - $(stat -c %Y "$state_md" 2>/dev/null || stat -f %m "$state_md" 2>/dev/null || echo 0) ) / 86400 ))
   if [ "$state_age_d" -le 7 ]; then
     add_result "initiative STATE.md fresh (≤7d)" "pass" "${state_age_d}d old"
   else
@@ -269,7 +272,7 @@ fi
 CACHE_HIT_MIN="${CACHE_HIT_MIN:-40}"
 summary=.claude/hooks/.log/cost-summary.json
 if [ -f "$summary" ]; then
-  age_s=$(( $(date +%s) - $(stat -f %m "$summary" 2>/dev/null || stat -c %Y "$summary" 2>/dev/null || echo 0) ))
+  age_s=$(( $(date +%s) - $(stat -c %Y "$summary" 2>/dev/null || stat -f %m "$summary" 2>/dev/null || echo 0) ))
   hr=$(jq -r '.cache_hit_rate // -1' "$summary" 2>/dev/null || echo -1)
   hr_int=${hr%.*}; hr_int=${hr_int:-0}
   if [ "$age_s" -gt 86400 ] || [ "$hr_int" -lt 0 ]; then

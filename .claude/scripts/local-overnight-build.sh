@@ -38,7 +38,7 @@ _age_min() {  # whole minutes since file $1 was modified; 999999 if absent
   local m
   [ -f "$1" ] || { echo 999999; return; }
   # JUSTIFIED: BSD/GNU stat portability — BSD form tried first, GNU form is the fallback; the trailing 0 sentinel only triggers if both fail, yielding a huge age that reads as "stale"
-  m=$(stat -f %m "$1" 2>/dev/null || stat -c %Y "$1" 2>/dev/null || echo 0)
+  m=$(stat -c %Y "$1" 2>/dev/null || stat -f %m "$1" 2>/dev/null || echo 0)
   echo $(( ($(date +%s) - m) / 60 ))
 }
 

@@ -22,7 +22,16 @@ cd "$ROOT"
 # rebuild can't interleave with a live PostToolUse `touch` (post-write-format.sh)
 # and silently drop the just-written entry. mkdir-atomic, ships everywhere.
 # shellcheck source=lib/with-lock.sh
-. "$(dirname "$0")/lib/with-lock.sh"
+# Graceful fallback: if the lock helper isn't reachable (e.g. a test fixture that
+# copies only this script, or a partial checkout), define a no-op with_lock so the
+# rebuild still runs. The lock only serializes concurrent touch/rebuild; its absence
+# degrades to "no serialization", never to an empty index. Without this, a missing
+# lib/ left with_lock undefined → the rebuild aborted → every field extracted "".
+if [ -r "$(dirname "$0")/lib/with-lock.sh" ]; then
+  . "$(dirname "$0")/lib/with-lock.sh"
+else
+  with_lock() { shift; "$@"; }   # drop the lock-name arg, run the command directly
+fi
 
 INDEX=".claude/memory/index.jsonl"
 mkdir -p .claude/memory
@@ -30,8 +39,12 @@ mkdir -p .claude/memory
 extract_field() {
   # Pulls one field from YAML frontmatter or markdown body. Returns "" if missing.
   local file="$1" field="$2"
+  # The fence match tolerates trailing whitespace / a CR (CRLF-checked-out files):
+  # a strict /^---$/ silently fails to toggle `fm` when the --- line carries a \r,
+  # so every field extracts "" — the CI-only "got ''" failures in the index tests.
   awk -v field="$field" '
-    /^---$/ { fm = !fm; next }
+    { sub(/\r$/, "") }
+    /^---[[:space:]]*$/ { fm = !fm; next }
     fm && $0 ~ "^" field ":" {
       sub("^" field ":[[:space:]]*", "")
       gsub(/"/, "")
@@ -97,8 +110,11 @@ build_entry() {
   local recurred_at=$(extract_field "$file" "recurred_at")
   local paths_touched=$(extract_paths_touched "$file")
   local refs=$(extract_refs "$file")
-  # JUSTIFIED: GNU-vs-BSD stat probe — whichever flag form the platform rejects is muted; the surviving form supplies mtime, and a vanished file leaves it empty (indexed as 0 downstream)
-  local mtime=$(stat -f %m "$file" 2>/dev/null || stat -c %Y "$file" 2>/dev/null)
+  # JUSTIFIED: GNU-vs-BSD stat probe — MUST try GNU `-c %Y` first. GNU `-f` is
+  # --file-system (not BSD's format flag): `stat -f %m` on Linux PRINTS filesystem
+  # info to stdout AND exits 1, so a BSD-first `-f %m || -c %Y` order poisons $mtime
+  # with a multi-line string that breaks `jq | tonumber` → empty index (CI-only bug).
+  local mtime=$(stat -c %Y "$file" 2>/dev/null || stat -f %m "$file" 2>/dev/null)
   # M-17b: content-recency stamp. Prefer the file's own frontmatter modified:
   # (else last_verified:) so `touch` doesn't inflate recency; fall back to mtime.
   local modified=$(extract_field "$file" "modified")
@@ -181,6 +197,7 @@ _memory_find() {
 # M-10-lock: the two write paths are functions so with_lock can wrap them.
 # M-17a: $1 = "include-archived" also walks .claude/memory/.archive/; default
 # EXCLUDES it (archived memories are recall-off unless explicitly asked for).
+# shellcheck disable=SC2120  # JUSTIFICATION: $1 is optional (${1:-}); callers rebuild both with and without the archived flag. ISSUE: #29
 _rebuild_index() {
     local include_archived="${1:-}"
     echo "→ Building memory index..."

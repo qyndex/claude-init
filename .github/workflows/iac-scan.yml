@@ -47,7 +47,9 @@ jobs:
       - uses: ludeeus/action-shellcheck@00b27aa7cb85167568cb48a3838b75f4265f2bca # master 2026-05-29
         with:
           severity: warning
-          ignore_paths: node_modules
+          # verify/ holds frozen evidence snapshots (dated test artifacts, not
+          # maintained code) — linting them fails CI on historical warnings.
+          ignore_paths: node_modules verify
 
   sql:
     if: ${{ hashFiles('**/*.sql') != '' }}

@@ -49,7 +49,9 @@ jobs:
           # v1 takes CLI flags via claude_args — `model:`/`max_turns:`/`agent:`
           # were never declared inputs (actionlint catch, oauth-fallback
           # 2026-06-12); the agent role is carried by the prompt below.
-          claude_args: "--model claude-sonnet-4-6 --max-turns 20"
+          # 20 was too tight — large PRs exhausted the turn budget mid-triage
+          # ("Reached maximum number of turns"). 40 matches claude-security.yml.
+          claude_args: "--model claude-sonnet-4-6 --max-turns 40"
           prompt: |
             Triage this PR as the anti-slop-reviewer agent
             (.claude/agents/quality/anti-slop-reviewer.md).

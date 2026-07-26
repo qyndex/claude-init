@@ -24,7 +24,13 @@ cd "$ROOT"
 # write granularity (inside sync_one_spec) so a multi-spec sync loop doesn't hold
 # the lock across the whole loop.
 # shellcheck source=lib/with-lock.sh
-. "$(dirname "$0")/lib/with-lock.sh"
+# Graceful fallback (see memory-index.sh): a partial checkout / test fixture that
+# copies only this script leaves with_lock undefined → the sync silently no-ops.
+if [ -r "$(dirname "$0")/lib/with-lock.sh" ]; then
+  . "$(dirname "$0")/lib/with-lock.sh"
+else
+  with_lock() { shift; "$@"; }
+fi
 
 STATE_DIR=".claude/state"
 INIT_DIR="initiatives/active"
@@ -195,8 +201,10 @@ cmd_show() {
   phase=$(grep -m1 '^\- \*\*phase\*\*:' "$state_file" | sed 's/.*: //')
   tasks=$(grep -m1 '^\- \*\*tasks\*\*:' "$state_file" | sed 's/.*: //')
   now=$(date +%s)
-  # JUSTIFIED: GNU-vs-BSD stat probe — epoch 0 fallback reads as very old, flagged below
-  file_epoch=$(stat -f %m "$state_file" 2>/dev/null || stat -c %Y "$state_file" 2>/dev/null || echo 0)
+  # JUSTIFIED: GNU-vs-BSD stat probe — MUST try GNU `-c %Y` first (GNU `-f` is
+  # --file-system: pollutes stdout + exits 1, poisoning the epoch on Linux). See
+  # patterns/bsd-vs-gnu-stat-flag-collision. epoch 0 fallback reads as very old.
+  file_epoch=$(stat -c %Y "$state_file" 2>/dev/null || stat -f %m "$state_file" 2>/dev/null || echo 0)
   age_h=$(( (now - file_epoch) / 3600 ))
 
   if [ "$age_h" -gt 168 ]; then
