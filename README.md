@@ -5,6 +5,43 @@
 [![Harness validate](https://img.shields.io/badge/harness-validated-brightgreen)](.github/workflows/harness-validate.yml)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-v2.1+-blue)](https://code.claude.com)
 [![MCP](https://img.shields.io/badge/MCP-enabled-purple)](https://modelcontextprotocol.io)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](CONTRIBUTING.md)
+
+## Install in one line
+
+From the **root of the repo you want to harness**:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/qyndex/claude-init/main/scripts/install.sh | bash
+```
+
+That's it. The installer clones the factory to a temp dir, safely reconciles it into your repo
+(**backing up** any file it would overwrite to `.brownfield-backup/`, never silently clobbering
+your `README.md`/`CLAUDE.md`), then runs setup. It works on both a brand-new repo and an existing
+one. Prefer not to pipe to shell? Download and read it first:
+
+```bash
+curl -fsSLO https://raw.githubusercontent.com/qyndex/claude-init/main/scripts/install.sh
+less install.sh && bash install.sh
+```
+
+**Then** finish the [Manual setup](#manual-setup-what-the-installer-cant-do) (GitHub ruleset,
+Actions secret, optional deploy). See [full step-by-step](#step-by-step-adoption) below.
+
+<details>
+<summary>Installer options (env vars)</summary>
+
+| Var | Effect |
+|---|---|
+| `CLAUDE_INIT_REF=<ref>` | install a specific branch/tag/sha (default `main`) |
+| `INTO=<dir>` | target repo dir (default: current dir) |
+| `UPGRADE=1` | already adopted? refresh factory-owned files (backed up first) |
+| `SKIP_SETUP=1` | reconcile only, don't run `setup.sh` |
+| `SKIP_PLUGINS=1` | skip plugin install in setup |
+| `YES=1` | non-interactive (allow a dirty working tree) |
+
+</details>
 
 ## What this is
 
@@ -20,23 +57,55 @@ A complete agentic harness for Claude Code that includes:
 - **CI/CD** — `.github/workflows/` with claude-code-action, claude-code-security-review, CI matrix, E2E on preview, auto-merge Dependabot, release-please
 - **Templates** — `specs/templates/`, `plans/templates/` (Spec Kit-style)
 
-## Quick start
+## Step-by-step adoption
+
+### 1. Install (one line)
+
+Run from the root of your repo (see [Install in one line](#install-in-one-line) for the safety details):
 
 ```bash
-# 1. Copy this folder into your project (or use as a template repo)
-git -C path/to/claude-init archive HEAD | tar -x -C your-project/   # git-aware copy: tracked files only
+curl -fsSL https://raw.githubusercontent.com/qyndex/claude-init/main/scripts/install.sh | bash
+```
 
-# 2. Run setup (installs canonical plugins, configures hooks, validates)
-cd your-project
-bash .claude/scripts/setup.sh
+**Prerequisites** (the installer checks these): `git`, `jq` (REQUIRED — the security hooks fail
+closed without it: `brew install jq` / `apt-get install jq`), `gh` (for `/ship` + ruleset
+automation), and the `claude` CLI ([install](https://code.claude.com)).
 
-# 3. Open Claude Code
+### 2. Review + commit the diff
+
+The harness lands in your working tree, not committed. Inspect and commit it:
+
+```bash
+git status && git diff
+git add -A && git commit -m "chore: adopt claude-init harness"
+```
+
+### 3. <a id="manual-setup"></a>Manual setup (what the installer can't do)
+
+These need **you** — they touch GitHub settings, secrets, or your platform, which a local script
+can't (and shouldn't) change:
+
+| # | Step | How |
+|---|---|---|
+| 1 | **Enable GitHub Actions** on the repo | Settings → Actions → General → Allow. Also ensure billing is active, or CI jobs fail instantly. |
+| 2 | **Add the CI secret** | Settings → Secrets → Actions → `ANTHROPIC_API_KEY` (used by `claude-review.yml` / `claude-security.yml`). |
+| 3 | **Apply branch protection** | `gh api repos/<owner>/<repo>/rulesets --method POST --input .github/rulesets/main-protection.json` — makes the CI gates required to merge. |
+| 4 | **Set CODEOWNERS** | Edit `.github/CODEOWNERS` to your team's handles (or delete it if you don't want code-owner review). |
+| 5 | **Wire deploy (optional)** | The shipped `canary-deploy.yml` is a **STUB**. Wire your platform per [docs/DEPLOY-INTEGRATION.md](docs/DEPLOY-INTEGRATION.md). |
+| 6 | **Tune to your stack** | Edit `.claude/CLAUDE.md` (constitution), `.claude/settings.json` (allow/ask/deny), `.mcp.json` (servers), `.claude/scripts/run.sh` (start command). |
+
+Full operator runbook: [docs/OPERATOR-MANUAL.md](docs/OPERATOR-MANUAL.md). Bringing in a legacy
+repo: [docs/ADOPTION.md](docs/ADOPTION.md) (`/adopt start`).
+
+### 4. Open Claude Code and go
+
+```bash
 claude
 
-# 4. NEW TEAM MEMBER? Take the 10-min interactive tour
+# NEW TEAM MEMBER? Take the interactive tour:
 /onboard             # walks the eight-phase workflow with a concrete example
 
-# 5. Otherwise: try the workflow yourself
+# Otherwise, drive the workflow:
 /constitution        # set up project principles (once)
 /specify "add user login with email + password"
 /clarify             # resolve open questions
@@ -171,14 +240,15 @@ See [docs/RESEARCH.md](docs/RESEARCH.md) for the full reference list with GitHub
 
 ## Adopt in an existing project
 
-Read [docs/ONBOARDING.md](docs/ONBOARDING.md). Short version:
+Use the [one-line installer](#install-in-one-line) — it detects an existing `.claude/` and
+reconciles (backs up + no-clobber) instead of overwriting. To upgrade an already-adopted repo to
+a newer factory:
 
 ```bash
-# From the repo root of your existing project:
-git clone https://github.com/<your-org>/claude-init /tmp/claude-init
-git -C /tmp/claude-init archive HEAD | tar -x -C .
-bash .claude/scripts/setup.sh
+UPGRADE=1 curl -fsSL https://raw.githubusercontent.com/qyndex/claude-init/main/scripts/install.sh | bash
 ```
+
+Deep dive: [docs/ONBOARDING.md](docs/ONBOARDING.md) and [docs/ADOPTION.md](docs/ADOPTION.md).
 
 ## Customize per project
 
@@ -213,6 +283,14 @@ Everything else is in service of those three.
 
 Full reference list in [docs/RESEARCH.md](docs/RESEARCH.md).
 
+## Contributing
+
+Contributions welcome. This repo is config + shell (no build step) — the "test suite" is
+`bash .claude/scripts/validate.sh` (must exit 0). Read [CONTRIBUTING.md](CONTRIBUTING.md) for the
+workflow, commit format (Conventional Commits + trailers), and the CI gates your PR will meet.
+Security issues: **do not** open a public issue — follow [SECURITY.md](SECURITY.md). All
+participation is under the [Code of Conduct](CODE_OF_CONDUCT.md).
+
 ## License
 
-MIT. Use it, fork it, improve it, share back if you can.
+MIT. Use it, fork it, improve it, share back if you can. See [LICENSE](LICENSE).
