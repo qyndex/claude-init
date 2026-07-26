@@ -1,0 +1,6 @@
+{
+  "kind": "harness-maintenance",
+  "reason": "Machine-regenerated index/ledger refresh: atlas code-map (STRUCTURE/STACK/manifest) now reflects this session additions (scripts/, docs/launch/, governance files); skill REGISTRY + initiative STATE.md rewritten by sync. No application source.",
+  "maintains": [".claude/memory/atlas/", ".claude/skills/REGISTRY.md", "initiatives/active/"],
+  "date": "2026-07-26"
+}
