@@ -1,7 +1,7 @@
 ---
 id: 005
 slug: traceability-and-decision-harvest
-spec: specs/active/005-traceability-and-decision-harvest.md
+spec: specs/archive/2026-Q4/005-traceability-and-decision-harvest.md
 status: approved
 owner: "@claude"
 created: 2026-07-25
