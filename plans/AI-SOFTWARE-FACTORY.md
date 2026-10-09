@@ -136,3 +136,7 @@ Open configuration decisions for implementation: morning delivery channel/time, 
 2026-10-10 scope clarification: production endpoints are inputs supplied during repository adoption, not prerequisites for building this harness. F-08 validates reusable contracts and realistic isolated adapter drills; it cannot certify every future service. Repository-specific production readiness remains disabled until that repository proves actual deployment, health and rollback. PR #53 merged the F-04 transactional state foundation at `9d02c7b7`; supervisor and shared-writer migration remain open.
 
 2026-10-10: PR #54 merged at `9e2d0aa9`. Spec 013 adds atomic approved-ledger closure imports, archive-aware ID minting, unified sanctioned task locks and inherited TCP/private-directory resource contracts. Protected GitHub receipt ingestion, abrupt-death reconciliation and unsupported external-service adapters remain F-04 blockers; no factory activation is claimed.
+
+### Spec 014 continuation
+
+Implemented authenticated single-task coordinator receipt ingestion and separate worker guardian recovery. Fixtures verify run/source/artifact/PR identity, immutable delivery provenance, abrupt supervisor death with descendant cleanup, duplicate exclusion, stale fencing and uncertain outbox actions. Activation remains disabled; live independent review/receipt proof, external adapter fencing and later digest/feedback/adoption packages remain pending.

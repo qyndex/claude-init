@@ -160,6 +160,8 @@ def coordinate(api, policy, number, merge=False):
         response = api.put(f'{root}/pulls/{number}/merge', {'sha': head, 'merge_method': 'squash'})
         require(response.get('merged') is True and contract.digest(response.get('sha'), 40), 'conditional merge did not complete')
         result.update(merged=True, merge_sha=response['sha'])
+        if approved.get('task_ids'):
+            result['task_ids'] = approved['task_ids']
     return result
 
 

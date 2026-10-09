@@ -8,6 +8,7 @@ import json
 import os
 from pathlib import Path
 import signal
+import shutil
 import socket
 import subprocess
 import sys
@@ -20,11 +21,12 @@ spec.loader.exec_module(runtime)
 
 
 def group_exists(pgid):
-    result = subprocess.run(['ps', '-axo', 'pgid='], capture_output=True, text=True, check=True)
-    return str(pgid) in result.stdout.split()
+    result = subprocess.run(['ps', '-axo', 'pgid=,stat='], capture_output=True, text=True, check=True)
+    return any(fields[0] == str(pgid) and not fields[1].startswith('Z')
+               for line in result.stdout.splitlines() if len(fields := line.split()) == 2)
 
 
-def terminate(worker):
+def terminate(worker, grace=2):
     # macOS may return EPERM rather than ESRCH for a vanished process group.
     if not group_exists(worker.pid):
         worker.wait(timeout=5)
@@ -34,7 +36,7 @@ def terminate(worker):
     except (ProcessLookupError, PermissionError):
         if group_exists(worker.pid):
             raise
-    deadline = time.monotonic() + 2
+    deadline = time.monotonic() + grace
     while time.monotonic() < deadline and group_exists(worker.pid):
         worker.poll()
         time.sleep(.05)
@@ -45,6 +47,11 @@ def terminate(worker):
             if group_exists(worker.pid):
                 raise
     worker.wait(timeout=5)
+    deadline = time.monotonic() + 5
+    while group_exists(worker.pid) and time.monotonic() < deadline:
+        time.sleep(.05)
+    if group_exists(worker.pid):
+        raise RuntimeError('worker descendants survived cleanup')
 
 
 def supervise(db, task, command, cwd, attempts, timeout=1800, lease=30, resources=None):
@@ -66,6 +73,7 @@ def supervised(db, task, command, cwd, attempts, timeout, lease, lock_fd, resour
         raise ValueError('foreground command required')
     if not 1 <= timeout <= 21600 or not 3 <= lease <= 3600:
         raise ValueError('invalid supervision bounds')
+    db = Path(db).resolve()
     owner = 'supervisor:' + uuid.uuid4().hex
     store = runtime.Store(db)
     token = store.claim(task, owner, lease)
@@ -75,6 +83,7 @@ def supervised(db, task, command, cwd, attempts, timeout, lease, lock_fd, resour
     previous = {}
     worker = None
     allocated = []
+    alive_write = None
     reason = 'startup-failure'
     code = 1
     started = time.monotonic()
@@ -82,6 +91,9 @@ def supervised(db, task, command, cwd, attempts, timeout, lease, lock_fd, resour
         for sig in (signal.SIGTERM, signal.SIGINT):
             previous[sig] = signal.signal(sig, lambda signum, frame: stopped.append(signum))
         store.transition(task, owner, token, 'implementing')
+        executable = str(Path(cwd) / command[0]) if '/' in command[0] and not Path(command[0]).is_absolute() else command[0]
+        if shutil.which(executable) is None:
+            raise FileNotFoundError(command[0])
         namespace = directory.name
         endpoints = {}
         for service in (resources or {}).get('services', []):
@@ -101,8 +113,18 @@ def supervised(db, task, command, cwd, attempts, timeout, lease, lock_fd, resour
                    FACTORY_RESOURCE_NAMESPACE=namespace, FACTORY_SERVICES=json.dumps(endpoints),
                    TMPDIR=str(directory.resolve()))
         with (directory / 'worker.log').open('wb') as log:
-            worker = subprocess.Popen(command, cwd=cwd, env=env, stdout=log,
-                                      stderr=subprocess.STDOUT, start_new_session=True, pass_fds=(lock_fd, *(channel.fileno() for channel in allocated)))
+            alive_read, alive_write = os.pipe()
+            inherited = (lock_fd, *(channel.fileno() for channel in allocated))
+            guard = [sys.executable, str(Path(__file__).resolve().with_name('factory-worker-guard.py')),
+                     '--watch-fd', str(alive_read), '--inherit-fds', json.dumps(inherited),
+                     '--db', str(db), '--task', task, '--owner', owner, '--token', str(token),
+                     '--outcome', str(directory.resolve() / 'guardian.json'), '--', *command]
+            try:
+                worker = subprocess.Popen(guard, cwd=cwd, env=env, stdout=log,
+                                          stderr=subprocess.STDOUT, start_new_session=True,
+                                          pass_fds=(*inherited, alive_read))
+            finally:
+                os.close(alive_read)
             next_heartbeat = time.monotonic()
             while True:
                 if stopped:
@@ -136,6 +158,8 @@ def supervised(db, task, command, cwd, attempts, timeout, lease, lock_fd, resour
     finally:
         if worker is not None:
             terminate(worker)
+        if alive_write is not None:
+            os.close(alive_write)
         for channel in allocated:
             channel.close()
         for sig, handler in previous.items():

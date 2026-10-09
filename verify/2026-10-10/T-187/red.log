@@ -1,0 +1,11 @@
+ledger_format: 2
+timestamp: 2026-10-09T16:10:53.789401+00:00
+command: bash .claude/scripts/test/factory-receipts-recovery.sh
+exit_code: 1
+red_reason: assertion-failure
+baseline_environment: RECEIPT_TEST_ROOT=/tmp/factory-receipts-baseline
+baseline_commit: 45383d80e6923da6872f208f107744dcf0747f9f
+
+Traceback (most recent call last):
+  File "<stdin>", line 16, in <module>
+AssertionError: authenticated receipt ingestion not implemented

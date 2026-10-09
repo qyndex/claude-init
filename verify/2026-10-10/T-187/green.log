@@ -1,0 +1,6 @@
+ledger_format: 2
+timestamp: 2026-10-09T16:10:54.942347+00:00
+command: bash .claude/scripts/test/factory-receipts-recovery.sh
+exit_code: 0
+
+factory-receipts-recovery: authenticated artifact negatives, delivery binding, SIGKILL guardian and fenced retry passed

@@ -119,6 +119,12 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
 
 ## Active
 
+- [x] T-187  | spec:014  | phase:1  | priority: security  | created: 2026-10-10  | last_touched: 2026-10-10  | deps: T-186  | parallel: no  | est: 30m
+  summary: Authenticate delivery artifacts and fence workers after abrupt supervisor death
+  files: .claude/scripts/factory-receipts.py, .claude/scripts/factory-worker-guard.py
+  accept: bash .claude/scripts/test/factory-receipts-recovery.sh
+  owner: implementer
+
 - [x] T-181  | spec:009  | phase:2  | priority: security  | created: 2026-10-09  | last_touched: 2026-10-09  | deps: T-177  | parallel: no  | est: 5m
   summary: Reject missing touched-spec proof and zero-AC bootstrap bundles
   accept: bash .claude/scripts/test/local-evidence-gate.sh
