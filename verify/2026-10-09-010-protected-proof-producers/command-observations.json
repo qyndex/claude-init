@@ -1,0 +1,75 @@
+{
+  "source_commit": "c3e1d8a6cbfd021a17fb3d990e42ed11bd0c21fc",
+  "generated_at": "2026-10-09T11:42:26.991584+00:00",
+  "independent_attestation": false,
+  "observations": [
+    {
+      "id": "AC-1",
+      "commands": [
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-producers.sh"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "artifact_sha256": "157bbfe4a49e104015a1cfc13f6cba4c8c6420a7e4bcff2f87234e03b8dfa3de"
+    },
+    {
+      "id": "AC-2",
+      "commands": [
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-producers.sh"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "artifact_sha256": "157bbfe4a49e104015a1cfc13f6cba4c8c6420a7e4bcff2f87234e03b8dfa3de"
+    },
+    {
+      "id": "AC-3",
+      "commands": [
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-producers.sh"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "artifact_sha256": "157bbfe4a49e104015a1cfc13f6cba4c8c6420a7e4bcff2f87234e03b8dfa3de"
+    },
+    {
+      "id": "AC-4",
+      "commands": [
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-coordinator.sh"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-workflows.sh"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "actionlint",
+            ".github/workflows/factory-merge.yml",
+            ".github/workflows/factory-verification.yml",
+            ".github/workflows/factory-review.yml"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "artifact_sha256": "bf10c6b02d203cd3d9c46bfd827b926656941c8383fad0b0107381c4c4627177"
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 ---
 name: pr-body
 description: Write or refresh a pull request title and body for this harness, including approved spec references, complete acceptance evidence, actual validation results, and remaining risks. Use before opening a PR or updating its scope or proof.
+when_to_use: Before creating or editing a pull request, including shipping and swarm integration.
 ---
 
 # PR body

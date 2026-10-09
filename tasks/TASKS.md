@@ -42,6 +42,16 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
 
 **Hotfix tasks** (Round 12) carry extra fields: `fingerprint:` (Sentry dedup key), `sentry:` (permalink), `hotfix_issue:` (projected issue #). Inserted at the TOP of `## Active
 
+- [x] T-182  | spec:010  | phase:1  | priority: security  | created: 2026-10-09  | last_touched: 2026-10-09  | deps: T-175, T-177  | parallel: no  | est: 30m
+  summary: Produce protected AC verification and independent tool-free review artifacts
+  accept: bash .claude/scripts/test/factory-producers.sh
+  owner: codex
+
+- [x] T-183  | spec:010  | phase:2  | priority: security  | created: 2026-10-09  | last_touched: 2026-10-09  | deps: T-182  | parallel: no  | est: 20m
+  summary: Authenticate default-branch producer runs through exact-head check receipts
+  accept: bash .claude/scripts/test/factory-coordinator.sh
+  owner: codex
+
 - [ ] T-129  | spec:003  | phase:9  | priority: normal  | created: 2026-06-12  | last_touched: 2026-06-12  | deps:  | parallel: yes  | est: 5m
   summary: Scope pre-bash-guard backtick-network-verb pattern to command position (live-e2e FINDING-3 — false-positives on heredoc bodies carrying frontend fetch code or prose)
   files: .claude/hooks/pre-bash-guard.sh
@@ -111,7 +121,7 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
 
 - [~] T-179  | spec:009  | phase:2  | priority: security  | created: 2026-10-09  | last_touched: 2026-10-09  | deps: T-177, T-178  | parallel: no  | est: 5m
   summary: Publish isolated activation draft PR and account bootstrap package
-  progress: PR #50 published; final candidate CI and cutover account setup remain pending
+  progress: PR #50 merged at 148238ad; account setup and authenticated shadow activation remain pending
   accept: gh pr view "${FACTORY_ACTIVATION_PR:?}" --json state,isDraft | jq -e '.state == "OPEN" and .isDraft == true'
   owner: codex
 

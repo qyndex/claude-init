@@ -1,0 +1,11 @@
+$ bash .claude/scripts/test/factory-coordinator.sh
+passed: 33; failed: 0
+
+exit: 0
+$ bash .claude/scripts/test/factory-workflows.sh
+passed: 8; failed: 0
+
+exit: 0
+$ actionlint .github/workflows/factory-merge.yml .github/workflows/factory-verification.yml .github/workflows/factory-review.yml
+
+exit: 0

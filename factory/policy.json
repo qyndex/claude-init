@@ -36,12 +36,16 @@
     "verification": {
       "workflow_id": null,
       "artifact_name": "factory-verification",
-      "trusted_files": {}
+      "trusted_files": {},
+      "event": "pull_request_target",
+      "check_name": "factory-verification"
     },
     "review": {
       "workflow_id": null,
       "artifact_name": "factory-review",
-      "trusted_files": {}
+      "trusted_files": {},
+      "event": "pull_request_target",
+      "check_name": "factory-independent-review"
     }
   }
 }

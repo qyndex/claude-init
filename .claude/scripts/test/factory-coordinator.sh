@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
+ROOT="${COORDINATOR_TEST_ROOT:-$(cd "$(dirname "$0")/../../.." && pwd)}"
 python3 - "$ROOT" <<'PY'
 import copy,hashlib,importlib.util,io,json,sys,tempfile,zipfile
 from pathlib import Path
@@ -9,7 +9,7 @@ spec=importlib.util.spec_from_file_location('coordinator',root/'.claude/scripts/
 m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
 head='a'*40;base='b'*40
 policy={'schema_version':1,'enabled':True,'merge_enabled':True,'repository':'qyndex/claude-init','base_branch':'main','app_id':99,
- 'protected_paths':['factory/*','.github/*','.claude/scripts/factory-*'],
+ 'protected_paths':['factory/*','.github/*','.claude/scripts/factory-*','.claude/scripts/validate-candidate-evidence.py'],
  'required_checks':{'tests':123},'specs':{'007':{'sha256':'c'*64,'ac_ids':['AC-1'],'allowed_paths':['src/*']}},
  'producers':{'verification':{'workflow_id':10,'artifact_name':'factory-verification','trusted_files':{'.github/verify.yml':hashlib.sha256(b'trusted').hexdigest()}},
               'review':{'workflow_id':20,'artifact_name':'factory-review','trusted_files':{'.github/review.yml':hashlib.sha256(b'trusted').hexdigest()}}}}
@@ -37,6 +37,7 @@ class Fake:
   if '/rulesets/' in path:return {'enforcement':'active','bypass_actors':[{'actor_id':99}] if self.bypass else []}
   if '/check-runs' in path:return self.checks
   if '/actions/runs?' in path:return self.runs
+  if '/actions/runs/' in path:return next(run for run in self.runs if str(run['id'])==path.rsplit('/',1)[1])
   raise AssertionError(path)
  def source(self,path,sha):return b'tampered' if self.bad_source else b'trusted'
  def artifact(self,run,name):
@@ -91,5 +92,21 @@ with tempfile.TemporaryDirectory() as tmp:
  finally:m.GitHub=original;sys.argv=argv
  posts=[call for call in f.calls if isinstance(call,tuple)]
  assert len(posts)==1 and posts[0][0].endswith('/check-runs') and posts[0][1]['conclusion']=='failure'
-print(f'passed: {len(mutations)+8}; failed: 0')
+# Protected target workflows report candidate checks that link to their authenticated run.
+assert callable(getattr(m,'runtime_paths',None)), 'protected producer runtime contract missing'
+p=copy.deepcopy(policy)
+p['required_checks'].update({'factory-verification':123,'factory-independent-review':123})
+for role,name in [('verification','factory-verification'),('review','factory-independent-review')]:
+ p['producers'][role].update(event='pull_request_target',check_name=name,trusted_files={path:hashlib.sha256(b'trusted').hexdigest() for path in m.runtime_paths(role)})
+f=Fake()
+f.rules[1]['parameters']['required_status_checks'] += [{'context':name,'integration_id':123} for name in ('factory-verification','factory-independent-review')]
+for index,name in enumerate(('factory-verification','factory-independent-review'),1):
+ f.checks.append({'name':name,'head_sha':head,'app':{'id':123},'id':88+index,'status':'completed','conclusion':'success','details_url':f'https://github.com/qyndex/claude-init/actions/runs/{index}'})
+ f.runs[index-1].update(event='pull_request_target',head_sha=base,pull_requests=[])
+ph=m.policy_hash(p)
+for document in f.docs.values():document['policy_sha256']=ph
+check(f,p,valid=True)
+for mutate in [lambda a:a.checks[-1].update(details_url='https://foreign/run/2'),lambda a:a.runs[-1].update(head_sha=head),lambda a:a.runs[-1].update(event='workflow_dispatch'),lambda a:a.runs[-1].update(workflow_id=999)]:
+ bad=copy.deepcopy(f);bad.calls=[];mutate(bad);check(bad,p)
+print(f'passed: {len(mutations)+13}; failed: 0')
 PY

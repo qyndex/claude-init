@@ -1,0 +1,11 @@
+ledger_format: 2
+timestamp: 2026-10-09T11:34:12.009696+00:00
+command: bash .claude/scripts/test/factory-producers.sh
+exit_code: 1
+red_reason: assertion-failure
+baseline_environment: PRODUCER_TEST_ROOT=/tmp/factory-producer-baseline
+baseline_commit: 148238ad8950681d352985cdb9c48ad0301e97d3
+
+Traceback (most recent call last):
+  File "<stdin>", line 4, in <module>
+AssertionError: protected producer not implemented

@@ -1,0 +1,112 @@
+name: Factory Merge Authority
+on:
+  workflow_run:
+    workflows: [CI, Harness Validate, Evidence gate, Claude PR Review, Claude Security Review, adr-gate, Commitlint, Lint exception audit, Merge gate, Factory Verification, Factory Independent Review]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: Pull request number to evaluate
+        required: true
+        type: string
+      mode:
+        description: Shadow evaluation or conditional merge
+        required: true
+        default: shadow
+        type: choice
+        options: [shadow, merge]
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: factory-integration-${{ github.repository }}
+  cancel-in-progress: false
+jobs:
+  coordinate:
+    # Dispatch must use the default branch; arbitrary refs cannot load secrets.
+    if: >-
+      vars.FACTORY_AUTHORITY_ENABLED == 'true' &&
+      github.ref_name == github.event.repository.default_branch &&
+      (github.event_name == 'workflow_dispatch' ||
+       ((github.event.workflow_run.event == 'pull_request_target' ||
+         (github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.pull_requests[0].number != null))))
+    environment: factory-authority
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out protected default-branch runtime
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - name: Activation preflight
+        env:
+          FACTORY_APP_ID: ${{ vars.FACTORY_APP_ID }}
+          FACTORY_KEY_PRESENT: ${{ secrets.FACTORY_APP_PRIVATE_KEY != '' }}
+        run: |
+          python3 .claude/scripts/factory-preflight.py --policy factory/policy.json
+      - name: Resolve request from dispatch or completed candidate run
+        id: request
+        env:
+          REQUEST_PR: ${{ inputs.pr }}
+          REQUEST_MODE: ${{ inputs.mode }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 - <<'PY'
+          import json, os, re, subprocess
+          event = json.load(open(os.environ['GITHUB_EVENT_PATH']))
+          if os.environ['GITHUB_EVENT_NAME'] == 'workflow_run':
+              prs = event['workflow_run']['pull_requests']
+              if event['workflow_run']['event'] == 'pull_request_target':
+                  run_id = event['workflow_run']['id']
+                  repository = os.environ['GITHUB_REPOSITORY']
+                  data = subprocess.check_output(['gh', 'api', f'repos/{repository}/actions/runs/{run_id}/artifacts', '--paginate', '--slurp'], text=True)
+                  names = [item['name'] for page in json.loads(data) for item in page['artifacts'] if not item['expired']]
+                  candidates = [match[1] for name in names if (match := re.fullmatch(r'factory-(?:verification|review)-pr-([0-9]+)', name))]
+                  if len(candidates) != 1:
+                      raise SystemExit('Protected producer must identify one candidate artifact')
+                  number = candidates[0]
+              else:
+                  if len(prs) != 1:
+                      raise SystemExit('Completed run must identify one candidate PR')
+                  number = str(prs[0]['number'])
+              mode = 'merge' if json.load(open('factory/policy.json'))['merge_enabled'] else 'shadow'
+          else:
+              number, mode = os.environ['REQUEST_PR'], os.environ['REQUEST_MODE']
+          if not number.isdecimal() or int(number) <= 0 or mode not in ('shadow', 'merge'):
+              raise SystemExit('Invalid factory request')
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write(f'pr={number}\nmode={mode}\n')
+          PY
+      - name: Mint repository-scoped factory token
+        id: app
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          app-id: ${{ vars.FACTORY_APP_ID }}
+          private-key: ${{ secrets.FACTORY_APP_PRIVATE_KEY }}
+          owner: qyndex
+          repositories: claude-init
+          permission-actions: read
+          permission-checks: write
+          permission-contents: write
+          permission-pull-requests: write
+          permission-administration: read
+      - name: Evaluate authenticated candidate and optionally merge
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          PR: ${{ steps.request.outputs.pr }}
+          MODE: ${{ steps.request.outputs.mode }}
+        run: |
+          set -euo pipefail
+          mkdir -p factory-receipt
+          args=(--policy factory/policy.json --pr "$PR" --output factory-receipt/receipt.json)
+          if [ "$MODE" = merge ]; then args+=(--merge); fi
+          python3 .claude/scripts/factory-coordinator.py "${args[@]}"
+      - name: Preserve coordinator receipt
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: factory-receipt-${{ github.run_id }}-${{ github.run_attempt }}
+          path: factory-receipt/
+          if-no-files-found: warn
+          retention-days: 90
