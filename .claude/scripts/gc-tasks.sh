@@ -13,6 +13,12 @@
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 
+# Hold one inherited OS lock across the complete read/modify/write operation.
+STATE_LOCK="$ROOT/.claude/state/locks/memory-plane.oslock"
+if ! python3 "$ROOT/.claude/scripts/state-lock.py" --lock "$STATE_LOCK" --check; then
+  exec python3 "$ROOT/.claude/scripts/state-lock.py" --lock "$STATE_LOCK" -- bash "$0" "$@"
+fi
+
 TASKS_FILE="${TASKS_FILE:-$ROOT/tasks/TASKS.md}"
 TASKS_ARCHIVE_DIR="${TASKS_ARCHIVE_DIR:-$ROOT/tasks/archive}"
 GC_TASKS_LINE_CAP="${GC_TASKS_LINE_CAP:-2000}"
@@ -41,7 +47,7 @@ trap 'rm -f "$live_tmp" "$arch_tmp"' EXIT
 # or keep it.
 awk -v cutoff="$cutoff_epoch" -v age="$GC_TASKS_DONE_AGE_DAYS" \
     -v live="$live_tmp" -v arch="$arch_tmp" '
-  function flush(block, marker,    d, ds, cmd, ep, archived) {
+  function flush(block, marker,    d, ds, cmd, ep, archived, task_id) {
     if (block == "") return
     archived = 0
     # Only [x] done or [s] skipped blocks are archive candidates.
@@ -55,8 +61,25 @@ awk -v cutoff="$cutoff_epoch" -v age="$GC_TASKS_DONE_AGE_DAYS" \
         if (ep != "" && ep+0 > 0 && ep+0 < cutoff) archived = 1
       }
     }
+    if (match(marker, /T-[0-9]+/)) {
+      task_id = substr(marker, RSTART, RLENGTH)
+      if (needed[task_id]) archived = 0
+    }
     if (archived) printf "%s", block >> arch
     else          printf "%s", block >> live
+  }
+  NR == FNR {
+    if ($0 ~ /^- \[/ && $0 !~ /^- \[[xs]\]/) {
+      count = split($0, fields, "|")
+      for (i = 1; i <= count; i++) {
+        if (fields[i] ~ /^[ \t]*deps:/) {
+          gsub(/^[ \t]*deps:[ \t]*/, "", fields[i])
+          n = split(fields[i], dependencies, /[, \t]+/)
+          for (j = 1; j <= n; j++) if (dependencies[j] ~ /^T-[0-9]+$/) needed[dependencies[j]] = 1
+        }
+      }
+    }
+    next
   }
   /^- \[/ {
     flush(block, marker)
@@ -67,7 +90,7 @@ awk -v cutoff="$cutoff_epoch" -v age="$GC_TASKS_DONE_AGE_DAYS" \
     else { print >> live }   # preamble / headers before any task marker
   }
   END { flush(block, marker) }
-' "$TASKS_FILE"
+' "$TASKS_FILE" "$TASKS_FILE"
 
 # If nothing was archived, leave the original untouched (idempotency).
 if [ ! -s "$arch_tmp" ]; then

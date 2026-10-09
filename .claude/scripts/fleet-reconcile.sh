@@ -13,6 +13,12 @@
 
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+
+# Hold one inherited OS lock across the complete read/modify/write operation.
+STATE_LOCK="$ROOT/.claude/state/shared-writers.lock"
+if ! python3 "$ROOT/.claude/scripts/state-lock.py" --lock "$STATE_LOCK" --check; then
+  exec python3 "$ROOT/.claude/scripts/state-lock.py" --lock "$STATE_LOCK" -- bash "$0" "$@"
+fi
 cd "$ROOT" || exit 1
 
 FLEET=.swarms/coordinator/fleet.json
@@ -32,6 +38,7 @@ command -v jq >/dev/null 2>&1 || { echo "jq required" >&2; exit 1; }
 # yields an EMPTY live set — every running entry would be marked crashed, which
 # is wrong when the daemon is merely restarting. Fail safe: require the command
 # to SUCCEED; on failure, report and exit without touching the fleet.
+# JUSTIFIED: daemon probe errors are handled below as an explicit failure without changing fleet state.
 if ! agents_json=$(claude agents --json 2>/dev/null); then
   echo "claude agents --json unavailable — refusing to reconcile against an unknown live set" >&2
   exit 1

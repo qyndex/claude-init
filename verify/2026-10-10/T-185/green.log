@@ -1,0 +1,6 @@
+ledger_format: 2
+timestamp: 2026-10-09T15:31:19.608521+00:00
+command: bash .claude/scripts/test/factory-supervisor.sh
+exit_code: 0
+
+factory-supervisor: foreground ownership, heartbeat, cancellation, timeout, detached launch and writer races passed

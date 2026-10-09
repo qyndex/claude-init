@@ -41,7 +41,7 @@ old="$(date -v-40d +%Y-%m-%d 2>/dev/null || date -d '40 days ago' +%Y-%m-%d)"
     echo "- [x] T-$i | priority: P2 | completed: $old"
     echo "      summary: old finished task $i"
   done
-  echo "- [ ] T-99 | priority: P1 | created: $(date +%Y-%m-%d)"
+  echo "- [ ] T-99 | priority: P1 | deps: T-2 | created: $(date +%Y-%m-%d)"
   echo "      summary: a live pending task that must stay"
   echo
   echo "## Backlog"
@@ -56,6 +56,8 @@ grep -q 'T-99' "$TASKS_FILE"; expect "gc-tasks kept the live pending task" $?
 ! grep -q 'T-1 |' "$TASKS_FILE"; expect "gc-tasks removed an old done task from the live file" $?
 # JUSTIFIED: test assertion — the suppressed grep stderr/exit is captured as the rc that `expect` checks; suppression keeps the test output clean
 grep -rq 'T-1 |' "$TASKS_ARCHIVE_DIR" 2>/dev/null; expect "the old done task landed in the archive" $?
+
+grep -q "T-2 |" "$TASKS_FILE"; expect "completed dependency remains available to unfinished work" $?
 
 # Idempotent: second run does not re-archive / corrupt.
 cp "$TASKS_FILE" "$TMP/tasks-after-1.md"
