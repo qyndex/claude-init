@@ -1,0 +1,80 @@
+{
+  "source_commit": "823c29b8ba2b6b48de1f1c6feb8ac07ce4ae8340",
+  "generated_at": "2026-10-09T23:59:31.582309+00:00",
+  "independent_attestation": false,
+  "observations": [
+    {
+      "id": "AC-1",
+      "commands": [
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-digest.sh"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "artifact_sha256": "f2335dbabf3c06d2febcce768ff2a205e228fcfb8ff1d8931a62d0563667ca98"
+    },
+    {
+      "id": "AC-2",
+      "commands": [
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-digest.sh"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "artifact_sha256": "f2335dbabf3c06d2febcce768ff2a205e228fcfb8ff1d8931a62d0563667ca98"
+    },
+    {
+      "id": "AC-3",
+      "commands": [
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-digest.sh"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "artifact_sha256": "f2335dbabf3c06d2febcce768ff2a205e228fcfb8ff1d8931a62d0563667ca98"
+    },
+    {
+      "id": "AC-4",
+      "commands": [
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-digest.sh"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-receipts-recovery.sh"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-runtime.sh"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "shellcheck",
+            ".claude/scripts/test/factory-digest.sh"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "artifact_sha256": "78ac980d314b768e7e9c31c3e86b67716c2ebaf6c48694d5b6dc74ebb789b2e8"
+    }
+  ]
+}
