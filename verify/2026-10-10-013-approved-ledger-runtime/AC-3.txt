@@ -1,0 +1,4 @@
+$ bash .claude/scripts/test/factory-ledger.sh
+factory-ledger: approved closure, receipts, archive IDs, nested lock returns and resource contracts passed
+
+exit: 0
