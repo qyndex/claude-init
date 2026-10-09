@@ -1,0 +1,23 @@
+$ bash .claude/scripts/test/factory-receipts-recovery.sh
+factory-receipts-recovery: authenticated artifact negatives, delivery binding, SIGKILL guardian and fenced retry passed
+
+exit: 0
+$ bash .claude/scripts/test/factory-supervisor.sh
+factory-supervisor: foreground ownership, heartbeat, cancellation, timeout, detached launch and writer races passed
+
+exit: 0
+$ bash .claude/scripts/test/factory-ledger.sh
+factory-ledger: approved closure, receipts, archive IDs, nested lock returns and resource contracts passed
+
+exit: 0
+$ bash .claude/scripts/test/factory-runtime.sh
+factory-runtime: AC-1 through AC-4 passed (race, fencing, recovery, outbox and rollback)
+
+exit: 0
+$ bash .claude/scripts/test/factory-coordinator.sh
+passed: 33; failed: 0
+
+exit: 0
+$ actionlint -shellcheck= .github/workflows/factory-merge.yml
+
+exit: 0

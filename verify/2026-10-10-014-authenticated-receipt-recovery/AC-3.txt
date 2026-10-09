@@ -1,0 +1,4 @@
+$ bash .claude/scripts/test/factory-receipts-recovery.sh
+factory-receipts-recovery: authenticated artifact negatives, delivery binding, SIGKILL guardian and fenced retry passed
+
+exit: 0
