@@ -1,0 +1,18 @@
+ledger_format: 2
+timestamp: 2026-10-09T06:55:38.097839+00:00
+command: bash .claude/scripts/test/factory-coordinator.sh
+exit_code: 1
+red_reason: assertion-failure
+
+Traceback (most recent call last):
+  File "<stdin>", line 44, in check
+  File "/Volumes/M/sourcecode/qyndex/claude-init/.claude/scripts/factory-coordinator.py", line 3, in coordinate
+    raise ValueError("coordinator not implemented")
+ValueError: coordinator not implemented
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "<stdin>", line 52, in <module>
+  File "<stdin>", line 47, in check
+AssertionError

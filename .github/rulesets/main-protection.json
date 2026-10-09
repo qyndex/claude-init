@@ -1,5 +1,5 @@
 {
-  "_comment": "GitHub Ruleset for the default branch. Apply via: gh api repos/:owner/:repo/rulesets --method POST --input .github/rulesets/main-protection.json. Replaces classic branch protection. | e2e-audit ci-gates-1: every unfiltered per-PR gate is REQUIRED (adr-gate, commitlint incl. lint-trailers, lint-exception-audit, check-daily-batch=merge-gate). Path-filtered gates (claude-review, claude-security, pr-review) stay ADVISORY by decision - they don't run on every PR, so requiring them would block docs-only merges. | AUTONOMOUS-MERGE (operator decision 2026-07-24): required_approving_review_count=0 and require_code_owner_review=false so an agent can self-merge on all-green CI (the agent's own reviewer+security jobs ARE the review). The 9 required status checks remain the hard gate: no green, no merge. required_signatures REMOVED because agent/CI commits are not GPG-signed and it would block every autonomous merge; re-add it only if you sign agent commits.",
+  "_comment": "Default-branch protection baseline. Review and security-review are required checks. Keep stricter live stale-review dismissal and thread-resolution controls. Factory cutover adds dedicated-App-pinned eligibility and independent producer checks through the separately reviewed factory-ruleset-plan.py output; this file does not activate the App.",
   "name": "main-protection",
   "target": "branch",
   "enforcement": "active",
@@ -23,10 +23,10 @@
       "type": "pull_request",
       "parameters": {
         "required_approving_review_count": 0,
-        "dismiss_stale_reviews_on_push": false,
+        "dismiss_stale_reviews_on_push": true,
         "require_code_owner_review": false,
         "require_last_push_approval": false,
-        "required_review_thread_resolution": false
+        "required_review_thread_resolution": true
       }
     },
     {
@@ -35,31 +35,40 @@
         "strict_required_status_checks_policy": true,
         "required_status_checks": [
           {
-            "context": "lint-test"
+            "context": "lint-test",
+            "integration_id": 15368
           },
           {
-            "context": "review"
+            "context": "review",
+            "integration_id": 15368
           },
           {
-            "context": "security-review"
+            "context": "security-review",
+            "integration_id": 15368
           },
           {
-            "context": "harness-validate"
+            "context": "harness-validate",
+            "integration_id": 15368
           },
           {
-            "context": "evidence-gate"
+            "context": "evidence-gate",
+            "integration_id": 15368
           },
           {
-            "context": "adr-gate"
+            "context": "adr-gate",
+            "integration_id": 15368
           },
           {
-            "context": "commitlint"
+            "context": "commitlint",
+            "integration_id": 15368
           },
           {
-            "context": "lint-exception-audit"
+            "context": "lint-exception-audit",
+            "integration_id": 15368
           },
           {
-            "context": "check-daily-batch"
+            "context": "check-daily-batch",
+            "integration_id": 15368
           }
         ]
       }

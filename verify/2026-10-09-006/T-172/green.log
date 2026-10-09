@@ -1,0 +1,8 @@
+ledger_format: 2
+timestamp: 2026-10-09T06:21:31.595946+00:00
+command: bash .claude/scripts/test/gc-suite.sh
+exit_code: 0
+
+---
+passed: 12
+failed: 0

@@ -1,0 +1,2 @@
+["bash", ".claude/scripts/test/coverage-values.sh"]
+passed: 6; failed: 0

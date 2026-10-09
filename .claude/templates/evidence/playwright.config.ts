@@ -13,7 +13,7 @@ import * as fs from "node:fs";
 
 const DATE = new Date().toISOString().slice(0, 10); // 2026-05-28
 const FEATURE = process.env.VERIFY_FEATURE ?? "adhoc";
-const OUT = `verify/${DATE}-${FEATURE}`;
+const OUT = process.env.VERIFY_OUTPUT_DIR ?? `verify/${DATE}-${FEATURE}`;
 
 // e2e-audit e2e-rig-1: the rig must START the app — nothing else in the chain
 // provisions a server, so journeys previously ran against a dead port.

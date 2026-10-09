@@ -6,7 +6,7 @@
 # `[ ]` (pending) in tasks/TASKS.md. The 2026-07 memory audit found spec-004
 # stuck `[ ]` for 6 weeks after PR #13 shipped it, with NO detection. This test
 # proves reverse-drift-check.sh flags that class (advisory, exit 0) and that the
-# staged push:main workflow patch is triggered correctly + wires the third
+# installed push:main workflow is triggered correctly + wires the third
 # initiative-state.sh sync writer site (M-06b).
 #
 # Auto-covered by the M-00 directory-glob CI runner.
@@ -15,7 +15,6 @@ ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
 cd "$ROOT"
 
 CHECK=.claude/scripts/reverse-drift-check.sh
-PATCH=.claude/memory.proposed/patches/M-07-guard-reverse-drift.patch
 
 pass=0; fail=0
 check() { if [ "$2" -eq 0 ]; then pass=$((pass+1)); else fail=$((fail+1)); echo "  - FAIL: $1"; fi; }
@@ -75,28 +74,10 @@ fi
 printf '%s\n' "$out" | grep -qiE 'accept|summary'
 check "reports accept:/summary: presence as a secondary signal" $?
 
-# ── (4) staged workflow patch triggers on push:main only, NOT pull_request ────
-if [ -f "$PATCH" ]; then
-  check "M-07-guard workflow patch present" 0
-
-  # The patch is a unified diff that CREATES .github/workflows/reverse-drift.yml.
-  grep -qE '^\+\+\+ .*/.github/workflows/reverse-drift\.yml' "$PATCH"
-  check "patch creates .github/workflows/reverse-drift.yml" $?
-
-  # git apply --check must pass (patch is well-formed against the tree).
-  # It must not already exist (guarded file — agent never wrote it directly).
-  if [ ! -e .github/workflows/reverse-drift.yml ]; then
-    git apply --check "$PATCH" 2>/dev/null
-    check "patch applies cleanly (git apply --check)" $?
-  else
-    check "reverse-drift.yml is a staged patch, not a direct write" 1
-  fi
-
-  # Extract only the ADDED workflow body (lines the patch inserts) and inspect
-  # it. Drop the `+++ b/...` file header FIRST (fixed-string, not regex — the
-  # `+++`/`++` forms are invalid regex quantifiers under some greps), then strip
-  # the single leading `+` from real added lines.
-  added="$(grep -E '^\+' "$PATCH" | grep -vF '+++ ' | sed -E 's/^\+//')"
+# ── (4) Installed workflow triggers on main push and wires state sync ────
+if [ -f .github/workflows/reverse-drift.yml ]; then
+  check "reverse-drift workflow installed" 0
+  added="$(cat .github/workflows/reverse-drift.yml)"
 
   printf '%s\n' "$added" | grep -qE '^\s*push:'
   check "workflow triggers on push:" $?
@@ -118,7 +99,7 @@ if [ -f "$PATCH" ]; then
   printf '%s\n' "$added" | grep -qE 'reverse-drift-check\.sh'
   check "workflow runs reverse-drift-check.sh" $?
 else
-  check "M-07-guard workflow patch present" 1
+  check "reverse-drift workflow installed" 1
 fi
 
 echo "passed: $pass"

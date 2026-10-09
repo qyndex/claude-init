@@ -1,0 +1,30 @@
+{
+  "recorded_at": "2026-10-09T06:44:54.747308+00:00",
+  "kind": "local-implementation-verification",
+  "independent_attestation": false,
+  "sources": {
+    ".claude/scripts/verify.sh": "93b5248ed8d6c8678eb271d6db44338fa0645a560b7dfcfd4903accf8481e93e",
+    ".claude/scripts/rerun-acceptance.py": "bd8cf12fcdbb254712fbbd187c1be5d6cf827bcbc061b72e55ffa9662b309da6",
+    ".claude/scripts/validate-candidate-evidence.py": "ad0be5042d8dce5e0372159bbcbdbb84bc39b96e57435865eb62e7e5d4d0b52c",
+    ".github/workflows/evidence-gate.yml": "c5acd6751052234734b9a8197dd579f7eea7ab4f7b39852d4d458c2f0d6aa592",
+    ".claude/scripts/test/acceptance-rerun.sh": "061c1c5dbb5aa5a66e70d446928b5d79bc3818bb6a6ba5929ccf02938695b859",
+    ".claude/scripts/test/required-verification.sh": "b2e578c37889f31f467514b576caddb73bbe10c193b34bbeffb4d468a42a44f3",
+    ".claude/scripts/test/candidate-evidence.sh": "7bec6ee6ee7433ac87ac13c6245e91a205f087cb564d3f250462c33836c7cca1",
+    ".claude/scripts/test/coverage-values.sh": "4e8b50faf7f948b4e16d625c73550198e3e921b73b341061b3963dd9153fe34c"
+  },
+  "baseline_suites": {
+    "macos": {
+      "passed": 61,
+      "failed": 0
+    },
+    "linux": {
+      "passed": 61,
+      "failed": 0
+    }
+  },
+  "final_focused_suites": {
+    "macos": 5,
+    "linux": 5
+  },
+  "actual_github_candidate_ci": false
+}

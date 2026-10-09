@@ -1,15 +1,7 @@
 #!/usr/bin/env bash
-# M-15 — a subagent's memory recall must be scoped to the TASK CODE it will touch
-# (the in-progress task's `files:` paths), not only the spec/plan markdown. Without
-# this the child recalls memory about spec docs, not the code it edits.
-#
-# subagent-context.sh is a GUARDED hook → the fix ships as a staged patch
-# (M-15-subagent-recall-task-code.patch). This test applies it onto a temp copy and
-# drives the hook with a memory-recall.sh STUB that records its --paths argument, so
-# we can assert the task's code paths reached recall.
+# Regression: installed subagent hook recalls task-scoped context.
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
-PATCH="$ROOT/.claude/memory.proposed/patches/M-15-subagent-recall-task-code.patch"
 command -v jq >/dev/null 2>&1 || { echo "jq required"; exit 0; }
 
 pass=0; fail=0
@@ -19,9 +11,6 @@ tmp="$(mktemp -d)"; trap 'rm -rf "$tmp"' EXIT
 mkdir -p "$tmp/.claude/hooks" "$tmp/.claude/scripts" "$tmp/specs/active" \
          "$tmp/plans/active" "$tmp/tasks" "$tmp/.swarms/coordinator"
 cp "$ROOT/.claude/hooks/subagent-context.sh" "$tmp/.claude/hooks/"
-[ -f "$PATCH" ] || { echo "  - missing patch: $PATCH"; echo "passed: 0"; echo "failed: 1"; exit 1; }
-( cd "$tmp" && git apply "$PATCH" ) 2>/dev/null
-check "M-15 patch applies onto the guarded hook" $?
 
 # Recording stub: capture the --paths value memory-recall.sh is called with.
 cat > "$tmp/.claude/scripts/memory-recall.sh" <<EOF
@@ -48,7 +37,7 @@ EOF
 ( cd "$tmp" && printf '{"tool_name":"Agent","tool_input":{"subagent_type":"implementer"}}' \
   | bash .claude/hooks/subagent-context.sh >/dev/null 2>&1 )
 
-paths_seen=$(cat "$tmp/recall-paths.log" 2>/dev/null)
+paths_seen=$(cat "$tmp/recall-paths.log")
 
 # The task's code paths must have reached recall.
 printf '%s' "$paths_seen" | grep -q 'target-a\.sh'

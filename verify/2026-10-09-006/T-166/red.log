@@ -1,0 +1,16 @@
+ledger_format: 2
+timestamp: 2026-10-09T05:59:59.268558+00:00
+command: bash .claude/scripts/test/local-scanner-contracts.sh
+exit_code: 1
+red_reason: assertion-failure
+
+FAIL: semgrep passed failing/missing invocation
+FAIL: gitleaks passed failing/missing invocation
+FAIL: commitlint passed failing/missing invocation
+FAIL: codeql passed failing/missing invocation
+FAIL: license passed failing/missing invocation
+FAIL: sbom passed failing/missing invocation
+FAIL: lighthouse passed failing/missing invocation
+FAIL: perf-budget passed failing/missing invocation
+FAIL: unknown contract passed
+passed: 1; failed: 9

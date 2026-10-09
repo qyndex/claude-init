@@ -1,0 +1,8 @@
+ledger_format: 2
+timestamp: 2026-10-09T06:02:48.013261+00:00
+command: bash .claude/scripts/test/oq-aging.sh
+exit_code: 0
+
+---
+passed: 6
+failed: 0

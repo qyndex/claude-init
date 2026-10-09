@@ -155,6 +155,16 @@ for pattern in "${deny_raw_patterns[@]}"; do
   fi
 done
 
+# SQL is executable content for database clients even when quoted. Match the
+# client on stripped command positions so ordinary quoted prose stays content.
+sql_client_pattern="(^|[;|&] *)${ENVP}(psql|mysql|sqlite3|sqlcmd)( |$)"
+if [[ "$cmd_stripped" =~ $sql_client_pattern ]]; then
+  sql_upper=$(printf '%s' "$cmd_normalized" | tr '[:lower:]' '[:upper:]')
+  if [[ "$sql_upper" =~ (DROP[[:space:]]+(TABLE|DATABASE)|TRUNCATE[[:space:]]+TABLE|DELETE[[:space:]]+FROM) ]]; then
+    deny "database client contains destructive SQL; quoted SQL is executable input"
+  fi
+fi
+
 # Variable indirection of a destructive payload (BYPASS-03): an assignment whose
 # value embeds a destructive verb, later executed as a bare $VAR. The payload
 # lives inside quotes (invisible after stripping), so detect the assignment on

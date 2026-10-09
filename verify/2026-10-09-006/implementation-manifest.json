@@ -1,0 +1,155 @@
+{
+  "recorded_at": "2026-10-09T06:24:03.425035+00:00",
+  "producer": "local implementing session; not independent merge attestation",
+  "baseline_head": "9d40bcc9fd40887dfa03bc0f55157c37c945b62d",
+  "sources": [
+    {
+      "path": ".claude/hooks/pre-bash-guard.sh",
+      "sha256": "0a79ac5987851fa8ad4aee8c9ad15e26f393ea72d1e9d0603585125e800ae2fa"
+    },
+    {
+      "path": ".claude/scripts/check-sarif.sh",
+      "sha256": "f0b694e85775aade02f50768f1926f423477ffda3610e9369a4e9b4f78371cdf"
+    },
+    {
+      "path": ".claude/scripts/collect-evidence.sh",
+      "sha256": "3102805eeb96e8b1fed9a9e80ff3dc711c8c7a772ea2c9b19a4738de6decf53e"
+    },
+    {
+      "path": ".claude/scripts/contract-tests.sh",
+      "sha256": "5bf8e113b0db60884537d8bf22e7b3ddfb7d327749e822b758d9b3a83ed41823"
+    },
+    {
+      "path": ".claude/scripts/gc-tasks.sh",
+      "sha256": "0f013e32ac5d2b189c104d75359723365ed2c5a21ebbb1d83f119e2d3f2db846"
+    },
+    {
+      "path": ".claude/scripts/ledger-decay.sh",
+      "sha256": "bfecbf01bb5f15701875e400e500e3384d9dc3a12482ebf7c6de73a8541f0f55"
+    },
+    {
+      "path": ".claude/scripts/local-pr-check.sh",
+      "sha256": "08e22e619b509db894e73f14718ae98f16d3099e3a9d2e2bb6567e4243c4dc20"
+    },
+    {
+      "path": ".claude/scripts/memory-rollup.sh",
+      "sha256": "f8d843369ebd1cd4cef1ab18336fd9f0173af7dff9634b5416af97c9edb866f8"
+    },
+    {
+      "path": ".claude/scripts/oq-aging.sh",
+      "sha256": "b451067ea78c35aa673fcc3f24fe8859072fe7705b00a16fa641234a02b0533e"
+    },
+    {
+      "path": ".claude/scripts/stale-deps/rollup.sh",
+      "sha256": "9096ace43b89b8234fcddec2c69b23e4f9b8cf39fb5ad39631eeec06f8b09fe9"
+    },
+    {
+      "path": ".claude/scripts/test/boot-autoheal.sh",
+      "sha256": "026d518e9786997ea8b425a7e30ca046aa5edcc0827342cda9316cc83ce9a8cb"
+    },
+    {
+      "path": ".claude/scripts/test/boot-inject-hot.sh",
+      "sha256": "fa90f19b4001cfc50b97bf5efce9b7ad393a58e9d545dd1b5389e00b3bf11774"
+    },
+    {
+      "path": ".claude/scripts/test/candidate-root.sh",
+      "sha256": "5989e67b61e719584914103adc88386cb3cb4acc90a29a862d278e9a92d8367a"
+    },
+    {
+      "path": ".claude/scripts/test/dependency-rollup.sh",
+      "sha256": "3a6df85d783d9f250c2b82ff8d39aa9c203ee0557f74c0037fe845690c7d10cc"
+    },
+    {
+      "path": ".claude/scripts/test/dream-cost-gate.sh",
+      "sha256": "8ccc73a449a6e118774c6ce948e4c14260288d494f0b5edf24b8b94daf7c4667"
+    },
+    {
+      "path": ".claude/scripts/test/evidence-finalization.sh",
+      "sha256": "9a1c80b8095031dadeb90438b9837288e3e7a692160d78792149a92cc1ce5e0e"
+    },
+    {
+      "path": ".claude/scripts/test/factory-workflows.sh",
+      "sha256": "54cea3b8e9234560c77ed95f6f95ef9d475558ea05d91dc34c98ba06a0a82eab"
+    },
+    {
+      "path": ".claude/scripts/test/local-scanner-contracts.sh",
+      "sha256": "8f7b85940dd79aac3af75a4dbea32fe1f195c13d74d34102975e66e3e8d08db1"
+    },
+    {
+      "path": ".claude/scripts/test/pivot-trace.sh",
+      "sha256": "b103957a7b0bef1f68aaf96bed3e9c6020308deb62deb0ed961a592d4da4127b"
+    },
+    {
+      "path": ".claude/scripts/test/reverse-drift.sh",
+      "sha256": "f4bdfd618ae0e2cfe36a080737383affd259945df87097ea6b4f0c1d6306d98a"
+    },
+    {
+      "path": ".claude/scripts/test/rollup-envclock.sh",
+      "sha256": "f529622004590f482138fd0d98af6c255fbf66af75c3df08d532a91d04f6c663"
+    },
+    {
+      "path": ".claude/scripts/test/security-invariants.sh",
+      "sha256": "f009d11411645a3d84891121e962c479b06c84f1f1b7e3dcc463d1e831e4d705"
+    },
+    {
+      "path": ".claude/scripts/test/ship-verify-sync.sh",
+      "sha256": "1d75732b65ef5ae51e6986ca20a769ef5389caae46c5a6801e9a9084727697d0"
+    },
+    {
+      "path": ".claude/scripts/test/spec004-reconcile.sh",
+      "sha256": "fcb5cd70671281a9ae580d8d483fa3b800326bb7d45c2185b246d03f0995f552"
+    },
+    {
+      "path": ".claude/scripts/test/subagent-recall-scope.sh",
+      "sha256": "db0bcf200e3aeb4180e388af7f6885f9a2a4923ebc6ac9a04c1651f4fdd86fba"
+    },
+    {
+      "path": ".claude/scripts/test/subagent-spec-resolution.sh",
+      "sha256": "7a108f811985da9cdf7fbc793436e9d2dcf65ee689121433845ce5a96e9bd028"
+    },
+    {
+      "path": ".claude/scripts/verified-merge.sh",
+      "sha256": "404c7ed9289c14e6ebba94f1ade59ce277f6523cb5f6ea1ccc1a2c775d5742e1"
+    },
+    {
+      "path": ".claude/scripts/verify.sh",
+      "sha256": "fcc250fbf50c6b00b4b6549fcc2358e39e632325f65d38a609cba801f1ea732d"
+    },
+    {
+      "path": ".claude/templates/evidence/_evidence.ts",
+      "sha256": "a71ff45df676c1cb78bee8cfd28a8f1095285af1f4ac979ec88fbb0f06c2713c"
+    },
+    {
+      "path": ".claude/templates/evidence/playwright.config.ts",
+      "sha256": "c3bbfabde68ed303f5a56771b27ffa10bb8c1df6660deffff0ae89d23cf959dd"
+    },
+    {
+      "path": ".github/workflows/daily-stale-deps.yml",
+      "sha256": "77f82e3cce627b102b37eb759aaec0f6501d805f9ec250125cb20ee83504f117"
+    },
+    {
+      "path": ".github/workflows/harness-validate.yml",
+      "sha256": "e385187702e33f9184cdc5b5543773a90b29df27d9de520d67b72446999cc7d7"
+    },
+    {
+      "path": ".github/workflows/iac-scan.yml",
+      "sha256": "5ff3d24297e8b29415985ebefe99dcee430969947c09d0f266837181f13bd54f"
+    },
+    {
+      "path": ".github/workflows/merge-gate.yml",
+      "sha256": "0264a9a207d667f5431c0cfcb0f4b3fc32259a683224d39e81e44d1c6dc082d8"
+    },
+    {
+      "path": ".github/workflows/semgrep.yml",
+      "sha256": "327b95f453ba6d81a215b4a3b1ce92d6ddf48c3433b8eb51db62b9f1273d6025"
+    },
+    {
+      "path": "tasks/TASKS.md",
+      "sha256": "3e04cec0a7154272950e42d1c53411c1579366001545bceab0e4bade6e9c305d"
+    }
+  ],
+  "macos_suites": 58,
+  "linux_suites": 58,
+  "github_ci": "not run on this candidate",
+  "linux_runtime": "cached node:20-slim; Debian 12, Bash, mawk, Australia/Sydney; checksum-verified Actionlint 1.7.12; disposable copy, no credentials mounted"
+}

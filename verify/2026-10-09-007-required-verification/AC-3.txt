@@ -1,0 +1,2 @@
+["bash", ".claude/scripts/test/required-verification.sh"]
+passed: 7; failed: 0

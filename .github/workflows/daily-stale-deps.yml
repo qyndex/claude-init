@@ -98,10 +98,15 @@ jobs:
         with:
           path: /tmp/all-artifacts
       - name: Aggregate
+        env:
+          BUMP_RESULT: ${{ needs.bump.result }}
         run: |
-          mkdir -p /tmp/bump-results-aggregated
-          find /tmp/all-artifacts -name summary.json -exec cp -t /tmp/bump-results-aggregated/ {} +
-          bash .claude/scripts/stale-deps/rollup.sh
+          if [ "$BUMP_RESULT" != "success" ] && [ "$BUMP_RESULT" != "skipped" ]; then
+            echo "::error::Dependency scanning did not complete: $BUMP_RESULT"
+            exit 1
+          fi
+          mkdir -p /tmp/all-artifacts
+          bash .claude/scripts/stale-deps/rollup.sh /tmp/all-artifacts
       - name: Commit rollup report
         run: |
           git config user.name "github-actions[bot]"

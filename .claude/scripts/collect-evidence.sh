@@ -39,7 +39,8 @@ fi
 spec_id=$(basename "$spec" .md | grep -oE '^[0-9]+' | head -1)
 slug=$(basename "$spec" .md)
 date_dir="verify/$(date +%Y-%m-%d)-${slug}"
-mkdir -p "$date_dir/screenshots" "$date_dir/traces"
+mkdir -p "$date_dir/screenshots" "$date_dir/traces" || exit 1
+rm -f "$date_dir/evidence.json" "$date_dir/pr-body.md" "$date_dir/EVIDENCE.md" || exit 1
 
 echo "→ Collecting evidence for spec $spec_id ($slug)"
 
@@ -48,40 +49,56 @@ ac_block=$(awk '/^## Acceptance criteria/,/^## [^A]/' "$spec")
 # Normalized to unpadded AC-N (e2e-audit e2e-rig-3) — must match spec-match.sh's canonical form.
 ac_ids=$(echo "$ac_block" | grep -oE 'AC-[0-9]+' | sed 's/AC-0*\([0-9]\)/AC-\1/' | sort -u)
 # JUSTIFIED: the fallback yields a zero count when grep matches no AC lines (exit 1) — a spec with no acceptance criteria correctly reports zero rather than aborting under pipefail
-ac_count=$(echo "$ac_ids" | grep -c . || echo 0)
+ac_count=$(printf '%s\n' "$ac_ids" | awk 'NF {n++} END {print n+0}')
+[ "$ac_count" -gt 0 ] || { echo "No AC identifiers: evidence cannot prove this spec" >&2; exit 1; }
 
 # ─── 2. Run the journey via the playwright rig (unless check-only) ──────
 results_json="$date_dir/results.json"
+runner_exit=0
 if [ "$CHECK_ONLY" = "0" ]; then
+  # Never consume a preceding invocation's result or publish its PASS as current.
+  attempt_dir=$(mktemp -d "$date_dir/attempt-XXXXXXXX") || exit 1
+  results_json="$attempt_dir/results.json"
   # e2e-audit e2e-rig-4: the rig runs via its OWN config (--config
   # playwright.evidence.config.ts) so it never collides with a brownfield
   # project's playwright.config.ts; existence checks key on the evidence config.
   if [ -f playwright.evidence.config.ts ] && [ -d "e2e/$spec_id" ]; then
     echo "  Running journey: VERIFY_FEATURE=$slug npx playwright test --config playwright.evidence.config.ts e2e/$spec_id"
-    # JUSTIFIED: the fallback lets the script continue past a failing journey run — the AC-proven verdict is computed from results.json in step 4, so a non-zero exit here is captured there, not swallowed
-    VERIFY_FEATURE="$slug" npx playwright test --config playwright.evidence.config.ts "e2e/$spec_id" 2>&1 | tail -20 || true
+    # Runner failure is recorded independently of any result tags and blocks PASS.
+    VERIFY_FEATURE="$slug" VERIFY_OUTPUT_DIR="$attempt_dir" npx playwright test --config playwright.evidence.config.ts "e2e/$spec_id" 2>&1 | tail -20 || runner_exit=$?
   else
     # e2e-audit greenfield-4: no browser rig — CLIs/APIs/libraries prove ACs via
     # the stack's own runner emitting AC-tagged junit/json into the bundle dir.
     echo "  ⚠ No playwright.evidence.config.ts or e2e/$spec_id/ — run: bash .claude/scripts/rig-bootstrap.sh (web apps) or rely on the stack-runner AC proof below"
     if [ -f package.json ] && jq -e '.devDependencies.vitest // .dependencies.vitest' package.json >/dev/null 2>&1; then
-      echo "  Running stack AC proof: vitest → $date_dir/results.json"
+      echo "  Running stack AC proof: vitest → $results_json"
       # JUSTIFIED: failing tests must not abort evidence collection — step 4 reads pass/fail from the output file
-      npx vitest run --reporter=json --outputFile="$results_json" 2>&1 | tail -5 || true
+      npx vitest run --reporter=json --outputFile="$results_json" 2>&1 | tail -5 || runner_exit=$?
     elif [ -f package.json ] && jq -e '.devDependencies.jest // .dependencies.jest' package.json >/dev/null 2>&1; then
-      echo "  Running stack AC proof: jest → $date_dir/results.json"
+      echo "  Running stack AC proof: jest → $results_json"
       # JUSTIFIED: same contract as above — the verdict comes from the output file
-      npx jest --json --outputFile="$results_json" 2>&1 | tail -5 || true
+      npx jest --json --outputFile="$results_json" 2>&1 | tail -5 || runner_exit=$?
     elif [ -f pyproject.toml ] || [ -f requirements.txt ] || [ -f setup.py ]; then
-      echo "  Running stack AC proof: pytest → $date_dir/results.xml"
-      results_json="$date_dir/results.xml"
+      echo "  Running stack AC proof: pytest → $attempt_dir/results.xml"
+      results_json="$attempt_dir/results.xml"
       # JUSTIFIED: same contract — junit XML carries pass/fail per testcase
-      python3 -m pytest --junitxml="$results_json" 2>&1 | tail -5 || true
+      python3 -m pytest --junitxml="$results_json" 2>&1 | tail -5 || runner_exit=$?
     fi
   fi
 fi
 if [ ! -f "$results_json" ]; then
   echo "  ⚠ No results at $results_json — every AC will read UNPROVEN. Install the rig: bash .claude/scripts/rig-bootstrap.sh, or emit AC-tagged junit/jest output to that path."
+fi
+
+# Validate the whole output before any AC tags can be consumed. A parser can
+# emit a valid prefix and then fail on trailing garbage; that is not proof.
+if [ -f "$results_json" ]; then
+  case "$results_json" in
+    *.xml)
+      python3 -c 'import sys, xml.etree.ElementTree as ET; ET.parse(sys.argv[1])' "$results_json" || exit 1 ;;
+    *)
+      jq -es 'length == 1 and (.[0] | type == "object")' "$results_json" >/dev/null || exit 1 ;;
+  esac
 fi
 
 # ─── 3. Smoke commands ──────────────────────────────────────────────────
@@ -132,6 +149,7 @@ cov_branch="?"
 verdict="PASS"
 [ "${#ac_unproven[@]}" -gt 0 ] && verdict="FAIL"
 [ "$smoke_max_exit" -ne 0 ] && verdict="FAIL"
+[ "$runner_exit" -ne 0 ] && verdict="FAIL"
 
 # ─── 7. Emit evidence.json ──────────────────────────────────────────────
 # Build the unproven-AC JSON array. The previous form piped through
@@ -158,13 +176,16 @@ jq -nc \
   --argjson ac_proven "$ac_proven" \
   --argjson ac_unproven "$unproven_json" \
   --argjson smoke_exit "$smoke_max_exit" \
+  --argjson runner_exit "$runner_exit" \
   --arg cov_line "$cov_line" \
   --arg cov_branch "$cov_branch" \
   --arg verdict "$verdict" \
   '{spec: $spec, commit: $commit, generated_at: $generated_at,
     ac_total: $ac_total, ac_proven: $ac_proven, ac_unproven: $ac_unproven,
-    smoke_exit_max: $smoke_exit, coverage: {line: $cov_line, branch: $cov_branch}, verdict: $verdict}' \
-  | replace_atomic "$date_dir/evidence.json"
+    smoke_exit_max: $smoke_exit, runner_exit: $runner_exit, coverage: {line: $cov_line, branch: $cov_branch}, verdict: $verdict}' \
+  | replace_atomic "$date_dir/evidence.json" || { echo "Evidence emission failed" >&2; exit 1; }
+
+jq -e --argjson total "$ac_count" '.ac_total == $total and (.ac_unproven | type == "array") and (.verdict == "PASS" or .verdict == "FAIL")' "$date_dir/evidence.json" >/dev/null || { echo "Invalid evidence manifest" >&2; exit 1; }
 
 # ─── 8. Emit pr-body.md ─────────────────────────────────────────────────
 {
@@ -219,15 +240,15 @@ jq -nc \
   echo "line ${cov_line}% · branch ${cov_branch}% (gate: line≥90 branch≥85)"
   echo
   echo "### Verdict: **$verdict**"
-} > "$date_dir/pr-body.md"
+} > "$date_dir/pr-body.md" || exit 1
 
 # ─── 9. EVIDENCE.md = pr-body + index ───────────────────────────────────
-cp "$date_dir/pr-body.md" "$date_dir/EVIDENCE.md"
+cp "$date_dir/pr-body.md" "$date_dir/EVIDENCE.md" || exit 1
 {
   echo
   echo "## Artifact index"
   find "$date_dir" -type f | sed 's|^|- |'
-} >> "$date_dir/EVIDENCE.md"
+} >> "$date_dir/EVIDENCE.md" || exit 1
 
 echo
 echo "✓ Evidence bundle: $date_dir/"

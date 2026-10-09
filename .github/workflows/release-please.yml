@@ -3,25 +3,8 @@ name: Release Please
 # Conventional Commits -> auto-generated CHANGELOG and release PRs.
 # https://github.com/googleapis/release-please-action
 #
-# RELEASE-PR AUTOMERGE (operator decision 2026-07-26): a release PR changes
-# only version/changelog files, so the per-PR gates carry a release-fast-pass
-# skip condition (see the `if:` on each gating job) — GitHub counts a skipped
-# required check as satisfied. This workflow is the other half: it verifies
-# the release PR diff really is version/changelog-only
-# (assert-release-only-diff.sh — the fail-safe the skip conditions trust),
-# close/reopens the PR so every per-PR gate re-reports against the fresh head
-# SHA (required checks are per-SHA; a force-pushed head starts with none),
-# and arms native auto-merge. The ruleset stays the merge gate.
-#
-# NOTE (workflow_dispatch check runs do NOT count): an earlier design ran the
-# required contexts from a dispatched workflow on the release branch — its
-# check runs never enter the PR's statusCheckRollup. Only runs from the PR's
-# own pull_request events (or commit statuses) satisfy required checks.
-#
-# The cron exists because the auto-merge is performed by github-actions[bot],
-# whose merge push to main cannot trigger this workflow — without the cron,
-# the tag + GitHub release for a merged release PR would only be cut on the
-# next human push to main.
+# Release PR creation is separate from factory merge authority. Release candidates
+# request the protected coordinator; no release-fast-pass can grant eligibility.
 
 on:
   push:
@@ -33,6 +16,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  actions: write
 
 jobs:
   release-please:
@@ -44,7 +28,7 @@ jobs:
 
       - uses: actions/checkout@v4 # for assert-release-only-diff.sh
 
-      - name: Verify release PR diff, refresh checks, arm auto-merge
+      - name: Verify release PR scope and request factory
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
@@ -66,12 +50,5 @@ jobs:
           # whose diff strays outside the version/changelog allowlist.
           RELEASE_BRANCH="$branch" bash .claude/scripts/assert-release-only-diff.sh
 
-          # Required checks are per-SHA; after release-please force-updates the
-          # branch the new head has none. Reopen fires the pull_request events
-          # so every gate re-reports (release-fast-pass makes them skip fast).
-          gh pr close "$pr" --repo "$REPO"
-          gh pr reopen "$pr" --repo "$REPO"
-
-          gh pr merge "$pr" --repo "$REPO" --auto --squash \
-            || echo "::notice::auto-merge already armed for #$pr" # JUSTIFIED: re-arming an armed PR exits 1 but is not a failure; the ruleset remains the merge gate. ISSUE: #34
-          echo "release PR #$pr verified, checks refreshed, auto-merge armed"
+          gh workflow run factory-merge.yml --repo "$REPO" -f "pr=$pr" -f mode=merge
+          echo "release PR #$pr submitted to protected factory eligibility"

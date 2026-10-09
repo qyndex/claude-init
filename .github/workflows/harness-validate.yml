@@ -29,6 +29,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # Provenance and detached acceptance require base history.
 
       - name: Validate JSON files
         run: |
@@ -111,53 +113,29 @@ jobs:
           bash .claude/scripts/test/loop-control.sh
           bash .claude/scripts/test/oq-aging.sh
 
+      - uses: actions/setup-go@v7
+        with:
+          go-version: stable
+          cache: false
+      - name: Install pinned workflow linter
+        run: go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.12
+
       - name: Harness test suite (M-00 - every test/*.sh must run somewhere)
         run: |
           # 2026-07 memory audit: 13 of 15 test/*.sh ran in no workflow (dead tests).
           # Run them all so the validate.sh dead-test detector stays satisfiable.
-          # loop-control.sh + oq-aging.sh run above; security-invariants.sh is
-          # advisory below (2 pre-existing out-of-scope failures).
-          #
-          # PATCH-GATED tests: some tests assert that a STAGED operator patch under
-          # .claude/memory.proposed/patches/ applies cleanly (git apply --check) or
-          # that its post-apply behavior holds. On main those patches are deliberately
-          # NOT applied (they stay staged for the operator), so these tests can't pass
-          # here by design — a merged patch also stops applying. Detect them by their
-          # patch idiom and run them ADVISORY (reported, non-gating) instead of failing
-          # the build. Behavior tests stay gating. Self-maintaining: no hardcoded list.
-          #
-          # set +e for the loop: the step shell runs with `-e`, under which
-          # `advisory=$((advisory + 1))` aborts the whole step whenever the
-          # arithmetic RESULT is 0 (bash treats `x=$((0))` as a failed command) —
-          # and, more importantly, a gating test's non-zero exit could abort before
-          # we count it. We collect failures explicitly and gate only on the count.
+          # Already-promoted patch regressions now exercise installed behavior.
+          # All maintained suites gate; filenames and patch mentions grant no waiver.
           set +e
-          fails=0; advisory=0
+          fails=0
           for t in .claude/scripts/test/*.sh; do
-            b=$(basename "$t")
-            case "$b" in
+            case "$(basename "$t")" in
               loop-control.sh|oq-aging.sh) continue ;;
-              security-invariants.sh) continue ;;
             esac
-            echo "-- $b"
-            if grep -qE 'memory\.proposed/patches|git apply' "$t"; then
-              if ! bash "$t"; then
-                echo "::warning::patch-gated harness test advisory (patches not applied on main): $b"
-                advisory=$(( advisory + 1 ))
-              fi
-              continue
-            fi
-            if ! bash "$t"; then echo "::error::harness test failed: $b"; fails=$(( fails + 1 )); fi
+            if ! bash "$t"; then fails=$((fails + 1)); fi
           done
-          echo "patch-gated advisory failures (non-gating): $advisory"
-          if [ "$fails" -ne 0 ]; then echo "::error::$fails gating harness test(s) failed"; exit 1; fi
+          if [ "$fails" -ne 0 ]; then echo "::error::$fails harness test(s) failed"; exit 1; fi
           exit 0
-
-      - name: Security invariants (advisory - 2 known out-of-scope failures)
-        continue-on-error: true
-        run: |
-          bash .claude/scripts/test/security-invariants.sh \
-            || echo "::warning::security-invariants.sh has known failures - see triage.txt"
 
       - name: TDD ledger gate (server-side — SKIP_* cannot apply here)
         run: bash .claude/scripts/check-tdd-ledger.sh

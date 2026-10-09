@@ -1,6 +1,6 @@
 ## Summary
 
-<1-2 lines>
+<Concrete problem and resulting behavior. Use .claude/skills/pr-body/SKILL.md before publishing.>
 
 ## Spec / Plan
 
@@ -14,7 +14,8 @@
 ## Evidence Bundle
 
 > Round 10 C: paste the output of `bash .claude/scripts/collect-evidence.sh <spec-id>`
-> here, OR let `/ship` auto-populate it via `--body-file pr-body.md`.
+> here for EVERY applicable spec, alongside the summary. `/ship` uses the pr-body
+> skill to compose the complete body and publish it with `--body-file`.
 > The `evidence-gate` required check parses this block and BLOCKS merge if any AC is UNPROVEN.
 
 - Acceptance criteria: <N/N proven> (table from pr-body.md)
@@ -23,7 +24,7 @@
 - Video + trace: CI artifact `verify-evidence` (heavy binaries gitignored)
 - API traces: `verify/<date>-<feature>/traces/*.json`
 - Coverage: line/branch + delta
-- **Verdict: PASS** ← required for merge
+- Verdict: <actual collector result; do not claim PASS before verification>
 
 ## Tests
 

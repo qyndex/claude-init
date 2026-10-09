@@ -1,0 +1,6 @@
+ledger_format: 2
+timestamp: 2026-10-09T06:07:20.839507+00:00
+command: bash .claude/scripts/test/candidate-root.sh
+exit_code: 0
+
+passed: 7; failed: 0

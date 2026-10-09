@@ -1,0 +1,8 @@
+ledger_format: 2
+timestamp: 2026-10-09T06:39:30.813768+00:00
+command: bash .claude/scripts/test/candidate-evidence.sh
+exit_code: 1
+red_reason: assertion-failure
+
+
+evidence contract assertion failed

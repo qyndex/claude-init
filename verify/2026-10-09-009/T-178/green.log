@@ -1,0 +1,6 @@
+ledger_format: 2
+timestamp: 2026-10-09T07:05:04.224174+00:00
+command: bash .claude/scripts/test/autonomous-ship.sh
+exit_code: 0
+
+passed: 10; failed: 0

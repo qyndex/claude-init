@@ -1,0 +1,165 @@
+{
+  "source_commit": "633faee68b3a86fe5af9561042e58021b9fd5105",
+  "recorded_at": "2026-10-09T07:27:55.082627+00:00",
+  "independent_attestation": false,
+  "observations": [
+    {
+      "id": "AC-1",
+      "commands": [
+        [
+          "bash",
+          ".claude/scripts/test/candidate-root.sh"
+        ]
+      ],
+      "exit_codes": [
+        0
+      ],
+      "artifact": "verify/2026-10-09-006-trustworthy-candidate-verification/AC-1.txt",
+      "sha256": "992cc24e32bbf3f5069f7e7a71ac272a1baed157df563a243a43f871658d1e35"
+    },
+    {
+      "id": "AC-2",
+      "commands": [
+        [
+          "bash",
+          ".claude/scripts/test/local-scanner-contracts.sh"
+        ]
+      ],
+      "exit_codes": [
+        0
+      ],
+      "artifact": "verify/2026-10-09-006-trustworthy-candidate-verification/AC-2.txt",
+      "sha256": "19c05a6312640c31540697fb7fc3268bb2891f22656f9955c021597e3d1ada0e"
+    },
+    {
+      "id": "AC-3",
+      "commands": [
+        [
+          "bash",
+          ".claude/scripts/test/evidence-finalization.sh"
+        ]
+      ],
+      "exit_codes": [
+        0
+      ],
+      "artifact": "verify/2026-10-09-006-trustworthy-candidate-verification/AC-3.txt",
+      "sha256": "d9909823378366051fdf6fba1841e155a385b979fb1692c38d1a00e6a3a50e05"
+    },
+    {
+      "id": "AC-4",
+      "commands": [
+        [
+          "bash",
+          ".claude/scripts/test/local-scanner-contracts.sh"
+        ]
+      ],
+      "exit_codes": [
+        0
+      ],
+      "artifact": "verify/2026-10-09-006-trustworthy-candidate-verification/AC-4.txt",
+      "sha256": "19c05a6312640c31540697fb7fc3268bb2891f22656f9955c021597e3d1ada0e"
+    },
+    {
+      "id": "AC-5",
+      "commands": [
+        [
+          "bash",
+          ".claude/scripts/test/factory-workflows.sh"
+        ]
+      ],
+      "exit_codes": [
+        0
+      ],
+      "artifact": "verify/2026-10-09-006-trustworthy-candidate-verification/AC-5.txt",
+      "sha256": "9da7bd8493cb59326e0ba5c1afebc1be264a5d83da01db91aec92d4ee2501d01"
+    },
+    {
+      "id": "AC-6",
+      "commands": [
+        [
+          "bash",
+          ".claude/scripts/test/oq-aging.sh"
+        ],
+        [
+          "bash",
+          ".claude/scripts/test/dependency-rollup.sh"
+        ]
+      ],
+      "exit_codes": [
+        0,
+        0
+      ],
+      "artifact": "verify/2026-10-09-006-trustworthy-candidate-verification/AC-6.txt",
+      "sha256": "6eea9312bdb1e6b72578386c6bac4f626bf4bd87845bf31ff943667d7b983f21"
+    },
+    {
+      "id": "AC-7",
+      "commands": [
+        [
+          "bash",
+          ".claude/scripts/test/security-invariants.sh"
+        ],
+        [
+          "bash",
+          ".claude/scripts/test/boot-autoheal.sh"
+        ],
+        [
+          "bash",
+          ".claude/scripts/test/boot-inject-hot.sh"
+        ],
+        [
+          "bash",
+          ".claude/scripts/test/dream-cost-gate.sh"
+        ],
+        [
+          "bash",
+          ".claude/scripts/test/ship-verify-sync.sh"
+        ],
+        [
+          "bash",
+          ".claude/scripts/test/subagent-recall-scope.sh"
+        ],
+        [
+          "bash",
+          ".claude/scripts/test/subagent-spec-resolution.sh"
+        ],
+        [
+          "bash",
+          ".claude/scripts/test/pivot-trace.sh"
+        ],
+        [
+          "bash",
+          ".claude/scripts/test/reverse-drift.sh"
+        ]
+      ],
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "artifact": "verify/2026-10-09-006-trustworthy-candidate-verification/AC-7.txt",
+      "sha256": "1b6bb913627bdd6326ac13bbee9d7929f34ddb0c091b6ee682929309af64ca72"
+    },
+    {
+      "id": "AC-8",
+      "commands": [
+        [
+          "bash",
+          "-c",
+          "set -e; for t in .claude/scripts/test/*.sh; do bash \"$t\"; done"
+        ]
+      ],
+      "exit_codes": [
+        0
+      ],
+      "artifact": "verify/2026-10-09-006-trustworthy-candidate-verification/AC-8.txt",
+      "sha256": "742980b319457583a5e080d4826c3d290c52e43d5e9504301e780741232e4237"
+    }
+  ]
+}

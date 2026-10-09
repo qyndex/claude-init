@@ -94,6 +94,94 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
 
 ## Active
 
+- [x] T-181  | spec:009  | phase:2  | priority: security  | created: 2026-10-09  | last_touched: 2026-10-09  | deps: T-177  | parallel: no  | est: 5m
+  summary: Reject missing touched-spec proof and zero-AC bootstrap bundles
+  accept: bash .claude/scripts/test/local-evidence-gate.sh
+  owner: codex
+
+- [x] T-177  | spec:009  | phase:1  | priority: security  | created: 2026-10-09  | last_touched: 2026-10-09  | deps:  | parallel: no  | est: 5m
+  summary: Authenticate exact candidate receipts and live producer-pinned protection
+  accept: bash .claude/scripts/test/factory-coordinator.sh
+  owner: codex
+
+- [x] T-178  | spec:009  | phase:1  | priority: security  | created: 2026-10-09  | last_touched: 2026-10-09  | deps:  | parallel: no  | est: 5m
+  summary: Route all merge requests through protected authority and remove local rollback
+  accept: bash .claude/scripts/test/autonomous-ship.sh
+  owner: codex
+
+- [~] T-179  | spec:009  | phase:2  | priority: security  | created: 2026-10-09  | last_touched: 2026-10-09  | deps: T-177, T-178  | parallel: no  | est: 5m
+  summary: Publish isolated activation draft PR and account bootstrap package
+  progress: PR #50 published; final candidate CI and cutover account setup remain pending
+  accept: gh pr view "${FACTORY_ACTIVATION_PR:?}" --json state,isDraft | jq -e '.state == "OPEN" and .isDraft == true'
+  owner: codex
+
+- [b] T-180  | spec:009  | phase:3  | priority: security  | created: 2026-10-09  | last_touched: 2026-10-09  | deps: T-179  | parallel: no  | est: 5m
+  summary: Activate reviewed factory App policy after authenticated shadow proof
+  accept: python3 .claude/scripts/factory-preflight.py --policy factory/policy.json
+  blocked_by: Operator App registration/key installation, independent proof producers and reviewed authority cutover
+  owner: operator
+
+- [x] T-176  | spec:007  | phase:1  | priority: security  | created: 2026-10-09  | last_touched: 2026-10-09  | deps:  | parallel: no  | est: 5m
+  summary: Reject invalid and insufficient numeric coverage reports
+  accept: bash .claude/scripts/test/coverage-values.sh
+  owner: codex
+
+- [x] T-175  | spec:008  | phase:1  | priority: security  | created: 2026-10-09  | last_touched: 2026-10-09  | deps:  | parallel: no  | est: 5m
+  summary: Validate exact candidate evidence and independent authority contract
+  accept: bash .claude/scripts/test/candidate-evidence.sh
+  owner: codex
+
+- [x] T-173  | spec:007  | phase:1  | priority: security  | created: 2026-10-09  | last_touched: 2026-10-09  | deps:  | parallel: no  | est: 5m
+  summary: Rerun candidate task acceptance in detached checkouts
+  accept: bash .claude/scripts/test/acceptance-rerun.sh
+  owner: codex
+
+- [x] T-174  | spec:007  | phase:1  | priority: security  | created: 2026-10-09  | last_touched: 2026-10-09  | deps:  | parallel: no  | est: 5m
+  summary: Reject untrusted waivers and require tests for every detected language
+  accept: bash .claude/scripts/test/required-verification.sh
+  owner: codex
+
+- [x] T-165  | spec:006  | phase:6  | priority: normal  | created: 2026-10-09  | last_touched: 2026-10-09  | deps:  | parallel: no  | est: 30m
+  summary: Candidate-root verification and complete post-mediation gates
+  accept: bash .claude/scripts/test/candidate-root.sh
+  owner: codex
+
+- [x] T-166  | spec:006  | phase:6  | priority: normal  | created: 2026-10-09  | last_touched: 2026-10-09  | deps:  | parallel: no  | est: 30m
+  summary: Fail closed for selected scanners and unsupported contracts
+  accept: bash .claude/scripts/test/local-scanner-contracts.sh
+  owner: codex
+
+- [x] T-167  | spec:006  | phase:6  | priority: normal  | created: 2026-10-09  | last_touched: 2026-10-09  | deps:  | parallel: no  | est: 30m
+  summary: Reject invalid or stale evidence and runner failures
+  accept: bash .claude/scripts/test/evidence-finalization.sh
+  owner: codex
+
+- [x] T-168  | spec:006  | phase:6  | priority: normal  | created: 2026-10-09  | last_touched: 2026-10-09  | deps:  | parallel: no  | est: 30m
+  summary: Repair workflow conditions and fail-closed SARIF checks
+  accept: bash .claude/scripts/test/factory-workflows.sh
+  owner: codex
+
+- [x] T-169  | spec:006  | phase:6  | priority: normal  | created: 2026-10-09  | last_touched: 2026-10-09  | deps:  | parallel: no  | est: 30m
+  summary: Calendar-day aging and explicit empty dependency rollups
+  accept: bash .claude/scripts/test/oq-aging.sh
+  owner: codex
+
+- [x] T-170  | spec:006  | phase:6  | priority: normal  | created: 2026-10-09  | last_touched: 2026-10-09  | deps:  | parallel: no  | est: 30m
+  summary: Replace stale patch tests and restore baseline validation/security
+  accept: bash .claude/scripts/validate.sh --json
+  owner: codex
+
+- [ ] T-171  | spec:006  | phase:6  | priority: normal  | created: 2026-10-09  | last_touched: 2026-10-09  | deps:  | parallel: no  | est: 30m
+  summary: Run GitHub Actions for baseline slice and record candidate-bound CI proof after local/container verification
+  accept: gh run view "${FACTORY_CI_RUN_ID:?}" --json headSha,status,conclusion,workflowName | jq -e --arg head "$(git rev-parse HEAD)" ' .headSha == $head and .status == "completed" and .conclusion == "success" and .workflowName == "Harness Validate" '
+  owner: codex
+
+- [x] T-172  | spec:006  | phase:6  | priority: normal  | created: 2026-10-09  | last_touched: 2026-10-09  | deps:  | parallel: no  | est: 15m
+  summary: Repair demonstrated Linux awk date parsing and ISO-week backfill
+  files: .claude/scripts/gc-tasks.sh, .claude/scripts/ledger-decay.sh, .claude/scripts/memory-rollup.sh
+  accept: bash .claude/scripts/test/gc-suite.sh && bash .claude/scripts/test/ledger-decay.sh && bash .claude/scripts/test/rollup-envclock.sh
+  owner: codex
+
 ### Spec 001 — Harness Hardening
 
 #### Phase 1 — Security blockers (AC-1..AC-4)

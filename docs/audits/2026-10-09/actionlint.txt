@@ -1,0 +1,56 @@
+.github/workflows/harness-validate.yml:34:9: shellcheck reported issue in this script: SC2044:warning:2:10: For loops over find output are fragile. Use find -exec or a while read loop [shellcheck]
+   |
+34 |         run: |
+   |         ^~~~
+.github/workflows/harness-validate.yml:42:9: shellcheck reported issue in this script: SC2044:warning:3:10: For loops over find output are fragile. Use find -exec or a while read loop [shellcheck]
+   |
+42 |         run: |
+   |         ^~~~
+.github/workflows/harness-validate.yml:171:9: shellcheck reported issue in this script: SC2086:info:17:90: Double quote to prevent globbing and word splitting [shellcheck]
+    |
+171 |         run: |
+    |         ^~~~
+.github/workflows/harness-validate.yml:171:9: shellcheck reported issue in this script: SC2116:style:17:83: Useless echo? Instead of 'cmd $(echo foo)', just use 'cmd foo' [shellcheck]
+    |
+171 |         run: |
+    |         ^~~~
+.github/workflows/iac-scan.yml:18:13: calling function "hashFiles" is not allowed here. "hashFiles" is only available in "jobs.<job_id>.steps.continue-on-error", "jobs.<job_id>.steps.env", "jobs.<job_id>.steps.if", "jobs.<job_id>.steps.name", "jobs.<job_id>.steps.run", "jobs.<job_id>.steps.timeout-minutes", "jobs.<job_id>.steps.with", "jobs.<job_id>.steps.working-directory". see https://docs.github.com/en/actions/learn-github-actions/contexts#context-availability for more details [expression]
+   |
+18 |     if: ${{ hashFiles('**/*.tf') != '' }}
+   |             ^~~~~~~~~~~~~~~~~~~~
+.github/workflows/iac-scan.yml:33:13: calling function "hashFiles" is not allowed here. "hashFiles" is only available in "jobs.<job_id>.steps.continue-on-error", "jobs.<job_id>.steps.env", "jobs.<job_id>.steps.if", "jobs.<job_id>.steps.name", "jobs.<job_id>.steps.run", "jobs.<job_id>.steps.timeout-minutes", "jobs.<job_id>.steps.with", "jobs.<job_id>.steps.working-directory". see https://docs.github.com/en/actions/learn-github-actions/contexts#context-availability for more details [expression]
+   |
+33 |     if: ${{ hashFiles('**/Dockerfile*') != '' }}
+   |             ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+.github/workflows/iac-scan.yml:43:13: calling function "hashFiles" is not allowed here. "hashFiles" is only available in "jobs.<job_id>.steps.continue-on-error", "jobs.<job_id>.steps.env", "jobs.<job_id>.steps.if", "jobs.<job_id>.steps.name", "jobs.<job_id>.steps.run", "jobs.<job_id>.steps.timeout-minutes", "jobs.<job_id>.steps.with", "jobs.<job_id>.steps.working-directory". see https://docs.github.com/en/actions/learn-github-actions/contexts#context-availability for more details [expression]
+   |
+43 |     if: ${{ hashFiles('**/*.sh') != '' }}
+   |             ^~~~~~~~~~~~~~~~~~~~
+.github/workflows/iac-scan.yml:55:13: calling function "hashFiles" is not allowed here. "hashFiles" is only available in "jobs.<job_id>.steps.continue-on-error", "jobs.<job_id>.steps.env", "jobs.<job_id>.steps.if", "jobs.<job_id>.steps.name", "jobs.<job_id>.steps.run", "jobs.<job_id>.steps.timeout-minutes", "jobs.<job_id>.steps.with", "jobs.<job_id>.steps.working-directory". see https://docs.github.com/en/actions/learn-github-actions/contexts#context-availability for more details [expression]
+   |
+55 |     if: ${{ hashFiles('**/*.sql') != '' }}
+   |             ^~~~~~~~~~~~~~~~~~~~~
+.github/workflows/issue-lifecycle.yml:90:9: shellcheck reported issue in this script: SC2016:info:12:37: Expressions don't expand in single quotes, use double quotes for that [shellcheck]
+   |
+90 |         run: |
+   |         ^~~~
+.github/workflows/issue-lifecycle.yml:90:9: shellcheck reported issue in this script: SC2016:info:19:25: Expressions don't expand in single quotes, use double quotes for that [shellcheck]
+   |
+90 |         run: |
+   |         ^~~~
+.github/workflows/issue-lifecycle.yml:90:9: shellcheck reported issue in this script: SC2016:info:2:35: Expressions don't expand in single quotes, use double quotes for that [shellcheck]
+   |
+90 |         run: |
+   |         ^~~~
+.github/workflows/perf-budget.yml:49:9: shellcheck reported issue in this script: SC2038:warning:3:10: Use 'find .. -print0 | xargs -0 ..' or 'find .. -exec .. +' to allow non-alphanumeric filenames [shellcheck]
+   |
+49 |         run: |
+   |         ^~~~
+.github/workflows/stale-spec-check.yml:23:9: shellcheck reported issue in this script: SC2016:info:57:22: Expressions don't expand in single quotes, use double quotes for that [shellcheck]
+   |
+23 |         run: |
+   |         ^~~~
+.github/workflows/stale-spec-check.yml:23:9: shellcheck reported issue in this script: SC2126:style:44:90: Consider using 'grep -c' instead of 'grep|wc -l' [shellcheck]
+   |
+23 |         run: |
+   |         ^~~~

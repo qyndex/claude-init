@@ -1,0 +1,6 @@
+ledger_format: 2
+timestamp: 2026-10-09T06:08:04.540333+00:00
+command: bash .claude/scripts/test/evidence-finalization.sh
+exit_code: 0
+
+passed: 5; failed: 0

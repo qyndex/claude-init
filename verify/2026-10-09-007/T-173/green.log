@@ -1,0 +1,6 @@
+ledger_format: 2
+timestamp: 2026-10-09T06:37:35.632309+00:00
+command: bash .claude/scripts/test/acceptance-rerun.sh
+exit_code: 0
+
+passed: 8; failed: 0

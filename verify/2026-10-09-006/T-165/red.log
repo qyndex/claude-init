@@ -1,0 +1,10 @@
+ledger_format: 2
+timestamp: 2026-10-09T05:59:57.854114+00:00
+command: bash .claude/scripts/test/candidate-root.sh
+exit_code: 1
+red_reason: assertion-failure
+
+FAIL: bash /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmp.CPeuJyTIIE/coordinator/.claude/scripts/verify.sh --root /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmp.CPeuJyTIIE/candidate unexpectedly passed
+FAIL: bash /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmp.CPeuJyTIIE/coordinator/.claude/scripts/verify.sh --root /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmp.CPeuJyTIIE/missing unexpectedly passed
+FAIL: bash /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmp.CPeuJyTIIE/coordinator/.claude/scripts/local-pr-check.sh --only=semgrep --root /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmp.CPeuJyTIIE/candidate unexpectedly passed
+passed: 1; failed: 3

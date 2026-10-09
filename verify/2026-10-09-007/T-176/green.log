@@ -1,0 +1,6 @@
+ledger_format: 2
+timestamp: 2026-10-09T06:42:41.264866+00:00
+command: bash .claude/scripts/test/coverage-values.sh
+exit_code: 0
+
+passed: 6; failed: 0

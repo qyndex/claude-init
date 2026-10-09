@@ -15,36 +15,41 @@ permissions:
 
 jobs:
   terraform:
-    if: ${{ hashFiles('**/*.tf') != '' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
       - uses: hashicorp/setup-terraform@v4
+        if: ${{ hashFiles('**/*.tf') != '' }}
       - run: terraform fmt -check -recursive
+        if: ${{ hashFiles('**/*.tf') != '' }}
       - uses: terraform-linters/setup-tflint@v6
+        if: ${{ hashFiles('**/*.tf') != '' }}
       - run: tflint --recursive
+        if: ${{ hashFiles('**/*.tf') != '' }}
       - uses: bridgecrewio/checkov-action@7b972723c44fb3d256283fac96fae5d7c1894bb7 # master 2026-05-29
+        if: ${{ hashFiles('**/*.tf') != '' }}
         with:
           framework: terraform
           soft_fail: false
       - uses: aquasecurity/tfsec-action@v1.0.3
+        if: ${{ hashFiles('**/*.tf') != '' }}
 
   docker:
-    if: ${{ hashFiles('**/Dockerfile*') != '' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
       - uses: hadolint/hadolint-action@v3.3.0
+        if: ${{ hashFiles('**/Dockerfile*') != '' }}
         with:
           dockerfile: Dockerfile
           ignore: DL3008
 
   shell:
-    if: ${{ hashFiles('**/*.sh') != '' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
       - uses: ludeeus/action-shellcheck@00b27aa7cb85167568cb48a3838b75f4265f2bca # master 2026-05-29
+        if: ${{ hashFiles('**/*.sh') != '' }}
         with:
           severity: warning
           # verify/ holds frozen evidence snapshots (dated test artifacts, not
@@ -52,10 +57,10 @@ jobs:
           ignore_paths: node_modules verify
 
   sql:
-    if: ${{ hashFiles('**/*.sql') != '' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - run: |
+      - if: ${{ hashFiles('**/*.sql') != '' }}
+        run: |
           pip install --quiet sqlfluff
           sqlfluff lint --dialect=ansi .
