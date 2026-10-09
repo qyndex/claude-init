@@ -47,5 +47,9 @@
       "event": "pull_request_target",
       "check_name": "factory-independent-review"
     }
+  },
+  "receipts": {
+    "workflow_id": null,
+    "trusted_revisions": {}
   }
 }

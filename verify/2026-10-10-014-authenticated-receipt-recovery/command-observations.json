@@ -1,0 +1,95 @@
+{
+  "source_commit": "3d06a87894d6438bd20808a26dcdc73bd2d02647",
+  "generated_at": "2026-10-09T16:11:41.048247+00:00",
+  "independent_attestation": false,
+  "observations": [
+    {
+      "id": "AC-1",
+      "commands": [
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-receipts-recovery.sh"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "artifact_sha256": "182b079ee1c1cf88449a0ddd48bffd08f7dbab7eea334bfda887948361576372"
+    },
+    {
+      "id": "AC-2",
+      "commands": [
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-receipts-recovery.sh"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "artifact_sha256": "182b079ee1c1cf88449a0ddd48bffd08f7dbab7eea334bfda887948361576372"
+    },
+    {
+      "id": "AC-3",
+      "commands": [
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-receipts-recovery.sh"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "artifact_sha256": "182b079ee1c1cf88449a0ddd48bffd08f7dbab7eea334bfda887948361576372"
+    },
+    {
+      "id": "AC-4",
+      "commands": [
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-receipts-recovery.sh"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-supervisor.sh"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-ledger.sh"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-runtime.sh"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-coordinator.sh"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "actionlint",
+            "-shellcheck=",
+            ".github/workflows/factory-merge.yml"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "artifact_sha256": "e419783a26414016336bf242564aac66cb2ba6a5eec21db563cc8a97a708f62d"
+    }
+  ]
+}

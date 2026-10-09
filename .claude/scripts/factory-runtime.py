@@ -122,6 +122,19 @@ class Store:
                        ('claimed', owner, token, now + seconds, task))
             return token
 
+    def recover_worker(self, task, owner, token, requeue=False):
+        """Trusted guardian calls only after attempting actual worker cleanup."""
+        if type(requeue) is not bool:
+            raise ValueError('boolean recovery outcome required')
+        with self.transaction() as db:
+            row = self.row(db, task)
+            if row['owner'] != owner or row['fence'] != token or row['state'] in TERMINAL:
+                return False
+            db.execute("UPDATE outbox SET status='uncertain' WHERE task=? AND status='dispatching'", (task,))
+            db.execute('UPDATE tasks SET state=?,owner=NULL,expires=NULL,fence=fence+1 WHERE id=?',
+                       ('queued' if requeue else 'blocked', task))
+            return True
+
     def heartbeat(self, task, owner, token, seconds, now=None):
         now = self.instant(now); self.duration(seconds)
         with self.transaction() as db:
