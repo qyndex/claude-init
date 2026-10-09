@@ -92,7 +92,8 @@ while IFS= read -r contract; do
       fi
       ;;
     *)
-      echo "  ? unknown contract type: $type ($contract)"
+      echo "  ✗ unknown contract type: $type ($contract)"
+      missing=$((missing + 1))
       ;;
   esac
 done <<< "$contracts"

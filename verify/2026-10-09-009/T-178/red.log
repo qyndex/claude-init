@@ -1,0 +1,6 @@
+ledger_format: 2
+timestamp: 2026-10-09T06:59:01.756704+00:00
+command: bash .claude/scripts/test/autonomous-ship.sh
+exit_code: 1
+red_reason: assertion-failure
+

@@ -22,16 +22,33 @@
 set -uo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-cd "$ROOT"
-
-MODE="${1:-all}"          # all | --quick | --heavy | --only=...
+MODE=all
 ONLY=""
-case "$MODE" in
-  --quick) MODE=quick ;;
-  --heavy) MODE=heavy ;;
-  --only=*) MODE=only; ONLY="${1#--only=}" ;;
-  all|"") MODE=all ;;
-esac
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --root) [ "$#" -ge 2 ] || { echo "--root requires a directory" >&2; exit 2; }; ROOT="$2"; shift 2 ;;
+    --quick) MODE=quick; shift ;;
+    --heavy) MODE=heavy; shift ;;
+    --only=*) MODE=only; ONLY="${1#--only=}"; shift ;;
+    all) MODE=all; shift ;;
+    *) echo "Unknown argument: $1" >&2; exit 2 ;;
+  esac
+done
+if [ "$MODE" = only ]; then
+  [ -n "$ONLY" ] || { echo "Empty check selection" >&2; exit 2; }
+  selection="$ONLY"
+  while :; do
+    check="${selection%%,*}"
+    case "$check" in
+      lint|typecheck|test-unit|gitleaks|commitlint|harness|semgrep|codeql|license|sbom|coverage|test-integ|lighthouse|perf-budget) ;;
+      *) echo "Unknown check: $check" >&2; exit 2 ;;
+    esac
+    case "$selection" in *,*) selection="${selection#*,}" ;; *) break ;; esac
+  done
+fi
+ROOT="$(cd "$ROOT" 2>/dev/null && pwd)" || { echo "Candidate root unavailable" >&2; exit 2; }
+cd "$ROOT" || exit 2
+
 
 PASS=0; FAIL=0; SKIP=0
 LOG_DIR=".claude/hooks/.log/local-pr"
@@ -47,7 +64,7 @@ run_check() {
 
   printf '→ %-20s ' "$name"
   local log="$LOG_DIR/$name.log"
-  if bash -c "$cmd" > "$log" 2>&1; then
+  if bash -o pipefail -c "$cmd" > "$log" 2>&1; then
     printf '✓\n'
     PASS=$((PASS+1))
   else
@@ -63,22 +80,22 @@ echo
 run_check lint        quick "bash .claude/scripts/lint.sh"
 run_check typecheck   quick "bash .claude/scripts/typecheck.sh"
 run_check test-unit   quick "bash .claude/scripts/test-unit.sh"
-run_check gitleaks    quick "command -v gitleaks >/dev/null && gitleaks detect --no-banner --redact --staged || echo 'gitleaks not installed; install: brew install gitleaks'"
-run_check commitlint  quick "command -v commitlint >/dev/null && git log -1 --pretty=%B | commitlint || echo 'commitlint not installed; skipping'"
+run_check gitleaks    quick "if ! command -v gitleaks >/dev/null 2>&1; then echo 'gitleaks unavailable: check not proven' >&2; exit 127; fi; gitleaks detect --no-banner --redact --staged"
+run_check commitlint  quick "if ! command -v commitlint >/dev/null 2>&1; then echo 'commitlint unavailable: check not proven' >&2; exit 127; fi; git log -1 --pretty=%B | commitlint"
 run_check harness     quick "bash .claude/scripts/validate.sh"
 
 # ─── Heavy tier (~5-15 min) — what gets deferred to daily 8am batch ─────
-run_check semgrep     heavy "command -v semgrep >/dev/null && semgrep --config=auto --error --quiet . || echo 'semgrep not installed; install: brew install semgrep'"
-run_check codeql      heavy "command -v codeql >/dev/null && codeql database analyze --format=sarif-latest --output=/tmp/codeql.sarif --quiet . || echo 'codeql not installed; pulling from cache OR skip'"
-run_check license     heavy "command -v licensee >/dev/null && licensee detect . || echo 'licensee not installed; skipping'"
-run_check sbom        heavy "command -v cyclonedx-bom >/dev/null && cyclonedx-bom -o /tmp/sbom.json || echo 'cyclonedx-bom not installed; skipping'"
+run_check semgrep     heavy "if ! command -v semgrep >/dev/null 2>&1; then echo 'semgrep unavailable: check not proven' >&2; exit 127; fi; semgrep --config=auto --error --quiet ."
+run_check codeql      heavy "if ! command -v codeql >/dev/null 2>&1; then echo 'codeql unavailable: check not proven' >&2; exit 127; fi; codeql database analyze --format=sarif-latest --output=/tmp/codeql.sarif --quiet ."
+run_check license     heavy "if ! command -v licensee >/dev/null 2>&1; then echo 'licensee unavailable: check not proven' >&2; exit 127; fi; licensee detect ."
+run_check sbom        heavy "if ! command -v cyclonedx-bom >/dev/null 2>&1; then echo 'cyclonedx-bom unavailable: check not proven' >&2; exit 127; fi; cyclonedx-bom -o /tmp/sbom.json"
 run_check coverage    heavy "bash .claude/scripts/verify.sh"
 run_check test-integ  heavy "bash .claude/scripts/test-integration.sh"
 
 # Lighthouse + perf-budget need a dev server — only run if explicitly requested
 if [ "$MODE" = "heavy" ] || [ "$MODE" = "only" ]; then
-  run_check lighthouse  heavy "command -v lighthouse >/dev/null && [ -f .lighthouserc.json ] && lighthouse --config-path=.lighthouserc.json --quiet || echo 'lighthouse/.lighthouserc not configured; skipping'"
-  run_check perf-budget heavy "[ -f perf-budget.json ] && command -v perf-budget >/dev/null && perf-budget check || echo 'perf-budget not configured; skipping'"
+  run_check lighthouse  heavy "if ! command -v lighthouse >/dev/null 2>&1; then echo 'lighthouse unavailable: check not proven' >&2; exit 127; fi; [ -f .lighthouserc.json ] && lighthouse --config-path=.lighthouserc.json --quiet"
+  run_check perf-budget heavy "if ! command -v perf-budget >/dev/null 2>&1; then echo 'perf-budget unavailable: check not proven' >&2; exit 127; fi; [ -f perf-budget.json ] && perf-budget check"
 fi
 
 # ─── Summary ────────────────────────────────────────────────────────────

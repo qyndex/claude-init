@@ -48,7 +48,7 @@ awk -v cutoff="$cutoff_epoch" -v age="$GC_TASKS_DONE_AGE_DAYS" \
     if (marker ~ /^- \[[xs]\]/) {
       # Find a YYYY-MM-DD on the marker line (completed: or last_touched:).
       # JUSTIFIED: the date command below is built as an awk string for the same BSD/GNU portability fallback as date_to_epoch; the suppressed errors are the expected miss on the absent date flavor, and a 0 result means "undatable, keep the task".
-      if (match(marker, /[0-9]{4}-[0-9]{2}-[0-9]{2}/)) {
+      if (match(marker, /[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]/)) {
         ds = substr(marker, RSTART, RLENGTH)
         cmd = "date -j -f %Y-%m-%d \"" ds "\" +%s 2>/dev/null || date -d \"" ds "\" +%s 2>/dev/null || echo 0"
         cmd | getline ep; close(cmd)

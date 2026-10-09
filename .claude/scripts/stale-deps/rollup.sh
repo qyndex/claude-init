@@ -12,8 +12,13 @@ mediated_total=0
 escalated_total=0
 stacks=()
 
-for f in /tmp/bump-results-*/summary.json; do
-  [ -f "$f" ] || continue
+INPUT_DIR="${1:-/tmp}"
+[ -d "$INPUT_DIR" ] || { echo "Artifact directory unavailable: $INPUT_DIR" >&2; exit 1; }
+while IFS= read -r f; do
+  jq -e '
+    (.stack | type == "string" and length > 0) and
+    all(.shipped, .mediated, .escalated; type == "number" and . >= 0 and . == floor)
+  ' "$f" >/dev/null || { echo "Malformed dependency summary: $f" >&2; exit 1; }
   stack=$(jq -r .stack "$f")
   shipped=$(jq -r .shipped "$f")
   mediated=$(jq -r .mediated "$f")
@@ -22,7 +27,11 @@ for f in /tmp/bump-results-*/summary.json; do
   mediated_total=$((mediated_total + mediated))
   escalated_total=$((escalated_total + escalated))
   stacks+=("$stack: $shipped shipped, $mediated mediated, $escalated escalated")
-done
+done < <(if [ "$INPUT_DIR" = "/tmp" ]; then
+  find "$INPUT_DIR" -maxdepth 3 -path '*/bump-results-*/summary.json' -type f
+else
+  find "$INPUT_DIR" -type f -name summary.json
+fi)
 
 mkdir -p .claude/memory/audits
 report=".claude/memory/audits/stale-deps-$(date +%Y-%m-%d).md"
@@ -42,7 +51,10 @@ cat > "$report" <<EOF
 
 EOF
 
-for line in "${stacks[@]}"; do
+if [ "${#stacks[@]}" -eq 0 ]; then
+  echo "No applicable stack artifacts; no dependency changes were evaluated." >> "$report"
+fi
+for line in "${stacks[@]+"${stacks[@]}"}"; do
   echo "- $line" >> "$report"
 done
 

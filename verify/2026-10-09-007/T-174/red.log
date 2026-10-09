@@ -1,0 +1,16 @@
+ledger_format: 2
+timestamp: 2026-10-09T06:35:58.665816+00:00
+command: bash .claude/scripts/test/required-verification.sh
+exit_code: 1
+red_reason: assertion-failure
+
+Verification root: /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmp.H4L2hjp7h8
+  ⚠ SKIP gates requested and HONORED (operator marker present): SKIP_COVERAGE
+
+→ Branch freshness
+  ✓ branch fresh against main
+
+→ Stack accounting
+  ✓ no language stacks detected (template/docs/shell-only repo) — stack checks legitimately skipped
+
+verify: PASS

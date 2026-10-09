@@ -96,7 +96,7 @@ jobs:
 
           echo "Daily-batch: status=$status conclusion=$conclusion age=${age_hours}h url=$url"
 
-          if [ "$conclusion" = "success" ] && [ "$age_hours" -le 30 ]; then
+          if [ "$status" = "completed" ] && [ "$conclusion" = "success" ] && [ "$age_hours" -le 30 ]; then
             exit 0
           fi
           if [ "$conclusion" = "failure" ]; then
@@ -108,8 +108,8 @@ jobs:
             exit 1
           fi
           if [ "$status" = "in_progress" ]; then
-            echo "::warning::Daily-batch in progress. Re-run this check when it completes."
-            exit 0
+            echo "::error::Daily-batch in progress; no completed proof. Re-run this check when it completes."
+            exit 1
           fi
           echo "::error::Unexpected daily-batch state"
           exit 1

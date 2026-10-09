@@ -1,0 +1,6 @@
+ledger_format: 2
+timestamp: 2026-10-09T07:05:03.792020+00:00
+command: bash .claude/scripts/test/factory-coordinator.sh
+exit_code: 0
+
+passed: 26; failed: 0

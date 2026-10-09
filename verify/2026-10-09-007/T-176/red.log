@@ -1,0 +1,24 @@
+ledger_format: 2
+timestamp: 2026-10-09T06:42:40.798483+00:00
+command: bash .claude/scripts/test/coverage-values.sh
+exit_code: 1
+red_reason: assertion-failure
+
+Verification root: /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmp.1l9GyyGerB
+
+→ Branch freshness
+  ✓ branch fresh against main
+
+→ Node project detected
+  ✓ unit tests
+
+→ Coverage gate (min line=90%, branch=85%)
+/var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmp.1l9GyyGerB/.claude/scripts/verify.sh: line 213: [: null: integer expression expected
+  ✓ line coverage null%
+  ✓ branch coverage 100%
+
+→ Stack accounting
+  ✓ typescript test command executed
+
+verify: PASS
+FAIL: invalid/insufficient coverage passed

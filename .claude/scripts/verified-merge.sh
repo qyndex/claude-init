@@ -5,23 +5,22 @@
 #   1. Pre-merge prep: rebase onto main + already-verified sibling streams
 #   2. Integration test: verify.sh + local-pr-check --heavy + contract-tests
 #   3. AI-mediated semantic conflict resolution (if step 2 fails)
-#   4. Merge (only if step 2/3 passes)
-#   5. Post-merge verify on main; auto-revert + auto-fix PR if it fails
+#   4. Request protected factory integration (only if step 2/3 passes)
+# Remote receipts establish actual merge; rollback uses an approved PR.
 #
 # Usage:
 #   bash .claude/scripts/verified-merge.sh <stream-id>
 #   bash .claude/scripts/verified-merge.sh <stream-id> --dry-run
 #
 # Exit codes:
-#   0  — merged + post-merge verified
+#   0  — integration request submitted, or dry-run verification passed
 #   10 — rebase onto main failed
 #   11 — rebase onto sibling failed
 #   20 — integration test failed (verify.sh)
 #   21 — local-pr-check failed
 #   22 — contract-tests failed
 #   30 — AI mediation failed
-#   40 — post-merge verify failed; AUTO-REVERTED
-#   41 — PR create/checks/merge failed (e2e-audit swarm-3; 40 was taken)
+#   41 — PR create/checks/integration request failed
 
 set -uo pipefail
 
@@ -76,6 +75,8 @@ escalate() {
 
 [ -d "$WORKTREE" ] || fail "worktree not found: $WORKTREE" 1
 [ -f "$FLEET" ] || fail "fleet.json missing" 1
+WORKTREE="$(cd "$WORKTREE" && pwd)" || exit 1
+already_merged=""
 
 branch=$(jq -r --arg s "$STREAM" '.fleet[$s].branch // ""' "$FLEET")
 [ -z "$branch" ] && fail "branch not found in fleet.json for stream: $STREAM" 1
@@ -112,19 +113,17 @@ fi
 
 # ─── Step 2: Integration test ────────────────────────────────────────────
 log "Step 2: integration test on rebased branch"
+run_integration_checks() {
+  local gate
+  for gate in verify.sh local-pr-check.sh contract-tests.sh; do
+    [ -f "$ROOT/.claude/scripts/$gate" ] || { log "required gate missing: $gate"; return 20; }
+  done
+  bash "$ROOT/.claude/scripts/verify.sh" --root "$WORKTREE" >> "$LOG" 2>&1 || return 20
+  bash "$ROOT/.claude/scripts/local-pr-check.sh" --root "$WORKTREE" --heavy >> "$LOG" 2>&1 || return 21
+  (cd "$WORKTREE" && bash "$ROOT/.claude/scripts/contract-tests.sh" "$STREAM") >> "$LOG" 2>&1 || return 22
+}
 verify_failed=0
-
-if [ -x .claude/scripts/verify.sh ]; then
-  (cd "$WORKTREE" && bash "$ROOT/.claude/scripts/verify.sh") >> "$LOG" 2>&1 || verify_failed=20
-fi
-
-if [ "$verify_failed" = "0" ] && [ -x .claude/scripts/local-pr-check.sh ]; then
-  (cd "$WORKTREE" && bash "$ROOT/.claude/scripts/local-pr-check.sh" --heavy) >> "$LOG" 2>&1 || verify_failed=21
-fi
-
-if [ "$verify_failed" = "0" ] && [ -x .claude/scripts/contract-tests.sh ]; then
-  (cd "$WORKTREE" && bash "$ROOT/.claude/scripts/contract-tests.sh" "$STREAM") >> "$LOG" 2>&1 || verify_failed=22
-fi
+run_integration_checks || verify_failed=$?
 
 # ─── Step 3: AI-mediated semantic conflict resolution ────────────────────
 mediation_used=false
@@ -133,7 +132,7 @@ if [ "$verify_failed" != "0" ]; then
   mediation_used=true
 
   if [ "$DRY_RUN" = "1" ]; then
-    log "  dry-run: would spawn debugger agent"
+    escalate "dry-run integration failed (exit $verify_failed); no merge authorized" "$verify_failed"
   elif command -v claude >/dev/null 2>&1; then
     mediation_prompt="Stream $STREAM failed post-rebase verification (exit $verify_failed). \
 Read the failure in $LOG, diff this branch (cwd) vs origin/main, propose minimal \
@@ -150,8 +149,8 @@ Then re-run verify.sh. If verify still fails, exit non-zero — do NOT push brok
       --append-system-prompt "$mediation_prompt" \
       "Fix the integration failure for stream $STREAM" >> "$LOG" 2>&1) || true
 
-    # Re-run verify
-    if ! (cd "$WORKTREE" && bash "$ROOT/.claude/scripts/verify.sh") >> "$LOG" 2>&1; then
+    # Re-run every required integration gate after candidate changes.
+    if ! run_integration_checks; then
       escalate "AI mediation did not resolve integration failure (exit $verify_failed)" 30
     fi
     log "  AI mediation resolved"
@@ -163,7 +162,7 @@ fi
 # ─── Step 4: Merge ───────────────────────────────────────────────────────
 log "Step 4: push + merge"
 if [ "$DRY_RUN" = "1" ]; then
-  log "  dry-run: would push $branch and gh pr merge --squash"
+  log "  dry-run: would push $branch and request protected factory integration"
 else
   git -C "$WORKTREE" push --force-with-lease origin "$branch" >> "$LOG" 2>&1
 
@@ -188,69 +187,17 @@ else
   if ! gh pr checks "$branch" --watch --fail-fast >> "$LOG" 2>&1; then
     escalate "PR checks failed for $branch — fix the red check, do not merge around it" 41
   fi
-  gh pr merge "$branch" --squash --delete-branch --body "$pr_body" >> "$LOG" 2>&1 \
-    || escalate "gh pr merge failed for $branch" 41
+  pr_number=$(gh pr view "$branch" --json number --jq .number) \
+    || escalate "cannot resolve candidate PR" 41
+  bash "$ROOT/.claude/scripts/autonomous-ship.sh" "$pr_number" >> "$LOG" 2>&1 \
+    || escalate "factory integration request failed" 41
 fi
 
-# ─── Step 5: Post-merge verify on main + auto-revert/fix on failure ──────
-log "Step 5: post-merge verify on main"
-if [ "$DRY_RUN" = "1" ]; then
-  log "  dry-run: would re-verify main and auto-revert on failure"
-else
-  git checkout main >> "$LOG" 2>&1
-  # JUSTIFIED: || true — pull is best-effort (may be offline or up-to-date); we still post-merge-verify the local main below, which is the real gate
-  git pull >> "$LOG" 2>&1 || true
-
-  if ! bash .claude/scripts/verify.sh >> "$LOG" 2>&1; then
-    log "POST-MERGE VERIFY FAILED — auto-reverting"
-    last_sha=$(git rev-parse HEAD)
-    git revert --no-edit "$last_sha" >> "$LOG" 2>&1
-    git push origin main >> "$LOG" 2>&1
-    log "Reverted $last_sha on main"
-
-    # Spawn auto-fix PR session (mirrors the daily-batch failure pattern)
-    if command -v claude >/dev/null 2>&1; then
-      fix_branch="claude/post-merge-autofix-$(date +%Y-%m-%d-%H%M)"
-      git checkout -b "$fix_branch" >> "$LOG" 2>&1
-      # JUSTIFIED: || true — the auto-fix agent's exit is non-authoritative; main is already reverted+safe and the agent only opens a PR for human review, so its failure must not abort cleanup
-      # (e2e-audit swarm-2: comment moved ABOVE the command — a comment line inside a
-      # backslash continuation TERMINATES it, severing the prompt arg + log redirect)
-      claude -p --max-budget-usd 5 --max-turns 60 --permission-mode auto \
-        --append-system-prompt "Post-merge verify failed on main after merging stream $STREAM. \
-Read the failure in $LOG, identify the issue, propose minimal fix, commit, push, open PR. \
-Do NOT auto-merge." \
-        "Investigate the post-merge failure" >> "$LOG" 2>&1 || true
-      git checkout main >> "$LOG" 2>&1
-    fi
-
-    # Update fleet.json
-    jq --arg s "$STREAM" '.fleet[$s].status = "reverted" | .fleet[$s].reverted_at = (now | todate)' \
-       "$FLEET" > "${FLEET}.tmp" && mv "${FLEET}.tmp" "$FLEET"
-    echo "$(date -Iseconds) $STREAM     AUTO-REVERT (post-merge verify failed)" \
-      >> .swarms/coordinator/decisions.log
-    # e2e-audit swarm-4: the branch is reverted — tear the worktree down so the
-    # graveyard stops accumulating (the branch itself was deleted by pr merge).
-    # JUSTIFIED: || true — teardown is cleanup on an already-failed path; its failure must not mask exit 40
-    git worktree remove --force "$WORKTREE" >> "$LOG" 2>&1 || true
-    exit 40
-  fi
-
-  # Success path: update fleet.json schema v2 fields
-  jq --arg s "$STREAM" --argjson mediation_used "$mediation_used" \
-     '.fleet[$s].status = "merged"
-      | .fleet[$s].merged_at = (now | todate)
-      | .fleet[$s].mediation_used = $mediation_used
-      | ._schema_version = 2' \
-     "$FLEET" > "${FLEET}.tmp" && mv "${FLEET}.tmp" "$FLEET"
-
-  # e2e-audit swarm-4: success teardown — the branch is merged+deleted remotely;
-  # remove the worktree and the local branch so redispatch never collides.
-  # JUSTIFIED: || true — teardown is best-effort cleanup after a SUCCESSFUL merge; a busy worktree is surfaced by harness-doctor's stale-worktree check instead
-  git worktree remove --force "$WORKTREE" >> "$LOG" 2>&1 || true
-  # JUSTIFIED: || true — the local branch may not exist (worktree-only checkout); nothing to delete is fine
-  git branch -D "$branch" >> "$LOG" 2>&1 || true
-
-  log "verified-merge SUCCESS for stream=$STREAM"
+# The protected coordinator owns the actual merge and emits the remote receipt.
+# Local success means request submitted; fleet reconciliation must observe merge.
+if [ "$DRY_RUN" != "1" ]; then
+  jq --arg s "$STREAM" '.fleet[$s].status = "merge-requested" | .fleet[$s].merge_requested_at = (now | todate)' \
+    "$FLEET" > "${FLEET}.tmp" && mv "${FLEET}.tmp" "$FLEET"
 fi
-
+log "Factory integration requested; remote merge receipt pending"
 exit 0

@@ -1,0 +1,14 @@
+ledger_format: 2
+timestamp: 2026-10-09T06:02:34.918367+00:00
+command: bash .claude/scripts/test/oq-aging.sh
+exit_code: 1
+red_reason: assertion-failure
+
+---
+passed: 1
+failed: 5
+  - aged OQ escalated to a RESOLVE task
+  - escalated task is priority P1-spec
+  - escalated task carries last_touched
+  - escalated task back-links the spec
+  - second run does not duplicate the RESOLVE task

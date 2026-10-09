@@ -1,0 +1,12 @@
+ledger_format: 2
+timestamp: 2026-10-09T06:15:38.788085+00:00
+command: bash .claude/scripts/test/gc-suite.sh
+exit_code: 1
+red_reason: assertion-failure
+
+---
+passed: 9
+failed: 3
+  - gc-tasks created an archive file
+  - gc-tasks removed an old done task from the live file
+  - the old done task landed in the archive

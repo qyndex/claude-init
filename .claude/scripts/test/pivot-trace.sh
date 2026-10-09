@@ -2,8 +2,7 @@
 # T-P6 (spec-005 AC-5b, gap G5b) — validate.sh must flag a pivot manifest whose
 # frontmatter `target:` resolves to no spec or initiative. OQ-3 chose WIRE. Advisory
 # WARN (not a hard fail), consistent with [spec-plan-trace]/[roadmap-trace], so the
-# real tree stays rc=0. Also asserts the /pivot skill is delivered as a clean-applying
-# staged patch (guarded dir → operator applies). Uses the PIVOT_DIR env hook.
+# real tree stays rc=0. Also checks the installed pivot skill. Uses PIVOT_DIR.
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
 cd "$ROOT"
@@ -26,14 +25,11 @@ check "AC-5b: dangling pivot target is NOT a hard fail" $?
 [ -d pivots/active ]
 check "AC-5b: pivots/active/ directory exists" $?
 
-# (4) The /pivot skill is delivered as a clean-applying staged patch (guarded dir).
-patch=.claude/memory.proposed/patches/SPEC005-02-pivot-skill.patch
-[ -f "$patch" ]
-check "AC-5b: SPEC005-02 pivot-skill patch exists" $?
-git apply --check "$patch" 2>/dev/null
-check "AC-5b: SPEC005-02 patch applies clean (git apply --check)" $?
-grep -qE '\+\+\+ b/\.claude/skills/pivot/SKILL\.md' "$patch"
-check "AC-5b: patch targets .claude/skills/pivot/SKILL.md" $?
+# (4) The installed pivot skill carries the operational pivot contract.
+[ -s .claude/skills/pivot/SKILL.md ]
+check "AC-5b: pivot skill installed" $?
+grep -q 'target:' .claude/skills/pivot/SKILL.md
+check "AC-5b: installed pivot skill defines target linkage" $?
 
 # (5) Behavioral: hermetic pivots dir with one resolvable target (spec 004, which
 #     exists in the real tree) and one dangling target (spec 888). Assert exactly one

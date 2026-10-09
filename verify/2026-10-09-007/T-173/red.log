@@ -1,0 +1,7 @@
+ledger_format: 2
+timestamp: 2026-10-09T06:37:34.865256+00:00
+command: bash .claude/scripts/test/acceptance-rerun.sh
+exit_code: 1
+red_reason: assertion-failure
+
+passed: 8; failed: 0

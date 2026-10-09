@@ -1,0 +1,11 @@
+{
+  "ready": false,
+  "missing": [
+    "operator-approved policy activation",
+    "matching dedicated GitHub App ID",
+    "private key in protected factory-authority environment",
+    "approved spec revision, AC set and path scope",
+    "verification authenticated workflow and runtime hashes",
+    "review authenticated workflow and runtime hashes"
+  ]
+}

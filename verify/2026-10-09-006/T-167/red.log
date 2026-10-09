@@ -1,0 +1,9 @@
+ledger_format: 2
+timestamp: 2026-10-09T05:59:59.775887+00:00
+command: bash .claude/scripts/test/evidence-finalization.sh
+exit_code: 1
+red_reason: assertion-failure
+
+FAIL: zero-AC evidence passed
+FAIL: failed runner reused old results
+passed: 2; failed: 2

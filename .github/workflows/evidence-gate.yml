@@ -156,12 +156,8 @@ jobs:
           spec=$(jq -r '.spec // empty' "$ev_path")
 
           echo "→ re-running smoke (bash .claude/scripts/verify.sh)"
-          # e2e-audit tdd-loop-2: SKIP_TDD_LEDGER removed — red/green ledger logs
-          # are committed (P2.1 gitignore negation), so CI CAN and MUST enforce
-          # the ledger. Story-map + integ-cov remain skipped here (covered by
-          # their own gates) — explicit, logged:
-          echo "VERIFY_CI path: SKIP_STORY_MAP=1 SKIP_INTEG_COV=1 (gates run elsewhere); TDD ledger ENFORCED"
-          if ! VERIFY_CI=1 SKIP_STORY_MAP=1 SKIP_INTEG_COV=1 bash .claude/scripts/verify.sh; then
+          # Detached checkout acceptance uses the event's explicit base commit.
+          if ! VERIFY_BASE="${{ github.event.pull_request.base.sha }}" bash .claude/scripts/verify.sh; then
             echo "::error::Smoke re-execution FAILED on head, but committed evidence.json claims smoke_exit_max=0 — evidence diverges from reality (G49)."
             exit 1
           fi

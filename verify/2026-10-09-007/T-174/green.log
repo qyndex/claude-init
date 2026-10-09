@@ -1,0 +1,6 @@
+ledger_format: 2
+timestamp: 2026-10-09T06:35:59.131825+00:00
+command: bash .claude/scripts/test/required-verification.sh
+exit_code: 0
+
+passed: 7; failed: 0

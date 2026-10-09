@@ -44,7 +44,7 @@ _decay() {
   awk -v cutoff="$cutoff_epoch" '
     function flush(block, marker,    ds, cmd, ep, id, spec, comp, terse) {
       if (block == "") return
-      if (marker ~ /^- \[[xs]\]/ && match(marker, /[0-9]{4}-[0-9]{2}-[0-9]{2}/)) {
+      if (marker ~ /^- \[[xs]\]/ && match(marker, /[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]/)) {
         ds = substr(marker, RSTART, RLENGTH)
         # JUSTIFIED: BSD/GNU date portability as an awk-built command; the muted
         # error is the expected miss on the absent date flavor, and a 0 result
@@ -58,7 +58,7 @@ _decay() {
           if (match(marker, /spec:[0-9A-Za-z]+/))         spec = substr(marker, RSTART, RLENGTH)
           # Prefer an explicit completed: date if present; else fall back to the
           # first date found (last_touched:).
-          if (match(marker, /completed:[[:space:]]*[0-9]{4}-[0-9]{2}-[0-9]{2}/)) {
+          if (match(marker, /completed:[[:space:]]*[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]/)) {
             comp = substr(marker, RSTART, RLENGTH); sub(/completed:[[:space:]]*/, "", comp)
           }
           mstatus = substr(marker, 1, 6)               # "- [x] " / "- [s] "

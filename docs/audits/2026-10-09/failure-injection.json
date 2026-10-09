@@ -1,0 +1,37 @@
+[
+  {
+    "name": "Scanner exits 42 but local check passes",
+    "command": [
+      "bash",
+      ".claude/scripts/local-pr-check.sh",
+      "--only=semgrep"
+    ],
+    "exit_code": 0,
+    "stdout": "\u2192 Local PR check (only) \u2014 mirrors .github/workflows/daily-batch.yml\n\n\u2192 semgrep              \u2713\n\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\u2713 pass=1  \u2717 fail=0  \u2298 skip=13\n",
+    "stderr": ""
+  },
+  {
+    "name": "Unknown required contract passes",
+    "command": [
+      "bash",
+      ".claude/scripts/contract-tests.sh",
+      "audit"
+    ],
+    "exit_code": 0,
+    "stdout": "contract-tests: checking 1 declared contracts\n  ? unknown contract type: unsupported (unsupported:must-be-proven)\ncontract-tests: all contracts satisfied\n",
+    "stderr": ""
+  },
+  {
+    "name": "Zero-AC evidence emits invalid JSON but passes",
+    "command": [
+      "bash",
+      ".claude/scripts/collect-evidence.sh",
+      "900",
+      "--check-only"
+    ],
+    "exit_code": 0,
+    "stdout": "\u2192 Collecting evidence for spec 900 (900-audit)\n  \u26a0 No results at verify/2026-10-09-900-audit/results.json \u2014 every AC will read UNPROVEN. Install the rig: bash .claude/scripts/rig-bootstrap.sh, or emit AC-tagged junit/jest output to that path.\n\n\u2713 Evidence bundle: verify/2026-10-09-900-audit/\n  Verdict: PASS | ACs: 0/0\n0 proven | smoke exit: 0\n  PR body: verify/2026-10-09-900-audit/pr-body.md\n",
+    "stderr": "jq: invalid JSON text passed to --argjson\nUse jq --help for help with command-line options,\nor see the jq manpage, or online docs  at https://jqlang.github.io/jq\n",
+    "evidence_bytes": 0
+  }
+]

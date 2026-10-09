@@ -11,7 +11,7 @@ import { test as base, expect, type Page } from "@playwright/test";
 import * as fs from "fs";
 
 const DATE = new Date().toISOString().slice(0, 10);
-const OUT = `verify/${DATE}-${process.env.VERIFY_FEATURE ?? "adhoc"}`;
+const OUT = process.env.VERIFY_OUTPUT_DIR ?? `verify/${DATE}-${process.env.VERIFY_FEATURE ?? "adhoc"}`;
 
 export const test = base.extend<{
   shot: (ac: string, label: string) => Promise<void>;

@@ -1,0 +1,32 @@
+{
+  "recorded_at": "2026-10-09T07:10:18.026417+00:00",
+  "independent_attestation": false,
+  "sources": {
+    ".claude/scripts/factory-coordinator.py": "af07b71436fa1878a98263f55e1ed9b5bb1b2a2a75d1c49dfc2bd435682c30d9",
+    ".claude/scripts/factory-preflight.py": "55fd23384b3fe629f1839582bbe90f14c518861f72070d9f8dc301cc6f525e8f",
+    ".claude/scripts/factory-ruleset-plan.py": "58a0a5203abc0bbfa5a8faa3ef04e99e8098182bd5b8b329c88a7d5b590bc67c",
+    ".claude/scripts/autonomous-ship.sh": "c28fe4e4844d075aa24ec02db7b32bfb61576312ddb7669b11ee5a89a0209a58",
+    ".claude/scripts/verified-merge.sh": "2faa6b3cceaff7f083c3fad7e067c418fda5ad733580e6ac04df580bbceb2e53",
+    ".claude/scripts/test/factory-coordinator.sh": "7ae3571d37dafe793fa42397a70784a1ee49d3014a124e85a8c7b33485d7c20d",
+    ".claude/scripts/test/autonomous-ship.sh": "70a5f8b56387e853c15d038ba410a131d96d1b4c4af89fa60da8d40b10d6c596",
+    ".github/workflows/factory-merge.yml": "a11b5ab20a08d7e713c07bf145a8aef98f420be1c064f670276c194cfb3fde81",
+    ".github/workflows/auto-merge.yml": "810d7e15177cc7e99d3dabe3b245643b5959904b667946f1ed6f85b40b0b210b",
+    ".github/workflows/auto-merge-dependabot.yml": "bff5aa8ba0cb23c317094d9f082c1bd360e3d2df57366c05bd2fc0465d4eaab6",
+    ".github/workflows/release-please.yml": "537560ce15df0a3da40774aafbda1bef2116c38b8caaa3165528160992c3f981",
+    ".github/workflows/harness-validate.yml": "b21fda55a74443efc1eada232f6efea0f0fc304d58acd39aa7efdcf17e256827",
+    "factory/policy.json": "33b07cb6ed7e43b3345fd094f88bea61b6bf4222cc1f14e7d4e2abd309bad016",
+    "factory/github-app-manifest.json": "2122727dfc46aa9d15fc56121e133bd3439026ebeafddd216926bfc2d9e0c171"
+  },
+  "maintained_suites": {
+    "macos": {
+      "passed": 63,
+      "failed": 0
+    },
+    "linux": {
+      "passed": 63,
+      "failed": 0
+    }
+  },
+  "actual_github_candidate_ci": false,
+  "live_policy_changes": false
+}

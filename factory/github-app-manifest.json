@@ -1,0 +1,14 @@
+{
+  "name": "qyndex-factory",
+  "url": "https://github.com/qyndex/claude-init",
+  "description": "Protected candidate verification and conditional factory merges for qyndex.",
+  "public": false,
+  "default_permissions": {
+    "actions": "read",
+    "checks": "write",
+    "contents": "write",
+    "pull_requests": "write",
+    "administration": "read"
+  },
+  "default_events": []
+}

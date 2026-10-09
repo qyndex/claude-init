@@ -22,13 +22,13 @@ OQ_AGE_DAYS="${OQ_AGE_DAYS:-7}"
 # shellcheck source=lib/tasks-lib.sh
 . "$ROOT/.claude/scripts/lib/tasks-lib.sh"
 
-today_epoch=$(date +%s)
+today_epoch=$(date -u -j -f '%Y-%m-%d %H:%M:%S' "$(date +%Y-%m-%d) 00:00:00" +%s 2>/dev/null || date -u -d "$(date +%Y-%m-%d) 00:00:00" +%s)
 
 # date_to_epoch <YYYY-MM-DD> — portable (BSD + GNU); prints epoch or empty.
 date_to_epoch() {
   local d="$1"
   # JUSTIFIED: BSD/GNU date portability — BSD form tried first, GNU form is the fallback; the trailing no-op makes the helper print empty for an unparseable date, the documented contract callers check
-  date -j -f %Y-%m-%d "$d" +%s 2>/dev/null || date -d "$d" +%s 2>/dev/null || true
+  date -u -j -f '%Y-%m-%d %H:%M:%S' "$d 00:00:00" +%s 2>/dev/null || date -u -d "$d 00:00:00" +%s 2>/dev/null || true
 }
 
 now_iso() { date -Iseconds; }

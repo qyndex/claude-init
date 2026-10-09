@@ -1,0 +1,23 @@
+ledger_format: 2
+timestamp: 2026-10-09T06:02:34.799021+00:00
+command: bash .claude/scripts/test/factory-workflows.sh
+exit_code: 1
+red_reason: assertion-failure
+
+.github/workflows/iac-scan.yml:18:13: calling function "hashFiles" is not allowed here. "hashFiles" is only available in "jobs.<job_id>.steps.continue-on-error", "jobs.<job_id>.steps.env", "jobs.<job_id>.steps.if", "jobs.<job_id>.steps.name", "jobs.<job_id>.steps.run", "jobs.<job_id>.steps.timeout-minutes", "jobs.<job_id>.steps.with", "jobs.<job_id>.steps.working-directory". see https://docs.github.com/en/actions/learn-github-actions/contexts#context-availability for more details [expression]
+   |
+18 |     if: ${{ hashFiles('**/*.tf') != '' }}
+   |             ^~~~~~~~~~~~~~~~~~~~
+.github/workflows/iac-scan.yml:33:13: calling function "hashFiles" is not allowed here. "hashFiles" is only available in "jobs.<job_id>.steps.continue-on-error", "jobs.<job_id>.steps.env", "jobs.<job_id>.steps.if", "jobs.<job_id>.steps.name", "jobs.<job_id>.steps.run", "jobs.<job_id>.steps.timeout-minutes", "jobs.<job_id>.steps.with", "jobs.<job_id>.steps.working-directory". see https://docs.github.com/en/actions/learn-github-actions/contexts#context-availability for more details [expression]
+   |
+33 |     if: ${{ hashFiles('**/Dockerfile*') != '' }}
+   |             ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+.github/workflows/iac-scan.yml:43:13: calling function "hashFiles" is not allowed here. "hashFiles" is only available in "jobs.<job_id>.steps.continue-on-error", "jobs.<job_id>.steps.env", "jobs.<job_id>.steps.if", "jobs.<job_id>.steps.name", "jobs.<job_id>.steps.run", "jobs.<job_id>.steps.timeout-minutes", "jobs.<job_id>.steps.with", "jobs.<job_id>.steps.working-directory". see https://docs.github.com/en/actions/learn-github-actions/contexts#context-availability for more details [expression]
+   |
+43 |     if: ${{ hashFiles('**/*.sh') != '' }}
+   |             ^~~~~~~~~~~~~~~~~~~~
+.github/workflows/iac-scan.yml:55:13: calling function "hashFiles" is not allowed here. "hashFiles" is only available in "jobs.<job_id>.steps.continue-on-error", "jobs.<job_id>.steps.env", "jobs.<job_id>.steps.if", "jobs.<job_id>.steps.name", "jobs.<job_id>.steps.run", "jobs.<job_id>.steps.timeout-minutes", "jobs.<job_id>.steps.with", "jobs.<job_id>.steps.working-directory". see https://docs.github.com/en/actions/learn-github-actions/contexts#context-availability for more details [expression]
+   |
+55 |     if: ${{ hashFiles('**/*.sql') != '' }}
+   |             ^~~~~~~~~~~~~~~~~~~~~
+passed: 5; failed: 3

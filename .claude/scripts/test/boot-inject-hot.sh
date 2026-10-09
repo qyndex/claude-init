@@ -1,25 +1,15 @@
 #!/usr/bin/env bash
-# M-22 (boot wiring) — session boot must regenerate + inject hot.md so a fresh
-# session opens with the hottest context loaded. session-start-context.sh is a
-# GUARDED hook → the wiring ships as a staged patch that STACKS on M-05b's patch
-# (both edit the same file). This test applies M-05b then M-22 onto a temp copy,
-# drives the hook with a hot-cache stub, and asserts the hot body is injected and
-# the volatile `generated:` line is dropped.
+# Regression: installed boot hook injects hot context without volatile timestamps.
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
-P05B="$ROOT/.claude/memory.proposed/patches/M-05b-boot-autoheal.patch"
-P22="$ROOT/.claude/memory.proposed/patches/M-22-boot-inject-hot-cache.patch"
 
 pass=0; fail=0
 check() { if [ "$2" -eq 0 ]; then pass=$((pass+1)); else fail=$((fail+1)); echo "  - $1"; fi; }
 
-for p in "$P05B" "$P22"; do [ -f "$p" ] || { echo "  - missing patch: $p"; echo "passed: 0"; echo "failed: 1"; exit 1; }; done
 
 tmp="$(mktemp -d)"; trap 'rm -rf "$tmp"' EXIT
 mkdir -p "$tmp/.claude/hooks" "$tmp/.claude/scripts" "$tmp/.claude/memory/.cache"
 cp "$ROOT/.claude/hooks/session-start-context.sh" "$tmp/.claude/hooks/"
-( cd "$tmp" && git apply "$P05B" && git apply "$P22" ) 2>/dev/null
-check "M-05b + M-22 patches apply in sequence (stack cleanly)" $?
 
 # Stub every script the boot hook shells out to; hot-cache writes a known hot.md.
 for s in regen-skill-registry initiative-state memory-index memory-recall atlas-refresh; do

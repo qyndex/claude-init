@@ -28,6 +28,15 @@ check "weekly <arg> writes the ARG week's file (2026-W25.md)" $?
 grep -q '2026-W25' "$tmp/.claude/memory/rollups/2026-W25.md" 2>/dev/null
 check "the rollup body names the target week 2026-W25" $?
 
+# Week 25 starts Monday June 15; a Jan-4 approximation must not shift its range.
+grep -q '2026-06-15..2026-06-22' "$tmp/.claude/memory/rollups/2026-W25.md"
+check "explicit ISO week uses exact Monday-to-Monday bounds" $?
+if (cd "$tmp" && bash .claude/scripts/memory-rollup.sh weekly 2025-W53 > /dev/null 2>&1); then
+  check "invalid ISO week 53 is rejected" 1
+else
+  check "invalid ISO week 53 is rejected" 0
+fi
+
 # (2) Wall-clock week must NOT have been written when an arg was given.
 thisweek=$(date +%G-W%V)
 if [ "$thisweek" != "2026-W25" ]; then

@@ -55,7 +55,7 @@ if [ -f "$PATCH" ]; then
   scanned=$(grep -oE '^- \[x\] T-[0-9]+' "$tmp" | grep -oE 'T-1[45][0-9]' | grep -cE 'T-1[45][0-5]' || true)
   # Only T-154 should remain in the [x] scan among 140..157.
   only154=$(grep -oE '^- \[x\] T-[0-9]+' "$tmp" | grep -cE 'T-15[45]')
-  [ "$(grep -oE '^- \[s\] T-1[45][0-9]' "$tmp" | wc -l | tr -d ' ')" -eq 17 ]
+  [ "$(grep -E '^- \[s\] T-1[45][0-9].*spec:004' "$tmp" | wc -l | tr -d ' ')" -eq 17 ]
   check "post-flip: 17 spec-004 tasks are [s] (ledger-exempt)" $?
 fi
 

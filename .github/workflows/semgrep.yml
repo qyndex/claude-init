@@ -22,13 +22,13 @@ jobs:
 
       - name: Run Semgrep (CI ruleset)
         run: |
-          # Produce SARIF for the upload + the jq gate below. The dedicated
-          # "Fail on high/critical" step (jq) is the REAL gate and is GHAS-
+          # Produce SARIF for upload and validated severity enforcement.
+          # The "Fail on high/critical" step is the gate and is GHAS-
           # independent; --error here would ALSO fail on low/info matches, so we
-          # drop it and let the jq step decide severity (FINDING-27).
+          # drop it and let check-sarif.sh decide severity. Scanner errors still fail.
           semgrep --config=p/ci --config=p/owasp-top-ten --config=p/secrets \
                   --sarif --output=semgrep.sarif \
-                  . || true
+                  .
 
       # FINDING-27 (live-e2e 2026-06-13): upload-sarif posts to GitHub Code
       # Scanning, which needs Code Security / GHAS enabled. On a repo without it
@@ -45,7 +45,4 @@ jobs:
 
       - name: Fail on high/critical
         run: |
-          if [ -f semgrep.sarif ]; then
-            jq '[.runs[].results[] | select(.level == "error" or .properties."security-severity" >= "7.0")] | length' semgrep.sarif | \
-              xargs -I{} sh -c 'if [ "{}" -gt 0 ]; then echo "{} high/critical findings"; exit 1; else echo "clean"; fi'
-          fi
+          bash .claude/scripts/check-sarif.sh semgrep.sarif

@@ -1,18 +1,7 @@
 #!/usr/bin/env bash
-# M-05c — a subagent must inherit the SAME spec the parent's workflow-state keyed
-# on, not re-resolve it via `ls -t` (mtime lottery). Fixture: two active specs
-# where the newest-by-mtime (007) is NOT the workflow-state spec (003). The child
-# context must name 003.
-#
-# workflow-state.sh and subagent-context.sh are GUARDED hooks → the fix ships as
-# staged patches (M-05c-*.patch). This test applies both patches to temp copies
-# and exercises the real scripts, so it is green whether or not the operator has
-# installed the patches into .claude/hooks/ yet.
+# Regression: installed subagent hooks preserve workflow spec identity.
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
-PATCHDIR="$ROOT/.claude/memory.proposed/patches"
-WS_PATCH="$PATCHDIR/M-05c-workflow-state-persist-spec-plan.patch"
-SC_PATCH="$PATCHDIR/M-05c-subagent-read-spec-plan.patch"
 
 command -v jq >/dev/null 2>&1 || { echo "jq required"; exit 0; }
 
@@ -23,16 +12,9 @@ tmp="$(mktemp -d)"; trap 'rm -rf "$tmp"' EXIT
 mkdir -p "$tmp/.claude/hooks" "$tmp/specs/active" "$tmp/plans/active" \
          "$tmp/.swarms/coordinator"
 
-# Copy the guarded hooks, then apply the staged patches (the shipped fix) onto them.
+# Copy installed hooks into a hermetic fixture.
 cp "$ROOT/.claude/hooks/workflow-state.sh"  "$tmp/.claude/hooks/"
 cp "$ROOT/.claude/hooks/subagent-context.sh" "$tmp/.claude/hooks/"
-for p in "$WS_PATCH" "$SC_PATCH"; do
-  [ -f "$p" ] || { echo "  - missing patch: $p"; fail=$((fail+1)); }
-done
-( cd "$tmp" && git apply "$WS_PATCH" "$SC_PATCH" ) 2>/dev/null
-applied=$?
-check "M-05c patches apply onto the guarded hooks" "$applied"
-[ "$applied" -ne 0 ] && { echo "passed: $pass"; echo "failed: $fail"; exit 1; }
 
 # ── Fixture: 003 is the workflow-state spec; 007 is newer by mtime ──────────
 : > "$tmp/specs/active/003-alpha.md"

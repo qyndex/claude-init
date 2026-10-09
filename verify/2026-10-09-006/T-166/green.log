@@ -1,0 +1,6 @@
+ledger_format: 2
+timestamp: 2026-10-09T06:07:21.992545+00:00
+command: bash .claude/scripts/test/local-scanner-contracts.sh
+exit_code: 0
+
+passed: 12; failed: 0

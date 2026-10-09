@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "enabled": false,
+  "repository": "qyndex/claude-init",
+  "base_branch": "main",
+  "app_id": null,
+  "protected_paths": [
+    ".github/*",
+    "factory/*",
+    ".claude/CLAUDE.md",
+    ".claude/settings.json",
+    ".claude/hooks/*",
+    ".claude/scripts/factory-*",
+    ".claude/scripts/validate-candidate-evidence.py",
+    ".claude/scripts/verify.sh",
+    ".claude/scripts/rerun-acceptance.py",
+    ".claude/scripts/autonomous-ship.sh",
+    ".claude/scripts/verified-merge.sh"
+  ],
+  "required_checks": {
+    "lint-test": 15368,
+    "review": 15368,
+    "security-review": 15368,
+    "harness-validate": 15368,
+    "evidence-gate": 15368,
+    "adr-gate": 15368,
+    "commitlint": 15368,
+    "lint-exception-audit": 15368,
+    "check-daily-batch": 15368
+  },
+  "specs": {},
+  "producers": {
+    "verification": {
+      "workflow_id": null,
+      "artifact_name": "factory-verification",
+      "trusted_files": {}
+    },
+    "review": {
+      "workflow_id": null,
+      "artifact_name": "factory-review",
+      "trusted_files": {}
+    }
+  }
+}
