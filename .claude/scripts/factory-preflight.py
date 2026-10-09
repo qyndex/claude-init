@@ -2,6 +2,7 @@
 """Report missing activation prerequisites without exposing credentials."""
 import argparse
 import json
+import re
 import os
 from pathlib import Path
 import sys
@@ -27,8 +28,22 @@ def main():
     producers = policy.get('producers', {})
     for role in ('verification', 'review'):
         definition = producers.get(role, {})
-        if type(definition.get('workflow_id')) is not int or not definition.get('trusted_files'):
+        if type(definition.get('workflow_id')) is not int or definition['workflow_id'] <= 0 or not definition.get('trusted_files'):
             missing.append(f'{role} authenticated workflow and runtime hashes')
+        expected = 'factory-verification' if role == 'verification' else 'factory-independent-review'
+        if definition.get('event') != 'pull_request_target' or definition.get('check_name') != expected:
+            missing.append(f'{role} protected event and candidate-check identity')
+        paths = {f'.github/workflows/factory-{role}.yml', '.claude/scripts/factory-producer.py',
+                 '.claude/scripts/factory-producer-check.py', '.claude/scripts/factory-coordinator.py',
+                 '.claude/scripts/validate-candidate-evidence.py'}
+        if not paths <= set(definition.get('trusted_files', {})):
+            missing.append(f'{role} complete transitive runtime hashes')
+    for sid, approved in policy.get('specs', {}).items():
+        acs = approved.get('ac_ids', [])
+        if not approved.get('path') or not acs or not approved.get('allowed_paths') or set(approved.get('acceptance_commands', {})) != set(acs):
+            missing.append(f'spec {sid} bytes, scope and per-AC acceptance commands')
+        if re.fullmatch(r'[A-Za-z0-9./:_-]+@sha256:[0-9a-f]{64}', approved.get('verification_image', '')) is None:
+            missing.append(f'spec {sid} digest-pinned verification runtime')
     print(json.dumps({'ready': not missing, 'missing': missing}, indent=2))
     return 1 if missing else 0
 

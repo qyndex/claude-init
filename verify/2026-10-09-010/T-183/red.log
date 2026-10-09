@@ -1,0 +1,11 @@
+ledger_format: 2
+timestamp: 2026-10-09T11:34:12.123523+00:00
+command: bash .claude/scripts/test/factory-coordinator.sh
+exit_code: 1
+red_reason: assertion-failure
+baseline_environment: COORDINATOR_TEST_ROOT=/tmp/factory-producer-baseline
+baseline_commit: 148238ad8950681d352985cdb9c48ad0301e97d3
+
+Traceback (most recent call last):
+  File "<stdin>", line 92, in <module>
+AssertionError: protected producer runtime contract missing

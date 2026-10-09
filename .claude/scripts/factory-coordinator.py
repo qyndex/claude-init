@@ -28,6 +28,13 @@ def matches(path, patterns):
     return any(path.startswith(pattern[:-1]) if pattern.endswith('*') else path == pattern for pattern in patterns)
 
 
+def runtime_paths(role):
+    require(role in ('verification', 'review'), 'unknown producer role')
+    return {f'.github/workflows/factory-{role}.yml', '.claude/scripts/factory-producer.py',
+            '.claude/scripts/factory-producer-check.py', '.claude/scripts/factory-coordinator.py',
+            '.claude/scripts/validate-candidate-evidence.py'}
+
+
 def protection(api, root, branch, required, app_id):
     rules = api.get(f'{root}/rules/branches/{quote(branch, safe="")}')
     require(isinstance(rules, list) and any(rule['type'] == 'pull_request' for rule in rules), 'active target PR protection missing')
@@ -91,18 +98,35 @@ def coordinate(api, policy, number, merge=False):
     require(policy['producers']['verification']['workflow_id'] != policy['producers']['review']['workflow_id'], 'independent workflow identities required')
     for role, producer in policy['producers'].items():
         require(contract.integer(producer['workflow_id']), f'{role}: workflow identity missing')
-        relevant = [run for run in runs if run['workflow_id'] == producer['workflow_id']]
-        require(bool(relevant), f'{role}: trusted run missing')
-        run = max(relevant, key=lambda value: value['id'])
-        require(run['head_sha'] == head and run['head_repository']['full_name'] == repo, f'{role}: stale or foreign run')
-        require(run['event'] == 'pull_request' and any(item['number'] == number for item in run['pull_requests']), f'{role}: wrong run event/PR')
+        target_event = producer.get('event') == 'pull_request_target'
+        if target_event:
+            require(runtime_paths(role) <= set(producer['trusted_files']), 'complete producer runtime pins required')
+            name = producer['check_name']
+            require(name in policy['required_checks'], 'producer check must be required')
+            selected = [check for check in observed_checks if check['name'] == name and check['app']['id'] == policy['required_checks'][name]]
+            require(len(selected) == 1, 'producer check unavailable')
+            link = re.fullmatch(r'https://github\.com/' + re.escape(repo) + r'/actions/runs/([0-9]+)', selected[0].get('details_url', ''))
+            require(link is not None, f'producer check must identify its authenticated run: {repo} / {selected[0].get("details_url")}')
+            run = api.get(f'{root}/actions/runs/{link[1]}')
+            require(run['workflow_id'] == producer['workflow_id'] and run['event'] == 'pull_request_target', 'wrong protected producer run')
+            require(run['head_sha'] == base, 'protected producer base changed')
+        else:
+            relevant = [run for run in runs if run['workflow_id'] == producer['workflow_id']]
+            require(bool(relevant), f'{role}: trusted run missing')
+            run = max(relevant, key=lambda value: value['id'])
+            require(run['head_sha'] == head, f'{role}: stale run')
+            require(run['event'] == 'pull_request' and any(item['number'] == number for item in run['pull_requests']), f'{role}: wrong run event/PR')
+        require(run['head_repository']['full_name'] == repo, f'{role}: foreign run')
         require(run['status'] == 'completed' and run['conclusion'] == 'success', f'{role}: run not successful')
         require(bool(producer['trusted_files']), f'{role}: trusted runtime definitions missing')
         for path, digest in producer['trusted_files'].items():
             require(contract.digest(digest, 64), 'invalid trusted definition digest')
             require(matches(path, policy['protected_paths']), 'trusted runtime must be an authority-protected path')
             require(hashlib.sha256(api.source(path, head)).hexdigest() == digest, f'{role}: runtime definition changed')
-        document, blobs = api.artifact(run, producer['artifact_name'])
+            if target_event:
+                require(hashlib.sha256(api.source(path, run['head_sha'])).hexdigest() == digest, f'{role}: protected runtime definition changed')
+        artifact_name = producer['artifact_name'] + (f'-pr-{number}' if target_event else '')
+        document, blobs = api.artifact(run, artifact_name)
         documents[role] = document
         authorities[role] = f'workflow:{run["workflow_id"]}/run:{run["id"]}'
         selected_runs.append(run)
