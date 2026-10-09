@@ -1,0 +1,73 @@
+{
+  "source_commit": "2d02980cffed7cc8dccb8b211b7905dd819356b9",
+  "generated_at": "2026-10-09T15:31:32.188754+00:00",
+  "independent_attestation": false,
+  "observations": [
+    {
+      "id": "AC-1",
+      "commands": [
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-supervisor.sh"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/gc-suite.sh"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/memory-plane-lock.sh"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "artifact_sha256": "0688f857e550c3e3e76878f46534d47ce6b0796205b1ed0e74d8521663cc2869"
+    },
+    {
+      "id": "AC-2",
+      "commands": [
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-supervisor.sh"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "artifact_sha256": "0b49c710c5980449792049ce492e407dfbb703491c6c8af821b919ce2417789a"
+    },
+    {
+      "id": "AC-3",
+      "commands": [
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-supervisor.sh"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "artifact_sha256": "0b49c710c5980449792049ce492e407dfbb703491c6c8af821b919ce2417789a"
+    },
+    {
+      "id": "AC-4",
+      "commands": [
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-supervisor.sh"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "artifact_sha256": "0b49c710c5980449792049ce492e407dfbb703491c6c8af821b919ce2417789a"
+    }
+  ]
+}

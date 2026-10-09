@@ -1,0 +1,4 @@
+$ bash .claude/scripts/test/factory-supervisor.sh
+factory-supervisor: foreground ownership, heartbeat, cancellation, timeout, detached launch and writer races passed
+
+exit: 0
