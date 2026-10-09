@@ -50,7 +50,6 @@ jobs:
           # Credential: subscription OAuth token ('claude setup-token') or
           # metered API key — an empty secret resolves to unset, the action
           # uses whichever is provided.
-          show_full_output: true # Preserve startup errors needed to diagnose failed reviews.
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           # v1 takes CLI flags via claude_args — `model:`/`max_turns:`/`agent:`

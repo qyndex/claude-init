@@ -80,7 +80,6 @@ jobs:
         with:
           # Subscription OAuth token first (free); API key only as a fallback if
           # someone sets it. An empty secret resolves to unset.
-          show_full_output: true # Preserve startup errors needed to diagnose failed reviews.
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           # Sonnet, not Opus — diff-scoped SAST doesn't need Opus, and this keeps
