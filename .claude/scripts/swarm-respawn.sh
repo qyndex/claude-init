@@ -9,6 +9,12 @@
 
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+
+# Hold one inherited OS lock across the complete read/modify/write operation.
+STATE_LOCK="$ROOT/.claude/state/shared-writers.lock"
+if ! python3 "$ROOT/.claude/scripts/state-lock.py" --lock "$STATE_LOCK" --check; then
+  exec python3 "$ROOT/.claude/scripts/state-lock.py" --lock "$STATE_LOCK" -- bash "$0" "$@"
+fi
 cd "$ROOT" || exit 1
 
 STREAM="${1:-}"

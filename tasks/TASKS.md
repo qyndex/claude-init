@@ -42,6 +42,11 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
 
 **Hotfix tasks** (Round 12) carry extra fields: `fingerprint:` (Sentry dedup key), `sentry:` (permalink), `hotfix_issue:` (projected issue #). Inserted at the TOP of `## Active
 
+- [x] T-185  | spec:012  | phase:1  | priority: security  | created: 2026-10-10  | last_touched: 2026-10-10  | deps: T-184  | parallel: no  | est: 30m
+  summary: Supervise foreground workers and serialize fleet and ledger mutations
+  accept: bash .claude/scripts/test/factory-supervisor.sh
+  owner: codex
+
 - [x] T-184  | spec:011  | phase:1  | priority: security  | created: 2026-10-10  | last_touched: 2026-10-10  | deps: T-183  | parallel: no  | est: 30m
   summary: Add durable fenced runtime claims and reconciled external-action outbox
   accept: bash .claude/scripts/test/factory-runtime.sh

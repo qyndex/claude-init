@@ -3,7 +3,7 @@
 # (Anthropic outage, expired auth, plan downgrade).
 #
 # Triggers the same overnight build flow that overnight-build.yml describes,
-# but via `claude --bg` on the local machine. Logs go to .claude/hooks/.log/.
+# but via a supervised foreground Claude process on the local machine. Logs go to .claude/hooks/.log/.
 #
 # Designed for nightly cron:
 #   0 23 * * *  bash /path/to/repo/.claude/scripts/local-overnight-build.sh
@@ -11,6 +11,12 @@
 set -uo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+
+# Hold one inherited OS lock across the complete read/modify/write operation.
+STATE_LOCK="$ROOT/.claude/state/overnight-worker.lock"
+if ! python3 "$ROOT/.claude/scripts/state-lock.py" --lock "$STATE_LOCK" --check; then
+  exec python3 "$ROOT/.claude/scripts/state-lock.py" --lock "$STATE_LOCK" -- bash "$0" "$@"
+fi
 cd "$ROOT"
 
 LOG_DIR=".claude/hooks/.log"
@@ -25,13 +31,12 @@ step "Local overnight build starting"
 # The old guard only checked OVERNIGHT_REPORT.md mtime, but the report is written at
 # the END of a run — so a backstop firing at 23:30 while the Cloud Routine is mid-run
 # saw a ~24h-old report and started a SECOND concurrent build on the same branch.
-# Three independent signals now, cheapest first:
-#   (1) a fresh LOCAL run-lock  — a manual run + cron, or a cron re-fire (same host)
+# Three independent signals, checked in this order:
+#   (1) inherited OS lock held for the foreground worker lifetime (same host)
 #   (2) the dated REMOTE branch — the Cloud Routine already running (cross-host signal)
 #   (3) a <60-min OVERNIGHT_REPORT.md — a cloud run that just finished
 today=$(date +%Y-%m-%d)
 branch="claude/overnight-$today"
-RUN_LOCK=".claude/state/overnight-$today.run"
 mkdir -p .claude/state
 
 _age_min() {  # whole minutes since file $1 was modified; 999999 if absent
@@ -42,17 +47,7 @@ _age_min() {  # whole minutes since file $1 was modified; 999999 if absent
   echo $(( ($(date +%s) - m) / 60 ))
 }
 
-# (1) Local run-lock — fresh (<6h) + holder alive means a local build is underway.
-if [ -f "$RUN_LOCK" ]; then
-  # JUSTIFIED: reading the pid out of the lock guarded by the enclosing [ -f ]; the redirect tolerates a malformed lock — an empty pid falls through to the liveness check below
-  lock_pid=$(awk -F= '/^pid=/{print $2}' "$RUN_LOCK" 2>/dev/null)
-  # JUSTIFIED: kill -0 is a liveness probe, not a signal; the redirect hides "no such process" — a dead holder means non-zero, so we reclaim the stale lock rather than exit
-  if [ "$(_age_min "$RUN_LOCK")" -lt 360 ] && { [ -z "$lock_pid" ] || kill -0 "$lock_pid" 2>/dev/null; }; then
-    step "A local overnight run is already active tonight (lock $RUN_LOCK, pid ${lock_pid:-?}). Backstop exits."
-    exit 0
-  fi
-  step "Stale overnight run-lock (age $(_age_min "$RUN_LOCK")m, pid ${lock_pid:-?} gone) — reclaiming."
-fi
+# The inherited OS lock above owns the complete foreground worker lifetime.
 
 # (2) Remote branch — the Cloud Routine drops a run-start marker branch and pushes
 # per-task branches, all prefixed claude/overnight-<date>. A prefix match (not exact)
@@ -77,11 +72,6 @@ fi
 if [ -n "$(git status --porcelain 2>/dev/null)" ]; then
   step "git tree dirty — abort (commit/stash before nightly)"; exit 1
 fi
-
-# Claim tonight's run now that pre-flight passed; release the lock on ANY exit so a
-# crash doesn't wedge future nights ($branch/$RUN_LOCK were computed in the guard).
-printf 'pid=%s\nstarted=%s\n' "$$" "$(date -Iseconds)" > "$RUN_LOCK"
-trap 'rm -f "'"$RUN_LOCK"'"' EXIT
 
 # Create a dated branch we can push to
 step "Creating branch $branch"
@@ -112,22 +102,13 @@ END: write OVERNIGHT_REPORT.md, exit cleanly.
 BUILDPROMPT
 )
 
-# Spawn background session with Auto Mode and explicit budgets
-step "Spawning background session..."
-sid=$(claude --bg \
-     -n "local-overnight-$(date +%Y%m%d)" \
-     --auto \
-     --max-turns 600 \
-     --max-budget-usd 30 \
-     --output-format stream-json \
-     -p "$PROMPT" 2>>"$LOG_FILE" | jq -r '.session_id // empty' | head -1)
-
-if [ -z "$sid" ]; then
-  step "Failed to spawn — see $LOG_FILE"; exit 1
-fi
-
-step "Spawned: session $sid (background)"
-step "Monitor with: claude attach $sid   OR   claude logs $sid --follow"
-step "Log: $LOG_FILE"
-
-exit 0
+# Keep the supervisor and its inherited OS lock alive until the worker exits.
+step "Starting supervised foreground session..."
+python3 "$ROOT/.claude/scripts/foreground-watchdog.py" \
+  --timeout "${CLAUDE_OVERNIGHT_TIMEOUT_SECONDS:-19800}" -- \
+  claude -n "local-overnight-$(date +%Y%m%d)" --auto \
+  --max-turns 600 --max-budget-usd 30 --output-format stream-json \
+  -p "$PROMPT" >> "$LOG_FILE" 2>&1
+worker_rc=$?
+step "Foreground worker finished with exit $worker_rc; log: $LOG_FILE"
+exit "$worker_rc"
