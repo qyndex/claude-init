@@ -40,7 +40,8 @@ if ! gh auth status >/dev/null 2>&1; then
   echo "NOT importing, NOT writing the sentinel. Run 'gh auth login', then re-run." >&2
   exit 1
 fi
-[ -f tasks/TASKS.md ] || printf '# Tasks\n\n## Active\n\n## Archive\n' > tasks/TASKS.md
+_initialize_ledger() { [ -f tasks/TASKS.md ] || printf '# Tasks\n\n## Active\n\n## Archive\n' > tasks/TASKS.md; }
+with_tasks_lock _initialize_ledger || exit $?
 
 now="$(date -Iseconds)"
 

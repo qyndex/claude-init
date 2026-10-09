@@ -27,14 +27,21 @@ __TASKS_LIB_SH=1
 TASKS_FILE="${TASKS_FILE:-tasks/TASKS.md}"
 
 # with_tasks_lock <fn> [args...] — run a mutation fn under the single TASKS.md lock.
-with_tasks_lock() { with_lock "tasks" "$@"; }
+with_tasks_lock() { with_lock "memory-plane" "$@"; }
 
 # tasks_next_id — next integer id (no "T-" prefix). Scans every task-marker line
 # (any state, Active + Archive) so ids are never reused. MUST run inside the lock.
 tasks_next_id() {
   local n
   # JUSTIFIED: the redirect drops grep stderr when TASKS.md does not yet exist — an empty result makes ${n:-0}+1 yield id 1, the correct first id for a fresh ledger
-  n="$(grep -oE '^- \[.\] T-[0-9]+' "${TASKS_FILE}" 2>/dev/null | grep -oE '[0-9]+' | sort -n | tail -1)"
+  n="$(python3 - "${TASKS_FILE}" "${TASKS_ARCHIVE_DIR:-$(dirname "$TASKS_FILE")/archive}" <<'PYIDS'
+from pathlib import Path
+import re,sys
+active=Path(sys.argv[1]); paths=([active] if active.exists() else [])+list(Path(sys.argv[2]).glob('TASKS-*.md'))
+ids=[int(value) for path in paths for value in re.findall(r'^- \[.\] T-([0-9]+)\b',path.read_text(),re.M)]
+print(max(ids,default=0))
+PYIDS
+)" || return 1
   echo $(( ${n:-0} + 1 ))
 }
 
@@ -93,6 +100,7 @@ tasks_set_status() {
 # return 3 when absent. Read-only; safe outside the lock for advisory reads.
 tasks_get_status() {
   local id="${1#T-}" line
+  # JUSTIFIED: absent ledger/task is handled below by return 3; advisory lookup never claims success.
   line="$(grep -E "^- \[.\] T-${id}([^0-9]|\$)" "${TASKS_FILE}" 2>/dev/null | head -1)"
   [ -n "$line" ] || return 3
   printf '%s\n' "$line" | sed -E 's/^- \[(.)\].*/\1/'

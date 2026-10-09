@@ -8,6 +8,7 @@ import json
 import os
 from pathlib import Path
 import signal
+import socket
 import subprocess
 import sys
 import time
@@ -46,7 +47,7 @@ def terminate(worker):
     worker.wait(timeout=5)
 
 
-def supervise(db, task, command, cwd, attempts, timeout=1800, lease=30):
+def supervise(db, task, command, cwd, attempts, timeout=1800, lease=30, resources=None):
     lock = Path(db).resolve().parent / ("worker-" + hashlib.sha256(task.encode()).hexdigest() + ".lock")
     lock.parent.mkdir(parents=True, exist_ok=True)
     fd = os.open(lock, os.O_CREAT | os.O_RDWR, 0o600)
@@ -55,12 +56,12 @@ def supervise(db, task, command, cwd, attempts, timeout=1800, lease=30):
             fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError as error:
             raise runtime.Blocked("worker still holds task lock") from error
-        return supervised(db, task, command, cwd, attempts, timeout, lease, fd)
+        return supervised(db, task, command, cwd, attempts, timeout, lease, fd, resources)
     finally:
         os.close(fd)
 
 
-def supervised(db, task, command, cwd, attempts, timeout, lease, lock_fd):
+def supervised(db, task, command, cwd, attempts, timeout, lease, lock_fd, resources):
     if not command or '--bg' in command or '--background' in command:
         raise ValueError('foreground command required')
     if not 1 <= timeout <= 21600 or not 3 <= lease <= 3600:
@@ -73,6 +74,7 @@ def supervised(db, task, command, cwd, attempts, timeout, lease, lock_fd):
     stopped = []
     previous = {}
     worker = None
+    allocated = []
     reason = 'startup-failure'
     code = 1
     started = time.monotonic()
@@ -80,10 +82,27 @@ def supervised(db, task, command, cwd, attempts, timeout, lease, lock_fd):
         for sig in (signal.SIGTERM, signal.SIGINT):
             previous[sig] = signal.signal(sig, lambda signum, frame: stopped.append(signum))
         store.transition(task, owner, token, 'implementing')
-        env = dict(os.environ, FACTORY_RUN_DIR=str(directory.resolve()), TMPDIR=str(directory.resolve()))
+        namespace = directory.name
+        endpoints = {}
+        for service in (resources or {}).get('services', []):
+            if service['kind'] == 'tcp':
+                channel = socket.socket()
+                channel.bind(('127.0.0.1', 0))
+                channel.listen(8)
+                allocated.append(channel)
+                endpoints[service['name']] = {'fd': channel.fileno(), 'port': channel.getsockname()[1]}
+            elif service['kind'] == 'directory':
+                private = directory / service['name']
+                private.mkdir(mode=0o700)
+                endpoints[service['name']] = {'directory': str(private.resolve())}
+            else:
+                raise ValueError('unsupported resource isolation adapter')
+        env = dict(os.environ, FACTORY_RUN_DIR=str(directory.resolve()),
+                   FACTORY_RESOURCE_NAMESPACE=namespace, FACTORY_SERVICES=json.dumps(endpoints),
+                   TMPDIR=str(directory.resolve()))
         with (directory / 'worker.log').open('wb') as log:
             worker = subprocess.Popen(command, cwd=cwd, env=env, stdout=log,
-                                      stderr=subprocess.STDOUT, start_new_session=True, pass_fds=(lock_fd,))
+                                      stderr=subprocess.STDOUT, start_new_session=True, pass_fds=(lock_fd, *(channel.fileno() for channel in allocated)))
             next_heartbeat = time.monotonic()
             while True:
                 if stopped:
@@ -117,6 +136,8 @@ def supervised(db, task, command, cwd, attempts, timeout, lease, lock_fd):
     finally:
         if worker is not None:
             terminate(worker)
+        for channel in allocated:
+            channel.close()
         for sig, handler in previous.items():
             signal.signal(sig, handler)
         (directory / 'outcome.json').write_text(json.dumps({

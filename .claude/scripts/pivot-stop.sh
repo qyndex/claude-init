@@ -11,6 +11,10 @@ set -uo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$ROOT"
+STATE_LOCK="$ROOT/.claude/state/shared-writers.lock"
+if ! python3 "$ROOT/.claude/scripts/state-lock.py" --lock "$STATE_LOCK" --check; then
+  exec python3 "$ROOT/.claude/scripts/state-lock.py" --lock "$STATE_LOCK" -- bash "$0" "$@"
+fi
 
 reason="${1:-pivot-pending}"
 
@@ -82,13 +86,14 @@ if [ -n "$running" ]; then
       )
     fi
 
-    # Update fleet.json
+    # Update fleet.json using a same-directory temporary file under the fleet lock.
+    fleet_tmp=$(mktemp .swarms/coordinator/.pivot.XXXXXX) || exit 1
     jq --arg s "$s" --arg r "$reason" --arg ts "$(date -Iseconds)" \
       '.fleet[$s].status = "stopped_for_pivot" |
        .fleet[$s].pivot_reason = $r |
        .fleet[$s].stopped_at = $ts |
        ._schema_version = 3' \
-      .swarms/coordinator/fleet.json > /tmp/f && mv /tmp/f .swarms/coordinator/fleet.json
+      .swarms/coordinator/fleet.json > "$fleet_tmp" && mv "$fleet_tmp" .swarms/coordinator/fleet.json || { rm -f "$fleet_tmp"; exit 1; }
 
     stopped_streams="$stopped_streams,$s"
   done

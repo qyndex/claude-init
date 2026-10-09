@@ -50,6 +50,7 @@ if [ -z "$INPUT" ] || [ ! -f "$INPUT" ]; then
   exit 1
 fi
 
+_initialize_ledger() {
 mkdir -p tasks
 [ -f tasks/TASKS.md ] || cat > tasks/TASKS.md <<'EOF'
 # Tasks
@@ -58,6 +59,9 @@ mkdir -p tasks
 
 ## Archive
 EOF
+
+}
+with_tasks_lock _initialize_ledger || exit $?
 
 created=0
 skipped=0
