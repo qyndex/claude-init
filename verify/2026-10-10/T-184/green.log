@@ -1,0 +1,6 @@
+ledger_format: 2
+timestamp: 2026-10-09T15:07:17.490535+00:00
+command: bash .claude/scripts/test/factory-runtime.sh
+exit_code: 0
+
+factory-runtime: AC-1 through AC-4 passed (race, fencing, recovery, outbox and rollback)

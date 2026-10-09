@@ -1,0 +1,4 @@
+$ bash .claude/scripts/test/factory-runtime.sh
+factory-runtime: AC-1 through AC-4 passed (race, fencing, recovery, outbox and rollback)
+
+exit: 0

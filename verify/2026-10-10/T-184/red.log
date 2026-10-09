@@ -1,0 +1,11 @@
+ledger_format: 2
+timestamp: 2026-10-09T15:07:17.396161+00:00
+command: bash .claude/scripts/test/factory-runtime.sh
+exit_code: 1
+red_reason: assertion-failure
+baseline_environment: RUNTIME_TEST_ROOT=/tmp/factory-runtime-baseline
+baseline_commit: 50a8e937f6a9fed696cdcb8c25c789cd42d6bd20
+
+Traceback (most recent call last):
+  File "<stdin>", line 9, in <module>
+AssertionError: transactional runtime store not implemented
