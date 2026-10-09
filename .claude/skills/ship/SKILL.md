@@ -33,8 +33,7 @@ Push, PR, CI, merge, deploy. With gates.
    git diff --cached --quiet || git commit -m "chore(state): sync living STATE.md pre-merge (M-06)"
    ```
 5. **Push the branch** (`git push -u origin <branch>`).
-6. **Open the PR with the evidence bundle as the body**:
-   `gh pr create --body-file verify/<date>-<feature>/pr-body.md`
+6. **Use [pr-body](../pr-body/SKILL.md) to compose the complete PR body**: include the problem/result summary, spec/plan links, every applicable evidence bundle, actual tests and remaining risks. Save it to a file and open with `gh pr create --body-file <complete-body-file>`. Read back the published body before continuing.
 7. **Wait for CI** (`gh pr checks --watch`) — `evidence-gate` is now a required check; it blocks merge if any AC is unproven.
 8. **Merge confirmation — mode-dependent (e2e-audit release-deploy-2):**
    - **Interactive session** → ask the user to confirm merge. Their go is the gate.

@@ -78,7 +78,7 @@ Everything lives under `.swarms/`:
 
 ### 4. Merge (coordinator)
 - When a stream reports `QA-PASS` and writes its final handoff:
-  - Coordinator: `gh pr create` from the stream's branch
+  - Coordinator: use [pr-body](../pr-body/SKILL.md) to compose all applicable evidence and open from the stream's branch with `gh pr create --body-file <complete-body-file>`; read back the published body.
   - Wait for CI (claude-review + claude-security + ci + e2e-preview)
   - Squash-merge once green
   - Delete the worktree: `git worktree remove .claude/worktrees/feat-<N>`
