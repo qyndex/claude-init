@@ -1,5 +1,5 @@
 {
-  "_comment": "Temporary operator-approved Claude review pause due to subscription quota. Seven required checks remain active; no bypass. Restore review and security-review from docs/audits/2026-10-09/review-pause/repository-ruleset-before.json together with live review requirements before factory activation.",
+  "_comment": "Default-branch protection baseline. Review and security-review are required checks. Keep stricter live stale-review dismissal and thread-resolution controls. Factory cutover adds dedicated-App-pinned eligibility and independent producer checks through the separately reviewed factory-ruleset-plan.py output; this file does not activate the App.",
   "name": "main-protection",
   "target": "branch",
   "enforcement": "active",
@@ -36,6 +36,14 @@
         "required_status_checks": [
           {
             "context": "lint-test",
+            "integration_id": 15368
+          },
+          {
+            "context": "review",
+            "integration_id": 15368
+          },
+          {
+            "context": "security-review",
             "integration_id": 15368
           },
           {
