@@ -46,6 +46,7 @@ fleet_write() { # fleet_write <jq-program> [jq args...]
 }
 
 # Try native respawn first — preserves session state if the daemon held it
+# JUSTIFIED: unsupported native respawn is an expected miss; the explicit fallback and failure guard follow.
 if claude respawn "$STREAM" 2>/dev/null; then
   echo "Native respawn succeeded for $STREAM"
   fleet_write '.fleet[$id].status = "respawned" | .fleet[$id].respawned_at = (now|todate)' --arg id "$STREAM"
@@ -77,6 +78,7 @@ sid=$(claude --bg \
      --max-turns "$MAX_TURNS" \
      --max-budget-usd "$BUDGET" \
      --output-format stream-json \
+     `# JUSTIFIED: spawn stderr is muted; an empty session ID causes the explicit failure below` \
      -p "$resume_prompt" 2>/dev/null | jq -r '.session_id // empty' | head -1)
 
 if [ -z "$sid" ]; then
