@@ -142,12 +142,14 @@ Then re-run verify.sh. If verify still fails, exit non-zero — do NOT push brok
     # JUSTIFIED: || true — a non-zero from the mediation agent is intentionally tolerated; the authoritative gate is the verify.sh re-run immediately below, which escalates on failure
     # (e2e-audit swarm-2: comment moved ABOVE the command — a comment line inside a
     # backslash continuation TERMINATES it, severing the prompt arg + log redirect)
+    mediation_exit=0
     (cd "$WORKTREE" && claude -p \
       --max-turns 30 \
       --max-budget-usd 2 \
       --permission-mode auto \
       --append-system-prompt "$mediation_prompt" \
-      "Fix the integration failure for stream $STREAM" >> "$LOG" 2>&1) || true
+      "Fix the integration failure for stream $STREAM" >> "$LOG" 2>&1) || mediation_exit=$?
+    log "  mediation process exit: $mediation_exit; complete verification remains required"
 
     # Re-run every required integration gate after candidate changes.
     if ! run_integration_checks; then

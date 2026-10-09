@@ -22,6 +22,7 @@ OQ_AGE_DAYS="${OQ_AGE_DAYS:-7}"
 # shellcheck source=lib/tasks-lib.sh
 . "$ROOT/.claude/scripts/lib/tasks-lib.sh"
 
+# JUSTIFIED: BSD/GNU date parser probe; the fallback failure propagates instead of inventing a date.
 today_epoch=$(date -u -j -f '%Y-%m-%d %H:%M:%S' "$(date +%Y-%m-%d) 00:00:00" +%s 2>/dev/null || date -u -d "$(date +%Y-%m-%d) 00:00:00" +%s)
 
 # date_to_epoch <YYYY-MM-DD> — portable (BSD + GNU); prints epoch or empty.

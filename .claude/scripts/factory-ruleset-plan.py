@@ -26,5 +26,8 @@ for check in checks:
     check['integration_id'] = expected
 if not any(check['context'] == 'factory-eligibility' for check in checks):
     checks.append({'context': 'factory-eligibility', 'integration_id': args.app_id})
+for name in ('factory-verification', 'factory-independent-review'):
+    if not any(check['context'] == name for check in checks):
+        checks.append({'context': name, 'integration_id': 15368})
 args.output.write_text(json.dumps(body, indent=2) + '\n')
 print('Prepared additive producer-pinned ruleset; no live policy changed.')

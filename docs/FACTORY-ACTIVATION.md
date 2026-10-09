@@ -1,6 +1,6 @@
 # Factory activation
 
-The operator authorized preparing the private **qyndex-factory** App for **qyndex**. The bootstrap policy is intentionally disabled: an App installation alone cannot authorize merging. The activation PR changes merge/security authority and therefore needs the operator's decision before merging it.
+The operator authorized preparing the private **qyndex-factory** App for **qyndex**. The bootstrap policy and merge mode are intentionally disabled: an App installation alone cannot authorize merging. The activation PR changes merge/security authority and therefore needs the operator's decision before merging it.
 
 ## Account setup
 
@@ -13,7 +13,7 @@ The operator authorized preparing the private **qyndex-factory** App for **qynde
 
 ## Protected policy and proof producers
 
-`factory/policy.json` lives on the protected default branch. Its initial state has `enabled: false`, no App ID, no approved specs and no verifier/reviewer runtime hashes. Check producer defaults use the observed GitHub Actions App ID **15368**. Confirm those pins against the actual PR before applying them.
+`factory/policy.json` lives on the protected default branch. Its initial state has `enabled: false` and `merge_enabled: false`, no App ID, no approved specs and no verifier/reviewer runtime hashes. Check producer defaults use the observed GitHub Actions App ID **15368**. Confirm those pins against the actual PR before applying them.
 
 Each approved spec entry supplies its SHA-256, full AC ID set and explicit allowed path prefixes. Candidates use `factory/spec-<id>/<description>` branches. Current implementation accepts one complete approved spec per PR. Bot release/dependency branches have no implicit exemption; registering those scopes is separate authority work. Authority paths, including renamed old paths, cannot merge autonomously. Never use an implementation PR to modify its own approval policy.
 
@@ -27,7 +27,7 @@ Each artifact ZIP contains `evidence.json` and, for observations, `artifacts/<sh
 2. Populate the App/spec/producer configuration through a separate reviewed authority change. Run preflight and a shadow candidate. Do not substitute fabricated PASS documents to unblock setup.
 3. Generate the additive live ruleset with `python3 .claude/scripts/factory-ruleset-plan.py --app-id <id> --output /tmp/factory-ruleset.json`. Review the result. It preserves stricter live review/thread controls, strict status checks and no bypass actors; it adds `factory-eligibility` pinned to the dedicated App and pins existing workflow checks to their producer.
 4. Apply that reviewed policy with the operator administration identity. The App has no permission to change it. Disable already-armed native auto-merge requests during cutover and use request-only routes thereafter.
-5. Run `Factory Merge Authority` in **shadow** mode for an eligible fixture PR and negative candidates. The default mode never merges. Enable merge mode only after the exact-head shadow proof and the live pin have been verified.
+5. Run `Factory Merge Authority` in **shadow** mode for an eligible fixture PR and negative candidates. The default mode never merges. Keep `merge_enabled: false` during shadow testing. Enable merge mode through a reviewed policy revision only after the exact-head shadow proof and the live pin have been verified.
 6. Run an ordinary approved candidate through merge mode. Retain its exact returned merge SHA and external `factory-receipt` artifact. Recover a missing receipt from GitHub before retrying an external action.
 
 The coordinator uses GitHub's [conditional head SHA merge](https://docs.github.com/en/rest/pulls/pulls#merge-a-pull-request) and queries [active rules applying to the target branch](https://docs.github.com/en/rest/repos/rules#get-rules-for-a-branch). It rechecks candidate and protection before merging. Default-branch dispatch, repository-wide serialization, pinned actions and no candidate checkout keep privileged code outside the implementation workspace.
@@ -43,3 +43,13 @@ A coordinator request is neither a merge receipt nor product acceptance. Rollbac
 All **63 maintained suites passed on macOS and Linux** in disposable checkouts with Git history. The coordinator regression passed 26 assertions, including actual ZIP/digest checks and shadow mode; request-boundary regression passed 10. Structural validation passed 79 checks with one historical no-op acceptance warning and zero failures. TDD ledger passed with historical exemptions still reported; Actionlint expression checks and warning-level ShellCheck for changed scripts passed. Harness Validate now fetches full history so CI can reproduce historical provenance checks.
 
 These are implementation checks; the actual GitHub candidate run, App identity and shadow proof are recorded separately. No live merge/security rule, App installation, Slack schedule or production deployment is changed by local testing.
+
+## Published bootstrap candidate
+
+Draft [PR #50](https://github.com/qyndex/claude-init/pull/50) is isolated on `codex/factory-activation`; the original branch and initiative edits remain intact. Harness Validate passed on initial candidate `633faee68b3a86fe5af9561042e58021b9fd5105` ([run](https://github.com/qyndex/claude-init/actions/runs/37897616485)). Subsequent CI-driven fixes require a new final-head run, recorded in the PR checks. Independent review jobs remain pending while this PR is a draft.
+
+The legacy consumer now checks every touched spec, exact AC counts, successful runner/smoke status and passing tagged results instead of choosing one latest bundle. A captured original-gate regression demonstrates that a zero-AC bundle could previously hide a second missing spec. Bootstrap reports come from actual shell acceptance commands and the existing collector's smoke reruns. They explicitly record that they are local implementation evidence; final factory authority still requires authenticated external artifacts. Silent-failure lint annotations explain OS-parser probes and diagnostic assertions, while actual parse and mediation failures now surface explicitly. Coverage thresholds cannot be lowered through candidate environment variables.
+
+Completed candidate check/verdict workflows re-request evaluation, so a request issued before CI finishes does not require a manual retry. Repository-wide serialization still evaluates the latest exact head. Shadow readiness and actual merge enablement are separate policy switches; changing either policy revision invalidates old evidence and requires fresh producer runs.
+
+Independent producer jobs must report unique required contexts `factory-verification` and `factory-independent-review`, failing the job when the machine verdict fails. The reviewed ruleset planner adds both contexts pinned to GitHub Actions, alongside App-pinned eligibility. Failed merge evaluations publish a new failure check rather than leaving an earlier eligibility success as the latest check. API failure remains a hard failure.

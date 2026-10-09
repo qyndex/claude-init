@@ -94,6 +94,11 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
 
 ## Active
 
+- [x] T-181  | spec:009  | phase:2  | priority: security  | created: 2026-10-09  | last_touched: 2026-10-09  | deps: T-177  | parallel: no  | est: 5m
+  summary: Reject missing touched-spec proof and zero-AC bootstrap bundles
+  accept: bash .claude/scripts/test/local-evidence-gate.sh
+  owner: codex
+
 - [x] T-177  | spec:009  | phase:1  | priority: security  | created: 2026-10-09  | last_touched: 2026-10-09  | deps:  | parallel: no  | est: 5m
   summary: Authenticate exact candidate receipts and live producer-pinned protection
   accept: bash .claude/scripts/test/factory-coordinator.sh
@@ -104,8 +109,9 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
   accept: bash .claude/scripts/test/autonomous-ship.sh
   owner: codex
 
-- [ ] T-179  | spec:009  | phase:2  | priority: security  | created: 2026-10-09  | last_touched: 2026-10-09  | deps: T-177, T-178  | parallel: no  | est: 5m
+- [~] T-179  | spec:009  | phase:2  | priority: security  | created: 2026-10-09  | last_touched: 2026-10-09  | deps: T-177, T-178  | parallel: no  | est: 5m
   summary: Publish isolated activation draft PR and account bootstrap package
+  progress: PR #50 published; final candidate CI and cutover account setup remain pending
   accept: gh pr view "${FACTORY_ACTIVATION_PR:?}" --json state,isDraft | jq -e '.state == "OPEN" and .isDraft == true'
   owner: codex
 

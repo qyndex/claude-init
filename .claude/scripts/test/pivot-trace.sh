@@ -57,14 +57,17 @@ EOF
 
 out=$(PIVOT_DIR="$tmp" bash .claude/scripts/validate.sh 2>&1)
 
+# JUSTIFIED: No match yields empty output; the following assertion then fails.
 dangling=$(printf '%s' "$out" | grep -iE 'pivot-trace' | grep -E '888' || true)
 printf '%s' "$dangling" | grep -q '888'
 check "AC-5b: warns on dangling pivot target 888" $?
 
+# JUSTIFIED: No match is the expected outcome; the following empty assertion checks it.
 resolvable=$(printf '%s' "$out" | grep -iE 'pivot-trace.*dangl' | grep -E '\b004\b' || true)
 [ -z "$resolvable" ]
 check "AC-5b: does NOT warn on resolvable pivot target 004" $?
 
+# JUSTIFIED: grep emits zero on no match; the following exact-count assertion fails.
 count=$(printf '%s\n' "$out" | grep -cE 'pivot-trace.*dangling' || true)
 [ "$count" -eq 1 ]
 check "AC-5b: exactly one dangling warning for the fixture" $?

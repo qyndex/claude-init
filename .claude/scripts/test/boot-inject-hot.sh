@@ -22,6 +22,7 @@ mkdir -p .claude/memory/.cache
 EOF
 chmod +x "$tmp/.claude/scripts/hot-cache.sh"
 
+# JUSTIFIED: Fixture hook stderr is excluded from captured JSON; subsequent assertions validate the actual context.
 out=$(cd "$tmp" && bash .claude/hooks/session-start-context.sh </dev/null 2>/dev/null)
 
 # The hot body must be injected...

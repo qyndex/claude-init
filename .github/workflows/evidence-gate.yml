@@ -101,39 +101,9 @@ jobs:
       - name: Re-assert from committed evidence.json (bound to PR — G53)
         if: env.docs_only != '1'
         run: |
-          # G53: the bundle must RIDE IN this PR, not merely exist in the tree —
-          # stale or wrong-branch evidence is rejected.
-          ev=$(grep -E '^verify/.*/evidence\.json$' /tmp/pr-changed-files.txt | sort -r | head -1)
-          if [ -z "$ev" ]; then
-            echo "::error::No evidence.json in this PR's diff — a bundle already in the tree proves an older change, not this one. Run collect-evidence.sh on this branch (or commit verify/<date>/no-ac.json for docs-only PRs)."
-            exit 1
-          fi
-          unproven=$(jq -r '.ac_unproven | length' "$ev")
-          smoke=$(jq -r '.smoke_exit_max' "$ev")
-          verdict=$(jq -r '.verdict' "$ev")
-          echo "evidence.json: unproven=$unproven smoke_exit=$smoke verdict=$verdict"
-          [ "$unproven" -eq 0 ] || { echo "::error::$unproven unproven ACs"; exit 1; }
-          [ "$smoke" -eq 0 ] || { echo "::error::smoke exit $smoke"; exit 1; }
-          [ "$verdict" = "PASS" ] || { echo "::error::verdict $verdict"; exit 1; }
-
-          # G53: commit binding — the attested commit must be an ancestor of head
-          ev_commit=$(jq -r '.commit // "unknown"' "$ev")
-          if [ "$ev_commit" = "unknown" ] || [ -z "$ev_commit" ]; then
-            echo "::error::evidence.json carries no commit binding — regenerate with the current collect-evidence.sh (G53)."
-            exit 1
-          fi
-          if ! git merge-base --is-ancestor "$ev_commit" HEAD 2>/dev/null; then
-            echo "::error::evidence.json attests commit $ev_commit which is not an ancestor of this PR's head — stale or foreign evidence (G53)."
-            exit 1
-          fi
-
-          # G53: spec binding — if the PR touches a spec, the bundle must be for it
-          ev_spec=$(jq -r '.spec // empty' "$ev")
-          touched_spec=$(grep -E '^specs/active/[0-9]+' /tmp/pr-changed-files.txt | grep -oE '[0-9]+' | head -1 || true)
-          if [ -n "$touched_spec" ] && [ -n "$ev_spec" ] && [ "$ev_spec" != "$touched_spec" ]; then
-            echo "::error::PR touches spec $touched_spec but evidence.json attests spec $ev_spec (G53)."
-            exit 1
-          fi
+          python3 .claude/scripts/check-local-evidence.py \
+            --changed-files /tmp/pr-changed-files.txt --output-paths /tmp/evidence-paths.txt
+          ev=$(head -1 /tmp/evidence-paths.txt)
           echo "ev_path=$ev" >> "$GITHUB_ENV"
 
       # e2e-audit e2e-rig-2/ci-gates-3: install the project toolchain + deps
@@ -152,7 +122,7 @@ jobs:
       - name: Re-execute proof against head (G49)
         if: env.docs_only != '1'
         run: |
-          [ -n "${ev_path:-}" ] || { echo "no evidence.json (docs-only path) — skip re-execution"; exit 0; }
+          [ -n "${ev_path:-}" ] || { echo "::error::Evidence path missing"; exit 1; }
           spec=$(jq -r '.spec // empty' "$ev_path")
 
           echo "→ re-running smoke (bash .claude/scripts/verify.sh)"

@@ -49,20 +49,26 @@ _week_bounds() {
     # BSD and GNU date; GNU date does not universally accept YYYY-Www-1.
     sy="${wk%%-*}"; local wn="${wk##*W}" dow actual
     [ "$((10#$wn))" -ge 1 ] && [ "$((10#$wn))" -le 53 ] || die "invalid ISO week: $wk"
+    # JUSTIFIED: Try the BSD parser, then GNU; both failing produces the explicit fatal ISO-year error.
     epoch=$(date -u -j -f '%Y-%m-%d %H:%M:%S' "${sy}-01-04 00:00:00" +%s 2>/dev/null \
       || date -u -d "${sy}-01-04 00:00:00" +%s) || die "cannot resolve ISO year: $sy"
+    # JUSTIFIED: GNU/BSD date probe; the fallback remains authoritative and failures propagate.
     dow=$(date -u -d "@$epoch" +%u 2>/dev/null || date -u -r "$epoch" +%u)
     epoch=$((epoch - (dow - 1) * 86400 + (10#$wn - 1) * 604800))
+    # JUSTIFIED: GNU/BSD date probe; the resolved ISO week is validated immediately afterward.
     actual=$(date -u -d "@$epoch" +%G-W%V 2>/dev/null || date -u -r "$epoch" +%G-W%V)
     [ "$actual" = "$wk" ] || die "invalid ISO week: $wk"
   else
     epoch="${ROLLUP_NOW:-$(date +%s)}"
     # JUSTIFIED: GNU vs BSD week-format probe
+    # JUSTIFIED: GNU/BSD date probe; the resulting week is validated by cmd_weekly.
     wk=$(date -u -d "@$epoch" +%G-W%V 2>/dev/null || date -u -r "$epoch" +%G-W%V 2>/dev/null || date +%G-W%V)
   fi
   local since until cutoff
-  since=$(date -u -d "@$((epoch - 0))" +%Y-%m-%d 2>/dev/null || date -u -r "$epoch" +%Y-%m-%d 2>/dev/null || date +%Y-%m-%d)
-  until=$(date -u -d "@$((epoch + 604800))" +%Y-%m-%d 2>/dev/null || date -u -r "$((epoch + 604800))" +%Y-%m-%d 2>/dev/null || echo "$since")
+  # JUSTIFIED: GNU/BSD date probe; both failing is a fatal boundary error.
+  since=$(date -u -d "@$epoch" +%Y-%m-%d 2>/dev/null || date -u -r "$epoch" +%Y-%m-%d) || die "cannot resolve week start"
+  # JUSTIFIED: GNU/BSD date probe; both failing is a fatal boundary error.
+  until=$(date -u -d "@$((epoch + 604800))" +%Y-%m-%d 2>/dev/null || date -u -r "$((epoch + 604800))" +%Y-%m-%d) || die "cannot resolve week end"
   cutoff="$since"
   echo "$wk $since $until $cutoff"
 }
@@ -185,13 +191,16 @@ cmd_backfill() {
   end_bounds=$(_week_bounds "$end") || die "invalid end week: $end"
   start_date=$(printf '%s' "$start_bounds" | awk '{print $2}')
   end_date=$(printf '%s' "$end_bounds" | awk '{print $2}')
+  # JUSTIFIED: GNU/BSD parser probe; both failing produces a fatal endpoint error.
   e_start=$(date -u -d "$start_date 00:00:00" +%s 2>/dev/null \
     || date -u -j -f '%Y-%m-%d %H:%M:%S' "$start_date 00:00:00" +%s) || die "cannot resolve start date"
+  # JUSTIFIED: GNU/BSD parser probe; both failing produces a fatal endpoint error.
   e_end=$(date -u -d "$end_date 00:00:00" +%s 2>/dev/null \
     || date -u -j -f '%Y-%m-%d %H:%M:%S' "$end_date 00:00:00" +%s) || die "cannot resolve end date"
   [ "$e_start" -le "$e_end" ] || die "backfill: start week after end week"
   e="$e_start"
   while [ "$e" -le "$e_end" ]; do
+    # JUSTIFIED: GNU/BSD date probe; the resulting week is validated by cmd_weekly.
     wk=$(date -u -d "@$e" +%G-W%V 2>/dev/null || date -u -r "$e" +%G-W%V)
     cmd_weekly "$wk"
     e=$(( e + 604800 ))

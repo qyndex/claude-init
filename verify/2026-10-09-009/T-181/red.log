@@ -1,0 +1,13 @@
+ledger_format: 2
+timestamp: 2026-10-09T07:21:43.421993+00:00
+baseline_environment: LEGACY_GATE_SCRIPT=/tmp/factory-legacy-evidence-gate.yml
+baseline_source: 633faee68b3a86fe5af9561042e58021b9fd5105:.github/workflows/evidence-gate.yml
+command: bash .claude/scripts/test/local-evidence-gate.sh
+exit_code: 1
+red_reason: assertion-failure
+
+evidence.json: unproven=0 smoke_exit=0 verdict=PASS
+
+Traceback (most recent call last):
+  File "<stdin>", line 24, in <module>
+AssertionError: zero-AC bundle and missing second spec were accepted

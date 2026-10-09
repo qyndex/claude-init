@@ -1,0 +1,2 @@
+["bash", ".claude/scripts/test/candidate-evidence.sh"]
+passed: 27; failed: 0

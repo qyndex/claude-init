@@ -46,6 +46,7 @@ if [ "$MODE" = only ]; then
     case "$selection" in *,*) selection="${selection#*,}" ;; *) break ;; esac
   done
 fi
+# JUSTIFIED: Candidate directory errors are replaced by the explicit fatal message on this line.
 ROOT="$(cd "$ROOT" 2>/dev/null && pwd)" || { echo "Candidate root unavailable" >&2; exit 2; }
 cd "$ROOT" || exit 2
 

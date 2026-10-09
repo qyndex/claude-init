@@ -2,13 +2,13 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
 python3 - "$ROOT" <<'PY'
-import copy,hashlib,importlib.util,io,json,sys,zipfile
+import copy,hashlib,importlib.util,io,json,sys,tempfile,zipfile
 from pathlib import Path
 root=Path(sys.argv[1]);sys.path.insert(0,str(root/'.claude/scripts'))
 spec=importlib.util.spec_from_file_location('coordinator',root/'.claude/scripts/factory-coordinator.py')
 m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
 head='a'*40;base='b'*40
-policy={'schema_version':1,'enabled':True,'repository':'qyndex/claude-init','base_branch':'main','app_id':99,
+policy={'schema_version':1,'enabled':True,'merge_enabled':True,'repository':'qyndex/claude-init','base_branch':'main','app_id':99,
  'protected_paths':['factory/*','.github/*','.claude/scripts/factory-*'],
  'required_checks':{'tests':123},'specs':{'007':{'sha256':'c'*64,'ac_ids':['AC-1'],'allowed_paths':['src/*']}},
  'producers':{'verification':{'workflow_id':10,'artifact_name':'factory-verification','trusted_files':{'.github/verify.yml':hashlib.sha256(b'trusted').hexdigest()}},
@@ -58,6 +58,7 @@ mutations=[lambda f:f.pr['head'].update(ref='arbitrary'),lambda f:f.pr.update(dr
 for mutation in mutations:
  f=Fake();mutation(f);check(f)
 p=copy.deepcopy(policy);p['enabled']=False;check(Fake(),p)
+p=copy.deepcopy(policy);p['merge_enabled']=False;check(Fake(),p)
 # Exercise actual ZIP validation as well as the injected API boundary.
 def archive_blob(extra=False):
  buffer=io.BytesIO()
@@ -77,5 +78,18 @@ for api in [ArchiveAPI(archive_blob(),True),ArchiveAPI(archive_blob(True))]:
  except ValueError:pass
  else:raise AssertionError('invalid archive passed')
 f=Fake();result=m.coordinate(f,policy,42,merge=False);assert result['eligible'] and not any(isinstance(call,tuple) for call in f.calls)
-print(f'passed: {len(mutations)+6}; failed: 0')
+with tempfile.TemporaryDirectory() as tmp:
+ path=Path(tmp)/'policy.json';path.write_text(json.dumps(policy))
+ f=Fake();f.docs[2]['review']['verdict']='fail'
+ original=m.GitHub;argv=sys.argv
+ m.GitHub=lambda repo:f
+ sys.argv=['coordinator','--policy',str(path),'--pr','42','--merge','--output',str(Path(tmp)/'receipt.json')]
+ try:
+  try:m.main()
+  except ValueError:pass
+  else:raise AssertionError('failed reevaluation accepted')
+ finally:m.GitHub=original;sys.argv=argv
+ posts=[call for call in f.calls if isinstance(call,tuple)]
+ assert len(posts)==1 and posts[0][0].endswith('/check-runs') and posts[0][1]['conclusion']=='failure'
+print(f'passed: {len(mutations)+8}; failed: 0')
 PY

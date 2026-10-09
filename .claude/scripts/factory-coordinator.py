@@ -52,6 +52,7 @@ def protection(api, root, branch, required, app_id):
 
 def coordinate(api, policy, number, merge=False):
     require(policy.get('schema_version') == 1 and policy.get('enabled') is True, 'factory policy not activated')
+    require(not merge or policy.get('merge_enabled') is True, 'factory merge mode not activated after shadow proof')
     repo = policy['repository']
     require(re.fullmatch(r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+', repo) is not None, 'invalid repository identity')
     require(contract.integer(policy['app_id']), 'factory App ID unavailable')
@@ -203,7 +204,19 @@ def main():
     args = parser.parse_args()
     require(args.pr > 0, 'invalid pull request number')
     policy = contract.load(args.policy)
-    result = coordinate(GitHub(policy['repository']), policy, args.pr, merge=args.merge)
+    api = GitHub(policy['repository'])
+    try:
+        result = coordinate(api, policy, args.pr, merge=args.merge)
+    except (ValueError, KeyError, TypeError, OSError, subprocess.TimeoutExpired, zipfile.BadZipFile):
+        # A new failed evaluation must not leave an older success as the latest
+        # App check for this head. API failure still fails the coordinator.
+        if args.merge:
+            current = api.get(f'repos/{policy["repository"]}/pulls/{args.pr}')
+            api.post(f'repos/{policy["repository"]}/check-runs', {
+                'name': 'factory-eligibility', 'head_sha': current['head']['sha'],
+                'status': 'completed', 'conclusion': 'failure',
+                'output': {'title': 'Factory eligibility blocked', 'summary': 'Candidate verification or live policy did not satisfy factory authority. See the coordinator run.'}})
+        raise
     args.output.write_text(json.dumps(result, indent=2) + '\n')
     print(json.dumps(result))
 

@@ -1,0 +1,42 @@
+{
+  "runner": "shell-acceptance-recorder",
+  "independent_attestation": false,
+  "testResults": [
+    {
+      "assertionResults": [
+        {
+          "fullName": "AC-1 shell acceptance checks",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-2 shell acceptance checks",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-3 shell acceptance checks",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-4 shell acceptance checks",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-5 shell acceptance checks",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-6 shell acceptance checks",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-7 shell acceptance checks",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-8 shell acceptance checks",
+          "status": "passed"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,83 @@
+{
+  "source_commit": "633faee68b3a86fe5af9561042e58021b9fd5105",
+  "recorded_at": "2026-10-09T07:40:38.402925+00:00",
+  "independent_attestation": false,
+  "observations": [
+    {
+      "id": "AC-1",
+      "commands": [
+        [
+          "bash",
+          ".claude/scripts/test/factory-coordinator.sh"
+        ]
+      ],
+      "exit_codes": [
+        0
+      ],
+      "artifact": "verify/2026-10-09-009-protected-factory-activation/AC-1.txt",
+      "sha256": "694b4c59087031a4d2dcb083f339c014d81485e47772b194eb1760d79e7a9316"
+    },
+    {
+      "id": "AC-2",
+      "commands": [
+        [
+          "bash",
+          ".claude/scripts/test/factory-coordinator.sh"
+        ],
+        [
+          "bash",
+          ".claude/scripts/test/local-evidence-gate.sh"
+        ]
+      ],
+      "exit_codes": [
+        0,
+        0
+      ],
+      "artifact": "verify/2026-10-09-009-protected-factory-activation/AC-2.txt",
+      "sha256": "585c2616fab1231284663f877f5778e4f2250c532c5c0c2af896dba8fb0ebaae"
+    },
+    {
+      "id": "AC-3",
+      "commands": [
+        [
+          "bash",
+          ".claude/scripts/test/autonomous-ship.sh"
+        ]
+      ],
+      "exit_codes": [
+        0
+      ],
+      "artifact": "verify/2026-10-09-009-protected-factory-activation/AC-3.txt",
+      "sha256": "e9cf163369976f7d8a56dac677c8f78702b97b195370bb090b05424fe75cbdfc"
+    },
+    {
+      "id": "AC-4",
+      "commands": [
+        [
+          "bash",
+          "-c",
+          "set -e; jq -e ' .public == false and .default_permissions.administration == \"read\" and .default_permissions.contents == \"write\" ' factory/github-app-manifest.json; gh pr view 50 --repo qyndex/claude-init --json state,isDraft --jq ' .state == \"OPEN\" and .isDraft == true '; if python3 .claude/scripts/factory-preflight.py --policy factory/policy.json; then exit 1; fi; test -f docs/FACTORY-ACTIVATION.md"
+        ]
+      ],
+      "exit_codes": [
+        0
+      ],
+      "artifact": "verify/2026-10-09-009-protected-factory-activation/AC-4.txt",
+      "sha256": "29dd1728701b17eaeb774c6f520ca21e1a0c7e91ba200b6c07ebaf01edb5f4bc"
+    },
+    {
+      "id": "AC-5",
+      "commands": [
+        [
+          "bash",
+          ".claude/scripts/test/factory-coordinator.sh"
+        ]
+      ],
+      "exit_codes": [
+        0
+      ],
+      "artifact": "verify/2026-10-09-009-protected-factory-activation/AC-5.txt",
+      "sha256": "694b4c59087031a4d2dcb083f339c014d81485e47772b194eb1760d79e7a9316"
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "source_commit": "633faee68b3a86fe5af9561042e58021b9fd5105",
+  "recorded_at": "2026-10-09T07:27:55.084143+00:00",
+  "independent_attestation": false,
+  "observations": [
+    {
+      "id": "AC-1",
+      "commands": [
+        [
+          "bash",
+          ".claude/scripts/test/candidate-evidence.sh"
+        ]
+      ],
+      "exit_codes": [
+        0
+      ],
+      "artifact": "verify/2026-10-09-008-candidate-evidence-contract/AC-1.txt",
+      "sha256": "adba5691863e06734f4627b9465caff70ae52c95f623f5301d12bcaac9083d52"
+    },
+    {
+      "id": "AC-2",
+      "commands": [
+        [
+          "bash",
+          ".claude/scripts/test/candidate-evidence.sh"
+        ]
+      ],
+      "exit_codes": [
+        0
+      ],
+      "artifact": "verify/2026-10-09-008-candidate-evidence-contract/AC-2.txt",
+      "sha256": "adba5691863e06734f4627b9465caff70ae52c95f623f5301d12bcaac9083d52"
+    },
+    {
+      "id": "AC-3",
+      "commands": [
+        [
+          "bash",
+          ".claude/scripts/test/candidate-evidence.sh"
+        ]
+      ],
+      "exit_codes": [
+        0
+      ],
+      "artifact": "verify/2026-10-09-008-candidate-evidence-contract/AC-3.txt",
+      "sha256": "adba5691863e06734f4627b9465caff70ae52c95f623f5301d12bcaac9083d52"
+    },
+    {
+      "id": "AC-4",
+      "commands": [
+        [
+          "bash",
+          ".claude/scripts/test/candidate-evidence.sh"
+        ]
+      ],
+      "exit_codes": [
+        0
+      ],
+      "artifact": "verify/2026-10-09-008-candidate-evidence-contract/AC-4.txt",
+      "sha256": "adba5691863e06734f4627b9465caff70ae52c95f623f5301d12bcaac9083d52"
+    }
+  ]
+}

@@ -37,7 +37,7 @@ EOF
 ( cd "$tmp" && printf '{"tool_name":"Agent","tool_input":{"subagent_type":"implementer"}}' \
   | bash .claude/hooks/subagent-context.sh >/dev/null 2>&1 )
 
-paths_seen=$(cat "$tmp/recall-paths.log" 2>/dev/null)
+paths_seen=$(cat "$tmp/recall-paths.log")
 
 # The task's code paths must have reached recall.
 printf '%s' "$paths_seen" | grep -q 'target-a\.sh'

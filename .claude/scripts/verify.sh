@@ -15,6 +15,7 @@ while [ "$#" -gt 0 ]; do
     *) echo "Unknown argument: $1" >&2; exit 2 ;;
   esac
 done
+# JUSTIFIED: Candidate directory errors are replaced by the explicit fatal message on this line.
 ROOT="$(cd "$ROOT" 2>/dev/null && pwd)" || { echo "Candidate root unavailable" >&2; exit 2; }
 cd "$ROOT" || exit 2
 printf 'Verification root: %s\n' "$ROOT"
@@ -22,9 +23,9 @@ printf 'Verification root: %s\n' "$ROOT"
 fails=0
 # Round 8 D: calibrated thresholds (was 80/70). Critical paths (auth/payments/
 # security/billing/crypto) get 95% via codecov.yml component_management.
-COVERAGE_MIN_LINE="${COVERAGE_MIN_LINE:-90}"
-COVERAGE_MIN_BRANCH="${COVERAGE_MIN_BRANCH:-85}"
-COVERAGE_CRITICAL_LINE="${COVERAGE_CRITICAL_LINE:-95}"
+COVERAGE_MIN_LINE=90
+COVERAGE_MIN_BRANCH=85
+COVERAGE_CRITICAL_LINE=95
 
 step() { printf '\n→ %s\n' "$*"; }
 fail_msg() { printf '  ✗ %s\n' "$*"; }
@@ -79,6 +80,7 @@ if ! printf '%s\n' "$stacks_json" | jq -es '
   fail_msg "invalid or unsupported stack detection"; exit 1
 fi
 detected_stacks=$(printf '%s\n' "$stacks_json" | jq -r '.stacks[]')
+# JUSTIFIED: grep no-match means no language stack; validated detection and per-language accounting handle that case.
 lang_stacks=$(printf '%s\n' "$detected_stacks" | grep -E '^(typescript|python|rust|go|java|ruby|dotnet|php)$' || true)
 stack_tests_ran=0
 tested_stacks=""
@@ -177,13 +179,17 @@ if [ -f package.json ]; then
     if [ -z "$summaries" ]; then
       fail_msg "workspace tests ran but NO package emitted coverage/coverage-summary.json — configure the json-summary reporter per package"; fails=$((fails+1))
     else
-      # JUSTIFIED: jq muted + 0 fallback — a malformed summary contributes nothing and the 0% computed below fails the gate safely
-      merged=$(echo "$summaries" | xargs cat 2>/dev/null | jq -s '
+      if ! merged=$(echo "$summaries" | xargs cat | jq -s '
         {lc: (map(.total.lines.covered) | add), lt: (map(.total.lines.total) | add),
          bc: (map(.total.branches.covered) | add), bt: (map(.total.branches.total) | add)} |
         {line: (if .lt > 0 then (.lc / .lt * 100) else 0 end),
-         branch: (if .bt > 0 then (.bc / .bt * 100) else 0 end)}' 2>/dev/null || echo '{"line":0,"branch":0}')
+         branch: (if .bt > 0 then (.bc / .bt * 100) else 0 end)}'); then
+        fail_msg "workspace coverage report parsing failed"; fails=$((fails+1))
+        merged='{"line":0,"branch":0}'
+      fi
+      # JUSTIFIED: Malformed numeric reports become zero and fail the required coverage threshold.
       line_pct=$(echo "$merged" | jq -r '.line' 2>/dev/null || echo 0)
+      # JUSTIFIED: Malformed numeric reports become zero and fail the required coverage threshold.
       branch_pct=$(echo "$merged" | jq -r '.branch' 2>/dev/null || echo 0)
       line_int=${line_pct%.*}; branch_int=${branch_pct%.*}
       n_pkgs=$(echo "$summaries" | wc -l | tr -d ' ')
@@ -304,6 +310,7 @@ if [ -f go.mod ]; then
     step "Coverage gate (min ${COVERAGE_MIN_LINE}%) — coverprofile total"
     # Coverprofile TOTAL (stack-portability-4) — the old per-package mean
     # over-weighted tiny packages and ignored untested ones entirely.
+    # JUSTIFIED: Parse/command failure takes the explicit coverage failure branch.
     if go test -coverprofile=/tmp/go-cover.out ./... >/dev/null 2>&1 \
        && pct=$(go tool cover -func=/tmp/go-cover.out 2>/dev/null | awk '/^total:/{gsub(/%/,"",$NF); print $NF}') \
        && [ -n "$pct" ]; then
@@ -466,6 +473,7 @@ if [ -f playwright.evidence.config.ts ] && ! skip_honored SKIP_E2E_JOURNEY; then
       fail_msg "E2E browser provisioning failed for spec $sid (see $jlog)"
       fails=$((fails+1))
     elif VERIFY_FEATURE="$slug" npx playwright test --config playwright.evidence.config.ts "e2e/$sid" >>"$jlog" 2>&1; then
+      # JUSTIFIED: Missing journey result is checked immediately below and increments failures.
       jr=$(ls -t verify/*-${sid}*/results.json 2>/dev/null | head -1)
       if [ -n "$jr" ] && bash .claude/scripts/spec-match.sh "$sid" "$jr" >/dev/null 2>&1; then
         ok_msg "journey green + every AC proven (spec $sid)"

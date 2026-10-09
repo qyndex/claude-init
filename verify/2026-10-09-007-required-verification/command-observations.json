@@ -1,0 +1,63 @@
+{
+  "source_commit": "633faee68b3a86fe5af9561042e58021b9fd5105",
+  "recorded_at": "2026-10-09T07:27:55.083523+00:00",
+  "independent_attestation": false,
+  "observations": [
+    {
+      "id": "AC-1",
+      "commands": [
+        [
+          "bash",
+          ".claude/scripts/test/acceptance-rerun.sh"
+        ]
+      ],
+      "exit_codes": [
+        0
+      ],
+      "artifact": "verify/2026-10-09-007-required-verification/AC-1.txt",
+      "sha256": "1bfc8dac1069f0f3aa82e43e765873fe8db38679ea4b7f91045a92f7fc882c98"
+    },
+    {
+      "id": "AC-2",
+      "commands": [
+        [
+          "bash",
+          ".claude/scripts/test/required-verification.sh"
+        ]
+      ],
+      "exit_codes": [
+        0
+      ],
+      "artifact": "verify/2026-10-09-007-required-verification/AC-2.txt",
+      "sha256": "685a562d14a389a1194e866e54b59a2e9b0a23b6391de1b7686be359d43d8a22"
+    },
+    {
+      "id": "AC-3",
+      "commands": [
+        [
+          "bash",
+          ".claude/scripts/test/required-verification.sh"
+        ]
+      ],
+      "exit_codes": [
+        0
+      ],
+      "artifact": "verify/2026-10-09-007-required-verification/AC-3.txt",
+      "sha256": "685a562d14a389a1194e866e54b59a2e9b0a23b6391de1b7686be359d43d8a22"
+    },
+    {
+      "id": "AC-4",
+      "commands": [
+        [
+          "bash",
+          ".claude/scripts/test/coverage-values.sh"
+        ]
+      ],
+      "exit_codes": [
+        0
+      ],
+      "artifact": "verify/2026-10-09-007-required-verification/AC-4.txt",
+      "sha256": "fed0dd067722d9d54e2c87e61434d5f136d6f75bb303cf69bc501ff18f64273b"
+    }
+  ]
+}

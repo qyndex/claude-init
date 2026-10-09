@@ -1,6 +1,7 @@
 {
   "schema_version": 1,
   "enabled": false,
+  "merge_enabled": false,
   "repository": "qyndex/claude-init",
   "base_branch": "main",
   "app_id": null,
@@ -26,7 +27,9 @@
     "adr-gate": 15368,
     "commitlint": 15368,
     "lint-exception-audit": 15368,
-    "check-daily-batch": 15368
+    "check-daily-batch": 15368,
+    "factory-verification": 15368,
+    "factory-independent-review": 15368
   },
   "specs": {},
   "producers": {

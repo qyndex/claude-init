@@ -19,3 +19,5 @@ Replace every merge trigger with a coordinator request. Local verified-merge can
 - T-179: AC-4 App bootstrap, policy preflight and draft activation PR.
 
 Publish only owned work on an isolated origin/main worktree; leave the original checkout and five initiative STATE edits untouched. Do not enable live authority before the activation PR has an operator decision and a successful shadow candidate.
+
+- T-181: AC-2/AC-5 complete touched-spec bootstrap evidence and zero-AC rejection; added after the actual PR gate exposed a false-pass consumer.
