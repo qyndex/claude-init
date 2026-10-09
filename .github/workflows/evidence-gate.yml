@@ -114,6 +114,19 @@ jobs:
         if: env.docs_only != '1'
         uses: ./.github/actions/setup-stack
 
+      - uses: actions/setup-go@v7
+        if: env.docs_only != '1'
+        with:
+          go-version: stable
+          cache: false
+
+      - name: Install harness acceptance toolchain
+        if: env.docs_only != '1'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq bc shellcheck python3-yaml
+          go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.12
+
       # Gap-audit G49: don't trust the agent-committed attestation — REGENERATE
       # the proof against the checked-out head. The smoke command evidence.json
       # attests (verify.sh) is re-run here; if the journey rig exists, the
