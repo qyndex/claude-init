@@ -1,0 +1,73 @@
+{
+  "source_commit": "85802dd9621d6fe95d0661e44063e153ab125baa",
+  "generated_at": "2026-10-09T15:52:12.919625+00:00",
+  "independent_attestation": false,
+  "observations": [
+    {
+      "id": "AC-1",
+      "commands": [
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-ledger.sh"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/gc-suite.sh"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/memory-plane-lock.sh"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "artifact_sha256": "1e7e2503ec93563a0af61000a6be773064e0f50bcce410f4c874fdeb2d17aebf"
+    },
+    {
+      "id": "AC-2",
+      "commands": [
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-ledger.sh"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "artifact_sha256": "5350c8b72cc5603922c62be4342febeb15a1164aee14ebb0890fcbff2aa400b1"
+    },
+    {
+      "id": "AC-3",
+      "commands": [
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-ledger.sh"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "artifact_sha256": "5350c8b72cc5603922c62be4342febeb15a1164aee14ebb0890fcbff2aa400b1"
+    },
+    {
+      "id": "AC-4",
+      "commands": [
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-ledger.sh"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "artifact_sha256": "5350c8b72cc5603922c62be4342febeb15a1164aee14ebb0890fcbff2aa400b1"
+    }
+  ]
+}

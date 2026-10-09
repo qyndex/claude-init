@@ -23,3 +23,29 @@ The overnight fallback now retains an OS lock while a foreground Claude process 
 Verification covers independent-process races, nested locks, mixed ledger writers, heartbeat renewal, cancelled claims, descendant termination, detached launcher lifetime and the actual overnight script using fake Git/Claude executables. Factory authority remains disabled. Remaining F-04 work includes approved-ledger import, archive reconciliation, per-service isolation and fencing every mutating runtime adapter; F-05–F-08 remain separate packages.
 
 Upgrade the lock library only after stopping and draining existing writers. Already-running processes with the older directory-lock implementation do not coordinate with the new OS-lock protocol. Repository adoption must perform that quiescent migration before allowing concurrent work.
+
+## Approved-ledger entry point
+
+Factory workers should enter through `factory-ledger.py`, using a trusted authority checkout and protected policy separate from the implementation worktree:
+
+```bash
+python3 .claude/scripts/factory-ledger.py \
+  --authority-root /absolute/path/to/authority-checkout \
+  --policy /absolute/path/to/protected-policy.json \
+  --db /absolute/path/to/runtime.sqlite --task T-42 \
+  --cwd /absolute/path/to/implementation-worktree \
+  --attempts /absolute/path/to/attempts --timeout 1800 \
+  -- command arg1 arg2
+```
+
+Without a command, the entry point only imports the task closure. It reads active and archived ledger files under the same OS lock used by task/memory writers and GC. Policy spec entries must contain the exact approved spec path/SHA-256, full AC set and allowed path scope. Imports are atomic and idempotent; existing unapproved/manual registrations cannot be silently upgraded. Local [x]/[s] markers do not complete dependencies. A trusted receipt adapter must call `confirm_merge` with the approved revision and actual repository/PR/merge SHA after authenticating delivery. This API does not authenticate a supplied receipt by itself and has no public CLI that accepts candidate-produced delivery JSON. Connecting protected GitHub receipts is still a readiness dependency.
+
+The runtime configuration can declare supported resources:
+
+```json
+{"runtime":{"services":[{"name":"http","kind":"tcp"},{"name":"sqlite","kind":"directory"}]}}
+```
+
+Each attempt exports `FACTORY_RESOURCE_NAMESPACE`, `FACTORY_RUN_DIR`, `TMPDIR` and JSON `FACTORY_SERVICES`. A TCP entry contains an inherited listening `fd` and its bound localhost `port`; the worker must serve using that descriptor rather than close it and rebind. A directory entry contains a private `directory` for a local database or files. Allocations last for the supervised attempt and sockets close during cleanup. Fixture workers prove distinct simultaneous listeners and storage directories. These adapters do not isolate an external database, Docker network, arbitrary process environment or service that ignores the contract; unsupported kinds are rejected until a tested adapter exists.
+
+Task minting scans archived ledgers as well as the active ledger. Task helpers now share `memory-plane.oslock` with GC and preserve caller return variables. Same-lock nested calls are supported; nesting a different function-lock name fails with exit 75 rather than deadlocking. Descriptor 9 is reserved while a shell helper owns a lock. Fleet pivot uses the fleet lock and a same-directory temporary file. Quiescent upgrade remains necessary when old writer versions are still running.

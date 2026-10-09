@@ -1,0 +1,6 @@
+ledger_format: 2
+timestamp: 2026-10-09T15:50:05.214021+00:00
+command: bash .claude/scripts/test/factory-ledger.sh
+exit_code: 0
+
+factory-ledger: approved closure, receipts, archive IDs, nested lock returns and resource contracts passed

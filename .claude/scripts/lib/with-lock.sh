@@ -1,17 +1,22 @@
 #!/usr/bin/env bash
 # Cooperating memory/ledger writers share an OS lock on macOS and Linux.
-# The subshell preserves caller functions/variables and isolates descriptor 9.
+# Descriptor 9 is reserved while a function holds this lock; helpers run in the caller shell.
 # Kernel ownership has no age-based stealing window; process exit releases it.
 [ -n "${__WITH_LOCK_SH:-}" ] && return 0
 __WITH_LOCK_SH=1
 LOCK_STATE_DIR="${LOCK_STATE_DIR:-.claude/state/locks}"
 LOCK_WAIT_S="${LOCK_WAIT_S:-30}"
 
-with_lock() (
+with_lock() {
   local name="$1"; shift
   case "$name" in *[!a-zA-Z0-9_-]*|'') return 64 ;; esac
   local file="${LOCK_STATE_DIR}/${name}.oslock"
   mkdir -p "$LOCK_STATE_DIR" || return 1
+  if [ "${__FACTORY_HELD_LOCK:-}" = "$file" ]; then
+    "$@"
+    return $?
+  fi
+  [ -z "${__FACTORY_HELD_LOCK:-}" ] || return 75
   # A nested function reuses the same inherited open file description.
   if ! python3 - "$file" <<'PY'
 import fcntl,os,sys
@@ -38,9 +43,12 @@ while True:
   time.sleep(.05)
 PY
     local lock_rc=$?
-    [ "$lock_rc" = 0 ] || return "$lock_rc"
+    if [ "$lock_rc" != 0 ]; then exec 9>&-; return "$lock_rc"; fi
   fi
+  __FACTORY_HELD_LOCK="$file"
   local rc=0
   "$@" || rc=$?
+  __FACTORY_HELD_LOCK=""
+  exec 9>&-
   return "$rc"
-)
+}
