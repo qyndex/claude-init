@@ -1,0 +1,59 @@
+{
+  "source_commit": "4b0e8f07789727950cb89c7a8a4a948646395d99",
+  "generated_at": "2026-10-09T15:08:30.494770+00:00",
+  "independent_attestation": false,
+  "observations": [
+    {
+      "id": "AC-1",
+      "commands": [
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-runtime.sh"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "artifact_sha256": "d27bdd731a1b090943add659eef1093d6b62c75f90b99ba5e68d901ddd4bd3f6"
+    },
+    {
+      "id": "AC-2",
+      "commands": [
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-runtime.sh"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "artifact_sha256": "d27bdd731a1b090943add659eef1093d6b62c75f90b99ba5e68d901ddd4bd3f6"
+    },
+    {
+      "id": "AC-3",
+      "commands": [
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-runtime.sh"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "artifact_sha256": "d27bdd731a1b090943add659eef1093d6b62c75f90b99ba5e68d901ddd4bd3f6"
+    },
+    {
+      "id": "AC-4",
+      "commands": [
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-runtime.sh"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "artifact_sha256": "d27bdd731a1b090943add659eef1093d6b62c75f90b99ba5e68d901ddd4bd3f6"
+    }
+  ]
+}
