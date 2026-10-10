@@ -1,0 +1,4 @@
+AC-1: actual hosted checkpoint and exact digest receipt bind allowlisted source; verbatim private capture, read-only APIs and idempotent replay passed
+AC-2: authenticated edit versions, hotfix urgency without gate bypass, and atomic batch conflict rollback passed
+AC-3: missing remote proof, absent feature, disabled/foreign operator/workspace, malformed commands and conflicting sources fail closed
+AC-4: private owner/mode/canonical-path and symlink guards, no public raw text and separate acceptance authority passed

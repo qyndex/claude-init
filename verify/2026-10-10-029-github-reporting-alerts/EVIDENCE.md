@@ -1,5 +1,5 @@
 ## Evidence Bundle — Spec 029 (029-github-reporting-alerts)
-Spec: `specs/active/029-github-reporting-alerts.md` · Commit: `bcece7a`
+Spec: `specs/active/029-github-reporting-alerts.md` · Commit: `db97627`
 
 ### Acceptance criteria (4/4 proven)
 | AC | Proven by | Result |
@@ -11,7 +11,7 @@ Spec: `specs/active/029-github-reporting-alerts.md` · Commit: `bcece7a`
 
 ### Smoke test (exit codes are load-bearing)
 ```
-# Smoke test — 2026-10-10T17:48:25+11:00
+# Smoke test — 2026-10-10T18:08:35+11:00
 $ bash .claude/scripts/verify.sh
 
 → Integration coverage gate
