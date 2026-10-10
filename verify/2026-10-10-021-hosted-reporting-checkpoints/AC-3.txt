@@ -1,0 +1,4 @@
+$ bash .claude/scripts/test/factory-hosted-digest.sh
+factory-hosted-digest: typed public checkpoints, exact bootstrap/protection, unique CAS writers, storage/Slack ack loss, fresh-run recovery and disabled trusted workflow passed
+
+exit: 0

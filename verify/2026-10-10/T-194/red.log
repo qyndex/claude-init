@@ -1,0 +1,10 @@
+ledger_format: 2
+timestamp: 2026-10-10T01:32:01.913513+00:00
+command: bash .claude/scripts/test/factory-hosted-digest.sh
+exit_code: 1
+red_reason: assertion-failure
+baseline_commit: 4965c7f9d2e8b577c53d96f0a7752d786cd07e0a
+
+Traceback (most recent call last):
+  File "<stdin>", line 4, in <module>
+AssertionError: hosted durable reporting not implemented

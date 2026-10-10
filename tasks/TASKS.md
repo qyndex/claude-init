@@ -42,6 +42,12 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
 
 **Hotfix tasks** (Round 12) carry extra fields: `fingerprint:` (Sentry dedup key), `sentry:` (permalink), `hotfix_issue:` (projected issue #). Inserted at the TOP of `## Active
 
+- [x] T-194  | spec:021  | phase:1  | priority: security  | created: 2026-10-10  | last_touched: 2026-10-10  | deps: T-193  | parallel: no  | est: 30m
+  summary: Persist hosted digest state on a protected per-repository data branch with fenced atomic checkpoints
+  files: .claude/scripts/factory-git-state.py, .github/workflows/factory-hosted-digest.yml
+  accept: bash .claude/scripts/test/factory-hosted-digest.sh
+  owner: implementer
+
 - [x] T-193  | spec:020  | phase:1  | priority: high  | created: 2026-10-10  | last_touched: 2026-10-10  | deps: T-192  | parallel: no  | est: 30m
   summary: Enforce requested installer source, dirty root guards and visible setup failure
   files: scripts/install.sh
