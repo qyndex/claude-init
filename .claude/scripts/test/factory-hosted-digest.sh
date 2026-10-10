@@ -121,6 +121,50 @@ with tempfile.TemporaryDirectory() as tmp:
     tmp=Path(tmp);api=GitAPI();client=HiddenHistory();now=datetime(2026,10,4,22,tzinfo=timezone.utc)
     reject(lambda:m.run(config,ReportAPI(),api,client,tmp/'first',now));assert client.posts==1
     assert m.run(config,ReportAPI(),api,client,tmp/'fresh',now)['status']=='not-due' and client.posts==1
+# Spec 023: Slack may split one post; only exact complete authenticated fragments certify it.
+class SplitSlack(SlackClient):
+    def __init__(self):super().__init__();self.hide=False;self.pages=False
+    def call(self,method,body):
+        if method=='chat.postMessage':
+            self.posts+=1;parts=[body['text'][:80],body['text'][80:]]
+            self.messages=[{'bot_id':'B1','ts':f'100.{index:06d}','metadata':body['metadata'],'text':part} for index,part in enumerate(parts)]
+            if self.drop:raise RuntimeError('Slack ack lost')
+            return {'ok':True,'channel':'C1','message':self.messages[-1]}
+        if method=='conversations.history':
+            messages=[] if self.hide else list(reversed(self.messages))
+            if self.pages:
+                return {'ok':True,'messages':messages[1:] if body.get('cursor') else messages[:1],
+                        'has_more':not bool(body.get('cursor')), 'response_metadata':{'next_cursor':'' if body.get('cursor') else 'more'}}
+            return {'ok':True,'messages':messages,'has_more':False,'response_metadata':{'next_cursor':''}}
+        return super().call(method,body)
+with tempfile.TemporaryDirectory() as tmp:
+    tmp=Path(tmp);api=GitAPI();client=SplitSlack();now=datetime(2026,10,4,22,tzinfo=timezone.utc)
+    # AC-1 + AC-3: actual post response is only the suffix; complete history certifies all fragments.
+    result=m.run(config,ReportAPI(),api,client,tmp/'split-send',now)
+    assert result['status']=='delivered' and client.posts==1
+    ids=json.loads(result['receipt']['message_id']);assert ids=={'schema_version':1,'slack_message_ids':['100.000000','100.000001']}
+    confirmed_head=api.head;assert m.run(config,ReportAPI(),api,client,tmp/'split-fresh',now)['status']=='not-due'
+    assert api.head==confirmed_head and client.posts==1
+    # AC-2: omitted, duplicated, tampered, foreign and widely separated pieces never certify coverage.
+    state=m.GitState(api,config['state_branch'],stream);doc=json.loads(state.bytes);m.validate(doc,'org/repo',stream)
+    batch=doc['tables']['digest_batches'][0];transport=m.slack.Slack(client,'T1','C1',batch['key'],batch['payload'])
+    original=copy.deepcopy(client.messages);client.pages=True;assert transport.lookup(batch['key'])['receipt']==result['receipt'];client.pages=False
+    bad_sets=[original[:1],original[1:],original+original]
+    for field,value in [('text','changed'),('bot_id','B2'),('metadata',{'event_type':'factory_digest_v1','event_payload':{'key':batch['key'],'payload_sha256':'0'*64}}),('ts','invalid'),('ts','200.000001')]:
+        bad=copy.deepcopy(original);bad[1][field]=value;bad_sets.append(bad)
+    duplicate=copy.deepcopy(original);duplicate[1]['ts']=duplicate[0]['ts'];bad_sets.append(duplicate)
+    extra=copy.deepcopy(original);extra.append({**extra[1],'ts':'100.000002'});bad_sets.append(extra)
+    for messages in bad_sets:
+        client.messages=messages;reject(lambda:transport.lookup(batch['key']))
+    client.messages=original;assert transport.lookup(batch['key'])['receipt']==result['receipt']
+with tempfile.TemporaryDirectory() as tmp:
+    tmp=Path(tmp);api=GitAPI();client=SplitSlack();client.drop=True;now=datetime(2026,10,4,22,tzinfo=timezone.utc)
+    # AC-4: loss of the post response + fresh Actions disks recovers without a second post.
+    reject(lambda:m.run(config,ReportAPI(),api,client,tmp/'split-lost',now));assert client.posts==1
+    uncertain=m.GitState(api,config['state_branch'],stream);assert json.loads(uncertain.bytes)['tables']['digest_batches'][0]['status']=='uncertain'
+    client.drop=False;client.hide=True;reject(lambda:m.run(config,ReportAPI(),api,client,tmp/'split-hidden',now));assert api.head==uncertain.head and client.posts==1
+    client.hide=False;assert m.run(config,ReportAPI(),api,client,tmp/'split-recovered',now)['status']=='delivered'
+    confirmed=api.head;assert m.run(config,ReportAPI(),api,client,tmp/'split-repeat',now)['status']=='not-due' and api.head==confirmed and client.posts==1
 # Exercise credential separation and fixed-host API envelope without network.
 client=m.API('org/repo','fixture-state-credential')
 def envelope(command,**kwargs):

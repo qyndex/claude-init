@@ -1,0 +1,13 @@
+Slack receipt comparison: {"text_is_string": true, "expected_length": 319, "actual_length": 239, "first_difference_line": 1, "first_difference_column": 1, "actual_character_category": "Nd", "url_wrappers": 0, "html_entities_match": false, "trimmed_match": false, "newline_match": false}
+Traceback (most recent call last):
+  File "<stdin>", line 139, in <module>
+  File "/Users/shravanjha/.codex/worktrees/factory-activation/claude-init/.claude/scripts/factory-git-state.py", line 254, in run
+    receipt = store.deliver(batch['key'], transport)
+  File "/Users/shravanjha/.codex/worktrees/factory-activation/claude-init/.claude/scripts/factory-digest.py", line 173, in deliver
+    receipt = transport.send(key, row['payload'], self.destination)
+  File "/Users/shravanjha/.codex/worktrees/factory-activation/claude-init/.claude/scripts/factory-slack-digest.py", line 146, in send
+    return self.proof(result['message'])
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "/Users/shravanjha/.codex/worktrees/factory-activation/claude-init/.claude/scripts/factory-slack-digest.py", line 137, in proof
+    raise ValueError('Slack receipt text differs')
+ValueError: Slack receipt text differs
