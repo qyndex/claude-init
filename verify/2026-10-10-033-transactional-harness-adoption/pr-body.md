@@ -1,5 +1,5 @@
-## Evidence Bundle — Spec 020 (020-strict-installer-source)
-Spec: `specs/active/020-strict-installer-source.md` · Commit: `11757e0`
+## Evidence Bundle — Spec 033 (033-transactional-harness-adoption)
+Spec: `specs/active/033-transactional-harness-adoption.md` · Commit: `11757e0`
 
 ### Acceptance criteria (4/4 proven)
 | AC | Proven by | Result |
@@ -11,7 +11,7 @@ Spec: `specs/active/020-strict-installer-source.md` · Commit: `11757e0`
 
 ### Smoke test (exit codes are load-bearing)
 ```
-# Smoke test — 2026-10-10T18:41:22+11:00
+# Smoke test — 2026-10-10T18:41:34+11:00
 $ bash .claude/scripts/verify.sh
 
 → Integration coverage gate
@@ -23,10 +23,10 @@ exit: 0
 ```
 
 ### Visual proof
-0 screenshot(s) captured under `verify/2026-10-10-020-strict-installer-source/screenshots/` (named by AC).
+0 screenshot(s) captured under `verify/2026-10-10-033-transactional-harness-adoption/screenshots/` (named by AC).
 
 ### API traces
-0 API trace file(s) under `verify/2026-10-10-020-strict-installer-source/traces/`; full HAR at `verify/2026-10-10-020-strict-installer-source/network.har`.
+0 API trace file(s) under `verify/2026-10-10-033-transactional-harness-adoption/traces/`; full HAR at `verify/2026-10-10-033-transactional-harness-adoption/network.har`.
 
 ### Coverage
 line ?% · branch ?% (gate: line≥90 branch≥85)

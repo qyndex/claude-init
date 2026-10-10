@@ -1,23 +1,24 @@
 {
   "runner": "shell-acceptance-recorder",
   "independent_attestation": false,
+  "command": "bash .claude/scripts/test/factory-installer-source.sh",
   "testResults": [
     {
       "assertionResults": [
         {
-          "fullName": "AC-1 shell acceptance checks",
+          "fullName": "AC-1: requested SHA/tag and unknown source ref guards passed",
           "status": "passed"
         },
         {
-          "fullName": "AC-2 shell acceptance checks",
+          "fullName": "AC-2: dirty/staged/untracked target and strict boolean/root guards passed",
           "status": "passed"
         },
         {
-          "fullName": "AC-3 shell acceptance checks",
+          "fullName": "AC-3: linked worktrees and apostrophe paths preserve existing content",
           "status": "passed"
         },
         {
-          "fullName": "AC-4 shell acceptance checks",
+          "fullName": "AC-4: pinned local tool failure leaves no partial installation and setup scripts never execute",
           "status": "passed"
         }
       ]

@@ -1,5 +1,5 @@
 ## Evidence Bundle — Spec 020 (020-strict-installer-source)
-Spec: `specs/active/020-strict-installer-source.md` · Commit: `ad4446a`
+Spec: `specs/active/020-strict-installer-source.md` · Commit: `11757e0`
 
 ### Acceptance criteria (4/4 proven)
 | AC | Proven by | Result |
@@ -11,7 +11,7 @@ Spec: `specs/active/020-strict-installer-source.md` · Commit: `ad4446a`
 
 ### Smoke test (exit codes are load-bearing)
 ```
-# Smoke test — 2026-10-10T12:17:17+11:00
+# Smoke test — 2026-10-10T18:41:22+11:00
 $ bash .claude/scripts/verify.sh
 
 → Integration coverage gate
@@ -36,6 +36,7 @@ line ?% · branch ?% (gate: line≥90 branch≥85)
 ## Artifact index
 - verify/2026-10-10-020-strict-installer-source/evidence.json
 - verify/2026-10-10-020-strict-installer-source/pr-body.md
+- verify/2026-10-10-020-strict-installer-source/acceptance.log
 - verify/2026-10-10-020-strict-installer-source/EVIDENCE.md
 - verify/2026-10-10-020-strict-installer-source/results.json
 - verify/2026-10-10-020-strict-installer-source/smoke.log
