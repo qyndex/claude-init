@@ -90,6 +90,17 @@ def render(payload):
     return text
 
 
+def receipt_text_matches(expected, actual):
+    if not isinstance(actual, str):
+        return False
+    # Slack retrieves auto-linked URLs as <url>. Decode only exact GitHub URLs
+    # already present in the report; labels, mentions and different targets stay invalid.
+    urls = set(re.findall(r'https://github\.com/[A-Za-z0-9_./-]+', expected))
+    normalized = re.sub(r'<(https://github\.com/[A-Za-z0-9_./-]+)>',
+                        lambda match: match[1] if match[1] in urls else match[0], actual)
+    return normalized == expected
+
+
 class Slack:
     def __init__(self, client, team, channel, key, payload):
         require(re.fullmatch(r'T[A-Z0-9]+', team or '') and re.fullmatch(r'[CG][A-Z0-9]+', channel or ''), 'Slack team/channel IDs required')
@@ -103,7 +114,7 @@ class Slack:
     def proof(self, message):
         require(message.get('bot_id') == self.bot, 'Slack receipt bot differs')
         require(message.get('metadata') == self.metadata, 'Slack receipt metadata differs')
-        require(message.get('text') == self.text, 'Slack receipt text differs')
+        require(receipt_text_matches(self.text, message.get('text')), 'Slack receipt text differs')
         require(re.fullmatch(r'[0-9]+\.[0-9]+', message.get('ts', '')), 'Slack receipt timestamp differs')
         return {'key': self.key, 'payload_sha256': self.hash, 'destination': self.channel, 'message_id': message['ts']}
 

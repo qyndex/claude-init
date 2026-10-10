@@ -3,7 +3,7 @@ set -euo pipefail
 ROOT="${SLACK_DIGEST_TEST_ROOT:-$(cd "$(dirname "$0")/../../.." && pwd)}"
 python3 - "$ROOT" <<'PYTEST'
 from pathlib import Path
-import copy,hashlib,importlib.util,json,sys,tempfile,os,urllib.error
+import re,copy,hashlib,importlib.util,json,sys,tempfile,os,urllib.error
 from datetime import datetime,timezone
 assert (Path(sys.argv[1])/'.claude/scripts/factory-slack-digest.py').is_file(), 'Slack digest transport not implemented'
 spec=importlib.util.spec_from_file_location('slack',Path(sys.argv[1])/'.claude/scripts/factory-slack-digest.py')
@@ -85,6 +85,15 @@ with tempfile.TemporaryDirectory() as tmp:
     text=transport.text;assert '<@' not in text and '<!channel>' not in text and '&lt;' in text
     assert all(f'#{n} ' in text for n in range(1,62))
     valid=copy.deepcopy(client.messages[0])
+    linked=copy.deepcopy(valid)
+    linked['text']=re.sub(r'https://github\.com/[A-Za-z0-9_./-]+',lambda hit:'<'+hit[0]+'>',valid['text'])
+    assert linked['text'] != valid['text']
+    assert transport.proof(linked)==transport.proof(valid)
+    for altered in [linked['text'].replace('/pull/1>', '/pull/999>',1),
+                    linked['text'].replace('/pull/1>', '/pull/999|https://github.com/org/repo/pull/1>',1),
+                    linked['text']+' extra', linked['text'].replace('#1 ', '#999 ',1),
+                    linked['text'].replace('Factory delivery', '<!channel> Factory delivery',1)]:
+        bad=copy.deepcopy(linked);bad['text']=altered;reject(lambda:transport.proof(bad))
     client.pages=[{'messages':[],'response_metadata':{'next_cursor':'more'},'has_more':True},
                   {'messages':[valid],'response_metadata':{'next_cursor':''},'has_more':False}]
     assert transport.lookup(batch['key'])['receipt']['key']==batch['key']
@@ -96,7 +105,7 @@ with tempfile.TemporaryDirectory() as tmp:
     reject(lambda:store.deliver(batch['key'],transport));assert client.posts==1 and store.cursor()==before
     client.messages=[valid,valid];reject(lambda:transport.lookup(batch['key']))
     client.pages=[{'messages':[valid],'has_more':True,'response_metadata':{}}]*2;reject(lambda:transport.lookup(batch['key']))
-    client.pages=None;client.messages=[valid];client.drop=False
+    client.pages=None;client.messages=[linked];client.drop=False
     result=m.run(config,API(),client,now);assert result['status']=='delivered' and client.posts==1
     assert m.watchdog(config,now)['missed_delivery'] is False
     assert m.run(config,API(),client,now)['status']=='not-due'
