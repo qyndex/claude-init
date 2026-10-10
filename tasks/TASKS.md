@@ -1196,3 +1196,9 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   files: .claude/scripts/factory-slack-file-canary.py, .github/workflows/factory-slack-file-canary.yml
   accept: bash .claude/scripts/test/factory-slack-file-canary.sh
   owner: implementer
+
+- [x] T-202  | spec:028  | phase:2  | priority: security  | created: 2026-10-10  | last_touched: 2026-10-10  | deps: T-201  | parallel: no  | est: 10m
+  summary: Diagnose canary receipt failure with bounded codes without exposing exception data
+  files: .claude/scripts/factory-slack-file-canary.py
+  accept: bash .claude/scripts/test/factory-slack-file-canary.sh
+  owner: implementer
