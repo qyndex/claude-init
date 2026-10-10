@@ -1,4 +1,4 @@
-# Smoke test — 2026-10-10T13:46:37+11:00
+# Smoke test — 2026-10-10T13:52:36+11:00
 $ bash .claude/scripts/verify.sh
 
 → Integration coverage gate

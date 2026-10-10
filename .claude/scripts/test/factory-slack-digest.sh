@@ -89,6 +89,12 @@ with tempfile.TemporaryDirectory() as tmp:
     linked['text']=re.sub(r'https://github\.com/[A-Za-z0-9_./-]+',lambda hit:'<'+hit[0]+'>',valid['text'])
     assert linked['text'] != valid['text']
     assert transport.proof(linked)==transport.proof(valid)
+    labelled=copy.deepcopy(linked)
+    labelled['text']=re.sub(r'<(https://github\.com/[A-Za-z0-9_./-]+)>',lambda hit:'<'+hit[1]+'|'+hit[1]+'>',linked['text'])
+    assert transport.proof(labelled)==transport.proof(valid)
+    diagnostic=m.receipt_text_diagnostic(valid['text'],'fixture-private-text')
+    assert 'fixture-private-text' not in json.dumps(diagnostic)
+    assert set(diagnostic)=={'text_is_string','expected_length','actual_length','first_difference_line','first_difference_column','actual_character_category','url_wrappers','html_entities_match','trimmed_match','newline_match'}
     for altered in [linked['text'].replace('/pull/1>', '/pull/999>',1),
                     linked['text'].replace('/pull/1>', '/pull/999|https://github.com/org/repo/pull/1>',1),
                     linked['text']+' extra', linked['text'].replace('#1 ', '#999 ',1),

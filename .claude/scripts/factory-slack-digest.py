@@ -3,6 +3,8 @@
 import argparse
 from datetime import datetime, timedelta, timezone
 import hashlib
+import html
+import unicodedata
 import importlib.util
 import json
 import os
@@ -94,11 +96,27 @@ def receipt_text_matches(expected, actual):
     if not isinstance(actual, str):
         return False
     # Slack retrieves auto-linked URLs as <url>. Decode only exact GitHub URLs
-    # already present in the report; labels, mentions and different targets stay invalid.
+    # already present in the report; different labels, mentions and different targets stay invalid.
     urls = set(re.findall(r'https://github\.com/[A-Za-z0-9_./-]+', expected))
-    normalized = re.sub(r'<(https://github\.com/[A-Za-z0-9_./-]+)>',
-                        lambda match: match[1] if match[1] in urls else match[0], actual)
+    normalized = re.sub(r'<(https://github\.com/[A-Za-z0-9_./-]+)(?:\|([^<>\n]+))?>',
+                        lambda match: match[1] if match[1] in urls and (match[2] is None or match[2] == match[1]) else match[0], actual)
     return normalized == expected
+
+
+def receipt_text_diagnostic(expected, actual):
+    # Return only fixed keys, numbers and booleans; never Slack text or response fields.
+    if not isinstance(actual, str):
+        return {'text_is_string': False}
+    offset = next((index for index, pair in enumerate(zip(expected, actual))
+                   if pair[0] != pair[1]), min(len(expected), len(actual)))
+    return {'text_is_string': True, 'expected_length': len(expected), 'actual_length': len(actual),
+            'first_difference_line': expected[:offset].count('\n') + 1,
+            'first_difference_column': offset - expected.rfind('\n', 0, offset),
+            'actual_character_category': unicodedata.category(actual[offset]) if offset < len(actual) else 'end',
+            'url_wrappers': len(re.findall(r'<https://github\.com/[^<>]+>', actual)),
+            'html_entities_match': html.unescape(actual) == html.unescape(expected),
+            'trimmed_match': actual.strip() == expected.strip(),
+            'newline_match': actual.replace('\r\n', '\n') == expected}
 
 
 class Slack:
@@ -114,7 +132,9 @@ class Slack:
     def proof(self, message):
         require(message.get('bot_id') == self.bot, 'Slack receipt bot differs')
         require(message.get('metadata') == self.metadata, 'Slack receipt metadata differs')
-        require(receipt_text_matches(self.text, message.get('text')), 'Slack receipt text differs')
+        if not receipt_text_matches(self.text, message.get('text')):
+            print('Slack receipt comparison: ' + json.dumps(receipt_text_diagnostic(self.text, message.get('text'))), file=sys.stderr)
+            raise ValueError('Slack receipt text differs')
         require(re.fullmatch(r'[0-9]+\.[0-9]+', message.get('ts', '')), 'Slack receipt timestamp differs')
         return {'key': self.key, 'payload_sha256': self.hash, 'destination': self.channel, 'message_id': message['ts']}
 
