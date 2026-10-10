@@ -1,0 +1,6 @@
+ledger_format: 2
+timestamp: 2026-10-09T23:58:47.738194+00:00
+command: bash .claude/scripts/test/factory-digest.sh
+exit_code: 0
+
+factory-digest: pagination, equal-time merges, proof mapping, DST, outage catch-up, uncertain sends and process exclusion passed

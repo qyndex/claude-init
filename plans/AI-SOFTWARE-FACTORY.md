@@ -140,3 +140,5 @@ Open configuration decisions for implementation: morning delivery channel/time, 
 ### Spec 014 continuation
 
 Implemented authenticated single-task coordinator receipt ingestion and separate worker guardian recovery. Fixtures verify run/source/artifact/PR identity, immutable delivery provenance, abrupt supervisor death with descendant cleanup, duplicate exclusion, stale fencing and uncertain outbox actions. Activation remains disabled; live independent review/receipt proof, external adapter fencing and later digest/feedback/adoption packages remain pending.
+
+2026-10-10: Spec 015 implements the F-05 durable reporting core: complete paginated intervals, authenticated task/spec mapping, Sydney/DST cutoff calculation, immutable batches, transactional delivery cursor and uncertain-send reconciliation under a process lock. F-05 can proceed against synthetic receipts while F-04/live proof remain open. Actual Slack transport/scheduling, watchdog and delayed-index reconciliation remain pending; activation stays disabled.

@@ -1,0 +1,11 @@
+ledger_format: 2
+timestamp: 2026-10-09T23:58:47.631005+00:00
+command: bash .claude/scripts/test/factory-digest.sh
+exit_code: 1
+red_reason: assertion-failure
+baseline_environment: DIGEST_TEST_ROOT=/tmp/factory-digest-baseline
+baseline_commit: 22391eaba01f2643d3891f7bce21a5e1f8135f37
+
+Traceback (most recent call last):
+  File "<stdin>", line 3, in <module>
+AssertionError: durable digest not implemented

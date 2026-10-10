@@ -1,0 +1,15 @@
+$ bash .claude/scripts/test/factory-digest.sh
+factory-digest: pagination, equal-time merges, proof mapping, DST, outage catch-up, uncertain sends and process exclusion passed
+
+exit: 0
+$ bash .claude/scripts/test/factory-receipts-recovery.sh
+factory-receipts-recovery: authenticated artifact negatives, delivery binding, SIGKILL guardian and fenced retry passed
+
+exit: 0
+$ bash .claude/scripts/test/factory-runtime.sh
+factory-runtime: AC-1 through AC-4 passed (race, fencing, recovery, outbox and rollback)
+
+exit: 0
+$ shellcheck .claude/scripts/test/factory-digest.sh
+
+exit: 0
