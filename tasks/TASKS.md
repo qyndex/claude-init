@@ -1208,3 +1208,9 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   files: .claude/scripts/factory-reporting-alerts.py, .claude/scripts/factory-git-state.py, .github/workflows/factory-reporting-alerts.yml
   accept: bash .claude/scripts/test/factory-reporting-alerts.sh
   owner: implementer
+
+- [x] T-204  | spec:030  | phase:1  | priority: security  | created: 2026-10-10  | last_touched: 2026-10-10  | deps: T-203  | parallel: no  | est: 30m
+  summary: Capture authenticated receipt-bound Slack feedback in isolated private coordinator state
+  files: .claude/scripts/factory-slack-feedback.py, .claude/scripts/factory-feedback.py
+  accept: bash .claude/scripts/test/factory-slack-feedback.sh
+  owner: implementer

@@ -186,3 +186,7 @@ Installed bot file grants are checked from authenticated Slack headers before op
 User declines an additional monitoring provider. Use GitHub-only failure and overdue-digest alerts to the adopter-configured reporting channel, with duplicate suppression and recovery notification. GitHub-wide outage detection is an optional capability requiring an independently operated timer, not a mandatory factory readiness prerequisite. Keep the Healthchecks heartbeat disabled. For the claude-init pilot alerts use qyndex-alerts; do not embed that channel in reusable defaults.
 
 Spec 029 implements the approved GitHub-only alert baseline. Live labelled notification drill and recovery remain pending protected activation. Healthchecks remains disabled.
+
+### 2026-10-10: GitHub-only alerts and private feedback ingress
+
+Spec 029 is merged and its live labelled drill, recovery and unchanged repeat succeeded. The monitor is enabled; Healthchecks remains explicitly disabled. Spec 030 implements authenticated allowlisted Slack feedback into private coordinator state with exact delivery receipt binding and unchanged approval gates. Live private ingress remains blocked on protected operator identity and coordinator isolation/provisioning. Next: authenticated amendment/acceptance transitions, legacy feedback migration, transactional adopter-owned installation, routing/retention/readiness and reusable deployment/rollback contracts. Production and independent merge authority remain disabled pending genuine independent capacity and proof.

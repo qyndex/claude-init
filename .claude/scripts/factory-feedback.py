@@ -36,7 +36,7 @@ class Feedback:
         require(row is not None and json.loads(row['document'])['repository'] == self.repository, 'unknown feedback')
         return row
 
-    def intake(self, reporting_database, document):
+    def validate_intake(self, reporting_database, document):
         require(set(document) == {'repository', 'source_ref', 'reporter', 'text', 'kind', 'digest_key', 'pull_requests'}, 'malformed feedback')
         require(document['repository'] == self.repository, 'foreign feedback')
         require(document['kind'] in {'defect', 'enhancement', 'requirement', 'priority', 'acceptance'}, 'unknown feedback classification')
@@ -52,13 +52,23 @@ class Feedback:
             require(payload['repository'] == self.repository and set(prs) <= {p['pr'] for p in payload['merges']}, 'feedback feature absent from source digest')
         identity = 'FB-' + hashlib.sha256(canonical([self.repository, document['source_ref']]).encode()).hexdigest()
         encoded = canonical(document)
+        return identity, encoded
+
+    def intake(self, reporting_database, document):
+        return self.intake_batch(reporting_database, [document])[0]
+
+    def intake_batch(self, reporting_database, documents):
+        require(isinstance(documents, list) and len(documents) <= 1000, 'feedback batch too large')
+        prepared = [(document, *self.validate_intake(reporting_database, document)) for document in documents]
+        require(len({identity for _, identity, _ in prepared}) == len(prepared), 'duplicate feedback source in batch')
         with self.store.transaction() as db:
-            old = db.execute('SELECT document FROM factory_feedback WHERE id=?', (identity,)).fetchone()
-            require(old is None or old[0] == encoded, 'source replay conflicts with original feedback')
-            if old is None:
-                db.execute('INSERT INTO factory_feedback(id,document,status) VALUES(?,?,?)', (identity, encoded, 'open'))
-                self.event(db, identity, {'type': 'captured', 'document': document})
-        return identity
+            for document, identity, encoded in prepared:
+                old = db.execute('SELECT document FROM factory_feedback WHERE id=?', (identity,)).fetchone()
+                require(old is None or old[0] == encoded, 'source replay conflicts with original feedback')
+                if old is None:
+                    db.execute('INSERT INTO factory_feedback(id,document,status) VALUES(?,?,?)', (identity, encoded, 'open'))
+                    self.event(db, identity, {'type': 'captured', 'document': document})
+        return [identity for _, identity, _ in prepared]
 
     def plan(self, identity, amendment, policy):
         require(set(amendment) == {'impact', 'bindings', 'supersedes'}, 'malformed amendment')
