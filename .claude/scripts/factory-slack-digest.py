@@ -45,6 +45,7 @@ class SlackHTTP:
         try:
             with self.opener.open(request, timeout=15) as response:
                 data = response.read(2_000_001)
+                granted = getattr(response, 'headers', {}).get('x-oauth-scopes')
             require(len(data) <= 2_000_000, 'Slack response too large')
             result = json.loads(data, object_pairs_hook=digest.coordinator.contract.no_duplicate_keys)
         except (urllib.error.URLError, TimeoutError, json.JSONDecodeError):
@@ -58,7 +59,13 @@ class SlackHTTP:
             error = result.get('error')
             code = error if isinstance(error, str) and error in public_errors else 'unknown'
             raise ValueError('Slack API returned failure: ' + code)
+        if method == 'auth.test':
+            self.granted_scopes = {scope.strip() for scope in (granted or '').split(',') if scope.strip()}
         return result
+
+    def verify_attachment_scopes(self):
+        require({'files:read', 'files:write'} <= getattr(self, 'granted_scopes', set()),
+                'Slack file permissions unavailable; add files:read and files:write and reinstall the app')
 
 
 def preflight(client, team, channel):

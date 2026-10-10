@@ -62,6 +62,9 @@ jobs:
           config=json.loads(Path(os.environ['RUNNER_TEMP'],'factory-hosted-digest.json').read_text())
           client=transport.http_client(config)
           transport.preflight(client,config['team_id'],config['destination'])
+          if config['attachments_enabled']:
+              client.verify_attachment_scopes()
+              print('Slack files:read and files:write grants verified; live file receipt remains separate.')
           try:
               transport.preflight(client,config['team_id']+'X',config['destination'])
           except ValueError as error:

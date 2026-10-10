@@ -1184,3 +1184,9 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   files: .claude/scripts/factory-reporting-watchdog.py, .github/workflows/factory-hosted-digest.yml
   accept: bash .claude/scripts/test/factory-reporting-watchdog.sh
   owner: implementer
+
+- [x] T-200  | spec:027  | phase:1  | priority: security  | created: 2026-10-10  | last_touched: 2026-10-10  | deps: T-199  | parallel: no  | est: 15m
+  summary: Verify installed Slack file grants before attachment activation
+  files: .claude/scripts/factory-slack-digest.py, .github/workflows/factory-hosted-digest.yml
+  accept: bash .claude/scripts/test/factory-slack-scope-preflight.sh
+  owner: implementer
