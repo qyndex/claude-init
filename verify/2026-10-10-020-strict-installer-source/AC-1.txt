@@ -1,0 +1,4 @@
+$ bash .claude/scripts/test/factory-installer-source.sh
+factory-installer-source: strict refs/SHA/tag, dirty guards, linked worktrees and visible setup failures passed
+
+exit: 0
