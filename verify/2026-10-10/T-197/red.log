@@ -1,0 +1,10 @@
+# TDD ledger — red — T-197
+ledger_format: 2
+timestamp: 2026-10-10T15:27:10+11:00
+command: bash .claude/scripts/test/factory-receipt-projection.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 6, in <module>
+AssertionError: fresh hosted reporting has no authenticated receipt projection

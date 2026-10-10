@@ -1,0 +1,10 @@
+# TDD ledger — green — T-197
+ledger_format: 2
+timestamp: 2026-10-10T16:42:44+11:00
+command: bash .claude/scripts/test/factory-receipt-projection.sh
+exit_code: 0
+---
+AC-1: fresh disks, exact digest bindings and historical revisions passed
+AC-2: authentication negatives and atomic failure preservation passed
+AC-3: complete pagination, disabled authority, bounds and read-only API passed
+AC-4: actual hosted proof, public checkpoint, blocked send and unchanged repeat passed

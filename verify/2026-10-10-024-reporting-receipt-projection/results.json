@@ -1,0 +1,27 @@
+{
+  "runner": "shell-acceptance-recorder",
+  "independent_attestation": false,
+  "command": "bash .claude/scripts/test/factory-receipt-projection.sh",
+  "testResults": [
+    {
+      "assertionResults": [
+        {
+          "fullName": "AC-1: fresh disks, exact digest bindings and historical revisions passed",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-2: authentication negatives and atomic failure preservation passed",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-3: complete pagination, disabled authority, bounds and read-only API passed",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-4: actual hosted proof, public checkpoint, blocked send and unchanged repeat passed",
+          "status": "passed"
+        }
+      ]
+    }
+  ]
+}
