@@ -1,0 +1,27 @@
+{
+  "runner": "shell-acceptance-recorder",
+  "independent_attestation": false,
+  "command": "bash .claude/scripts/test/factory-reporting-watchdog.sh",
+  "testResults": [
+    {
+      "assertionResults": [
+        {
+          "fullName": "AC-1: external probe verifies protected checkpoints and text/file receipts without writes passed",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-2: precise due/grace boundary, outage detection and Sydney DST cutoffs passed",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-3: lost history, changed content, protection, clock/config and missing checkpoint negatives passed",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-4: non-sensitive status, current-only empty-body heartbeat and strict external endpoint passed",
+          "status": "passed"
+        }
+      ]
+    }
+  ]
+}
