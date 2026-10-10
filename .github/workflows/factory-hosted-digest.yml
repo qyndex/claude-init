@@ -78,3 +78,13 @@ jobs:
         run: |
           umask 077
           python3 .claude/scripts/factory-git-state.py --config "$RUNNER_TEMP/factory-hosted-digest.json"
+
+      - name: Verify delivery and signal independent watchdog
+        if: vars.FACTORY_REPORTING_WATCHDOG_ENABLED == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FACTORY_REPORTING_STATE_TOKEN: ${{ secrets.FACTORY_REPORTING_STATE_TOKEN }}
+          FACTORY_SLACK_BOT_TOKEN: ${{ secrets.FACTORY_SLACK_BOT_TOKEN }}
+          FACTORY_REPORTING_HEARTBEAT_URL: ${{ secrets.FACTORY_REPORTING_HEARTBEAT_URL }}
+        run: |
+          python3 .claude/scripts/factory-reporting-watchdog.py --config "$RUNNER_TEMP/factory-hosted-digest.json" --heartbeat
