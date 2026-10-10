@@ -1,0 +1,26 @@
+{
+  "repository": "qyndex/claude-init",
+  "source_sha": "f0826c9afcc580cccaa96941b0f92c5e045a697a",
+  "runs": [
+    38019626144,
+    38019653271
+  ],
+  "checkpoint_sha": "333104acce138924243515a24b0071c28e356f7a",
+  "receipt": {
+    "destination": "C0C7T1Y29K5",
+    "key": "57ac437ea788434a2450f5acdd07dda5944f6faeed93b2b91f82bfaea141bc0d",
+    "message_id": "{\"schema_version\":1,\"slack_message_ids\":[\"1791599802.549769\",\"1791599802.607969\"]}",
+    "payload_sha256": "d87570d9ac33af48a02219998270812c6eccd1f6627f6a041bfc751aba03e128"
+  },
+  "cutoff": "2026-10-09T21:00:00+00:00",
+  "merged_pr_count": 34,
+  "repeat_run": "not-due; checkpoint unchanged",
+  "reporting_enabled": true,
+  "slack_team_id": "T0B2VADDUG4",
+  "slack_channel_visibility": "private",
+  "schedule": "08:00 Australia/Sydney; Actions checks every 15 minutes",
+  "delivery_recovery": "existing server-split post; no resend",
+  "fragment_count": 2,
+  "independent_merge_authority_enabled": false,
+  "historical_delivery_evidence": "missing authenticated reviewer/verifier receipts; explicitly reported as missing"
+}
