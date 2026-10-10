@@ -1,0 +1,11 @@
+# TDD ledger — green — T-199
+ledger_format: 2
+timestamp: 2026-10-10T16:59:48+11:00
+command: bash .claude/scripts/test/factory-reporting-watchdog.sh
+exit_code: 0
+---
+Slack receipt comparison: {"text_is_string": true, "expected_length": 319, "actual_length": 326, "first_difference_line": 6, "first_difference_column": 60, "actual_character_category": "Ll", "url_wrappers": 0, "html_entities_match": false, "trimmed_match": false, "newline_match": false}
+AC-1: external probe verifies protected checkpoints and text/file receipts without writes passed
+AC-2: precise due/grace boundary, outage detection and Sydney DST cutoffs passed
+AC-3: lost history, changed content, protection, clock/config and missing checkpoint negatives passed
+AC-4: non-sensitive status, current-only empty-body heartbeat and strict external endpoint passed

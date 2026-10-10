@@ -1178,3 +1178,9 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   files: .claude/scripts/factory-slack-attachment.py, .claude/scripts/factory-slack-digest.py, .claude/scripts/factory-git-state.py
   accept: bash .claude/scripts/test/factory-slack-attachment.sh
   owner: implementer
+
+- [x] T-199  | spec:026  | phase:1  | priority: security  | created: 2026-10-10  | last_touched: 2026-10-10  | deps: T-198  | parallel: no  | est: 30m
+  summary: Verify hosted reporting health and signal an independently operated missing-heartbeat timer
+  files: .claude/scripts/factory-reporting-watchdog.py, .github/workflows/factory-hosted-digest.yml
+  accept: bash .claude/scripts/test/factory-reporting-watchdog.sh
+  owner: implementer
