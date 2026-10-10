@@ -6,11 +6,11 @@
 #
 # What it does (and does NOT do):
 #   1. Clones the factory to a TEMP dir (never overlays your repo root directly).
-#   2. Runs reconcile-claude-dir.sh, which is adoption-safe: it BACKS UP any root
-#      file it would overwrite (README.md, CLAUDE.md, …) to .brownfield-backup/<ts>/
-#      and no-clobbers your own commands/hooks/workflows. It does NOT tar straight
-#      into your repo root (which would silently clobber your README/CLAUDE.md).
-#   3. Runs setup.sh unless explicitly skipped; setup errors return nonzero.
+#   2. Reconciles immutable source files using version/hash/mode ownership.
+#      Foreign/customized collisions block before changes; private journals allow
+#      exact rollback/recovery. Active source backlog, memory and pilot workflows
+#      are excluded. README and adopter-owned ledger/memory remain untouched.
+#   3. Checks required local tools unless skipped; no target setup is executed.
 #
 # Re-running reconciles again (add UPGRADE=1 to pull newer
 # factory-owned files, backed up first). Nothing is force-pushed; nothing leaves
@@ -21,8 +21,8 @@
 #   CLAUDE_INIT_REPO=<url>             factory git URL (default: github.com/qyndex/claude-init)
 #   INTO=<dir>                         target repo dir (default: current dir)
 #   UPGRADE=1                          refresh factory-owned files (already-adopted repos)
-#   SKIP_SETUP=1                       reconcile only, don't run setup.sh
-#   SKIP_PLUGINS=1                     passed through to setup.sh
+#   SKIP_SETUP=1                       skip required local tool check
+#   CLAUDE_INIT_STATE_DIR=<absolute>    private 0700 journal root outside target
 #   YES=1                              explicitly allow a dirty target tree
 set -euo pipefail
 
@@ -77,18 +77,10 @@ RECON="$TMP/factory/.claude/scripts/reconcile-claude-dir.sh"
 # ── Reconcile (adoption-safe: backs up + no-clobber) ───────────────────────
 RECON_ARGS=(--from "$TMP/factory" --into "$INTO")
 [ "${UPGRADE:-0}" = 1 ] && RECON_ARGS+=(--upgrade)
+[ "${SKIP_SETUP:-0}" = 0 ] && RECON_ARGS+=(--check-tools)
 say "Reconciling factory → $INTO ${UPGRADE:+(upgrade mode)}"
 bash "$RECON" "${RECON_ARGS[@]}"
-ok "reconcile complete — any overwritten root file is backed up under .brownfield-backup/"
-
-# ── Setup ──────────────────────────────────────────────────────────────────
-if [ "${SKIP_SETUP:-0}" = 1 ]; then
-  warn "SKIP_SETUP set — not running setup.sh. Run it yourself: bash .claude/scripts/setup.sh"
-else
-  say "Running setup.sh"
-  ( cd "$INTO" && SKIP_PLUGINS="${SKIP_PLUGINS:-}" bash .claude/scripts/setup.sh ) \
-    || die "setup.sh failed; installation is incomplete. Review the diff and resolve or revert before retrying"
-fi
+ok "transactional ownership reconciliation complete — activation remains disabled"
 
 cat <<EOF
 
@@ -96,13 +88,13 @@ $(ok "claude-init installed into $INTO")
 
 Next:
   1. Review the diff:      git -C "$INTO" status && git -C "$INTO" diff
-  2. Commit the harness:   git -C "$INTO" add -A && git -C "$INTO" commit -m "chore: adopt claude-init harness"
+  2. Commit reviewed files explicitly; keep private journals and credentials outside the repo.
   3. Open Claude Code:     claude
   4. Brand-new product?    /kickoff        (or read docs/STARTING-PROMPT.md)
      Existing/legacy repo? /adopt start    (six human-gated phases — docs/ADOPTION.md)
 
-Manual steps that still need YOU (see README "Manual setup" + docs/OPERATOR-MANUAL.md):
-  • GitHub: apply the branch ruleset (.github/rulesets/main-protection.json)
-  • GitHub: enable Actions + set the ANTHROPIC_API_KEY secret for CI review
-  • Optional: wire deploy per docs/DEPLOY-INTEGRATION.md (the shipped pipeline is a STUB)
+Read docs/FACTORY-ADOPTION.md before configuring live authority. Remaining per-repository steps:
+  • Configure approved repository/spec/runtime policy and protected independent proof producers.
+  • Apply reviewed per-repository workflows and protection explicitly; this installer does not copy pilot workflows.
+  • Configure that repository's private reporting/feedback state and deployment adapter before activation.
 EOF

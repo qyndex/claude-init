@@ -245,7 +245,8 @@ Concrete recipes. Copy-paste friendly.
 ```
 # Install the harness (reconcile if the repo already has its own .claude/):
 bash <factory-clone>/.claude/scripts/reconcile-claude-dir.sh --from <factory-clone> --into .
-bash .claude/scripts/setup.sh
+
+# Review docs/FACTORY-ADOPTION.md; activation is separate from local installation.
 # Then the six human-gated adoption phases (full guide: docs/ADOPTION.md):
 /adopt start      # Phase 1: read-only archaeology → ADOPTION-REPORT.md   → /adopt approve 1
 /adopt reconcile  # Phase 2: extract conventions → AGENTS.md              → /adopt approve 2

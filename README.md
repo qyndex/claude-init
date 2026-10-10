@@ -26,10 +26,11 @@ From the **root of the repo you want to harness**:
 curl -fsSL https://raw.githubusercontent.com/qyndex/claude-init/main/scripts/install.sh | bash
 ```
 
-That's it. The installer clones the factory to a temp dir, safely reconciles it into your repo
-(**backing up** any file it would overwrite to `.brownfield-backup/`, never silently clobbering
-your `README.md`/`CLAUDE.md`), then runs setup. It works on both a brand-new repo and an existing
-one. Prefer not to pipe to shell? Download and read it first:
+The installer clones the requested source to a temporary checkout and reconciles versioned
+files using a hash/mode ownership manifest. Foreign or customized collisions block before
+changes. Recovery journals stay in a private 0700 directory outside the target. It seeds empty
+adopter-owned ledgers, preserves existing project data, excludes active source backlog/state
+and pilot workflows, and checks local tools without executing target setup. Prefer not to pipe to shell? Download and read it first:
 
 ```bash
 curl -fsSLO https://raw.githubusercontent.com/qyndex/claude-init/main/scripts/install.sh
@@ -46,9 +47,9 @@ Actions secret, optional deploy). See [full step-by-step](#step-by-step-adoption
 |---|---|
 | `CLAUDE_INIT_REF=<ref>` | install a specific branch/tag/sha (default `main`) |
 | `INTO=<dir>` | target repo dir (default: current dir) |
-| `UPGRADE=1` | already adopted? refresh factory-owned files (backed up first) |
-| `SKIP_SETUP=1` | reconcile only, don't run `setup.sh` |
-| `SKIP_PLUGINS=1` | skip plugin install in setup |
+| `UPGRADE=1` | already adopted? upgrade only unchanged manifest-owned files |
+| `SKIP_SETUP=1` | skip the required local tool check |
+| `CLAUDE_INIT_STATE_DIR=<absolute>` | private 0700 recovery journal directory outside the target |
 | `YES=1` | non-interactive (allow a dirty working tree) |
 
 </details>
@@ -87,7 +88,7 @@ The harness lands in your working tree, not committed. Inspect and commit it:
 
 ```bash
 git status && git diff
-git add -A && git commit -m "chore: adopt claude-init harness"
+git add <reviewed-paths> && git commit -m "chore: adopt claude-init harness"
 ```
 
 ### 3. <a id="manual-setup"></a>Manual setup (what the installer can't do)
@@ -97,12 +98,12 @@ can't (and shouldn't) change:
 
 | # | Step | How |
 |---|---|---|
-| 1 | **Enable GitHub Actions** on the repo | Settings → Actions → General → Allow. Also ensure billing is active, or CI jobs fail instantly. |
-| 2 | **Add the CI secret** | Settings → Secrets → Actions → `ANTHROPIC_API_KEY` (used by `claude-review.yml` / `claude-security.yml`). |
-| 3 | **Apply branch protection** | `gh api repos/<owner>/<repo>/rulesets --method POST --input .github/rulesets/main-protection.json` — makes the CI gates required to merge. |
-| 4 | **Set CODEOWNERS** | Edit `.github/CODEOWNERS` to your team's handles (or delete it if you don't want code-owner review). |
-| 5 | **Wire deploy (optional)** | The shipped `canary-deploy.yml` is a **STUB**. Wire your platform per [docs/DEPLOY-INTEGRATION.md](docs/DEPLOY-INTEGRATION.md). |
-| 6 | **Tune to your stack** | Edit `.claude/CLAUDE.md` (constitution), `.claude/settings.json` (allow/ask/deny), `.mcp.json` (servers), `.claude/scripts/run.sh` (start command). |
+| 1 | **Review workflow/protection installation** | The installer does not copy pilot `.github/` workflows. Use the pinned source, adapt required checks to the repository and install reviewed workflows/rulesets explicitly. |
+| 2 | **Configure trusted proof identities** | Provision the repository's GitHub App and matching protected provider credential; implementation cannot mint reviewer/verifier receipts. |
+| 3 | **Apply protection** | Apply the reviewed per-repository ruleset only after its required check producers exist. |
+| 4 | **Set ownership** | Configure that repository's team and CODEOWNERS; no qyndex team defaults are imported. |
+| 5 | **Configure reporting/deployment** | Use private per-repository feedback state, its own report store and a proven deployment adapter. Missing target proof blocks production. |
+| 6 | **Tune to your stack** | Preserve conventions in AGENTS.md/local settings. Changes to owned process files intentionally block future upgrades until reviewed. |
 
 Full operator runbook: [docs/OPERATOR-MANUAL.md](docs/OPERATOR-MANUAL.md). Bringing in a legacy
 repo: [docs/ADOPTION.md](docs/ADOPTION.md) (`/adopt start`).
@@ -251,11 +252,11 @@ See [docs/RESEARCH.md](docs/RESEARCH.md) for the full reference list with GitHub
 ## Adopt in an existing project
 
 Use the [one-line installer](#install-in-one-line) — it detects an existing `.claude/` and
-reconciles (backs up + no-clobber) instead of overwriting. To upgrade an already-adopted repo to
+checks version/hash/mode ownership and blocks conflicting files before changes. To upgrade an already-adopted repo to
 a newer factory:
 
 ```bash
-UPGRADE=1 curl -fsSL https://raw.githubusercontent.com/qyndex/claude-init/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/qyndex/claude-init/main/scripts/install.sh | UPGRADE=1 bash
 ```
 
 Deep dive: [docs/ONBOARDING.md](docs/ONBOARDING.md) and [docs/ADOPTION.md](docs/ADOPTION.md).

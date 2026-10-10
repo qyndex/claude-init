@@ -1226,3 +1226,9 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   files: .claude/scripts/factory-legacy-feedback.py
   accept: bash .claude/scripts/test/factory-legacy-feedback.sh
   owner: implementer
+
+- [x] T-207  | spec:033  | phase:1  | priority: security  | created: 2026-10-10  | last_touched: 2026-10-10  | deps: T-206  | parallel: no  | est: 45m
+  summary: Install and upgrade immutable owned harness files transactionally while preserving adopter data
+  files: .claude/scripts/factory-adopt.py, .claude/scripts/reconcile-claude-dir.sh, scripts/install.sh, .claude/commands/adopt.md
+  accept: bash .claude/scripts/test/factory-adopt.sh
+  owner: implementer

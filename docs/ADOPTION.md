@@ -26,29 +26,24 @@ dependencies, code on obsolete tech you may need to migrate.
 
 ## Step 0 — Install the harness (without clobbering theirs)
 
-The factory `.claude/` must be in the repo before `/adopt` exists. **Never `cp -nr` over an
-existing `.claude/`** — that leaves a half-merged mess. Two cases:
+Use the pinned-source installer from the repository root, or a clean source Git checkout:
 
-**A) Repo has no `.claude/` (clean install):**
 ```bash
-git clone <factory-repo> /tmp/claude-init
-git -C /tmp/claude-init archive HEAD | tar -x -C .   # into your repo (git-aware: tracked files only)
-bash .claude/scripts/setup.sh
+bash <factory-clone>/scripts/install.sh
+# Or inspect before applying:
+bash <factory-clone>/.claude/scripts/reconcile-claude-dir.sh --from <factory-clone> --into . --dry-run
+bash <factory-clone>/.claude/scripts/reconcile-claude-dir.sh --from <factory-clone> --into . --check-tools
 ```
 
-**B) Repo already has its own `.claude/` / `CLAUDE.md` (reconcile):**
-```bash
-git clone <factory-repo> /tmp/claude-init
-bash /tmp/claude-init/.claude/scripts/reconcile-claude-dir.sh --from /tmp/claude-init --into .
-# → backs up your .claude/ to .brownfield-backup/<ts>/ (repo root, auto-gitignored, with a
-#   MANIFEST.txt of every created path), installs the factory (process) files + the .github
-#   gate layer (no-clobber; collisions become [OQ]s), PRESERVES your settings.local.json /
-#   state / memory / rules / secrets, saves your CLAUDE.md to .claude/CLAUDE.md.brownfield-orig,
-#   and drafts AGENTS.md from your conventions.
-bash .claude/scripts/setup.sh   # (now finds the factory CLAUDE.md; the brownfield guard passes)
-```
-`setup.sh` refuses to run greenfield over a foreign `CLAUDE.md` — it points you here. Override only
-with `FORCE_GREENFIELD=1` if you truly mean greenfield.
+Version/hash/mode ownership replaces the historical overwrite/no-clobber reconciler. Foreign
+or customized managed-file collisions block before any target change; preserve your files and
+review an explicit reconciliation. Source backlog, actual memory, state and pilot workflows are
+excluded. Empty ledgers/memory are seeded only when absent and remain adopter-owned. Recovery
+journals live privately outside the checkout. No target setup script, plugin installation,
+GitHub mutation or production activation runs automatically. Follow [FACTORY-ADOPTION.md](FACTORY-ADOPTION.md)
+for current recovery and configuration. Do not overlay an archive of this repository onto an
+application, execute historical setup as an installer phase, or remove user content to satisfy
+an ownership collision.
 
 ---
 
@@ -168,36 +163,20 @@ pagination — confirm before Phase 3.
 **"My repo has no conventional `src/` root."** Phase 1 notes this; edit
 `uncharacterized-paths.txt` in Phase 2 to list your real source globs.
 
-**"Reverting adoption."** Everything destructive is backed up to `.brownfield-backup/<ts>/` (repo
-root, auto-gitignored) and your originals are kept as `*.brownfield-orig`. The backup's
-`MANIFEST.txt` lists every path adoption created or overwrote. Undo with
-`bash .claude/scripts/reconcile-claude-dir.sh --revert <ts>` — it restores your original `.claude/`
-and deletes the manifest-listed created files (scaffold, .github gates, .mcp.json, …).
+**"Reverting adoption."** Use the returned journal ID with `--revert <32-hex-id>` and the same
+private `--state-root`. Every installed path must still match its recorded after-image;
+later user edits block the entire revert. `--recover` handles a pending interrupted transaction,
+accepting only exact before/after images. No recursive deletion of `.claude/` occurs. Historical
+`.brownfield-backup` archives are not accepted by this new recovery mechanism; retain them for
+manual file-level restoration without running the old destructive revert.
 
-**"Upgrading an already-adopted repo to a newer harness."** Re-run reconcile with `--upgrade`:
-
-```bash
-git -C /tmp/claude-init archive HEAD | tar -x -C /tmp/factory   # or any clone of the new factory
-bash .claude/scripts/reconcile-claude-dir.sh --from /tmp/factory --into . --upgrade
-bash .claude/scripts/setup.sh
-```
-
-Default (adoption) reconcile no-clobbers `commands/`, `hooks/`, and `.github/` so it never
-touches a file you might have authored — but that also means it won't *update* factory-owned
-files on a re-run. `--upgrade` flips this for **factory-owned** files only: a same-named file
-the factory ships (e.g. `hooks/pre-bash-dep-freshness.sh`, `commands/swarm/*`,
-`.github/workflows/evidence-gate.yml`, `docs/AUTOPILOT.md`) is refreshed to the new version
-(backed up first, change reported); files the factory does **not** ship (your own `/deploy`
-command, custom hooks, custom workflows) are still preserved. Your `specs/`, `plans/`, `tasks/`,
-and application source are never touched. Repo-root factory configs the CI gates need
-(`commitlint.config.mjs`, `codecov.yml`) are copied on first adoption and refreshed on
-`--upgrade` — without them the factory's `commitlint.yml` workflow fails `[empty-rules]`.
-The factory's OWN development specs/plans (`001`–`003`) and initiative STATE files are
-never copied into your live set (they'd collide on id and dangle pointers); your project
-authors its own `001`+. Everything overwritten lands in `.brownfield-backup/<ts>/` (covering
-`.claude/`, `.github/`, `docs/`, and the root configs), so the change is reversible. After
-upgrading, run `bash .claude/scripts/validate.sh` — remaining failures are your project's own
-corpus drift, not the upgrade.
+**"Upgrading."** Use a clean pinned source Git checkout and `--upgrade`. The ownership manifest
+records source SHA, path hash and mode. Every prior owned file must remain unchanged; same
+filename alone never establishes ownership. Removed owned files are removed only when their
+old bytes/mode match. Unknown files, existing adopter memory/ledgers and custom workflows stay
+untouched. No project-specific GitHub workflow or policy is enabled by the installer. Full
+factory readiness requires the separately protected configuration and proof described in
+[FACTORY-ADOPTION.md](FACTORY-ADOPTION.md).
 
 ---
 
