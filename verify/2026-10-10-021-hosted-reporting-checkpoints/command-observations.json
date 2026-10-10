@@ -1,0 +1,103 @@
+{
+  "source_commit": "7c9f7666d7bc7823b829d08bf28924b7ac4bec38",
+  "generated_at": "2026-10-10T01:39:54.080133+00:00",
+  "independent_attestation": false,
+  "observations": [
+    {
+      "id": "AC-1",
+      "commands": [
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-hosted-digest.sh"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "artifact_sha256": "9b4d69503624ec93c995f41b198f3e7954ffd408e426df0f68ddd4863874298c"
+    },
+    {
+      "id": "AC-2",
+      "commands": [
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-hosted-digest.sh"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "artifact_sha256": "9b4d69503624ec93c995f41b198f3e7954ffd408e426df0f68ddd4863874298c"
+    },
+    {
+      "id": "AC-3",
+      "commands": [
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-hosted-digest.sh"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "artifact_sha256": "9b4d69503624ec93c995f41b198f3e7954ffd408e426df0f68ddd4863874298c"
+    },
+    {
+      "id": "AC-4",
+      "commands": [
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-hosted-digest.sh"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-reporting-actions.sh"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-digest.sh"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-slack-digest.sh"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-digest-coverage.sh"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "actionlint",
+            "-shellcheck=",
+            ".github/workflows/factory-hosted-digest.yml",
+            ".github/workflows/factory-digest.yml"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "shellcheck",
+            ".claude/scripts/test/factory-hosted-digest.sh"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "artifact_sha256": "038647468abbc33a48a043c42d5804c6c9c85345b98fd31979884fe608c5ee2f"
+    }
+  ]
+}
