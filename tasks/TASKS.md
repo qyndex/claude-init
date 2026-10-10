@@ -1154,3 +1154,9 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   files: verify/2026-07-25
   accept: bash .claude/scripts/validate.sh
   owner: verifier
+
+- [x] T-195  | spec:022  | phase:1  | priority: security  | created: 2026-10-10  | last_touched: 2026-10-10  | deps: T-194  | parallel: no  | est: 30m
+  summary: Bind hidden reporting bypass metadata to settled protected operator approval
+  files: .claude/scripts/factory-git-state.py, .claude/scripts/factory-attest-state-policy.py, .github/workflows/factory-hosted-digest.yml
+  accept: bash .claude/scripts/test/factory-policy-approval.sh
+  owner: implementer

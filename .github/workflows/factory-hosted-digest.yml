@@ -32,6 +32,7 @@ jobs:
           FACTORY_REPORTING_STATE_REPOSITORY: ${{ vars.FACTORY_REPORTING_STATE_REPOSITORY }}
           FACTORY_REPORTING_STATE_BRANCH: ${{ vars.FACTORY_REPORTING_STATE_BRANCH }}
           FACTORY_REPORTING_BOOTSTRAP_SHA: ${{ vars.FACTORY_REPORTING_BOOTSTRAP_SHA }}
+          FACTORY_REPORTING_POLICY_APPROVALS: ${{ vars.FACTORY_REPORTING_POLICY_APPROVALS }}
         run: |
           umask 077
           python3 - <<'PYCONFIG'
@@ -42,7 +43,8 @@ jobs:
                   'branch':os.environ['FACTORY_REPORTING_BRANCH'],
                   'destination':os.environ['FACTORY_REPORTING_CHANNEL'],'team_id':os.environ['FACTORY_REPORTING_TEAM_ID'],
                   'start':os.environ['FACTORY_REPORTING_START'],'state_branch':os.environ['FACTORY_REPORTING_STATE_BRANCH'],
-                  'bootstrap_sha':os.environ['FACTORY_REPORTING_BOOTSTRAP_SHA']}
+                  'bootstrap_sha':os.environ['FACTORY_REPORTING_BOOTSTRAP_SHA'],
+                  'policy_approvals':json.loads(os.environ['FACTORY_REPORTING_POLICY_APPROVALS'] or '{}')}
           Path(os.environ['RUNNER_TEMP'],'factory-hosted-digest.json').write_text(json.dumps(config))
           PYCONFIG
       - name: Verify Slack identity and history before delivery
