@@ -1,0 +1,6 @@
+ledger_format: 2
+timestamp: 2026-10-10T01:01:52.205388+00:00
+command: bash .claude/scripts/test/factory-reporting-actions.sh
+exit_code: 0
+
+factory-reporting-actions: restricted workflow/repository/runner policy, POSIX private state and workspace exclusion passed

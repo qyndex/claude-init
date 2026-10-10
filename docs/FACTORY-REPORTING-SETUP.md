@@ -1,0 +1,25 @@
+# Protected Actions reporting setup
+
+Spec 018 prepares disabled reporting workflow integration. The operator selected GitHub Actions on a dedicated persistent self-hosted runner. Account activation remains separate from fixture verification.
+
+## Prerequisites
+
+Use a dedicated POSIX machine/VM with Python 3.10+, Git, GitHub CLI, network access to GitHub/Slack, and a persistent local disk. It must not execute candidate PR jobs. Runner labels alone do not establish this boundary. Use an organization runner group restricted to the trusted reporting workflow on the default branch; if your account cannot enforce that workflow restriction, this profile cannot activate safely.
+
+Organization owners can configure runner groups through GitHub Settings → Actions → Runner groups. The CLI used in this session cannot read runner groups because it lacks `admin:org`; no broader CLI permission was added. Runtime preflight instead needs an environment-held fine-grained token or installed App token with read-only organization Self-hosted runners permission. It does not need merge or policy-write permission. [GitHub runner-group controls](https://docs.github.com/en/enterprise-cloud@latest/actions/how-tos/manage-runners/self-hosted-runners/manage-access) and [runner-group API](https://docs.github.com/en/enterprise-cloud@latest/rest/actions/self-hosted-runner-groups) describe the server controls and API permission.
+
+## Bootstrap sequence
+
+1. Choose the dedicated host and service user. Create a private persistent directory owned by that user, mode 0700, outside the runner `_work`/temporary trees. Existing `reporting.sqlite` must be a regular nonsymlink file owned by that user, mode 0600. State survives code checkout changes and must not be restored from Actions cache/artifacts.
+2. Create a nondefault organization runner group with Selected repositories containing only the reporting repository. If public, explicitly allow that public repository. Set Selected workflows to exactly `OWNER/REPO/.github/workflows/factory-digest.yml@refs/heads/DEFAULT_BRANCH`. Do not permit any other workflow/ref.
+3. Register the dedicated runner in that group with `self-hosted` and `factory-reporting` labels. Use GitHub's host/architecture-specific registration commands directly on the host; keep its short-lived registration token out of chat, logs and repository files. Install the runner service under the dedicated user. Verify it is online in the correct group.
+4. Create a `factory-reporting` environment allowing only the default branch and no tags. Store `FACTORY_SLACK_BOT_TOKEN` and `FACTORY_REPORTING_POLICY_TOKEN` as environment secrets. The policy token must be read-only for org runner metadata; the Slack token must be for the intended workspace bot with chat write/history scopes. Invite the bot to the channel. Neither token belongs in ordinary configuration or chat. [GitHub environment secret restrictions](https://docs.github.com/en/actions/reference/workflows-and-actions/deployments-and-environments) explain the branch/environment boundary.
+5. Add environment variables: `FACTORY_REPORTING_RUNNER_GROUP_ID`, `FACTORY_REPORTING_STATE_DIR`, `FACTORY_REPORTING_CHANNEL`, `FACTORY_REPORTING_TEAM_ID`, and `FACTORY_REPORTING_START` (timezone-bearing initial cutoff). These are non-secret values. The target branch is derived from the repository default branch by the workflow.
+6. Keep the repository-level `FACTORY_REPORTING_ENABLED` variable unset until preflight and live positive/negative identity/delivery drills are reviewed. The workflow's periodic UTC trigger is guarded and uses the Sydney due-time runner; it does not guarantee an exact wall-clock start because Actions scheduling/queueing can be delayed.
+7. After bootstrap verification, enable the repository variable and dispatch only from the default branch. Check the actual message and durable receipt before relying on recurring reports. Failed or ambiguous delivery must reconcile by exact bot/key/hash/text; absent history does not authorize blind resend. The final watchdog step reports missed intervals in workflow status.
+
+The workflow has only contents/pull-requests read permissions. It checks out the Actions source SHA and does not receive the factory merge App key. The hosted preflight verifies current runner group restrictions before dispatching to persistent state. Group and host administrators remain trusted; they must not relax isolation between runs. The state directory and its database are authority-bearing and must not be shared with implementation workers.
+
+## qyndex bootstrap record
+
+The separate `factory-reporting` environment was created with branch `main` only; `FACTORY_REPORTING_CHANNEL=C0C7T1Y29K5` is stored there. No bot/policy secret, team ID, host, runner group or master enablement was supplied/activated by this implementation. The operator chose this channel and self-hosted profile; these values are not installer defaults. Live independently reviewed factory delivery remains pending the existing Claude subscription capacity reset and review-protection restoration.

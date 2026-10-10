@@ -119,6 +119,12 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
 
 ## Active
 
+- [x] T-191  | spec:018  | phase:1  | priority: security  | created: 2026-10-10  | last_touched: 2026-10-10  | deps: T-190  | parallel: no  | est: 30m
+  summary: Prepare disabled protected Actions reporting with runner policy and private state preflight
+  files: .claude/scripts/factory-reporting-preflight.py, .github/workflows/factory-digest.yml
+  accept: bash .claude/scripts/test/factory-reporting-actions.sh
+  owner: implementer
+
 - [x] T-190  | spec:017  | phase:1  | priority: high  | created: 2026-10-10  | last_touched: 2026-10-10  | deps: T-189  | parallel: no  | est: 30m
   summary: Reconcile late-discovered merges without repeating confirmed digest coverage
   files: .claude/scripts/factory-digest.py, .claude/scripts/factory-slack-digest.py
