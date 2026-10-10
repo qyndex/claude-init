@@ -254,9 +254,9 @@ def run(config, report_api, state_api, slack_client, path, now):
         receipts = importlib.util.module_from_spec(receipts_spec); receipts_spec.loader.exec_module(receipts)
         receipts.project(report_api, config['receipt_policy'], path)
     batch = store.prepare(report_api, target)
-    transport = slack.Slack(slack_client, config['team_id'], config['destination'], batch['key'], batch['payload'])
-    receipt = store.deliver(batch['key'], transport)
-    require(transport.lookup(batch['key']).get('receipt') == receipt, 'Delivered receipt not visible in Slack history; preserve confirmed state')
+    adapter = slack.transport(slack_client, config, batch)
+    receipt = store.deliver(batch['key'], adapter)
+    require(adapter.lookup(batch['key']).get('receipt') == receipt, 'Delivered receipt not visible in Slack history; preserve confirmed state')
     return {'status': 'delivered', 'receipt': receipt, 'checkpoint_sha': state.head}
 
 
@@ -268,7 +268,7 @@ def main():
     os.umask(0o077)
     state_api = API(config['state_repository'], os.environ.get('FACTORY_REPORTING_STATE_TOKEN') or os.environ.get('GH_TOKEN'))
     with tempfile.TemporaryDirectory(prefix='factory-reporting-') as tmp:
-        result = run(config, digest.coordinator.GitHub(config['repository']), state_api, slack.SlackHTTP(), Path(tmp)/'reporting.sqlite', datetime.now(timezone.utc))
+        result = run(config, digest.coordinator.GitHub(config['repository']), state_api, slack.http_client(config), Path(tmp)/'reporting.sqlite', datetime.now(timezone.utc))
     print(json.dumps(result))
 
 

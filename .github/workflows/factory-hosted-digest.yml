@@ -26,6 +26,7 @@ jobs:
           persist-credentials: false
       - name: Prepare explicit hosted configuration
         env:
+          FACTORY_REPORTING_ATTACHMENTS_ENABLED: ${{ vars.FACTORY_REPORTING_ATTACHMENTS_ENABLED }}
           FACTORY_REPORTING_CHANNEL: ${{ vars.FACTORY_REPORTING_CHANNEL }}
           FACTORY_REPORTING_TEAM_ID: ${{ vars.FACTORY_REPORTING_TEAM_ID }}
           FACTORY_REPORTING_START: ${{ vars.FACTORY_REPORTING_START }}
@@ -39,7 +40,7 @@ jobs:
           python3 - <<'PYCONFIG'
           import json,os
           from pathlib import Path
-          config={'enabled':True,'repository':os.environ['GITHUB_REPOSITORY'],
+          config={'enabled':True,'attachments_enabled':os.environ['FACTORY_REPORTING_ATTACHMENTS_ENABLED']=='true','repository':os.environ['GITHUB_REPOSITORY'],
                   'state_repository':os.environ['FACTORY_REPORTING_STATE_REPOSITORY'] or os.environ['GITHUB_REPOSITORY'],
                   'branch':os.environ['FACTORY_REPORTING_BRANCH'],
                   'destination':os.environ['FACTORY_REPORTING_CHANNEL'],'team_id':os.environ['FACTORY_REPORTING_TEAM_ID'],
@@ -59,7 +60,7 @@ jobs:
           spec=importlib.util.spec_from_file_location('transport','.claude/scripts/factory-slack-digest.py')
           transport=importlib.util.module_from_spec(spec);spec.loader.exec_module(transport)
           config=json.loads(Path(os.environ['RUNNER_TEMP'],'factory-hosted-digest.json').read_text())
-          client=transport.SlackHTTP()
+          client=transport.http_client(config)
           transport.preflight(client,config['team_id'],config['destination'])
           try:
               transport.preflight(client,config['team_id']+'X',config['destination'])

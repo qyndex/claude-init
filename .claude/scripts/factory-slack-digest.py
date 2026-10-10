@@ -73,7 +73,8 @@ def safe(value):
     return ' '.join(str(value).split()).replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
 
 
-def render(payload):
+def render(payload, *, limit=35000):
+    require(limit in {35000, 1_000_000}, 'unsupported digest render limit')
     data = json.loads(payload)
     lines = [f"Factory delivery — {safe(data['repository'])}",
              f"{data['display_from']} to {data['display_until']} (Australia/Sydney)",
@@ -90,7 +91,7 @@ def render(payload):
         lines.append('No merges in this delivered interval.')
     lines.append('Missing historical check records are not treated as a pass.')
     text = '\n'.join(lines)
-    require(len(text) <= 35000, 'digest exceeds single-message limit; use a verified attachment adapter')
+    require(len(text) <= limit, 'digest exceeds single-message limit; use a verified attachment adapter')
     return text
 
 
@@ -205,6 +206,24 @@ class Slack:
         raise ValueError('Slack history exceeds reconciliation limit')
 
 
+def attachment_module():
+    spec = importlib.util.spec_from_file_location('slack_attachment', Path(__file__).with_name('factory-slack-attachment.py'))
+    module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
+    return module
+
+
+def http_client(config):
+    require(type(config.get('attachments_enabled', False)) is bool, 'attachment enablement must be boolean')
+    return attachment_module().HTTP() if config.get('attachments_enabled') is True else SlackHTTP()
+
+
+def transport(client, config, batch):
+    require(type(config.get('attachments_enabled', False)) is bool, 'attachment enablement must be boolean')
+    if config.get('attachments_enabled') is True and len(render(batch['payload'], limit=1_000_000)) > 35000:
+        return attachment_module().Attachment(client, config['team_id'], config['destination'], batch['key'], batch['payload'])
+    return Slack(client, config['team_id'], config['destination'], batch['key'], batch['payload'])
+
+
 def due(now):
     require(now.tzinfo is not None, 'runner clock needs timezone')
     local = now.astimezone(digest.SYDNEY)
@@ -248,8 +267,8 @@ def run(config, api, client, now):
     if digest.instant(store.cursor()) >= digest.instant(target):
         return {'status': 'not-due'}
     batch = store.prepare(api, target)
-    transport = Slack(client, config['team_id'], config['destination'], batch['key'], batch['payload'])
-    receipt = store.deliver(batch['key'], transport)
+    adapter = transport(client, config, batch)
+    receipt = store.deliver(batch['key'], adapter)
     return {'status': 'delivered', 'receipt': receipt, 'catch_up_pending': digest.instant(store.cursor()) < digest.instant(target)}
 
 
@@ -263,7 +282,7 @@ def main():
     if args.status_only:
         result = watchdog(config, now)
         print(json.dumps(result)); return int(result['missed_delivery'])
-    print(json.dumps(run(config, digest.coordinator.GitHub(config['repository']), SlackHTTP(), now)))
+    print(json.dumps(run(config, digest.coordinator.GitHub(config['repository']), http_client(config), now)))
     return 0
 
 

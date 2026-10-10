@@ -6,5 +6,6 @@
   "team_id": null,
   "start": null,
   "database": null,
-  "watchdog_grace_minutes": 60
+  "watchdog_grace_minutes": 60,
+  "attachments_enabled": false
 }
