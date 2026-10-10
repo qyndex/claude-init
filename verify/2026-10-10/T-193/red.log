@@ -1,0 +1,10 @@
+ledger_format: 2
+timestamp: 2026-10-10T01:13:53.191361+00:00
+command: bash .claude/scripts/test/factory-installer-source.sh
+exit_code: 1
+red_reason: assertion-failure
+baseline_commit: 1988b790182b2ccffe86c8560f5b9babdf7b9a43
+
+Traceback (most recent call last):
+  File "<stdin>", line 25, in <module>
+AssertionError: unknown ref silently installed default branch

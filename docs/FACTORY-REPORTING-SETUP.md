@@ -2,6 +2,8 @@
 
 Spec 018 prepares disabled reporting workflow integration. The operator selected GitHub Actions on a dedicated persistent self-hosted runner. Account activation remains separate from fixture verification.
 
+The reporting capability is the 08:00 Sydney delivery digest for each adopting repository: merged PRs, task/spec evidence and missing proof. Installing the harness does not require deploying reporting for `claude-init` itself. A pilot here is optional; each adopter explicitly chooses its own host/state/workspace/channel before enabling delivery. The current profile uses an isolated runner group/host per reporting repository, not a shared group permitted to run arbitrary adopter workflows.
+
 ## Prerequisites
 
 Use a dedicated POSIX machine/VM with Python 3.10+, Git, GitHub CLI, network access to GitHub/Slack, and a persistent local disk. It must not execute candidate PR jobs. Runner labels alone do not establish this boundary. Use an organization runner group restricted to the trusted reporting workflow on the default branch; if your account cannot enforce that workflow restriction, this profile cannot activate safely.
@@ -23,3 +25,7 @@ The workflow has only contents/pull-requests read permissions. It checks out the
 ## qyndex bootstrap record
 
 The separate `factory-reporting` environment was created with branch `main` only; `FACTORY_REPORTING_CHANNEL=C0C7T1Y29K5` is stored there. No bot/policy secret, team ID, host, runner group or master enablement was supplied/activated by this implementation. The operator chose this channel and self-hosted profile; these values are not installer defaults. Live independently reviewed factory delivery remains pending the existing Claude subscription capacity reset and review-protection restoration.
+
+The operator subsequently supplied Slack team ID `T0B2VADDUG4`. It is an optional qyndex deployment value, not a harness default. No team variable or reporting enablement was set while the pilot/adopter deployment choice remained under clarification.
+
+The operator approved a `claude-init` pilot too. `FACTORY_REPORTING_TEAM_ID=T0B2VADDUG4` is now stored as a non-secret variable in the main-only reporting environment. Runner inventory is empty and that environment has no bot/policy secrets. Host provisioning and live identity/delivery drills still precede master enablement. Adopting repositories provide separate explicit configuration.

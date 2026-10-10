@@ -1,0 +1,67 @@
+{
+  "source_commit": "ad4446a84ed681a78116a2ce462d4b4c36d79740",
+  "generated_at": "2026-10-10T01:17:17.482635+00:00",
+  "independent_attestation": false,
+  "observations": [
+    {
+      "id": "AC-1",
+      "commands": [
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-installer-source.sh"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "artifact_sha256": "24cc34889c59d90378efb50cb4ef0e2a60378e39466999fee29d73fdacc707cc"
+    },
+    {
+      "id": "AC-2",
+      "commands": [
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-installer-source.sh"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "artifact_sha256": "24cc34889c59d90378efb50cb4ef0e2a60378e39466999fee29d73fdacc707cc"
+    },
+    {
+      "id": "AC-3",
+      "commands": [
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-installer-source.sh"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "artifact_sha256": "24cc34889c59d90378efb50cb4ef0e2a60378e39466999fee29d73fdacc707cc"
+    },
+    {
+      "id": "AC-4",
+      "commands": [
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-installer-source.sh"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "shellcheck",
+            "scripts/install.sh",
+            ".claude/scripts/test/factory-installer-source.sh"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "artifact_sha256": "728914fe61a94c91b1ffe50036a15f023d569d70c1ef8c3c6a9df37d96193b37"
+    }
+  ]
+}
