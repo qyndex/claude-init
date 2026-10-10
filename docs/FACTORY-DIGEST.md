@@ -74,7 +74,7 @@ Only for a separately selected external monitor, before claiming live independen
 
 ### Pilot monitoring choice
 
-The approved pilot baseline is GitHub-only failure and overdue-digest alerts, with durable duplicate suppression and recovery notices to the configured reporting channel. These notification paths remain to be implemented and verified; the existing health probe does not send them. The pilot does not require a monitoring SaaS account. GitHub-only monitoring can detect workflow failures and missed digest cutoffs while Actions is available. It cannot promise notification during an Actions-wide outage, and Slack delivery failures cannot be reported using the same broken Slack credential. Independent timers remain an optional adopter capability; the Healthchecks heartbeat remains disabled for the pilot.
+The approved pilot baseline is GitHub-only failure and overdue-digest alerts, with durable duplicate suppression and recovery notices to the configured reporting channel. The protected GitHub-only monitor now implements these notification paths with durable reconciliation; the live labelled drill, recovery and unchanged repeat passed. The pilot does not require a monitoring SaaS account. GitHub-only monitoring can detect workflow failures and missed digest cutoffs while Actions is available. It cannot promise notification during an Actions-wide outage, and Slack delivery failures cannot be reported using the same broken Slack credential. Independent timers remain an optional adopter capability; the Healthchecks heartbeat remains disabled for the pilot.
 
 ### Isolated attachment activation canary
 

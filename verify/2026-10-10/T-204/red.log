@@ -1,0 +1,10 @@
+# TDD ledger — red — T-204
+ledger_format: 2
+timestamp: 2026-10-10T18:05:56+11:00
+command: bash .claude/scripts/test/factory-slack-feedback.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 4, in <module>
+AssertionError: authenticated private Slack feedback adapter is absent

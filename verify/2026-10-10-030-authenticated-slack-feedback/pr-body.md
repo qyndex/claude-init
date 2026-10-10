@@ -1,5 +1,5 @@
-## Evidence Bundle — Spec 029 (029-github-reporting-alerts)
-Spec: `specs/active/029-github-reporting-alerts.md` · Commit: `db97627`
+## Evidence Bundle — Spec 030 (030-authenticated-slack-feedback)
+Spec: `specs/active/030-authenticated-slack-feedback.md` · Commit: `db97627`
 
 ### Acceptance criteria (4/4 proven)
 | AC | Proven by | Result |
@@ -11,7 +11,7 @@ Spec: `specs/active/029-github-reporting-alerts.md` · Commit: `db97627`
 
 ### Smoke test (exit codes are load-bearing)
 ```
-# Smoke test — 2026-10-10T18:08:35+11:00
+# Smoke test — 2026-10-10T18:07:49+11:00
 $ bash .claude/scripts/verify.sh
 
 → Integration coverage gate
@@ -23,10 +23,10 @@ exit: 0
 ```
 
 ### Visual proof
-0 screenshot(s) captured under `verify/2026-10-10-029-github-reporting-alerts/screenshots/` (named by AC).
+0 screenshot(s) captured under `verify/2026-10-10-030-authenticated-slack-feedback/screenshots/` (named by AC).
 
 ### API traces
-0 API trace file(s) under `verify/2026-10-10-029-github-reporting-alerts/traces/`; full HAR at `verify/2026-10-10-029-github-reporting-alerts/network.har`.
+0 API trace file(s) under `verify/2026-10-10-030-authenticated-slack-feedback/traces/`; full HAR at `verify/2026-10-10-030-authenticated-slack-feedback/network.har`.
 
 ### Coverage
 line ?% · branch ?% (gate: line≥90 branch≥85)
