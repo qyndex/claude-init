@@ -71,3 +71,13 @@ For a GitHub-hosted pilot, use an independent missing-heartbeat service instead 
 After a successful report run, heartbeat mode rereads the protected checkpoint and exact latest Slack receipt. It sends a success signal only for a current verified report, never while in grace, missed, uninitialized or blocked. The [ping request](https://healthchecks.io/docs/http_api/) is an empty HTTPS POST with no report text, PR/spec identifiers, diagnostic body, bot/GitHub credential or redirects. A scheduler/API/reporting outage stops verified success signals; the external timer can alert even if Actions never starts. Protect its URL against unauthorized pings. An external service outage or stolen ping URL remains an operational limit, not engineering proof.
 
 Before claiming live watchdog readiness, prove one healthy signal, then use a separate short-period canary check to demonstrate a missing-signal alert and a recovery notification. Avoid disabling the active reporting pilot for this drill. Confirm actual alert delivery, not just an integration test button. Monitor selection, account access and this live timer/notification drill are operator activation inputs; local fixtures and an optional workflow step alone do not complete them. Other monitor providers can consume the read-only probe exit contract; their heartbeat methods require a separately verified adapter.
+
+### Pilot monitoring choice
+
+The pilot does not require a monitoring SaaS account. GitHub-only monitoring can detect workflow failures and missed digest cutoffs while Actions is available. It cannot promise notification during an Actions-wide outage, and Slack delivery failures cannot be reported using the same broken Slack credential. Independent timers remain an optional adopter capability; the Healthchecks heartbeat remains disabled for the pilot.
+
+### Isolated attachment activation canary
+
+Manually dispatch Factory Slack File Canary on the default branch after granting files:read and files:write and enabling attachments in the protected reporting environment. It uploads a small, explicitly labelled verification file to the configured channel, checks exact private bytes and uploader/share identity, and preserves its non-sensitive receipt. It does not alter digest state or fabricate feature delivery.
+
+Only the first workflow run's first attempt may allocate. Later invocations verify the existing exact remote receipt. If an earlier attempt has no visible receipt, they block; retain workflow history and reconcile the original file manually instead of deleting history or blindly allocating again. The shared reporting concurrency group serializes canary and normal reporting. After successful verification, a second dispatch must prove verified-existing with no extra share.

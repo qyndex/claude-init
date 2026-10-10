@@ -174,3 +174,7 @@ Implemented authenticated single-task coordinator receipt ingestion and separate
 ### F-05 scope activation refinement (027)
 
 Installed bot file grants are checked from authenticated Slack headers before opt-in hosted attachment delivery. Passing grants do not establish an upload receipt; live file delivery and external timer activation remain separate readiness requirements.
+
+### Reporting monitor decision revised (2026-10-10)
+
+User declines an additional monitoring provider. Use GitHub-only failure and overdue-digest alerts to the adopter-configured reporting channel, with duplicate suppression and recovery notification. GitHub-wide outage detection is an optional capability requiring an independently operated timer, not a mandatory factory readiness prerequisite. Keep the Healthchecks heartbeat disabled. For the claude-init pilot alerts use qyndex-alerts; do not embed that channel in reusable defaults.

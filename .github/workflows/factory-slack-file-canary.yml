@@ -1,0 +1,47 @@
+name: Factory Slack File Canary
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: factory-reporting-${{ github.repository }}
+  cancel-in-progress: false
+jobs:
+  canary:
+    if: >-
+      vars.FACTORY_REPORTING_ENABLED == 'true' &&
+      github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    environment: factory-reporting
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Verify isolated file canary
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FACTORY_SLACK_BOT_TOKEN: ${{ secrets.FACTORY_SLACK_BOT_TOKEN }}
+          FACTORY_REPORTING_ATTACHMENTS_ENABLED: ${{ vars.FACTORY_REPORTING_ATTACHMENTS_ENABLED }}
+          FACTORY_REPORTING_CHANNEL: ${{ vars.FACTORY_REPORTING_CHANNEL }}
+          FACTORY_REPORTING_TEAM_ID: ${{ vars.FACTORY_REPORTING_TEAM_ID }}
+          FACTORY_REPORTING_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          umask 077
+          python3 - <<'PYCONFIG'
+          import json,os
+          from pathlib import Path
+          config={'enabled':True,'attachments_enabled':os.environ['FACTORY_REPORTING_ATTACHMENTS_ENABLED']=='true','repository':os.environ['GITHUB_REPOSITORY'],
+                  'branch':os.environ['FACTORY_REPORTING_BRANCH'],'destination':os.environ['FACTORY_REPORTING_CHANNEL'],
+                  'team_id':os.environ['FACTORY_REPORTING_TEAM_ID']}
+          Path(os.environ['RUNNER_TEMP'],'factory-file-canary.json').write_text(json.dumps(config))
+          PYCONFIG
+          python3 .claude/scripts/factory-slack-file-canary.py --config "$RUNNER_TEMP/factory-file-canary.json" --output "$RUNNER_TEMP/factory-file-receipt.json"
+      - name: Preserve bounded file receipt
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: factory-file-canary-receipt
+          path: ${{ runner.temp }}/factory-file-receipt.json
+          if-no-files-found: error

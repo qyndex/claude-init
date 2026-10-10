@@ -1190,3 +1190,9 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   files: .claude/scripts/factory-slack-digest.py, .github/workflows/factory-hosted-digest.yml
   accept: bash .claude/scripts/test/factory-slack-scope-preflight.sh
   owner: implementer
+
+- [x] T-201  | spec:028  | phase:1  | priority: security  | created: 2026-10-10  | last_touched: 2026-10-10  | deps: T-200  | parallel: no  | est: 20m
+  summary: Verify live Slack file transport with a fenced isolated canary and no digest mutation
+  files: .claude/scripts/factory-slack-file-canary.py, .github/workflows/factory-slack-file-canary.yml
+  accept: bash .claude/scripts/test/factory-slack-file-canary.sh
+  owner: implementer
