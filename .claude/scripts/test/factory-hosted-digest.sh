@@ -94,6 +94,24 @@ private_state=GitAPI()
 with tempfile.TemporaryDirectory() as tmp:
     reject(lambda:m.run(config,PrivateReport(),private_state,None,Path(tmp)/'private',datetime(2026,10,4,22,tzinfo=timezone.utc)))
     assert private_state.writes==0, 'private source published to public state'
+# Exercise the hosted runner with the real Slack binding/metadata adapter and new local disks.
+class SlackClient:
+    def __init__(self):self.messages=[];self.posts=0;self.drop=False
+    def call(self,method,body):
+        if method=='auth.test':return {'ok':True,'team_id':'T1','bot_id':'B1'}
+        if method=='chat.postMessage':
+            self.posts+=1;message={'bot_id':'B1','ts':f'{self.posts}.00001','metadata':body['metadata'],'text':body['text']};self.messages.append(message)
+            if self.drop:raise RuntimeError('Slack ack lost')
+            return {'ok':True,'channel':'C1','message':message}
+        assert method=='conversations.history'
+        return {'ok':True,'messages':self.messages,'has_more':False,'response_metadata':{'next_cursor':''}}
+with tempfile.TemporaryDirectory() as tmp:
+    tmp=Path(tmp);api=GitAPI();client=SlackClient();now=datetime(2026,10,4,22,tzinfo=timezone.utc)
+    assert m.run(config,ReportAPI(),api,client,tmp/'run1',now)['status']=='delivered'
+    assert m.run(config,ReportAPI(),api,client,tmp/'run2',now)['status']=='not-due' and client.posts==1
+    client.drop=True;later=datetime(2026,10,5,22,tzinfo=timezone.utc)
+    reject(lambda:m.run(config,ReportAPI(),api,client,tmp/'run3',later));assert client.posts==2
+    client.drop=False;assert m.run(config,ReportAPI(),api,client,tmp/'run4',later)['status']=='delivered' and client.posts==2
 # Exercise credential separation and fixed-host API envelope without network.
 client=m.API('org/repo','fixture-state-credential')
 def envelope(command,**kwargs):
