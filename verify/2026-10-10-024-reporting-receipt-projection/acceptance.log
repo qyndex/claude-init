@@ -1,0 +1,51 @@
+$ bash .claude/scripts/test/factory-receipt-projection.sh
+AC-1: fresh disks, exact digest bindings and historical revisions passed
+AC-2: authentication negatives and atomic failure preservation passed
+AC-3: complete pagination, disabled authority, bounds and read-only API passed
+AC-4: protected checkout policy and least-privilege Actions integration passed
+
+exit: 0
+$ bash .claude/scripts/test/factory-hosted-digest.sh
+factory-hosted-digest: typed public checkpoints, exact bootstrap/protection, unique CAS writers, storage/Slack ack loss, fresh-run recovery and disabled trusted workflow passed
+Slack receipt comparison: {"text_is_string": true, "expected_length": 319, "actual_length": 80, "first_difference_line": 2, "first_difference_column": 53, "actual_character_category": "end", "url_wrappers": 0, "html_entities_match": false, "trimmed_match": false, "newline_match": false}
+Slack receipt comparison: {"text_is_string": true, "expected_length": 319, "actual_length": 239, "first_difference_line": 1, "first_difference_column": 1, "actual_character_category": "Nd", "url_wrappers": 0, "html_entities_match": false, "trimmed_match": false, "newline_match": false}
+Slack receipt comparison: {"text_is_string": true, "expected_length": 319, "actual_length": 80, "first_difference_line": 2, "first_difference_column": 53, "actual_character_category": "end", "url_wrappers": 0, "html_entities_match": false, "trimmed_match": false, "newline_match": false}
+
+exit: 0
+$ bash .claude/scripts/test/factory-receipts-recovery.sh
+factory-receipts-recovery: authenticated artifact negatives, delivery binding, SIGKILL guardian and fenced retry passed
+
+exit: 0
+$ bash .claude/scripts/test/factory-slack-digest.sh
+factory-slack-digest: sender/workspace binding, pagination, uncertainty, escaping, size limit, due time and watchdog passed
+Slack receipt comparison: {"text_is_string": true, "expected_length": 8065, "actual_length": 8189, "first_difference_line": 5, "first_difference_column": 1, "actual_character_category": "Sm", "url_wrappers": 61, "html_entities_match": false, "trimmed_match": false, "newline_match": false}
+Slack receipt comparison: {"text_is_string": true, "expected_length": 8065, "actual_length": 8224, "first_difference_line": 5, "first_difference_column": 1, "actual_character_category": "Sm", "url_wrappers": 61, "html_entities_match": false, "trimmed_match": false, "newline_match": false}
+Slack receipt comparison: {"text_is_string": true, "expected_length": 8065, "actual_length": 8193, "first_difference_line": 5, "first_difference_column": 1, "actual_character_category": "Sm", "url_wrappers": 61, "html_entities_match": false, "trimmed_match": false, "newline_match": false}
+Slack receipt comparison: {"text_is_string": true, "expected_length": 8065, "actual_length": 8189, "first_difference_line": 4, "first_difference_column": 2, "actual_character_category": "Nd", "url_wrappers": 61, "html_entities_match": false, "trimmed_match": false, "newline_match": false}
+Slack receipt comparison: {"text_is_string": true, "expected_length": 8065, "actual_length": 8198, "first_difference_line": 1, "first_difference_column": 1, "actual_character_category": "Sm", "url_wrappers": 61, "html_entities_match": false, "trimmed_match": false, "newline_match": false}
+Slack receipt comparison: {"text_is_string": true, "expected_length": 8065, "actual_length": 7, "first_difference_line": 1, "first_difference_column": 1, "actual_character_category": "Ll", "url_wrappers": 0, "html_entities_match": false, "trimmed_match": false, "newline_match": false}
+
+exit: 0
+$ bash .claude/scripts/test/factory-digest.sh
+factory-digest: pagination, equal-time merges, proof mapping, DST, outage catch-up, uncertain sends and process exclusion passed
+
+exit: 0
+$ bash .claude/scripts/test/factory-feedback.sh
+factory-feedback: immutable intake, delivered source, full approved amendments, stale fencing, multi-spec receipts, versions and separate acceptance passed
+
+exit: 0
+$ shellcheck .claude/scripts/test/factory-receipt-projection.sh .claude/scripts/test/factory-hosted-digest.sh
+
+exit: 0
+$ bash .claude/scripts/validate.sh --json
+{"schema_version":1,"generated_at":"2026-10-10T15:27:56+11:00","categories":[
+{"name":"core","status":"pass","checked":4,"failures":[],"warnings":[]},{"name":"json","status":"pass","checked":1,"failures":[],"warnings":[]},{"name":"frontmatter","status":"pass","checked":1,"failures":[],"warnings":[]},{"name":"adr-single-schema","status":"pass","checked":1,"failures":[],"warnings":[]},{"name":"executables","status":"pass","checked":1,"failures":[],"warnings":[]},{"name":"agents","status":"pass","checked":1,"failures":[],"warnings":[]},{"name":"skills","status":"pass","checked":5,"failures":[],"warnings":[]},{"name":"commands","status":"pass","checked":3,"failures":[],"warnings":[]},{"name":"hooks","status":"pass","checked":2,"failures":[],"warnings":[]},{"name":"autopilot","status":"pass","checked":6,"failures":[],"warnings":[]},{"name":"swarm","status":"pass","checked":5,"failures":[],"warnings":[]},{"name":"scaffold","status":"warn","checked":7,"failures":[],"warnings":["task accept: is a no-op, not a test: \"ls verify/2026-05-29-003/T-111/green.log verify/2026-05-29-003/T-114/green.log\""]},{"name":"artifacts","status":"pass","checked":1,"failures":[],"warnings":[]},{"name":"memory","status":"pass","checked":7,"failures":[],"warnings":[]},{"name":"security","status":"pass","checked":15,"failures":[],"warnings":[]},{"name":"constitution-size","status":"pass","checked":1,"failures":[],"warnings":[]},{"name":"mcp","status":"pass","checked":1,"failures":[],"warnings":[]},{"name":"ruleset-coverage","status":"pass","checked":7,"failures":[],"warnings":[]},{"name":"handoff-dialect","status":"pass","checked":1,"failures":[],"warnings":[]},{"name":"state-producers","status":"pass","checked":1,"failures":[],"warnings":[]},{"name":"model-doc-consistency","status":"pass","checked":1,"failures":[],"warnings":[]},{"name":"auth-credential","status":"pass","checked":1,"failures":[],"warnings":[]},{"name":"dead-tests","status":"pass","checked":4,"failures":[],"warnings":[]}],"summary":{"passed":77,"warned":1,"failed":0,"overall":"warn"}}
+
+exit: 0
+Final source acceptance rerun:
+AC-1: fresh disks, exact digest bindings and historical revisions passed
+AC-2: authentication negatives and atomic failure preservation passed
+AC-3: complete pagination, disabled authority, bounds and read-only API passed
+AC-4: actual hosted proof, public checkpoint, blocked send and unchanged repeat passed
+
+exit: 0
