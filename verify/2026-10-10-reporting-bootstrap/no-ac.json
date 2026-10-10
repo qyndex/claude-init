@@ -1,0 +1,4 @@
+{
+  "kind": "docs-only",
+  "reason": "Records actual reporting state bootstrap and configuration; no implementation or acceptance contract changed."
+}
