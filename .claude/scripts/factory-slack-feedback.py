@@ -56,7 +56,7 @@ def messages(client,config,now):
                 continue
             if message.get('thread_ts') and message['thread_ts']!=message.get('ts'):continue
             text=message.get('text')
-            if not isinstance(text,str) or not text.startswith('factory '):continue
+            if not isinstance(text,str) or not text.startswith(('factory feedback','factory hotfix')):continue
             require(message.get('type')=='message' and 0<len(text)<=20000,'feedback command type/size invalid')
             parsed=COMMAND.fullmatch(text);require(parsed is not None and parsed['text'].strip(),'malformed explicit feedback command')
             require(parsed['op']!='hotfix' or parsed['kind']=='defect','hotfix must request a defect repair')
