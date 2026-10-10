@@ -1,0 +1,10 @@
+# TDD ledger — red — T-206
+ledger_format: 2
+timestamp: 2026-10-10T18:22:24+11:00
+command: bash .claude/scripts/test/factory-legacy-feedback.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 3, in <module>
+AssertionError: approved private legacy migration absent

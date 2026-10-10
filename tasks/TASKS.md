@@ -1220,3 +1220,9 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   files: .claude/scripts/factory-feedback-control.py, .claude/scripts/factory-feedback.py, .claude/scripts/factory-slack-feedback.py
   accept: bash .claude/scripts/test/factory-feedback-control.sh
   owner: implementer
+
+- [x] T-206  | spec:032  | phase:1  | priority: security  | created: 2026-10-10  | last_touched: 2026-10-10  | deps: T-205  | parallel: no  | est: 30m
+  summary: Preserve and explicitly promote immutable legacy feedback without trusting old shipped markers
+  files: .claude/scripts/factory-legacy-feedback.py
+  accept: bash .claude/scripts/test/factory-legacy-feedback.sh
+  owner: implementer
