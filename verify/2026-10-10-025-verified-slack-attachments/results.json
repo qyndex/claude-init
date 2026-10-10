@@ -1,0 +1,27 @@
+{
+  "runner": "shell-acceptance-recorder",
+  "independent_attestation": false,
+  "command": "bash .claude/scripts/test/factory-slack-attachment.sh",
+  "testResults": [
+    {
+      "assertionResults": [
+        {
+          "fullName": "AC-1: actual hosted oversized report, exact file bytes and unchanged repeat passed",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-2: uploader, destination, privacy, identity, byte tampering and ambiguous share negatives passed",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-3: completion loss, fresh-disk recovery, hidden history uncertainty and disabled default passed",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-4: HTTPS host/path, token separation, API envelope/methods and strict bounds passed",
+          "status": "passed"
+        }
+      ]
+    }
+  ]
+}
