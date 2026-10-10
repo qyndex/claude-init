@@ -1,4 +1,4 @@
-# Protected Actions reporting setup
+# Protected self-hosted Actions reporting setup
 
 Spec 018 prepares disabled reporting workflow integration. The operator selected GitHub Actions on a dedicated persistent self-hosted runner. Account activation remains separate from fixture verification.
 
@@ -29,3 +29,5 @@ The separate `factory-reporting` environment was created with branch `main` only
 The operator subsequently supplied Slack team ID `T0B2VADDUG4`. It is an optional qyndex deployment value, not a harness default. No team variable or reporting enablement was set while the pilot/adopter deployment choice remained under clarification.
 
 The operator approved a `claude-init` pilot too. `FACTORY_REPORTING_TEAM_ID=T0B2VADDUG4` is now stored as a non-secret variable in the main-only reporting environment. Runner inventory is empty and that environment has no bot/policy secrets. Host provisioning and live identity/delivery drills still precede master enablement. Adopting repositories provide separate explicit configuration.
+
+The operator subsequently chose GitHub-hosted Actions with state in this repository for the claude-init pilot. Follow FACTORY-HOSTED-REPORTING.md for that profile; this guide describes the optional self-hosted profile and is no longer a pilot host prerequisite. Select repository-level FACTORY_REPORTING_PROFILE=self-hosted only for explicitly provisioned self-hosted adopters.
