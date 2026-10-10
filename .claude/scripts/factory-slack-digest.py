@@ -45,7 +45,15 @@ class SlackHTTP:
             result = json.loads(data, object_pairs_hook=digest.coordinator.contract.no_duplicate_keys)
         except (urllib.error.URLError, TimeoutError, json.JSONDecodeError):
             raise ValueError('Slack request failed; reconcile before resend') from None
-        require(isinstance(result, dict) and result.get('ok') is True, 'Slack API returned failure')
+        require(isinstance(result, dict), 'Slack API returned malformed response')
+        if result.get('ok') is not True:
+            # Only documented symbolic errors may reach logs; never response bodies or credentials.
+            public_errors = {'missing_scope', 'not_in_channel', 'channel_not_found', 'invalid_auth',
+                             'token_revoked', 'token_expired', 'not_authed', 'account_inactive',
+                             'ratelimited', 'access_denied', 'team_access_not_granted', 'invalid_arguments'}
+            error = result.get('error')
+            code = error if isinstance(error, str) and error in public_errors else 'unknown'
+            raise ValueError('Slack API returned failure: ' + code)
         return result
 
 

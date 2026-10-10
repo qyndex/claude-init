@@ -45,6 +45,15 @@ class Opener:
         return Response(self.blob)
 http.opener=Opener(b'{"ok":true}');assert http.call('auth.test',{})['ok'] is True
 http.opener=Opener(b'{"ok":false,"error":"invalid_auth"}');reject(lambda:http.call('auth.test',{}))
+for code in ('missing_scope','not_in_channel','channel_not_found','invalid_auth'):
+    http.opener=Opener(json.dumps({'ok':False,'error':code,'private_data':'fixture-sensitive-response'}).encode())
+    try:http.call('auth.test',{})
+    except ValueError as error:assert str(error)=='Slack API returned failure: '+code
+    else:raise AssertionError('API failure accepted')
+http.opener=Opener(b'{"ok":false,"error":"fixture-sensitive-response","other":"hidden"}')
+try:http.call('auth.test',{})
+except ValueError as error:assert str(error)=='Slack API returned failure: unknown'
+else:raise AssertionError('Unknown API failure accepted')
 http.opener=Opener(b'not json');reject(lambda:http.call('auth.test',{}))
 assert m.NoRedirect().redirect_request(None,None,None,None,None,None) is None
 class QueryOpener(Opener):
