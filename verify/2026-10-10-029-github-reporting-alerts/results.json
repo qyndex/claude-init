@@ -1,0 +1,27 @@
+{
+  "runner": "shell-acceptance-recorder",
+  "independent_attestation": false,
+  "command": "bash .claude/scripts/test/factory-reporting-alerts.sh",
+  "testResults": [
+    {
+      "assertionResults": [
+        {
+          "fullName": "AC-1: real hosted state proves due alert, prolonged-incident suppression, digest preservation and one verified recovery",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-2: lost acknowledgement and fresh invocation reconcile durable intent; hidden history never resends and drill retry is idempotent",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-3: actual run provenance, default branch, disabled/foreign inputs and failure deduplication pass",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-4: typed journal rejects malformed receipts and duplicate rows; protected GitHub-only workflow needs no external monitor",
+          "status": "passed"
+        }
+      ]
+    }
+  ]
+}
