@@ -45,6 +45,26 @@ jobs:
                   'bootstrap_sha':os.environ['FACTORY_REPORTING_BOOTSTRAP_SHA']}
           Path(os.environ['RUNNER_TEMP'],'factory-hosted-digest.json').write_text(json.dumps(config))
           PYCONFIG
+      - name: Verify Slack identity and history before delivery
+        env:
+          FACTORY_SLACK_BOT_TOKEN: ${{ secrets.FACTORY_SLACK_BOT_TOKEN }}
+        run: |
+          python3 - <<'PYPREFLIGHT'
+          import importlib.util,json,os
+          from pathlib import Path
+          spec=importlib.util.spec_from_file_location('transport','.claude/scripts/factory-slack-digest.py')
+          transport=importlib.util.module_from_spec(spec);spec.loader.exec_module(transport)
+          config=json.loads(Path(os.environ['RUNNER_TEMP'],'factory-hosted-digest.json').read_text())
+          client=transport.SlackHTTP()
+          transport.preflight(client,config['team_id'],config['destination'])
+          try:
+              transport.preflight(client,config['team_id']+'X',config['destination'])
+          except ValueError as error:
+              transport.require(str(error)=='Slack workspace/bot differs','Negative preflight failed for an unexpected reason')
+          else:
+              raise ValueError('Wrong-workspace negative preflight unexpectedly passed')
+          print('Slack workspace, bot and channel-history preflight passed.')
+          PYPREFLIGHT
       - name: Deliver with authoritative branch checkpoints
         env:
           GH_TOKEN: ${{ github.token }}

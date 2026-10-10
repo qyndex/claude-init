@@ -47,6 +47,21 @@ http.opener=Opener(b'{"ok":true}');assert http.call('auth.test',{})['ok'] is Tru
 http.opener=Opener(b'{"ok":false,"error":"invalid_auth"}');reject(lambda:http.call('auth.test',{}))
 http.opener=Opener(b'not json');reject(lambda:http.call('auth.test',{}))
 assert m.NoRedirect().redirect_request(None,None,None,None,None,None) is None
+class QueryOpener(Opener):
+    def open(self,request,timeout):
+        from urllib.parse import urlparse,parse_qs
+        assert request.get_method()=='GET'
+        assert parse_qs(urlparse(request.full_url).query)['include_all_metadata']==['true']
+        return super().open(request,timeout)
+http.opener=QueryOpener(b'{"ok":true,"messages":[]}')
+http.call('conversations.history',{'channel':'C1','include_all_metadata':True})
+client=Client();m.preflight(client,'T1','C1');assert client.posts==0
+client.team='T2';reject(lambda:m.preflight(client,'T1','C1'));assert client.posts==0
+class NoHistory(Client):
+    def call(self,method,body):
+        if method=='conversations.history':raise ValueError('missing_scope')
+        return super().call(method,body)
+client=NoHistory();reject(lambda:m.preflight(client,'T1','C1'));assert client.posts==0
 os.environ.pop('FACTORY_SLACK_BOT_TOKEN')
 now=datetime(2026,10,4,22,tzinfo=timezone.utc)
 assert m.due(datetime(2026,10,3,20,59,tzinfo=timezone.utc))=='2026-10-02T22:00:00+00:00'

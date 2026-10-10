@@ -35,7 +35,7 @@ class SlackHTTP:
         url = 'https://slack.com/api/' + method
         encoded = json.dumps(body).encode()
         if method == 'conversations.history':
-            url += '?' + urllib.parse.urlencode(body); encoded = None
+            url += '?' + urllib.parse.urlencode({key: str(value).lower() if isinstance(value, bool) else value for key, value in body.items()}); encoded = None
         request = urllib.request.Request(url, data=encoded, headers={
             'Authorization': 'Bearer ' + self.token, 'Content-Type': 'application/json; charset=utf-8'})
         try:
@@ -47,6 +47,14 @@ class SlackHTTP:
             raise ValueError('Slack request failed; reconcile before resend') from None
         require(isinstance(result, dict) and result.get('ok') is True, 'Slack API returned failure')
         return result
+
+
+def preflight(client, team, channel):
+    require(re.fullmatch(r'T[A-Z0-9]+', team or '') and re.fullmatch(r'[CG][A-Z0-9]+', channel or ''), 'Slack team/channel IDs required')
+    identity = client.call('auth.test', {})
+    require(identity.get('team_id') == team and identity.get('bot_id'), 'Slack workspace/bot differs')
+    history = client.call('conversations.history', {'channel': channel, 'limit': 1, 'include_all_metadata': True})
+    require(isinstance(history.get('messages'), list), 'Slack channel history unavailable')
 
 
 def safe(value):

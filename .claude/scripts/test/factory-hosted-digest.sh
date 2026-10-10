@@ -112,6 +112,15 @@ with tempfile.TemporaryDirectory() as tmp:
     client.drop=True;later=datetime(2026,10,5,22,tzinfo=timezone.utc)
     reject(lambda:m.run(config,ReportAPI(),api,client,tmp/'run3',later));assert client.posts==2
     client.drop=False;assert m.run(config,ReportAPI(),api,client,tmp/'run4',later)['status']=='delivered' and client.posts==2
+# A blocked post-send history read must retain the confirmed checkpoint and never resend.
+class HiddenHistory(SlackClient):
+    def call(self,method,body):
+        if method=='conversations.history':return {'ok':True,'messages':[],'has_more':False,'response_metadata':{'next_cursor':''}}
+        return super().call(method,body)
+with tempfile.TemporaryDirectory() as tmp:
+    tmp=Path(tmp);api=GitAPI();client=HiddenHistory();now=datetime(2026,10,4,22,tzinfo=timezone.utc)
+    reject(lambda:m.run(config,ReportAPI(),api,client,tmp/'first',now));assert client.posts==1
+    assert m.run(config,ReportAPI(),api,client,tmp/'fresh',now)['status']=='not-due' and client.posts==1
 # Exercise credential separation and fixed-host API envelope without network.
 client=m.API('org/repo','fixture-state-credential')
 def envelope(command,**kwargs):
