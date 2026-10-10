@@ -170,3 +170,7 @@ Implemented authenticated single-task coordinator receipt ingestion and separate
 2026-10-10: PR #73 merged spec 024 at `41ffe89d` after all seven current required checks passed. Spec 025 adds the next F-05 slice: disabled-by-default exact oversized Slack file delivery, modern upload methods, channel/uploader/content readback and no-resend uncertainty recovery. Live file scopes/readback, external watchdog, long-term receipt archival and later feedback/adoption/release packages remain open; reporting remains enabled and autonomous merge remains disabled.
 
 2026-10-10: PR #74 merged spec 025 at `cf185931` after all seven current required checks passed. File delivery is implemented with complete 300-PR fixture proof and remains off pending live Slack scopes/readback. Spec 026 provides read-only external reporting health and a protected opt-in heartbeat to an independently operated timer; monitor account/alert setup and live missed-signal/recovery proof remain activation inputs. Long-term receipt archival and F-06/F-07/F-08 work remain open. Normal reporting stays enabled; merge authority stays disabled.
+
+### F-05 scope activation refinement (027)
+
+Installed bot file grants are checked from authenticated Slack headers before opt-in hosted attachment delivery. Passing grants do not establish an upload receipt; live file delivery and external timer activation remain separate readiness requirements.
