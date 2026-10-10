@@ -1,6 +1,6 @@
 {
   "source_commit": "6b3dd05238e04780d7a75378d082d9d61ec6f7c7",
-  "generated_at": "2026-10-10T02:29:34.633579+00:00",
+  "generated_at": "2026-10-10T02:29:45.532634+00:00",
   "independent_attestation": false,
   "observations": [
     {
@@ -9,12 +9,19 @@
         {
           "argv": [
             "bash",
+            ".claude/scripts/test/factory-policy-approval.sh"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "bash",
             ".claude/scripts/test/factory-hosted-digest.sh"
           ],
           "exit_code": 0
         }
       ],
-      "artifact_sha256": "9b4d69503624ec93c995f41b198f3e7954ffd408e426df0f68ddd4863874298c"
+      "artifact_sha256": "d5ef1e9e593c6df6aaf2ad1b4b0a20f015a2581e58f8a17804cab613ab1ecfbb"
     },
     {
       "id": "AC-2",
@@ -22,16 +29,10 @@
         {
           "argv": [
             "bash",
-            ".claude/scripts/test/factory-hosted-digest.sh"
+            ".claude/scripts/test/factory-policy-approval.sh"
           ],
           "exit_code": 0
-        }
-      ],
-      "artifact_sha256": "9b4d69503624ec93c995f41b198f3e7954ffd408e426df0f68ddd4863874298c"
-    },
-    {
-      "id": "AC-3",
-      "commands": [
+        },
         {
           "argv": [
             "bash",
@@ -40,11 +41,38 @@
           "exit_code": 0
         }
       ],
-      "artifact_sha256": "9b4d69503624ec93c995f41b198f3e7954ffd408e426df0f68ddd4863874298c"
+      "artifact_sha256": "d5ef1e9e593c6df6aaf2ad1b4b0a20f015a2581e58f8a17804cab613ab1ecfbb"
+    },
+    {
+      "id": "AC-3",
+      "commands": [
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-policy-approval.sh"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-hosted-digest.sh"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "artifact_sha256": "d5ef1e9e593c6df6aaf2ad1b4b0a20f015a2581e58f8a17804cab613ab1ecfbb"
     },
     {
       "id": "AC-4",
       "commands": [
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-policy-approval.sh"
+          ],
+          "exit_code": 0
+        },
         {
           "argv": [
             "bash",
@@ -97,7 +125,7 @@
           "exit_code": 0
         }
       ],
-      "artifact_sha256": "038647468abbc33a48a043c42d5804c6c9c85345b98fd31979884fe608c5ee2f"
+      "artifact_sha256": "21bd245793b0c60da5b2100cb0eb97316893fcf7912e71231e1b956d5c1d9269"
     }
   ]
 }

@@ -1,5 +1,5 @@
 ## Evidence Bundle — Spec 021 (021-hosted-reporting-checkpoints)
-Spec: `specs/active/021-hosted-reporting-checkpoints.md` · Commit: `7c9f766`
+Spec: `specs/active/021-hosted-reporting-checkpoints.md` · Commit: `6b3dd05`
 
 ### Acceptance criteria (4/4 proven)
 | AC | Proven by | Result |
@@ -11,7 +11,7 @@ Spec: `specs/active/021-hosted-reporting-checkpoints.md` · Commit: `7c9f766`
 
 ### Smoke test (exit codes are load-bearing)
 ```
-# Smoke test — 2026-10-10T12:39:54+11:00
+# Smoke test — 2026-10-10T13:29:34+11:00
 $ bash .claude/scripts/verify.sh
 
 → Integration coverage gate

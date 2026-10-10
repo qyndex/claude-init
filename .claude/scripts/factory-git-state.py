@@ -53,8 +53,63 @@ class API:
         return json.loads(result.stdout, object_pairs_hook=digest.coordinator.contract.no_duplicate_keys)
 
 
+POLICY_FIELDS = {'id', 'name', 'target', 'source_type', 'source', 'enforcement',
+                 'conditions', 'rules', 'node_id', 'created_at', 'updated_at'}
+
+
+def policy_projection(policy):
+    require(POLICY_FIELDS <= set(policy), 'state policy metadata incomplete')
+    projection = {key: policy[key] for key in POLICY_FIELDS}
+    for key in ('created_at', 'updated_at'):
+        projection[key] = digest.stamp(digest.instant(projection[key]))
+    return projection
+
+
+def attest_policy(api, identity, now=None):
+    now = now or datetime.now(timezone.utc)
+    policy = api.request(f'repos/{api.repo}/rulesets/{identity}')
+    require(policy.get('id') == identity and policy.get('source_type') == 'Repository' and
+            policy.get('source') == api.repo and policy.get('target') == 'branch' and
+            policy.get('enforcement') == 'active' and policy.get('bypass_actors') == [],
+            'operator must observe an active repository policy with an explicit empty bypass list')
+    projection = policy_projection(policy)
+    updated = digest.instant(projection['updated_at'])
+    # Observe after the timestamp has settled; subsequent server-side changes invalidate approval.
+    require((now - updated).total_seconds() >= 60, 'state policy must settle for 60 seconds before approval')
+    return {'schema_version': 1, 'repository': api.repo, 'ruleset_id': identity,
+            'policy_sha256': hashlib.sha256(canonical(projection).encode()).hexdigest(),
+            'policy_updated_at': projection['updated_at'], 'observed_at': digest.stamp(now),
+            'bypass_actors': []}
+
+
+def verify_policy(policy, repository, identity, approvals=None, now=None):
+    require(policy.get('enforcement') == 'active', 'state protection disabled or bypassable')
+    if 'bypass_actors' in policy:
+        require(policy['bypass_actors'] == [], 'state protection disabled or bypassable')
+        return
+    require(isinstance(approvals, dict) and str(identity) in approvals,
+            'state bypass actors hidden; protected operator approval required')
+    approval = approvals[str(identity)]
+    require(isinstance(approval, dict) and set(approval) == {'schema_version', 'repository',
+            'ruleset_id', 'policy_sha256', 'policy_updated_at', 'observed_at', 'bypass_actors'} and
+            type(approval['schema_version']) is int and approval['schema_version'] == 1 and
+            approval['repository'] == repository and type(approval['ruleset_id']) is int and
+            approval['ruleset_id'] == identity and approval['bypass_actors'] == [],
+            'state policy approval missing or mismatched')
+    projection = policy_projection(policy)
+    require(projection['id'] == identity and projection['target'] == 'branch' and
+            projection['source_type'] == 'Repository' and projection['source'] == repository and
+            approval['policy_updated_at'] == projection['updated_at'] and
+            approval['policy_sha256'] == hashlib.sha256(canonical(projection).encode()).hexdigest(),
+            'state policy changed since operator approval')
+    observed = digest.instant(approval['observed_at'])
+    updated = digest.instant(projection['updated_at'])
+    require((observed - updated).total_seconds() >= 60 and observed <= (now or datetime.now(timezone.utc)),
+            'state policy approval clock invalid')
+
+
 class GitState:
-    def __init__(self, api, branch, stream, bootstrap_sha=None):
+    def __init__(self, api, branch, stream, bootstrap_sha=None, policy_approvals=None):
         require(re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._/-]*', branch or '') and '..' not in branch and not branch.endswith('/'), 'state branch invalid')
         require(digest.coordinator.contract.digest(stream, 64), 'state stream invalid')
         self.api = api; self.root = f'repos/{api.repo}'; self.branch = branch
@@ -67,7 +122,7 @@ class GitState:
         require(bool(ids), 'state protection provenance missing')
         for identity in ids:
             policy = api.request(self.root + '/rulesets/' + str(identity))
-            require(policy['enforcement'] == 'active' and policy.get('bypass_actors') == [], 'state protection disabled or bypassable')
+            verify_policy(policy, api.repo, identity, policy_approvals)
         ref = api.request(self.root + '/git/ref/heads/' + quote(branch, safe=''))
         require(ref['ref'] == 'refs/heads/' + branch and ref['object']['type'] == 'commit', 'state reference differs')
         self.head = ref['object']['sha']; require(digest.coordinator.contract.digest(self.head, 40), 'state commit invalid')
@@ -188,7 +243,7 @@ def run(config, report_api, state_api, slack_client, path, now):
     source = report_api.get(f'repos/{report_api.repo}')
     require(source['full_name'] == report_api.repo and source['default_branch'] == config['branch'], 'report repository/default branch differs')
     stream = hashlib.sha256(canonical([config['repository'], config['destination'], config['branch']]).encode()).hexdigest()
-    state = GitState(state_api, config['state_branch'], stream, config.get('bootstrap_sha'))
+    state = GitState(state_api, config['state_branch'], stream, config.get('bootstrap_sha'), config.get('policy_approvals'))
     require(not source['private'] or state.private, 'private repository cannot publish public checkpoints')
     store = HostedDigest(path, config, state)
     target = slack.due(now)
@@ -216,5 +271,10 @@ def main():
 if __name__ == '__main__':
     try:
         main()
-    except (ValueError, KeyError, TypeError, OSError, sqlite3.Error, subprocess.SubprocessError):
-        print('Hosted reporting blocked; reconcile authoritative state before retry.', file=sys.stderr); sys.exit(1)
+    except (ValueError, KeyError, TypeError, OSError, sqlite3.Error, subprocess.SubprocessError) as error:
+        public = {'state bypass actors hidden; protected operator approval required',
+                  'state policy approval missing or mismatched', 'state policy changed since operator approval',
+                  'state policy approval clock invalid', 'state policy metadata incomplete',
+                  'state protection disabled or bypassable'}
+        detail = str(error) if str(error) in public else 'reconcile authoritative state before retry'
+        print('Hosted reporting blocked: ' + detail, file=sys.stderr); sys.exit(1)
