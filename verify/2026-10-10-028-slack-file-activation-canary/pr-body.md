@@ -1,5 +1,5 @@
 ## Evidence Bundle — Spec 028 (028-slack-file-activation-canary)
-Spec: `specs/active/028-slack-file-activation-canary.md` · Commit: `0c30aa4`
+Spec: `specs/active/028-slack-file-activation-canary.md` · Commit: `4e9bd4c`
 
 ### Acceptance criteria (4/4 proven)
 | AC | Proven by | Result |
@@ -11,7 +11,7 @@ Spec: `specs/active/028-slack-file-activation-canary.md` · Commit: `0c30aa4`
 
 ### Smoke test (exit codes are load-bearing)
 ```
-# Smoke test — 2026-10-10T17:20:04+11:00
+# Smoke test — 2026-10-10T17:25:58+11:00
 $ bash .claude/scripts/verify.sh
 
 → Integration coverage gate
