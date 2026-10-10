@@ -1,0 +1,9 @@
+# Smoke test — 2026-10-10T18:24:03+11:00
+$ bash .claude/scripts/verify.sh
+
+→ Integration coverage gate
+  ✓ changed API/DB files have integration tests
+
+verify: PASS
+exit: 0
+---
