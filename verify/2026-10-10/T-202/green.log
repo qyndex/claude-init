@@ -1,0 +1,10 @@
+# TDD ledger — green — T-202
+ledger_format: 2
+timestamp: 2026-10-10T17:25:57+11:00
+command: bash .claude/scripts/test/factory-slack-file-canary.sh
+exit_code: 0
+---
+AC-1: real attachment fixture proves isolated labelled bytes and exact private file receipt
+AC-2: fresh invocation and retry verify existing receipt without another allocation
+AC-3: previous ambiguous and lost-response runs fail closed or reconcile without reallocation
+AC-4: disabled/foreign/missing-grant guards, protected permissions and bounded secret-free diagnostics passed

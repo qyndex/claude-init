@@ -51,8 +51,26 @@ def main():
                      int(os.environ.get('GITHUB_RUN_ID', '0')), int(os.environ.get('GITHUB_RUN_ATTEMPT', '0')))
         Path(args.output).write_text(state.canonical(result)); print(state.canonical(result))
         return 0
-    except (ValueError, KeyError, TypeError, OSError):
-        print('File canary blocked; preserve run history and reconcile before retry.', file=sys.stderr)
+    except (ValueError, KeyError, TypeError, OSError) as error:
+        # Exception text is never logged: it may contain a URL or private response.
+        reasons = {
+            'previous or ambiguous canary run; reconcile without allocating another file': 'allocation-fence',
+            'Slack attachment API failed; inspect scopes and authoritative history': 'file-api',
+            'Slack attachment URL rejected': 'file-url',
+            'Slack file download identity differs': 'download-identity',
+            'Slack upload URL/bytes rejected': 'upload-url',
+            'Slack attachment transfer uncertain; reconcile before retry': 'file-transfer',
+            'Slack attachment share sender/time differs': 'share-sender',
+            'Slack attachment identity/size/privacy differs': 'file-metadata',
+            'Slack attachment destination differs': 'share-destination',
+            'Slack attachment content differs': 'file-bytes',
+            'Slack attachment share not visible; preserve uncertainty': 'share-not-visible',
+            'Slack attachment share ambiguous': 'ambiguous-share',
+            'Slack workspace/bot differs': 'bot-identity',
+            'Slack file permissions unavailable; add files:read and files:write and reinstall the app': 'file-scopes',
+        }
+        reason = reasons.get(str(error), 'blocked')
+        print('File canary blocked (' + reason + '); preserve run history and reconcile before retry.', file=sys.stderr)
         return 2
 
 

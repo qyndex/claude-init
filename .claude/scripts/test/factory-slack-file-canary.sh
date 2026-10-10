@@ -2,7 +2,8 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
 python3 - "$ROOT" <<'PY'
-import copy,importlib.util,sys
+import copy,importlib.util,sys,io,contextlib
+from unittest.mock import patch
 from pathlib import Path
 root=Path(sys.argv[1]);path=root/'.claude/scripts/factory-slack-file-canary.py';assert path.exists(),'one-allocation live file canary is absent'
 spec=importlib.util.spec_from_file_location('canary',path);m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
@@ -37,5 +38,10 @@ for changed in [{'enabled':False},{'attachments_enabled':False},{'repository':'f
  c=Client();rejects(lambda:m.run(dict(config,**changed),API(),c,100,1));assert c.allocations==0
 c=Client();c.bad_scope=True;rejects(lambda:m.run(config,API(),c,100,1));assert c.allocations==0
 workflow=(root/'.github/workflows/factory-slack-file-canary.yml').read_text();assert 'contents: read' in workflow and 'actions: read' in workflow and 'environment: factory-reporting' in workflow and 'factory-reporting-${{ github.repository }}' in workflow
-print('AC-4: disabled foreign missing-grant inputs block and protected workflow has read-only Git permissions')
+for error,expected in [(ValueError('Slack attachment destination differs'),'share-destination'),(ValueError('https://private.example/secret'),'blocked')]:
+    output=io.StringIO()
+    with patch.object(sys,'argv',['canary','--config','unused','--output','unused']), patch.object(Path,'read_text',return_value='{"repository":"org/repo"}'), patch.object(m.state,'API',return_value=API()), patch.object(m.slack,'http_client',return_value=Client()), patch.object(m,'run',side_effect=error), contextlib.redirect_stderr(output):
+        assert m.main()==2
+    assert '('+expected+')' in output.getvalue() and 'private.example' not in output.getvalue() and 'secret' not in output.getvalue()
+print('AC-4: disabled/foreign/missing-grant guards, protected permissions and bounded secret-free diagnostics passed')
 PY
