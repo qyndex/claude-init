@@ -1,0 +1,27 @@
+{
+  "runner": "shell-acceptance-recorder",
+  "independent_attestation": false,
+  "command": "bash .claude/scripts/test/factory-hosted-digest.sh",
+  "testResults": [
+    {
+      "assertionResults": [
+        {
+          "fullName": "AC-1 actual hosted split-receipt acceptance assertions",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-2 actual hosted split-receipt acceptance assertions",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-3 actual hosted split-receipt acceptance assertions",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-4 actual hosted split-receipt acceptance assertions",
+          "status": "passed"
+        }
+      ]
+    }
+  ]
+}

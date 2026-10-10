@@ -1160,3 +1160,9 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   files: .claude/scripts/factory-git-state.py, .claude/scripts/factory-attest-state-policy.py, .github/workflows/factory-hosted-digest.yml
   accept: bash .claude/scripts/test/factory-policy-approval.sh
   owner: implementer
+
+- [x] T-196  | spec:023  | phase:1  | priority: security  | created: 2026-10-10  | last_touched: 2026-10-10  | deps: T-195  | parallel: no  | est: 30m
+  summary: Recover complete authenticated Slack fragments without resending an uncertain digest
+  files: .claude/scripts/factory-slack-digest.py, .claude/scripts/test/factory-hosted-digest.sh
+  accept: bash .claude/scripts/test/factory-hosted-digest.sh
+  owner: implementer

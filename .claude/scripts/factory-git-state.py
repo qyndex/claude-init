@@ -278,6 +278,7 @@ if __name__ == '__main__':
                   'state protection disabled or bypassable', 'Slack receipt bot differs',
                   'Slack receipt metadata differs', 'Slack receipt text differs',
                   'Slack receipt timestamp differs', 'remote delivery remains uncertain',
+                  'split Slack receipt incomplete or conflicting',
                   'Slack request failed; reconcile before resend',
                   'Delivered receipt not visible in Slack history; preserve confirmed state'}
         public.update('Slack API returned failure: ' + code for code in (

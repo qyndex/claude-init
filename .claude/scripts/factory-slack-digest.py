@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Protected local morning runner and conservative Slack delivery adapter."""
 import argparse
+from decimal import Decimal
+from itertools import product
 from datetime import datetime, timedelta, timezone
 import hashlib
 import html
@@ -129,21 +131,55 @@ class Slack:
         self.bot = identity['bot_id']
         self.metadata = {'event_type': 'factory_digest_v1', 'event_payload': {'key': key, 'payload_sha256': self.hash}}
 
-    def proof(self, message):
+    def fragment_identity(self, message):
         require(message.get('bot_id') == self.bot, 'Slack receipt bot differs')
         require(message.get('metadata') == self.metadata, 'Slack receipt metadata differs')
-        if not receipt_text_matches(self.text, message.get('text')):
-            print('Slack receipt comparison: ' + json.dumps(receipt_text_diagnostic(self.text, message.get('text'))), file=sys.stderr)
+        require(isinstance(message.get('text'), str) and bool(message['text']), 'Slack receipt text differs')
+        require(isinstance(message.get('ts'), str) and re.fullmatch(r'[0-9]+\.[0-9]{1,6}', message['ts']), 'Slack receipt timestamp differs')
+
+    def receipt(self, identity):
+        return {'key': self.key, 'payload_sha256': self.hash, 'destination': self.channel, 'message_id': identity}
+
+    def proof(self, message):
+        self.fragment_identity(message)
+        if not receipt_text_matches(self.text, message['text']):
+            print('Slack receipt comparison: ' + json.dumps(receipt_text_diagnostic(self.text, message['text'])), file=sys.stderr)
             raise ValueError('Slack receipt text differs')
-        require(re.fullmatch(r'[0-9]+\.[0-9]+', message.get('ts', '')), 'Slack receipt timestamp differs')
-        return {'key': self.key, 'payload_sha256': self.hash, 'destination': self.channel, 'message_id': message['ts']}
+        return self.receipt(message['ts'])
+
+    def fragments_proof(self, messages):
+        require(1 <= len(messages) <= 10, 'split Slack receipt incomplete or conflicting')
+        if len(messages) == 1:
+            return self.proof(messages[0])
+        for message in messages:
+            self.fragment_identity(message)
+        messages = sorted(messages, key=lambda message: Decimal(message['ts']))
+        ids = [message['ts'] for message in messages]
+        require(len(set(map(Decimal, ids))) == len(ids) and Decimal(ids[-1]) - Decimal(ids[0]) <= 60,
+                'split Slack receipt incomplete or conflicting')
+        # Slack can retain or drop a newline at a split boundary. No other
+        # whitespace/content repair is permitted; require the entire expected report.
+        complete = False
+        for separators in product(('', '\n'), repeat=len(messages)-1):
+            joined = messages[0]['text'] + ''.join(separator + message['text'] for separator, message in zip(separators, messages[1:]))
+            if receipt_text_matches(self.text, joined):
+                complete = True; break
+        require(complete, 'split Slack receipt incomplete or conflicting')
+        return self.receipt(digest.canonical({'schema_version': 1, 'slack_message_ids': ids}))
 
     def send(self, key, payload, destination):
         require(key == self.key and destination == self.channel and hashlib.sha256(payload.encode()).hexdigest() == self.hash, 'Slack destination/payload differs')
         result = self.client.call('chat.postMessage', {'channel': self.channel, 'text': self.text, 'metadata': self.metadata,
                                                      'mrkdwn': False, 'parse': 'none', 'unfurl_links': False, 'unfurl_media': False})
         require(result.get('channel') == self.channel, 'Slack response channel differs')
-        return self.proof(result['message'])
+        self.fragment_identity(result['message'])
+        if receipt_text_matches(self.text, result['message']['text']):
+            return self.proof(result['message'])
+        # A partial post response cannot certify delivery. Read every fragment;
+        # incomplete history leaves durable uncertainty for a fresh run.
+        receipt = self.lookup(key)['receipt']
+        require(receipt is not None, 'split Slack receipt incomplete or conflicting')
+        return receipt
 
     def lookup(self, key):
         require(key == self.key, 'wrong Slack digest key')
@@ -157,13 +193,13 @@ class Slack:
             for message in page['messages']:
                 metadata = message.get('metadata', {})
                 if message.get('bot_id') == self.bot and metadata.get('event_type') == 'factory_digest_v1' and metadata.get('event_payload', {}).get('key') == key:
-                    matches.append(self.proof(message))
+                    self.fragment_identity(message)
+                    matches.append(message)
             cursor = page.get('response_metadata', {}).get('next_cursor', '')
             if not cursor:
                 require(not page.get('has_more'), 'Slack history pagination incomplete')
-                require(len(matches) <= 1, 'duplicate Slack digest messages')
                 # History absence is never authoritative, even after all pages.
-                return {'receipt': matches[0] if matches else None, 'authoritative_absence': False}
+                return {'receipt': self.fragments_proof(matches) if matches else None, 'authoritative_absence': False}
             require(cursor not in seen, 'Slack history cursor repeated')
             seen.add(cursor)
         raise ValueError('Slack history exceeds reconciliation limit')

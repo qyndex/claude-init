@@ -1,0 +1,42 @@
+## Evidence Bundle — Spec 023 (023-slack-split-receipts)
+Spec: `specs/active/023-slack-split-receipts.md` · Commit: `3d0c28c`
+
+### Acceptance criteria (4/4 proven)
+| AC | Proven by | Result |
+|----|-----------|--------|
+| AC-1 | tagged test | ✓ PASS |
+| AC-2 | tagged test | ✓ PASS |
+| AC-3 | tagged test | ✓ PASS |
+| AC-4 | tagged test | ✓ PASS |
+
+### Smoke test (exit codes are load-bearing)
+```
+# Smoke test — 2026-10-10T14:05:53+11:00
+$ bash .claude/scripts/verify.sh
+
+→ Integration coverage gate
+  ✓ changed API/DB files have integration tests
+
+verify: PASS
+exit: 0
+---
+```
+
+### Visual proof
+0 screenshot(s) captured under `verify/2026-10-10-023-slack-split-receipts/screenshots/` (named by AC).
+
+### API traces
+0 API trace file(s) under `verify/2026-10-10-023-slack-split-receipts/traces/`; full HAR at `verify/2026-10-10-023-slack-split-receipts/network.har`.
+
+### Coverage
+line ?% · branch ?% (gate: line≥90 branch≥85)
+
+### Verdict: **PASS**
+
+## Artifact index
+- verify/2026-10-10-023-slack-split-receipts/evidence.json
+- verify/2026-10-10-023-slack-split-receipts/pr-body.md
+- verify/2026-10-10-023-slack-split-receipts/acceptance.log
+- verify/2026-10-10-023-slack-split-receipts/EVIDENCE.md
+- verify/2026-10-10-023-slack-split-receipts/results.json
+- verify/2026-10-10-023-slack-split-receipts/smoke.log
