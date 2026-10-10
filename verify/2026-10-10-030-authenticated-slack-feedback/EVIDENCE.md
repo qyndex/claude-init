@@ -1,5 +1,5 @@
 ## Evidence Bundle — Spec 030 (030-authenticated-slack-feedback)
-Spec: `specs/active/030-authenticated-slack-feedback.md` · Commit: `db97627`
+Spec: `specs/active/030-authenticated-slack-feedback.md` · Commit: `8312515`
 
 ### Acceptance criteria (4/4 proven)
 | AC | Proven by | Result |
@@ -11,7 +11,7 @@ Spec: `specs/active/030-authenticated-slack-feedback.md` · Commit: `db97627`
 
 ### Smoke test (exit codes are load-bearing)
 ```
-# Smoke test — 2026-10-10T18:07:49+11:00
+# Smoke test — 2026-10-10T18:15:38+11:00
 $ bash .claude/scripts/verify.sh
 
 → Integration coverage gate
