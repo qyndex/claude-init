@@ -1,0 +1,27 @@
+{
+  "runner": "shell-acceptance-recorder",
+  "independent_attestation": false,
+  "command": "bash .claude/scripts/test/factory-slack-scope-preflight.sh",
+  "testResults": [
+    {
+      "assertionResults": [
+        {
+          "fullName": "AC-1: inherited attachment HTTP reads authenticated granted scopes without upload or message",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-2: absent partial and similar-name grants fail closed",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-3: successful reauthentication replaces stale grants and API failure blocks preflight",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-4: protected opt-in workflow gates attachments and legacy reporting needs no file grants",
+          "status": "passed"
+        }
+      ]
+    }
+  ]
+}
