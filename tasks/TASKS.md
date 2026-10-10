@@ -1166,3 +1166,9 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   files: .claude/scripts/factory-slack-digest.py, .claude/scripts/test/factory-hosted-digest.sh
   accept: bash .claude/scripts/test/factory-hosted-digest.sh
   owner: implementer
+
+- [x] T-197  | spec:024  | phase:1  | priority: security  | created: 2026-10-10  | last_touched: 2026-10-10  | deps: T-196  | parallel: no  | est: 30m
+  summary: Project authenticated merge-time receipts into fresh hosted reporting disks without runtime authority
+  files: .claude/scripts/factory-receipts.py, .claude/scripts/factory-git-state.py, .github/workflows/factory-hosted-digest.yml
+  accept: bash .claude/scripts/test/factory-receipt-projection.sh
+  owner: implementer

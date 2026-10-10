@@ -8,6 +8,7 @@ import json
 from pathlib import Path
 import re
 import sys
+import sqlite3
 import zipfile
 
 
@@ -39,7 +40,7 @@ def receipt_artifact(api, run):
         return json.loads(archive.read('receipt.json'), object_pairs_hook=coordinator.contract.no_duplicate_keys), artifact
 
 
-def ingest(api, policy, db_path, run_id):
+def authenticate(api, policy, run_id, *, historical=False):
     require(type(run_id) is int and run_id > 0 and api.repo == policy['repository'], 'invalid receipt source')
     repo = policy['repository']; root = f'repos/{repo}'
     require(type(policy['receipts']['workflow_id']) is int and policy['receipts']['workflow_id'] > 0, 'receipt workflow not configured')
@@ -65,7 +66,7 @@ def ingest(api, policy, db_path, run_id):
     require(all(type(document[k]) is int and document[k] > 0 for k in ('verifier_run', 'reviewer_run')) and document['verifier_run'] != document['reviewer_run'], 'missing independent proof identity')
     require(document['policy_sha256'] == coordinator.policy_hash(source), 'receipt policy differs')
     approved = source['specs'][document['spec']]
-    current = policy['specs'][document['spec']]
+    current = approved if historical else policy['specs'][document['spec']]
     require(document['spec_sha256'] == approved['sha256'] == current['sha256'], 'superseded spec receipt')
     require(hashlib.sha256(api.source(approved['path'], run['head_sha'])).hexdigest() == document['spec_sha256'], 'receipt spec bytes differ')
     # Multiple task deliveries need explicit per-task acceptance mapping; never infer all spec tasks.
@@ -81,13 +82,20 @@ def ingest(api, policy, db_path, run_id):
     provenance = json.dumps({'run_id': run_id, 'attempt': run['run_attempt'], 'workflow_id': run['workflow_id'],
                              'source_sha': run['head_sha'], 'artifact_id': artifact['id'], 'artifact_digest': artifact['digest'],
                              'receipt': document}, sort_keys=True)
+    return {'tasks': tasks, 'revision': document['spec_sha256'], 'delivery': encoded,
+            'provenance': provenance, 'run_id': run_id, 'merge_sha': document['merge_sha']}
+
+
+def ingest(api, policy, db_path, run_id):
+    proof = authenticate(api, policy, run_id)
+    tasks = proof['tasks']; encoded = proof['delivery']; provenance = proof['provenance']
     store = ledger.runtime.Store(db_path)
     with store.transaction() as db:
         db.execute('CREATE TABLE IF NOT EXISTS delivery_receipts(task TEXT PRIMARY KEY, revision TEXT NOT NULL, receipt TEXT NOT NULL)')
         db.execute('CREATE TABLE IF NOT EXISTS delivery_provenance(task TEXT PRIMARY KEY, provenance TEXT NOT NULL)')
         for task in tasks:
             row = store.row(db, task)
-            require(row['revision'] == document['spec_sha256'] and row['state'] != 'cancelled', 'runtime task authority differs')
+            require(row['revision'] == proof['revision'] and row['state'] != 'cancelled', 'runtime task authority differs')
             previous = db.execute('SELECT * FROM delivery_receipts WHERE task=?', (task,)).fetchone()
             old_proof = db.execute('SELECT * FROM delivery_provenance WHERE task=?', (task,)).fetchone()
             require(previous is None or (previous['revision'] == row['revision'] and previous['receipt'] == encoded and old_proof is not None and old_proof['provenance'] == provenance), 'conflicting delivery/provenance')
@@ -95,7 +103,49 @@ def ingest(api, policy, db_path, run_id):
             db.execute('INSERT OR IGNORE INTO delivery_provenance VALUES(?,?)', (task, provenance))
             if row['state'] != 'merged':
                 db.execute("UPDATE tasks SET state='merged',owner=NULL,expires=NULL,fence=fence+1 WHERE id=?", (task,))
-    return {'completed_tasks': tasks, 'run_id': run_id, 'merge_sha': document['merge_sha']}
+    return {'completed_tasks': tasks, 'run_id': run_id, 'merge_sha': proof['merge_sha']}
+
+
+def project(api, policy, db_path):
+    """Rebuild reporting-only proof tables; never create or transition runtime tasks."""
+    require(api.repo == policy['repository'], 'foreign reporting receipt policy')
+    configured = policy['receipts']
+    workflow = configured['workflow_id']
+    if workflow is None:
+        require(configured['trusted_revisions'] == {}, 'receipt workflow missing for approved revisions')
+        proofs = []
+    else:
+        require(type(workflow) is int and workflow > 0, 'receipt workflow not configured')
+        pages = api.request(f'repos/{api.repo}/actions/workflows/{workflow}/runs?status=success&per_page=100', paginate=True)
+        require(isinstance(pages, list), 'receipt run pages malformed')
+        runs = [run for page in pages for run in page['workflow_runs']]
+        require(len(runs) <= 1000, 'receipt history exceeds projection bound')
+        require(len({run['id'] for run in runs}) == len(runs), 'duplicate receipt run identity')
+        proofs = []
+        for run in runs:
+            if run['head_sha'] not in configured['trusted_revisions']:
+                continue  # Unapproved sources can never become authenticated evidence.
+            # A successful coordinator may deliberately decline a merge. Its artifact
+            # is inspected as data only; only true delivery claims enter authentication.
+            document, _ = receipt_artifact(api, run)
+            require(type(document.get('merged')) is bool, 'receipt delivery outcome missing')
+            if document['merged']:
+                proofs.append(authenticate(api, policy, run['id'], historical=True))
+    # Validate the entire observation before atomically replacing the ephemeral tables.
+    by_task = {}
+    for proof in proofs:
+        for task in proof['tasks']:
+            require(task not in by_task or by_task[task] == proof, 'conflicting reporting delivery proof')
+            by_task[task] = proof
+    with sqlite3.connect(db_path) as db:
+        db.execute('CREATE TABLE IF NOT EXISTS delivery_receipts(task TEXT PRIMARY KEY, revision TEXT NOT NULL, receipt TEXT NOT NULL)')
+        db.execute('CREATE TABLE IF NOT EXISTS delivery_provenance(task TEXT PRIMARY KEY, provenance TEXT NOT NULL)')
+        db.execute('DELETE FROM delivery_receipts')
+        db.execute('DELETE FROM delivery_provenance')
+        for task, proof in sorted(by_task.items()):
+            db.execute('INSERT INTO delivery_receipts VALUES(?,?,?)', (task, proof['revision'], proof['delivery']))
+            db.execute('INSERT INTO delivery_provenance VALUES(?,?)', (task, proof['provenance']))
+    return len(by_task)
 
 
 def main():

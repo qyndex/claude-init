@@ -6,6 +6,7 @@ on:
 permissions:
   contents: write
   pull-requests: read
+  actions: read
 concurrency:
   group: factory-reporting-${{ github.repository }}
   cancel-in-progress: false
@@ -44,7 +45,8 @@ jobs:
                   'destination':os.environ['FACTORY_REPORTING_CHANNEL'],'team_id':os.environ['FACTORY_REPORTING_TEAM_ID'],
                   'start':os.environ['FACTORY_REPORTING_START'],'state_branch':os.environ['FACTORY_REPORTING_STATE_BRANCH'],
                   'bootstrap_sha':os.environ['FACTORY_REPORTING_BOOTSTRAP_SHA'],
-                  'policy_approvals':json.loads(os.environ['FACTORY_REPORTING_POLICY_APPROVALS'] or '{}')}
+                  'policy_approvals':json.loads(os.environ['FACTORY_REPORTING_POLICY_APPROVALS'] or '{}'),
+                  'receipt_policy':json.loads(Path('factory/policy.json').read_text())}
           Path(os.environ['RUNNER_TEMP'],'factory-hosted-digest.json').write_text(json.dumps(config))
           PYCONFIG
       - name: Verify Slack identity and history before delivery

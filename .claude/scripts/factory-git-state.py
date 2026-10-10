@@ -249,6 +249,10 @@ def run(config, report_api, state_api, slack_client, path, now):
     target = slack.due(now)
     if digest.instant(store.cursor()) >= digest.instant(target):
         return {'status': 'not-due'}
+    if config.get('receipt_policy') is not None:
+        receipts_spec = importlib.util.spec_from_file_location('report_receipts', Path(__file__).with_name('factory-receipts.py'))
+        receipts = importlib.util.module_from_spec(receipts_spec); receipts_spec.loader.exec_module(receipts)
+        receipts.project(report_api, config['receipt_policy'], path)
     batch = store.prepare(report_api, target)
     transport = slack.Slack(slack_client, config['team_id'], config['destination'], batch['key'], batch['payload'])
     receipt = store.deliver(batch['key'], transport)

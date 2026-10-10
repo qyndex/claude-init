@@ -55,7 +55,7 @@ class Transport:
         if self.drop:raise RuntimeError('Slack response lost')
         return receipt
     def lookup(self,key):return {'receipt':self.messages.get(key),'authoritative_absence':False}
-config={'enabled':True,'repository':'org/repo','destination':'C1','team_id':'T1','branch':'main','start':'2026-10-01T00:00:00Z','state_branch':'factory-reporting-state','bootstrap_sha':'a'*40}
+config={'enabled':True,'repository':'org/repo','destination':'C1','team_id':'T1','branch':'main','start':'2026-10-01T00:00:00Z','state_branch':'factory-reporting-state','bootstrap_sha':'a'*40,'receipt_policy':{'repository':'org/repo','receipts':{'workflow_id':None,'trusted_revisions':{}}}}
 stream=hashlib.sha256(m.canonical(['org/repo','C1','main']).encode()).hexdigest()
 with tempfile.TemporaryDirectory() as tmp:
     tmp=Path(tmp);api=GitAPI();remote=Transport()
