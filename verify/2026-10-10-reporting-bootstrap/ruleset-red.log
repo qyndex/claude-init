@@ -1,0 +1,4 @@
+PASS: main first
+Traceback (most recent call last):
+  File "<stdin>", line 21, in <module>
+AssertionError: ('state first', '::error title=live ruleset drift::live ruleset missing required contexts: adr-gate check-daily-batch commitlint evidence-gate harness-validate lint-exception-audit lint-test — re-apply .github/rulesets/main-protection.json\n', '')
