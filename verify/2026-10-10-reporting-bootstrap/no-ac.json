@@ -1,4 +1,1 @@
-{
-  "kind": "docs-only",
-  "reason": "Records actual reporting state bootstrap and configuration; no implementation or acceptance contract changed."
-}
+{"kind":"harness-maintenance","reason":"Reporting bootstrap documentation and a harness-only live ruleset selector repair; no application source or acceptance specification changes."}
