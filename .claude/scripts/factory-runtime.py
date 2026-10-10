@@ -199,8 +199,8 @@ class Store:
                 raise Blocked('action is not pending; reconcile uncertain effects')
             if db.execute('SELECT paused FROM control WHERE id=1').fetchone()[0]:
                 raise Blocked('factory paused')
-            if self.row(db, row['task'])['state'] == 'cancelled':
-                raise Blocked('task cancelled')
+            if self.row(db, row['task'])['state'] in {'cancelled', 'blocked'}:
+                raise Blocked('task cancelled or blocked')
             db.execute('UPDATE outbox SET status=?,sender=?,expires=? WHERE key=?',
                        ('dispatching', sender, now + seconds, key))
             return dict(db.execute('SELECT * FROM outbox WHERE key=?', (key,)).fetchone())
