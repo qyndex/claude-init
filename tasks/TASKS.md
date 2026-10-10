@@ -119,6 +119,12 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
 
 ## Active
 
+- [x] T-189  | spec:016  | phase:1  | priority: high  | created: 2026-10-10  | last_touched: 2026-10-10  | deps: T-188  | parallel: no  | est: 30m
+  summary: Implement conservative Slack digest transport, due runner and read-only watchdog
+  files: .claude/scripts/factory-slack-digest.py, docs/FACTORY-DIGEST.md
+  accept: bash .claude/scripts/test/factory-slack-digest.sh
+  owner: implementer
+
 - [x] T-188  | spec:015  | phase:1  | priority: high  | created: 2026-10-10  | last_touched: 2026-10-10  | deps: T-187  | parallel: no  | est: 30m
   summary: Prepare durable paginated delivery digests and reconcile uncertain sends
   files: .claude/scripts/factory-digest.py, docs/FACTORY-DIGEST.md
