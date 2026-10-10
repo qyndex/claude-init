@@ -1,0 +1,73 @@
+{
+  "source_commit": "27e1bf8218ad891d3f011c0fcebd2b872596b7d9",
+  "generated_at": "2026-10-10T00:43:59.924586+00:00",
+  "independent_attestation": false,
+  "observations": [
+    {
+      "id": "AC-1",
+      "commands": [
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-slack-digest.sh"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "artifact_sha256": "ff5e51af2d2bbfa32e7ae8031b8ebecaf1345211891adff8875b10e557abb881"
+    },
+    {
+      "id": "AC-2",
+      "commands": [
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-slack-digest.sh"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "artifact_sha256": "ff5e51af2d2bbfa32e7ae8031b8ebecaf1345211891adff8875b10e557abb881"
+    },
+    {
+      "id": "AC-3",
+      "commands": [
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-slack-digest.sh"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "artifact_sha256": "ff5e51af2d2bbfa32e7ae8031b8ebecaf1345211891adff8875b10e557abb881"
+    },
+    {
+      "id": "AC-4",
+      "commands": [
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-slack-digest.sh"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-digest.sh"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "shellcheck",
+            ".claude/scripts/test/factory-slack-digest.sh"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "artifact_sha256": "5d40ab76043ba8679932c84713be8c076206927751cee47fdae6dd963291153c"
+    }
+  ]
+}

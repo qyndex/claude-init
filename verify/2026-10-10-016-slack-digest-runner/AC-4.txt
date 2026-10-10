@@ -1,0 +1,11 @@
+$ bash .claude/scripts/test/factory-slack-digest.sh
+factory-slack-digest: sender/workspace binding, pagination, uncertainty, escaping, size limit, due time and watchdog passed
+
+exit: 0
+$ bash .claude/scripts/test/factory-digest.sh
+factory-digest: pagination, equal-time merges, proof mapping, DST, outage catch-up, uncertain sends and process exclusion passed
+
+exit: 0
+$ shellcheck .claude/scripts/test/factory-slack-digest.sh
+
+exit: 0
