@@ -163,17 +163,19 @@ class GitState:
         self.head = commit['sha']; self.tree = tree['sha']; self.bytes = data
 
 
-def snapshot(path, repository, stream, destination, branch):
+def snapshot(path, repository, stream, destination, branch, alerts=None):
     with sqlite3.connect(path) as db:
         db.row_factory = sqlite3.Row
         tables = {table: [dict(row) for row in db.execute(f'SELECT {",".join(columns)} FROM {table} ORDER BY {columns[0]}')] for table, columns in TABLES.items()}
     document = {'schema_version': 1, 'repository': repository, 'stream': stream, 'destination': destination, 'branch': branch, 'tables': tables}
+    if alerts is not None:
+        document['alerts'] = alerts
     validate(document, repository, stream)
     return canonical(document).encode()
 
 
 def validate(document, repository, stream):
-    require(set(document) == {'schema_version', 'repository', 'stream', 'destination', 'branch', 'tables'} and type(document['schema_version']) is int and document['schema_version'] == 1 and document['repository'] == repository and document['stream'] == stream, 'foreign checkpoint schema/identity')
+    require(set(document) in ({'schema_version', 'repository', 'stream', 'destination', 'branch', 'tables'}, {'schema_version', 'repository', 'stream', 'destination', 'branch', 'tables', 'alerts'}) and type(document['schema_version']) is int and document['schema_version'] == 1 and document['repository'] == repository and document['stream'] == stream, 'foreign checkpoint schema/identity')
     require(stream == hashlib.sha256(canonical([repository, document['destination'], document['branch']]).encode()).hexdigest(), 'checkpoint destination/branch differs')
     require(set(document['tables']) == set(TABLES), 'unexpected checkpoint tables')
     for table, columns in TABLES.items():
@@ -208,6 +210,37 @@ def validate(document, repository, stream):
             require(row['receipt'] is None and digest.instant(row['cutoff']) > cursor, 'pending receipt/cutoff differs')
     require(cursor == (max(confirmed) if confirmed else origin), 'cursor lacks confirmed delivery')
     require(pending <= 1, 'multiple pending reports')
+    if 'alerts' in document:
+        validate_alerts(document['alerts'], stream)
+
+
+def alert_key(stream, kind, cutoff, run_id, incident, run_attempt=None):
+    fields = ['reporting-alert-v1', stream, kind]
+    fields += [incident] if kind == 'recovery' else [run_id] if kind == 'drill' else [cutoff, run_id, run_attempt]
+    return hashlib.sha256(canonical(fields).encode()).hexdigest()
+
+
+def validate_alerts(alerts, stream):
+    require(isinstance(alerts, list) and len(alerts) <= 10000, 'alert journal bound exceeded')
+    seen = {}; pending = 0
+    for row in alerts:
+        require(isinstance(row, dict) and set(row) == {'key','kind','incident','cutoff','run_id','run_attempt','status','message_id'}, 'unexpected alert fields')
+        require(row['kind'] in {'overdue','failure','drill','recovery'} and row['status'] in {'pending','uncertain','confirmed'}, 'invalid alert kind/state')
+        require(isinstance(row['cutoff'], str) and digest.stamp(digest.instant(row['cutoff'])) == row['cutoff'], 'alert cutoff invalid')
+        require(row['run_id'] is None or (type(row['run_id']) is int and row['run_id'] > 0), 'alert run identity invalid')
+        require((type(row['run_attempt']) is int and row['run_attempt'] > 0) if row['kind']=='failure' else row['run_attempt'] is None, 'alert attempt invalid')
+        require((row['kind'] in {'failure','drill'}) == (row['run_id'] is not None), 'alert run kind differs')
+        require(row['key'] == alert_key(stream, row['kind'], row['cutoff'], row['run_id'], row['incident'], row['run_attempt']) and row['key'] not in seen, 'alert key duplicate or differs')
+        if row['kind'] == 'recovery':
+            require(row['incident'] in seen and seen[row['incident']]['kind'] != 'recovery' and seen[row['incident']]['status'] == 'confirmed', 'recovery lacks confirmed incident')
+        else:
+            require(row['incident'] == row['key'], 'alert incident differs')
+        if row['status'] == 'confirmed':
+            require(isinstance(row['message_id'], str) and re.fullmatch(r'[0-9]+\.[0-9]{1,6}', row['message_id']), 'alert receipt invalid')
+        else:
+            pending += 1; require(row['message_id'] is None, 'pending alert has receipt')
+        seen[row['key']] = row
+    require(pending <= 1, 'multiple unfinished alerts')
 
 
 class HostedDigest(digest.Digest):
@@ -233,7 +266,8 @@ class HostedDigest(digest.Digest):
             yield db
         # Every state change must become durable BEFORE caller can send or acknowledge delivery.
         try:
-            self.state.checkpoint(snapshot(self.path, self.repository, self.stream, self.destination, self.branch))
+            alerts = None if self.state.bytes is None else json.loads(self.state.bytes).get('alerts')
+            self.state.checkpoint(snapshot(self.path, self.repository, self.stream, self.destination, self.branch, alerts))
         except BaseException:
             self.failed = True; raise
 
