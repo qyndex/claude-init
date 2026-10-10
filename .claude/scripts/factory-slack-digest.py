@@ -101,8 +101,10 @@ class Slack:
         self.metadata = {'event_type': 'factory_digest_v1', 'event_payload': {'key': key, 'payload_sha256': self.hash}}
 
     def proof(self, message):
-        require(message.get('bot_id') == self.bot and message.get('metadata') == self.metadata and
-                message.get('text') == self.text and re.fullmatch(r'[0-9]+\.[0-9]+', message.get('ts', '')), 'Slack message differs from report')
+        require(message.get('bot_id') == self.bot, 'Slack receipt bot differs')
+        require(message.get('metadata') == self.metadata, 'Slack receipt metadata differs')
+        require(message.get('text') == self.text, 'Slack receipt text differs')
+        require(re.fullmatch(r'[0-9]+\.[0-9]+', message.get('ts', '')), 'Slack receipt timestamp differs')
         return {'key': self.key, 'payload_sha256': self.hash, 'destination': self.channel, 'message_id': message['ts']}
 
     def send(self, key, payload, destination):
