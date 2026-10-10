@@ -275,6 +275,14 @@ if __name__ == '__main__':
         public = {'state bypass actors hidden; protected operator approval required',
                   'state policy approval missing or mismatched', 'state policy changed since operator approval',
                   'state policy approval clock invalid', 'state policy metadata incomplete',
-                  'state protection disabled or bypassable'}
+                  'state protection disabled or bypassable', 'Slack receipt bot differs',
+                  'Slack receipt metadata differs', 'Slack receipt text differs',
+                  'Slack receipt timestamp differs', 'remote delivery remains uncertain',
+                  'Slack request failed; reconcile before resend',
+                  'Delivered receipt not visible in Slack history; preserve confirmed state'}
+        public.update('Slack API returned failure: ' + code for code in (
+            'missing_scope', 'not_in_channel', 'channel_not_found', 'invalid_auth',
+            'token_revoked', 'token_expired', 'not_authed', 'account_inactive',
+            'ratelimited', 'access_denied', 'team_access_not_granted', 'invalid_arguments', 'unknown'))
         detail = str(error) if str(error) in public else 'reconcile authoritative state before retry'
         print('Hosted reporting blocked: ' + detail, file=sys.stderr); sys.exit(1)
