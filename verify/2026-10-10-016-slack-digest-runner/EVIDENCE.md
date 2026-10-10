@@ -1,5 +1,5 @@
 ## Evidence Bundle — Spec 016 (016-slack-digest-runner)
-Spec: `specs/active/016-slack-digest-runner.md` · Commit: `27e1bf8`
+Spec: `specs/active/016-slack-digest-runner.md` · Commit: `177562b`
 
 ### Acceptance criteria (4/4 proven)
 | AC | Proven by | Result |
@@ -11,7 +11,7 @@ Spec: `specs/active/016-slack-digest-runner.md` · Commit: `27e1bf8`
 
 ### Smoke test (exit codes are load-bearing)
 ```
-# Smoke test — 2026-10-10T11:43:59+11:00
+# Smoke test — 2026-10-10T13:38:36+11:00
 $ bash .claude/scripts/verify.sh
 
 → Integration coverage gate

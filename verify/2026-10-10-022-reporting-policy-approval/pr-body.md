@@ -1,5 +1,5 @@
 ## Evidence Bundle — Spec 022 (022-reporting-policy-approval)
-Spec: `specs/active/022-reporting-policy-approval.md` · Commit: `6b3dd05`
+Spec: `specs/active/022-reporting-policy-approval.md` · Commit: `177562b`
 
 ### Acceptance criteria (4/4 proven)
 | AC | Proven by | Result |
@@ -11,7 +11,7 @@ Spec: `specs/active/022-reporting-policy-approval.md` · Commit: `6b3dd05`
 
 ### Smoke test (exit codes are load-bearing)
 ```
-# Smoke test — 2026-10-10T13:29:45+11:00
+# Smoke test — 2026-10-10T13:38:56+11:00
 $ bash .claude/scripts/verify.sh
 
 → Integration coverage gate
