@@ -61,7 +61,8 @@ def render(payload):
     for pr in data['merges']:
         proof = pr['delivery_evidence']
         attribution = ', '.join(f"{safe(p['task'])}/spec {safe(p['spec'])}" for p in proof) if proof else 'authenticated evidence MISSING'
-        lines.append(f"#{pr['pr']} {safe(pr['title'])[:160]} — {attribution}")
+        late = ' [late discovery]' if pr.get('late_discovered') else ''
+        lines.append(f"#{pr['pr']}{late} {safe(pr['title'])[:160]} — {attribution}")
         lines.append(f"https://github.com/{data['repository']}/pull/{pr['pr']} — merge {pr['merge_sha'][:12]}")
         for item in proof:
             lines.append(f"Evidence: https://github.com/{data['repository']}/actions/runs/{item['producer_run']}")
