@@ -1,0 +1,6 @@
+ledger_format: 2
+timestamp: 2026-10-10T01:16:51.690361+00:00
+command: bash .claude/scripts/test/factory-installer-source.sh
+exit_code: 0
+
+factory-installer-source: strict refs/SHA/tag, dirty guards, linked worktrees and visible setup failures passed

@@ -10,9 +10,9 @@
 #      file it would overwrite (README.md, CLAUDE.md, …) to .brownfield-backup/<ts>/
 #      and no-clobbers your own commands/hooks/workflows. It does NOT tar straight
 #      into your repo root (which would silently clobber your README/CLAUDE.md).
-#   3. Runs setup.sh (installs plugins, wires hooks, validates) unless you skip it.
+#   3. Runs setup.sh unless explicitly skipped; setup errors return nonzero.
 #
-# It is idempotent: re-running reconciles again (add UPGRADE=1 to pull newer
+# Re-running reconciles again (add UPGRADE=1 to pull newer
 # factory-owned files, backed up first). Nothing is force-pushed; nothing leaves
 # your machine. Everything happens inside YOUR working tree, on a branch you control.
 #
@@ -23,7 +23,7 @@
 #   UPGRADE=1                          refresh factory-owned files (already-adopted repos)
 #   SKIP_SETUP=1                       reconcile only, don't run setup.sh
 #   SKIP_PLUGINS=1                     passed through to setup.sh
-#   YES=1                              non-interactive (assume yes to prompts)
+#   YES=1                              explicitly allow a dirty target tree
 set -euo pipefail
 
 REPO_URL="${CLAUDE_INIT_REPO:-https://github.com/qyndex/claude-init}"
@@ -40,24 +40,34 @@ say "claude-init installer"
 # ── Preconditions ──────────────────────────────────────────────────────────
 command -v git >/dev/null || die "git is required"
 command -v jq  >/dev/null || warn "jq not found — REQUIRED before you use the harness (security hooks fail closed without it). Install: brew install jq / apt-get install jq"
-[ -d "$INTO/.git" ] || die "not a git repo: $INTO — run this from the root of the repo you want to harness (or set INTO=<repo>)"
-
-# Refuse to run against a dirty tree unless forced — reconcile writes into the tree
-# and we want changes to land as a reviewable, revertable diff.
-if [ -z "${YES:-}" ] && ! git -C "$INTO" diff --quiet 2>/dev/null; then
-  warn "working tree at $INTO has uncommitted changes."
-  warn "Reconcile writes into the tree; commit or stash first so the harness lands as a clean diff."
-  warn "Override: YES=1 curl -fsSL … | bash"
-  die  "halting on dirty tree"
+for option in YES UPGRADE SKIP_SETUP; do
+  value="${!option:-0}"
+  case "$value" in 0|1) ;; *) die "$option must be 0 or 1" ;; esac
+done
+[ -d "$INTO" ] || die "target directory unavailable: $INTO"
+INTO="$(cd "$INTO" && pwd -P)"
+TARGET_ROOT="$(git -C "$INTO" rev-parse --show-toplevel)" || die "not a Git repository: $INTO"
+TARGET_ROOT="$(cd "$TARGET_ROOT" && pwd -P)"
+[ "$INTO" = "$TARGET_ROOT" ] || die "INTO must be the repository root"
+TARGET_STATUS="$(git -C "$INTO" status --porcelain)" || die "cannot inspect target state"
+if [ -n "$TARGET_STATUS" ]; then
+  [ "${YES:-0}" = 1 ] || die "target has staged, unstaged or untracked changes; commit/stash them or explicitly set YES=1"
+  warn "YES=1 authorizes installation into a dirty target; review the resulting diff carefully"
 fi
+case "$REF" in ''|-*|*:*) die "unsupported source ref" ;; esac
+git check-ref-format --allow-onelevel "$REF" >/dev/null || die "invalid source branch, tag or SHA"
 
 # ── Stage the factory OUTSIDE the target repo ──────────────────────────────
 TMP="$(mktemp -d "${TMPDIR:-/tmp}/claude-init.XXXXXX")"
 cleanup() { rm -rf "$TMP"; }
 trap cleanup EXIT
 say "Cloning factory ($REF) → temp"
-git clone --quiet --depth 1 --branch "$REF" "$REPO_URL" "$TMP/factory" 2>/dev/null \
-  || git clone --quiet --depth 1 "$REPO_URL" "$TMP/factory"   # ref may be a sha; fall back
+git init --quiet "$TMP/factory"
+git -C "$TMP/factory" remote add origin "$REPO_URL"
+git -C "$TMP/factory" fetch --quiet --depth 1 origin "$REF" || die "requested source ref could not be fetched; no fallback was installed"
+SOURCE_SHA="$(git -C "$TMP/factory" rev-parse --verify 'FETCH_HEAD^{commit}')" || die "source ref is not a commit"
+git -C "$TMP/factory" checkout --quiet --detach "$SOURCE_SHA"
+ok "factory source commit $SOURCE_SHA"
 [ -d "$TMP/factory/.claude" ] || die "clone did not contain .claude/ — is $REPO_URL correct?"
 ok "factory staged at $TMP/factory"
 
@@ -66,18 +76,18 @@ RECON="$TMP/factory/.claude/scripts/reconcile-claude-dir.sh"
 
 # ── Reconcile (adoption-safe: backs up + no-clobber) ───────────────────────
 RECON_ARGS=(--from "$TMP/factory" --into "$INTO")
-[ -n "${UPGRADE:-}" ] && RECON_ARGS+=(--upgrade)
+[ "${UPGRADE:-0}" = 1 ] && RECON_ARGS+=(--upgrade)
 say "Reconciling factory → $INTO ${UPGRADE:+(upgrade mode)}"
 bash "$RECON" "${RECON_ARGS[@]}"
 ok "reconcile complete — any overwritten root file is backed up under .brownfield-backup/"
 
 # ── Setup ──────────────────────────────────────────────────────────────────
-if [ -n "${SKIP_SETUP:-}" ]; then
+if [ "${SKIP_SETUP:-0}" = 1 ]; then
   warn "SKIP_SETUP set — not running setup.sh. Run it yourself: bash .claude/scripts/setup.sh"
 else
   say "Running setup.sh"
   ( cd "$INTO" && SKIP_PLUGINS="${SKIP_PLUGINS:-}" bash .claude/scripts/setup.sh ) \
-    || warn "setup.sh reported issues — review its output above; the harness files are already in place"
+    || die "setup.sh failed; installation is incomplete. Review the diff and resolve or revert before retrying"
 fi
 
 cat <<EOF
