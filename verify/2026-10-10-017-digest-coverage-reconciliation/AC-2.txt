@@ -1,0 +1,4 @@
+$ bash .claude/scripts/test/factory-digest-coverage.sh
+factory-digest-coverage: late/equal-time discovery, no repeats, uncertain recovery, origin migration and contradictory history passed
+
+exit: 0

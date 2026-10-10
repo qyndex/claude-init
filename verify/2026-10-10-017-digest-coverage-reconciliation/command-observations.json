@@ -1,0 +1,80 @@
+{
+  "source_commit": "df607812be23b2efaba0bd683a48bc755f3bdab8",
+  "generated_at": "2026-10-10T00:50:55.714007+00:00",
+  "independent_attestation": false,
+  "observations": [
+    {
+      "id": "AC-1",
+      "commands": [
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-digest-coverage.sh"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "artifact_sha256": "2852aae6dabaf0622d3ec8fb28d54280a4e65bb6a6e0dfd6dff47eb0d502d086"
+    },
+    {
+      "id": "AC-2",
+      "commands": [
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-digest-coverage.sh"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "artifact_sha256": "2852aae6dabaf0622d3ec8fb28d54280a4e65bb6a6e0dfd6dff47eb0d502d086"
+    },
+    {
+      "id": "AC-3",
+      "commands": [
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-digest-coverage.sh"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "artifact_sha256": "2852aae6dabaf0622d3ec8fb28d54280a4e65bb6a6e0dfd6dff47eb0d502d086"
+    },
+    {
+      "id": "AC-4",
+      "commands": [
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-digest-coverage.sh"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-digest.sh"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-slack-digest.sh"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "shellcheck",
+            ".claude/scripts/test/factory-digest-coverage.sh"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "artifact_sha256": "72e820d39e86968afcc5a6cf7da793dc3b21233a8906bec305201fdace71db11"
+    }
+  ]
+}
