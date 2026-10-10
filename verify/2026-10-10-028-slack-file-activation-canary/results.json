@@ -1,0 +1,27 @@
+{
+  "runner": "shell-acceptance-recorder",
+  "independent_attestation": false,
+  "command": "bash .claude/scripts/test/factory-slack-file-canary.sh",
+  "testResults": [
+    {
+      "assertionResults": [
+        {
+          "fullName": "AC-1: real attachment fixture proves isolated labelled bytes and exact private file receipt",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-2: fresh invocation and retry verify existing receipt without another allocation",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-3: previous ambiguous and lost-response runs fail closed or reconcile without reallocation",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-4: disabled foreign missing-grant inputs block and protected workflow has read-only Git permissions",
+          "status": "passed"
+        }
+      ]
+    }
+  ]
+}

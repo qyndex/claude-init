@@ -1,0 +1,10 @@
+# TDD ledger — red — T-201
+ledger_format: 2
+timestamp: 2026-10-10T17:19:45+11:00
+command: bash .claude/scripts/test/factory-slack-file-canary.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 3, in <module>
+AssertionError: one-allocation live file canary is absent
