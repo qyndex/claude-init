@@ -1,0 +1,10 @@
+# TDD ledger — green — T-207
+ledger_format: 2
+timestamp: 2026-10-10T18:41:09+11:00
+command: bash .claude/scripts/test/factory-adopt.sh
+exit_code: 0
+---
+AC-1: actual new/brownfield Git adoption, dry-run and repeat preserve user files and exclude active backlog, secrets, runtime and pilot workflows
+AC-2: version/hash/mode ownership blocks customized and foreign collisions before mutation; explicit upgrades and guarded revert preserve exact previous files
+AC-3: partial write rollback, exact pending recovery, later-edit protection and required tool failure preserve target and private journal
+AC-4: linked worktrees and apostrophe paths work; symlink/traversal, dirty source and non-root targets block; adoption performs no activation or candidate setup execution

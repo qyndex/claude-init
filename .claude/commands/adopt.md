@@ -43,7 +43,7 @@ _import_docs() {
 # must exist as a workflow job, or every brownfield PR hangs pending-forever.
 _verify_gates() {
   local rs=.github/rulesets/main-protection.json missing=0 ctx
-  { [ -f "$rs" ] && command -v jq >/dev/null 2>&1; } || { echo "→ gate check skipped (no ruleset or no jq)"; return 0; }
+  { [ -f "$rs" ] && command -v jq >/dev/null 2>&1; } || { echo "✗ handoff blocked: reviewed ruleset and jq are required"; return 1; }
   while IFS= read -r ctx; do
     [ -z "$ctx" ] && continue
     grep -qE "^  ${ctx}:[[:space:]]*$" .github/workflows/*.yml .github/workflows/*.yaml 2>/dev/null \
@@ -51,7 +51,7 @@ _verify_gates() {
   done < <(jq -r '.. | objects | .context? // empty' "$rs" | sort -u)
   if [ "$missing" = 1 ]; then
     echo "✗ the ruleset requires checks no workflow provides — PRs will never merge."
-    echo "  Fix: copy the factory .github (reconcile-claude-dir.sh does this) or edit $rs."
+    echo "  Fix: install reviewed per-repository workflows/ruleset; the local installer does not enable pilot workflows."
     return 1
   fi
   echo "→ all ruleset required checks map to workflow jobs ✓"

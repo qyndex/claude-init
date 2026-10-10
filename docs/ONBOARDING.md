@@ -21,56 +21,32 @@ Recommended:
 - `semgrep` (`brew install semgrep`) — in-agent SAST
 - `c8` (Node) or `coverage` (Python) — coverage gate
 
-## Step 1 — Copy the harness (2 min)
+## Step 1 — Install from reviewed source
 
-### Into a new repo
-
-```bash
-gh repo create my-project --private --clone
-cd my-project
-gh repo clone <your-org>/claude-init /tmp/claude-init
-git -C /tmp/claude-init archive HEAD | tar -x -C .
-cp /tmp/claude-init/.gitignore .gitignore 2>/dev/null || true
-git add . && git commit -m "feat: bootstrap claude code golden harness"
-```
-
-### Into an existing repo
+Start at the root of a Git repository with reviewed changes committed/stashed. Use a clean
+factory checkout at the approved source revision:
 
 ```bash
-# From the repo root
-gh repo clone <your-org>/claude-init /tmp/claude-init
-# Copy the harness, preserving any existing files you have
-git -C /tmp/claude-init archive HEAD | tar -x -C .
-
-# Merge .gitignore manually if you already have one
-diff -u .gitignore /tmp/claude-init/.gitignore | less
-
-git add .claude .github specs plans tasks docs .mcp.json
-git commit -m "feat: adopt claude code golden harness"
+CLAUDE_INIT_REPO=/tmp/claude-init CLAUDE_INIT_REF="$(git -C /tmp/claude-init rev-parse HEAD)" bash /tmp/claude-init/scripts/install.sh
 ```
 
-## Step 2 — Run setup (~5 min)
+The installer resolves the exact commit and checks ownership before mutation. Existing
+customized/foreign collisions block; preserve them and review an explicit reconciliation.
+Do not overlay a Git archive or execute target-owned setup. Inspect the diff and commit only
+reviewed process files. Existing ledgers/memory stay adopter-owned; new ones start empty.
 
-```bash
-bash .claude/scripts/setup.sh
-```
+## Step 2 — Configure that repository
 
-This does the following automatically:
-- Verifies your toolchain (gh, jq, claude, gitleaks…)
-- Initializes git if needed
-- Makes hooks executable
-- Pre-creates runtime dirs (`.claude/hooks/.log/`, `.claude/memory/.cache/`, `.claude/worktrees/`, `.swarms/`)
-- Adds entries to `.gitignore` (including swarm + memory runtime files)
-- Seeds `.claude/settings.local.json` (gitignored, for personal overrides)
-- **Installs canonical plugins** (superpowers, skill-creator, mcp-builder, frontend-design, webapp-testing, doc-coauthoring, dream, token-optimizer, chrome-devtools-mcp, playwright, github, sentry) — this is the step earlier versions skipped silently
-- Optionally installs `claude-mem` (Tier 3 episodic memory worker; toggle with `INSTALL_CLAUDE_MEM=no`)
-- Runs `validate.sh` to confirm the harness is well-formed
-
-Skip plugin install: `SKIP_PLUGINS=1 bash .claude/scripts/setup.sh` (re-run `bash .claude/scripts/install-plugins.sh` later).
+See [FACTORY-ADOPTION.md](FACTORY-ADOPTION.md) for private recovery journals, guarded upgrades,
+unsupported configuration and separate activation. Installation checks local tools but does
+not install plugins, apply GitHub protection, copy pilot workflows, dispatch runs or enable
+factory/production authority. Configure approved specs/tasks, stack capabilities and trusted
+proof identities explicitly. Any optional plugin/cloud service requires its own configuration.
 
 ## Step 3 — Tighten the constitution (3 min)
 
-Open `.claude/CLAUDE.md`. Customize:
+Prefer adopter-owned AGENTS.md and local settings for conventions. Changes to manifest-owned
+process files intentionally block upgrades until reviewed. Review `.claude/CLAUDE.md` for:
 
 - **Tech stack** (Section 10 defaults table) — match your project
 - **Quality bar** (Section 8) — adjust thresholds to your team

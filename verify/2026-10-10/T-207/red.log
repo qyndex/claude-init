@@ -1,0 +1,10 @@
+# TDD ledger — red — T-207
+ledger_format: 2
+timestamp: 2026-10-10T18:37:29+11:00
+command: bash .claude/scripts/test/factory-adopt.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 3, in <module>
+AssertionError: transactional harness ownership adapter absent
