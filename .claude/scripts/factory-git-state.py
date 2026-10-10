@@ -197,6 +197,7 @@ def run(config, report_api, state_api, slack_client, path, now):
     batch = store.prepare(report_api, target)
     transport = slack.Slack(slack_client, config['team_id'], config['destination'], batch['key'], batch['payload'])
     receipt = store.deliver(batch['key'], transport)
+    require(transport.lookup(batch['key']).get('receipt') == receipt, 'Delivered receipt not visible in Slack history; preserve confirmed state')
     return {'status': 'delivered', 'receipt': receipt, 'checkpoint_sha': state.head}
 
 
