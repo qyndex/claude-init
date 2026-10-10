@@ -1,0 +1,11 @@
+ledger_format: 2
+timestamp: 2026-10-10T00:50:07.947485+00:00
+command: bash .claude/scripts/test/factory-digest-coverage.sh
+exit_code: 1
+red_reason: assertion-failure
+baseline_environment: DIGEST_COVERAGE_TEST_ROOT=/tmp/factory-coverage-baseline
+baseline_commit: 55f9137979ac572e84069674bd7acdc49e8df735
+
+Traceback (most recent call last):
+  File "<stdin>", line 28, in <module>
+AssertionError: late merges lost after cursor advancement

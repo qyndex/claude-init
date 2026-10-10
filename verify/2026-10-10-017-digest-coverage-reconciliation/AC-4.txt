@@ -1,0 +1,15 @@
+$ bash .claude/scripts/test/factory-digest-coverage.sh
+factory-digest-coverage: late/equal-time discovery, no repeats, uncertain recovery, origin migration and contradictory history passed
+
+exit: 0
+$ bash .claude/scripts/test/factory-digest.sh
+factory-digest: pagination, equal-time merges, proof mapping, DST, outage catch-up, uncertain sends and process exclusion passed
+
+exit: 0
+$ bash .claude/scripts/test/factory-slack-digest.sh
+factory-slack-digest: sender/workspace binding, pagination, uncertainty, escaping, size limit, due time and watchdog passed
+
+exit: 0
+$ shellcheck .claude/scripts/test/factory-digest-coverage.sh
+
+exit: 0

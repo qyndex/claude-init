@@ -46,6 +46,11 @@ class Digest:
             db.execute('CREATE TABLE IF NOT EXISTS digest_cursors(stream TEXT PRIMARY KEY, cutoff TEXT NOT NULL)')
             db.execute('CREATE TABLE IF NOT EXISTS digest_batches(key TEXT PRIMARY KEY,stream TEXT NOT NULL,cutoff TEXT NOT NULL,payload TEXT NOT NULL,status TEXT NOT NULL,receipt TEXT)')
             db.execute('INSERT OR IGNORE INTO digest_cursors VALUES(?,?)', (self.stream, stamp(instant(start))))
+            db.execute('CREATE TABLE IF NOT EXISTS digest_origins(stream TEXT PRIMARY KEY, origin TEXT NOT NULL)')
+            if db.execute('SELECT origin FROM digest_origins WHERE stream=?', (self.stream,)).fetchone() is None:
+                first = db.execute('SELECT payload FROM digest_batches WHERE stream=? ORDER BY cutoff LIMIT 1', (self.stream,)).fetchone()
+                original = json.loads(first['payload'])['from'] if first else db.execute('SELECT cutoff FROM digest_cursors WHERE stream=?', (self.stream,)).fetchone()[0]
+                db.execute('INSERT INTO digest_origins VALUES(?,?)', (self.stream, stamp(instant(original))))
 
     @contextmanager
     def transaction(self):
@@ -80,6 +85,18 @@ class Digest:
                 return dict(pending)
             start = instant(db.execute('SELECT cutoff FROM digest_cursors WHERE stream=?', (self.stream,)).fetchone()[0])
             require(end > start, 'cutoff must advance')
+            origin = instant(db.execute('SELECT origin FROM digest_origins WHERE stream=?', (self.stream,)).fetchone()[0])
+            require(origin <= start, 'reporting origin exceeds cursor')
+            reported = {}
+            for previous in db.execute("SELECT key,payload,receipt FROM digest_batches WHERE stream=? AND status='confirmed'", (self.stream,)):
+                remote = json.loads(previous['receipt'])
+                require(remote['key'] == previous['key'] and remote['destination'] == self.destination and remote['payload_sha256'] == hashlib.sha256(previous['payload'].encode()).hexdigest(), 'historical report bytes differ from delivery receipt')
+                document = json.loads(previous['payload'])
+                require(document['repository'] == self.repository and document['destination'] == self.destination, 'foreign report history')
+                for item in document['merges']:
+                    require(type(item['pr']) is int and item['pr'] > 0 and coordinator.contract.digest(item['merge_sha'], 40), 'invalid historical merge')
+                    require(item['pr'] not in reported or reported[item['pr']] == item['merge_sha'], 'contradictory report history')
+                    reported[item['pr']] = item['merge_sha']
             # REST pagination is completed before any cursor/report state is committed.
             pages = api.request(f'repos/{self.repository}/pulls?state=closed&per_page=100', paginate=True)
             merged = {}
@@ -89,10 +106,13 @@ class Digest:
                     if not pr.get('merged_at') or pr['base']['ref'] != self.branch:
                         continue
                     at = instant(pr['merged_at'])
-                    if not start < at <= end:
+                    if not origin < at <= end:
                         continue
                     require(pr['base']['repo']['full_name'] == self.repository and type(pr['number']) is int and pr['number'] > 0, 'foreign merge')
                     require(coordinator.contract.digest(pr['merge_commit_sha'], 40), 'missing merge identity')
+                    if pr['number'] in reported:
+                        require(reported[pr['number']] == pr['merge_commit_sha'], 'actual merge contradicts delivered coverage')
+                        continue
                     old = merged.get(pr['number'])
                     require(old is None or old == pr, 'inconsistent merge pages')
                     merged[pr['number']] = pr
@@ -114,7 +134,7 @@ class Digest:
                         matches.append({'task': proof['task'], 'spec': receipt['spec'], 'revision': proof['revision'],
                                         'producer_run': provenance['run_id'], 'artifact_digest': provenance['artifact_digest']})
                 entries.append({'pr': pr['number'], 'title': pr['title'], 'url': pr['html_url'], 'merge_sha': pr['merge_commit_sha'],
-                                'merged_at': stamp(instant(pr['merged_at'])), 'delivery_evidence': matches,
+                                'merged_at': stamp(instant(pr['merged_at'])), 'late_discovered': instant(pr['merged_at']) <= start, 'delivery_evidence': matches,
                                 'evidence_status': 'authenticated' if matches else 'missing', 'merge_time_checks': 'not independently recorded'})
             payload = canonical({'schema_version': 1, 'repository': self.repository, 'destination': self.destination,
                                  'from': stamp(start), 'until': stamp(end), 'timezone': 'Australia/Sydney',

@@ -1,0 +1,6 @@
+ledger_format: 2
+timestamp: 2026-10-10T00:50:08.013188+00:00
+command: bash .claude/scripts/test/factory-digest-coverage.sh
+exit_code: 0
+
+factory-digest-coverage: late/equal-time discovery, no repeats, uncertain recovery, origin migration and contradictory history passed
