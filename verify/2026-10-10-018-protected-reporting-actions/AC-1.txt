@@ -1,0 +1,4 @@
+$ bash .claude/scripts/test/factory-reporting-actions.sh
+factory-reporting-actions: restricted workflow/repository/runner policy, POSIX private state and workspace exclusion passed
+
+exit: 0

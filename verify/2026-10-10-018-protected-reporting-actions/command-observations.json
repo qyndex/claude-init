@@ -1,0 +1,95 @@
+{
+  "source_commit": "60202d1f6ae22810e3b9b79203e76019e733a82e",
+  "generated_at": "2026-10-10T01:02:50.190975+00:00",
+  "independent_attestation": false,
+  "observations": [
+    {
+      "id": "AC-1",
+      "commands": [
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-reporting-actions.sh"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "artifact_sha256": "7f014feb17fa14b5918b27e7e9658972e4c542b1d9f9cb760e4100bcd59fe2ff"
+    },
+    {
+      "id": "AC-2",
+      "commands": [
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-reporting-actions.sh"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "artifact_sha256": "7f014feb17fa14b5918b27e7e9658972e4c542b1d9f9cb760e4100bcd59fe2ff"
+    },
+    {
+      "id": "AC-3",
+      "commands": [
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-reporting-actions.sh"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "artifact_sha256": "7f014feb17fa14b5918b27e7e9658972e4c542b1d9f9cb760e4100bcd59fe2ff"
+    },
+    {
+      "id": "AC-4",
+      "commands": [
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-reporting-actions.sh"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-digest.sh"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-slack-digest.sh"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-digest-coverage.sh"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "actionlint",
+            "-shellcheck=",
+            ".github/workflows/factory-digest.yml"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "shellcheck",
+            ".claude/scripts/test/factory-reporting-actions.sh"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "artifact_sha256": "378e1b75c41f62fb2018a676f92a48b98bd1ce389a9e5e9806685bb75132203f"
+    }
+  ]
+}
