@@ -1,0 +1,6 @@
+ledger_format: 2
+timestamp: 2026-10-10T01:09:52.279650+00:00
+command: bash .claude/scripts/test/factory-feedback.sh
+exit_code: 0
+
+factory-feedback: immutable intake, delivered source, full approved amendments, stale fencing, multi-spec receipts, versions and separate acceptance passed

@@ -224,9 +224,11 @@ Thu        /specify spawns spec 087 carrying feedback_refs:[FB-20260527-003]
            → /plan, /tasks, /implement
 
 Fri        /verify, /ship
-           → post-ship-close-feedback.sh flips FB-003 to status:shipped
+           → trusted factory feedback reconciliation checks every approved amendment task receipt
            → spec_refs: [087] linked back
-           → FB moves to closed/
+           → partial delivery stays planned; complete delivery becomes delivered
+           → explicit sourced operator acceptance is recorded separately
+           → legacy markdown is not automatically moved to closed/
 
 Mon        Sales calls customer to confirm fix; updates FB with customer_responded
 ```

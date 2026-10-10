@@ -1,0 +1,10 @@
+ledger_format: 2
+timestamp: 2026-10-10T01:07:59.874194+00:00
+command: bash .claude/scripts/test/factory-feedback.sh
+exit_code: 1
+red_reason: assertion-failure
+baseline_commit: dbf21127ce0e7de444c057d2f3c3df052dc61b7f
+
+Traceback (most recent call last):
+  File "<stdin>", line 3, in <module>
+AssertionError: receipt-gated feedback not implemented
