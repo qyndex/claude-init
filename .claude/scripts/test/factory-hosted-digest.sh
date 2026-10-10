@@ -157,6 +157,16 @@ with tempfile.TemporaryDirectory() as tmp:
     for messages in bad_sets:
         client.messages=messages;reject(lambda:transport.lookup(batch['key']))
     client.messages=original;assert transport.lookup(batch['key'])['receipt']==result['receipt']
+    # Boundary newline dropped by the server is reconstructed only if exact expected text matches.
+    full=transport.text;boundary=full.index('\n')
+    newline_parts=[{**original[0],'text':full[:boundary]}, {**original[1],'text':full[boundary+1:]}]
+    assert transport.fragments_proof(newline_parts)==result['receipt']
+    for count in (10,11):
+        offsets=[len(full)*index//count for index in range(count+1)]
+        pieces=[{**original[0],'ts':f'100.{index:06d}','text':full[offsets[index]:offsets[index+1]]} for index in range(count)]
+        if count==10:assert len(json.loads(transport.fragments_proof(pieces)['message_id'])['slack_message_ids'])==10
+        else:reject(lambda:transport.fragments_proof(pieces))
+
 with tempfile.TemporaryDirectory() as tmp:
     tmp=Path(tmp);api=GitAPI();client=SplitSlack();client.drop=True;now=datetime(2026,10,4,22,tzinfo=timezone.utc)
     # AC-4: loss of the post response + fresh Actions disks recovers without a second post.

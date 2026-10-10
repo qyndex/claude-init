@@ -1,5 +1,5 @@
-## Evidence Bundle — Spec 021 (021-hosted-reporting-checkpoints)
-Spec: `specs/active/021-hosted-reporting-checkpoints.md` · Commit: `3d0c28c`
+## Evidence Bundle — Spec 023 (023-slack-split-receipts)
+Spec: `specs/active/023-slack-split-receipts.md` · Commit: `3d0c28c`
 
 ### Acceptance criteria (4/4 proven)
 | AC | Proven by | Result |
@@ -11,7 +11,7 @@ Spec: `specs/active/021-hosted-reporting-checkpoints.md` · Commit: `3d0c28c`
 
 ### Smoke test (exit codes are load-bearing)
 ```
-# Smoke test — 2026-10-10T14:05:32+11:00
+# Smoke test — 2026-10-10T14:05:53+11:00
 $ bash .claude/scripts/verify.sh
 
 → Integration coverage gate
@@ -23,10 +23,10 @@ exit: 0
 ```
 
 ### Visual proof
-0 screenshot(s) captured under `verify/2026-10-10-021-hosted-reporting-checkpoints/screenshots/` (named by AC).
+0 screenshot(s) captured under `verify/2026-10-10-023-slack-split-receipts/screenshots/` (named by AC).
 
 ### API traces
-0 API trace file(s) under `verify/2026-10-10-021-hosted-reporting-checkpoints/traces/`; full HAR at `verify/2026-10-10-021-hosted-reporting-checkpoints/network.har`.
+0 API trace file(s) under `verify/2026-10-10-023-slack-split-receipts/traces/`; full HAR at `verify/2026-10-10-023-slack-split-receipts/network.har`.
 
 ### Coverage
 line ?% · branch ?% (gate: line≥90 branch≥85)
