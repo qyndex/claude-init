@@ -1,0 +1,88 @@
+{
+  "source_commit": "a251048020b6ce34760c46989ad6594d782c8fb8",
+  "generated_at": "2026-10-10T01:11:07.514828+00:00",
+  "independent_attestation": false,
+  "observations": [
+    {
+      "id": "AC-1",
+      "commands": [
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-feedback.sh"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "artifact_sha256": "b1754da8ed15c13e0089456a2df4b92c9ae60f6e16b3f9e26aa661b963483966"
+    },
+    {
+      "id": "AC-2",
+      "commands": [
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-feedback.sh"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "artifact_sha256": "b1754da8ed15c13e0089456a2df4b92c9ae60f6e16b3f9e26aa661b963483966"
+    },
+    {
+      "id": "AC-3",
+      "commands": [
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-feedback.sh"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "artifact_sha256": "b1754da8ed15c13e0089456a2df4b92c9ae60f6e16b3f9e26aa661b963483966"
+    },
+    {
+      "id": "AC-4",
+      "commands": [
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-feedback.sh"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-runtime.sh"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-receipts-recovery.sh"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "bash",
+            ".claude/scripts/test/factory-digest.sh"
+          ],
+          "exit_code": 0
+        },
+        {
+          "argv": [
+            "shellcheck",
+            ".claude/scripts/test/factory-feedback.sh",
+            ".claude/scripts/post-ship-close-feedback.sh"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "artifact_sha256": "eefd3c365d92083818654624cc6fe451bf38e7384c22c47b849c1bc86334fc08"
+    }
+  ]
+}

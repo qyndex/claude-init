@@ -1,0 +1,4 @@
+$ bash .claude/scripts/test/factory-feedback.sh
+factory-feedback: immutable intake, delivered source, full approved amendments, stale fencing, multi-spec receipts, versions and separate acceptance passed
+
+exit: 0
