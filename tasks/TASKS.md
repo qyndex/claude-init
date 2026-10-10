@@ -1172,3 +1172,9 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   files: .claude/scripts/factory-receipts.py, .claude/scripts/factory-git-state.py, .github/workflows/factory-hosted-digest.yml
   accept: bash .claude/scripts/test/factory-receipt-projection.sh
   owner: implementer
+
+- [x] T-198  | spec:025  | phase:1  | priority: security  | created: 2026-10-10  | last_touched: 2026-10-10  | deps: T-197  | parallel: no  | est: 30m
+  summary: Deliver oversized digests as exact authenticated Slack files without blind retry
+  files: .claude/scripts/factory-slack-attachment.py, .claude/scripts/factory-slack-digest.py, .claude/scripts/factory-git-state.py
+  accept: bash .claude/scripts/test/factory-slack-attachment.sh
+  owner: implementer

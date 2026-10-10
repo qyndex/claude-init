@@ -1,0 +1,10 @@
+# TDD ledger — red — T-198
+ledger_format: 2
+timestamp: 2026-10-10T16:47:21+11:00
+command: bash .claude/scripts/test/factory-slack-attachment.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 5, in <module>
+AssertionError: oversized digests have no verified attachment transport

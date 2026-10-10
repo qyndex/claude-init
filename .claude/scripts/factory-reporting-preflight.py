@@ -59,7 +59,7 @@ def runtime_config(env):
     from datetime import datetime
     start = datetime.fromisoformat(env['FACTORY_REPORTING_START'].replace('Z', '+00:00'))
     require(start.tzinfo is not None, 'reporting start needs timezone')
-    return {'enabled': True, 'repository': env['GITHUB_REPOSITORY'], 'branch': env.get('FACTORY_REPORTING_BRANCH', 'main'),
+    return {'enabled': True, 'attachments_enabled': env.get('FACTORY_REPORTING_ATTACHMENTS_ENABLED') == 'true', 'repository': env['GITHUB_REPOSITORY'], 'branch': env.get('FACTORY_REPORTING_BRANCH', 'main'),
             'destination': env['FACTORY_REPORTING_CHANNEL'], 'team_id': env['FACTORY_REPORTING_TEAM_ID'],
             'start': env['FACTORY_REPORTING_START'], 'database': str(database), 'watchdog_grace_minutes': 60}
 

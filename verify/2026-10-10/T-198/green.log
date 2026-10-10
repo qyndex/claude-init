@@ -1,0 +1,10 @@
+# TDD ledger — green — T-198
+ledger_format: 2
+timestamp: 2026-10-10T16:52:00+11:00
+command: bash .claude/scripts/test/factory-slack-attachment.sh
+exit_code: 0
+---
+AC-1: actual hosted oversized report, exact file bytes and unchanged repeat passed
+AC-2: uploader, destination, privacy, identity, byte tampering and ambiguous share negatives passed
+AC-3: completion loss, fresh-disk recovery, hidden history uncertainty and disabled default passed
+AC-4: HTTPS host/path, token separation, API envelope/methods and strict bounds passed
