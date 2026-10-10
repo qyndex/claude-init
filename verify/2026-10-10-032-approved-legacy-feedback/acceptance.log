@@ -1,0 +1,4 @@
+AC-1: full operator-approved manifest archives exact private original bytes, including customer metadata and untrusted shipped claim, without source mutation
+AC-2: separately approved promotion starts open without fabricated digest/PR proof; original text is immutable and enters existing approved amendment chain
+AC-3: complete prevalidation and atomic batch reject changed bytes, invalid later records and conflicting promotion without partial migration
+AC-4: disabled/foreign schema and namespace, duplicate/traversal/symlink sources and unsafe private modes fail closed; historical closure never accepts feedback
