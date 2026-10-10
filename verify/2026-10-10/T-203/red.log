@@ -1,0 +1,10 @@
+# TDD ledger — red — T-203
+ledger_format: 2
+timestamp: 2026-10-10T17:46:22+11:00
+command: bash .claude/scripts/test/factory-reporting-alerts.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 4, in <module>
+AssertionError: durable GitHub-only alerts are absent

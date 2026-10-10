@@ -1202,3 +1202,9 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   files: .claude/scripts/factory-slack-file-canary.py
   accept: bash .claude/scripts/test/factory-slack-file-canary.sh
   owner: implementer
+
+- [x] T-203  | spec:029  | phase:1  | priority: security  | created: 2026-10-10  | last_touched: 2026-10-10  | deps: T-202  | parallel: no  | est: 30m
+  summary: Deliver GitHub-only reporting incident alerts with durable deduplication and verified recovery
+  files: .claude/scripts/factory-reporting-alerts.py, .claude/scripts/factory-git-state.py, .github/workflows/factory-reporting-alerts.yml
+  accept: bash .claude/scripts/test/factory-reporting-alerts.sh
+  owner: implementer

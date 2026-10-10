@@ -1,0 +1,10 @@
+# TDD ledger — green — T-203
+ledger_format: 2
+timestamp: 2026-10-10T17:46:23+11:00
+command: bash .claude/scripts/test/factory-reporting-alerts.sh
+exit_code: 0
+---
+AC-1: real hosted state proves due alert, prolonged-incident suppression, digest preservation and one verified recovery
+AC-2: lost acknowledgement and fresh invocation reconcile durable intent; hidden history never resends and drill retry is idempotent
+AC-3: actual run provenance, default branch, disabled/foreign inputs and failure deduplication pass
+AC-4: typed journal rejects malformed receipts and duplicate rows; protected GitHub-only workflow needs no external monitor

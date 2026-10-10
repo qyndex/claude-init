@@ -1,0 +1,73 @@
+name: Factory Reporting Alerts
+on:
+  schedule:
+    - cron: '7,22,37,52 * * * *'
+  workflow_dispatch:
+    inputs:
+      verification_drill:
+        description: Send an explicitly labelled alert verification drill
+        type: boolean
+        default: false
+  workflow_run:
+    workflows: [Factory Hosted Delivery Digest]
+    types: [completed]
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: factory-reporting-${{ github.repository }}
+  cancel-in-progress: false
+jobs:
+  monitor:
+    if: >-
+      vars.FACTORY_REPORTING_ENABLED == 'true' &&
+      vars.FACTORY_REPORTING_PROFILE == 'github-hosted' &&
+      github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    environment: factory-reporting
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Prepare explicit hosted configuration
+        env:
+          FACTORY_REPORTING_MONITOR_ENABLED: ${{ vars.FACTORY_REPORTING_MONITOR_ENABLED }}
+          FACTORY_REPORTING_ATTACHMENTS_ENABLED: ${{ vars.FACTORY_REPORTING_ATTACHMENTS_ENABLED }}
+          FACTORY_REPORTING_CHANNEL: ${{ vars.FACTORY_REPORTING_CHANNEL }}
+          FACTORY_REPORTING_TEAM_ID: ${{ vars.FACTORY_REPORTING_TEAM_ID }}
+          FACTORY_REPORTING_START: ${{ vars.FACTORY_REPORTING_START }}
+          FACTORY_REPORTING_BRANCH: ${{ github.event.repository.default_branch }}
+          FACTORY_REPORTING_STATE_REPOSITORY: ${{ vars.FACTORY_REPORTING_STATE_REPOSITORY }}
+          FACTORY_REPORTING_STATE_BRANCH: ${{ vars.FACTORY_REPORTING_STATE_BRANCH }}
+          FACTORY_REPORTING_BOOTSTRAP_SHA: ${{ vars.FACTORY_REPORTING_BOOTSTRAP_SHA }}
+          FACTORY_REPORTING_POLICY_APPROVALS: ${{ vars.FACTORY_REPORTING_POLICY_APPROVALS }}
+        run: |
+          umask 077
+          python3 - <<'PYCONFIG'
+          import json,os
+          from pathlib import Path
+          config={'enabled':True,'monitor_enabled':os.environ['FACTORY_REPORTING_MONITOR_ENABLED']=='true','attachments_enabled':os.environ['FACTORY_REPORTING_ATTACHMENTS_ENABLED']=='true','repository':os.environ['GITHUB_REPOSITORY'],
+                  'state_repository':os.environ['FACTORY_REPORTING_STATE_REPOSITORY'] or os.environ['GITHUB_REPOSITORY'],
+                  'branch':os.environ['FACTORY_REPORTING_BRANCH'],
+                  'destination':os.environ['FACTORY_REPORTING_CHANNEL'],'team_id':os.environ['FACTORY_REPORTING_TEAM_ID'],
+                  'start':os.environ['FACTORY_REPORTING_START'],'state_branch':os.environ['FACTORY_REPORTING_STATE_BRANCH'],
+                  'bootstrap_sha':os.environ['FACTORY_REPORTING_BOOTSTRAP_SHA'],
+                  'policy_approvals':json.loads(os.environ['FACTORY_REPORTING_POLICY_APPROVALS'] or '{}'),
+                  'receipt_policy':json.loads(Path('factory/policy.json').read_text())}
+          Path(os.environ['RUNNER_TEMP'],'factory-hosted-digest.json').write_text(json.dumps(config))
+          PYCONFIG
+      - name: Monitor and reconcile protected reporting alerts
+        if: vars.FACTORY_REPORTING_MONITOR_ENABLED == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FACTORY_REPORTING_STATE_TOKEN: ${{ secrets.FACTORY_REPORTING_STATE_TOKEN }}
+          FACTORY_SLACK_BOT_TOKEN: ${{ secrets.FACTORY_SLACK_BOT_TOKEN }}
+          FAILED_RUN_ID: ${{ (github.event.workflow_run.conclusion == 'failure' || github.event.workflow_run.conclusion == 'timed_out') && github.event.workflow_run.id || '0' }}
+          VERIFICATION_DRILL: ${{ github.event_name == 'workflow_dispatch' && inputs.verification_drill && 'true' || 'false' }}
+        run: |
+          args=()
+          if [ "$FAILED_RUN_ID" != "0" ]; then args+=(--failed-run "$FAILED_RUN_ID"); fi
+          if [ "$VERIFICATION_DRILL" = "true" ]; then args+=(--drill-run "$GITHUB_RUN_ID"); fi
+          python3 .claude/scripts/factory-reporting-alerts.py --config "$RUNNER_TEMP/factory-hosted-digest.json" "${args[@]}"
