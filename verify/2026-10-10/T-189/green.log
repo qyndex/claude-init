@@ -1,0 +1,6 @@
+ledger_format: 2
+timestamp: 2026-10-10T00:43:13.172202+00:00
+command: bash .claude/scripts/test/factory-slack-digest.sh
+exit_code: 0
+
+factory-slack-digest: sender/workspace binding, pagination, uncertainty, escaping, size limit, due time and watchdog passed

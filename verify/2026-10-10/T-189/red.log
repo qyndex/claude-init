@@ -1,0 +1,11 @@
+ledger_format: 2
+timestamp: 2026-10-10T00:43:13.085686+00:00
+command: bash .claude/scripts/test/factory-slack-digest.sh
+exit_code: 1
+red_reason: assertion-failure
+baseline_environment: SLACK_DIGEST_TEST_ROOT=/tmp/factory-slack-baseline
+baseline_commit: 28db5cab9c9836718667c1d19c95717c9e16bd87
+
+Traceback (most recent call last):
+  File "<stdin>", line 4, in <module>
+AssertionError: Slack digest transport not implemented

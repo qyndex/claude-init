@@ -1,0 +1,10 @@
+{
+  "enabled": false,
+  "repository": null,
+  "branch": "main",
+  "destination": null,
+  "team_id": null,
+  "start": null,
+  "database": null,
+  "watchdog_grace_minutes": 60
+}
