@@ -1,0 +1,11 @@
+ledger_format: 2
+timestamp: 2026-10-10T01:01:52.158497+00:00
+command: bash .claude/scripts/test/factory-reporting-actions.sh
+exit_code: 1
+red_reason: assertion-failure
+baseline_environment: REPORTING_ACTIONS_TEST_ROOT=/tmp/factory-reporting-baseline
+baseline_commit: e17289b3b436d42e2dc9bf5072c9247da0fce939
+
+Traceback (most recent call last):
+  File "<stdin>", line 3, in <module>
+AssertionError: protected reporting Actions not implemented

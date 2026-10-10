@@ -1,0 +1,62 @@
+name: Factory Delivery Digest
+on:
+  schedule:
+    - cron: '0,15,30,45 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+  pull-requests: read
+concurrency:
+  group: factory-reporting-${{ github.repository }}
+  cancel-in-progress: false
+jobs:
+  preflight:
+    if: >-
+      vars.FACTORY_REPORTING_ENABLED == 'true' &&
+      github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    environment: factory-reporting
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      group: ${{ steps.policy.outputs.group }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Verify reporting-only runner policy
+        id: policy
+        env:
+          GH_TOKEN: ${{ secrets.FACTORY_REPORTING_POLICY_TOKEN }}
+          FACTORY_REPORTING_RUNNER_GROUP_ID: ${{ vars.FACTORY_REPORTING_RUNNER_GROUP_ID }}
+        run: python3 .claude/scripts/factory-reporting-preflight.py --policy
+  report:
+    needs: preflight
+    environment: factory-reporting
+    runs-on:
+      group: ${{ needs.preflight.outputs.group }}
+      labels: [self-hosted, factory-reporting]
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+      FACTORY_REPORTING_STATE_DIR: ${{ vars.FACTORY_REPORTING_STATE_DIR }}
+      FACTORY_REPORTING_CHANNEL: ${{ vars.FACTORY_REPORTING_CHANNEL }}
+      FACTORY_REPORTING_TEAM_ID: ${{ vars.FACTORY_REPORTING_TEAM_ID }}
+      FACTORY_REPORTING_START: ${{ vars.FACTORY_REPORTING_START }}
+      FACTORY_REPORTING_BRANCH: ${{ github.event.repository.default_branch }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Validate private persistent state and prepare config
+        run: python3 .claude/scripts/factory-reporting-preflight.py --config-out "$RUNNER_TEMP/factory-digest.json"
+      - name: Deliver or reconcile latest due report
+        env:
+          FACTORY_SLACK_BOT_TOKEN: ${{ secrets.FACTORY_SLACK_BOT_TOKEN }}
+        run: |
+          umask 077
+          python3 .claude/scripts/factory-slack-digest.py --config "$RUNNER_TEMP/factory-digest.json"
+      - name: Report missed delivery status
+        if: always()
+        run: python3 .claude/scripts/factory-slack-digest.py --config "$RUNNER_TEMP/factory-digest.json" --status-only

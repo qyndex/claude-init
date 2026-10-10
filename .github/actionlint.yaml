@@ -1,0 +1,4 @@
+# Reporting is isolated by the verified organization runner group as well as label.
+self-hosted-runner:
+  labels:
+    - factory-reporting
