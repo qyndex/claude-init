@@ -1,0 +1,27 @@
+{
+  "runner": "shell-acceptance-recorder",
+  "independent_attestation": false,
+  "command": "bash .claude/scripts/test/factory-feedback-control.sh",
+  "testResults": [
+    {
+      "assertionResults": [
+        {
+          "fullName": "AC-1: authenticated exact hash/version approval, private namespace, outsider filtering and immutable command replay passed",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-2: acceptance requires full matching delivery provenance and exact version, with durable replay and distinct delivered/accepted state",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-3: lost control confirmation resumes committed amendment once; stale/conflicting approvals fenced inside core transaction",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-4: edits, stale acceptance, missing protected proposals, disabled/foreign configuration and conflicting authenticated sources fail closed",
+          "status": "passed"
+        }
+      ]
+    }
+  ]
+}

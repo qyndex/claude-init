@@ -1,0 +1,10 @@
+# TDD ledger — green — T-205
+ledger_format: 2
+timestamp: 2026-10-10T18:14:16+11:00
+command: bash .claude/scripts/test/factory-feedback-control.sh
+exit_code: 0
+---
+AC-1: authenticated exact hash/version approval, private namespace, outsider filtering and immutable command replay passed
+AC-2: acceptance requires full matching delivery provenance and exact version, with durable replay and distinct delivered/accepted state
+AC-3: lost control confirmation resumes committed amendment once; stale/conflicting approvals fenced inside core transaction
+AC-4: edits, stale acceptance, missing protected proposals, disabled/foreign configuration and conflicting authenticated sources fail closed

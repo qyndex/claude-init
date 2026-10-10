@@ -70,7 +70,7 @@ class Feedback:
                     self.event(db, identity, {'type': 'captured', 'document': document})
         return [identity for _, identity, _ in prepared]
 
-    def plan(self, identity, amendment, policy):
+    def plan(self, identity, amendment, policy, expected_version=None):
         require(set(amendment) == {'impact', 'bindings', 'supersedes'}, 'malformed amendment')
         require(isinstance(amendment['impact'], str) and 0 < len(amendment['impact']) <= 20000, 'impact analysis required')
         bindings = amendment['bindings']; old_revisions = amendment['supersedes']
@@ -86,6 +86,11 @@ class Feedback:
         require(policy.get('feedback_amendments', {}).get(identity) == hashlib.sha256(encoded.encode()).hexdigest(), 'full amendment impact/supersession not approved')
         with self.store.transaction() as db:
             row = self.row(db, identity)
+            if expected_version is not None:
+                require(type(expected_version) is int and expected_version > 0 and row['version'] in {expected_version - 1, expected_version}, 'approval targets stale version')
+                if row['version'] == expected_version:
+                    current = db.execute('SELECT document FROM feedback_amendments WHERE feedback=? AND version=?', (identity, expected_version)).fetchone()
+                    require(current is not None and current[0] == encoded, 'approval version belongs to another amendment')
             if row['version']:
                 previous = db.execute('SELECT document FROM feedback_amendments WHERE feedback=? AND version=?', (identity, row['version'])).fetchone()[0]
                 if previous == encoded:
@@ -130,15 +135,16 @@ class Feedback:
                 self.event(db, identity, {'type': status, 'version': row['version']})
             return status
 
-    def accept(self, identity, operator, source_ref):
+    def accept(self, identity, operator, source_ref, expected_version=None):
         require(all(isinstance(v, str) and bool(v.strip()) for v in (operator, source_ref)), 'explicit operator acceptance source required')
         require(self.reconcile(identity) in {'delivered', 'accepted'}, 'feedback not fully delivered')
         event = {'type': 'accepted', 'operator': operator, 'source_ref': source_ref}
         with self.store.transaction() as db:
             row = self.row(db, identity)
-            previous = db.execute('SELECT event FROM feedback_events WHERE feedback=? ORDER BY sequence DESC LIMIT 1', (identity,)).fetchone()[0]
+            require(expected_version is None or (type(expected_version) is int and expected_version > 0 and row['version'] == expected_version), 'acceptance targets stale version')
             if row['status'] == 'accepted':
-                require(previous == canonical(event), 'acceptance replay conflicts'); return
+                previous = [json.loads(item[0]) for item in db.execute('SELECT event FROM feedback_events WHERE feedback=? ORDER BY sequence DESC', (identity,)) if json.loads(item[0]).get('type') == 'accepted']
+                require(bool(previous) and previous[0] == event, 'acceptance replay conflicts'); return
             require(row['status'] == 'delivered', 'feedback changed before acceptance')
             db.execute("UPDATE factory_feedback SET status='accepted' WHERE id=?", (identity,))
             self.event(db, identity, event)

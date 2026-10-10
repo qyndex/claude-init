@@ -1214,3 +1214,9 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   files: .claude/scripts/factory-slack-feedback.py, .claude/scripts/factory-feedback.py
   accept: bash .claude/scripts/test/factory-slack-feedback.sh
   owner: implementer
+
+- [x] T-205  | spec:031  | phase:1  | priority: security  | created: 2026-10-10  | last_touched: 2026-10-10  | deps: T-204  | parallel: no  | est: 30m
+  summary: Authenticate exact-version feedback approval and separate delivered-feature acceptance
+  files: .claude/scripts/factory-feedback-control.py, .claude/scripts/factory-feedback.py, .claude/scripts/factory-slack-feedback.py
+  accept: bash .claude/scripts/test/factory-feedback-control.sh
+  owner: implementer
