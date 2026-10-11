@@ -1238,3 +1238,9 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   files: .claude/scripts/factory-encrypted-feedback.py
   accept: bash .claude/scripts/test/factory-encrypted-feedback.sh
   owner: implementer
+
+- [x] T-209  | spec:035  | phase:1  | priority: security  | created: 2026-10-11  | last_touched: 2026-10-11  | deps: T-208  | parallel: no  | est: 30m
+  summary: Capture authenticated Slack feedback into encrypted hosted Git checkpoints with explicit bootstrap and fenced recovery
+  files: .claude/scripts/factory-hosted-feedback.py, .claude/scripts/factory-git-state.py, .github/workflows/factory-hosted-feedback.yml
+  accept: bash .claude/scripts/test/factory-hosted-feedback.sh
+  owner: implementer

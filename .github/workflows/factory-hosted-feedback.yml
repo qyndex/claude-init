@@ -1,0 +1,75 @@
+name: Factory Encrypted Feedback Intake
+on:
+  schedule:
+    - cron: '7,22,37,52 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: factory-reporting-${{ github.repository }}
+  cancel-in-progress: false
+jobs:
+  intake:
+    if: >-
+      vars.FACTORY_FEEDBACK_ENABLED == 'true' &&
+      vars.FACTORY_REPORTING_PROFILE == 'github-hosted' &&
+      github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    environment: factory-reporting
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Install pinned encryption dependencies
+        run: python3 -m pip install -r factory/feedback-crypto-requirements.txt
+      - name: Prepare protected feedback configuration
+        env:
+          REPORT_CHANNEL: ${{ vars.FACTORY_REPORTING_CHANNEL }}
+          REPORT_TEAM: ${{ vars.FACTORY_REPORTING_TEAM_ID }}
+          REPORT_START: ${{ vars.FACTORY_REPORTING_START }}
+          REPORT_BRANCH: ${{ github.event.repository.default_branch }}
+          STATE_REPOSITORY: ${{ vars.FACTORY_REPORTING_STATE_REPOSITORY }}
+          STATE_BRANCH: ${{ vars.FACTORY_REPORTING_STATE_BRANCH }}
+          REPORT_BOOTSTRAP: ${{ vars.FACTORY_REPORTING_BOOTSTRAP_SHA }}
+          POLICY_APPROVALS: ${{ vars.FACTORY_REPORTING_POLICY_APPROVALS }}
+          FEEDBACK_OPERATORS: ${{ vars.FACTORY_FEEDBACK_OPERATORS }}
+          FEEDBACK_START: ${{ vars.FACTORY_FEEDBACK_START }}
+          FEEDBACK_KEY_ID: ${{ vars.FACTORY_FEEDBACK_KEY_ID }}
+          FEEDBACK_BOOTSTRAP: ${{ vars.FACTORY_FEEDBACK_BOOTSTRAP_SHA }}
+        run: |
+          umask 077
+          python3 - <<'PYCONFIG'
+          import json,os
+          from pathlib import Path
+          root=Path(os.environ['RUNNER_TEMP'])/'factory-private-feedback'
+          root.mkdir(mode=0o700)
+          config={'enabled':True,'feedback_enabled':True,'attachments_enabled':False,
+                  'repository':os.environ['GITHUB_REPOSITORY'],
+                  'state_repository':os.environ['STATE_REPOSITORY'] or os.environ['GITHUB_REPOSITORY'],
+                  'destination':os.environ['REPORT_CHANNEL'],'team_id':os.environ['REPORT_TEAM'],
+                  'branch':os.environ['REPORT_BRANCH'],'start':os.environ['REPORT_START'],
+                  'state_branch':os.environ['STATE_BRANCH'],'bootstrap_sha':os.environ['REPORT_BOOTSTRAP'],
+                  'policy_approvals':json.loads(os.environ['POLICY_APPROVALS'] or '{}'),
+                  'operators':json.loads(os.environ['FEEDBACK_OPERATORS']),
+                  'feedback_start':os.environ['FEEDBACK_START'],'feedback_key_id':os.environ['FEEDBACK_KEY_ID'],
+                  'feedback_bootstrap_sha':os.environ['FEEDBACK_BOOTSTRAP']}
+          (root/'config.json').write_text(json.dumps(config))
+          PYCONFIG
+      - name: Capture authenticated feedback and commit only encrypted state
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FACTORY_REPORTING_STATE_TOKEN: ${{ secrets.FACTORY_REPORTING_STATE_TOKEN }}
+          FACTORY_SLACK_BOT_TOKEN: ${{ secrets.FACTORY_SLACK_BOT_TOKEN }}
+          FACTORY_FEEDBACK_STATE_KEY: ${{ secrets.FACTORY_FEEDBACK_STATE_KEY }}
+        run: python3 .claude/scripts/factory-hosted-feedback.py --config "$RUNNER_TEMP/factory-private-feedback/config.json"
+      - name: Remove private configuration
+        if: always()
+        run: |
+          python3 - <<'PYCLEAN'
+          import os
+          from pathlib import Path
+          path=Path(os.environ['RUNNER_TEMP'])/'factory-private-feedback'/'config.json'
+          path.unlink(missing_ok=True)
+          PYCLEAN
