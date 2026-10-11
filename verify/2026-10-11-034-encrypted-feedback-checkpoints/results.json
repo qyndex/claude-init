@@ -1,7 +1,9 @@
 {
   "runner": "shell-acceptance-recorder",
   "independent_attestation": false,
-  "command": "bash .claude/scripts/test/factory-encrypted-feedback.sh",
+  "commands": [
+    "bash .claude/scripts/test/factory-encrypted-feedback.sh"
+  ],
   "testResults": [
     {
       "assertionResults": [

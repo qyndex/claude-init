@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Authenticated private SQLite checkpoints; ciphertext only crosses Git boundary."""
 import base64
-from contextlib import contextmanager
+from contextlib import closing, contextmanager
 import hashlib
 import json
 import os
@@ -82,7 +82,7 @@ def unseal(encoded, secret, binding):
 
 
 def validate_database(path, repository):
-    with sqlite3.connect(f'{path.as_uri()}?mode=ro',uri=True) as db:
+    with closing(sqlite3.connect(f'{path.as_uri()}?mode=ro',uri=True)) as db:
         db.execute('PRAGMA trusted_schema=OFF')
         require(db.execute('PRAGMA journal_mode').fetchone()[0]=='delete','feedback database must not use detached journals')
         require(db.execute('PRAGMA quick_check').fetchall()==[('ok',)],'feedback database integrity failed')
@@ -100,7 +100,7 @@ def private_database(checkpoint, secret, binding):
         with tempfile.TemporaryDirectory(prefix='factory-feedback-') as temporary:
             root=Path(temporary).resolve();path=root/'runtime.sqlite'
             if previous is None:
-                with sqlite3.connect(path) as db:
+                with closing(sqlite3.connect(path)) as db, db:
                     db.execute('CREATE TABLE feedback_checkpoint_identity(id INTEGER PRIMARY KEY CHECK(id=1),repository TEXT NOT NULL)')
                     db.execute('INSERT INTO feedback_checkpoint_identity VALUES(1,?)',(binding['repository'],))
             else:

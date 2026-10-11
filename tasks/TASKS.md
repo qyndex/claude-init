@@ -1250,3 +1250,9 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   files: .claude/scripts/factory-supervisor.py
   accept: bash .claude/scripts/test/factory-worker-environment.sh
   owner: implementer
+
+- [x] T-211  | spec:037  | phase:1  | priority: security  | created: 2026-10-11  | last_touched: 2026-10-11  | deps: T-210  | parallel: no  | est: 30m
+  summary: Bind protected role/model routing to approved ledger policy and persist bounded native subscription capacity observations
+  files: .claude/scripts/factory-routing.py, .claude/scripts/factory-claude-probe.py, .claude/scripts/factory-ledger.py, .claude/scripts/factory-encrypted-feedback.py
+  accept: bash .claude/scripts/test/factory-routing.sh
+  owner: implementer

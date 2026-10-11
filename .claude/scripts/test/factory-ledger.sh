@@ -92,5 +92,8 @@ with tempfile.TemporaryDirectory() as tmp:
     assert store.get('T-10')['state']=='verifying'
     assert store.get('T-11')['state']=='verifying'
 
-print('factory-ledger: approved closure, receipts, archive IDs, nested lock returns and resource contracts passed')
+print('AC-1: actual approved dependency closure imports reject cycles, missing dependencies, duplicate IDs and changed immutable spec/task scope without partial records')
+print('AC-2: real nested task locks preserve return values and mint IDs above archived reservations')
+print('AC-3: confirmed exact-task revision receipts, rather than archived completion markers, unblock claims; reimport and conflicting receipts remain fenced')
+print('AC-4: concurrent real workers receive disjoint TCP ports and private database directories; undeclared service adapters fail closed and outcomes only reach verifying')
 PY
