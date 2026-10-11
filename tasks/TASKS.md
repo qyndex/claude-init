@@ -1262,3 +1262,9 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   files: .claude/scripts/factory-runtime.py
   accept: bash .claude/scripts/test/factory-worker-effects.sh
   owner: implementer
+
+- [x] T-213  | spec:039  | phase:1  | priority: security  | created: 2026-10-11  | last_touched: 2026-10-11  | deps: T-212  | parallel: no  | est: 30m
+  summary: Isolate offline workers in pinned Linux containers and reconcile daemon effects before retry
+  files: .claude/scripts/factory-container.py, .claude/scripts/factory-runtime.py, .claude/scripts/factory-supervisor.py, .claude/scripts/factory-worker-guard.py, .claude/scripts/factory-ledger.py
+  accept: bash .claude/scripts/test/factory-container.sh
+  owner: implementer

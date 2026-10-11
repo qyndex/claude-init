@@ -1,5 +1,5 @@
 ## Evidence Bundle — Spec 012 (012-supervised-local-workers)
-Spec: `specs/active/012-supervised-local-workers.md` · Commit: `e1c468f`
+Spec: `specs/active/012-supervised-local-workers.md` · Commit: `13c7f3e`
 
 ### Acceptance criteria (4/4 proven)
 | AC | Proven by | Result |
@@ -11,7 +11,7 @@ Spec: `specs/active/012-supervised-local-workers.md` · Commit: `e1c468f`
 
 ### Smoke test (exit codes are load-bearing)
 ```
-# Smoke test — 2026-10-11T12:17:36+11:00
+# Smoke test — 2026-10-11T13:34:38+11:00
 $ bash .claude/scripts/verify.sh
 
 → Integration coverage gate

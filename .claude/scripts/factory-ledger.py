@@ -18,7 +18,7 @@ runtime = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(runtime)
 
 
-def resource_contract(config, namespace):
+def resource_contract(config, namespace, repository=None):
     services = config.get('services', [])
     if not isinstance(services, list):
         raise ValueError('service list required')
@@ -29,7 +29,15 @@ def resource_contract(config, namespace):
                 or service['name'] in names or service['kind'] not in {'tcp', 'directory'}):
             raise ValueError('unsupported isolation declaration; use inherited TCP socket or private directory')
         names.add(service['name'])
-    return {'namespace': namespace, 'services': services}
+    result = {'namespace': namespace, 'services': services}
+    if config.get('execution') is not None:
+        module = importlib.util.spec_from_file_location('container_adapter', Path(__file__).with_name('factory-container.py'))
+        adapter = importlib.util.module_from_spec(module); module.loader.exec_module(adapter)
+        execution = adapter.validate(config['execution'])
+        if services or execution['repository'] != repository:
+            raise ValueError('offline containers require matching repository and no host service adapters')
+        result['execution'] = execution
+    return result
 
 
 def parse_ledgers(root):
@@ -189,7 +197,7 @@ def main():
     args = parser.parse_args()
     command = args.command[1:] if args.command[:1] == ['--'] else args.command
     config = json.loads(Path(args.policy).read_text())
-    resources = resource_contract(config.get('runtime', {}), 'assigned-at-claim')
+    resources = resource_contract(config.get('runtime', {}), 'assigned-at-claim', config.get('repository'))
     if args.routing_config:
         if command or not args.cwd or not args.attempts:
             parser.error('routed worker requires cwd/attempts and forbids caller command override')

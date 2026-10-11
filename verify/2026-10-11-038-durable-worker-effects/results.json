@@ -1,5 +1,6 @@
 {
   "runner": "shell-acceptance-recorder",
+  "source_sha": "13c7f3e11ae40633de2e8ba2a3c7e0724e0b6db0",
   "independent_attestation": false,
   "commands": [
     "bash .claude/scripts/test/factory-worker-effects.sh"

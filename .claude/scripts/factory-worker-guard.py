@@ -23,6 +23,7 @@ def main():
     parser.add_argument('--owner', required=True)
     parser.add_argument('--token', type=int, required=True)
     parser.add_argument('--outcome', type=Path, required=True)
+    parser.add_argument('--execution')
     parser.add_argument('command', nargs=argparse.REMAINDER)
     args = parser.parse_args()
     command = args.command[1:] if args.command[:1] == ['--'] else args.command
@@ -33,12 +34,20 @@ def main():
     for sig in (signal.SIGTERM, signal.SIGINT):
         signal.signal(sig, lambda signum, frame: stopped.append(signum))
     worker = None
+    container = None
     reason = 'startup-failure'
     code = 1
     orphaned = False
     clean = False
     try:
-        worker = subprocess.Popen(command, start_new_session=True, pass_fds=tuple(inherited))
+        environment = None
+        directory = None
+        if args.execution:
+            module = importlib.util.spec_from_file_location('container_adapter', Path(__file__).with_name('factory-container.py'))
+            adapter = importlib.util.module_from_spec(module); module.loader.exec_module(adapter)
+            container = adapter.Container(json.loads(args.execution), supervisor.runtime.Store(args.db), args.task, args.owner, args.token, args.outcome.parent, Path.cwd().resolve(), command)
+            command = container.create(); environment = container.environment; directory = container.client_home.name
+        worker = subprocess.Popen(command, start_new_session=True, pass_fds=tuple(inherited), env=environment, cwd=directory)
         while True:
             readable, _, _ = select.select([args.watch_fd], [], [], .05)
             if readable and os.read(args.watch_fd, 1) == b'':
@@ -55,13 +64,18 @@ def main():
         try:
             if worker is not None:
                 supervisor.terminate(worker, grace=.5)
+            if container is not None:
+                container.cleanup()
             clean = True
         finally:
+            if container is not None:
+                container.close()
             if orphaned:
                 # Unknown cleanup never permits replay, even if the lease expired.
                 supervisor.runtime.Store(args.db).recover_worker(args.task, args.owner, args.token, requeue=clean)
             args.outcome.write_text(json.dumps({'reason': reason, 'exit_code': code,
                                                'worker_cleanup_confirmed': clean,
+                                               'external_cleanup_confirmed': clean if args.execution else None,
                                                'engineering_verified': False}, indent=2) + '\n')
             os.close(args.watch_fd)
 
