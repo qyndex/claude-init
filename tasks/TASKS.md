@@ -1310,3 +1310,8 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   files: .claude/scripts/factory-ruleset-plan.py, .github/workflows/claude-security.yml
   accept: bash .claude/scripts/test/factory-activation-planning.sh
   owner: implementer
+
+- [x] T-221  | spec:047  | phase:6  | priority: normal  | created: 2026-10-11  | last_touched: 2026-10-11  | deps: T-220  | parallel: no  | est: 40m
+  summary: Prepare concrete disabled-by-default activation review package and proposed pilot
+  accept: bash .claude/scripts/test/factory-activation-package.sh
+  owner: codex

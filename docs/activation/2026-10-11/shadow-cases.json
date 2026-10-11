@@ -1,0 +1,56 @@
+{
+  "live_executed": false,
+  "fixture_proof": "bash .claude/scripts/test/factory-coordinator.sh; fixture results are not live receipts",
+  "cases": [
+    {
+      "case": "approved current-head candidate",
+      "expected": "eligible-without-merge",
+      "proof_required": "real independent producer receipts, all twelve pins, complete ACs and exact source"
+    },
+    {
+      "case": "wrong model or quota exhausted",
+      "expected": "blocked",
+      "proof_required": "review failure; no fallback"
+    },
+    {
+      "case": "missing or tampered AC observation",
+      "expected": "blocked",
+      "proof_required": "artifact digest/AC validation"
+    },
+    {
+      "case": "stale PR head",
+      "expected": "blocked",
+      "proof_required": "old receipts invalidated"
+    },
+    {
+      "case": "changed integration base",
+      "expected": "blocked",
+      "proof_required": "protected producer base differs"
+    },
+    {
+      "case": "foreign check producer",
+      "expected": "blocked",
+      "proof_required": "required App pin differs"
+    },
+    {
+      "case": "authority-path edit or rename",
+      "expected": "blocked",
+      "proof_required": "operator authority path"
+    },
+    {
+      "case": "out-of-scope file",
+      "expected": "blocked",
+      "proof_required": "only exact quickstart path approved"
+    },
+    {
+      "case": "missing review/security pin",
+      "expected": "blocked",
+      "proof_required": "live protection drift"
+    },
+    {
+      "case": "shadow requested merge",
+      "expected": "blocked",
+      "proof_required": "merge_enabled false"
+    }
+  ]
+}
