@@ -2,7 +2,7 @@
 
 Production is disabled in the shipped harness. The canary workflow refuses every dispatch, including `DEPLOY_WIRED=true`. A variable cannot prove that a platform deployed an artifact. The stub has no deployment-write permission and emits no GitHub deployment success.
 
-This document specifies the required adopter contract. A protected reusable release core and isolated rollout/rollback drills are the next F-08 implementation slice; this checklist alone does not implement or certify them. Every adopter owns its platform, service, credentials and durable release state. The harness repository needs no pretend production service.
+This document specifies the required adopter contract. The protected reusable release core is `.claude/scripts/factory-release.py`. Its isolated real HTTP rollout/rollback drills exercise the generic contract; they do not certify any future production target. Every adopter owns its platform, service, credentials and durable release state. The harness repository needs no pretend production service.
 
 ## Protected release inputs
 
@@ -41,3 +41,13 @@ Run isolated drills against a real local service or staging target: healthy prom
 Before enabling an adopter's real production target, repeat applicable drills using its actual provider, traffic routing, durable backend, credentials and health measurements. Confirm protected workflow/environment access and record the approved policy hash. Keep production disabled if any adapter, baseline, metrics, provenance or recovery prerequisite is missing. Enable production separately from auto-merge.
 
 Replace the shipped stub with the verified protected pipeline. If issue lifecycle consumes `deployment_status: success`, emit that event only from the final authenticated healthy release receipt; never from placeholder steps or a failed rollback. Retain source-bound receipts and alert links for the morning digest.
+
+## Release core invocation
+
+Provision an owner-only directory (mode 700) on the adopter’s durable controller filesystem, outside any candidate checkout. Keep release configuration and trusted coordinator policy mode 600. Start from the disabled `factory/release.example.json`; configure every field, hash the canonical executable and each absolute script input, and supply approved deployment-only credential references. The baseline must be a genuinely approved known-good version.
+
+Invoke the trusted controller with `python3 .claude/scripts/factory-release.py --config /private/controller/release.json --policy /private/controller/coordinator-policy.json --db /private/controller/release.sqlite --run-id <successful-coordinator-run>`. The CLI authenticates the protected coordinator’s actual GitHub receipt; it has no caller-supplied proof-file or adapter override. Fixture tests inject synthetic delivery into the core API and must never be represented as that authenticated live path.
+
+The private database records intent and confirmed outcomes before subsequent effects. On loss of an acknowledgement, repeat the same authenticated delivery to reconcile the exact operation through adapter lookup. Unknown effects or rollback health retain the service fence; do not reset or delete the database. Terminal repeats return the historical result and do not redeploy it. Protect the durable volume and controller identity separately from implementation workers.
+
+Adapter stdout is exactly one bounded JSON document. Deploy/lookup/rollback receipts have schema_version, repository, service, environment, operation_id, sha, stage, status (present), deployment_id and artifact_digest (SHA-256). Observe has the same identity fields plus metrics: samples, errors, window_start, window_end (Unix timestamps) and p95_latency_ms. Each adapter receives action and canonical request as arguments; secrets are passed only through approved environment mappings. Pin the adapter’s dependencies and platform SDK as part of the protected controller runtime; executable-file hashes alone do not authenticate dynamic imports or remote provider behavior.

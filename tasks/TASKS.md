@@ -1286,3 +1286,9 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   files: .github/workflows/canary-deploy.yml, docs/DEPLOY-INTEGRATION.md
   accept: bash .claude/scripts/test/factory-production-stub.sh
   owner: implementer
+
+- [x] T-217  | spec:043  | phase:1  | priority: security  | created: 2026-10-11  | last_touched: 2026-10-11  | deps: T-216  | parallel: no  | est: 30m
+  summary: Gate progressive production effects on protected authenticated delivery, measured SLOs and durable rollback recovery
+  files: .claude/scripts/factory-release.py, docs/DEPLOY-INTEGRATION.md
+  accept: bash .claude/scripts/test/factory-release.sh
+  owner: implementer

@@ -1,0 +1,27 @@
+{
+  "enabled": false,
+  "repository": null,
+  "service": null,
+  "environment": null,
+  "adapter": {
+    "argv": [],
+    "pins": {},
+    "timeout": 30
+  },
+  "credentials": {},
+  "stages": [
+    10,
+    50,
+    100
+  ],
+  "slo": {
+    "min_samples": 100,
+    "window_seconds": 300,
+    "max_error_rate": 0.001,
+    "p95_latency_ms": 500,
+    "max_age_seconds": 60
+  },
+  "baseline_sha": null,
+  "health_url": null,
+  "eligible_specs": []
+}

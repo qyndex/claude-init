@@ -1,0 +1,11 @@
+# TDD ledger — green — T-217
+ledger_format: 2
+timestamp: 2026-10-11T14:49:01+11:00
+command: bash .claude/scripts/test/factory-release.sh
+exit_code: 0
+---
+AC-1: disabled/missing pins, foreign delivery/store and unrelated state reject before deployment; actual pinned subprocess receives deployment-only credentials
+AC-2: real HTTP healthy rollout measures every configured stage and duplicate authenticated-core delivery creates no additional effects
+AC-3: actual HTTP 503 candidate breaches SLO, restores recorded known-good version and measures healthy rollback before confirmation
+AC-4: lost deploy/rollback acknowledgements survive SQLite reopen, unknown lookup fences other releases and reconciliation never blindly repeats actual effects
+AC-5: malformed identity and stale health cannot certify release; private state records exact outcomes without independent-review claims
