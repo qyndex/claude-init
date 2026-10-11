@@ -1,29 +1,29 @@
 {
-  "runner": "shell-acceptance-recorder",
-  "source_sha": "503b6df9d988495a7e266f58306a8e66dbe8b476",
+  "runner": "actual-shell-acceptance-recorder",
+  "source_sha": "4cbb03384168429c2d38fe980a4c339ea5505f12",
   "independent_attestation": false,
   "commands": [
     "bash .claude/scripts/test/factory-producers.sh",
-    "bash .claude/scripts/test/factory-coordinator.sh",
+    "bash .claude/scripts/test/factory-review-runtime.sh",
     "bash .claude/scripts/test/factory-workflows.sh"
   ],
   "testResults": [
     {
       "assertionResults": [
         {
-          "fullName": "AC-1: approved candidate/runtime/AC scope fixtures",
+          "fullName": "AC-1: actual package and protected contract regressions; see acceptance.log",
           "status": "passed"
         },
         {
-          "fullName": "AC-2: bounded credential-free acceptance container argv and digested observation fixtures",
+          "fullName": "AC-2: actual package and protected contract regressions; see acceptance.log",
           "status": "passed"
         },
         {
-          "fullName": "AC-3: tool-free separate review rejects credentials, quota, errors and invalid verdicts",
+          "fullName": "AC-3: actual package and protected contract regressions; see acceptance.log",
           "status": "passed"
         },
         {
-          "fullName": "AC-4: protected producer identity and exact-head candidate check fixtures",
+          "fullName": "AC-4: actual package and protected contract regressions; see acceptance.log",
           "status": "passed"
         }
       ]

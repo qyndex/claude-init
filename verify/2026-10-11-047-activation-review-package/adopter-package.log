@@ -1,0 +1,6 @@
+{"activation_enabled":false,"changed_files":469,"journal":"6cfc6de348024d1db47f076e6ab9820f","source_sha":"4cbb03384168429c2d38fe980a4c339ea5505f12"}
+SKIP: source pilot activation package is not distributed to adopters; no readiness proof claimed
+passed: 33; failed: 0
+passed: 30; failed: 0
+
+Actual source SHA: 4cbb03384168429c2d38fe980a4c339ea5505f12

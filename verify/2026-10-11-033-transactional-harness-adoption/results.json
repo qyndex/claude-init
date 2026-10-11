@@ -1,6 +1,6 @@
 {
-  "runner": "shell-acceptance-recorder",
-  "source_sha": "580a5cbd06f378fcce1458d642a944f931c41bea",
+  "runner": "actual-shell-acceptance-recorder",
+  "source_sha": "4cbb03384168429c2d38fe980a4c339ea5505f12",
   "independent_attestation": false,
   "commands": [
     "bash .claude/scripts/test/factory-adopt.sh"
@@ -9,19 +9,19 @@
     {
       "assertionResults": [
         {
-          "fullName": "AC-1: actual contract acceptance suite, see acceptance.log",
+          "fullName": "AC-1: actual package and protected contract regressions; see acceptance.log",
           "status": "passed"
         },
         {
-          "fullName": "AC-2: actual contract acceptance suite, see acceptance.log",
+          "fullName": "AC-2: actual package and protected contract regressions; see acceptance.log",
           "status": "passed"
         },
         {
-          "fullName": "AC-3: actual contract acceptance suite, see acceptance.log",
+          "fullName": "AC-3: actual package and protected contract regressions; see acceptance.log",
           "status": "passed"
         },
         {
-          "fullName": "AC-4: actual contract acceptance suite, see acceptance.log",
+          "fullName": "AC-4: actual package and protected contract regressions; see acceptance.log",
           "status": "passed"
         }
       ]

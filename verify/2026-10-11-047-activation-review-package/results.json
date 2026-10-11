@@ -1,0 +1,30 @@
+{
+  "runner": "actual-shell-acceptance-recorder",
+  "source_sha": "4cbb03384168429c2d38fe980a4c339ea5505f12",
+  "independent_attestation": false,
+  "commands": [
+    "bash .claude/scripts/test/factory-activation-package.sh"
+  ],
+  "testResults": [
+    {
+      "assertionResults": [
+        {
+          "fullName": "AC-1: actual package and protected contract regressions; see acceptance.log",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-2: actual package and protected contract regressions; see acceptance.log",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-3: actual package and protected contract regressions; see acceptance.log",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-4: actual package and protected contract regressions; see acceptance.log",
+          "status": "passed"
+        }
+      ]
+    }
+  ]
+}

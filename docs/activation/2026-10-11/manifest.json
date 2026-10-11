@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "source_sha": "60b93a313f5a57760d2ad8602e0d88850b713b8c",
+  "repository": "qyndex/claude-init",
+  "app_id": 5251754,
+  "workflow_ids": {
+    "verification": 379732143,
+    "review": 379732140,
+    "receipts": 379732139
+  },
+  "proposal_only": true,
+  "live_authority_approved": false,
+  "model_requests": 0,
+  "unchanged_live_policy_sha256": "ee5756f3e44ee0bf7e729dc8ee94647e66c6278f84fabf4af4fd8dbb7ca4e3f5",
+  "verification_image": "python@sha256:a6e34c598f2467ed0e9a8d349809fcd8b5c603269512df273a0bb1784edc11b1",
+  "image_resolution": {
+    "tag": "python:3.12-slim",
+    "digest": "sha256:a6e34c598f2467ed0e9a8d349809fcd8b5c603269512df273a0bb1784edc11b1",
+    "method": "docker buildx imagetools inspect; registry metadata only",
+    "resolved_at": "2026-10-11T09:04:42.470226+00:00",
+    "executed_locally": false
+  },
+  "credential_metadata_only": true,
+  "protected_key_name_present": true,
+  "subscription_secret_name_present": true,
+  "authority_environment_branches": [
+    "main"
+  ],
+  "review_state": "disabled_manually",
+  "security_state": "disabled_manually",
+  "observed_repository_switches": [],
+  "pilot_approval_status": "proposed; operator authority decision pending",
+  "receipt_revision_status": "register actual approved coordinator source before first merge",
+  "operational_blockers": [
+    "operator approval of exact pilot spec and shadow authority configuration",
+    "Claude review paused until Tuesday; actual subscription capacity and model identity unproven",
+    "protected producer runs and genuine exact-candidate verifier/reviewer receipts absent",
+    "live ruleset proposal unapplied; checks restoration pending",
+    "positive and negative live shadow proof absent",
+    "merge mode requires later reviewed revision after shadow proof",
+    "coordinator receipt source revision must be registered from actual approved Git commit",
+    "controlled delivery/digest/feedback amendment and twenty genuine deliveries unfulfilled"
+  ],
+  "pilot_proposal_path": "docs/activation/2026-10-11/spec-048.proposed.md",
+  "pilot_approved_destination": "specs/active/048-adopter-quickstart-pilot.md"
+}
