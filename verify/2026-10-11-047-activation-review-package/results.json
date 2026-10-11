@@ -1,6 +1,6 @@
 {
   "runner": "actual-shell-acceptance-recorder",
-  "source_sha": "72fbb9717c939f8845bd7cee0bf5da41085063eb",
+  "source_sha": "4cbb03384168429c2d38fe980a4c339ea5505f12",
   "independent_attestation": false,
   "commands": [
     "bash .claude/scripts/test/factory-activation-package.sh"
