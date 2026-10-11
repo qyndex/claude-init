@@ -1,33 +1,32 @@
 {
-  "runner": "shell-acceptance-recorder",
-  "source_sha": "580a5cbd06f378fcce1458d642a944f931c41bea",
+  "runner": "actual-shell-acceptance-recorder",
+  "source_sha": "72fbb9717c939f8845bd7cee0bf5da41085063eb",
   "independent_attestation": false,
   "commands": [
-    "bash .claude/scripts/test/factory-coordinator.sh",
-    "bash .claude/scripts/test/autonomous-ship.sh",
-    "bash .claude/scripts/test/factory-activation-planning.sh"
+    "bash .claude/scripts/test/factory-activation-package.sh",
+    "bash .claude/scripts/test/autonomous-ship.sh"
   ],
   "testResults": [
     {
       "assertionResults": [
         {
-          "fullName": "AC-1: actual contract acceptance suite, see acceptance.log",
+          "fullName": "AC-1: actual package and protected contract regressions; see acceptance.log",
           "status": "passed"
         },
         {
-          "fullName": "AC-2: actual contract acceptance suite, see acceptance.log",
+          "fullName": "AC-2: actual package and protected contract regressions; see acceptance.log",
           "status": "passed"
         },
         {
-          "fullName": "AC-3: actual contract acceptance suite, see acceptance.log",
+          "fullName": "AC-3: actual package and protected contract regressions; see acceptance.log",
           "status": "passed"
         },
         {
-          "fullName": "AC-4: actual contract acceptance suite, see acceptance.log",
+          "fullName": "AC-4: actual package and protected contract regressions; see acceptance.log",
           "status": "passed"
         },
         {
-          "fullName": "AC-5: actual contract acceptance suite, see acceptance.log",
+          "fullName": "AC-5: actual package and protected contract regressions; see acceptance.log",
           "status": "passed"
         }
       ]
