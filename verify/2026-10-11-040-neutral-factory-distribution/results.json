@@ -1,0 +1,30 @@
+{
+  "runner": "shell-acceptance-recorder",
+  "source_sha": "78abcd175e1a12521d221ad161da92f31d21aa8f",
+  "independent_attestation": false,
+  "commands": [
+    "bash .claude/scripts/test/factory-distribution.sh"
+  ],
+  "testResults": [
+    {
+      "assertionResults": [
+        {
+          "fullName": "AC-1: actual new/existing Git adopters receive pinned requirements and neutral references with immutable ownership while retaining their own content",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-2: pilot policy, App identity, workflow, private state and credentials stay excluded; all installed examples are disabled and repository neutral",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-3: replay is unchanged; explicit dependency upgrades and guarded revert preserve ownership; customized/foreign config collisions block before partial changes",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-4: actual installation invokes only Git inspection, never pip/provider/target setup; isolated pinned dependency provisioning and per-adopter disabled activation are documented",
+          "status": "passed"
+        }
+      ]
+    }
+  ]
+}
