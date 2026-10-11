@@ -1,29 +1,30 @@
 {
-  "runner": "actual-shell-acceptance-recorder",
-  "source_sha": "4cbb03384168429c2d38fe980a4c339ea5505f12",
+  "runner": "actual-shell-and-native-ci-recorder",
+  "source_sha": "56b123985fac1f48bd436e5a4603ef5aca7e24e2",
   "independent_attestation": false,
   "commands": [
     "bash .claude/scripts/test/factory-producers.sh",
     "bash .claude/scripts/test/factory-review-runtime.sh",
     "bash .claude/scripts/test/factory-workflows.sh"
   ],
+  "native_run": null,
   "testResults": [
     {
       "assertionResults": [
         {
-          "fullName": "AC-1: actual package and protected contract regressions; see acceptance.log",
+          "fullName": "AC-1: actual acceptance; see acceptance.log",
           "status": "passed"
         },
         {
-          "fullName": "AC-2: actual package and protected contract regressions; see acceptance.log",
+          "fullName": "AC-2: actual acceptance; see acceptance.log",
           "status": "passed"
         },
         {
-          "fullName": "AC-3: actual package and protected contract regressions; see acceptance.log",
+          "fullName": "AC-3: actual acceptance; see acceptance.log",
           "status": "passed"
         },
         {
-          "fullName": "AC-4: actual package and protected contract regressions; see acceptance.log",
+          "fullName": "AC-4: actual acceptance; see acceptance.log",
           "status": "passed"
         }
       ]

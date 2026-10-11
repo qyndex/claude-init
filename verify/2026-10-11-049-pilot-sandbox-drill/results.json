@@ -1,0 +1,27 @@
+{
+  "runner": "actual-shell-and-native-ci-recorder",
+  "source_sha": "56b123985fac1f48bd436e5a4603ef5aca7e24e2",
+  "independent_attestation": false,
+  "commands": [
+    "bash .claude/scripts/test/factory-pilot-sandbox.sh"
+  ],
+  "native_run": 38132880404,
+  "testResults": [
+    {
+      "assertionResults": [
+        {
+          "fullName": "AC-1: actual acceptance; see acceptance.log and native-sandbox.json",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-2: actual acceptance; see acceptance.log and native-sandbox.json",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-3: actual acceptance; see acceptance.log and native-sandbox.json",
+          "status": "passed"
+        }
+      ]
+    }
+  ]
+}

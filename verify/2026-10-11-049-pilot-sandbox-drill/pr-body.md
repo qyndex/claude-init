@@ -1,0 +1,33 @@
+## Evidence Bundle — Spec 049 (049-pilot-sandbox-drill)
+Spec: `specs/active/049-pilot-sandbox-drill.md` · Commit: `56b1239`
+
+### Acceptance criteria (3/3 proven)
+| AC | Proven by | Result |
+|----|-----------|--------|
+| AC-1 | tagged test | ✓ PASS |
+| AC-2 | tagged test | ✓ PASS |
+| AC-3 | tagged test | ✓ PASS |
+
+### Smoke test (exit codes are load-bearing)
+```
+# Smoke test — 2026-10-11T21:45:33+11:00
+$ bash .claude/scripts/verify.sh
+
+→ Integration coverage gate
+  ✓ changed API/DB files have integration tests
+
+verify: PASS
+exit: 0
+---
+```
+
+### Visual proof
+0 screenshot(s) captured under `verify/2026-10-11-049-pilot-sandbox-drill/screenshots/` (named by AC).
+
+### API traces
+0 API trace file(s) under `verify/2026-10-11-049-pilot-sandbox-drill/traces/`; full HAR at `verify/2026-10-11-049-pilot-sandbox-drill/network.har`.
+
+### Coverage
+line ?% · branch ?% (gate: line≥90 branch≥85)
+
+### Verdict: **PASS**

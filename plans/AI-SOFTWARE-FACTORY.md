@@ -266,3 +266,7 @@ T-171 baseline CI ledger reconciled against actual successful GitHub proof and f
 ### Activation preparation — spec 047
 
 Prepare a proposal-only package under docs/activation/2026-10-11: source-bound workflow/runtime identities, immutable verifier image, complete shadow-only policy/ruleset proposals, metadata-only live/proposed preflight, proposed single-document spec 048 and positive/negative shadow cases. Proposed spec/plan remain outside active approved catalogs; T-222 is a future identity reserved during explicit approval. No live policy/switch changes or model calls are authorized by this package. Tuesday runtime proof and the concrete operator authority decision remain required before promotion and application; merge mode has a separate post-shadow decision.
+
+### Proposed pilot sandbox feasibility (049)
+
+Spec049 adds exact proposed pilot argv execution in the digest-pinned Python verifier sandbox. Actual Linux run 38132880404 on 56b123985fac1f48bd436e5a4603ef5aca7e24e2 passed all three positive and individually defective cases plus nonroot/offline/read-only/host-exclusion assertions; native artifact retained. This is preparation feasibility, not authenticated candidate verification, approved spec048, shadow authority or delivery proof. Claude remains paused until Tuesday and live authority/producers remain disabled. Final source PR checks remain pending.

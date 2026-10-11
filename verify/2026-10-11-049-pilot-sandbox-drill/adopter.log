@@ -1,0 +1,5 @@
+Actual clean-source transactional adopter installation exit: 0
+{"activation_enabled":false,"changed_files":470,"journal":"cf177f5701a44db2b289b12c00177783","source_sha":"56b123985fac1f48bd436e5a4603ef5aca7e24e2"}
+
+Installed source-pilot test exit: 0
+SKIP: source pilot feasibility fixture is not adopter readiness proof

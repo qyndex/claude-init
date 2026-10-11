@@ -150,6 +150,22 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+      - name: Actual pinned pilot verifier sandbox drill
+        id: pilot
+        env:
+          FACTORY_PILOT_DRILL: "true"
+          FACTORY_PILOT_RESULT: ${{ runner.temp }}/factory-pilot-sandbox/result.json
+        run: bash .claude/scripts/test/factory-pilot-sandbox.sh
+
+      - name: Preserve nonsensitive pilot sandbox proof
+        if: steps.pilot.outcome == 'success'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: factory-pilot-sandbox-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/factory-pilot-sandbox/result.json
+          if-no-files-found: error
+          retention-days: 7
+
       - name: Harness test suite (M-00 - every test/*.sh must run somewhere)
         run: |
           # 2026-07 memory audit: 13 of 15 test/*.sh ran in no workflow (dead tests).

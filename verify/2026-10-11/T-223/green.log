@@ -1,0 +1,8 @@
+# TDD ledger — green — T-223
+ledger_format: 2
+timestamp: 2026-10-11T21:41:30.022567+11:00
+command: bash .claude/scripts/test/factory-pilot-sandbox.sh
+exit_code: 0
+---
+AC-1: exact proposed argv passes positive fixture and rejects individually defective fixtures; original bytes preserved
+SKIP: actual pinned Linux sandbox requires explicit CI enablement; host command coverage is not isolation proof

@@ -1,27 +1,28 @@
 {
-  "runner": "shell-acceptance-recorder",
-  "source_sha": "580a5cbd06f378fcce1458d642a944f931c41bea",
+  "runner": "actual-shell-and-native-ci-recorder",
+  "source_sha": "56b123985fac1f48bd436e5a4603ef5aca7e24e2",
   "independent_attestation": false,
   "commands": [
     "bash .claude/scripts/test/factory-workflow-baseline.sh"
   ],
+  "native_run": null,
   "testResults": [
     {
       "assertionResults": [
         {
-          "fullName": "AC-1: actual contract acceptance suite, see acceptance.log",
+          "fullName": "AC-1: actual acceptance; see acceptance.log",
           "status": "passed"
         },
         {
-          "fullName": "AC-2: actual contract acceptance suite, see acceptance.log",
+          "fullName": "AC-2: actual acceptance; see acceptance.log",
           "status": "passed"
         },
         {
-          "fullName": "AC-3: actual contract acceptance suite, see acceptance.log",
+          "fullName": "AC-3: actual acceptance; see acceptance.log",
           "status": "passed"
         },
         {
-          "fullName": "AC-4: actual contract acceptance suite, see acceptance.log",
+          "fullName": "AC-4: actual acceptance; see acceptance.log",
           "status": "passed"
         }
       ]
