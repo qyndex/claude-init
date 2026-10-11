@@ -1,0 +1,30 @@
+{
+  "runner": "shell-acceptance-recorder",
+  "source_sha": "503b6df9d988495a7e266f58306a8e66dbe8b476",
+  "independent_attestation": false,
+  "commands": [
+    "bash .claude/scripts/test/factory-review-runtime.sh"
+  ],
+  "testResults": [
+    {
+      "assertionResults": [
+        {
+          "fullName": "AC-1: file-backed large prompt and actual subprocess flood/timeout bounds",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-2: fresh neutral environment, explicit executable launch and fixed OAuth pilot",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-3: wrong/missing models, invalid usage, errors and unresolved verdicts reject",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-4: transitive helper pins, existing producer and full workflow lint regressions",
+          "status": "passed"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "runner": "shell-acceptance-recorder",
+  "source_sha": "503b6df9d988495a7e266f58306a8e66dbe8b476",
+  "independent_attestation": false,
+  "commands": [
+    "bash .claude/scripts/test/factory-producers.sh",
+    "bash .claude/scripts/test/factory-coordinator.sh",
+    "bash .claude/scripts/test/factory-workflows.sh"
+  ],
+  "testResults": [
+    {
+      "assertionResults": [
+        {
+          "fullName": "AC-1: approved candidate/runtime/AC scope fixtures",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-2: bounded credential-free acceptance container argv and digested observation fixtures",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-3: tool-free separate review rejects credentials, quota, errors and invalid verdicts",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-4: protected producer identity and exact-head candidate check fixtures",
+          "status": "passed"
+        }
+      ]
+    }
+  ]
+}
