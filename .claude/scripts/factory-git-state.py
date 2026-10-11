@@ -109,7 +109,8 @@ def verify_policy(policy, repository, identity, approvals=None, now=None):
 
 
 class GitState:
-    def __init__(self, api, branch, stream, bootstrap_sha=None, policy_approvals=None):
+    def __init__(self, api, branch, stream, bootstrap_sha=None, policy_approvals=None, *, bootstrap_existing=False):
+        require(type(bootstrap_existing) is bool, "invalid checkpoint bootstrap mode")
         require(re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._/-]*', branch or '') and '..' not in branch and not branch.endswith('/'), 'state branch invalid')
         require(digest.coordinator.contract.digest(stream, 64), 'state stream invalid')
         self.api = api; self.root = f'repos/{api.repo}'; self.branch = branch
@@ -145,7 +146,7 @@ class GitState:
             self.bytes = base64.b64decode(''.join(blob['content'].split()), validate=True)
             require(len(self.bytes) == blob['size'] == item['size'] and git_hash(self.bytes) == item['sha'], 'checkpoint bytes differ')
         else:
-            require(bootstrap_sha == self.head and not any(item['path'].startswith('reports/') for item in tree['tree']), 'missing checkpoint requires exact empty bootstrap revision; never reset silently')
+            require(bootstrap_sha == self.head and (bootstrap_existing or not any(item['path'].startswith('reports/') for item in tree['tree'])), 'missing checkpoint requires exact protected bootstrap revision; never reset silently')
 
     def checkpoint(self, data):
         require(isinstance(data, bytes) and 0 < len(data) <= MAX_STATE, 'checkpoint too large')
