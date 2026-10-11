@@ -47,12 +47,25 @@ jobs:
       - name: Bundle size check
         if: steps.detect.outputs.exists == '1'
         run: |
+          set -euo pipefail
           # Largest JS bundle must be < 200KB gzipped per slo.yml T1 default
           max_kb=200
-          actual=$(find dist build .next/static -name '*.js' 2>/dev/null | xargs -I{} sh -c 'gzip -c "{}" | wc -c' | sort -n | tail -1)
+          roots=()
+          for directory in dist build .next/static; do
+            if [ -d "$directory" ]; then roots+=("$directory"); fi
+          done
+          if [ "${#roots[@]}" -eq 0 ]; then
+            echo "::error::No bundle output directory found"
+            exit 1
+          fi
+          actual=$(find "${roots[@]}" -type f -name '*.js' -exec bash -o pipefail -c 'for file do gzip -c -- "$file" | wc -c || exit; done' bash {} + | sort -n | tail -1)
+          if [ -z "$actual" ]; then
+            echo "::error::No JavaScript bundles found"
+            exit 1
+          fi
           actual_kb=$((actual / 1024))
           echo "Largest bundle: ${actual_kb}KB (max: ${max_kb}KB)"
-          if [ "$actual_kb" -gt "$max_kb" ]; then
+          if [ "$actual" -gt "$((max_kb * 1024))" ]; then
             echo "::error::Bundle size ${actual_kb}KB exceeds budget ${max_kb}KB"
             exit 1
           fi

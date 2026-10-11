@@ -36,22 +36,28 @@ jobs:
 
       - name: Validate JSON files
         run: |
-          set -e
-          for f in $(find .claude .github .mcp.json -name '*.json' -type f 2>/dev/null); do
+          set -euo pipefail
+          manifest=$(mktemp)
+          trap 'rm -f "$manifest"' EXIT
+          find .claude .github .mcp.json -name '*.json' -type f -print0 > "$manifest"
+          while IFS= read -r -d '' f; do
             echo "Checking $f"
             jq -e . "$f" > /dev/null
-          done
+          done < "$manifest"
 
       - name: Validate YAML frontmatter in skills/agents/commands
         run: |
-          set -e
+          set -euo pipefail
           pip install pyyaml --quiet
-          for f in $(find .claude/skills .claude/agents .claude/commands -name '*.md' -type f 2>/dev/null); do
+          manifest=$(mktemp)
+          trap 'rm -f "$manifest"' EXIT
+          find .claude/skills .claude/agents .claude/commands -name '*.md' -type f -print0 > "$manifest"
+          while IFS= read -r -d '' f; do
             if head -1 "$f" | grep -q '^---$'; then
               fm=$(awk '/^---$/{c++; next} c==1{print}' "$f")
               echo "$fm" | python3 -c "import sys, yaml; yaml.safe_load(sys.stdin.read())" || { echo "Bad frontmatter in $f"; exit 1; }
             fi
-          done
+          done < "$manifest"
 
       - name: Validate hook scripts are executable
         run: |
@@ -188,7 +194,7 @@ jobs:
           file_ctx=$(jq -r '.rules[] | select(.type=="required_status_checks") | .parameters.required_status_checks[].context' "$file" | sort)
           missing=$(comm -23 <(printf '%s\n' "$file_ctx") <(printf '%s\n' "$live_ctx"))
           if [ -n "$missing" ]; then
-            echo "::error title=live ruleset drift::live ruleset missing required contexts: $(echo $missing) — re-apply $file"
+            echo "::error title=live ruleset drift::live ruleset missing required contexts: $missing — re-apply $file"
             exit 1
           fi
           echo "live ruleset covers all $(printf '%s\n' "$file_ctx" | grep -c .) file contexts"

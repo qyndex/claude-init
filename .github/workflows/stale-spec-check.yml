@@ -64,7 +64,7 @@ jobs:
 
             # Check if ANY completed tasks reference this spec
             spec_base=$(basename "$spec")
-            completed=$(grep -rE "Spec: specs/active/${spec_base%.*}" tasks/TASKS.md 2>/dev/null | grep '^\- \[x\]' | wc -l || echo 0)
+            completed=$(awk -v reference="Spec: specs/active/${spec_base%.*}" 'index($0, reference) && /^- \[x\]/ { count++ } END { print count+0 }' tasks/TASKS.md)
             [ "${completed// /}" -gt 0 ] && continue
 
             echo "STALE: $spec (updated=$updated, age=${age_secs}s, completed_tasks=0)"
@@ -77,7 +77,7 @@ jobs:
             # Open a GH issue
             gh issue create \
               --title "Stale spec: $spec_base (approved >30d, 0 tasks done)" \
-              --body "$(printf 'Spec \`%s\` has been in \`approved\` state for more than 30 days with no completed tasks.\n\nEither start implementation or explicitly archive/defer this spec.' "$spec")" \
+              --body "$(printf 'Spec %s has been in approved state for more than 30 days with no completed tasks.\n\nEither start implementation or explicitly archive/defer this spec.' "$spec")" \
               --label "stale-spec" \
               || true  # non-fatal if label doesn't exist or GH unavailable
           done

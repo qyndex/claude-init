@@ -89,29 +89,35 @@ jobs:
           ISSUE_NUM: ${{ steps.issue.outputs.issue }}
         run: |
           owner="${REPO%/*}"; name="${REPO#*/}"
-          item_id=$(gh api graphql -f query='
-            query($owner:String!,$name:String!,$num:Int!){
-              repository(owner:$owner,name:$name){
-                issue(number:$num){ projectItems(first:10){ nodes { id project { id } } } }
-              }
-            }' -F owner="$owner" -F name="$name" -F num="$ISSUE_NUM" \
+          item_id=$(gh api graphql -f query="$(cat <<'GRAPHQL'
+          query($owner:String!,$name:String!,$num:Int!){
+          repository(owner:$owner,name:$name){
+          issue(number:$num){ projectItems(first:10){ nodes { id project { id } } } }
+          }
+          }
+          GRAPHQL
+          )" -F owner="$owner" -F name="$name" -F num="$ISSUE_NUM" \
             --jq ".data.repository.issue.projectItems.nodes[] | select(.project.id==\"$PROJECT_ID\") | .id")
 
           if [ -z "$item_id" ]; then
             content_id=$(gh api "repos/$REPO/issues/$ISSUE_NUM" --jq .node_id)
-            item_id=$(gh api graphql -f query='
-              mutation($project:ID!,$content:ID!){
-                addProjectV2ItemById(input:{projectId:$project contentId:$content}){ item { id } }
-              }' -F project="$PROJECT_ID" -F content="$content_id" \
+            item_id=$(gh api graphql -f query="$(cat <<'GRAPHQL'
+          mutation($project:ID!,$content:ID!){
+          addProjectV2ItemById(input:{projectId:$project contentId:$content}){ item { id } }
+          }
+          GRAPHQL
+          )" -F project="$PROJECT_ID" -F content="$content_id" \
               --jq '.data.addProjectV2ItemById.item.id')
           fi
 
-          gh api graphql -f query='
-            mutation($project:ID!,$item:ID!,$field:ID!,$opt:String!){
-              updateProjectV2ItemFieldValue(input:{
-                projectId:$project itemId:$item fieldId:$field
-                value:{ singleSelectOptionId:$opt }
-              }){ projectV2Item { id } }
-            }' -F project="$PROJECT_ID" -F item="$item_id" -F field="$STATUS_FIELD_ID" -F opt="$TARGET_STATUS"
+          gh api graphql -f query="$(cat <<'GRAPHQL'
+          mutation($project:ID!,$item:ID!,$field:ID!,$opt:String!){
+          updateProjectV2ItemFieldValue(input:{
+          projectId:$project itemId:$item fieldId:$field
+          value:{ singleSelectOptionId:$opt }
+          }){ projectV2Item { id } }
+          }
+          GRAPHQL
+          )" -F project="$PROJECT_ID" -F item="$item_id" -F field="$STATUS_FIELD_ID" -F opt="$TARGET_STATUS"
 
           echo "Issue #$ISSUE_NUM -> $TARGET_STATUS"
