@@ -34,7 +34,7 @@ The coordinator uses GitHub's [conditional head SHA merge](https://docs.github.c
 
 ## Activation boundaries still pending
 
-This package prepares merge authority; it does not yet close every factory package. Protected evidence producers, durable claims and receipt reconciliation, daily Slack delivery, feedback amendments and complete coverage adapters remain dependencies. The 08:00 Australia/Sydney digest to qyndex / qyndex-alerts has not been installed. No production environment or deployment target exists; autonomous production stays disabled until additional health, release and rollback gates are proven.
+This package prepares merge authority; it does not yet close every factory package. Protected evidence producers, durable claims, receipt reconciliation, feedback contracts and adoption adapters are implemented. The 08:00 Australia/Sydney digest and approved encrypted Slack feedback intake are live. Claude review remains paused until Tuesday; genuine protected reviewer/verifier receipts, shadow eligibility and the concrete authority decision remain required. Oversized attachments remain disabled behind the existing uncertainty fence; Healthchecks stays disabled. No production environment or deployment target exists; autonomous production stays disabled until additional health, release and rollback gates are proven.
 
 A coordinator request is neither a merge receipt nor product acceptance. Rollback must name the recorded merge SHA and go through an approved rollback PR; local integration no longer reverts whichever commit happens to be HEAD or pushes main.
 

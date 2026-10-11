@@ -246,3 +246,14 @@ This table supersedes earlier pending activation notes; dated entries above rema
 PR #91 merged bounded private artifacts; PR #92 merged the always-refusing placeholder deploy fence; PR #93 merged the production core. All seven required checks passed on each exact candidate, including the maintained Linux suite and actual offline container drill. Fixture/manual harness merges do not constitute autonomous delivery receipts or the twenty-delivery rollout threshold.
 
 Next live sequence: resolve worker/attachment decisions; after existing subscription capacity resets, prove separate protected reviewer/verifier runs, restore paused review/security checks, run shadow eligibility, obtain the concrete authority activation decision, deliver one approved controlled feature through merge/digest/feedback, then collect twenty genuine eligible deliveries before broadening autonomy. No metered fallback, provider switch, invented production service or fabricated proof is authorized.
+
+
+### Operator continuation — Claude review deferred until Tuesday
+
+Continue implementation and non-model verification now. Keep Claude review paused until Tuesday; do not infer usable capacity or a successful reviewer receipt from the calendar alone. Spec 045 closes hosted subprocess, fresh-session and observed-model gaps before live activation. The pilot stays subscription-only with no metered fallback.
+
+Online worker execution remains disabled until an adopting repository supplies and proves its isolated worker host and provider access. Preserve the oversized-file uncertainty fence and keep attachments disabled; normal digest delivery remains live. These optional rollout capabilities do not require inventing a target for this reusable harness. Healthchecks remains disabled.
+
+After review is re-enabled: validate actual capacity and protected producer identity, obtain genuine reviewer/verifier receipts, prove exact-head shadow eligibility, then present the concrete authority configuration for the required operator decision. The controlled delivery/feedback cycle and twenty-delivery threshold require real deliveries over time; local fixtures or manual harness merges cannot complete those gates.
+
+Spec 044 merged in PR #94 at d29e16c344e611bf68db9137c52685b92dc65257. All 100 maintained macOS tests passed; final-head Linux run 38110819868 passed the full harness and actual offline container drill. These manual harness deliveries do not satisfy the autonomous rollout sample.

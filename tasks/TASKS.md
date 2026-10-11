@@ -1298,3 +1298,9 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   files: .github/workflows/harness-validate.yml, .github/workflows/issue-lifecycle.yml, .github/workflows/perf-budget.yml, .github/workflows/stale-spec-check.yml
   accept: bash .claude/scripts/test/factory-workflow-baseline.sh
   owner: implementer
+
+- [x] T-219  | spec:045  | phase:1  | priority: security  | created: 2026-10-11  | last_touched: 2026-10-11  | deps: T-218  | parallel: no  | est: 30m
+  summary: Bound hosted independent reviewer execution and require observed protected model usage
+  files: .claude/scripts/factory-producer.py, .claude/scripts/factory-bounded-process.py, .github/workflows/factory-review.yml
+  accept: bash .claude/scripts/test/factory-review-runtime.sh
+  owner: implementer

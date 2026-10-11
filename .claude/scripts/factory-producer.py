@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 import hashlib
 import importlib.util
 import json
+import math
 import os
 from pathlib import Path
 import re
@@ -18,6 +19,9 @@ spec = importlib.util.spec_from_file_location('coordinator', Path(__file__).with
 coordinator = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(coordinator)
 require = coordinator.require
+spec = importlib.util.spec_from_file_location('bounded', Path(__file__).with_name('factory-bounded-process.py'))
+bounded = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(bounded)
 
 
 def candidate(api, policy, number, run_id, role):
@@ -144,7 +148,7 @@ def review_prompt(api, repo, approved, files, spec_content, binding):
             'Pass only if all ACs are satisfied and no unresolved finding remains.\n' + json.dumps(sections))
 
 
-def review(prompt, binding, actor, runner=subprocess.run):
+def review(prompt, binding, actor, runner=bounded.run):
     schema = {'type': 'object', 'properties': {'verdict': {'enum': ['pass', 'fail']},
               'unresolved_findings': {'type': 'array', 'items': {'type': 'string'}}},
               'required': ['verdict', 'unresolved_findings'], 'additionalProperties': False}
@@ -152,16 +156,30 @@ def review(prompt, binding, actor, runner=subprocess.run):
     require(provider in ('oauth', 'api'), 'approved review credential route required')
     key = 'CLAUDE_CODE_OAUTH_TOKEN' if provider == 'oauth' else 'ANTHROPIC_API_KEY'
     require(bool(os.environ.get(key)), 'review credential unavailable')
-    env = {name: os.environ[name] for name in ('PATH', 'LANG', 'LC_ALL', 'SYSTEMROOT', 'TMPDIR') if name in os.environ}
-    env[key] = os.environ[key]
-    with tempfile.TemporaryDirectory() as directory:
-        env.update(HOME=directory, CLAUDE_CONFIG_DIR=directory)
-        process = runner(['claude', '--setting-sources', '', '--tools', '', '--model', 'claude-sonnet-4-6',
+    require(isinstance(prompt, str) and len(prompt.encode()) <= 4_000_000, 'review prompt exceeds limit')
+    executable = Path(os.environ.get('FACTORY_REVIEW_EXECUTABLE', ''))
+    node = Path(os.environ.get('FACTORY_REVIEW_NODE', ''))
+    require(all(path.is_absolute() and path.is_file() for path in (executable, node)), 'protected reviewer executable paths required')
+    env = {'PATH': os.defpath, 'LANG': 'C.UTF-8', 'LC_ALL': 'C.UTF-8', key: os.environ[key]}
+    with tempfile.TemporaryDirectory() as directory, tempfile.TemporaryFile() as stream:
+        env.update(HOME=directory, CLAUDE_CONFIG_DIR=directory, TMPDIR=directory)
+        stream.write(prompt.encode()); stream.seek(0)
+        process = runner([str(node.resolve()), str(executable.resolve()), '--safe-mode', '--no-session-persistence', '--disable-slash-commands',
+                          '--setting-sources', '', '--tools', '', '--model', 'claude-sonnet-4-6',
                           '--max-turns', '1', '--output-format', 'json', '--json-schema', json.dumps(schema), '-p'],
-                         cwd=directory, env=env, input=prompt, capture_output=True, text=True, timeout=300)
+                         cwd=directory, env=env, stdin=stream, timeout=300, max_timeout=300)
     require(process.returncode == 0, 'independent review execution failed; inspect credential capacity')
     result = json.loads(process.stdout, object_pairs_hook=coordinator.contract.no_duplicate_keys)
-    require(result.get('is_error') is False and result.get('subtype') == 'success', 'model did not complete review')
+    require(isinstance(result, dict) and result.get('type') == 'result' and result.get('is_error') is False and result.get('subtype') == 'success', 'model did not complete review')
+    models = result.get('modelUsage')
+    require(isinstance(models, dict) and set(models) == {'claude-sonnet-4-6'}, 'review model usage differs from protected model')
+    usage = models['claude-sonnet-4-6']
+    require(isinstance(usage, dict), 'review usage invalid')
+    for field in ('inputTokens', 'outputTokens', 'cacheReadInputTokens', 'cacheCreationInputTokens'):
+        value = usage.get(field)
+        require((value is None and field not in {'inputTokens', 'outputTokens'}) or (type(value) is int and 0 <= value <= 1_000_000_000), 'review token count invalid')
+    estimate = result.get('total_cost_usd')
+    require(estimate is None or (type(estimate) in {float, int} and math.isfinite(estimate) and 0 <= estimate <= 1_000_000), 'review cost estimate invalid')
     verdict = result.get('structured_output')
     coordinator.contract.object_keys(verdict, {'verdict', 'unresolved_findings'}, 'model review')
     require(verdict['verdict'] in ('pass', 'fail') and isinstance(verdict['unresolved_findings'], list), 'invalid review verdict')

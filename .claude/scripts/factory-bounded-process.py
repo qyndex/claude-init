@@ -20,10 +20,10 @@ def terminate_group(process):
     process.wait(timeout=5)
 
 
-def run(command,*,env,cwd,timeout,limit=1000000):
-    if not 0<timeout<=60 or type(limit) is not int or not 1024<=limit<=8000000:
+def run(command,*,env,cwd,timeout,limit=1000000,stdin=None,max_timeout=60):
+    if type(max_timeout) is not int or not 0<max_timeout<=300 or not 0<timeout<=max_timeout or type(limit) is not int or not 1024<=limit<=8000000:
         raise ValueError('subprocess bounds invalid')
-    process=subprocess.Popen(command,env=env,cwd=cwd,stdout=subprocess.PIPE,stderr=subprocess.PIPE,start_new_session=True)
+    process=subprocess.Popen(command,env=env,cwd=cwd,stdin=stdin,stdout=subprocess.PIPE,stderr=subprocess.PIPE,start_new_session=True)
     buffers={'stdout':bytearray(),'stderr':bytearray()};deadline=time.monotonic()+timeout
     try:
         with selectors.DefaultSelector() as selector:
