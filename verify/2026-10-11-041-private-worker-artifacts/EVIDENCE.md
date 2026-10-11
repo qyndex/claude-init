@@ -1,17 +1,17 @@
 ## Evidence Bundle — Spec 041 (041-private-worker-artifacts)
-Spec: `specs/active/041-private-worker-artifacts.md` · Commit: `ed26aec`
+Spec: `specs/active/041-private-worker-artifacts.md` · Commit: `8ac2831`
 
-### Acceptance criteria (3/4 proven)
+### Acceptance criteria (4/4 proven)
 | AC | Proven by | Result |
 |----|-----------|--------|
 | AC-1 | tagged test | ✓ PASS |
 | AC-2 | tagged test | ✓ PASS |
 | AC-3 | tagged test | ✓ PASS |
-| AC-4 | — | ✗ UNPROVEN |
+| AC-4 | tagged test | ✓ PASS |
 
 ### Smoke test (exit codes are load-bearing)
 ```
-# Smoke test — 2026-10-11T14:07:27+11:00
+# Smoke test — 2026-10-11T14:14:12+11:00
 $ bash .claude/scripts/verify.sh
 
 → Integration coverage gate
@@ -31,7 +31,7 @@ exit: 0
 ### Coverage
 line ?% · branch ?% (gate: line≥90 branch≥85)
 
-### Verdict: **FAIL**
+### Verdict: **PASS**
 
 ## Artifact index
 - verify/2026-10-11-041-private-worker-artifacts/evidence.json
@@ -39,4 +39,5 @@ line ?% · branch ?% (gate: line≥90 branch≥85)
 - verify/2026-10-11-041-private-worker-artifacts/acceptance.log
 - verify/2026-10-11-041-private-worker-artifacts/EVIDENCE.md
 - verify/2026-10-11-041-private-worker-artifacts/results.json
+- verify/2026-10-11-041-private-worker-artifacts/linux-isolation.json
 - verify/2026-10-11-041-private-worker-artifacts/smoke.log

@@ -19,8 +19,28 @@
         {
           "fullName": "AC-3: unbound/foreign stores and nonprivate paths reject; public-eligible output contains sanitized aggregate counts only and never certifies engineering verification",
           "status": "passed"
+        },
+        {
+          "fullName": "AC-4: actual private retention/namespace/lock/effect filesystem fixtures passed and exact-source Linux container cleanup/concurrency/supervisor-death retry passed in run 38107622778 attempt 1",
+          "status": "passed"
         }
       ]
     }
-  ]
+  ],
+  "linux_isolation": {
+    "source_sha": "8ac2831a330a99e7db37683f3fd897030158489c",
+    "platform": "linux",
+    "image_id": "sha256:b80f30236aeef2ac47f3abf75fe7ee1f911c20f451e508e5bff4a75b0f8e5b3a",
+    "docker_sha256": "6435ff9214bf8e0931078fb0980809728cac0a54a526d4f28a26d3e48132b58d",
+    "independent_attestation": false,
+    "assertions": [
+      {
+        "fullName": "AC-4: actual Linux Docker isolation, concurrent services, timeout, supervisor SIGKILL cleanup and fenced retry passed",
+        "status": "passed"
+      }
+    ],
+    "github_run_id": 38107622778,
+    "github_run_attempt": 1,
+    "github_run_url": "https://github.com/qyndex/claude-init/actions/runs/38107622778"
+  }
 }
