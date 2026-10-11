@@ -1,6 +1,6 @@
 # TDD ledger — green — T-217
 ledger_format: 2
-timestamp: 2026-10-11T14:49:01+11:00
+timestamp: 2026-10-11T14:50:48+11:00
 command: bash .claude/scripts/test/factory-release.sh
 exit_code: 0
 ---

@@ -140,8 +140,13 @@ class Release:
                 if row['status']=='baseline-blocked':
                     baseline=db.execute('SELECT known_good FROM release_binding WHERE id=1').fetchone()[0]
                     db.execute('UPDATE release_operations SET rollback_sha=? WHERE id=?',(baseline,identity));row['rollback_sha']=baseline
+            require(row['sha']==proof['merge_sha'] and row['policy']==policy and isinstance(row['rollback_sha'],str) and re.fullmatch(r'[a-f0-9]{40}',row['rollback_sha']) and type(row['stage']) is int and row['stage'] in [0,*self.config['stages']],'durable release identity invalid')
             require(row['status'] in {'pending','baseline-blocked','dispatching','uncertain','deployed','rollback-dispatching','rollback-uncertain','healthy','rolled-back'},'unknown deployment state')
-            if row['status'] in {'healthy','rolled-back'}:return json.loads(row['result'])
+            if row['status'] in {'healthy','rolled-back'}:
+                result=json.loads(row['result'],object_pairs_hook=pairs);extra='artifact_digest' if row['status']=='healthy' else 'rollback_sha'
+                require(isinstance(result,dict) and set(result)=={'schema_version','operation_id','status','sha','independent_attestation',extra} and type(result['schema_version']) is int and result['schema_version']==1 and result['operation_id']==identity and result['status']==row['status'] and result['sha']==row['sha'] and result['independent_attestation'] is False,'terminal release evidence invalid')
+                require(isinstance(result[extra],str) and re.fullmatch(r'[a-f0-9]{'+('64' if extra=='artifact_digest' else '40')+'}',result[extra]),'terminal release digest invalid')
+                return result
             if row['status'] in {'rollback-dispatching','rollback-uncertain'}:return self.rollback(identity,row,adapter,resume=True)
             if row['status'] in {'pending','baseline-blocked'}:
                 try:self.health(adapter,self.request(identity+'-baseline',row['rollback_sha'],0))
