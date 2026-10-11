@@ -1,0 +1,47 @@
+{
+  "runner": "actual-maintained-suite-and-native-ci-recorder",
+  "source_sha": "580a5cbd06f378fcce1458d642a944f931c41bea",
+  "independent_attestation": false,
+  "commands": [
+    "all 102 maintained scripts in disposable source checkout; two missing-dependency failures rerun with pinned cryptography 50.0.2",
+    "gh run view \"${FACTORY_CI_RUN_ID:?}\" --json headSha,status,conclusion,workflowName | jq -e --arg head \"$(git rev-parse HEAD)\" ' .headSha == $head and .status == \"completed\" and .conclusion == \"success\" and .workflowName == \"Harness Validate\" '"
+  ],
+  "testResults": [
+    {
+      "assertionResults": [
+        {
+          "fullName": "AC-1: actual maintained regression suites and candidate-bound CI; see platform records",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-2: actual maintained regression suites and candidate-bound CI; see platform records",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-3: actual maintained regression suites and candidate-bound CI; see platform records",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-4: actual maintained regression suites and candidate-bound CI; see platform records",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-5: actual maintained regression suites and candidate-bound CI; see platform records",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-6: actual maintained regression suites and candidate-bound CI; see platform records",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-7: actual maintained regression suites and candidate-bound CI; see platform records",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-8: actual maintained regression suites and candidate-bound CI; see platform records",
+          "status": "passed"
+        }
+      ]
+    }
+  ]
+}

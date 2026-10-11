@@ -1,6 +1,6 @@
 {
   "runner": "shell-acceptance-recorder",
-  "source_sha": "47f8fde73245ade9e706a1d8378f20d5e2e5f205",
+  "source_sha": "580a5cbd06f378fcce1458d642a944f931c41bea",
   "independent_attestation": false,
   "commands": [
     "bash .claude/scripts/test/factory-adopt.sh"

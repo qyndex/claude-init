@@ -1,0 +1,187 @@
+{
+  "conclusion": "success",
+  "headSha": "1864350e9dfbae97f07841c4a44c630edb943182",
+  "jobs": [
+    {
+      "completedAt": "2026-10-11T07:08:02Z",
+      "conclusion": "success",
+      "databaseId": 114412913202,
+      "name": "harness-validate",
+      "startedAt": "2026-10-11T07:03:58Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-10-11T07:04:00Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-10-11T07:03:58Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-11T07:04:01Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@v7",
+          "number": 2,
+          "startedAt": "2026-10-11T07:04:00Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-11T07:04:01Z",
+          "conclusion": "success",
+          "name": "Validate JSON files",
+          "number": 3,
+          "startedAt": "2026-10-11T07:04:01Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-11T07:04:08Z",
+          "conclusion": "success",
+          "name": "Validate YAML frontmatter in skills/agents/commands",
+          "number": 4,
+          "startedAt": "2026-10-11T07:04:01Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-11T07:04:08Z",
+          "conclusion": "success",
+          "name": "Validate hook scripts are executable",
+          "number": 5,
+          "startedAt": "2026-10-11T07:04:08Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-11T07:04:10Z",
+          "conclusion": "success",
+          "name": "Shellcheck on hooks",
+          "number": 6,
+          "startedAt": "2026-10-11T07:04:08Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-11T07:04:10Z",
+          "conclusion": "success",
+          "name": "Verify CLAUDE.md exists",
+          "number": 7,
+          "startedAt": "2026-10-11T07:04:10Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-11T07:04:27Z",
+          "conclusion": "success",
+          "name": "Structured harness report (validate.sh --json)",
+          "number": 8,
+          "startedAt": "2026-10-11T07:04:10Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-11T07:04:28Z",
+          "conclusion": "success",
+          "name": "Validate loop-control state (consecutive-aborts schema)",
+          "number": 9,
+          "startedAt": "2026-10-11T07:04:27Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-11T07:04:36Z",
+          "conclusion": "success",
+          "name": "Run actions/setup-go@v7",
+          "number": 10,
+          "startedAt": "2026-10-11T07:04:28Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-11T07:04:44Z",
+          "conclusion": "success",
+          "name": "Install pinned workflow linter",
+          "number": 11,
+          "startedAt": "2026-10-11T07:04:36Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-11T07:04:45Z",
+          "conclusion": "success",
+          "name": "Install pinned feedback encryption dependencies",
+          "number": 12,
+          "startedAt": "2026-10-11T07:04:44Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-11T07:04:50Z",
+          "conclusion": "success",
+          "name": "Install offline container fixture tool",
+          "number": 13,
+          "startedAt": "2026-10-11T07:04:45Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-11T07:05:09Z",
+          "conclusion": "success",
+          "name": "Actual offline Linux container isolation drill",
+          "number": 14,
+          "startedAt": "2026-10-11T07:04:50Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-11T07:05:10Z",
+          "conclusion": "success",
+          "name": "Preserve nonsensitive native isolation proof",
+          "number": 15,
+          "startedAt": "2026-10-11T07:05:09Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-11T07:07:54Z",
+          "conclusion": "success",
+          "name": "Harness test suite (M-00 - every test/*.sh must run somewhere)",
+          "number": 16,
+          "startedAt": "2026-10-11T07:05:10Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-11T07:07:58Z",
+          "conclusion": "success",
+          "name": "TDD ledger gate (server-side \u2014 SKIP_* cannot apply here)",
+          "number": 17,
+          "startedAt": "2026-10-11T07:07:54Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-11T07:07:59Z",
+          "conclusion": "success",
+          "name": "Live ruleset drift (e2e-audit ci-gates-2)",
+          "number": 18,
+          "startedAt": "2026-10-11T07:07:58Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-11T07:07:59Z",
+          "conclusion": "success",
+          "name": "Post Run actions/setup-go@v7",
+          "number": 35,
+          "startedAt": "2026-10-11T07:07:59Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-11T07:07:59Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@v7",
+          "number": 36,
+          "startedAt": "2026-10-11T07:07:59Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-11T07:07:59Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 37,
+          "startedAt": "2026-10-11T07:07:59Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/qyndex/claude-init/actions/runs/38120114271/job/114412913202"
+    }
+  ],
+  "status": "completed",
+  "workflowName": "Harness Validate"
+}

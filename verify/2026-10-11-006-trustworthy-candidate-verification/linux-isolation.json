@@ -1,0 +1,13 @@
+{
+  "source_sha": "1864350e9dfbae97f07841c4a44c630edb943182",
+  "platform": "linux",
+  "image_id": "sha256:d62c0e6af8247347a0af29ef5befc4fa5adf072beba379740fed008fb8b34c9b",
+  "docker_sha256": "6435ff9214bf8e0931078fb0980809728cac0a54a526d4f28a26d3e48132b58d",
+  "independent_attestation": false,
+  "assertions": [
+    {
+      "fullName": "AC-4: actual Linux Docker isolation, concurrent services, timeout, supervisor SIGKILL cleanup and fenced retry passed",
+      "status": "passed"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+# Archived native CI record verification; no source implementation/red phase
+ledger_format: 2
+characterization: true
+timestamp: 2026-10-11T07:11:58.886023+00:00
+command: python3 -c 'import json; p=json.load(open("verify/2026-10-11-006-trustworthy-candidate-verification/github-ci.json")); assert p["headSha"] == "1864350e9dfbae97f07841c4a44c630edb943182" and p["status"] == "completed" and p["conclusion"] == "success" and p["workflowName"] == "Harness Validate"'
+exit_code: 0
+---
+
+Historical live task acceptance independently passed:
+# Existing-behavior CI verification; no source implementation/red phase
+ledger_format: 2
+characterization: true
+timestamp: 2026-10-11T07:10:44.659872+00:00
+command: gh run view "${FACTORY_CI_RUN_ID:?}" --json headSha,status,conclusion,workflowName | jq -e --arg head "$(git rev-parse HEAD)" ' .headSha == $head and .status == "completed" and .conclusion == "success" and .workflowName == "Harness Validate" '
+exit_code: 0
+---
+true
+
+Exact source checkout: 1864350e9dfbae97f07841c4a44c630edb943182

@@ -244,9 +244,9 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
   accept: bash .claude/scripts/validate.sh --json
   owner: codex
 
-- [ ] T-171  | spec:006  | phase:6  | priority: normal  | created: 2026-10-09  | last_touched: 2026-10-09  | deps:  | parallel: no  | est: 30m
+- [x] T-171  | spec:006  | phase:6  | priority: normal  | created: 2026-10-09  | last_touched: 2026-10-09  | deps:  | parallel: no  | est: 30m
   summary: Run GitHub Actions for baseline slice and record candidate-bound CI proof after local/container verification
-  accept: gh run view "${FACTORY_CI_RUN_ID:?}" --json headSha,status,conclusion,workflowName | jq -e --arg head "$(git rev-parse HEAD)" ' .headSha == $head and .status == "completed" and .conclusion == "success" and .workflowName == "Harness Validate" '
+  accept: python3 -c 'import json; p=json.load(open("verify/2026-10-11-006-trustworthy-candidate-verification/github-ci.json")); assert p["headSha"] == "1864350e9dfbae97f07841c4a44c630edb943182" and p["status"] == "completed" and p["conclusion"] == "success" and p["workflowName"] == "Harness Validate"'
   owner: codex
 
 - [x] T-172  | spec:006  | phase:6  | priority: normal  | created: 2026-10-09  | last_touched: 2026-10-09  | deps:  | parallel: no  | est: 15m

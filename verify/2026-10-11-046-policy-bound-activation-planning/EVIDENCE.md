@@ -1,5 +1,5 @@
 ## Evidence Bundle — Spec 046 (046-policy-bound-activation-planning)
-Spec: `specs/active/046-policy-bound-activation-planning.md` · Commit: `47f8fde`
+Spec: `specs/active/046-policy-bound-activation-planning.md` · Commit: `580a5cb`
 
 ### Acceptance criteria (4/4 proven)
 | AC | Proven by | Result |
@@ -11,7 +11,7 @@ Spec: `specs/active/046-policy-bound-activation-planning.md` · Commit: `47f8fde
 
 ### Smoke test (exit codes are load-bearing)
 ```
-# Smoke test — 2026-10-11T18:02:52+11:00
+# Smoke test — 2026-10-11T18:07:13+11:00
 $ bash .claude/scripts/verify.sh
 
 → Integration coverage gate

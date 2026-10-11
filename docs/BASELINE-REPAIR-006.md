@@ -50,3 +50,9 @@ This is the first F-00 repair slice, not closure of the factory plan. Still requ
 The operating decisions are recorded in the factory plan: 08:00 Australia/Sydney Slack digest to `qyndex` / `qyndex-alerts`; local implementation; trusted GitHub Actions verification/merge via a dedicated GitHub App; automated production releases only after additional gates. Changes to merge/security authority remain operator decisions.
 
 The original checkout branch and five pre-existing initiative edits were preserved. No PR, merge, deployment, GitHub App or Slack schedule has been created by this repair slice.
+
+## Current completion — 2026-10-11
+
+T-171 is complete. [GitHub run 38120114271](https://github.com/qyndex/claude-init/actions/runs/38120114271) passed on exact candidate 1864350e9dfbae97f07841c4a44c630edb943182, including the maintained Linux suite. Its separate enabled offline isolation step succeeded and artifact 11695006068 records actual Docker proof; the duplicate invocation in the generic suite was intentionally skipped and is not used as proof. Task acceptance passed in an isolated checkout of that exact source. All 102 macOS scripts passed; two initially lacked cryptography, then passed with pinned 50.0.2. Initial failures remain in the platform record. These are implementation/CI observations, not independent Claude review or autonomous delivery receipts. Earlier pending notes are historical.
+
+T-171 now rechecks its retained exact-source successful native CI record offline. The previous ephemeral FACTORY_CI_RUN_ID/current-HEAD command passed in the recorded source checkout; retaining that command as a completed-task acceptance would break later smoke runs when the environment variable is absent. This documentary check does not mint trusted merge evidence.

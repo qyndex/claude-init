@@ -260,3 +260,5 @@ Spec 044 merged in PR #94 at d29e16c344e611bf68db9137c52685b92dc65257. All 100 m
 
 
 Spec 046 closes the final activation-planning mismatch: include the complete protected policy check set in the adopting repository's selected active ruleset, preserve unrelated producer pins and controls, and schedule security evidence on each eligible updated PR head. This prepares Tuesday re-enable but performs no live activation. Online-host provisioning, optional fenced file delivery, genuine shadow/delivery/feedback proofs and the twenty-delivery expansion sample remain separate rollout gates.
+
+T-171 baseline CI ledger reconciled against actual successful GitHub proof and fresh 102-suite macOS verification. Implementation packages F-00–F-08 and follow-up specs through 046 are implemented; live rollout remains gated by Tuesday reviewer capacity/receipts, shadow proof, authority configuration approval, a real controlled delivery/feedback cycle and twenty genuine deliveries. Per-adopter online execution and production target proof cannot be supplied by generic harness fixtures.
