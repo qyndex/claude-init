@@ -120,6 +120,9 @@ jobs:
       - name: Install pinned workflow linter
         run: go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.12
 
+      - name: Install pinned feedback encryption dependencies
+        run: python3 -m pip install -r factory/feedback-crypto-requirements.txt
+
       - name: Harness test suite (M-00 - every test/*.sh must run somewhere)
         run: |
           # 2026-07 memory audit: 13 of 15 test/*.sh ran in no workflow (dead tests).

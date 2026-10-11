@@ -1232,3 +1232,9 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   files: .claude/scripts/factory-adopt.py, .claude/scripts/reconcile-claude-dir.sh, scripts/install.sh, .claude/commands/adopt.md
   accept: bash .claude/scripts/test/factory-adopt.sh
   owner: implementer
+
+- [x] T-208  | spec:034  | phase:1  | priority: security  | created: 2026-10-11  | last_touched: 2026-10-11  | deps: T-207  | parallel: no  | est: 30m
+  summary: Authenticate encrypted private feedback SQLite checkpoints and uncertain-commit replay
+  files: .claude/scripts/factory-encrypted-feedback.py
+  accept: bash .claude/scripts/test/factory-encrypted-feedback.sh
+  owner: implementer

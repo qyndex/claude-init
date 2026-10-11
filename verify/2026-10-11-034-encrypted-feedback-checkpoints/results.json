@@ -1,0 +1,27 @@
+{
+  "runner": "shell-acceptance-recorder",
+  "independent_attestation": false,
+  "command": "bash .claude/scripts/test/factory-encrypted-feedback.sh",
+  "testResults": [
+    {
+      "assertionResults": [
+        {
+          "fullName": "AC-1: real AES-256-GCM roundtrip preserves exact SQLite feedback with private temporary modes and ciphertext-only padded envelope",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-2: wrong key, altered ciphertext, duplicate fields, truncation and foreign repository/channel/key bindings fail before opening plaintext SQLite",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-3: unchanged state avoids nonce/checkpoint churn; lost-ack replay starts from authoritative ciphertext and preserves idempotent records",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-4: failed intake, invalid key/database and foreign SQLite identity cannot publish partial state; private plaintext is removed after success or failure",
+          "status": "passed"
+        }
+      ]
+    }
+  ]
+}
