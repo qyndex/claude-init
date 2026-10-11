@@ -1256,3 +1256,9 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   files: .claude/scripts/factory-routing.py, .claude/scripts/factory-claude-probe.py, .claude/scripts/factory-ledger.py, .claude/scripts/factory-encrypted-feedback.py
   accept: bash .claude/scripts/test/factory-routing.sh
   owner: implementer
+
+- [x] T-212  | spec:038  | phase:1  | priority: security  | created: 2026-10-11  | last_touched: 2026-10-11  | deps: T-211  | parallel: no  | est: 30m
+  summary: Fence retry and verification until trusted external worker cleanup is durably observed
+  files: .claude/scripts/factory-runtime.py
+  accept: bash .claude/scripts/test/factory-worker-effects.sh
+  owner: implementer

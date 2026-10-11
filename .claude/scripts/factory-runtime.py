@@ -37,6 +37,11 @@ class Store:
                     key TEXT PRIMARY KEY, task TEXT NOT NULL REFERENCES tasks(id),
                     payload TEXT NOT NULL, status TEXT NOT NULL, sender TEXT,
                     expires REAL, result TEXT);
+                CREATE TABLE IF NOT EXISTS worker_effect_repository (id INTEGER PRIMARY KEY CHECK(id=1),repository TEXT NOT NULL);
+                CREATE TABLE IF NOT EXISTS worker_effects (
+                    id TEXT PRIMARY KEY, task TEXT NOT NULL REFERENCES tasks(id), owner TEXT NOT NULL,
+                    fence INTEGER NOT NULL, identity TEXT NOT NULL,
+                    status TEXT NOT NULL CHECK(status IN ('uncertain','clean')), receipt TEXT);
             '''
             for statement in schema.split(';'):
                 if statement.strip():
@@ -113,6 +118,7 @@ class Store:
                 raise Blocked('factory paused')
             if row['state'] in TERMINAL or (row['expires'] is not None and row['expires'] > now):
                 raise Blocked('task is terminal or already owned')
+            self.require_worker_effects_clean(db, task)
             if row['attempt'] >= 3:
                 raise Blocked('initial attempt plus two recovery attempts exhausted')
             if any(self.row(db, dep)['state'] != 'merged' for dep in json.loads(row['deps'])):
@@ -130,6 +136,8 @@ class Store:
             row = self.row(db, task)
             if row['owner'] != owner or row['fence'] != token or row['state'] in TERMINAL:
                 return False
+            if requeue:
+                self.require_worker_effects_clean(db, task)
             db.execute("UPDATE outbox SET status='uncertain' WHERE task=? AND status='dispatching'", (task,))
             db.execute('UPDATE tasks SET state=?,owner=NULL,expires=NULL,fence=fence+1 WHERE id=?',
                        ('queued' if requeue else 'blocked', task))
@@ -145,6 +153,8 @@ class Store:
         now = self.instant(now)
         with self.transaction() as db:
             row = self.owned(db, task, owner, token, now)
+            if state in {'verifying','merge-ready','merging','merged'}:
+                self.require_worker_effects_clean(db, task)
             if state == 'repairing' and row['repairs'] >= 2:
                 raise Blocked('two repair attempts exhausted')
             if state not in TRANSITIONS.get(row['state'], set()):
@@ -161,6 +171,87 @@ class Store:
                            (key, task, encoded, 'pending'))
             db.execute('UPDATE tasks SET state=?,repairs=repairs+? WHERE id=?',
                        (state, int(state == 'repairing'), task))
+
+    @staticmethod
+    def worker_effect_identity(identity):
+        if (not isinstance(identity, dict) or set(identity) != {'repository', 'namespace', 'name', 'image'}
+                or not isinstance(identity['repository'], str) or re.fullmatch(r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+', identity['repository']) is None
+                or not isinstance(identity['namespace'], str) or re.fullmatch(r'T-[1-9][0-9]*-[1-9][0-9]*-[a-f0-9]{32}', identity['namespace']) is None
+                or not isinstance(identity['name'], str) or re.fullmatch(r'factory-[a-f0-9]{32}', identity['name']) is None
+                or not isinstance(identity['image'], str) or re.fullmatch(r'sha256:[a-f0-9]{64}', identity['image']) is None):
+            raise ValueError('external worker effect identity invalid')
+        return json.dumps(identity, sort_keys=True, separators=(',', ':'))
+
+    def register_worker_effect(self, task, owner, token, effect_id, identity, now=None):
+        """Trusted isolated-worker guardian persists intent BEFORE daemon dispatch."""
+        now = self.instant(now); encoded = self.worker_effect_identity(identity)
+        if (type(token) is not int or token < 1 or not isinstance(task, str) or re.fullmatch(r'T-[1-9][0-9]*', task) is None
+                or not isinstance(effect_id, str) or re.fullmatch(r'[A-Za-z0-9_-]{1,96}', effect_id) is None
+                or not identity['namespace'].startswith(f'{task}-{token}-')):
+            raise ValueError('worker effect task/fence identity differs')
+        with self.transaction() as db:
+            row = self.owned(db, task, owner, token, now)
+            if row['state'] not in {'claimed', 'implementing'}:
+                raise Blocked('worker effect registration outside implementation')
+            namespace = db.execute('SELECT repository FROM worker_effect_repository WHERE id=1').fetchone()
+            if namespace is None:
+                db.execute('INSERT INTO worker_effect_repository VALUES(1,?)', (identity['repository'],))
+            elif namespace['repository'] != identity['repository']:
+                raise Blocked('foreign external worker effect repository')
+            if db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='runtime_route_repository'").fetchone():
+                routed = db.execute('SELECT repository FROM runtime_route_repository WHERE id=1').fetchone()
+                if routed is None or routed['repository'] != identity['repository']:
+                    raise Blocked('worker effect differs from protected runtime namespace')
+            previous = db.execute('SELECT * FROM worker_effects WHERE id=?', (effect_id,)).fetchone()
+            if previous is not None:
+                if (previous['task'], previous['owner'], previous['fence'], previous['identity']) != (task, owner, token, encoded):
+                    raise Blocked('worker effect identity already bound')
+                if previous['status'] != 'uncertain':
+                    raise Blocked('cleaned effect cannot be dispatched again')
+                return
+            db.execute('INSERT INTO worker_effects VALUES(?,?,?,?,?,?,NULL)',
+                       (effect_id, task, owner, token, encoded, 'uncertain'))
+
+    def worker_effects(self, task):
+        with self.transaction() as db:
+            self.row(db, task)
+            return [dict(row) for row in db.execute('SELECT * FROM worker_effects WHERE task=? ORDER BY id', (task,))]
+
+    def confirm_worker_effect_cleanup(self, task, owner, token, receipt):
+        """Trusted daemon adapter calls AFTER observing exact owned effect absent.
+
+        This validates a local adapter boundary, not an authenticated independent
+        review receipt. Candidate workers must have no access to this database.
+        """
+        if (type(token) is not int or token < 1 or not isinstance(receipt, dict) or set(receipt) != {'schema_version', 'adapter', 'effect_id', 'identity', 'observed_absent'}
+                or type(receipt['schema_version']) is not int or receipt['schema_version'] != 1
+                or receipt['adapter'] != 'docker-offline' or receipt['observed_absent'] is not True
+                or not isinstance(receipt['effect_id'], str)):
+            raise ValueError('worker cleanup observation invalid')
+        identity = self.worker_effect_identity(receipt['identity'])
+        encoded = json.dumps(receipt, sort_keys=True, separators=(',', ':'))
+        with self.transaction() as db:
+            effect = db.execute('SELECT * FROM worker_effects WHERE id=?', (receipt['effect_id'],)).fetchone()
+            if effect is None or (effect['task'], effect['owner'], effect['fence'], effect['identity']) != (task, owner, token, identity):
+                raise Blocked('cleanup observation effect binding differs')
+            if effect['status'] == 'clean':
+                if effect['receipt'] != encoded:
+                    raise Blocked('cleanup receipt changed')
+                return
+            row = self.row(db, task)
+            # Cleanup may finish after the lease expires; unresolved effects
+            # prohibit reclaim. Terminal cleanup reconciles the prior effect
+            # only and never changes task ownership or state.
+            matching = row['owner'] == owner and row['fence'] == token
+            blocked_recovery = row['state'] in {'blocked','cancelled'} and row['fence'] >= token
+            if not (matching or blocked_recovery):
+                raise Blocked('cleanup owner/fence is stale')
+            db.execute("UPDATE worker_effects SET status='clean',receipt=? WHERE id=?", (encoded, effect['id']))
+
+    @staticmethod
+    def require_worker_effects_clean(db, task):
+        if db.execute("SELECT 1 FROM worker_effects WHERE task=? AND status!='clean' LIMIT 1", (task,)).fetchone():
+            raise Blocked('external worker cleanup is unresolved')
 
     def pause(self, paused):
         if type(paused) is not bool:

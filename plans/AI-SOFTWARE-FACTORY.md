@@ -204,3 +204,7 @@ Spec 029 is merged and its live labelled drill, recovery and unchanged repeat su
 ### Protected runtime routing (spec 037)
 
 Bound dedicated subscription roles, executable probes, equivalent fallbacks and approved task/profile hashes. Local native-CLI fixtures prove bounded capacity selection and fail-closed ledger launch; actual subscription capacity remains unproven (local CLI is signed out). Runtime cost estimates retain conversation scope and unknown actual spend. Private checkpoint connections now explicitly close before cleanup. Next sequence remains isolated workers, operational/privacy drill coverage, generic release adapters and rollout evaluation. Encrypted live feedback activation remains disabled pending the explicit data-flow approval requested by automatic approval review; no live private Slack messages have been captured.
+
+### Isolated-worker prerequisite (spec 038)
+
+Persist external worker effects before daemon dispatch and block lease reclaim/requeue/verification until exact cleanup is confirmed. This closes the replay boundary before spec 039 integrates actual offline Linux containers and daemon failure/abrupt-death drills. Native same-user isolation and provider egress remain unproven; no live worker or merge authority is enabled by this store package.

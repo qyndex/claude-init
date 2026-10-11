@@ -82,5 +82,8 @@ with tempfile.TemporaryDirectory() as tmp:
     assert s.dispatch('effect','sender2',5,now=304)['status']=='dispatching'
     s.confirm('effect','sender2',{'receipt':'ok'},now=305)
     assert runtime.Store(db).actions()[1]['result']=={'receipt':'ok'}
-print('factory-runtime: AC-1 through AC-4 passed (race, fencing, recovery, outbox and rollback)')
+print('AC-1: actual concurrent processes claim one owner, preserving revision/dependencies and monotonically fencing recovered ownership')
+print('AC-2: matching unexpired heartbeat/transition ownership, reopened recovery, pause/cancel and bounded retries are enforced')
+print('AC-3: transactional idempotent outbox preserves dispatch uncertainty, requires remote reconciliation and retains receipts after restart')
+print('AC-4: invalid authority, state/action mutations and conflicting receipts reject without partial writes; no task ledger or live activation is modified')
 PY
