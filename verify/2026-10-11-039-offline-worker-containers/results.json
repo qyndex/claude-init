@@ -1,6 +1,6 @@
 {
   "runner": "shell-acceptance-recorder",
-  "source_sha": "835bddaa6892dfa3ff5b0006d01e35325c4833ad",
+  "source_sha": "ed26aec6308a3f45748d7124f172121feb5f852b",
   "independent_attestation": false,
   "commands": [
     "bash .claude/scripts/test/factory-container.sh"
@@ -28,9 +28,9 @@
     }
   ],
   "linux_isolation": {
-    "source_sha": "835bddaa6892dfa3ff5b0006d01e35325c4833ad",
+    "source_sha": "8ac2831a330a99e7db37683f3fd897030158489c",
     "platform": "linux",
-    "image_id": "sha256:2a127afc854aceb4d1bc5f24fcd25807df9b27644f35caaa18d837002eed7f21",
+    "image_id": "sha256:b80f30236aeef2ac47f3abf75fe7ee1f911c20f451e508e5bff4a75b0f8e5b3a",
     "docker_sha256": "6435ff9214bf8e0931078fb0980809728cac0a54a526d4f28a26d3e48132b58d",
     "independent_attestation": false,
     "assertions": [
@@ -39,8 +39,8 @@
         "status": "passed"
       }
     ],
-    "github_run_id": 38106399350,
+    "github_run_id": 38107622778,
     "github_run_attempt": 1,
-    "github_run_url": "https://github.com/qyndex/claude-init/actions/runs/38106399350"
+    "github_run_url": "https://github.com/qyndex/claude-init/actions/runs/38107622778"
   }
 }

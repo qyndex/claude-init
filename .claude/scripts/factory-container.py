@@ -15,6 +15,9 @@ import time
 import tempfile
 
 
+bounded_spec=importlib.util.spec_from_file_location('bounded_process',Path(__file__).with_name('factory-bounded-process.py'))
+bounded=importlib.util.module_from_spec(bounded_spec);bounded_spec.loader.exec_module(bounded)
+
 def require(condition, message):
     if not condition:raise ValueError(message)
 
@@ -61,9 +64,9 @@ class Container:
         self.prefix=[config['binary'],'--config',self.client_home.name,'--host','unix:///var/run/docker.sock']
 
     def call(self,args):
-        result=subprocess.run([*self.prefix,*args],env=self.environment,cwd=self.client_home.name,capture_output=True,text=True,timeout=12)
-        require(result.returncode==0 and len(result.stdout)<=1000000 and len(result.stderr)<=1000000,'Docker acknowledgement unavailable')
-        return result.stdout
+        result=bounded.run([*self.prefix,*args],env=self.environment,cwd=self.client_home.name,timeout=12)
+        require(result.returncode==0,'Docker acknowledgement unavailable')
+        return result.stdout.decode()
 
     def create(self):
         image=json.loads(self.call(['image','inspect',self.config['image']]))

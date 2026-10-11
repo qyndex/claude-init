@@ -1,5 +1,6 @@
 {
   "runner": "shell-acceptance-recorder",
+  "source_sha": "ed26aec6308a3f45748d7124f172121feb5f852b",
   "independent_attestation": false,
   "commands": [
     "bash .claude/scripts/test/factory-worker-environment.sh"

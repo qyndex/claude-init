@@ -1,5 +1,5 @@
 ## Evidence Bundle — Spec 038 (038-durable-worker-effects)
-Spec: `specs/active/038-durable-worker-effects.md` · Commit: `13c7f3e`
+Spec: `specs/active/038-durable-worker-effects.md` · Commit: `ed26aec`
 
 ### Acceptance criteria (4/4 proven)
 | AC | Proven by | Result |
@@ -11,7 +11,7 @@ Spec: `specs/active/038-durable-worker-effects.md` · Commit: `13c7f3e`
 
 ### Smoke test (exit codes are load-bearing)
 ```
-# Smoke test — 2026-10-11T13:35:26+11:00
+# Smoke test — 2026-10-11T14:06:55+11:00
 $ bash .claude/scripts/verify.sh
 
 → Integration coverage gate

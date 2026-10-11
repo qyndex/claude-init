@@ -1,0 +1,10 @@
+# TDD ledger — green — T-215
+ledger_format: 2
+timestamp: 2026-10-11T14:04:41+11:00
+command: bash .claude/scripts/test/factory-private-artifacts.sh
+exit_code: 0
+---
+AC-1: real stdout/stderr floods and timeout are bounded during collection; complete subprocess output remains intact
+AC-2: actual worker floods block verification at exact log bound, complete output succeeds, and descendant-held output times out with confirmed cleanup
+AC-3: unbound/foreign stores and nonprivate paths reject; public-eligible output contains sanitized aggregate counts only and never certifies engineering verification
+RETENTION-PASS: real dry-run/apply retention preserves locks, active tasks, uncertainty, symlinks, secrets and SQLite while deleting only old clean terminal namespaces; replay is idempotent

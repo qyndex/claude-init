@@ -17,19 +17,13 @@ FLAGS={'--safe-mode','--tools','--strict-mcp-config','--mcp-config','--no-sessio
 CAPABILITIES=['foreground','model-selection','structured-output','tool-free','separate-run']
 
 
+bounded_spec=importlib.util.spec_from_file_location('bounded_process',Path(__file__).with_name('factory-bounded-process.py'))
+bounded=importlib.util.module_from_spec(bounded_spec);bounded_spec.loader.exec_module(bounded)
+
 def call(binary, arguments, environment, directory):
-    with tempfile.TemporaryFile() as output,tempfile.TemporaryFile() as error:
-        child=subprocess.Popen([str(binary),*arguments],cwd=directory,env=environment,stdout=output,stderr=error,start_new_session=True)
-        deadline=time.monotonic()+8
-        try:
-            while child.poll() is None:
-                if time.monotonic()>=deadline or os.fstat(output.fileno()).st_size>1000000 or os.fstat(error.fileno()).st_size>1000000:
-                    raise ValueError('native probe bound exceeded')
-                time.sleep(.02)
-            if child.returncode!=0 or os.fstat(output.fileno()).st_size>1000000 or os.fstat(error.fileno()).st_size>1000000:
-                raise ValueError('native probe failed')
-            output.seek(0);return output.read()
-        finally:supervisor.terminate(child,grace=.5)
+    result=bounded.run([str(binary),*arguments],cwd=directory,env=environment,timeout=8)
+    if result.returncode!=0:raise ValueError('native probe failed')
+    return result.stdout
 
 
 def observe(binary, model, auth_method, subscription_type, live=False, credential_kind='implementation'):

@@ -30,6 +30,11 @@ def resource_contract(config, namespace, repository=None):
             raise ValueError('unsupported isolation declaration; use inherited TCP socket or private directory')
         names.add(service['name'])
     result = {'namespace': namespace, 'services': services}
+    if 'output_limit_bytes' in config:
+        limit=config['output_limit_bytes']
+        if type(limit) is not int or not 1024<=limit<=8000000:
+            raise ValueError('worker output bound invalid')
+        result['output_limit_bytes']=limit
     if config.get('execution') is not None:
         module = importlib.util.spec_from_file_location('container_adapter', Path(__file__).with_name('factory-container.py'))
         adapter = importlib.util.module_from_spec(module); module.loader.exec_module(adapter)

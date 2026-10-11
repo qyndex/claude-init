@@ -89,3 +89,16 @@ An approved resource contract may include `execution` with kind `docker-offline`
 Intent and observed container ID survive coordinator failure. Unknown daemon cleanup fences retry and verification. Reconcile stale effects using `factory-container.py --config /private/config.json --db /private/runtime.db --task T-ID`; private canonical owned files must have mode 600 and parents 700. This command never dispatches or revives a task. Failed creation without durable acknowledgement/presence remains uncertain even when a subsequent list is empty.
 
 The enabled required Linux CI drill must pass before claiming isolation. Local fake-daemon fixtures exercise contracts only. This adapter deliberately does not supply Claude provider egress or establish subscription capacity.
+
+## Private output and retention
+
+Approved runtime resources may set `output_limit_bytes` from 1024 through 8000000 (default 1000000). The guardian streams combined worker output into mode-600 `worker.log`, monitors parent liveness and waits for complete EOF. Overflow blocks verification and cleans the worker; partial output never counts as a native model result. Git inventory, native/routing probes and Docker acknowledgements are bounded while read, including timeout and owned process-group cleanup. Docker uncertainty retains its durable fence.
+
+Raw logs, argv and feedback stay private. `factory-private-artifacts.py` accepts a canonical owned mode-600 policy outside the candidate checkout with exactly `repository` and `retention_days` (1–365). Database/policy parents and attempt root require mode 700. Repository binding must already exist in the runtime store. Example protected policy: `{ "repository": "owner/project", "retention_days": 30 }`.
+
+```sh
+python3 .claude/scripts/factory-private-artifacts.py --config /private/artifacts.json --db /private/runtime.sqlite --attempts /private/attempts metrics
+python3 .claude/scripts/factory-private-artifacts.py --config /private/artifacts.json --db /private/runtime.sqlite --attempts /private/attempts retain
+```
+
+Retention defaults to dry-run. Add `--apply` only in a trusted maintenance job after reviewing eligible counts. It requires old terminal namespaces, exact task/fence metadata, confirmed cleanup, released task locks and no unconfirmed external effects/actions. Active, uncertain, unknown, symlinked or hardlinked state stays protected. SQLite receipts are never removed. Metrics expose only aggregate runtime states and unresolved worker-effect counts; they do not certify verified delivery or satisfy rollout gates. No pilot retention job is enabled by this package.

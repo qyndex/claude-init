@@ -92,11 +92,14 @@ def protected(path,candidate_roots):
     profile=decode(path.read_text());validate(profile);return profile
 
 
+bounded_spec=importlib.util.spec_from_file_location('bounded_process',Path(__file__).with_name('factory-bounded-process.py'))
+bounded=importlib.util.module_from_spec(bounded_spec);bounded_spec.loader.exec_module(bounded)
+
 def stack_readiness(profile,root):
     metadata_env={'PATH':os.defpath,'HOME':'/nonexistent','GIT_CONFIG_NOSYSTEM':'1','GIT_CONFIG_GLOBAL':'/dev/null','GIT_TERMINAL_PROMPT':'0','GIT_OPTIONAL_LOCKS':'0','LC_ALL':'C'}
     git=['/usr/bin/git','-c','core.fsmonitor=false','-c','core.hooksPath=/dev/null','-c','core.untrackedCache=false','-C',str(root)]
-    require(Path(subprocess.check_output([*git,'rev-parse','--show-toplevel'],env=metadata_env).decode().strip()).resolve()==root.resolve(),'routing requires repository root')
-    files=subprocess.check_output(['/usr/bin/git','-c','core.fsmonitor=false','-c','core.hooksPath=/dev/null','-c','core.untrackedCache=false','-C',str(root),'ls-files','--cached','--others','--exclude-standard','-z'],env=metadata_env).decode().split('\0');detected=set()
+    require(Path(bounded.run([*git,'rev-parse','--show-toplevel'],env=metadata_env,cwd=root,timeout=10).stdout.decode().strip()).resolve()==root.resolve(),'routing requires repository root')
+    files=bounded.run([*git,'ls-files','--cached','--others','--exclude-standard','-z'],env=metadata_env,cwd=root,timeout=10).stdout.decode().split('\0');detected=set()
     for name in files:
         if not name or name.startswith('.git/'):continue
         if name.startswith('.claude/') and not any(source.startswith('.claude/') and (name==source or name.startswith(source.rstrip('/')+'/')) for source in profile['source_roots']):continue
@@ -135,14 +138,8 @@ def probe(runtime):
         credential='FACTORY_REVIEW_CLAUDE_OAUTH_TOKEN' if runtime['location']=='actions' else 'FACTORY_IMPLEMENTATION_CLAUDE_OAUTH_TOKEN'
         if os.environ.get(credential):environment[credential]=os.environ[credential]
     with tempfile.TemporaryDirectory() as temporary:
-        with tempfile.TemporaryFile() as output,tempfile.TemporaryFile() as error:
-            process=subprocess.Popen(argv,cwd=temporary,stdout=output,stderr=error,start_new_session=True,env=environment)
-            deadline=time.monotonic()+runtime['probe']['timeout']
-            try:
-                while process.poll() is None:
-                    require(time.monotonic()<deadline,'runtime probe timed out');require(os.fstat(output.fileno()).st_size<=1000000 and os.fstat(error.fileno()).st_size<=1000000,'probe output bound exceeded');time.sleep(.02)
-                require(process.returncode==0 and os.fstat(output.fileno()).st_size<=1000000 and os.fstat(error.fileno()).st_size<=1000000,'runtime probe failed');output.seek(0);result=decode(output.read())
-            finally:supervisor.terminate(process,grace=.5)
+        observed=bounded.run(argv,cwd=temporary,env=environment,timeout=runtime['probe']['timeout'])
+        require(observed.returncode==0,'runtime probe failed');result=decode(observed.stdout)
     pins(runtime)
     require(set(result)=={'schema_version','available','model','capabilities','version','quota','reset_at','estimated_api_usd','actual_spend_usd'} and type(result['schema_version']) is int and result['schema_version']==1 and type(result['available']) is bool and result['model']==runtime['model'] and strings(result['capabilities']) and isinstance(result['version'],str) and 0<len(result['version'])<=200 and result['quota'] in {'available','exhausted','unknown'} and result['actual_spend_usd'] is None,'runtime observation invalid')
     cost=result['estimated_api_usd'];require(cost is None or (type(cost) in {float,int} and math.isfinite(cost) and 0<=cost<=1000000),'usage estimate invalid')
