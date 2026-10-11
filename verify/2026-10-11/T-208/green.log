@@ -1,0 +1,10 @@
+# TDD ledger — green — T-208
+ledger_format: 2
+timestamp: 2026-10-11T11:59:49+11:00
+command: bash .claude/scripts/test/factory-encrypted-feedback.sh
+exit_code: 0
+---
+AC-1: real AES-256-GCM roundtrip preserves exact SQLite feedback with private temporary modes and ciphertext-only padded envelope
+AC-2: wrong key, altered ciphertext, duplicate fields, truncation and foreign repository/channel/key bindings fail before opening plaintext SQLite
+AC-3: unchanged state avoids nonce/checkpoint churn; lost-ack replay starts from authoritative ciphertext and preserves idempotent records
+AC-4: failed intake, invalid key/database and foreign SQLite identity cannot publish partial state; private plaintext is removed after success or failure
