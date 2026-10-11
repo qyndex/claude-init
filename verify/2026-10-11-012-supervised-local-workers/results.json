@@ -1,0 +1,30 @@
+{
+  "runner": "shell-acceptance-recorder",
+  "independent_attestation": false,
+  "commands": [
+    "bash .claude/scripts/test/factory-supervisor.sh",
+    "bash .claude/scripts/test/gc-suite.sh"
+  ],
+  "testResults": [
+    {
+      "assertionResults": [
+        {
+          "fullName": "AC-1: actual shared OS writer and nested-lock races preserve single-owner mutations",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-2: actual foreground claim, heartbeat and worker exit advance only to verifying or blocked",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-3: timeout, cancellation, lease loss, background rejection and active-claim fencing preserve bounded worker lifetime",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-4: detached supervisor and actual nightly foreground launcher fixtures retain lock ownership and terminate on timeout",
+          "status": "passed"
+        }
+      ]
+    }
+  ]
+}

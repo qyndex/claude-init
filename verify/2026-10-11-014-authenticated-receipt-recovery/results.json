@@ -1,0 +1,30 @@
+{
+  "runner": "shell-acceptance-recorder",
+  "independent_attestation": false,
+  "commands": [
+    "bash .claude/scripts/test/factory-receipts-recovery.sh",
+    "bash .claude/scripts/test/factory-ledger.sh"
+  ],
+  "testResults": [
+    {
+      "assertionResults": [
+        {
+          "fullName": "AC-1: authenticated artifact metadata, policy pins, source and archive integrity negatives reject forged delivery receipts",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-2: actual receipt ingestion binds merged PR, current approved task revision and immutable authenticated provenance",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-3: actual liveness guardian cleanup fences interrupted attempts and preserves uncertain external effects",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-4: real SIGKILL, cleanup, bounded fenced retry and stale guardian drills grant no engineering or merge verdict",
+          "status": "passed"
+        }
+      ]
+    }
+  ]
+}
