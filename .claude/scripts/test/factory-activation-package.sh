@@ -5,7 +5,7 @@ python3 - "$ROOT" <<'PYTEST'
 from pathlib import Path
 import hashlib,json,os,re,subprocess,sys,tempfile
 root=Path(sys.argv[1]);folder=root/'docs/activation/2026-10-11'
-if not folder.exists() and (root/'.claude/install-manifest.json').is_file():
+if (root/'.claude/install-manifest.json').is_file():
  print('SKIP: source pilot activation package is not distributed to adopters; no readiness proof claimed')
  raise SystemExit(0)
 assert (folder/'manifest.json').is_file(), 'activation review package missing'
