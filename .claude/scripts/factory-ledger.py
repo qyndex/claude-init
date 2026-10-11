@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
 """Import approved ledger projections; worker success is never merge evidence."""
 import argparse
+from contextlib import closing
 import fcntl
 import hashlib
 import importlib.util
 import json
+import os
+import stat
+import sqlite3
 from pathlib import Path
 import re
 import sys
@@ -138,6 +142,38 @@ def confirm_merge(db_path, task, revision, receipt):
         db.execute("UPDATE tasks SET state='merged' WHERE id=?", (task,))
 
 
+def routing_contract(config, path, authority, candidate, database, task, requested_role=None):
+    module = importlib.util.spec_from_file_location('routing', Path(__file__).with_name('factory-routing.py'))
+    routing = importlib.util.module_from_spec(module); module.loader.exec_module(routing)
+    profile = routing.protected(Path(path), [Path(authority), Path(candidate)])
+    runtime_config = config.get('runtime', {})
+    expected = runtime_config.get('routing_profile_sha256')
+    if not isinstance(expected, str) or re.fullmatch(r'[a-f0-9]{64}', expected) is None:
+        raise ValueError('protected routing profile approval required')
+    if hashlib.sha256(routing.canonical(profile).encode()).hexdigest() != expected or profile['repository'] != config.get('repository'):
+        raise ValueError('routing profile/repository differs from approved policy')
+    roles = runtime_config.get('roles_by_task', {})
+    role = roles.get(task)
+    if role not in {'planning', 'implementation'} or requested_role not in {None, role}:
+        raise ValueError('task role differs from approved routing')
+    database = Path(database)
+    if (not database.is_absolute() or database.resolve() != database or not database.parent.is_dir()
+            or database.parent.stat().st_uid != os.getuid() or stat.S_IMODE(database.parent.stat().st_mode) != 0o700
+            or any(root.resolve() == database.parent or root.resolve() in database.parents for root in (Path(authority), Path(candidate)))):
+        raise ValueError('routed runtime database must be private outside authority/candidate')
+    if database.exists():
+        if not database.is_file() or database.stat().st_uid != os.getuid() or stat.S_IMODE(database.stat().st_mode) != 0o600:
+            raise ValueError('routed runtime database owner/mode differs')
+        with closing(sqlite3.connect(database)) as db:
+            names = {row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+            if 'runtime_route_repository' in names:
+                if db.execute('SELECT repository FROM runtime_route_repository WHERE id=1').fetchall() != [(profile['repository'],)]:
+                    raise ValueError('foreign routed runtime store')
+            elif 'tasks' in names and db.execute('SELECT COUNT(*) FROM tasks').fetchone()[0]:
+                raise ValueError('legacy nonempty store needs an explicit namespace migration')
+    return routing, profile, role
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--authority-root', required=True)
@@ -147,11 +183,27 @@ def main():
     parser.add_argument('--cwd')
     parser.add_argument('--attempts')
     parser.add_argument('--timeout', type=float, default=1800)
+    parser.add_argument('--routing-config')
+    parser.add_argument('--role', choices=['planning', 'implementation'])
     parser.add_argument('command', nargs=argparse.REMAINDER)
     args = parser.parse_args()
     command = args.command[1:] if args.command[:1] == ['--'] else args.command
     config = json.loads(Path(args.policy).read_text())
     resources = resource_contract(config.get('runtime', {}), 'assigned-at-claim')
+    if args.routing_config:
+        if command or not args.cwd or not args.attempts:
+            parser.error('routed worker requires cwd/attempts and forbids caller command override')
+        routing, profile, role = routing_contract(config, args.routing_config, args.authority_root, args.cwd, args.db, args.task, args.role)
+        previous_umask = os.umask(0o077)
+        try:
+            imported = import_task(args.authority_root, args.db, args.task, args.policy)
+            result = routing.run(profile, role, 'local', Path(args.cwd), Path(args.db), args.task, Path(args.attempts), timeout=args.timeout, resources=resources)
+        finally:
+            os.umask(previous_umask)
+        print(json.dumps({'imported': list(imported), 'delivery_inferred': False, **result}))
+        return result.get('exit_code', 2)
+    if args.role or (command and config.get('runtime', {}).get('routing_profile_sha256')):
+        parser.error('approved routed task requires its protected profile; command bypass forbidden')
     imported = import_task(args.authority_root, args.db, args.task, args.policy)
     if not command:
         print(json.dumps({'imported': list(imported), 'delivery_inferred': False}))

@@ -1,0 +1,10 @@
+# TDD ledger — green — T-211
+ledger_format: 2
+timestamp: 2026-10-11T12:57:06+11:00
+command: bash .claude/scripts/test/factory-routing.sh
+exit_code: 0
+---
+AC-1: protected profile, pinned real subprocess probes, strict native auth/model JSON and explicit equivalent fallback select the configured model without claiming independent verification
+AC-2: actual routed foreground worker persists model/token/client-estimate observations privately, advances only to verifying and never equates subscription spend with API estimates
+AC-3: exhausted capacity checkpoints a durable route decision, keeps approved task queued with no attempt and requires explicit equivalent fallback without relaxing role requirements
+AC-4: unsupported stacks/extensions, missing capabilities, wrong authority location, unsafe config modes and changed executable pins block; candidate fsmonitor hooks do not execute; actual approved-ledger CLI rejects profile/task-role/command overrides and foreign namespaces

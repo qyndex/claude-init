@@ -68,5 +68,17 @@ def detached_journal():
         Path(str(path)+'-journal').write_bytes(b'uncertain journal')
 reject(detached_journal);assert store.bytes==prior
 assert m.key(base64.b64encode(secret).decode())==secret
+# Retain every actual connection so garbage collection cannot hide an open handle.
+connections=[];original_connect=m.sqlite3.connect
+def tracked_connect(*args,**kwargs):
+    connection=original_connect(*args,**kwargs);connections.append(connection);return connection
+m.sqlite3.connect=tracked_connect
+try:
+    with m.private_database(type(store)(),secret,binding):pass
+finally:m.sqlite3.connect=original_connect
+for connection in connections:
+    try:connection.execute('SELECT 1')
+    except sqlite3.ProgrammingError:pass
+    else:raise AssertionError('private checkpoint SQLite handle remained open')
 print('AC-4: failed intake, invalid key/database and foreign SQLite identity cannot publish partial state; private plaintext is removed after success or failure')
 PY
