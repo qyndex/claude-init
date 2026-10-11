@@ -189,5 +189,8 @@ assert 'runs-on: ubuntu-latest' in workflow and 'persist-credentials: false' in 
 assert "vars.FACTORY_REPORTING_PROFILE == 'github-hosted'" in workflow and "vars.FACTORY_REPORTING_ENABLED == 'true'" in workflow
 assert 'pull-requests: read' in workflow and 'contents: write' in workflow
 assert "vars.FACTORY_REPORTING_PROFILE == 'self-hosted'" in (root/'.github/workflows/factory-digest.yml').read_text()
-print('factory-hosted-digest: typed public checkpoints, exact bootstrap/protection, unique CAS writers, storage/Slack ack loss, fresh-run recovery and disabled trusted workflow passed')
+print('AC-1: typed reporting state rejects foreign schema, unknown tables, broken blobs, missing protection and later missing streams; private source cannot publish public state')
+print('AC-2: actual immutable Git object writes and unique commit nonces fence stale checkpoint writers before external sends')
+print('AC-3: durable intent and receipt restore recover lost Slack/storage acknowledgements without duplicate sends or silent cursor reset')
+print('AC-4: protected default-branch workflow, explicit hosted/self-hosted guards and fixed-host separated credential envelope pass actual fixtures')
 PYTEST
