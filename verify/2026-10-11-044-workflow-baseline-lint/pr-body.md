@@ -1,5 +1,5 @@
 ## Evidence Bundle — Spec 044 (044-workflow-baseline-lint)
-Spec: `specs/active/044-workflow-baseline-lint.md` · Commit: `2a0e3b2`
+Spec: `specs/active/044-workflow-baseline-lint.md` · Commit: `c6c03e9`
 
 ### Acceptance criteria (4/4 proven)
 | AC | Proven by | Result |
@@ -11,7 +11,7 @@ Spec: `specs/active/044-workflow-baseline-lint.md` · Commit: `2a0e3b2`
 
 ### Smoke test (exit codes are load-bearing)
 ```
-# Smoke test — 2026-10-11T14:59:40+11:00
+# Smoke test — 2026-10-11T15:05:13+11:00
 $ bash .claude/scripts/verify.sh
 
 → Integration coverage gate

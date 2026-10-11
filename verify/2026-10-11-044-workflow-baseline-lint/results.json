@@ -1,6 +1,6 @@
 {
   "runner": "shell-acceptance-recorder",
-  "source_sha": "2a0e3b21e345d9ec056ac0ae16afe25bba5e8d98",
+  "source_sha": "c6c03e9914344fe721bea518738d2b5575c1da79",
   "independent_attestation": false,
   "commands": [
     "bash .claude/scripts/test/factory-workflow-baseline.sh"
