@@ -1,0 +1,459 @@
+{
+  "schema_version": 1,
+  "source_commit": "f6dfdae94a465cdf9df77aeccfde49ab9f0e18ac",
+  "platform": "macOS",
+  "runner": "disposable-local-checkout",
+  "independent_attestation": false,
+  "checks": [
+    {
+      "test": ".claude/scripts/test/acceptance-rerun.sh",
+      "exit_code": 0,
+      "seconds": 0.73
+    },
+    {
+      "test": ".claude/scripts/test/adr-single-schema.sh",
+      "exit_code": 0,
+      "seconds": 0.05
+    },
+    {
+      "test": ".claude/scripts/test/adr-supersession.sh",
+      "exit_code": 0,
+      "seconds": 0.67
+    },
+    {
+      "test": ".claude/scripts/test/analyze-coverage.sh",
+      "exit_code": 0,
+      "seconds": 0.18
+    },
+    {
+      "test": ".claude/scripts/test/archives-and-modified.sh",
+      "exit_code": 0,
+      "seconds": 0.37
+    },
+    {
+      "test": ".claude/scripts/test/atlas-endpoints.sh",
+      "exit_code": 0,
+      "seconds": 0.55
+    },
+    {
+      "test": ".claude/scripts/test/atomic-write.sh",
+      "exit_code": 0,
+      "seconds": 0.08
+    },
+    {
+      "test": ".claude/scripts/test/audit-doc-claims.sh",
+      "exit_code": 0,
+      "seconds": 0.06
+    },
+    {
+      "test": ".claude/scripts/test/autonomous-ship.sh",
+      "exit_code": 0,
+      "seconds": 0.38
+    },
+    {
+      "test": ".claude/scripts/test/boot-autoheal.sh",
+      "exit_code": 0,
+      "seconds": 0.8
+    },
+    {
+      "test": ".claude/scripts/test/boot-inject-hot.sh",
+      "exit_code": 0,
+      "seconds": 0.07
+    },
+    {
+      "test": ".claude/scripts/test/candidate-evidence.sh",
+      "exit_code": 0,
+      "seconds": 1.02
+    },
+    {
+      "test": ".claude/scripts/test/candidate-root.sh",
+      "exit_code": 0,
+      "seconds": 1.08
+    },
+    {
+      "test": ".claude/scripts/test/check-model-consistency.sh",
+      "exit_code": 0,
+      "seconds": 0.82
+    },
+    {
+      "test": ".claude/scripts/test/coverage-values.sh",
+      "exit_code": 0,
+      "seconds": 0.46
+    },
+    {
+      "test": ".claude/scripts/test/daily-briefing.sh",
+      "exit_code": 0,
+      "seconds": 0.12
+    },
+    {
+      "test": ".claude/scripts/test/dependency-rollup.sh",
+      "exit_code": 0,
+      "seconds": 0.22
+    },
+    {
+      "test": ".claude/scripts/test/dream-cost-gate.sh",
+      "exit_code": 0,
+      "seconds": 0.03
+    },
+    {
+      "test": ".claude/scripts/test/dream-state.sh",
+      "exit_code": 0,
+      "seconds": 0.01
+    },
+    {
+      "test": ".claude/scripts/test/evidence-finalization.sh",
+      "exit_code": 0,
+      "seconds": 0.39
+    },
+    {
+      "test": ".claude/scripts/test/factory-adopt.sh",
+      "exit_code": 0,
+      "seconds": 0.8
+    },
+    {
+      "test": ".claude/scripts/test/factory-coordinator.sh",
+      "exit_code": 0,
+      "seconds": 0.06
+    },
+    {
+      "test": ".claude/scripts/test/factory-digest-coverage.sh",
+      "exit_code": 0,
+      "seconds": 0.07
+    },
+    {
+      "test": ".claude/scripts/test/factory-digest.sh",
+      "exit_code": 0,
+      "seconds": 0.11
+    },
+    {
+      "test": ".claude/scripts/test/factory-encrypted-feedback.sh",
+      "exit_code": 0,
+      "seconds": 0.07
+    },
+    {
+      "test": ".claude/scripts/test/factory-feedback-control.sh",
+      "exit_code": 0,
+      "seconds": 0.11
+    },
+    {
+      "test": ".claude/scripts/test/factory-feedback.sh",
+      "exit_code": 0,
+      "seconds": 0.08
+    },
+    {
+      "test": ".claude/scripts/test/factory-hosted-digest.sh",
+      "exit_code": 0,
+      "seconds": 0.15
+    },
+    {
+      "test": ".claude/scripts/test/factory-hosted-feedback.sh",
+      "exit_code": 0,
+      "seconds": 0.14
+    },
+    {
+      "test": ".claude/scripts/test/factory-installer-source.sh",
+      "exit_code": 0,
+      "seconds": 1.78
+    },
+    {
+      "test": ".claude/scripts/test/factory-ledger.sh",
+      "exit_code": 0,
+      "seconds": 0.5
+    },
+    {
+      "test": ".claude/scripts/test/factory-legacy-feedback.sh",
+      "exit_code": 0,
+      "seconds": 0.08
+    },
+    {
+      "test": ".claude/scripts/test/factory-policy-approval.sh",
+      "exit_code": 0,
+      "seconds": 0.09
+    },
+    {
+      "test": ".claude/scripts/test/factory-producers.sh",
+      "exit_code": 0,
+      "seconds": 0.05
+    },
+    {
+      "test": ".claude/scripts/test/factory-receipt-projection.sh",
+      "exit_code": 0,
+      "seconds": 0.11
+    },
+    {
+      "test": ".claude/scripts/test/factory-receipts-recovery.sh",
+      "exit_code": 0,
+      "seconds": 1.2
+    },
+    {
+      "test": ".claude/scripts/test/factory-reporting-actions.sh",
+      "exit_code": 0,
+      "seconds": 0.05
+    },
+    {
+      "test": ".claude/scripts/test/factory-reporting-alerts.sh",
+      "exit_code": 0,
+      "seconds": 0.12
+    },
+    {
+      "test": ".claude/scripts/test/factory-reporting-watchdog.sh",
+      "exit_code": 0,
+      "seconds": 0.12
+    },
+    {
+      "test": ".claude/scripts/test/factory-runtime.sh",
+      "exit_code": 0,
+      "seconds": 0.09
+    },
+    {
+      "test": ".claude/scripts/test/factory-slack-attachment.sh",
+      "exit_code": 0,
+      "seconds": 0.16
+    },
+    {
+      "test": ".claude/scripts/test/factory-slack-digest.sh",
+      "exit_code": 0,
+      "seconds": 0.1
+    },
+    {
+      "test": ".claude/scripts/test/factory-slack-feedback.sh",
+      "exit_code": 0,
+      "seconds": 0.12
+    },
+    {
+      "test": ".claude/scripts/test/factory-slack-file-canary.sh",
+      "exit_code": 0,
+      "seconds": 0.1
+    },
+    {
+      "test": ".claude/scripts/test/factory-slack-scope-preflight.sh",
+      "exit_code": 0,
+      "seconds": 0.08
+    },
+    {
+      "test": ".claude/scripts/test/factory-supervisor.sh",
+      "exit_code": 0,
+      "seconds": 11.84
+    },
+    {
+      "test": ".claude/scripts/test/factory-workflows.sh",
+      "exit_code": 0,
+      "seconds": 0.07
+    },
+    {
+      "test": ".claude/scripts/test/gc-suite.sh",
+      "exit_code": 0,
+      "seconds": 0.57
+    },
+    {
+      "test": ".claude/scripts/test/graph-backref-matcher.sh",
+      "exit_code": 0,
+      "seconds": 0.84
+    },
+    {
+      "test": ".claude/scripts/test/harvest-decisions.sh",
+      "exit_code": 0,
+      "seconds": 0.13
+    },
+    {
+      "test": ".claude/scripts/test/hot-cache.sh",
+      "exit_code": 0,
+      "seconds": 0.27
+    },
+    {
+      "test": ".claude/scripts/test/initiative-state-filter.sh",
+      "exit_code": 0,
+      "seconds": 0.24
+    },
+    {
+      "test": ".claude/scripts/test/ledger-decay.sh",
+      "exit_code": 0,
+      "seconds": 0.17
+    },
+    {
+      "test": ".claude/scripts/test/lint-silent-failures.sh",
+      "exit_code": 0,
+      "seconds": 0.2
+    },
+    {
+      "test": ".claude/scripts/test/live-ruleset-selection.sh",
+      "exit_code": 0,
+      "seconds": 0.6
+    },
+    {
+      "test": ".claude/scripts/test/liveness-probes.sh",
+      "exit_code": 0,
+      "seconds": 3.42
+    },
+    {
+      "test": ".claude/scripts/test/liveness-promote.sh",
+      "exit_code": 0,
+      "seconds": 15.91
+    },
+    {
+      "test": ".claude/scripts/test/local-evidence-gate.sh",
+      "exit_code": 0,
+      "seconds": 0.15
+    },
+    {
+      "test": ".claude/scripts/test/local-scanner-contracts.sh",
+      "exit_code": 0,
+      "seconds": 1.15
+    },
+    {
+      "test": ".claude/scripts/test/loop-control.sh",
+      "exit_code": 0,
+      "seconds": 0.26
+    },
+    {
+      "test": ".claude/scripts/test/memory-plane-lock.sh",
+      "exit_code": 0,
+      "seconds": 1.46
+    },
+    {
+      "test": ".claude/scripts/test/memory-project.sh",
+      "exit_code": 0,
+      "seconds": 0.45
+    },
+    {
+      "test": ".claude/scripts/test/memory-system.sh",
+      "exit_code": 0,
+      "seconds": 5.12
+    },
+    {
+      "test": ".claude/scripts/test/metabolism-spawn.sh",
+      "exit_code": 0,
+      "seconds": 0.48
+    },
+    {
+      "test": ".claude/scripts/test/mirror-config-dir.sh",
+      "exit_code": 0,
+      "seconds": 0.1
+    },
+    {
+      "test": ".claude/scripts/test/no-ops-fire.sh",
+      "exit_code": 0,
+      "seconds": 0.02
+    },
+    {
+      "test": ".claude/scripts/test/oq-aging.sh",
+      "exit_code": 0,
+      "seconds": 0.16
+    },
+    {
+      "test": ".claude/scripts/test/pivot-trace.sh",
+      "exit_code": 0,
+      "seconds": 12.94
+    },
+    {
+      "test": ".claude/scripts/test/pre-bash-dep-freshness.sh",
+      "exit_code": 0,
+      "seconds": 0.09
+    },
+    {
+      "test": ".claude/scripts/test/pre-bash-guard-bypass.sh",
+      "exit_code": 0,
+      "seconds": 0.34
+    },
+    {
+      "test": ".claude/scripts/test/pre-edit-constitution-guard.sh",
+      "exit_code": 0,
+      "seconds": 0.39
+    },
+    {
+      "test": ".claude/scripts/test/recall-grep.sh",
+      "exit_code": 0,
+      "seconds": 0.2
+    },
+    {
+      "test": ".claude/scripts/test/recall-noise-and-sh-index.sh",
+      "exit_code": 0,
+      "seconds": 0.16
+    },
+    {
+      "test": ".claude/scripts/test/reconcile-shipped.sh",
+      "exit_code": 0,
+      "seconds": 4.91
+    },
+    {
+      "test": ".claude/scripts/test/required-verification.sh",
+      "exit_code": 0,
+      "seconds": 0.26
+    },
+    {
+      "test": ".claude/scripts/test/reverse-drift.sh",
+      "exit_code": 0,
+      "seconds": 0.12
+    },
+    {
+      "test": ".claude/scripts/test/roadmap-trace.sh",
+      "exit_code": 0,
+      "seconds": 12.92
+    },
+    {
+      "test": ".claude/scripts/test/rollup-envclock.sh",
+      "exit_code": 0,
+      "seconds": 0.69
+    },
+    {
+      "test": ".claude/scripts/test/security-invariants.sh",
+      "exit_code": 0,
+      "seconds": 0.68
+    },
+    {
+      "test": ".claude/scripts/test/sessionstart-matcher.sh",
+      "exit_code": 0,
+      "seconds": 0.02
+    },
+    {
+      "test": ".claude/scripts/test/ship-verify-sync.sh",
+      "exit_code": 0,
+      "seconds": 0.03
+    },
+    {
+      "test": ".claude/scripts/test/shipped-registry.sh",
+      "exit_code": 0,
+      "seconds": 0.21
+    },
+    {
+      "test": ".claude/scripts/test/spec-plan-trace.sh",
+      "exit_code": 0,
+      "seconds": 16.14
+    },
+    {
+      "test": ".claude/scripts/test/spec004-reconcile.sh",
+      "exit_code": 0,
+      "seconds": 0.03
+    },
+    {
+      "test": ".claude/scripts/test/subagent-recall-scope.sh",
+      "exit_code": 0,
+      "seconds": 0.06
+    },
+    {
+      "test": ".claude/scripts/test/subagent-spec-resolution.sh",
+      "exit_code": 0,
+      "seconds": 0.19
+    },
+    {
+      "test": ".claude/scripts/test/swarm-events-smoke.sh",
+      "exit_code": 0,
+      "seconds": 0.05
+    },
+    {
+      "test": ".claude/scripts/test/trace-mismatch.sh",
+      "exit_code": 0,
+      "seconds": 0.18
+    },
+    {
+      "test": ".claude/scripts/test/validate-json.sh",
+      "exit_code": 0,
+      "seconds": 25.93
+    },
+    {
+      "test": ".claude/scripts/test/workflow-state-no-git.sh",
+      "exit_code": 0,
+      "seconds": 0.04
+    }
+  ]
+}

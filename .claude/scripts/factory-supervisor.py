@@ -20,6 +20,17 @@ runtime = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(runtime)
 
 
+def worker_environment(source):
+    """Do not inherit coordinator authority or interpreter/proxy injection."""
+    ordinary = {'PATH', 'HOME', 'USER', 'LOGNAME', 'SHELL', 'LANG', 'LC_ALL',
+                'LC_CTYPE', 'TERM', 'TZ', 'SYSTEMROOT', 'WINDIR', 'COMSPEC', 'PATHEXT'}
+    environment = {name: value for name, value in source.items() if name in ordinary}
+    implementation = source.get('FACTORY_IMPLEMENTATION_CLAUDE_OAUTH_TOKEN')
+    if implementation:
+        environment['CLAUDE_CODE_OAUTH_TOKEN'] = implementation
+    return environment
+
+
 def group_exists(pgid):
     result = subprocess.run(['ps', '-axo', 'pgid=,stat='], capture_output=True, text=True, check=True)
     return any(fields[0] == str(pgid) and not fields[1].startswith('Z')
@@ -109,7 +120,7 @@ def supervised(db, task, command, cwd, attempts, timeout, lease, lock_fd, resour
                 endpoints[service['name']] = {'directory': str(private.resolve())}
             else:
                 raise ValueError('unsupported resource isolation adapter')
-        env = dict(os.environ, FACTORY_RUN_DIR=str(directory.resolve()),
+        env = dict(worker_environment(os.environ), FACTORY_RUN_DIR=str(directory.resolve()),
                    FACTORY_RESOURCE_NAMESPACE=namespace, FACTORY_SERVICES=json.dumps(endpoints),
                    TMPDIR=str(directory.resolve()))
         with (directory / 'worker.log').open('wb') as log:

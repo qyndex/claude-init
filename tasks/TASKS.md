@@ -1244,3 +1244,9 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   files: .claude/scripts/factory-hosted-feedback.py, .claude/scripts/factory-git-state.py, .github/workflows/factory-hosted-feedback.yml
   accept: bash .claude/scripts/test/factory-hosted-feedback.sh
   owner: implementer
+
+- [x] T-210  | spec:036  | phase:1  | priority: security  | created: 2026-10-11  | last_touched: 2026-10-11  | deps: T-209  | parallel: no  | est: 30m
+  summary: Remove coordinator authority and injection variables from actual supervised worker environments
+  files: .claude/scripts/factory-supervisor.py
+  accept: bash .claude/scripts/test/factory-worker-environment.sh
+  owner: implementer
