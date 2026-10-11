@@ -1,0 +1,10 @@
+# TDD ledger — green — T-212
+ledger_format: 2
+timestamp: 2026-10-11T13:08:29+11:00
+command: bash .claude/scripts/test/factory-worker-effects.sh
+exit_code: 0
+---
+AC-1: external effect intent is durable before dispatch, immutable and idempotent, and registration requires exact current task owner/fence
+AC-2: unresolved daemon effects block expired-lease reclaim, successful worker verification and guardian requeue; unknown cleanup cannot grant another attempt
+AC-3: only exact adapter/identity absent receipts release the fence; cleanup confirmation is idempotent and stale owners cannot create effects after reclaim
+AC-4: unknown effects remain durably visible after blocked recovery, unrelated tasks retain native semantics, and no synthetic receipt claims live daemon cleanup or independent verification
