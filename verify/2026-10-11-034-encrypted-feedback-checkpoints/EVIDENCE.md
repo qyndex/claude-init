@@ -1,5 +1,5 @@
 ## Evidence Bundle — Spec 034 (034-encrypted-feedback-checkpoints)
-Spec: `specs/active/034-encrypted-feedback-checkpoints.md` · Commit: `c900c5a`
+Spec: `specs/active/034-encrypted-feedback-checkpoints.md` · Commit: `bd31431`
 
 ### Acceptance criteria (4/4 proven)
 | AC | Proven by | Result |
@@ -11,7 +11,7 @@ Spec: `specs/active/034-encrypted-feedback-checkpoints.md` · Commit: `c900c5a`
 
 ### Smoke test (exit codes are load-bearing)
 ```
-# Smoke test — 2026-10-11T12:00:07+11:00
+# Smoke test — 2026-10-11T13:01:51+11:00
 $ bash .claude/scripts/verify.sh
 
 → Integration coverage gate
