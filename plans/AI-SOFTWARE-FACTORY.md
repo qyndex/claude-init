@@ -218,3 +218,5 @@ The operator explicitly approved live private-channel intake. FACTORY_FEEDBACK_E
 Implement an offline Linux container adapter and obtain actual Docker isolation/cleanup proof in required CI. Local Mac contracts pass; actual isolation remains pending. Provider egress and native subscription/reviewer activation remain separate rollout gates.
 
 Spec 039 actual Linux Docker isolation drill passed on source 13c7f3e11ae40633de2e8ba2a3c7e0724e0b6db0 in GitHub run 38105551625 attempt 1. Native CI proof is implementation evidence, not independent verifier authority; required full-suite and final merge checks remain pending.
+
+Spec 039 merged in PR #89 at d72ba160c4daafdce445411586b1e00ef158c119 with all seven required checks and actual final-head Linux isolation/maintained-suite proof. Next spec 040 completes neutral dependency/configuration distribution without live activation. Remaining F-07 privacy/retention and F-08 protected generic deployment contracts follow sequentially.

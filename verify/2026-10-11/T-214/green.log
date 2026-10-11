@@ -1,0 +1,10 @@
+# TDD ledger — green — T-214
+ledger_format: 2
+timestamp: 2026-10-11T13:44:05+11:00
+command: bash .claude/scripts/test/factory-distribution.sh
+exit_code: 0
+---
+AC-1: actual new/existing Git adopters receive pinned requirements and neutral references with immutable ownership while retaining their own content
+AC-2: pilot policy, App identity, workflow, private state and credentials stay excluded; all installed examples are disabled and repository neutral
+AC-3: replay is unchanged; explicit dependency upgrades and guarded revert preserve ownership; customized/foreign config collisions block before partial changes
+AC-4: actual installation invokes only Git inspection, never pip/provider/target setup; isolated pinned dependency provisioning and per-adopter disabled activation are documented

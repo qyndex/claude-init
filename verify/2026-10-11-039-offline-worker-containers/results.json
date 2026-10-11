@@ -1,26 +1,10 @@
 {
   "runner": "shell-acceptance-recorder",
-  "source_sha": "13c7f3e11ae40633de2e8ba2a3c7e0724e0b6db0",
+  "source_sha": "835bddaa6892dfa3ff5b0006d01e35325c4833ad",
   "independent_attestation": false,
   "commands": [
     "bash .claude/scripts/test/factory-container.sh"
   ],
-  "linux_isolation": {
-    "source_sha": "13c7f3e11ae40633de2e8ba2a3c7e0724e0b6db0",
-    "platform": "linux",
-    "image_id": "sha256:c7de312a59896c05a111887121f537a2eb328f9b40639f69a5c692491ee3ee93",
-    "docker_sha256": "6435ff9214bf8e0931078fb0980809728cac0a54a526d4f28a26d3e48132b58d",
-    "independent_attestation": false,
-    "assertions": [
-      {
-        "fullName": "AC-4: actual Linux Docker isolation, concurrent services, timeout, supervisor SIGKILL cleanup and fenced retry passed",
-        "status": "passed"
-      }
-    ],
-    "github_run_id": 38105551625,
-    "github_run_attempt": 1,
-    "github_run_url": "https://github.com/qyndex/claude-init/actions/runs/38105551625"
-  },
   "testResults": [
     {
       "assertionResults": [
@@ -42,5 +26,21 @@
         }
       ]
     }
-  ]
+  ],
+  "linux_isolation": {
+    "source_sha": "835bddaa6892dfa3ff5b0006d01e35325c4833ad",
+    "platform": "linux",
+    "image_id": "sha256:2a127afc854aceb4d1bc5f24fcd25807df9b27644f35caaa18d837002eed7f21",
+    "docker_sha256": "6435ff9214bf8e0931078fb0980809728cac0a54a526d4f28a26d3e48132b58d",
+    "independent_attestation": false,
+    "assertions": [
+      {
+        "fullName": "AC-4: actual Linux Docker isolation, concurrent services, timeout, supervisor SIGKILL cleanup and fenced retry passed",
+        "status": "passed"
+      }
+    ],
+    "github_run_id": 38106399350,
+    "github_run_attempt": 1,
+    "github_run_url": "https://github.com/qyndex/claude-init/actions/runs/38106399350"
+  }
 }

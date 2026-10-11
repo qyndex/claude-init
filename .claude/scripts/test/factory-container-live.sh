@@ -6,7 +6,7 @@ if [ "${FACTORY_DOCKER_DRILL:-false}" != true ]; then
 fi
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
 python3 - "$ROOT" <<'PYTEST'
-import hashlib,importlib.util,json,os,re,shutil,signal,subprocess,sys,tempfile,time,uuid
+import fcntl,hashlib,importlib.util,json,os,re,shutil,signal,subprocess,sys,tempfile,time,uuid
 from pathlib import Path
 root=Path(sys.argv[1]);assert sys.platform=='linux' and os.getuid()>0,'real isolation drill requires nonroot Linux'
 def module(name,path):
@@ -69,6 +69,15 @@ code=m.supervise(sys.argv[2],sys.argv[3],json.loads(sys.argv[7]),sys.argv[4],sys
         while store.get('T-5')['state']!='queued':
             assert time.monotonic()<deadline,'guardian did not confirm daemon cleanup/requeue';time.sleep(.05)
         assert store.worker_effects('T-5')[0]['status']=='clean'
+        # Requeue precedes guardian exit; verify the actual inherited lock is released.
+        lock=database.parent/('worker-'+hashlib.sha256(b'T-5').hexdigest()+'.lock')
+        deadline=time.monotonic()+5
+        with lock.open('a+b') as holder:
+            while True:
+                try:fcntl.flock(holder.fileno(),fcntl.LOCK_EX|fcntl.LOCK_NB);break
+                except BlockingIOError:
+                    assert time.monotonic()<deadline,'guardian retained task lock after cleanup';time.sleep(.05)
+            fcntl.flock(holder.fileno(),fcntl.LOCK_UN)
         assert sup.supervise(database,'T-5',['/bin/busybox','true'],source,attempts,timeout=10,lease=5,resources={'execution':config,'services':[]})==0
         for task in ('T-1','T-2','T-3','T-4','T-5'):
             for effect in store.worker_effects(task):
