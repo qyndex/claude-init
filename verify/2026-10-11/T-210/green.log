@@ -1,0 +1,10 @@
+# TDD ledger — green — T-210
+ledger_format: 2
+timestamp: 2026-10-11T12:16:46+11:00
+command: bash .claude/scripts/test/factory-worker-environment.sh
+exit_code: 0
+---
+AC-1: deny-by-default environment drops GitHub/App/Slack/encryption/cloud/provider credentials, proxy and interpreter injection while preserving explicit ordinary runtime settings
+AC-2: actual foreground worker through guardian receives only the dedicated implementation subscription credential and assigned run namespace; success grants no engineering or merge verdict
+AC-3: absent explicit implementation credential does not borrow coordinator/reviewer OAuth or API keys; real worker still records a bounded supervised verifying outcome
+AC-4: filtered worker environment preserves actual timeout cleanup and lease fencing; native same-user filesystem access remains an explicitly unproven isolation boundary

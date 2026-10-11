@@ -1,0 +1,10 @@
+# TDD ledger — red — T-210
+ledger_format: 2
+timestamp: 2026-10-11T12:14:08+11:00
+command: bash .claude/scripts/test/factory-worker-environment.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 5, in <module>
+AssertionError: worker authority credentials are not isolated from inherited environment

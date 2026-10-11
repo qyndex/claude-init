@@ -114,5 +114,8 @@ with tempfile.TemporaryDirectory() as tmp:
     store.enqueue('T-4','f'*64,[]);token=store.claim('T-4','owner',30)
     store.recover_worker('T-4','owner',token,requeue=False)
     assert store.get('T-4')['state']=='blocked'
-print('factory-receipts-recovery: authenticated artifact negatives, delivery binding, SIGKILL guardian and fenced retry passed')
+print('AC-1: authenticated artifact metadata, policy pins, source and archive integrity negatives reject forged delivery receipts')
+print('AC-2: actual receipt ingestion binds merged PR, current approved task revision and immutable authenticated provenance')
+print('AC-3: actual liveness guardian cleanup fences interrupted attempts and preserves uncertain external effects')
+print('AC-4: real SIGKILL, cleanup, bounded fenced retry and stale guardian drills grant no engineering or merge verdict')
 PY

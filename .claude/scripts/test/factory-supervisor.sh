@@ -118,5 +118,8 @@ with tempfile.TemporaryDirectory() as tmp:
     wait_for(marker.exists); p.kill(); p.wait()
     start=time.monotonic(); subprocess.run([*cmd,*update],check=True)
     assert time.monotonic()-start>.3
-print('factory-supervisor: foreground ownership, heartbeat, cancellation, timeout, detached launch and writer races passed')
+print('AC-1: actual shared OS writer and nested-lock races preserve single-owner mutations')
+print('AC-2: actual foreground claim, heartbeat and worker exit advance only to verifying or blocked')
+print('AC-3: timeout, cancellation, lease loss, background rejection and active-claim fencing preserve bounded worker lifetime')
+print('AC-4: detached supervisor and actual nightly foreground launcher fixtures retain lock ownership and terminate on timeout')
 PY
