@@ -1,5 +1,5 @@
 ## Evidence Bundle — Spec 042 (042-production-stub-fence)
-Spec: `specs/active/042-production-stub-fence.md` · Commit: `b0c10c3`
+Spec: `specs/active/042-production-stub-fence.md` · Commit: `e612a8f`
 
 ### Acceptance criteria (3/3 proven)
 | AC | Proven by | Result |
@@ -10,7 +10,7 @@ Spec: `specs/active/042-production-stub-fence.md` · Commit: `b0c10c3`
 
 ### Smoke test (exit codes are load-bearing)
 ```
-# Smoke test — 2026-10-11T14:41:50+11:00
+# Smoke test — 2026-10-11T14:50:30+11:00
 $ bash .claude/scripts/verify.sh
 
 → Integration coverage gate

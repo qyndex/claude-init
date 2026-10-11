@@ -6,7 +6,7 @@ from pathlib import Path
 import importlib.util,json,shutil,subprocess,sys,tempfile
 from unittest.mock import patch
 root=Path(sys.argv[1]);spec=importlib.util.spec_from_file_location('adopt',root/'.claude/scripts/factory-adopt.py');m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
-required={'factory/feedback-crypto-requirements.txt','factory/runtime.example.json','factory/feedback.example.json','factory/digest.example.json','docs/FACTORY-ADOPTER-SETUP.md','docs/FACTORY-RUNTIME.md','docs/FACTORY-FEEDBACK.md'}
+required={'factory/feedback-crypto-requirements.txt','factory/runtime.example.json','factory/release.example.json','factory/feedback.example.json','factory/digest.example.json','docs/FACTORY-ADOPTER-SETUP.md','docs/FACTORY-RUNTIME.md','docs/FACTORY-FEEDBACK.md','docs/DEPLOY-INTEGRATION.md'}
 assert all(m.allowed(name) for name in required),'adopter package omits pinned dependencies or neutral references'
 def git(path,*args):return subprocess.check_output(['git','-C',str(path),*args],text=True,stderr=subprocess.DEVNULL).strip()
 def init(path):
@@ -34,7 +34,7 @@ with tempfile.TemporaryDirectory() as temporary:
  print('AC-1: actual new/existing Git adopters receive pinned requirements and neutral references with immutable ownership while retaining their own content')
  target=targets[0]
  for name in excluded:assert not (target/name).exists()
- for name in ('factory/runtime.example.json','factory/feedback.example.json','factory/digest.example.json'):
+ for name in ('factory/release.example.json','factory/runtime.example.json','factory/feedback.example.json','factory/digest.example.json'):
   example=json.loads((target/name).read_text());assert example['enabled'] is False and example['repository'] is None
   assert all(value not in (target/name).read_text() for value in ('qyndex','C0C7T1Y29K5','U0B3L0TRCTA','5251754'))
  print('AC-2: pilot policy, App identity, workflow, private state and credentials stay excluded; all installed examples are disabled and repository neutral')

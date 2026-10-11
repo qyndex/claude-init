@@ -1,0 +1,10 @@
+# TDD ledger — red — T-217
+ledger_format: 2
+timestamp: 2026-10-11T14:45:43+11:00
+command: bash .claude/scripts/test/factory-release.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 4, in <module>
+AssertionError: protected release core absent

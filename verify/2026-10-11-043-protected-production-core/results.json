@@ -1,0 +1,34 @@
+{
+  "runner": "shell-acceptance-recorder",
+  "source_sha": "2801fe4c4c92bc296c8bdc62d6589cf1ee4a2c14",
+  "independent_attestation": false,
+  "commands": [
+    "bash .claude/scripts/test/factory-release.sh"
+  ],
+  "testResults": [
+    {
+      "assertionResults": [
+        {
+          "fullName": "AC-1: disabled/missing pins, foreign delivery/store and unrelated state reject before deployment; actual pinned subprocess receives deployment-only credentials",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-2: real HTTP healthy rollout measures every configured stage and duplicate authenticated-core delivery creates no additional effects",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-3: actual HTTP 503 candidate breaches SLO, restores recorded known-good version and measures healthy rollback before confirmation",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-4: lost deploy/rollback acknowledgements survive SQLite reopen, unknown lookup fences other releases and reconciliation never blindly repeats actual effects",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-5: malformed identity and stale health cannot certify release; private state records exact outcomes without independent-review claims",
+          "status": "passed"
+        }
+      ]
+    }
+  ]
+}
