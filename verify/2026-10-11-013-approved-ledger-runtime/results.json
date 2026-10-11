@@ -1,5 +1,6 @@
 {
   "runner": "shell-acceptance-recorder",
+  "source_sha": "c8aa67d2b0f0c3a0ac9baf75c727d199c534aec8",
   "independent_attestation": false,
   "commands": [
     "bash .claude/scripts/test/factory-ledger.sh"

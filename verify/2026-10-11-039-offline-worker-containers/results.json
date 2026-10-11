@@ -1,0 +1,26 @@
+{
+  "runner": "shell-acceptance-recorder",
+  "source_sha": "c8aa67d2b0f0c3a0ac9baf75c727d199c534aec8",
+  "independent_attestation": false,
+  "commands": [
+    "bash .claude/scripts/test/factory-container.sh"
+  ],
+  "testResults": [
+    {
+      "assertionResults": [
+        {
+          "fullName": "AC-1: actual fake-daemon client enforces pinned image/executable, nonroot read-only offline resource bounds, candidate-only mount and no inherited coordinator credentials; intent/presence precede launch",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-2: lost creation acknowledgement reconciles exact created daemon identity; absent unacknowledged creation remains uncertain and cannot release replay",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-3: foreign daemon labels, failed removal/contact and candidate hardlinks block; durable presence permits idempotent absent cleanup without reviving task authority",
+          "status": "passed"
+        }
+      ]
+    }
+  ]
+}

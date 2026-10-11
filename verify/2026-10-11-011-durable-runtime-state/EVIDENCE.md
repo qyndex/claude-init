@@ -1,5 +1,5 @@
 ## Evidence Bundle — Spec 011 (011-durable-runtime-state)
-Spec: `specs/active/011-durable-runtime-state.md` · Commit: `8afeda7`
+Spec: `specs/active/011-durable-runtime-state.md` · Commit: `6f34b8d`
 
 ### Acceptance criteria (4/4 proven)
 | AC | Proven by | Result |
@@ -11,7 +11,7 @@ Spec: `specs/active/011-durable-runtime-state.md` · Commit: `8afeda7`
 
 ### Smoke test (exit codes are load-bearing)
 ```
-# Smoke test — 2026-10-11T13:09:29+11:00
+# Smoke test — 2026-10-11T13:28:39+11:00
 $ bash .claude/scripts/verify.sh
 
 → Integration coverage gate

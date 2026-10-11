@@ -1,5 +1,6 @@
 {
   "runner": "shell-acceptance-recorder",
+  "source_sha": "6f34b8d71131f1ae88cfb7bc995b26d6da7c25a7",
   "independent_attestation": false,
   "commands": [
     "bash .claude/scripts/test/factory-runtime.sh"
