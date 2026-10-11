@@ -1,6 +1,6 @@
 {
   "runner": "shell-acceptance-recorder",
-  "source_sha": "e612a8fb72a470ee08e1ba1ff5a9f6083ee070f2",
+  "source_sha": "47f8fde73245ade9e706a1d8378f20d5e2e5f205",
   "independent_attestation": false,
   "commands": [
     "bash .claude/scripts/test/factory-adopt.sh"
@@ -9,19 +9,19 @@
     {
       "assertionResults": [
         {
-          "fullName": "AC-1: actual new/brownfield Git adoption, dry-run and repeat preserve user files and exclude active backlog, secrets, runtime and pilot workflows",
+          "fullName": "AC-1: actual contract acceptance suite, see acceptance.log",
           "status": "passed"
         },
         {
-          "fullName": "AC-2: version/hash/mode ownership blocks customized and foreign collisions before mutation; explicit upgrades and guarded revert preserve exact previous files",
+          "fullName": "AC-2: actual contract acceptance suite, see acceptance.log",
           "status": "passed"
         },
         {
-          "fullName": "AC-3: partial write rollback, exact pending recovery, later-edit protection and required tool failure preserve target and private journal",
+          "fullName": "AC-3: actual contract acceptance suite, see acceptance.log",
           "status": "passed"
         },
         {
-          "fullName": "AC-4: linked worktrees and apostrophe paths work; symlink/traversal, dirty source and non-root targets block; adoption performs no activation or candidate setup execution",
+          "fullName": "AC-4: actual contract acceptance suite, see acceptance.log",
           "status": "passed"
         }
       ]

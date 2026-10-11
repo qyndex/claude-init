@@ -1,6 +1,6 @@
 {
   "runner": "shell-acceptance-recorder",
-  "source_sha": "503b6df9d988495a7e266f58306a8e66dbe8b476",
+  "source_sha": "47f8fde73245ade9e706a1d8378f20d5e2e5f205",
   "independent_attestation": false,
   "commands": [
     "bash .claude/scripts/test/factory-workflow-baseline.sh"
@@ -9,19 +9,19 @@
     {
       "assertionResults": [
         {
-          "fullName": "AC-1: full workflow actionlint and ShellCheck without waivers",
+          "fullName": "AC-1: actual contract acceptance suite, see acceptance.log",
           "status": "passed"
         },
         {
-          "fullName": "AC-2: actual JSON shell handles literal filenames and fails invalid input/find",
+          "fullName": "AC-2: actual contract acceptance suite, see acceptance.log",
           "status": "passed"
         },
         {
-          "fullName": "AC-3: actual bundle shell rejects missing/overbudget/failing compression",
+          "fullName": "AC-3: actual contract acceptance suite, see acceptance.log",
           "status": "passed"
         },
         {
-          "fullName": "AC-4: literal GraphQL argv and zero/matching stale count fixtures",
+          "fullName": "AC-4: actual contract acceptance suite, see acceptance.log",
           "status": "passed"
         }
       ]
