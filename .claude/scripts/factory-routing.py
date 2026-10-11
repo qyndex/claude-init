@@ -226,7 +226,8 @@ def run(profile,role,platform,root,database,task,attempts,timeout=1800,resources
         except (ValueError,KeyError,TypeError,OSError):
             row=store.get(task)
             if row['state']=='verifying' and row['fence']==expected_fence:
-                store.transition(task,row['owner'],row['fence'],'blocked')
+                try:store.transition(task,row['owner'],row['fence'],'blocked')
+                except supervisor.runtime.Blocked:pass  # A lost lease cannot regain task authority.
             outcome.update(exit_code=2,reason='structured-runtime-outcome-invalid')
     with store.transaction() as db:db.execute('UPDATE runtime_route_events SET outcome=? WHERE id=?',(canonical(outcome),identity))
     return {'route_id':identity,'worker_started':True,**outcome}

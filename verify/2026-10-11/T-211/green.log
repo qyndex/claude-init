@@ -1,6 +1,6 @@
 # TDD ledger — green — T-211
 ledger_format: 2
-timestamp: 2026-10-11T12:57:06+11:00
+timestamp: 2026-10-11T12:59:10+11:00
 command: bash .claude/scripts/test/factory-routing.sh
 exit_code: 0
 ---

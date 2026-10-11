@@ -27,7 +27,7 @@ elif args[:2]==['auth','status']:print(json.dumps({'loggedIn':os.environ.get('CL
 else:
     model=args[args.index('--model')+1]
     if 'fixture-worker' in args:Path(__file__).with_name('worker-started').write_text('started')
-    print(json.dumps({'type':'result','subtype':'success','is_error':False,'modelUsage':{model:{'inputTokens':1,'outputTokens':1}},'total_cost_usd':0.125,'result':'OK'}))
+    print(json.dumps({'type':'result','subtype':'success','is_error':False,'modelUsage':{('wrong-model' if 'malformed-worker' in args else model):{'inputTokens':1,'outputTokens':1}},'total_cost_usd':0.125,'result':'OK'}))
 ''');cli.chmod(0o755)
     executable=Path(sys.executable).resolve();model='fixture-model'
     def runtime(location,method='fixture-auth'):
@@ -58,6 +58,11 @@ else:
     assert result['worker_started'] is True and result['engineering_verified'] is False and result['actual_spend_usd'] is None and result['estimated_api_usd']==0.125 and result['usage_scope']=='conversation'
     assert store.get('T-1')['state']=='verifying' and (private/'worker-started').exists()
     with store.transaction() as db:assert db.execute('SELECT COUNT(*) FROM runtime_route_events').fetchone()[0]==1
+    malformed=copy.deepcopy(profile)
+    malformed['runtimes']['fallback']['command'].append('malformed-worker')
+    store.enqueue('T-4','a'*64,[])
+    invalid=m.run(malformed,'implementation','local',candidate,Path(store.path),'T-4',private/'attempts',timeout=10)
+    assert invalid['exit_code']==2 and invalid['reason']=='structured-runtime-outcome-invalid' and store.get('T-4')['state']=='blocked'
     print('AC-2: actual routed foreground worker persists model/token/client-estimate observations privately, advances only to verifying and never equates subscription spend with API estimates')
     exhausted=copy.deepcopy(profile);quota=private/'quota.py';quota.write_text('import json\nprint(json.dumps('+repr({'schema_version':1,'available':False,'model':model,'capabilities':sorted(native.CAPABILITIES),'version':'quota fixture','quota':'exhausted','reset_at':'2026-10-13T10:00:00Z','estimated_api_usd':None,'actual_spend_usd':None})+'))\n')
     exhausted['runtimes']['primary']['probe']={'argv':[str(executable),str(quota)],'trusted_files':{str(executable):sha(executable),str(quota):sha(quota),str(cli):sha(cli)},'timeout':5};exhausted['roles']['implementation']['fallbacks']=[]
