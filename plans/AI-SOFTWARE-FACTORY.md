@@ -216,3 +216,5 @@ The operator explicitly approved live private-channel intake. FACTORY_FEEDBACK_E
 ### Next F-04 prerequisite: spec 039
 
 Implement an offline Linux container adapter and obtain actual Docker isolation/cleanup proof in required CI. Local Mac contracts pass; actual isolation remains pending. Provider egress and native subscription/reviewer activation remain separate rollout gates.
+
+Spec 039 actual Linux Docker isolation drill passed on source 13c7f3e11ae40633de2e8ba2a3c7e0724e0b6db0 in GitHub run 38105551625 attempt 1. Native CI proof is implementation evidence, not independent verifier authority; required full-suite and final merge checks remain pending.
