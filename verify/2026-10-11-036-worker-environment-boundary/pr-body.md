@@ -1,5 +1,5 @@
 ## Evidence Bundle — Spec 036 (036-worker-environment-boundary)
-Spec: `specs/active/036-worker-environment-boundary.md` · Commit: `e1c468f`
+Spec: `specs/active/036-worker-environment-boundary.md` · Commit: `ed26aec`
 
 ### Acceptance criteria (4/4 proven)
 | AC | Proven by | Result |
@@ -11,7 +11,7 @@ Spec: `specs/active/036-worker-environment-boundary.md` · Commit: `e1c468f`
 
 ### Smoke test (exit codes are load-bearing)
 ```
-# Smoke test — 2026-10-11T12:18:06+11:00
+# Smoke test — 2026-10-11T14:06:25+11:00
 $ bash .claude/scripts/verify.sh
 
 → Integration coverage gate

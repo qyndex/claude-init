@@ -1,1 +1,1 @@
-{"spec":"038","commit":"13c7f3e11ae40633de2e8ba2a3c7e0724e0b6db0","generated_at":"2026-10-11T13:35:41+11:00","ac_total":4,"ac_proven":4,"ac_unproven":[],"smoke_exit_max":0,"runner_exit":0,"coverage":{"line":"?","branch":"?"},"verdict":"PASS"}
+{"spec":"038","commit":"ed26aec6308a3f45748d7124f172121feb5f852b","generated_at":"2026-10-11T14:07:09+11:00","ac_total":4,"ac_proven":4,"ac_unproven":[],"smoke_exit_max":0,"runner_exit":0,"coverage":{"line":"?","branch":"?"},"verdict":"PASS"}

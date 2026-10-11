@@ -1,17 +1,17 @@
 ## Evidence Bundle — Spec 039 (039-offline-worker-containers)
-Spec: `specs/active/039-offline-worker-containers.md` · Commit: `835bdda`
+Spec: `specs/active/039-offline-worker-containers.md` · Commit: `ed26aec`
 
-### Acceptance criteria (4/4 proven)
+### Acceptance criteria (3/4 proven)
 | AC | Proven by | Result |
 |----|-----------|--------|
 | AC-1 | tagged test | ✓ PASS |
 | AC-2 | tagged test | ✓ PASS |
 | AC-3 | tagged test | ✓ PASS |
-| AC-4 | tagged test | ✓ PASS |
+| AC-4 | — | ✗ UNPROVEN |
 
 ### Smoke test (exit codes are load-bearing)
 ```
-# Smoke test — 2026-10-11T13:52:02+11:00
+# Smoke test — 2026-10-11T14:07:11+11:00
 $ bash .claude/scripts/verify.sh
 
 → Integration coverage gate
@@ -31,4 +31,4 @@ exit: 0
 ### Coverage
 line ?% · branch ?% (gate: line≥90 branch≥85)
 
-### Verdict: **PASS**
+### Verdict: **FAIL**

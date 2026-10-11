@@ -1,5 +1,5 @@
 ## Evidence Bundle — Spec 037 (037-protected-runtime-routing)
-Spec: `specs/active/037-protected-runtime-routing.md` · Commit: `bd31431`
+Spec: `specs/active/037-protected-runtime-routing.md` · Commit: `ed26aec`
 
 ### Acceptance criteria (4/4 proven)
 | AC | Proven by | Result |
@@ -11,7 +11,7 @@ Spec: `specs/active/037-protected-runtime-routing.md` · Commit: `bd31431`
 
 ### Smoke test (exit codes are load-bearing)
 ```
-# Smoke test — 2026-10-11T13:02:08+11:00
+# Smoke test — 2026-10-11T14:06:42+11:00
 $ bash .claude/scripts/verify.sh
 
 → Integration coverage gate

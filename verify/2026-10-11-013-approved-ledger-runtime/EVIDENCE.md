@@ -1,5 +1,5 @@
 ## Evidence Bundle — Spec 013 (013-approved-ledger-runtime)
-Spec: `specs/active/013-approved-ledger-runtime.md` · Commit: `13c7f3e`
+Spec: `specs/active/013-approved-ledger-runtime.md` · Commit: `ed26aec`
 
 ### Acceptance criteria (4/4 proven)
 | AC | Proven by | Result |
@@ -11,7 +11,7 @@ Spec: `specs/active/013-approved-ledger-runtime.md` · Commit: `13c7f3e`
 
 ### Smoke test (exit codes are load-bearing)
 ```
-# Smoke test — 2026-10-11T13:34:54+11:00
+# Smoke test — 2026-10-11T14:05:55+11:00
 $ bash .claude/scripts/verify.sh
 
 → Integration coverage gate

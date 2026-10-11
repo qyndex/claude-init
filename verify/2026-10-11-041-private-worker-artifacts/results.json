@@ -1,0 +1,26 @@
+{
+  "runner": "shell-acceptance-recorder",
+  "source_sha": "ed26aec6308a3f45748d7124f172121feb5f852b",
+  "independent_attestation": false,
+  "commands": [
+    "bash .claude/scripts/test/factory-private-artifacts.sh"
+  ],
+  "testResults": [
+    {
+      "assertionResults": [
+        {
+          "fullName": "AC-1: real stdout/stderr floods and timeout are bounded during collection; complete subprocess output remains intact",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-2: actual worker floods block verification at exact log bound, complete output succeeds, and descendant-held output times out with confirmed cleanup",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-3: unbound/foreign stores and nonprivate paths reject; public-eligible output contains sanitized aggregate counts only and never certifies engineering verification",
+          "status": "passed"
+        }
+      ]
+    }
+  ]
+}
