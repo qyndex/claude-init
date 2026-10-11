@@ -1,0 +1,9 @@
+# TDD ledger — green — T-216
+ledger_format: 2
+timestamp: 2026-10-11T14:40:46+11:00
+command: bash .claude/scripts/test/factory-production-stub.sh
+exit_code: 0
+---
+AC-1: actual shipped shell refuses unset, false and true flags immediately
+AC-2: stub is read-only with one refusal and no deployment credential, allocation or success publication
+AC-3: adopter contract names required provenance, durability, measured gates and rollback; production remains disabled
