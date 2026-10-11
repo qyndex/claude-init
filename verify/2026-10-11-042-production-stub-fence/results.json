@@ -1,0 +1,26 @@
+{
+  "runner": "shell-acceptance-recorder",
+  "source_sha": "b0c10c31960a5eb7aa8c07e1092a461f084f9987",
+  "independent_attestation": false,
+  "commands": [
+    "bash .claude/scripts/test/factory-production-stub.sh"
+  ],
+  "testResults": [
+    {
+      "assertionResults": [
+        {
+          "fullName": "AC-1: actual shipped shell refuses unset, false and true flags immediately",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-2: stub is read-only with one refusal and no deployment credential, allocation or success publication",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-3: adopter contract names required provenance, durability, measured gates and rollback; production remains disabled",
+          "status": "passed"
+        }
+      ]
+    }
+  ]
+}
