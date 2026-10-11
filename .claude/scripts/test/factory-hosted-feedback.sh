@@ -45,6 +45,12 @@ reject(lambda:m.run(config,api,client,os.urandom(32),now))
 reject(lambda:m.run(dict(config,feedback_enabled=False),api,client,secret,now))
 reject(lambda:m.run(dict(config,operators=[]),api,client,secret,now))
 assert api.head==head and client.posts==posts
+workflow=(root/'.github/workflows/factory-hosted-feedback.yml').read_text()
+assert 'pull_request:' not in workflow and 'pull_request_target:' not in workflow and 'FACTORY_APP_PRIVATE_KEY' not in workflow
+assert "vars.FACTORY_FEEDBACK_ENABLED == 'true'" in workflow and 'github.ref == format' in workflow
+assert 'environment: factory-reporting' in workflow and 'persist-credentials: false' in workflow
+assert 'group: factory-reporting-${{ github.repository }}' in workflow and 'cancel-in-progress: false' in workflow
+assert 'upload-artifact' not in workflow and 'FACTORY_FEEDBACK_STATE_KEY: ${{ secrets.FACTORY_FEEDBACK_STATE_KEY }}' in workflow
 print('AC-3: disabled intake, wrong keys, missing exact remote receipt and invalid allowlist fail without checkpointing partial or unauthenticated observations')
 a=hosted.GitState(api,config['state_branch'],binding['stream'],config['feedback_bootstrap_sha'],bootstrap_existing=True)
 b=hosted.GitState(api,config['state_branch'],binding['stream'],config['feedback_bootstrap_sha'],bootstrap_existing=True)
