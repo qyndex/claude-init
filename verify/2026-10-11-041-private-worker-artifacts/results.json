@@ -24,10 +24,17 @@
           "status": "passed"
         },
         {
-          "fullName": "AC-4: retention filesystem/recovery/routing fixtures; exact-source Linux container drill pending",
-          "status": "failed"
+          "fullName": "AC-4: actual retention filesystem/recovery/routing fixtures and exact-source Linux isolation, concurrency, timeout, supervisor-death cleanup and fenced retry passed in run 38118741792",
+          "status": "passed"
         }
       ]
     }
-  ]
+  ],
+  "linux_proof": {
+    "run_id": 38118741792,
+    "source_sha": "dfca2eba30c7b28bc8b04563d3cea368e5ac56a3",
+    "artifact_id": 11694077820,
+    "conclusion": "success",
+    "independent_attestation": false
+  }
 }

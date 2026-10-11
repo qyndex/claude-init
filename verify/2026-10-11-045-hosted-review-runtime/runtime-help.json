@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "package": "@anthropic-ai/claude-code",
+  "version": "2.1.295",
+  "entrypoint": "cli-wrapper.cjs",
+  "command": "node <temporary pinned package>/cli-wrapper.cjs --help",
+  "exit_code": 0,
+  "help_sha256": "550db4f88ae1d97bf7244ca96dc89554aabd3978241ceb69f79001e816c35f09",
+  "flags_confirmed": [
+    "--safe-mode",
+    "--no-session-persistence",
+    "--disable-slash-commands",
+    "--setting-sources",
+    "--tools",
+    "--json-schema"
+  ],
+  "model_request": false,
+  "independent_attestation": false
+}

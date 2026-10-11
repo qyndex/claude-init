@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "run_id": 38118741792,
+  "run_attempt": 1,
+  "artifact_id": 11694077820,
+  "source_sha": "dfca2eba30c7b28bc8b04563d3cea368e5ac56a3",
+  "conclusion": "success",
+  "url": "https://github.com/qyndex/claude-init/actions/runs/38118741792",
+  "actual_linux_container": {
+    "source_sha": "dfca2eba30c7b28bc8b04563d3cea368e5ac56a3",
+    "platform": "linux",
+    "image_id": "sha256:31810c720e4f5a24289a4e90a8117d7d0f96e0f3d74afdad66b80096ee4f8f31",
+    "docker_sha256": "6435ff9214bf8e0931078fb0980809728cac0a54a526d4f28a26d3e48132b58d",
+    "independent_attestation": false,
+    "assertions": [
+      {
+        "fullName": "AC-4: actual Linux Docker isolation, concurrent services, timeout, supervisor SIGKILL cleanup and fenced retry passed",
+        "status": "passed"
+      }
+    ]
+  },
+  "independent_attestation": false,
+  "live_model_review": false
+}

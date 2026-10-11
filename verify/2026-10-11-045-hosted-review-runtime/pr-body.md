@@ -1,5 +1,5 @@
 ## Evidence Bundle — Spec 045 (045-hosted-review-runtime)
-Spec: `specs/active/045-hosted-review-runtime.md` · Commit: `503b6df`
+Spec: `specs/active/045-hosted-review-runtime.md` · Commit: `dfca2eb`
 
 ### Acceptance criteria (4/4 proven)
 | AC | Proven by | Result |
@@ -11,7 +11,7 @@ Spec: `specs/active/045-hosted-review-runtime.md` · Commit: `503b6df`
 
 ### Smoke test (exit codes are load-bearing)
 ```
-# Smoke test — 2026-10-11T17:38:17+11:00
+# Smoke test — 2026-10-11T17:45:04+11:00
 $ bash .claude/scripts/verify.sh
 
 → Integration coverage gate
