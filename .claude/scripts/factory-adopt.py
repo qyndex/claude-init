@@ -16,6 +16,7 @@ import uuid
 
 DIRECTORIES=('agents','skills','scripts','routines','statuslines','output-styles','commands','hooks','templates')
 MANIFEST='.claude/install-manifest.json'
+FACTORY_FILES={'factory/feedback-crypto-requirements.txt','factory/runtime.example.json','factory/feedback.example.json','factory/digest.example.json','docs/FACTORY-ADOPTER-SETUP.md','docs/FACTORY-RUNTIME.md','docs/FACTORY-FEEDBACK.md'}
 SEEDS={'tasks/TASKS.md':'# Tasks\n\nAppend-only product authority. Add tasks only from approved specifications and plans.\n\n## Active\n\n## Archive\n', '.claude/memory/MEMORY.md':'# Project memory\n\nRecord verified repository conventions and decisions here.\n', 'specs/active/.gitkeep':'', 'plans/active/.gitkeep':'', 'initiatives/active/.gitkeep':''}
 
 
@@ -36,7 +37,7 @@ def load(path):
 
 
 def allowed(path):
-    return path in {'.claude/CLAUDE.md','.claude/settings.json','.claude/VERSION','.claude/REGISTRY.md','CLAUDE.md','.mcp.json','docs/FACTORY-ADOPTION.md'} or any(path.startswith(f'.claude/{directory}/') for directory in DIRECTORIES) or bool(re.fullmatch(r'\.claude/memory/(?:[A-Za-z0-9_-]+/)*0000-template\.md',path)) or any(path.startswith(prefix) for prefix in ('specs/templates/','plans/templates/','initiatives/templates/'))
+    return path in FACTORY_FILES or path in {'.claude/CLAUDE.md','.claude/settings.json','.claude/VERSION','.claude/REGISTRY.md','CLAUDE.md','.mcp.json','docs/FACTORY-ADOPTION.md'} or any(path.startswith(f'.claude/{directory}/') for directory in DIRECTORIES) or bool(re.fullmatch(r'\.claude/memory/(?:[A-Za-z0-9_-]+/)*0000-template\.md',path)) or any(path.startswith(prefix) for prefix in ('specs/templates/','plans/templates/','initiatives/templates/'))
 
 
 def safe(root,path):

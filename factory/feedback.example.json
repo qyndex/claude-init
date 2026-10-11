@@ -1,0 +1,14 @@
+{
+  "enabled": false,
+  "feedback_enabled": false,
+  "repository": null,
+  "state_repository": null,
+  "state_branch": null,
+  "destination": null,
+  "team_id": null,
+  "operators": [],
+  "feedback_start": null,
+  "feedback_key_id": null,
+  "feedback_bootstrap_sha": null,
+  "attachments_enabled": false
+}
