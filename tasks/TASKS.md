@@ -1304,3 +1304,9 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   files: .claude/scripts/factory-producer.py, .claude/scripts/factory-bounded-process.py, .github/workflows/factory-review.yml
   accept: bash .claude/scripts/test/factory-review-runtime.sh
   owner: implementer
+
+- [x] T-220  | spec:046  | phase:1  | priority: security  | created: 2026-10-11  | last_touched: 2026-10-11  | deps: T-219  | parallel: no  | est: 30m
+  summary: Generate complete policy-bound adopter rulesets and review updated security heads
+  files: .claude/scripts/factory-ruleset-plan.py, .github/workflows/claude-security.yml
+  accept: bash .claude/scripts/test/factory-activation-planning.sh
+  owner: implementer

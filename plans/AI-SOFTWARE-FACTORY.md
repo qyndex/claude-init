@@ -257,3 +257,6 @@ Online worker execution remains disabled until an adopting repository supplies a
 After review is re-enabled: validate actual capacity and protected producer identity, obtain genuine reviewer/verifier receipts, prove exact-head shadow eligibility, then present the concrete authority configuration for the required operator decision. The controlled delivery/feedback cycle and twenty-delivery threshold require real deliveries over time; local fixtures or manual harness merges cannot complete those gates.
 
 Spec 044 merged in PR #94 at d29e16c344e611bf68db9137c52685b92dc65257. All 100 maintained macOS tests passed; final-head Linux run 38110819868 passed the full harness and actual offline container drill. These manual harness deliveries do not satisfy the autonomous rollout sample.
+
+
+Spec 046 closes the final activation-planning mismatch: include the complete protected policy check set in the adopting repository's selected active ruleset, preserve unrelated producer pins and controls, and schedule security evidence on each eligible updated PR head. This prepares Tuesday re-enable but performs no live activation. Online-host provisioning, optional fenced file delivery, genuine shadow/delivery/feedback proofs and the twenty-delivery expansion sample remain separate rollout gates.
