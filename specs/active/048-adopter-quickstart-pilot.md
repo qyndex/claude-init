@@ -23,4 +23,15 @@ One noncritical documentation feature exercises genuine independent verification
 
 ## Allowed candidate scope
 
-Only docs/FACTORY-ADOPTER-QUICKSTART.md. T-222 is the future implementation/delivery identity. No implementation is included in this preparation package. The spec revision and complete AC commands must be approved on the protected base before opening factory/spec-048/adopter-quickstart. Feedback later creates its own approved amendment and candidate; do not pre-authorize that unknown scope.
+The only feature file is docs/FACTORY-ADOPTER-QUICKSTART.md. The following exact proof paths are additionally permitted to satisfy the existing required evidence and TDD gates; no executable, workflow or authority change is permitted:
+
+- verify/2026-10-11-048-adopter-quickstart-pilot/results.json
+- verify/2026-10-11-048-adopter-quickstart-pilot/evidence.json
+- verify/2026-10-11-048-adopter-quickstart-pilot/EVIDENCE.md
+- verify/2026-10-11-048-adopter-quickstart-pilot/pr-body.md
+- verify/2026-10-11-048-adopter-quickstart-pilot/acceptance.log
+- verify/2026-10-11-048-adopter-quickstart-pilot/smoke.log
+- verify/2026-10-11/T-222/red.log
+- verify/2026-10-11/T-222/green.log
+
+T-222 is the future implementation/delivery identity. No implementation is included in this preparation package. The spec revision and complete AC commands must be approved on the protected base before opening factory/spec-048/adopter-quickstart. Feedback later creates its own approved amendment and candidate; do not pre-authorize that unknown scope.

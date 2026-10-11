@@ -4,9 +4,9 @@
   "authorization": "Human operator explicitly approved both exact pilot and conditional shadow activation in this task",
   "source_sha": "71844c2a2164528430b65b01940aa81f5f161d92",
   "spec_path": "specs/active/048-adopter-quickstart-pilot.md",
-  "spec_sha256": "5fbc55eb9b99d6a55c1ec280c31c0a99fe4141d996af34cc4ee16cda86c9e9a5",
+  "spec_sha256": "b1d8c41cd3213f264237e3308244f561b43777a0630aa5dee98cb9891a7e9458",
   "policy_path": "docs/activation/2026-10-11/policy.shadow.approved.json",
-  "policy_file_sha256": "11a2a9ee594b9cada60c63b5145b7f7f5ea1ed0a1c6771e7330b1bb36b15dd1f",
+  "policy_file_sha256": "89c5bddca3b4449b81475c4fbe29a3a91a0747f32fdeac5a12f5acdbf41b9089",
   "conditions": {
     "not_before_local_date": "2026-10-13",
     "timezone": "Australia/Sydney",
@@ -19,5 +19,26 @@
   "live_applied": false,
   "live_policy_sha256": "ee5756f3e44ee0bf7e729dc8ee94647e66c6278f84fabf4af4fd8dbb7ca4e3f5",
   "implementation_task": "T-222",
-  "implementation_delivered": false
+  "implementation_delivered": false,
+  "scope_amendments": [
+    {
+      "approved_at": "2026-10-11T12:03:50.564904+00:00",
+      "authorization": "Human operator selected 1 - A: allow the eight exact evidence/TDD proof paths",
+      "previous_binding": {
+        "spec_sha256": "5fbc55eb9b99d6a55c1ec280c31c0a99fe4141d996af34cc4ee16cda86c9e9a5",
+        "policy_file_sha256": "11a2a9ee594b9cada60c63b5145b7f7f5ea1ed0a1c6771e7330b1bb36b15dd1f",
+        "protected_registration_commit": "7e5815da517d9db103c5283543d08318883e7e6a"
+      },
+      "added_paths": [
+        "verify/2026-10-11-048-adopter-quickstart-pilot/results.json",
+        "verify/2026-10-11-048-adopter-quickstart-pilot/evidence.json",
+        "verify/2026-10-11-048-adopter-quickstart-pilot/EVIDENCE.md",
+        "verify/2026-10-11-048-adopter-quickstart-pilot/pr-body.md",
+        "verify/2026-10-11-048-adopter-quickstart-pilot/acceptance.log",
+        "verify/2026-10-11-048-adopter-quickstart-pilot/smoke.log",
+        "verify/2026-10-11/T-222/red.log",
+        "verify/2026-10-11/T-222/green.log"
+      ]
+    }
+  ]
 }

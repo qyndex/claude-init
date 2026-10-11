@@ -34,14 +34,22 @@
   "specs": {
     "048": {
       "path": "specs/active/048-adopter-quickstart-pilot.md",
-      "sha256": "5fbc55eb9b99d6a55c1ec280c31c0a99fe4141d996af34cc4ee16cda86c9e9a5",
+      "sha256": "b1d8c41cd3213f264237e3308244f561b43777a0630aa5dee98cb9891a7e9458",
       "ac_ids": [
         "AC-1",
         "AC-2",
         "AC-3"
       ],
       "allowed_paths": [
-        "docs/FACTORY-ADOPTER-QUICKSTART.md"
+        "docs/FACTORY-ADOPTER-QUICKSTART.md",
+        "verify/2026-10-11-048-adopter-quickstart-pilot/results.json",
+        "verify/2026-10-11-048-adopter-quickstart-pilot/evidence.json",
+        "verify/2026-10-11-048-adopter-quickstart-pilot/EVIDENCE.md",
+        "verify/2026-10-11-048-adopter-quickstart-pilot/pr-body.md",
+        "verify/2026-10-11-048-adopter-quickstart-pilot/acceptance.log",
+        "verify/2026-10-11-048-adopter-quickstart-pilot/smoke.log",
+        "verify/2026-10-11/T-222/red.log",
+        "verify/2026-10-11/T-222/green.log"
       ],
       "task_ids": [
         "T-222"
