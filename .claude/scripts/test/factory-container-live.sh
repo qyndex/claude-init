@@ -31,8 +31,8 @@ with tempfile.TemporaryDirectory() as temporary:
     test -z "${{GH_TOKEN:-}}"
     test -z "${{FACTORY_SLACK_BOT_TOKEN:-}}"
     test -z "${{CLAUDE_CODE_OAUTH_TOKEN:-}}"
-    if /bin/busybox touch /root-write-canary 2>/dev/null; then exit 31; fi
-    if /bin/busybox wget -T 1 -q -O /tmp/network-result http://1.1.1.1 2>/dev/null; then exit 32; fi
+    if /bin/busybox touch /root-write-canary; then exit 31; fi
+    if /bin/busybox wget -T 1 -q -O /tmp/network-result http://1.1.1.1; then exit 32; fi
     if /bin/busybox ps -o comm | /bin/busybox grep -q python; then exit 33; fi
     /bin/busybox echo isolated > /workspace/observed.txt
     ''']
@@ -51,7 +51,7 @@ code=m.supervise(sys.argv[2],sys.argv[3],json.loads(sys.argv[7]),sys.argv[4],sys
         processes=[]
         for number in (2,3):
             task=f'T-{number}';store.enqueue(task,'a'*64,[]);directory=base/task;directory.mkdir(mode=0o755)
-            argv=['/bin/busybox','sh','-ec','/bin/busybox nc -l -p 8123 >/tmp/service & server=$!; /bin/busybox sleep 1; kill -0 "$server"; /bin/busybox echo ready > /workspace/ready; /bin/busybox sleep 2; kill "$server"; wait "$server" || true']
+            argv=['/bin/busybox','sh','-ec','/bin/busybox nc -l -p 8123 >/tmp/service & server=$!; /bin/busybox sleep 1; kill -0 "$server"; /bin/busybox echo ready > /workspace/ready; /bin/busybox sleep 2; kill "$server"; if wait "$server"; then :; else test "$?" -eq 143; fi']
             processes.append(subprocess.Popen([sys.executable,str(launcher),str(root),str(database),task,str(directory),str(attempts),str(policy),json.dumps(argv)],stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True))
         for process in processes:
             output,error=process.communicate(timeout=20);assert process.returncode==0,(output,error)
