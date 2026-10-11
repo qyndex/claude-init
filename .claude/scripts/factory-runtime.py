@@ -42,6 +42,8 @@ class Store:
                     id TEXT PRIMARY KEY, task TEXT NOT NULL REFERENCES tasks(id), owner TEXT NOT NULL,
                     fence INTEGER NOT NULL, identity TEXT NOT NULL,
                     status TEXT NOT NULL CHECK(status IN ('uncertain','clean')), receipt TEXT);
+                CREATE TABLE IF NOT EXISTS worker_effect_presence (
+                    id TEXT PRIMARY KEY REFERENCES worker_effects(id), observation TEXT NOT NULL);
             '''
             for statement in schema.split(';'):
                 if statement.strip():
@@ -215,7 +217,34 @@ class Store:
     def worker_effects(self, task):
         with self.transaction() as db:
             self.row(db, task)
-            return [dict(row) for row in db.execute('SELECT * FROM worker_effects WHERE task=? ORDER BY id', (task,))]
+            return [dict(row) for row in db.execute('SELECT worker_effects.*,worker_effect_presence.observation AS presence FROM worker_effects LEFT JOIN worker_effect_presence USING(id) WHERE task=? ORDER BY id', (task,))]
+
+    def confirm_worker_effect_presence(self, task, owner, token, observation):
+        """Trusted daemon adapter persists exact created identity before start."""
+        if (type(token) is not int or token < 1 or not isinstance(observation, dict)
+                or set(observation) != {'schema_version','adapter','effect_id','identity','observed_present','container_id'}
+                or type(observation['schema_version']) is not int or observation['schema_version'] != 1
+                or observation['adapter'] != 'docker-offline' or observation['observed_present'] is not True
+                or not isinstance(observation['effect_id'],str) or not isinstance(observation['container_id'],str)
+                or re.fullmatch(r'[a-f0-9]{64}',observation['container_id']) is None):
+            raise ValueError('worker presence observation invalid')
+        identity = self.worker_effect_identity(observation['identity'])
+        encoded = json.dumps(observation,sort_keys=True,separators=(',',':'))
+        with self.transaction() as db:
+            effect = db.execute('SELECT * FROM worker_effects WHERE id=?',(observation['effect_id'],)).fetchone()
+            if effect is None or (effect['task'],effect['owner'],effect['fence'],effect['identity']) != (task,owner,token,identity):
+                raise Blocked('worker presence effect binding differs')
+            previous = db.execute('SELECT observation FROM worker_effect_presence WHERE id=?',(effect['id'],)).fetchone()
+            if previous is not None:
+                if previous['observation'] != encoded:
+                    raise Blocked('daemon container identity changed')
+                return
+            row = self.row(db,task)
+            matching = row['owner'] == owner and row['fence'] == token
+            terminal = row['state'] in {'blocked','cancelled'} and row['fence'] >= token
+            if effect['status']=='clean' or not (matching or terminal):
+                raise Blocked('worker presence owner/fence is stale')
+            db.execute('INSERT INTO worker_effect_presence VALUES(?,?)',(effect['id'],encoded))
 
     def confirm_worker_effect_cleanup(self, task, owner, token, receipt):
         """Trusted daemon adapter calls AFTER observing exact owned effect absent.

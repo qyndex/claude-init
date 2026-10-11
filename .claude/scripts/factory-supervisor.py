@@ -84,6 +84,13 @@ def supervised(db, task, command, cwd, attempts, timeout, lease, lock_fd, resour
         raise ValueError('foreground command required')
     if not 1 <= timeout <= 21600 or not 3 <= lease <= 3600:
         raise ValueError('invalid supervision bounds')
+    execution = (resources or {}).get('execution')
+    if execution is not None:
+        module = importlib.util.spec_from_file_location('container_adapter', Path(__file__).with_name('factory-container.py'))
+        adapter = importlib.util.module_from_spec(module); module.loader.exec_module(adapter)
+        adapter.validate(execution)
+        if (resources or {}).get('services'):
+            raise ValueError('offline container cannot consume host service descriptors')
     db = Path(db).resolve()
     owner = 'supervisor:' + uuid.uuid4().hex
     store = runtime.Store(db)
@@ -103,7 +110,7 @@ def supervised(db, task, command, cwd, attempts, timeout, lease, lock_fd, resour
             previous[sig] = signal.signal(sig, lambda signum, frame: stopped.append(signum))
         store.transition(task, owner, token, 'implementing')
         executable = str(Path(cwd) / command[0]) if '/' in command[0] and not Path(command[0]).is_absolute() else command[0]
-        if shutil.which(executable) is None:
+        if execution is None and shutil.which(executable) is None:
             raise FileNotFoundError(command[0])
         namespace = directory.name
         endpoints = {}
@@ -129,7 +136,10 @@ def supervised(db, task, command, cwd, attempts, timeout, lease, lock_fd, resour
             guard = [sys.executable, str(Path(__file__).resolve().with_name('factory-worker-guard.py')),
                      '--watch-fd', str(alive_read), '--inherit-fds', json.dumps(inherited),
                      '--db', str(db), '--task', task, '--owner', owner, '--token', str(token),
-                     '--outcome', str(directory.resolve() / 'guardian.json'), '--', *command]
+                     '--outcome', str(directory.resolve() / 'guardian.json')]
+            if execution is not None:
+                guard += ['--execution', json.dumps(execution)]
+            guard += ['--', *command]
             try:
                 worker = subprocess.Popen(guard, cwd=cwd, env=env, stdout=log,
                                           stderr=subprocess.STDOUT, start_new_session=True,

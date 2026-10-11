@@ -31,6 +31,8 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0 # Provenance and detached acceptance require base history.
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
 
       - name: Validate JSON files
         run: |
@@ -122,6 +124,25 @@ jobs:
 
       - name: Install pinned feedback encryption dependencies
         run: python3 -m pip install -r factory/feedback-crypto-requirements.txt
+
+      - name: Install offline container fixture tool
+        run: sudo apt-get update && sudo apt-get install -y busybox-static
+
+      - name: Actual offline Linux container isolation drill
+        id: isolation
+        env:
+          FACTORY_DOCKER_DRILL: "true"
+          FACTORY_DOCKER_RESULT: ${{ runner.temp }}/factory-isolation/result.json
+        run: bash .claude/scripts/test/factory-container.sh
+
+      - name: Preserve nonsensitive native isolation proof
+        if: steps.isolation.outcome == 'success'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: factory-isolation-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/factory-isolation/result.json
+          if-no-files-found: error
+          retention-days: 7
 
       - name: Harness test suite (M-00 - every test/*.sh must run somewhere)
         run: |

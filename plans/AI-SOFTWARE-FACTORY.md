@@ -208,3 +208,11 @@ Bound dedicated subscription roles, executable probes, equivalent fallbacks and 
 ### Isolated-worker prerequisite (spec 038)
 
 Persist external worker effects before daemon dispatch and block lease reclaim/requeue/verification until exact cleanup is confirmed. This closes the replay boundary before spec 039 integrates actual offline Linux containers and daemon failure/abrupt-death drills. Native same-user isolation and provider egress remain unproven; no live worker or merge authority is enabled by this store package.
+
+### Approved encrypted feedback activation — 2026-10-11
+
+The operator explicitly approved live private-channel intake. FACTORY_FEEDBACK_ENABLED is true. Main workflow runs 38105153848 and 38105185846 succeeded: each captured zero eligible messages and returned the same encrypted checkpoint 03970ba75ca574c88e1b38fb5c6ee9d63e782c7b. Ciphertext-only envelope validation passed and existing reporting blobs were unchanged. No eligible real feedback has been captured yet; amendment approval remains a separate protected operation.
+
+### Next F-04 prerequisite: spec 039
+
+Implement an offline Linux container adapter and obtain actual Docker isolation/cleanup proof in required CI. Local Mac contracts pass; actual isolation remains pending. Provider egress and native subscription/reviewer activation remain separate rollout gates.
