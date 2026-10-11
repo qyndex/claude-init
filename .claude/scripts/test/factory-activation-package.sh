@@ -5,6 +5,9 @@ python3 - "$ROOT" <<'PYTEST'
 from pathlib import Path
 import hashlib,json,os,re,subprocess,sys,tempfile
 root=Path(sys.argv[1]);folder=root/'docs/activation/2026-10-11'
+if not folder.exists() and (root/'.claude/install-manifest.json').is_file():
+ print('SKIP: source pilot activation package is not distributed to adopters; no readiness proof claimed')
+ raise SystemExit(0)
 assert (folder/'manifest.json').is_file(), 'activation review package missing'
 manifest=json.loads((folder/'manifest.json').read_text());policy=json.loads((folder/'policy.shadow.proposed.json').read_text())
 assert manifest['proposal_only'] is True and manifest['live_authority_approved'] is False and manifest['model_requests']==0
