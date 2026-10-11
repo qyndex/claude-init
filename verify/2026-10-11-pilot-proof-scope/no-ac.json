@@ -1,0 +1,4 @@
+{
+  "kind": "docs-only",
+  "reason": "Register explicitly approved eight-file proof-scope amendment to spec048. No feature implementation, executable, workflow, live policy or gate changes. Delivery ACs remain deferred to the separate actual candidate; T-222 is open."
+}
