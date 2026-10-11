@@ -1,0 +1,12 @@
+# TDD ledger — green — T-219
+ledger_format: 2
+timestamp: 2026-10-11T06:43:58.427297+00:00
+command: bash .claude/scripts/test/factory-review-runtime.sh
+exit_code: 0
+---
+hosted review runtime: PASS (fixture proof; no live model request)
+passed: 30; failed: 0
+AC-1: actual full actionlint including ShellCheck passes all shipped workflows without warning waivers
+AC-2: shipped JSON validation accepts literal special filenames and rejects invalid JSON, missing roots and find exit 42
+AC-3: shipped bundle gate handles literal filenames, rejects missing/empty assets and over-budget gzip bytes, and propagates compressor failure
+AC-4: shipped project shell preserves all literal GraphQL variables; actual stale count returns numeric zero or one without remote effects

@@ -1,6 +1,6 @@
 {
   "runner": "shell-acceptance-recorder",
-  "source_sha": "c6c03e9914344fe721bea518738d2b5575c1da79",
+  "source_sha": "503b6df9d988495a7e266f58306a8e66dbe8b476",
   "independent_attestation": false,
   "commands": [
     "bash .claude/scripts/test/factory-workflow-baseline.sh"
@@ -9,19 +9,19 @@
     {
       "assertionResults": [
         {
-          "fullName": "AC-1: actual full actionlint including ShellCheck passes all shipped workflows without warning waivers",
+          "fullName": "AC-1: full workflow actionlint and ShellCheck without waivers",
           "status": "passed"
         },
         {
-          "fullName": "AC-2: shipped JSON validation accepts literal special filenames and rejects invalid JSON, missing roots and find exit 42",
+          "fullName": "AC-2: actual JSON shell handles literal filenames and fails invalid input/find",
           "status": "passed"
         },
         {
-          "fullName": "AC-3: shipped bundle gate handles literal filenames, rejects missing/empty assets and over-budget gzip bytes, and propagates compressor failure",
+          "fullName": "AC-3: actual bundle shell rejects missing/overbudget/failing compression",
           "status": "passed"
         },
         {
-          "fullName": "AC-4: shipped project shell preserves all literal GraphQL variables; actual stale count returns numeric zero or one without remote effects",
+          "fullName": "AC-4: literal GraphQL argv and zero/matching stale count fixtures",
           "status": "passed"
         }
       ]

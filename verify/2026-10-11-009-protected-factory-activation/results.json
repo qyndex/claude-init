@@ -1,0 +1,36 @@
+{
+  "runner": "shell-acceptance-recorder",
+  "source_sha": "503b6df9d988495a7e266f58306a8e66dbe8b476",
+  "independent_attestation": false,
+  "commands": [
+    "bash .claude/scripts/test/factory-coordinator.sh",
+    "bash .claude/scripts/test/factory-workflows.sh",
+    "bash .claude/scripts/test/candidate-evidence.sh"
+  ],
+  "testResults": [
+    {
+      "assertionResults": [
+        {
+          "fullName": "AC-1: authenticated policy and archive rejection fixtures",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-2: exact candidate binding, conditional merge and receipt fixtures",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-3: unified request-only route regression",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-4: disabled configuration and preflight protected pins",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-5: stale head, foreign producer, runtime and API failure rejection",
+          "status": "passed"
+        }
+      ]
+    }
+  ]
+}

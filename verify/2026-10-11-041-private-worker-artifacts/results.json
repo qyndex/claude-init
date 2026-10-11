@@ -1,46 +1,40 @@
 {
   "runner": "shell-acceptance-recorder",
-  "source_sha": "ed26aec6308a3f45748d7124f172121feb5f852b",
+  "source_sha": "503b6df9d988495a7e266f58306a8e66dbe8b476",
   "independent_attestation": false,
   "commands": [
-    "bash .claude/scripts/test/factory-private-artifacts.sh"
+    "bash .claude/scripts/test/factory-private-artifacts.sh",
+    "bash .claude/scripts/test/factory-routing.sh",
+    "bash .claude/scripts/test/factory-container.sh",
+    "bash .claude/scripts/test/factory-receipts-recovery.sh"
   ],
   "testResults": [
     {
       "assertionResults": [
         {
-          "fullName": "AC-1: real stdout/stderr floods and timeout are bounded during collection; complete subprocess output remains intact",
+          "fullName": "AC-1: actual streaming stdout/stderr bounds and timeout cleanup",
           "status": "passed"
         },
         {
-          "fullName": "AC-2: actual worker floods block verification at exact log bound, complete output succeeds, and descendant-held output times out with confirmed cleanup",
+          "fullName": "AC-2: actual worker flood and descendant-held EOF guardian cleanup",
           "status": "passed"
         },
         {
-          "fullName": "AC-3: unbound/foreign stores and nonprivate paths reject; public-eligible output contains sanitized aggregate counts only and never certifies engineering verification",
+          "fullName": "AC-3: owner-only storage validation and sanitized nonengineering metrics",
           "status": "passed"
         },
         {
-          "fullName": "AC-4: actual private retention/namespace/lock/effect filesystem fixtures passed and exact-source Linux container cleanup/concurrency/supervisor-death retry passed in run 38107622778 attempt 1",
+          "fullName": "AC-4: actual retention filesystem/recovery/routing fixtures and exact-source Linux isolation, concurrency, timeout, supervisor-death cleanup and fenced retry passed in run 38118741792",
           "status": "passed"
         }
       ]
     }
   ],
-  "linux_isolation": {
-    "source_sha": "8ac2831a330a99e7db37683f3fd897030158489c",
-    "platform": "linux",
-    "image_id": "sha256:b80f30236aeef2ac47f3abf75fe7ee1f911c20f451e508e5bff4a75b0f8e5b3a",
-    "docker_sha256": "6435ff9214bf8e0931078fb0980809728cac0a54a526d4f28a26d3e48132b58d",
-    "independent_attestation": false,
-    "assertions": [
-      {
-        "fullName": "AC-4: actual Linux Docker isolation, concurrent services, timeout, supervisor SIGKILL cleanup and fenced retry passed",
-        "status": "passed"
-      }
-    ],
-    "github_run_id": 38107622778,
-    "github_run_attempt": 1,
-    "github_run_url": "https://github.com/qyndex/claude-init/actions/runs/38107622778"
+  "linux_proof": {
+    "run_id": 38118741792,
+    "source_sha": "dfca2eba30c7b28bc8b04563d3cea368e5ac56a3",
+    "artifact_id": 11694077820,
+    "conclusion": "success",
+    "independent_attestation": false
   }
 }

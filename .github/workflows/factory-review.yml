@@ -41,10 +41,11 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR: ${{ github.event.pull_request.number }}
-          FACTORY_REVIEW_PROVIDER: ${{ vars.FACTORY_REVIEW_PROVIDER || 'oauth' }}
+          FACTORY_REVIEW_PROVIDER: oauth
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
+          FACTORY_REVIEW_NODE="$(command -v node)" \
+          FACTORY_REVIEW_EXECUTABLE="$(npm root -g)/@anthropic-ai/claude-code/cli-wrapper.cjs" \
           python3 .claude/scripts/factory-producer.py --role review --policy factory/policy.json \
             --pr "$PR" --run-id "$GITHUB_RUN_ID" --check-state /tmp/producer-check.json --output producer-output
       - name: Preserve authenticated proof bytes

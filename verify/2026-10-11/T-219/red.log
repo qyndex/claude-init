@@ -1,0 +1,15 @@
+# TDD ledger — red — T-219
+ledger_format: 2
+timestamp: 2026-10-11T06:32:50.634031+00:00
+command: bash .claude/scripts/test/factory-review-runtime.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 18, in <module>
+  File "/private/var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmpqant5ku6/source/.claude/scripts/factory-producer.py", line 159, in review
+    process = runner(['claude', '--setting-sources', '', '--tools', '', '--model', 'claude-sonnet-4-6',
+                      '--max-turns', '1', '--output-format', 'json', '--json-schema', json.dumps(schema), '-p'],
+                     cwd=directory, env=env, input=prompt, capture_output=True, text=True, timeout=300)
+  File "<stdin>", line 11, in runner
+AssertionError: fresh scoped reviewer flags missing

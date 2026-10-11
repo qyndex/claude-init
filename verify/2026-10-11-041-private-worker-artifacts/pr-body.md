@@ -1,5 +1,5 @@
 ## Evidence Bundle — Spec 041 (041-private-worker-artifacts)
-Spec: `specs/active/041-private-worker-artifacts.md` · Commit: `8ac2831`
+Spec: `specs/active/041-private-worker-artifacts.md` · Commit: `dfca2eb`
 
 ### Acceptance criteria (4/4 proven)
 | AC | Proven by | Result |
@@ -11,7 +11,7 @@ Spec: `specs/active/041-private-worker-artifacts.md` · Commit: `8ac2831`
 
 ### Smoke test (exit codes are load-bearing)
 ```
-# Smoke test — 2026-10-11T14:14:12+11:00
+# Smoke test — 2026-10-11T17:44:32+11:00
 $ bash .claude/scripts/verify.sh
 
 → Integration coverage gate

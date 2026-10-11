@@ -1,5 +1,5 @@
 ## Evidence Bundle — Spec 044 (044-workflow-baseline-lint)
-Spec: `specs/active/044-workflow-baseline-lint.md` · Commit: `c6c03e9`
+Spec: `specs/active/044-workflow-baseline-lint.md` · Commit: `dfca2eb`
 
 ### Acceptance criteria (4/4 proven)
 | AC | Proven by | Result |
@@ -11,7 +11,7 @@ Spec: `specs/active/044-workflow-baseline-lint.md` · Commit: `c6c03e9`
 
 ### Smoke test (exit codes are load-bearing)
 ```
-# Smoke test — 2026-10-11T15:05:13+11:00
+# Smoke test — 2026-10-11T17:44:48+11:00
 $ bash .claude/scripts/verify.sh
 
 → Integration coverage gate
@@ -36,6 +36,8 @@ line ?% · branch ?% (gate: line≥90 branch≥85)
 ## Artifact index
 - verify/2026-10-11-044-workflow-baseline-lint/evidence.json
 - verify/2026-10-11-044-workflow-baseline-lint/pr-body.md
+- verify/2026-10-11-044-workflow-baseline-lint/acceptance.log
 - verify/2026-10-11-044-workflow-baseline-lint/EVIDENCE.md
+- verify/2026-10-11-044-workflow-baseline-lint/macos-suite.json
 - verify/2026-10-11-044-workflow-baseline-lint/results.json
 - verify/2026-10-11-044-workflow-baseline-lint/smoke.log

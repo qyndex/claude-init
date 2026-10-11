@@ -23,3 +23,10 @@ The App key belongs only to the main-only `factory-authority` environment. Produ
 ## Remaining order
 
 Complete App registration/install and working reviewer capacity, approve/pin a pilot spec and image, restore review protection, and prove positive and negative shadow candidates. Then finish F-04 durable claims/supervision before unattended parallel auto-merge. F-05 digest, F-06 feedback, F-07 adoption/runtime/retention and F-08 service-specific production remain later packages. A production target and real health/rollback contract will be needed for F-08.
+
+
+## Hosted review execution boundary
+
+The protected pilot fixes subscription OAuth without an API fallback. Review uses a fresh neutral HOME/config/TMPDIR, scoped tool-free safe mode and no persisted session. The protected workflow hands off absolute Node and pinned CLI wrapper paths; the reviewer invokes Node directly, so neutral PATH does not rely on an inherited npm executable or shebang. Prompt bytes travel through private file-backed stdin; independent output streams are limited to 1 MB each during execution, with a 300-second deadline and owned process-group cleanup. A verdict requires the exact `claude-sonnet-4-6` modelUsage and valid structured result. Reported client cost remains an estimate, not subscription spend.
+
+Claude review stays paused until Tuesday under the operator instruction. Local subprocess and structured-result fixtures establish implementation behavior; they are not live independently authenticated review receipts. Producers and merge authority remain disabled until genuine review, verifier and shadow eligibility proofs pass.

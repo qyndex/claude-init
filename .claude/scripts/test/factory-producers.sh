@@ -58,18 +58,18 @@ with tempfile.TemporaryDirectory() as folder:
  rejects(lambda:m.sandbox_command(approved['verification_image'],out,'test','bash -c true'))
  prompt=m.review_prompt(API(),repo,approved,API().files,content,binding)
  assert 'before' in prompt and 'after' in prompt and 'AC-1' in prompt;passed+=1
- os.environ['FACTORY_REVIEW_PROVIDER']='oauth';os.environ['CLAUDE_CODE_OAUTH_TOKEN']='fixture';os.environ['GH_TOKEN']='must-not-inherit';os.environ['FACTORY_APP_PRIVATE_KEY']='must-not-inherit'
+ os.environ['FACTORY_REVIEW_NODE']=sys.executable;os.environ['FACTORY_REVIEW_EXECUTABLE']=sys.executable;os.environ['FACTORY_REVIEW_PROVIDER']='oauth';os.environ['CLAUDE_CODE_OAUTH_TOKEN']='fixture';os.environ['GH_TOKEN']='must-not-inherit';os.environ['FACTORY_APP_PRIVATE_KEY']='must-not-inherit'
  def reviewer(command,**kw):
   assert command[command.index('--tools')+1]=='' and command[command.index('--setting-sources')+1]==''
-  assert kw['input']==prompt and 'GH_TOKEN' not in kw['env'] and 'FACTORY_APP_PRIVATE_KEY' not in kw['env']
+  assert kw['stdin'].read().decode()==prompt and 'GH_TOKEN' not in kw['env'] and 'FACTORY_APP_PRIVATE_KEY' not in kw['env']
   assert kw['env']['CLAUDE_CODE_OAUTH_TOKEN']=='fixture'
-  return subprocess.CompletedProcess(command,0,json.dumps({'is_error':False,'subtype':'success','structured_output':{'verdict':'pass','unresolved_findings':[]}}),'')
+  return subprocess.CompletedProcess(command,0,json.dumps({'type':'result','modelUsage':{'claude-sonnet-4-6':{'inputTokens':1,'outputTokens':2}},'is_error':False,'subtype':'success','structured_output':{'verdict':'pass','unresolved_findings':[]}}),'')
  assert m.review(prompt,binding,actor,reviewer)['review']['verdict']=='pass';passed+=1
  def quota(command,**kw):return subprocess.CompletedProcess(command,1,'{"api_error":"usage_limit_reached"}','')
  rejects(lambda:m.review(prompt,binding,actor,quota))
  def fake_pass(command,**kw):return subprocess.CompletedProcess(command,0,json.dumps({'is_error':True,'subtype':'success','structured_output':{'verdict':'pass','unresolved_findings':[]}}),'')
  rejects(lambda:m.review(prompt,binding,actor,fake_pass))
- def unresolved(command,**kw):return subprocess.CompletedProcess(command,0,json.dumps({'is_error':False,'subtype':'success','structured_output':{'verdict':'pass','unresolved_findings':['src/app.py:1 defect']}}),'')
+ def unresolved(command,**kw):return subprocess.CompletedProcess(command,0,json.dumps({'type':'result','modelUsage':{'claude-sonnet-4-6':{'inputTokens':1,'outputTokens':2}},'is_error':False,'subtype':'success','structured_output':{'verdict':'pass','unresolved_findings':['src/app.py:1 defect']}}),'')
  rejects(lambda:m.review(prompt,binding,actor,unresolved))
  del os.environ['CLAUDE_CODE_OAUTH_TOKEN'];rejects(lambda:m.review(prompt,binding,actor,reviewer))
 spec=importlib.util.spec_from_file_location('publisher',root/'.claude/scripts/factory-producer-check.py')
