@@ -39,6 +39,7 @@ with tempfile.TemporaryDirectory() as folder:
  for script in ['import sys; sys.stdout.write("x"*2000000)','import sys; sys.stderr.write("x"*2000000)','import time; time.sleep(10)']:
   start=time.monotonic();rejects(lambda:b.run([sys.executable,'-c',script],env=env,cwd=cwd,timeout=.2,limit=1024));assert time.monotonic()-start<3
 workflow=(root/'.github/workflows/factory-review.yml').read_text()
+assert '/@anthropic-ai/claude-code/cli-wrapper.cjs' in workflow
 assert "FACTORY_REVIEW_PROVIDER: oauth" in workflow and 'ANTHROPIC_API_KEY:' not in workflow
 assert '.claude/scripts/factory-bounded-process.py' in p.coordinator.runtime_paths('review')
 print('hosted review runtime: PASS (fixture proof; no live model request)')

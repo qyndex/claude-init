@@ -235,7 +235,7 @@ This table supersedes earlier pending activation notes; dated entries above rema
 
 | Package | Current evidence | Remaining activation gate |
 | --- | --- | --- |
-| F-00 | Scanner/evidence/acceptance repairs, maintained macOS/Linux checks and full workflow ShellCheck/actionlint regression | Final current-head CI for spec 044 |
+| F-00 | Scanner/evidence/acceptance repairs, maintained macOS/Linux checks and full workflow ShellCheck/actionlint regression | Complete; PR #94 merged after all seven required checks |
 | F-01–F-03 | Protected approved-spec contracts, exact-candidate evidence/receipt authentication, unified request-only merge routes; dedicated App installed | Genuine independent subscription review, restored paused checks, trusted shadow proof and concrete authority activation decision |
 | F-04 | Transactional claims, supervisor recovery, durable external-effect fencing and actual offline Linux Docker isolation | Online native worker isolation/provider-egress setup; operator host decision pending |
 | F-05 | Live 08:00 Sydney GitHub-hosted digest, durable checkpoint and GitHub-only failure/overdue alerts | Oversized Slack file pilot remains allocation-fenced; keep disabled or explicitly approve separate canary reconciliation; Healthchecks stays disabled |
