@@ -1280,3 +1280,9 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   files: .claude/scripts/factory-bounded-process.py, .claude/scripts/factory-private-artifacts.py, .claude/scripts/factory-worker-guard.py, .claude/scripts/factory-supervisor.py, .claude/scripts/factory-routing.py, .claude/scripts/factory-container.py, .claude/scripts/factory-claude-probe.py
   accept: bash .claude/scripts/test/factory-private-artifacts.sh
   owner: implementer
+
+- [x] T-216  | spec:042  | phase:1  | priority: security  | created: 2026-10-11  | last_touched: 2026-10-11  | deps: T-215  | parallel: no  | est: 30m
+  summary: Fence false placeholder production success and define the reusable protected release contract
+  files: .github/workflows/canary-deploy.yml, docs/DEPLOY-INTEGRATION.md
+  accept: bash .claude/scripts/test/factory-production-stub.sh
+  owner: implementer
