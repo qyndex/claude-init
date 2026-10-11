@@ -1,0 +1,4 @@
+{
+  "kind": "docs-only",
+  "reason": "Register the human-approved specification and conditional shadow proposal only. No quickstart implementation, workflow, executable or live policy change. Spec048 delivery AC proof is intentionally deferred to the separate approved one-document candidate; T-222 remains open. No fabricated delivery proof."
+}

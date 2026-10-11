@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "approved_at": "2026-10-11T11:40:45.691540+00:00",
+  "authorization": "Human operator explicitly approved both exact pilot and conditional shadow activation in this task",
+  "source_sha": "71844c2a2164528430b65b01940aa81f5f161d92",
+  "spec_path": "specs/active/048-adopter-quickstart-pilot.md",
+  "spec_sha256": "5fbc55eb9b99d6a55c1ec280c31c0a99fe4141d996af34cc4ee16cda86c9e9a5",
+  "policy_path": "docs/activation/2026-10-11/policy.shadow.approved.json",
+  "policy_file_sha256": "11a2a9ee594b9cada60c63b5145b7f7f5ea1ed0a1c6771e7330b1bb36b15dd1f",
+  "conditions": {
+    "not_before_local_date": "2026-10-13",
+    "timezone": "Australia/Sydney",
+    "actual_subscription_capacity_and_model_proof_required": true,
+    "restore_paused_checks_only_after_capacity_proof": true,
+    "refresh_protected_source_and_rule_before_images_before_applying": true,
+    "merge_enabled": false,
+    "separate_merge_mode_approval_required_after_shadow_proof": true
+  },
+  "live_applied": false,
+  "live_policy_sha256": "ee5756f3e44ee0bf7e729dc8ee94647e66c6278f84fabf4af4fd8dbb7ca4e3f5",
+  "implementation_task": "T-222",
+  "implementation_delivered": false
+}
