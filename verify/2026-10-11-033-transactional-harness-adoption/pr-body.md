@@ -1,5 +1,5 @@
 ## Evidence Bundle — Spec 033 (033-transactional-harness-adoption)
-Spec: `specs/active/033-transactional-harness-adoption.md` · Commit: `4cbb033`
+Spec: `specs/active/033-transactional-harness-adoption.md` · Commit: `56b1239`
 
 ### Acceptance criteria (4/4 proven)
 | AC | Proven by | Result |
@@ -11,7 +11,7 @@ Spec: `specs/active/033-transactional-harness-adoption.md` · Commit: `4cbb033`
 
 ### Smoke test (exit codes are load-bearing)
 ```
-# Smoke test — 2026-10-11T20:13:13+11:00
+# Smoke test — 2026-10-11T21:44:28+11:00
 $ bash .claude/scripts/verify.sh
 
 → Integration coverage gate

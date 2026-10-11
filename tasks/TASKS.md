@@ -1316,7 +1316,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-activation-package.sh
   owner: codex
 
-- [ ] T-223  | spec:049  | phase:6  | priority: normal  | created: 2026-10-11  | last_touched: 2026-10-11  | deps: T-221  | parallel: no  | est: 40m
+- [x] T-223  | spec:049  | phase:6  | priority: normal  | created: 2026-10-11  | last_touched: 2026-10-11  | deps: T-221  | parallel: no  | est: 40m
   summary: Prove proposed pilot commands in the actual pinned offline verifier sandbox
   accept: bash .claude/scripts/test/factory-pilot-sandbox.sh
   owner: codex

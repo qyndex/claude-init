@@ -1,5 +1,5 @@
 ## Evidence Bundle — Spec 047 (047-activation-review-package)
-Spec: `specs/active/047-activation-review-package.md` · Commit: `4cbb033`
+Spec: `specs/active/047-activation-review-package.md` · Commit: `56b1239`
 
 ### Acceptance criteria (4/4 proven)
 | AC | Proven by | Result |
@@ -11,7 +11,7 @@ Spec: `specs/active/047-activation-review-package.md` · Commit: `4cbb033`
 
 ### Smoke test (exit codes are load-bearing)
 ```
-# Smoke test — 2026-10-11T20:13:46+11:00
+# Smoke test — 2026-10-11T21:45:17+11:00
 $ bash .claude/scripts/verify.sh
 
 → Integration coverage gate

@@ -1,0 +1,52 @@
+$ bash .claude/scripts/test/factory-pilot-sandbox.sh
+exit: 0
+AC-1: exact proposed argv passes positive fixture and rejects individually defective fixtures; original bytes preserved
+SKIP: actual pinned Linux sandbox requires explicit CI enablement; host command coverage is not isolation proof
+
+Actual Linux native step and artifact: https://github.com/qyndex/claude-init/actions/runs/38132880404
+{
+  "source_sha": "56b123985fac1f48bd436e5a4603ef5aca7e24e2",
+  "image": "python@sha256:a6e34c598f2467ed0e9a8d349809fcd8b5c603269512df273a0bb1784edc11b1",
+  "proposal_sha256": "ecebcaaee8535b0f713702bbf06099fe039aaeb43164261c2a2862cc00a0913e",
+  "platform": "linux",
+  "independent_attestation": false,
+  "pilot_approved": false,
+  "delivery_receipt": false,
+  "observations": [
+    {
+      "case": "positive AC-1",
+      "exit_code": 0,
+      "expected_pass": true
+    },
+    {
+      "case": "defective AC-1",
+      "exit_code": 1,
+      "expected_pass": false
+    },
+    {
+      "case": "positive AC-2",
+      "exit_code": 0,
+      "expected_pass": true
+    },
+    {
+      "case": "defective AC-2",
+      "exit_code": 1,
+      "expected_pass": false
+    },
+    {
+      "case": "positive AC-3",
+      "exit_code": 0,
+      "expected_pass": true
+    },
+    {
+      "case": "defective AC-3",
+      "exit_code": 1,
+      "expected_pass": false
+    },
+    {
+      "case": "actual isolation",
+      "exit_code": 0,
+      "expected_pass": true
+    }
+  ]
+}
