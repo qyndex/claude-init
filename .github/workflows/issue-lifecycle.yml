@@ -61,7 +61,7 @@ jobs:
             status="$STATUS_SHIPPED"
           fi
           echo "status=$status" >> "$GITHUB_OUTPUT"
-          [ -z "$status" ] && echo "No transition for this event." || true
+          if [ -z "$status" ]; then echo "No transition for this event."; fi
 
       - name: Find linked spec issue
         id: issue
@@ -80,7 +80,7 @@ jobs:
             issue=$(printf '%s' "$PR_BODY" | grep -oiE '(closes|fixes|resolves|part of) #[0-9]+' | grep -oE '[0-9]+' | head -1)
           fi
           echo "issue=$issue" >> "$GITHUB_OUTPUT"
-          [ -z "$issue" ] && echo "No linked spec issue." || true
+          if [ -z "$issue" ]; then echo "No linked spec issue."; fi
 
       - name: Move project item
         if: ${{ steps.target.outputs.status != '' && steps.issue.outputs.issue != '' }}

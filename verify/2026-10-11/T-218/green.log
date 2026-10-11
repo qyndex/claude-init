@@ -1,6 +1,6 @@
 # TDD ledger — green — T-218
 ledger_format: 2
-timestamp: 2026-10-11T14:57:33+11:00
+timestamp: 2026-10-11T15:04:49+11:00
 command: bash .claude/scripts/test/factory-workflow-baseline.sh
 exit_code: 0
 ---
