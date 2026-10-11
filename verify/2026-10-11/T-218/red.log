@@ -1,0 +1,47 @@
+# TDD ledger — red — T-218
+ledger_format: 2
+timestamp: 2026-10-11T14:57:23+11:00
+command: bash .claude/scripts/test/factory-workflow-baseline.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+.github/workflows/harness-validate.yml:38:9: shellcheck reported issue in this script: SC2044:warning:2:10: For loops over find output are fragile. Use find -exec or a while read loop [shellcheck]
+   |
+38 |         run: |
+   |         ^~~~
+.github/workflows/harness-validate.yml:46:9: shellcheck reported issue in this script: SC2044:warning:3:10: For loops over find output are fragile. Use find -exec or a while read loop [shellcheck]
+   |
+46 |         run: |
+   |         ^~~~
+.github/workflows/harness-validate.yml:173:9: shellcheck reported issue in this script: SC2086:info:18:90: Double quote to prevent globbing and word splitting [shellcheck]
+    |
+173 |         run: |
+    |         ^~~~
+.github/workflows/harness-validate.yml:173:9: shellcheck reported issue in this script: SC2116:style:18:83: Useless echo? Instead of 'cmd $(echo foo)', just use 'cmd foo' [shellcheck]
+    |
+173 |         run: |
+    |         ^~~~
+.github/workflows/issue-lifecycle.yml:90:9: shellcheck reported issue in this script: SC2016:info:12:37: Expressions don't expand in single quotes, use double quotes for that [shellcheck]
+   |
+90 |         run: |
+   |         ^~~~
+.github/workflows/issue-lifecycle.yml:90:9: shellcheck reported issue in this script: SC2016:info:19:25: Expressions don't expand in single quotes, use double quotes for that [shellcheck]
+   |
+90 |         run: |
+   |         ^~~~
+.github/workflows/issue-lifecycle.yml:90:9: shellcheck reported issue in this script: SC2016:info:2:35: Expressions don't expand in single quotes, use double quotes for that [shellcheck]
+   |
+90 |         run: |
+   |         ^~~~
+.github/workflows/perf-budget.yml:49:9: shellcheck reported issue in this script: SC2038:warning:3:10: Use 'find .. -print0 | xargs -0 ..' or 'find .. -exec .. +' to allow non-alphanumeric filenames [shellcheck]
+   |
+49 |         run: |
+   |         ^~~~
+.github/workflows/stale-spec-check.yml:23:9: shellcheck reported issue in this script: SC2016:info:57:22: Expressions don't expand in single quotes, use double quotes for that [shellcheck]
+   |
+23 |         run: |
+   |         ^~~~
+.github/workflows/stale-spec-check.yml:23:9: shellcheck reported issue in this script: SC2126:style:44:90: Consider using 'grep -c' instead of 'grep|wc -l' [shellcheck]
+   |
+23 |         run: |
+   |         ^~~~

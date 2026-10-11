@@ -1,0 +1,511 @@
+{
+  "schema_version": 1,
+  "source_sha": "c6c03e9914344fe721bea518738d2b5575c1da79",
+  "platform": "macOS",
+  "independent_attestation": false,
+  "actual_docker_drill": false,
+  "maintained_test_count": 100,
+  "failed": [],
+  "tests": [
+    {
+      "name": "acceptance-rerun.sh",
+      "exit_code": 0,
+      "log_sha256": "d90a76eefa08a6e16893f9b84c31a7cde184a1ca6d779111c136b20a158d9f06"
+    },
+    {
+      "name": "adr-single-schema.sh",
+      "exit_code": 0,
+      "log_sha256": "9d225d9362b8a12691024359d60578e9a947620feb9f9da1f96be416a6ac5857"
+    },
+    {
+      "name": "adr-supersession.sh",
+      "exit_code": 0,
+      "log_sha256": "0180a15fd68412e28f73e04c8cebd032c08dae51cd8cf18bb5485c75c7488867"
+    },
+    {
+      "name": "analyze-coverage.sh",
+      "exit_code": 0,
+      "log_sha256": "7ea231c0b2634f63003c69c0583c9984ec85a8871ef3366fb61e8a71d4d3bb5e"
+    },
+    {
+      "name": "archives-and-modified.sh",
+      "exit_code": 0,
+      "log_sha256": "f352351301afa1c85559ac8933be09a168e45b01f7ea99677478e300d07896b0"
+    },
+    {
+      "name": "atlas-endpoints.sh",
+      "exit_code": 0,
+      "log_sha256": "0521432ee0f382c68caa2aa9fce06cf84254c7aff88f6ee1a67eb039fcf7dfbe"
+    },
+    {
+      "name": "atomic-write.sh",
+      "exit_code": 0,
+      "log_sha256": "5ba55183cc7d8497ff0948414c7a30d0d09288ebb4feda26881563311dd61311"
+    },
+    {
+      "name": "audit-doc-claims.sh",
+      "exit_code": 0,
+      "log_sha256": "8d5f9b151ca4e450d5babbafe7dcdc432f9c5c589b2c9fd8f796975bd285ccda"
+    },
+    {
+      "name": "autonomous-ship.sh",
+      "exit_code": 0,
+      "log_sha256": "b9e1093e755aca768bafa5afc6ad3c3906818cad4aa0e1f7b50786d2df45c78a"
+    },
+    {
+      "name": "boot-autoheal.sh",
+      "exit_code": 0,
+      "log_sha256": "b6ea3f7e9328a0e719d54225a1f8783d2080c88265c3d862e55159e0e98e3e16"
+    },
+    {
+      "name": "boot-inject-hot.sh",
+      "exit_code": 0,
+      "log_sha256": "6b7851243bf98139eccf3880b0197f33fb97395a4d3c2dbb84f65e305aa59a20"
+    },
+    {
+      "name": "candidate-evidence.sh",
+      "exit_code": 0,
+      "log_sha256": "021209226da5adec6b6ea91a21adf3cfca150d49de2113b890a312fbada15f0e"
+    },
+    {
+      "name": "candidate-root.sh",
+      "exit_code": 0,
+      "log_sha256": "ce8c9cd5779d8a54fcf03794c031a283f9fed55b93b2eb3304552a8b2f31f94f"
+    },
+    {
+      "name": "check-model-consistency.sh",
+      "exit_code": 0,
+      "log_sha256": "33d0f15ac2d06ed974b865c2890b1d95fbb8639205757094068f7339107b4d74"
+    },
+    {
+      "name": "coverage-values.sh",
+      "exit_code": 0,
+      "log_sha256": "4de356c8010e5fc452d964c9a206602d8429c5e9881f7a296830c0071c64c125"
+    },
+    {
+      "name": "daily-briefing.sh",
+      "exit_code": 0,
+      "log_sha256": "9d225d9362b8a12691024359d60578e9a947620feb9f9da1f96be416a6ac5857"
+    },
+    {
+      "name": "dependency-rollup.sh",
+      "exit_code": 0,
+      "log_sha256": "bdaaa798f4dc51e56989f6fb1399729a6404992b8e764ab99ac3ad396956ef4b"
+    },
+    {
+      "name": "dream-cost-gate.sh",
+      "exit_code": 0,
+      "log_sha256": "bc70c2edb25581382411e2bbfe035d9282a66a2cf78b9932c9e7856b174aeb69"
+    },
+    {
+      "name": "dream-state.sh",
+      "exit_code": 0,
+      "log_sha256": "5ce73ba545932a8f3c1e88e11359d369015edca0cf7f76e790965a8317bee310"
+    },
+    {
+      "name": "evidence-finalization.sh",
+      "exit_code": 0,
+      "log_sha256": "f1958f3e9dab340723586867665a2a101eacc81c2acb2e0269f6ca34aa2ff6a6"
+    },
+    {
+      "name": "factory-adopt.sh",
+      "exit_code": 0,
+      "log_sha256": "7678c7846b88b88e28eeeadd91dd9f17dcfc94b63634f834b3a353641fce1652"
+    },
+    {
+      "name": "factory-container-live.sh",
+      "exit_code": 0,
+      "log_sha256": "9eebc24ee25abfdce6210f09829930805372c818df6b9e5efe8c2804fb290e13"
+    },
+    {
+      "name": "factory-container.sh",
+      "exit_code": 0,
+      "log_sha256": "e7951451709dc9dc907bcfa9d6417403185d45d88f9f485aa9dd42a9c1b1bf7d"
+    },
+    {
+      "name": "factory-coordinator.sh",
+      "exit_code": 0,
+      "log_sha256": "97626a95d348ca3c10efdd18c041b8d32c74fda9dcd12ff6f961d7019295c0eb"
+    },
+    {
+      "name": "factory-digest-coverage.sh",
+      "exit_code": 0,
+      "log_sha256": "f4b838034727fb23b876a69f30564db03b25b3ef6ad1fb44a4fd8a3f931b0954"
+    },
+    {
+      "name": "factory-digest.sh",
+      "exit_code": 0,
+      "log_sha256": "40a0252a9fbe9827ac68dd849bff2b4c13f626dfb4a1a7535e968e9a3d9d4ac8"
+    },
+    {
+      "name": "factory-distribution.sh",
+      "exit_code": 0,
+      "log_sha256": "4fae9d9d3d1c5ae8db93d819da83f10a5a5b8cb992cc99b61301e26636911613"
+    },
+    {
+      "name": "factory-encrypted-feedback.sh",
+      "exit_code": 0,
+      "log_sha256": "5d707d3c3f388d46c0d03d84539f3549bd0fea0fa469cb03b8deb42967b1c7fd"
+    },
+    {
+      "name": "factory-feedback-control.sh",
+      "exit_code": 0,
+      "log_sha256": "2f726c7c30270e243c0a435edc3383fcc5562f888e63b27a645a72303752a33a"
+    },
+    {
+      "name": "factory-feedback.sh",
+      "exit_code": 0,
+      "log_sha256": "5be7b956982111d3ed08edaece8d52edc0c3a6cbb4298a98f77dff99941a8a45"
+    },
+    {
+      "name": "factory-hosted-digest.sh",
+      "exit_code": 0,
+      "log_sha256": "c268500c031b2dbfb1b1a53af849d688606dd4fb12667ace080b30cef7c25512"
+    },
+    {
+      "name": "factory-hosted-feedback.sh",
+      "exit_code": 0,
+      "log_sha256": "b40bad034bc564b663d808f82feb74bed23189ca192cd523a83a958833fd391a"
+    },
+    {
+      "name": "factory-installer-source.sh",
+      "exit_code": 0,
+      "log_sha256": "df527720e08d7aa96550b513447780b0f86834b4b68a63b1a5e20dd658b5d425"
+    },
+    {
+      "name": "factory-ledger.sh",
+      "exit_code": 0,
+      "log_sha256": "93461a306936775accbd83bf17e5574b01f4c947f37af08c5254837ce743f272"
+    },
+    {
+      "name": "factory-legacy-feedback.sh",
+      "exit_code": 0,
+      "log_sha256": "716d10572097634b1c8a39b81822a54046f7cfdb056e9ffee562966adec8a6f7"
+    },
+    {
+      "name": "factory-policy-approval.sh",
+      "exit_code": 0,
+      "log_sha256": "664a2996b27c7a13189962673130c6a9f48e30025932d56ff9830801be9eed24"
+    },
+    {
+      "name": "factory-private-artifacts.sh",
+      "exit_code": 0,
+      "log_sha256": "6eb40a92121572c89f06d2a1107d355e86a47b28e91a33dc57637d7698afcd1e"
+    },
+    {
+      "name": "factory-producers.sh",
+      "exit_code": 0,
+      "log_sha256": "d98ff283aa24045386e6ae0b605433e84f5c29d10404f23fb354a33a387795e0"
+    },
+    {
+      "name": "factory-production-stub.sh",
+      "exit_code": 0,
+      "log_sha256": "ce5898a8755dae8167d309a5feeb55d9641aa2e67f7c88c0664e1c21a8edc05f"
+    },
+    {
+      "name": "factory-receipt-projection.sh",
+      "exit_code": 0,
+      "log_sha256": "2ada2dd4cb8452c96220120121823d8dd5af98f5a22ebbea2e4e995febe20c27"
+    },
+    {
+      "name": "factory-receipts-recovery.sh",
+      "exit_code": 0,
+      "log_sha256": "5c0ee568d507d1ab24341efa4068cfa10d5b4b645687e9f92206cf8e9eef5247"
+    },
+    {
+      "name": "factory-release.sh",
+      "exit_code": 0,
+      "log_sha256": "6acef9ced5c3e26529dfac00f5d413b7415c65d9deaf3e7c67d8ee5ee1c5ac58"
+    },
+    {
+      "name": "factory-reporting-actions.sh",
+      "exit_code": 0,
+      "log_sha256": "e5a5bc86845dc73251c8fc193c50d726e4bd58949f845b75eb78826a2cdaea05"
+    },
+    {
+      "name": "factory-reporting-alerts.sh",
+      "exit_code": 0,
+      "log_sha256": "0c87619fab9ff997dbf9aabb619a4a8a156661488200f695a41e267d4704912a"
+    },
+    {
+      "name": "factory-reporting-watchdog.sh",
+      "exit_code": 0,
+      "log_sha256": "60914e159772dee7bafc7042133be9e7732f9770f97d42cdfec1bc446d47a55f"
+    },
+    {
+      "name": "factory-routing.sh",
+      "exit_code": 0,
+      "log_sha256": "5a39eb13be1f6cf9f6b00ffb1bfcf435b54bafcc0c25098976065caff510f228"
+    },
+    {
+      "name": "factory-runtime.sh",
+      "exit_code": 0,
+      "log_sha256": "8515fabf8c2cd1f651b3cdec47c2c404380227e60944a00bd92d1aa096be68d7"
+    },
+    {
+      "name": "factory-slack-attachment.sh",
+      "exit_code": 0,
+      "log_sha256": "c822bc9dc9bba70f15f76e72073434818a2f4b6523f833a331457dc9084e9b3e"
+    },
+    {
+      "name": "factory-slack-digest.sh",
+      "exit_code": 0,
+      "log_sha256": "4b80988e550550791166b1d6c343e32f945782421a99715ed468db7b81772fa7"
+    },
+    {
+      "name": "factory-slack-feedback.sh",
+      "exit_code": 0,
+      "log_sha256": "e04ba9a3e212664c9f0092575f320882ec89efb679a95c55705d555cb5071b7a"
+    },
+    {
+      "name": "factory-slack-file-canary.sh",
+      "exit_code": 0,
+      "log_sha256": "23fbcdc04a487f7114eb81f626161216fdb91106b4c0b1d5ef8732324675f894"
+    },
+    {
+      "name": "factory-slack-scope-preflight.sh",
+      "exit_code": 0,
+      "log_sha256": "8c7e781cab999bdff3843227c4b2efd1c1e587a00b01d7ac3119d4e997f0bf54"
+    },
+    {
+      "name": "factory-supervisor.sh",
+      "exit_code": 0,
+      "log_sha256": "3532defebbac935c6c647f66a241101d47e38550826f83900dd6e5813fc69a13"
+    },
+    {
+      "name": "factory-worker-effects.sh",
+      "exit_code": 0,
+      "log_sha256": "e1756ae469e46831306dce91a3237ff6c58afd11c9cf052b80a542f6566171bd"
+    },
+    {
+      "name": "factory-worker-environment.sh",
+      "exit_code": 0,
+      "log_sha256": "06c82c337ad241f492de20f27639fff4d241075914547f678f14f5e9cc76e7da"
+    },
+    {
+      "name": "factory-workflow-baseline.sh",
+      "exit_code": 0,
+      "log_sha256": "9a77d90f8e5c580fdc0bbd9a9704be75514f1a96f9703431513efed66df798e3"
+    },
+    {
+      "name": "factory-workflows.sh",
+      "exit_code": 0,
+      "log_sha256": "d90a76eefa08a6e16893f9b84c31a7cde184a1ca6d779111c136b20a158d9f06"
+    },
+    {
+      "name": "gc-suite.sh",
+      "exit_code": 0,
+      "log_sha256": "6dbaf953f44683b534ccb7b9beb6431133d1230ac654654d4d8010af1393d3ed"
+    },
+    {
+      "name": "graph-backref-matcher.sh",
+      "exit_code": 0,
+      "log_sha256": "6b7851243bf98139eccf3880b0197f33fb97395a4d3c2dbb84f65e305aa59a20"
+    },
+    {
+      "name": "harvest-decisions.sh",
+      "exit_code": 0,
+      "log_sha256": "b6ea3f7e9328a0e719d54225a1f8783d2080c88265c3d862e55159e0e98e3e16"
+    },
+    {
+      "name": "hot-cache.sh",
+      "exit_code": 0,
+      "log_sha256": "cd75c33d21d50a1e7ae89db05b8846305703bb6306e694092a4a039339175cb5"
+    },
+    {
+      "name": "initiative-state-filter.sh",
+      "exit_code": 0,
+      "log_sha256": "f352351301afa1c85559ac8933be09a168e45b01f7ea99677478e300d07896b0"
+    },
+    {
+      "name": "ledger-decay.sh",
+      "exit_code": 0,
+      "log_sha256": "5ba55183cc7d8497ff0948414c7a30d0d09288ebb4feda26881563311dd61311"
+    },
+    {
+      "name": "lint-silent-failures.sh",
+      "exit_code": 0,
+      "log_sha256": "eb8274cdb2a23b04b0bda88aef14c13e77b9355f94ded8a0b87ebde8c668ec9a"
+    },
+    {
+      "name": "live-ruleset-selection.sh",
+      "exit_code": 0,
+      "log_sha256": "08460738f6b9b12a2615e4c0dd7d880130c9bc9dc8f941863a1231c75bb988c9"
+    },
+    {
+      "name": "liveness-probes.sh",
+      "exit_code": 0,
+      "log_sha256": "1a05492268738b943369f7320031dac13f6cd0dfdc60ba33e499a9936e1fee5f"
+    },
+    {
+      "name": "liveness-promote.sh",
+      "exit_code": 0,
+      "log_sha256": "f352351301afa1c85559ac8933be09a168e45b01f7ea99677478e300d07896b0"
+    },
+    {
+      "name": "local-evidence-gate.sh",
+      "exit_code": 0,
+      "log_sha256": "39b7767b7b48a600c142d5010f0fab467bffdbc8c0b104a0c6147e8cf5cae5aa"
+    },
+    {
+      "name": "local-scanner-contracts.sh",
+      "exit_code": 0,
+      "log_sha256": "e716c469f7300595f72986793a1a238fd531435eb55da1be51daebf12232fd64"
+    },
+    {
+      "name": "loop-control.sh",
+      "exit_code": 0,
+      "log_sha256": "a980c5e71fe276fbd86470787009df83f80d8b91468aef1ad3bf67c6f1781ba0"
+    },
+    {
+      "name": "memory-plane-lock.sh",
+      "exit_code": 0,
+      "log_sha256": "26582976685e5c2d3129f18566d0e79d777e5076e3b7ec2476a532c78c94bc6a"
+    },
+    {
+      "name": "memory-project.sh",
+      "exit_code": 0,
+      "log_sha256": "bc70c2edb25581382411e2bbfe035d9282a66a2cf78b9932c9e7856b174aeb69"
+    },
+    {
+      "name": "memory-system.sh",
+      "exit_code": 0,
+      "log_sha256": "778645c831218c85a5585c800dbb90356783a46d4a892c3f57153e1434050008"
+    },
+    {
+      "name": "metabolism-spawn.sh",
+      "exit_code": 0,
+      "log_sha256": "f352351301afa1c85559ac8933be09a168e45b01f7ea99677478e300d07896b0"
+    },
+    {
+      "name": "mirror-config-dir.sh",
+      "exit_code": 0,
+      "log_sha256": "0180a15fd68412e28f73e04c8cebd032c08dae51cd8cf18bb5485c75c7488867"
+    },
+    {
+      "name": "no-ops-fire.sh",
+      "exit_code": 0,
+      "log_sha256": "6b7851243bf98139eccf3880b0197f33fb97395a4d3c2dbb84f65e305aa59a20"
+    },
+    {
+      "name": "oq-aging.sh",
+      "exit_code": 0,
+      "log_sha256": "cd75c33d21d50a1e7ae89db05b8846305703bb6306e694092a4a039339175cb5"
+    },
+    {
+      "name": "pivot-trace.sh",
+      "exit_code": 0,
+      "log_sha256": "b6ea3f7e9328a0e719d54225a1f8783d2080c88265c3d862e55159e0e98e3e16"
+    },
+    {
+      "name": "pre-bash-dep-freshness.sh",
+      "exit_code": 0,
+      "log_sha256": "0af18a5fc75b9ad2492d981caf58c901c84180ee957107c0882b9be0a8e75307"
+    },
+    {
+      "name": "pre-bash-guard-bypass.sh",
+      "exit_code": 0,
+      "log_sha256": "bb3f7f30eb9b01332ba87bab8c0d22da535e4dd675d3e7ce43de760b0f676080"
+    },
+    {
+      "name": "pre-edit-constitution-guard.sh",
+      "exit_code": 0,
+      "log_sha256": "544efcd191b00f6b1c2a53259382af3b6a8f9332034495c799e4e2a7d8754a6b"
+    },
+    {
+      "name": "recall-grep.sh",
+      "exit_code": 0,
+      "log_sha256": "6b7851243bf98139eccf3880b0197f33fb97395a4d3c2dbb84f65e305aa59a20"
+    },
+    {
+      "name": "recall-noise-and-sh-index.sh",
+      "exit_code": 0,
+      "log_sha256": "f472050016d9272459e1172907a1da66478fbbc878304043a6da7c8405bf1248"
+    },
+    {
+      "name": "reconcile-shipped.sh",
+      "exit_code": 0,
+      "log_sha256": "26582976685e5c2d3129f18566d0e79d777e5076e3b7ec2476a532c78c94bc6a"
+    },
+    {
+      "name": "required-verification.sh",
+      "exit_code": 0,
+      "log_sha256": "ce8c9cd5779d8a54fcf03794c031a283f9fed55b93b2eb3304552a8b2f31f94f"
+    },
+    {
+      "name": "reverse-drift.sh",
+      "exit_code": 0,
+      "log_sha256": "26582976685e5c2d3129f18566d0e79d777e5076e3b7ec2476a532c78c94bc6a"
+    },
+    {
+      "name": "roadmap-trace.sh",
+      "exit_code": 0,
+      "log_sha256": "0180a15fd68412e28f73e04c8cebd032c08dae51cd8cf18bb5485c75c7488867"
+    },
+    {
+      "name": "rollup-envclock.sh",
+      "exit_code": 0,
+      "log_sha256": "b4bf4278ccc2bd3ec939f4c54752f09ce2864bf0d02fca3c23a97f2b7861bd7a"
+    },
+    {
+      "name": "security-invariants.sh",
+      "exit_code": 0,
+      "log_sha256": "6411f20ce24d5bd80f060b18d69bdcc54ce0a48c70c555dcac38d93d010bbeaf"
+    },
+    {
+      "name": "sessionstart-matcher.sh",
+      "exit_code": 0,
+      "log_sha256": "6b7851243bf98139eccf3880b0197f33fb97395a4d3c2dbb84f65e305aa59a20"
+    },
+    {
+      "name": "ship-verify-sync.sh",
+      "exit_code": 0,
+      "log_sha256": "f352351301afa1c85559ac8933be09a168e45b01f7ea99677478e300d07896b0"
+    },
+    {
+      "name": "shipped-registry.sh",
+      "exit_code": 0,
+      "log_sha256": "bc70c2edb25581382411e2bbfe035d9282a66a2cf78b9932c9e7856b174aeb69"
+    },
+    {
+      "name": "spec-plan-trace.sh",
+      "exit_code": 0,
+      "log_sha256": "f472050016d9272459e1172907a1da66478fbbc878304043a6da7c8405bf1248"
+    },
+    {
+      "name": "spec004-reconcile.sh",
+      "exit_code": 0,
+      "log_sha256": "f352351301afa1c85559ac8933be09a168e45b01f7ea99677478e300d07896b0"
+    },
+    {
+      "name": "subagent-recall-scope.sh",
+      "exit_code": 0,
+      "log_sha256": "5ce73ba545932a8f3c1e88e11359d369015edca0cf7f76e790965a8317bee310"
+    },
+    {
+      "name": "subagent-spec-resolution.sh",
+      "exit_code": 0,
+      "log_sha256": "5ce73ba545932a8f3c1e88e11359d369015edca0cf7f76e790965a8317bee310"
+    },
+    {
+      "name": "swarm-events-smoke.sh",
+      "exit_code": 0,
+      "log_sha256": "cd75c33d21d50a1e7ae89db05b8846305703bb6306e694092a4a039339175cb5"
+    },
+    {
+      "name": "trace-mismatch.sh",
+      "exit_code": 0,
+      "log_sha256": "0d753e1b2d960852af041c183eb39bd017035c1e2f9567ee56b70b1c2567601d"
+    },
+    {
+      "name": "validate-json.sh",
+      "exit_code": 0,
+      "log_sha256": "1a05492268738b943369f7320031dac13f6cd0dfdc60ba33e499a9936e1fee5f"
+    },
+    {
+      "name": "workflow-state-no-git.sh",
+      "exit_code": 0,
+      "log_sha256": "cd75c33d21d50a1e7ae89db05b8846305703bb6306e694092a4a039339175cb5"
+    }
+  ]
+}

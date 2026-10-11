@@ -228,3 +228,21 @@ Spec 041 actual Linux integration passed on source 8ac2831a330a99e7db37683f3fd89
 Spec 041 merged in PR #91 at 99528e3b54ca9248613c46ba63b2f5d526bbfacc after all seven required checks passed, including final-head Linux isolation and maintained-suite proof. Spec 042 closes the legacy placeholder canary success path even with DEPLOY_WIRED=true and defines required adopter release evidence. The protected reusable release core and actual isolated rollout/rollback drills remain next; production stays disabled.
 
 Spec 042 merged in PR #92 at 18ef654dec222cedf9f5d3b7b2e2a61a6ea35ac5 after all seven required checks passed. Spec 043 implements the disabled-by-default protected production core and neutral distribution. Actual local HTTP progressive routing, failing-version rollback, lost acknowledgements and private SQLite reopen reconciliation pass; synthetic delivery fixtures are not live authenticated factory release proof. Each adopter must supply a protected pinned provider adapter, approved known-good baseline, durable private backend and real target SLO/rollback proof before production activation. Live worker isolation/provider egress and subscription reviewer/shadow rollout remain separate prerequisites.
+
+### Current readiness — 2026-10-11
+
+This table supersedes earlier pending activation notes; dated entries above remain historical records. Code completion and live autonomous rollout are distinct.
+
+| Package | Current evidence | Remaining activation gate |
+| --- | --- | --- |
+| F-00 | Scanner/evidence/acceptance repairs, maintained macOS/Linux checks and full workflow ShellCheck/actionlint regression | Final current-head CI for spec 044 |
+| F-01–F-03 | Protected approved-spec contracts, exact-candidate evidence/receipt authentication, unified request-only merge routes; dedicated App installed | Genuine independent subscription review, restored paused checks, trusted shadow proof and concrete authority activation decision |
+| F-04 | Transactional claims, supervisor recovery, durable external-effect fencing and actual offline Linux Docker isolation | Online native worker isolation/provider-egress setup; operator host decision pending |
+| F-05 | Live 08:00 Sydney GitHub-hosted digest, durable checkpoint and GitHub-only failure/overdue alerts | Oversized Slack file pilot remains allocation-fenced; keep disabled or explicitly approve separate canary reconciliation; Healthchecks stays disabled |
+| F-06 | Authenticated allowlist, amendment/acceptance contracts and approved live encrypted feedback intake | Both live runs captured zero eligible commands; actual feedback-driven delivery proof belongs to the controlled vertical slice |
+| F-07 | Transactional new/existing adoption, neutral disabled references, capability/routing fixtures, bounded private artifacts/retention | Native CLI now authenticates as Claude Max; usable capacity and independent live review remain unproven after the agreed reset |
+| F-08 | PR #93 merged at f04b28dad6189251c49b88605cd38300a8af25af: protected core, actual HTTP progressive/SLO/rollback drills, durable uncertain-effect reconciliation and neutral disabled distribution | Each adopter supplies and proves its real protected provider, known-good baseline, durable backend and target health before enabling production |
+
+PR #91 merged bounded private artifacts; PR #92 merged the always-refusing placeholder deploy fence; PR #93 merged the production core. All seven required checks passed on each exact candidate, including the maintained Linux suite and actual offline container drill. Fixture/manual harness merges do not constitute autonomous delivery receipts or the twenty-delivery rollout threshold.
+
+Next live sequence: resolve worker/attachment decisions; after existing subscription capacity resets, prove separate protected reviewer/verifier runs, restore paused review/security checks, run shadow eligibility, obtain the concrete authority activation decision, deliver one approved controlled feature through merge/digest/feedback, then collect twenty genuine eligible deliveries before broadening autonomy. No metered fallback, provider switch, invented production service or fabricated proof is authorized.
