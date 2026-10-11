@@ -11,23 +11,22 @@ name: Claude Security Review
 # Tradeoff (recorded so it isn't lost): the dedicated scanner did diff-aware
 # finding dedup + SARIF/code-scanning annotations. The prompt approach is the
 # `security` agent told to audit the diff — structure is enforced by the prompt's
-# format contract + the format-lint step, not by the action. gitleaks (secrets) +
-# dependency-review (CVEs) remain UNCONDITIONAL hard gates on every push, so the
-# secret/dependency axes are never weakened by this swap.
+# format contract + the format-lint step, not by the action. gitleaks and dependency-review retain their separately configured scopes.
+# This model job keeps the draft, dependency and release exemptions below;
+# its success cannot substitute for protected factory evidence.
 #
 # COST CONTROLS (T-153):
 #   - OAuth token, not API key → no metered spend.
-#   - Triggers on opened/ready_for_review/reopened ONLY — NOT synchronize, so a
-#     push storm on an open PR does not re-run the LLM scan on every commit.
+#   - Every updated eligible PR head receives a security check.
+#     Concurrency cancels superseded heads; quota failure blocks completion.
 #   - Sonnet 4.6, not Opus — adequate for diff-scoped SAST, far cheaper if a key
 #     is ever used as a fallback.
 #   - concurrency cancels superseded runs.
 
 on:
   pull_request:
-    # NOT synchronize — one LLM security pass when a PR opens / is marked ready,
-    # not on every push (that was the per-push cost driver).
-    types: [opened, ready_for_review, reopened]
+    # Security evidence must cover the updated candidate head.
+    types: [opened, synchronize, ready_for_review, reopened]
     branches: [main]
   workflow_dispatch:
 

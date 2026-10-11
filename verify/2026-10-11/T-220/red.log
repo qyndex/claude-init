@@ -1,0 +1,12 @@
+# TDD ledger — red — T-220
+ledger_format: 2
+timestamp: 2026-10-11T06:53:35.301675+00:00
+command: bash .claude/scripts/test/factory-activation-planning.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 14, in <module>
+AssertionError: generic policy-bound planning failed: usage: factory-ruleset-plan.py [-h] --app-id APP_ID --output OUTPUT
+factory-ruleset-plan.py: error: unrecognized arguments: --policy /private/var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmpo8rjaf2i/policy.json --ruleset-id 73
+

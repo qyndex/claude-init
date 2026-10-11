@@ -1,33 +1,33 @@
 {
   "runner": "shell-acceptance-recorder",
-  "source_sha": "503b6df9d988495a7e266f58306a8e66dbe8b476",
+  "source_sha": "580a5cbd06f378fcce1458d642a944f931c41bea",
   "independent_attestation": false,
   "commands": [
     "bash .claude/scripts/test/factory-coordinator.sh",
-    "bash .claude/scripts/test/factory-workflows.sh",
-    "bash .claude/scripts/test/candidate-evidence.sh"
+    "bash .claude/scripts/test/autonomous-ship.sh",
+    "bash .claude/scripts/test/factory-activation-planning.sh"
   ],
   "testResults": [
     {
       "assertionResults": [
         {
-          "fullName": "AC-1: authenticated policy and archive rejection fixtures",
+          "fullName": "AC-1: actual contract acceptance suite, see acceptance.log",
           "status": "passed"
         },
         {
-          "fullName": "AC-2: exact candidate binding, conditional merge and receipt fixtures",
+          "fullName": "AC-2: actual contract acceptance suite, see acceptance.log",
           "status": "passed"
         },
         {
-          "fullName": "AC-3: unified request-only route regression",
+          "fullName": "AC-3: actual contract acceptance suite, see acceptance.log",
           "status": "passed"
         },
         {
-          "fullName": "AC-4: disabled configuration and preflight protected pins",
+          "fullName": "AC-4: actual contract acceptance suite, see acceptance.log",
           "status": "passed"
         },
         {
-          "fullName": "AC-5: stale head, foreign producer, runtime and API failure rejection",
+          "fullName": "AC-5: actual contract acceptance suite, see acceptance.log",
           "status": "passed"
         }
       ]

@@ -1,5 +1,5 @@
 ## Evidence Bundle — Spec 009 (009-protected-factory-activation)
-Spec: `specs/active/009-protected-factory-activation.md` · Commit: `dfca2eb`
+Spec: `specs/active/009-protected-factory-activation.md` · Commit: `580a5cb`
 
 ### Acceptance criteria (5/5 proven)
 | AC | Proven by | Result |
@@ -12,7 +12,7 @@ Spec: `specs/active/009-protected-factory-activation.md` · Commit: `dfca2eb`
 
 ### Smoke test (exit codes are load-bearing)
 ```
-# Smoke test — 2026-10-11T17:43:59+11:00
+# Smoke test — 2026-10-11T18:05:56+11:00
 $ bash .claude/scripts/verify.sh
 
 → Integration coverage gate

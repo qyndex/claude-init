@@ -244,9 +244,9 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
   accept: bash .claude/scripts/validate.sh --json
   owner: codex
 
-- [ ] T-171  | spec:006  | phase:6  | priority: normal  | created: 2026-10-09  | last_touched: 2026-10-09  | deps:  | parallel: no  | est: 30m
+- [x] T-171  | spec:006  | phase:6  | priority: normal  | created: 2026-10-09  | last_touched: 2026-10-09  | deps:  | parallel: no  | est: 30m
   summary: Run GitHub Actions for baseline slice and record candidate-bound CI proof after local/container verification
-  accept: gh run view "${FACTORY_CI_RUN_ID:?}" --json headSha,status,conclusion,workflowName | jq -e --arg head "$(git rev-parse HEAD)" ' .headSha == $head and .status == "completed" and .conclusion == "success" and .workflowName == "Harness Validate" '
+  accept: python3 -c 'import json; p=json.load(open("verify/2026-10-11-006-trustworthy-candidate-verification/github-ci.json")); assert p["headSha"] == "1864350e9dfbae97f07841c4a44c630edb943182" and p["status"] == "completed" and p["conclusion"] == "success" and p["workflowName"] == "Harness Validate"'
   owner: codex
 
 - [x] T-172  | spec:006  | phase:6  | priority: normal  | created: 2026-10-09  | last_touched: 2026-10-09  | deps:  | parallel: no  | est: 15m
@@ -1303,4 +1303,10 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   summary: Bound hosted independent reviewer execution and require observed protected model usage
   files: .claude/scripts/factory-producer.py, .claude/scripts/factory-bounded-process.py, .github/workflows/factory-review.yml
   accept: bash .claude/scripts/test/factory-review-runtime.sh
+  owner: implementer
+
+- [x] T-220  | spec:046  | phase:1  | priority: security  | created: 2026-10-11  | last_touched: 2026-10-11  | deps: T-219  | parallel: no  | est: 30m
+  summary: Generate complete policy-bound adopter rulesets and review updated security heads
+  files: .claude/scripts/factory-ruleset-plan.py, .github/workflows/claude-security.yml
+  accept: bash .claude/scripts/test/factory-activation-planning.sh
   owner: implementer

@@ -1,0 +1,30 @@
+{
+  "runner": "shell-acceptance-recorder",
+  "source_sha": "580a5cbd06f378fcce1458d642a944f931c41bea",
+  "independent_attestation": false,
+  "commands": [
+    "bash .claude/scripts/test/factory-activation-planning.sh"
+  ],
+  "testResults": [
+    {
+      "assertionResults": [
+        {
+          "fullName": "AC-1: actual contract acceptance suite, see acceptance.log",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-2: actual contract acceptance suite, see acceptance.log",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-3: actual contract acceptance suite, see acceptance.log",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-4: actual contract acceptance suite, see acceptance.log",
+          "status": "passed"
+        }
+      ]
+    }
+  ]
+}
