@@ -1,3 +1,9 @@
+# TDD ledger — green — T-213
+ledger_format: 2
+timestamp: 2026-10-11T13:29:07+11:00
+command: bash .claude/scripts/test/factory-container.sh
+exit_code: 0
+---
 AC-1: actual fake-daemon client enforces pinned image/executable, nonroot read-only offline resource bounds, candidate-only mount and no inherited coordinator credentials; intent/presence precede launch
 AC-2: lost creation acknowledgement reconciles exact created daemon identity; absent unacknowledged creation remains uncertain and cannot release replay
 AC-3: foreign daemon labels, failed removal/contact and candidate hardlinks block; durable presence permits idempotent absent cleanup without reviving task authority
