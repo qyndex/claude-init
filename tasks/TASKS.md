@@ -1274,3 +1274,9 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   files: .claude/scripts/factory-adopt.py, factory/runtime.example.json, factory/feedback.example.json, docs/FACTORY-ADOPTER-SETUP.md
   accept: bash .claude/scripts/test/factory-distribution.sh
   owner: implementer
+
+- [ ] T-215  | spec:041  | phase:1  | priority: security  | created: 2026-10-11  | last_touched: 2026-10-11  | deps: T-214  | parallel: no  | est: 30m
+  summary: Bound private worker/probe output and conservatively retain terminal artifacts with sanitized metrics
+  files: .claude/scripts/factory-bounded-process.py, .claude/scripts/factory-private-artifacts.py, .claude/scripts/factory-worker-guard.py, .claude/scripts/factory-supervisor.py, .claude/scripts/factory-routing.py, .claude/scripts/factory-container.py, .claude/scripts/factory-claude-probe.py
+  accept: bash .claude/scripts/test/factory-private-artifacts.sh
+  owner: implementer

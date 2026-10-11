@@ -84,6 +84,9 @@ def supervised(db, task, command, cwd, attempts, timeout, lease, lock_fd, resour
         raise ValueError('foreground command required')
     if not 1 <= timeout <= 21600 or not 3 <= lease <= 3600:
         raise ValueError('invalid supervision bounds')
+    output_limit=(resources or {}).get('output_limit_bytes',1000000)
+    if type(output_limit) is not int or not 1024<=output_limit<=8000000:
+        raise ValueError('worker output bound invalid')
     execution = (resources or {}).get('execution')
     if execution is not None:
         module = importlib.util.spec_from_file_location('container_adapter', Path(__file__).with_name('factory-container.py'))
@@ -131,12 +134,13 @@ def supervised(db, task, command, cwd, attempts, timeout, lease, lock_fd, resour
                    FACTORY_RESOURCE_NAMESPACE=namespace, FACTORY_SERVICES=json.dumps(endpoints),
                    TMPDIR=str(directory.resolve()))
         with (directory / 'worker.log').open('wb') as log:
+            os.chmod(directory/'worker.log',0o600)
             alive_read, alive_write = os.pipe()
             inherited = (lock_fd, *(channel.fileno() for channel in allocated))
             guard = [sys.executable, str(Path(__file__).resolve().with_name('factory-worker-guard.py')),
                      '--watch-fd', str(alive_read), '--inherit-fds', json.dumps(inherited),
                      '--db', str(db), '--task', task, '--owner', owner, '--token', str(token),
-                     '--outcome', str(directory.resolve() / 'guardian.json')]
+                     '--outcome', str(directory.resolve() / 'guardian.json'), '--output-limit', str(output_limit)]
             if execution is not None:
                 guard += ['--execution', json.dumps(execution)]
             guard += ['--', *command]

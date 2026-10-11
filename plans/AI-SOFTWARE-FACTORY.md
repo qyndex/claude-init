@@ -220,3 +220,5 @@ Implement an offline Linux container adapter and obtain actual Docker isolation/
 Spec 039 actual Linux Docker isolation drill passed on source 13c7f3e11ae40633de2e8ba2a3c7e0724e0b6db0 in GitHub run 38105551625 attempt 1. Native CI proof is implementation evidence, not independent verifier authority; required full-suite and final merge checks remain pending.
 
 Spec 039 merged in PR #89 at d72ba160c4daafdce445411586b1e00ef158c119 with all seven required checks and actual final-head Linux isolation/maintained-suite proof. Next spec 040 completes neutral dependency/configuration distribution without live activation. Remaining F-07 privacy/retention and F-08 protected generic deployment contracts follow sequentially.
+
+Spec 040 merged in PR #90 at ae99ee3927f68af0e88914d2db9abeb4bd3624b6 with all seven required checks. Spec 041 now bounds private worker/probe/Docker/Git output and provides sanitized metrics plus conservative terminal-attempt retention. Real local flooding/held-pipe/filesystem fixtures pass; actual Linux integration remains pending before this spec is completed. F-08 reusable protected deployment/SLO/rollback contracts follow.
