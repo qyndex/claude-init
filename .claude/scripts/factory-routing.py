@@ -7,6 +7,7 @@ import importlib.util
 import json
 import math
 import os
+import pwd
 from pathlib import Path
 import re
 import signal
@@ -17,8 +18,15 @@ import tempfile
 import time
 import uuid
 
-spec=importlib.util.spec_from_file_location('supervisor',Path(__file__).with_name('factory-supervisor.py'))
-supervisor=importlib.util.module_from_spec(spec);spec.loader.exec_module(supervisor)
+class LazySupervisor:
+    def __init__(self):self.module=None
+    def __getattr__(self,name):
+        if self.module is None:
+            spec=importlib.util.spec_from_file_location('supervisor',Path(__file__).with_name('factory-supervisor.py'))
+            self.module=importlib.util.module_from_spec(spec);spec.loader.exec_module(self.module)
+        return getattr(self.module,name)
+
+supervisor=LazySupervisor()
 FLOORS={'planning':{'foreground','model-selection','structured-output'},'implementation':{'foreground','model-selection','structured-output'},'review':{'foreground','model-selection','structured-output','tool-free','separate-run'},'verification':{'acceptance-accounting','isolated-run'},'security':{'security-scan','isolated-run'},'browser':{'browser-e2e','isolated-run'},'reporting':{'delivery-receipts','durable-state'}}
 LOCATIONS={'planning':'local','implementation':'local','review':'actions','verification':'actions','security':'actions','browser':'actions','reporting':'actions'}
 FIELDS={'schema_version','enabled','repository','source_roots','stacks','roles','runtimes'}
@@ -185,6 +193,7 @@ def probe(runtime):
 
 
 def choose(profile,role,platform,root,probe_fn=probe):
+    require(start_installation(Path(root).resolve()) is None,'registered capacity API requires controlled start action; unavailable')
     validate(profile);require(profile['enabled'] is True,'routing not configured/enabled');require(role in profile['roles'] and platform==LOCATIONS[role],'role unavailable on this authority platform')
     stacks=stack_readiness(profile,root);route=profile['roles'][role];observations=[]
     for index,name in enumerate([route['primary'],*route['fallbacks']]):
@@ -194,6 +203,91 @@ def choose(profile,role,platform,root,probe_fn=probe):
         if result['available'] and result['quota']!='exhausted':
             return {'schema_version':1,'role':role,'runtime':name,'model':runtime['model'],'fallback_index':index,'fallback_reason':None if index==0 else 'primary-unavailable','stacks':stacks,'profile_sha256':hashlib.sha256(canonical(profile).encode()).hexdigest(),'observations':observations,'independent_verdict':False}
     return {'schema_version':1,'role':role,'blocked':'capacity-unavailable','profile_sha256':hashlib.sha256(canonical(profile).encode()).hexdigest(),'observations':observations,'independent_verdict':False}
+
+
+
+def start_bytes(path,private_file=False):
+    path=Path(path)
+    require(path.is_absolute() and path.resolve()==path and not path.is_symlink(),'start control path not canonical')
+    if private_file:
+        require(path.parent.stat().st_uid==os.getuid() and stat.S_IMODE(path.parent.stat().st_mode)==0o700,'start control parent not private')
+    fd=os.open(path,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK)
+    try:
+        info=os.fstat(fd)
+        require(stat.S_ISREG(info.st_mode) and info.st_nlink==1 and info.st_size<=8000000,'start control file invalid')
+        if private_file:require(info.st_uid==os.getuid() and stat.S_IMODE(info.st_mode)==0o600,'start control file not private')
+        with os.fdopen(fd,'rb',closefd=False) as stream:raw=stream.read(8000001)
+        require(len(raw)<=8000000,'start control bytes exceeded');return raw
+    finally:os.close(fd)
+
+
+def start_installation(root):
+    """Stdlib-only OS registry read; no candidate environment/config selection."""
+    home=Path(pwd.getpwuid(os.getuid()).pw_dir)
+    require(home.is_absolute() and home.resolve()==home and home.is_dir(),'start OS home not canonical')
+    directory=home/'.local/state/factory-required-intake';latch=home/'.factory-intake-required'
+    if not directory.exists() and not latch.exists():return None
+    require(directory.resolve()==directory and directory.is_dir() and directory.stat().st_uid==os.getuid()
+            and stat.S_IMODE(directory.stat().st_mode)==0o700 and latch.exists(),'start registry missing or unsafe')
+    latched=decode(start_bytes(latch));info=latch.stat()
+    require(info.st_uid==os.getuid() and stat.S_IMODE(info.st_mode)==0o600,'start latch not private')
+    records=decode(start_bytes(directory/'registry.json',True))
+    require(isinstance(latched,dict) and set(latched)=={'schema_version','bindings'} and type(latched['schema_version']) is int
+            and latched['schema_version']==1 and isinstance(latched['bindings'],dict)
+            and isinstance(records,dict) and set(records)=={'schema_version','roots'} and type(records['schema_version']) is int
+            and records['schema_version']==1 and isinstance(records['roots'],dict)
+            and set(records['roots'])==set(latched['bindings']) and 0<len(records['roots'])<=1000,'start registry schema differs')
+    fields={'repository','authority_root','candidate_root','contract','database','profile','policy','contract_sha256'}
+    matched=[]
+    for key,entry in records['roots'].items():
+        require(isinstance(entry,dict) and set(entry)==fields and entry['authority_root']==key
+                and isinstance(entry['repository'],str) and re.fullmatch(r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+',entry['repository'])
+                and isinstance(entry['contract_sha256'],str) and re.fullmatch(r'[a-f0-9]{64}',entry['contract_sha256'])
+                and latched['bindings'][key]==entry['contract_sha256'],'start registry entry differs')
+        for name in fields-{'repository','contract_sha256'}:
+            require(isinstance(entry[name],str) and Path(entry[name]).is_absolute() and Path(entry[name]).resolve()==Path(entry[name]),'start registry path malformed')
+        if str(root) in {entry['candidate_root'],entry['authority_root']}:matched.append(entry)
+    require(len(matched)<=1,'start registry selection ambiguous')
+    return matched[0] if matched else None
+
+
+def start_boundary(profile,root,database,task,role,request_id=None,action_id=None):
+    """Read-only bootstrap before model probes, helper execution or runtime writes."""
+    root=Path(root).resolve();database=Path(database);entry=start_installation(root)
+    detected=False
+    if database.exists():
+        require(database.is_absolute() and database.resolve()==database and database.is_file() and not database.is_symlink(),'start database not canonical')
+        with sqlite3.connect(database.as_uri()+'?mode=ro',uri=True) as db:
+            db.execute('PRAGMA trusted_schema=OFF')
+            tables={row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+            detected='runtime_intake_required' in tables or any(name.startswith('intake_') for name in tables)
+    descriptor=profile.get('mandatory_intake') if isinstance(profile,dict) else None
+    if entry is None:
+        require(not detected and descriptor is None and request_id is None and action_id is None,'required start installation unavailable')
+        return None
+    require(str(root)==entry['candidate_root'] and str(database)==entry['database'],'start candidate/store installation differs')
+    config=decode(start_bytes(entry['contract'],True))
+    require(hashlib.sha256(canonical(config).encode()).hexdigest()==entry['contract_sha256'],'start contract pin differs')
+    require(isinstance(config,dict) and config.get('repository')==entry['repository']
+            and all(config.get(name)==entry[name] for name in ('candidate_root','authority_root','database','profile','policy')),'start installation contract differs')
+    expected_profile=decode(start_bytes(entry['profile'],True))
+    require(canonical(profile)==canonical(expected_profile),'start supplied profile differs')
+    directory=Path(__file__).resolve().parent;ledger_path=directory/'factory-ledger.py'
+    files=config.get('trusted_files')
+    require(isinstance(files,dict) and str(ledger_path) in files
+            and all(ledger_path!=Path(entry[name]) and Path(entry[name]) not in ledger_path.parents for name in ('candidate_root','authority_root')),
+            'start bootstrap ledger pin missing or candidate-owned')
+    require(hashlib.sha256(start_bytes(ledger_path)).hexdigest()==files[str(ledger_path)],'start ledger bootstrap changed')
+    spec=importlib.util.spec_from_file_location('routing_start_ledger',ledger_path)
+    ledger=importlib.util.module_from_spec(spec);spec.loader.exec_module(ledger)
+    controller=ledger.intake_boundary(entry['authority_root'],database,entry['policy'],task,request_id,entry['profile'])
+    require(controller is not None,'required start controller unavailable')
+    policy=decode(start_bytes(entry['policy'],True))
+    require(policy.get('runtime',{}).get('roles_by_task',{}).get(task)==role,'start role differs from protected task role')
+    controller.start_scope(request_id,task,action_id)
+    # T241 owns durable start reconciliation; T242/243 assemble the guarded
+    # wrapper/claim protocol. Direct native safe-mode suppresses project hooks.
+    raise ValueError('mandatory guarded worker start unavailable until wrapper and owned claim protocol are assembled')
 
 
 def worker_usage(attempt, runtime):
@@ -216,9 +310,10 @@ def worker_usage(attempt, runtime):
     return {'usage':'reported','usage_scope':'conversation','models':tokens,'estimated_api_usd':estimate,'estimated_api_usd_scope':'conversation','actual_spend_usd':None}
 
 
-def run(profile,role,platform,root,database,task,attempts,timeout=1800,resources=None):
+def run(profile,role,platform,root,database,task,attempts,timeout=1800,resources=None,*,intake_request=None,intake_action=None):
     require(isinstance(task,str) and re.fullmatch(r'T-[1-9][0-9]*',task),'runtime task ID invalid')
     root=Path(root).resolve()
+    start_boundary(profile,root,database,task,role,intake_request,intake_action)
     require(platform=='local' and role in {'planning','implementation'},'only local planning/implementation can launch workers here')
     database=Path(database);attempts=Path(attempts)
     require(database.is_absolute() and database.resolve()==database and database.parent!=root.resolve() and root.resolve() not in database.parents and database.parent.stat().st_uid==os.getuid() and stat.S_IMODE(database.parent.stat().st_mode)==0o700,'runtime state must be private outside candidate')
@@ -267,7 +362,9 @@ def run(profile,role,platform,root,database,task,attempts,timeout=1800,resources
 
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--config',required=True);parser.add_argument('--root',required=True);parser.add_argument('--role',required=True);parser.add_argument('--platform',choices=['local','actions'],default='local');args=parser.parse_args()
-    root=Path(args.root).resolve();profile=protected(Path(args.config),[root]);print(canonical(choose(profile,args.role,args.platform,root)))
+    root=Path(args.root).resolve()
+    require(start_installation(root) is None,'registered routing CLI requires controlled start action; capacity-only invocation unsupported')
+    profile=protected(Path(args.config),[root]);print(canonical(choose(profile,args.role,args.platform,root)))
 
 
 if __name__=='__main__':

@@ -1414,9 +1414,9 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-request-intake.sh enqueue-guard
   owner: implementer
 
-- [ ] T-240  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-239  | parallel: no  | est: 5m
+- [x] T-240  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-239  | parallel: no  | est: 5m
   summary: Gate routing task start with current intake action and existing claim scope authority
-  files: .claude/scripts/factory-routing.py, .claude/scripts/factory-intake.py, .claude/scripts/test/factory-request-intake.sh
+  files: .claude/scripts/factory-routing.py, .claude/scripts/factory-intake.py, .claude/scripts/test/factory-request-intake.sh, .claude/scripts/test/factory-intake-start-guard.sh
   accept: bash .claude/scripts/test/factory-request-intake.sh start-guard
   owner: implementer
 

@@ -1,0 +1,7 @@
+# TDD ledger — green — T-240
+ledger_format: 2
+timestamp: 2026-10-13T10:49:37+11:00
+command: bash .claude/scripts/test/factory-request-intake.sh start-guard
+exit_code: 0
+---
+start-guard: installed API/CLI omission/profile/store/action/authority bypasses reject before probe/effect; direct safe-mode mandatory start fenced; unregistered OFF behavior unchanged

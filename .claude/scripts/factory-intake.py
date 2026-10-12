@@ -818,6 +818,34 @@ class Intake:
         require(len(selected)==1,'enqueue approved task no longer eligible')
         return decision,selected[0]
 
+    def start_scope(self, request_id, task, action_id):
+        """Validate a queued action against actual approved ledger authority.
+
+        This read-only check neither mints a claim nor permits an unsupported
+        native worker. Supervisor-derived owner/fence propagation is separate.
+        """
+        require(hex_value(action_id,64),'current task start action required')
+        decision,selected=self.enqueue_scope(request_id,task)
+        policy=decode(read_file(self.config['policy'],65536,True))
+        spec_id=Path(selected['spec']).name.split('-',1)[0];approved=policy['specs'][spec_id]
+        revision=next(item['sha256'] for item in selected['evidence'] if item['kind']=='spec')
+        with self.transaction() as db:
+            row=db.execute('SELECT * FROM tasks WHERE id=?',(task,)).fetchone()
+            effect=db.execute('SELECT * FROM intake_actions WHERE id=?',(action_id,)).fetchone()
+            require(row is not None and row['state']=='queued' and row['owner'] is None and row['revision']==revision,'start task is not an unclaimed approved queue item')
+            authority=decode(row['authority']) if row['authority'] is not None else None
+            require(isinstance(authority,dict) and set(authority)=={'spec','revision','deps','ac_ids','allowed_paths'}
+                    and authority['spec']==spec_id and authority['revision']==revision
+                    and authority['deps']==decode(row['deps']) and set(authority['ac_ids'])==set(approved['ac_ids'])
+                    and authority['allowed_paths']==approved['allowed_paths'],'start actual task authority differs')
+            require(effect is not None and effect['request_id']==request_id and effect['status']=='intent','start action absent or unresolved')
+            action=decode(effect['document']);validate_action(action)
+            expected={'schema_version':1,'request_id':request_id,'revision':decision['revision'],
+                      'decision_sha256':digest(canonical(decision).encode()),'kind':'task_start','target':task,
+                      'target_revision':revision,'stage':'queued','paths':approved['allowed_paths'],'principal':None,'fence':None}
+            require(action==expected and action_id==digest(canonical(action).encode()),'start action binding differs')
+        return action
+
     def enqueue_intent(self, request_id, task):
         decision,selected=self.enqueue_scope(request_id,task)
         revision=next(item['sha256'] for item in selected['evidence'] if item['kind']=='spec')
