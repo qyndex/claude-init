@@ -57,3 +57,5 @@ The human selected the guarded factory console on 2026-10-12. Plan050 is approve
 ## Verified implementation checkpoint
 
 The private intake foundation, single-attempt bounded Scout assessment, safe proposed paths, completed-contract context and flat repository roots have passed scoped local tests. T-260–T-262 also passed independent source review. These are source implementation results using fixture executables, not live Claude capability observations or completed spec050 acceptance. Session continuation, action guards, the factory console, Slack bridge and adopter packaging remain in progress. The feature stays disabled until the complete supported-entry evidence and protected activation prerequisites are satisfied.
+
+T-263–T-266, T-235–T-237 and T-239 now also cover immutable clarification/source revisions, same-session continuation, fresh decision checks, strict approval headers/global pause, private draft publication and protected ledger enqueue. Their local fixtures and independent reviews passed. Worker start, mutation guards and the installed console are the next dependent tasks; this remains partial source proof with live activation disabled.
