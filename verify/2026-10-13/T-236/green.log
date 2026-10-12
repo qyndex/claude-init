@@ -1,0 +1,10 @@
+# TDD ledger — green — T-236
+ledger_format: 2
+timestamp: 2026-10-13T00:12:26+11:00
+command: bash .claude/scripts/test/factory-request-intake.sh continuation-freshness
+exit_code: 0
+---
+session-continuation: unbound/global/other-session work clarifies; explicit eligible task binds; proposal/blocked/unresolved dominance and completed-task fencing passed
+clarification-revisions: actual immutable thread APIs preserve identity/tokens; same-thread replies/edits advance; stale/foreign/unresolved/blocked links reject; standalone scope is separate
+decision-freshness: current context/Git/request/evidence/proposal/approval/eligibility/protected pins accept fresh and reject drift without effects or provider reruns
+approval-eligibility: strict first-header approval/spec bindings and malformed/duplicate/body-spoof/OQ rejection; intake/global pause fence fresh permits and valid scope resumes without provider/effects

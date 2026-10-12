@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
+if [ "${1:-all}" = continuation-freshness ]; then
+  for suite in session-continuation clarification-revisions decision-freshness approval-eligibility; do bash "$0" "$suite"; done
+  exit 0
+fi
 if [ "${1:-all}" = approval-eligibility ]; then
   exec bash "$ROOT/.claude/scripts/test/factory-intake-approval-eligibility.sh"
 fi

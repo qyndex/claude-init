@@ -1396,7 +1396,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-request-intake.sh assessment-outcome
   owner: implementer
 
-- [ ] T-236  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-266  | parallel: no  | est: 5m
+- [x] T-236  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-266  | parallel: no  | est: 5m
   summary: Verify integrated session continuation clarification revisions freshness and approval controls
   files: .claude/scripts/factory-intake.py, .claude/scripts/test/factory-request-intake.sh
   accept: bash .claude/scripts/test/factory-request-intake.sh continuation-freshness
