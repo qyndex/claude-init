@@ -1,0 +1,7 @@
+# TDD ledger — green — T-264
+ledger_format: 2
+timestamp: 2026-10-12T23:52:57+11:00
+command: bash .claude/scripts/test/factory-request-intake.sh clarification-revisions
+exit_code: 0
+---
+clarification-revisions: actual immutable thread APIs preserve identity/tokens; same-thread replies/edits advance; stale/foreign/unresolved/blocked links reject; standalone scope is separate

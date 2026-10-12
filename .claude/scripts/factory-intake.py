@@ -188,6 +188,13 @@ class Intake:
                 CREATE TABLE IF NOT EXISTS intake_assessments (
                     request_id TEXT PRIMARY KEY REFERENCES intake_requests(id),
                     revision TEXT NOT NULL,status TEXT NOT NULL,result TEXT,reason TEXT);
+                CREATE TABLE IF NOT EXISTS intake_proposals (
+                    id TEXT PRIMARY KEY,head_request TEXT NOT NULL REFERENCES intake_requests(id),
+                    number INTEGER NOT NULL,state TEXT NOT NULL);
+                CREATE TABLE IF NOT EXISTS intake_proposal_revisions (
+                    request_id TEXT PRIMARY KEY REFERENCES intake_requests(id),proposal_id TEXT NOT NULL REFERENCES intake_proposals(id),
+                    number INTEGER NOT NULL,parent_request TEXT,request_revision TEXT NOT NULL,kind TEXT NOT NULL,
+                    UNIQUE(proposal_id,number));
                 CREATE TABLE IF NOT EXISTS intake_events (
                     sequence INTEGER PRIMARY KEY,request_id TEXT,event TEXT NOT NULL);
             '''
@@ -227,10 +234,11 @@ class Intake:
     def receipt(identity, revision, token):
         return {'request_id':identity,'revision':revision,'delivery_token':token}
 
-    def submit_console(self, session, text, ref, *, parent=None, delivery_token=None):
+    def submit_console(self, session, text, ref, *, parent=None, delivery_token=None, _lineage_kind="clarification"):
         import uuid
         self.ready()
         require(hex_value(session,32), 'unknown console session')
+        require(_lineage_kind in {'clarification','source_edit'} and (_lineage_kind!='source_edit' or parent is not None),'proposal revision kind invalid')
         request = {'schema_version':1,'source_kind':'claude','origin':'human','session':session,
                    'submission_key':None,'delivery_token':delivery_token,'source_revision':'pending',
                    'parent_request':parent,'actor':'local:'+str(os.getuid()),
@@ -248,13 +256,25 @@ class Intake:
                 document = decode(previous['document'])
                 require(all(document[name]==request[name] for name in REQUEST_FIELDS-{'source_revision','submission_key'}),
                         'conflicting intake delivery retry')
+                if parent is not None:
+                    linked=db.execute('SELECT kind FROM intake_proposal_revisions WHERE request_id=?',(previous['id'],)).fetchone()
+                    require(linked is not None and linked['kind']==_lineage_kind,'conflicting proposal revision retry')
                 return self.receipt(previous['id'],previous['revision'],delivery_token)
+            lineage=None
             if parent is not None:
-                previous = db.execute('SELECT document FROM intake_requests WHERE id=?',(parent,)).fetchone()
+                previous = db.execute('SELECT document,revision,status,decision FROM intake_requests WHERE id=?',(parent,)).fetchone()
                 require(previous is not None, 'unknown intake parent')
                 document = decode(previous['document'])
                 require(all(document[name]==request[name] for name in ('session','actor','repository','ref','source_kind')),
                         'foreign intake parent')
+                require(digest(canonical(document).encode())==previous['revision'],'parent request bytes differ')
+                lineage=db.execute('SELECT r.*,p.head_request,p.state,p.number AS head_number FROM intake_proposal_revisions r JOIN intake_proposals p ON p.id=r.proposal_id WHERE r.request_id=?',(parent,)).fetchone()
+                require(lineage is not None and lineage['head_request']==parent and lineage['state']=='active'
+                        and lineage['request_revision']==previous['revision'] and previous['decision'] is not None,'parent proposal unknown, unresolved, blocked or superseded')
+                settled=decode(previous['decision']);validate_decision(settled)
+                require(settled['request_id']==parent and settled['revision']==previous['revision']
+                        and settled['disposition'] in {'new_feature','changed_requirement','defect','clarify'}
+                        and settled['next_action'] in {'draft','question'},'parent is not a settled proposal or clarification')
             sequence = row['sequence']+1
             identity = uuid.uuid4().hex
             token = uuid.uuid4().hex
@@ -265,6 +285,11 @@ class Intake:
             db.execute('INSERT INTO intake_requests(id,source_key,document,revision,status) VALUES(?,?,?,?,?)',
                        (identity,key,canonical(request),revision,'submitted'))
             db.execute('INSERT INTO intake_request_sessions VALUES(?,?,?)',(identity,session,sequence))
+            if lineage is not None:
+                number=lineage['head_number']+1
+                db.execute('INSERT INTO intake_proposal_revisions VALUES(?,?,?,?,?,?)',(identity,lineage['proposal_id'],number,parent,revision,_lineage_kind))
+                db.execute("UPDATE intake_proposals SET head_request=?,number=?,state='pending' WHERE id=?",(identity,number,lineage['proposal_id']))
+                db.execute('INSERT INTO intake_events(request_id,event) VALUES(?,?)',(parent,'proposal_revision_superseded'))
             db.execute('INSERT INTO intake_delivery_tokens VALUES(?,?)',(token,identity))
             db.execute('INSERT INTO intake_events(request_id,event) VALUES(?,?)',(identity,'submitted'))
             return self.receipt(identity,revision,token)
@@ -363,6 +388,62 @@ class Intake:
                                        {'kind':'repository','ref':'tasks/TASKS.md','sha256':digest(text.encode())}]})
         return result
 
+    def proposal_revision(self, request_id):
+        self.ready()
+        with self.transaction() as db:
+            row=db.execute('SELECT r.*,p.head_request,p.state FROM intake_proposal_revisions r JOIN intake_proposals p ON p.id=r.proposal_id WHERE r.request_id=?',(request_id,)).fetchone()
+            require(row is not None,'unknown proposal lineage')
+            source=db.execute('SELECT revision FROM intake_requests WHERE id=?',(request_id,)).fetchone()
+            require(source is not None and source['revision']==row['request_revision'],'proposal request revision differs')
+            return {'proposal_id':row['proposal_id'],'number':row['number'],'parent_request':row['parent_request'],
+                    'kind':row['kind'],'request_revision':row['request_revision'],'current':row['head_request']==request_id,'state':row['state']}
+
+    @staticmethod
+    def settle_proposal(db, request_id, request, result):
+        wanted=result['disposition'] in {'new_feature','changed_requirement','defect','clarify'} and result['next_action'] in {'draft','question'}
+        bound=db.execute('SELECT * FROM intake_proposal_revisions WHERE request_id=?',(request_id,)).fetchone()
+        if bound is None:
+            if not wanted:return
+            require(request['parent_request'] is None,'proposal parent binding missing')
+            db.execute("INSERT INTO intake_proposals VALUES(?,?,1,'active')",(request_id,request_id))
+            db.execute("INSERT INTO intake_proposal_revisions VALUES(?,?,1,NULL,?,'initial')",(request_id,request_id,result['revision']))
+        else:
+            head=db.execute('SELECT head_request FROM intake_proposals WHERE id=?',(bound['proposal_id'],)).fetchone()
+            require(head is not None and head['head_request']==request_id and bound['request_revision']==result['revision'],'proposal head changed before outcome')
+            state='active' if wanted else 'blocked' if result['disposition'] in {'blocked','unsupported'} else 'resolved'
+            db.execute('UPDATE intake_proposals SET state=? WHERE id=?',(state,bound['proposal_id']))
+
+    def edit_console(self, session, source_request, text, ref, *, delivery_token=None):
+        return self.submit_console(session,text,ref,parent=source_request,delivery_token=delivery_token,_lineage_kind='source_edit')
+
+    def proposal_context(self, request_id, request):
+        """Bounded minimal prior human text, without delivery/actor/session data."""
+        with self.transaction() as db:
+            current=db.execute('SELECT * FROM intake_proposal_revisions WHERE request_id=?',(request_id,)).fetchone()
+            if current is None or current['number']==1:return None
+            head=db.execute('SELECT head_request FROM intake_proposals WHERE id=?',(current['proposal_id'],)).fetchone()
+            require(head is not None and head['head_request']==request_id,'proposal revision is superseded')
+            require(current['kind'] in {'clarification','source_edit'} and current['parent_request']==request['parent_request']
+                    and current['request_revision']==digest(canonical(request).encode()),'current proposal lineage differs')
+            rows=db.execute('SELECT p.*,r.document,r.revision FROM intake_proposal_revisions p JOIN intake_requests r ON r.id=p.request_id WHERE p.proposal_id=? AND p.number<? ORDER BY p.number LIMIT 1001',(current['proposal_id'],current['number']))
+            history=[]
+            for index,row in enumerate(rows):
+                require(index<1000 and row['number']==index+1,'proposal history incomplete or oversized')
+                prior=decode(row['document']);validate_request(prior,self.config['limits'])
+                require(row['revision']==row['request_revision']==digest(canonical(prior).encode())
+                        and prior['parent_request']==row['parent_request']
+                        and all(prior[name]==request[name] for name in ('session','actor','repository','ref','source_kind')),'proposal history binding differs')
+                require((index==0 and row['kind']=='initial' and row['parent_request'] is None)
+                        or (index>0 and row['kind'] in {'clarification','source_edit'} and row['parent_request']==history[-1]['request_id']),
+                        'proposal revision graph is ambiguous')
+                history.append({'request_id':row['request_id'],'revision':row['revision'],'text':prior['text'],
+                                'kind':row['kind'],'parent_request':row['parent_request']})
+                require(len(canonical(history).encode())<=self.config['limits']['context_bytes'],'proposal history byte budget exceeded')
+            require(len(history)==current['number']-1,'proposal history missing')
+            require(current['parent_request']==history[-1]['request_id'],'proposal current parent differs')
+            return {'proposal_id':current['proposal_id'],'number':current['number'],'kind':current['kind'],
+                    'parent_request':current['parent_request'],'history':history}
+
     def session_context(self, request_id, request):
         """Latest relevant earlier human request from this exact console session."""
         with self.transaction() as db:
@@ -455,6 +536,7 @@ class Intake:
             require(current['status']=='submitted' or current['decision']==canonical(result), 'intake decision race')
             db.execute("UPDATE intake_requests SET decision=?,status='decided' WHERE id=?",(canonical(result),request_id))
             db.execute('INSERT INTO intake_events(request_id,event) VALUES(?,?)',(request_id,'lightweight_decision'))
+            self.settle_proposal(db,request_id,request,result)
             if action=='stop':
                 db.execute('UPDATE intake_identity SET paused=1 WHERE id=1')
                 db.execute('UPDATE control SET paused=1 WHERE id=1')
@@ -560,6 +642,8 @@ class Intake:
         # Delivery/retry secrets and private actor/session metadata never enter context.
         public_request={'text':request['text'],'repository':request['repository'],'ref':request['ref'],
                         'request_id':request_id,'revision':revision}
+        lineage=self.proposal_context(request_id,request)
+        if lineage is not None:public_request['proposal']=lineage
         limits=self.config['limits']
         def collect(tree, paths, roots, evidence):
             remaining=deadline-time.monotonic();require(remaining>0,'assessment collection deadline')
@@ -587,6 +671,7 @@ class Intake:
         if 'tasks/TASKS.md' in documents:
             evidence.add(('repository','tasks/TASKS.md',documents['tasks/TASKS.md']['sha256']))
         evidence.add(('request',request_id,revision))
+        if lineage is not None:evidence.update(('request',item['request_id'],item['revision']) for item in lineage['history'])
         evidence.update(('repository',item['path'],item['sha256']) for item in context['sources'])
         for entry in eligible:
             ledger=next((item for item in entry['evidence'] if item['ref']=='tasks/TASKS.md'),None)
@@ -710,6 +795,7 @@ class Intake:
                        (assessment_status,None if raw_result is None else canonical(raw_result),result['blocked_reason'],request_id))
             db.execute('UPDATE intake_requests SET status=?,decision=? WHERE id=?',(final_status,canonical(result),request_id))
             db.execute('INSERT INTO intake_events(request_id,event) VALUES(?,?)',(request_id,'assessment_'+final_status))
+            self.settle_proposal(db,request_id,request,result)
         return result
 
 
