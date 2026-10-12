@@ -78,7 +78,15 @@ def validate_assessment(runtime):
 
 
 def validate(profile):
-    require(isinstance(profile,dict) and set(profile)==FIELDS and type(profile['schema_version']) is int and profile['schema_version']==1 and type(profile['enabled']) is bool,'routing schema invalid')
+    require(isinstance(profile,dict) and set(profile) in (FIELDS,FIELDS|{'mandatory_intake'}) and type(profile['schema_version']) is int and profile['schema_version']==1 and type(profile['enabled']) is bool,'routing schema invalid')
+    mandatory=profile.get('mandatory_intake')
+    if mandatory is not None:
+        require(profile['enabled'] and isinstance(mandatory,dict) and set(mandatory)=={'required','contract','database'}
+                and mandatory['required'] is True,'mandatory intake descriptor invalid')
+        for name in ('contract','database'):
+            require(isinstance(mandatory[name],str) and Path(mandatory[name]).is_absolute()
+                    and Path(mandatory[name]).resolve()==Path(mandatory[name]),'mandatory intake path invalid')
+        require(Path(mandatory['contract']).parent==Path(mandatory['database']).parent,'mandatory intake store binding invalid')
     if not profile['enabled']:
         require(profile['repository'] is None and profile['source_roots']==[] and profile['stacks']=={} and profile['roles']=={} and profile['runtimes']=={},'disabled template must remain neutral');return
     require(isinstance(profile['repository'],str) and re.fullmatch(r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+',profile['repository']),'routing repository invalid')

@@ -3,6 +3,7 @@
 import hashlib
 import json
 import os
+import pwd
 from pathlib import Path
 import re
 import stat
@@ -55,7 +56,7 @@ def read_file(path, maximum, protected=False):
     path = Path(path)
     if protected:
         private(path)
-    descriptor = os.open(path, os.O_RDONLY|getattr(os, 'O_NOFOLLOW', 0))
+    descriptor = os.open(path, os.O_RDONLY|getattr(os, 'O_NOFOLLOW', 0)|getattr(os, 'O_NONBLOCK', 0))
     try:
         info = os.fstat(descriptor)
         require(stat.S_ISREG(info.st_mode) and info.st_nlink==1 and info.st_size<=maximum,
@@ -152,6 +153,32 @@ def header_values(raw, field):
     return [] if field not in values else [values[field]]
 
 
+def installation_lookup(root):
+    """Read fixed OS-account metadata without executing an unpinned dependency."""
+    home=Path(pwd.getpwuid(os.getuid()).pw_dir)
+    require(home.is_absolute() and home.resolve()==home and home.is_dir(),'OS account home must be canonical')
+    directory=home/'.local/state/factory-required-intake';latch=home/'.factory-intake-required'
+    if not directory.exists() and not latch.exists():return None
+    private(directory,True)
+    require(latch.exists() and (directory/'registry.json').exists(),'required installation registry lost; explicit recovery required')
+    latched=decode(read_file(latch,8000000,True));records=decode(read_file(directory/'registry.json',8000000,True))
+    require(isinstance(latched,dict) and set(latched)=={'schema_version','bindings'} and type(latched['schema_version']) is int
+            and latched['schema_version']==1 and isinstance(latched['bindings'],dict)
+            and isinstance(records,dict) and set(records)=={'schema_version','roots'} and type(records['schema_version']) is int
+            and records['schema_version']==1 and isinstance(records['roots'],dict)
+            and set(records['roots'])==set(latched['bindings']) and 0<len(records['roots'])<=1000,'required installation registry malformed')
+    fields={'repository','authority_root','candidate_root','contract','database','profile','policy','contract_sha256'}
+    for name,entry in records['roots'].items():
+        require(isinstance(entry,dict) and set(entry)==fields and entry['authority_root']==name
+                and isinstance(entry['repository'],str) and re.fullmatch(r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+',entry['repository'])
+                and isinstance(entry['contract_sha256'],str) and re.fullmatch(r'[a-f0-9]{64}',entry['contract_sha256'])
+                and latched['bindings'][name]==entry['contract_sha256'],'required installation binding malformed')
+        for key in fields-{'repository','contract_sha256'}:
+            require(isinstance(entry[key],str) and Path(entry[key]).is_absolute()
+                    and Path(entry[key]).resolve()==Path(entry[key]),'required installation path malformed')
+    return records['roots'].get(str(Path(root).resolve()))
+
+
 class Intake:
     """Owner-only additive projection bound to exact protected contract bytes."""
     def __init__(self, path):
@@ -163,6 +190,25 @@ class Intake:
         require(self.config['enabled'], 'intake entry disabled')
         self.database = Path(self.config['database'])
         self.binding = digest(canonical(self.config).encode())
+        profile=decode(read_file(self.config['profile'],65536,True))
+        mandatory=profile.get('mandatory_intake')
+        selected=installation_lookup(self.config['authority_root'])
+        installation_ledger=None
+        if mandatory is not None or selected is not None:
+            ledger_path=Path(__file__).with_name('factory-ledger.py').resolve()
+            require(str(ledger_path) in self.config['trusted_files'],'required installation ledger pin missing')
+            module=importlib.util.spec_from_file_location('intake_installation_ledger',ledger_path)
+            installation_ledger=importlib.util.module_from_spec(module);module.loader.exec_module(installation_ledger)
+            require(installation_ledger.required_installation(self.config['authority_root'])==selected,'required installation changed during bootstrap')
+            if selected is not None:
+                require(selected==installation_ledger.installation_entry({**self.config,'_contract_path':str(self.path)},self.binding)
+                        and self.database.exists(),'known required installation lost or changed; explicit recovery required')
+            if mandatory is not None:
+                require(isinstance(mandatory,dict) and set(mandatory)=={'required','contract','database'} and mandatory['required'] is True
+                        and mandatory['contract']==str(self.path) and mandatory['database']==str(self.database),'required installation descriptor differs')
+        if mandatory is not None:
+            installation_ledger.register_installation({**self.config,'_contract_path':str(self.path)},self.binding)
+
         if not self.database.exists():
             descriptor = os.open(self.database, os.O_RDWR|os.O_CREAT|os.O_EXCL|getattr(os,'O_NOFOLLOW',0), 0o600)
             os.close(descriptor)
@@ -172,6 +218,10 @@ class Intake:
             require(not db.execute("SELECT name FROM sqlite_master WHERE type IN ('trigger','view')").fetchall(),
                     'executable intake schema rejected')
             tables = {row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+            if any(name.startswith('intake_') for name in tables) or 'runtime_intake_required' in tables:
+                require({'intake_identity','runtime_intake_required'}<=tables,'required intake registry missing; explicit recovery required')
+                row=db.execute('SELECT repository,database_path,contract_path,contract_sha256,authority_root,candidate_root,profile_path,required FROM runtime_intake_required WHERE id=1').fetchall()
+                require(row==[self.required_binding()], 'required intake store binding changed')
             bindings = []
             for table in ('runtime_route_repository','worker_effect_repository','feedback_checkpoint_identity','intake_identity'):
                 if table in tables:
@@ -189,6 +239,10 @@ class Intake:
         self.store = runtime.Store(self.database)
         with self.transaction() as db:
             schema = '''
+                CREATE TABLE IF NOT EXISTS runtime_intake_required (
+                    id INTEGER PRIMARY KEY CHECK(id=1),repository TEXT NOT NULL,database_path TEXT NOT NULL,
+                    contract_path TEXT NOT NULL,contract_sha256 TEXT NOT NULL,authority_root TEXT NOT NULL,
+                    candidate_root TEXT NOT NULL,profile_path TEXT NOT NULL,required INTEGER NOT NULL CHECK(required=1));
                 CREATE TABLE IF NOT EXISTS intake_identity (
                     id INTEGER PRIMARY KEY CHECK(id=1),version INTEGER NOT NULL,
                     repository TEXT NOT NULL,contract_sha256 TEXT NOT NULL,
@@ -231,8 +285,13 @@ class Intake:
             for statement in schema.split(';'):
                 if statement.strip():
                     db.execute(statement)
+            db.execute('INSERT OR IGNORE INTO runtime_intake_required VALUES(1,?,?,?,?,?,?,?,?)',self.required_binding())
             db.execute('INSERT OR IGNORE INTO intake_identity VALUES(1,1,?,?,?,0)',
                        (self.config['repository'],self.binding,str(self.path)))
+
+    def required_binding(self):
+        return (self.config['repository'],str(self.database),str(self.path),self.binding,
+                self.config['authority_root'],self.config['candidate_root'],self.config['profile'],1)
 
     def transaction(self):
         return self.store.transaction()
@@ -243,6 +302,8 @@ class Intake:
         with self.transaction() as db:
             require(not db.execute("SELECT name FROM sqlite_master WHERE type IN ('trigger','view')").fetchall(),
                     'executable intake schema rejected')
+            required=db.execute('SELECT repository,database_path,contract_path,contract_sha256,authority_root,candidate_root,profile_path,required FROM runtime_intake_required WHERE id=1').fetchall()
+            require([tuple(row) for row in required]==[self.required_binding()],'required intake registry changed')
             row = db.execute('SELECT version,repository,contract_sha256,contract_path,paused FROM intake_identity WHERE id=1').fetchall()
             require([tuple(value) for value in row]==[(1,self.config['repository'],self.binding,str(self.path),0)],
                     'intake unavailable or paused')
@@ -748,6 +809,58 @@ class Intake:
         finally:
             if file_descriptor is not None:os.close(file_descriptor)
             if descriptor is not None:os.close(descriptor)
+
+    def enqueue_scope(self, request_id, task):
+        decision=self.fresh_decision(request_id)
+        require(decision['disposition']=='existing_approved' and decision['next_action']=='resume'
+                and decision['task']==task,'enqueue requires the exact current approved task')
+        selected=[item for item in self.eligible() if all(item[name]==decision[name] for name in ('spec','plan','task'))]
+        require(len(selected)==1,'enqueue approved task no longer eligible')
+        return decision,selected[0]
+
+    def enqueue_intent(self, request_id, task):
+        decision,selected=self.enqueue_scope(request_id,task)
+        revision=next(item['sha256'] for item in selected['evidence'] if item['kind']=='spec')
+        action={'schema_version':1,'request_id':request_id,'revision':decision['revision'],
+                'decision_sha256':digest(canonical(decision).encode()),'kind':'task_enqueue',
+                'target':task,'target_revision':revision,'stage':'queued','paths':[], 'principal':None,'fence':None}
+        validate_action(action);identity=digest(canonical(action).encode())
+        with self.transaction() as db:
+            row=db.execute('SELECT * FROM intake_actions WHERE id=?',(identity,)).fetchone()
+            if row is None:
+                db.execute("INSERT INTO intake_actions VALUES(?,?,?,'started',NULL)",(identity,request_id,canonical(action)))
+            else:
+                require(row['request_id']==request_id and row['document']==canonical(action)
+                        and row['status'] in {'started','unknown','completed'},'enqueue action binding changed')
+                observed=db.execute('SELECT revision,state FROM tasks WHERE id=?',(task,)).fetchone()
+                require(observed is not None and tuple(observed)==(revision,'queued'),'unresolved enqueue requires exact existing effect')
+        return identity,action
+
+    def complete_enqueue(self, identity, action):
+        self.enqueue_scope(action['request_id'],action['target'])
+        result={'action_id':identity,'task':action['target'],'revision':action['target_revision'],'state':'queued'}
+        with self.transaction() as db:
+            row=db.execute('SELECT document FROM intake_actions WHERE id=?',(identity,)).fetchone()
+            task=db.execute('SELECT revision,state FROM tasks WHERE id=?',(action['target'],)).fetchone()
+            require(row is not None and row['document']==canonical(action) and task is not None
+                    and tuple(task)==(action['target_revision'],'queued'),'enqueue effect differs')
+            db.execute("UPDATE intake_actions SET status='completed',result=? WHERE id=?",(canonical(result),identity))
+        return result
+
+    def enqueue_task(self, request_id):
+        decision=self.fresh_decision(request_id)
+        require(decision['next_action']=='resume','enqueue requires approved continuation')
+        path=Path(__file__).with_name('factory-ledger.py').resolve()
+        require(str(path) in self.config['trusted_files'],'enqueue ledger closure pin missing')
+        self.ready()
+        import importlib.util
+        spec=importlib.util.spec_from_file_location('intake_ledger',path)
+        ledger=importlib.util.module_from_spec(spec);spec.loader.exec_module(ledger)
+        ledger.import_task(self.config['authority_root'],self.database,decision['task'],self.config['policy'],
+                           intake_request=request_id,intake_profile=self.config['profile'])
+        decision,selected=self.enqueue_scope(request_id,decision['task'])
+        revision=next(item['sha256'] for item in selected['evidence'] if item['kind']=='spec')
+        return {'task':decision['task'],'revision':revision,'state':'queued'}
 
     def lightweight(self, request_id):
         self.ready()

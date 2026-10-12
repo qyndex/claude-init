@@ -7,15 +7,216 @@ import hashlib
 import importlib.util
 import json
 import os
+import pwd
+import tempfile
 import stat
 import sqlite3
 from pathlib import Path
 import re
 import sys
 
-spec = importlib.util.spec_from_file_location('runtime', Path(__file__).with_name('factory-runtime.py'))
-runtime = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(runtime)
+class LazyRuntime:
+    def __init__(self):self.module=None
+    def __getattr__(self,name):
+        if self.module is None:
+            spec=importlib.util.spec_from_file_location('runtime',Path(__file__).with_name('factory-runtime.py'))
+            self.module=importlib.util.module_from_spec(spec);spec.loader.exec_module(self.module)
+        return getattr(self.module,name)
+
+
+runtime=LazyRuntime()
+
+
+def intake_require(condition,message):
+    if not condition:raise ValueError(message)
+
+
+def intake_decode(raw):
+    def pairs(items):
+        result={}
+        for key,value in items:
+            intake_require(key not in result,'duplicate protected intake field');result[key]=value
+        return result
+    return json.loads(raw,object_pairs_hook=pairs,parse_constant=lambda value:(_ for _ in ()).throw(ValueError('nonfinite protected intake field')))
+
+
+def intake_bytes(path,protected=False,check_only=False):
+    path=Path(path)
+    intake_require(path.is_absolute() and path.resolve()==path and not path.is_symlink(),'canonical intake file required')
+    if protected:
+        info=path.parent.stat()
+        intake_require(info.st_uid==os.getuid() and stat.S_IMODE(info.st_mode)==0o700,'private intake parent required')
+    descriptor=os.open(path,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK)
+    try:
+        info=os.fstat(descriptor)
+        intake_require(stat.S_ISREG(info.st_mode) and info.st_nlink==1 and (check_only or info.st_size<=8000000),'intake file type/link/bound invalid')
+        if protected:intake_require(info.st_uid==os.getuid() and stat.S_IMODE(info.st_mode)==0o600,'private intake file required')
+        if check_only:return b''
+        with os.fdopen(descriptor,'rb',closefd=False) as source:raw=source.read(8000001)
+        intake_require(len(raw)<=8000000,'intake file bound exceeded');return raw
+    finally:os.close(descriptor)
+
+
+def installation_entry(config,sha):
+    return {'repository':config['repository'],'authority_root':config['authority_root'],
+            'candidate_root':config['candidate_root'],'contract':config['_contract_path'],
+            'database':config['database'],'profile':config['profile'],'policy':config['policy'],'contract_sha256':sha}
+
+
+def registry_paths():
+    home=Path(pwd.getpwuid(os.getuid()).pw_dir)
+    intake_require(home.is_absolute() and home.resolve()==home and home.is_dir(),'OS account home must be canonical')
+    return home,home/'.local/state/factory-required-intake',home/'.factory-intake-required'
+
+
+def read_installations():
+    home,directory,latch=registry_paths();index=directory/'registry.json'
+    if not directory.exists() and not latch.exists():return {}
+    intake_require(directory.resolve()==directory and directory.is_dir() and directory.stat().st_uid==os.getuid()
+                   and stat.S_IMODE(directory.stat().st_mode)==0o700 and latch.exists() and index.exists(),
+                   'required installation registry lost; explicit recovery required')
+    latch_raw=intake_bytes(latch);info=latch.stat()
+    intake_require(info.st_uid==os.getuid() and stat.S_IMODE(info.st_mode)==0o600,'required installation latch not private')
+    latched=intake_decode(latch_raw);records=intake_decode(intake_bytes(index,True))
+    intake_require(isinstance(latched,dict) and set(latched)=={'schema_version','bindings'} and type(latched['schema_version']) is int
+                   and latched['schema_version']==1 and isinstance(latched['bindings'],dict)
+                   and isinstance(records,dict) and set(records)=={'schema_version','roots'} and type(records['schema_version']) is int
+                   and records['schema_version']==1 and isinstance(records['roots'],dict)
+                   and set(records['roots'])==set(latched['bindings']) and 0<len(records['roots'])<=1000,'required installation registry malformed')
+    fields={'repository','authority_root','candidate_root','contract','database','profile','policy','contract_sha256'}
+    for root,entry in records['roots'].items():
+        intake_require(isinstance(entry,dict) and set(entry)==fields and entry['authority_root']==root
+                       and isinstance(entry['repository'],str) and re.fullmatch(r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+',entry['repository'])
+                       and isinstance(entry['contract_sha256'],str) and re.fullmatch(r'[a-f0-9]{64}',entry['contract_sha256'])
+                       and latched['bindings'][root]==entry['contract_sha256'],'required installation binding malformed')
+        for name in fields-{'repository','contract_sha256'}:
+            intake_require(isinstance(entry[name],str) and Path(entry[name]).is_absolute() and Path(entry[name]).resolve()==Path(entry[name]),'required installation path malformed')
+    return records['roots']
+
+
+def required_installation(root):
+    return read_installations().get(str(Path(root).resolve()))
+
+
+def register_installation(config,sha):
+    home,directory,latch=registry_paths();index=directory/'registry.json';entry=installation_entry(config,sha)
+    intake_require(home.stat().st_uid==os.getuid() and not stat.S_IMODE(home.stat().st_mode)&0o022,'OS account home ownership unsafe')
+    for protected in (directory,latch):
+        intake_require(all(Path(config[name])!=protected and Path(config[name]) not in protected.parents
+                           for name in ('authority_root','candidate_root')),'required installation metadata overlaps candidate/authority')
+    existing=read_installations()
+    if entry['authority_root'] in existing:
+        intake_require(existing[entry['authority_root']]==entry,'required installation binding cannot be rebound');return
+    for parent in [home/'.local',home/'.local/state',directory]:
+        intake_require(parent.resolve()==parent,'required installation parent linked')
+        try:parent.mkdir(mode=0o700)
+        except FileExistsError:pass
+        else:
+            owner=os.open(parent.parent,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW)
+            try:os.fsync(owner)
+            finally:os.close(owner)
+        info=parent.stat();intake_require(info.st_uid==os.getuid() and not stat.S_IMODE(info.st_mode)&0o022,'required installation parent unsafe')
+    intake_require(stat.S_IMODE(directory.stat().st_mode)==0o700,'required installation directory not private')
+    descriptor=os.open(directory/'registry.lock',os.O_RDWR|os.O_CREAT|os.O_NOFOLLOW,0o600)
+    try:
+        info=os.fstat(descriptor)
+        intake_require(stat.S_ISREG(info.st_mode) and info.st_nlink==1 and info.st_uid==os.getuid()
+                       and stat.S_IMODE(info.st_mode)==0o600,'required installation lock unsafe')
+        fcntl.flock(descriptor,fcntl.LOCK_EX|fcntl.LOCK_NB)
+        if index.exists() or latch.exists():existing=read_installations()
+        intake_require(entry['authority_root'] not in existing or existing[entry['authority_root']]==entry,'required installation binding cannot be rebound')
+        existing={**existing,entry['authority_root']:entry}
+        def atomic(path,value):
+            fd,name=tempfile.mkstemp(prefix='.factory-required-',dir=path.parent)
+            try:
+                with os.fdopen(fd,'wb') as output:
+                    output.write(json.dumps(value,sort_keys=True,separators=(',',':'),allow_nan=False).encode());output.flush();os.fsync(output.fileno())
+                os.replace(name,path)
+                parent=os.open(path.parent,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW)
+                try:os.fsync(parent)
+                finally:os.close(parent)
+            finally:
+                if os.path.exists(name):os.unlink(name)
+        # Latch first: a lost/partial index update fences all affected entries.
+        atomic(latch,{'schema_version':1,'bindings':{root:row['contract_sha256'] for root,row in existing.items()}})
+        atomic(index,{'schema_version':1,'roots':existing})
+    finally:os.close(descriptor)
+
+
+def intake_boundary(root,database,policy_path,task,request_id=None,profile_path=None):
+    """Stdlib-only bootstrap: no controller/helper execution before exact closure pins."""
+    root=Path(root).resolve();database=Path(database);policy_path=Path(policy_path)
+    installation=required_installation(root)
+    if installation is not None:
+        intake_require(str(database)==installation['database'] and str(policy_path)==installation['policy']
+                       and (profile_path is None or str(profile_path)==installation['profile']),'required installation selection differs')
+        profile_path=installation['profile']
+    policy=intake_decode(intake_bytes(policy_path.resolve()))
+    intake=policy.get('intake')
+    if intake is not None:
+        intake_require(isinstance(intake,dict) and set(intake)=={'enabled','dataflow','context_paths'}
+                       and type(intake['enabled']) is bool,'intake policy enablement invalid')
+    required=installation is not None or bool(intake and intake['enabled']);profile=None;descriptor=None
+    if profile_path is not None:
+        profile_path=Path(profile_path);profile=intake_decode(intake_bytes(profile_path,True))
+        descriptor=profile.get('mandatory_intake')
+        if descriptor is not None:
+            intake_require(isinstance(descriptor,dict) and set(descriptor)=={'required','contract','database'}
+                           and descriptor['required'] is True,'mandatory intake descriptor invalid')
+            expected=policy.get('runtime',{}).get('routing_profile_sha256')
+            intake_require(hashlib.sha256(json.dumps(profile,sort_keys=True,separators=(',',':'),ensure_ascii=False,allow_nan=False).encode()).hexdigest()==expected
+                           and profile.get('repository')==policy.get('repository'),'mandatory profile policy binding differs')
+            intake_require(str(database)==descriptor['database'],'mandatory intake database differs');required=True
+    if required:
+        intake_require(database.exists(),'required intake store absent')
+        intake_bytes(database,True,True)
+    tables=set();binding=None;identity=None
+    if database.exists():
+        intake_require(database.is_file(),'runtime store is not a file')
+        with closing(sqlite3.connect(database.resolve().as_uri()+'?mode=ro',uri=True)) as db:
+            db.execute('PRAGMA trusted_schema=OFF')
+            tables={row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+            detected='runtime_intake_required' in tables or any(name.startswith('intake_') for name in tables)
+            required=required or detected
+            if required:
+                intake_require(not db.execute("SELECT name FROM sqlite_master WHERE type IN ('trigger','view')").fetchall(),'executable required intake schema rejected')
+                intake_require({'runtime_intake_required','intake_identity'}<=tables,'required intake registry absent')
+                rows=db.execute('SELECT repository,database_path,contract_path,contract_sha256,authority_root,candidate_root,profile_path,required FROM runtime_intake_required WHERE id=1').fetchall()
+                intake_require(len(rows)==1,'required intake registry invalid');binding=rows[0]
+                rows=db.execute('SELECT version,repository,contract_sha256,contract_path,paused FROM intake_identity WHERE id=1').fetchall()
+                intake_require(len(rows)==1,'required intake identity absent');identity=rows[0]
+    if not required:
+        intake_require(request_id is None,'intake reference has no required store');return None
+    intake_bytes(database,True,True)
+    intake_require(isinstance(request_id,str) and re.fullmatch(r'[a-f0-9]{32}',request_id),'current intake request required')
+    contract_path=Path(binding[2]);config=intake_decode(intake_bytes(contract_path,True))
+    canonical=lambda value:json.dumps(value,sort_keys=True,separators=(',',':'),ensure_ascii=False,allow_nan=False)
+    config_sha=hashlib.sha256(canonical(config).encode()).hexdigest()
+    if installation is not None:
+        selected={**config,'_contract_path':str(contract_path)}
+        intake_require(installation==installation_entry(selected,config_sha),'required installation contract digest differs')
+    expected=(config['repository'],config['database'],str(contract_path),config_sha,config['authority_root'],config['candidate_root'],config['profile'],1)
+    intake_require(config['enabled'] is True and binding==expected and identity==(1,config['repository'],config_sha,str(contract_path),0),'required intake binding changed or paused')
+    intake_require(str(database)==config['database'] and str(root)==config['authority_root'] and str(policy_path)==config['policy']
+                   and config['repository']==policy.get('repository'),'foreign required intake selection')
+    if profile_path is not None:intake_require(str(profile_path)==config['profile'],'required intake profile differs')
+    if descriptor is not None:intake_require(descriptor['contract']==str(contract_path),'mandatory intake contract differs')
+    roots=[Path(config[name]) for name in ('candidate_root','authority_root')]
+    directory=Path(__file__).resolve().parent
+    closure={str(directory/name) for name in ('factory-ledger.py','factory-intake.py','factory-runtime.py','factory-routing.py','factory-intake-scout.py','factory-bounded-process.py','factory-supervisor.py')}
+    if policy.get('runtime',{}).get('execution') is not None:closure.add(str(directory/'factory-container.py'))
+    files=config.get('trusted_files')
+    intake_require(isinstance(files,dict) and closure|{config['profile'],config['policy']}<=set(files),'required controller closure pins missing')
+    for name,sha in files.items():
+        path=Path(name)
+        intake_require(isinstance(sha,str) and re.fullmatch(r'[a-f0-9]{64}',sha)
+                       and all(path!=base and base not in path.parents for base in roots),'required intake pin invalid or candidate-owned')
+        intake_require(hashlib.sha256(intake_bytes(path,path==Path(config['profile']) or path==Path(config['policy']))).hexdigest()==sha,'required intake trusted bytes changed')
+    # The exact controller/recursive helper bytes are now verified before loading.
+    spec=importlib.util.spec_from_file_location('ledger_intake',directory/'factory-intake.py')
+    controller=importlib.util.module_from_spec(spec);spec.loader.exec_module(controller)
+    intake_controller=controller.Intake(contract_path);intake_controller.enqueue_scope(request_id,task)
+    return intake_controller
 
 
 def resource_contract(config, namespace, repository=None):
@@ -71,7 +272,8 @@ def parse_ledgers(root):
     return tasks
 
 
-def import_task(root, db_path, task, policy_path):
+def import_task(root, db_path, task, policy_path, *, intake_request=None, intake_profile=None):
+    controller=intake_boundary(root,db_path,policy_path,task,intake_request,intake_profile)
     root = Path(root).resolve()
     lock = root / '.claude/state/locks/memory-plane.oslock'
     lock.parent.mkdir(parents=True, exist_ok=True)
@@ -115,12 +317,17 @@ def import_task(root, db_path, task, policy_path):
             selected[tid] = authority
 
         visit(task)
-        store = runtime.Store(db_path)
+        intent=None if controller is None else controller.enqueue_intent(intake_request,task)
+        store = runtime.Store(db_path) if controller is None else controller.store
+        if controller is not None:controller.enqueue_scope(intake_request,task)
         with store.transaction() as db:
             columns = {row['name'] for row in db.execute('PRAGMA table_info(tasks)')}
             if 'authority' not in columns:
                 db.execute('ALTER TABLE tasks ADD COLUMN authority TEXT')
             for tid, authority in selected.items():
+                if controller is not None and tid!=task:
+                    dependency=db.execute('SELECT state FROM tasks WHERE id=?',(tid,)).fetchone()
+                    intake_require(dependency is not None and dependency['state']=='merged','intake cannot enqueue unselected dependency')
                 deps = json.dumps(authority['deps'])
                 encoded = json.dumps(authority, sort_keys=True)
                 existing = db.execute('SELECT * FROM tasks WHERE id=?', (tid,)).fetchone()
@@ -131,6 +338,7 @@ def import_task(root, db_path, task, policy_path):
                 else:
                     db.execute('INSERT INTO tasks(id,revision,deps,state,authority) VALUES(?,?,?,?,?)',
                                (tid, authority['revision'], deps, 'queued', encoded))
+        if controller is not None:controller.complete_enqueue(*intent)
         return selected
 
 
@@ -197,10 +405,13 @@ def main():
     parser.add_argument('--attempts')
     parser.add_argument('--timeout', type=float, default=1800)
     parser.add_argument('--routing-config')
+    parser.add_argument('--intake-request')
+    parser.add_argument('--intake-profile')
     parser.add_argument('--role', choices=['planning', 'implementation'])
     parser.add_argument('command', nargs=argparse.REMAINDER)
     args = parser.parse_args()
     command = args.command[1:] if args.command[:1] == ['--'] else args.command
+    intake_boundary(args.authority_root,args.db,args.policy,args.task,args.intake_request,args.intake_profile or args.routing_config)
     config = json.loads(Path(args.policy).read_text())
     resources = resource_contract(config.get('runtime', {}), 'assigned-at-claim', config.get('repository'))
     if args.routing_config:
@@ -209,7 +420,7 @@ def main():
         routing, profile, role = routing_contract(config, args.routing_config, args.authority_root, args.cwd, args.db, args.task, args.role)
         previous_umask = os.umask(0o077)
         try:
-            imported = import_task(args.authority_root, args.db, args.task, args.policy)
+            imported = import_task(args.authority_root, args.db, args.task, args.policy,intake_request=args.intake_request,intake_profile=args.intake_profile or args.routing_config)
             result = routing.run(profile, role, 'local', Path(args.cwd), Path(args.db), args.task, Path(args.attempts), timeout=args.timeout, resources=resources)
         finally:
             os.umask(previous_umask)
@@ -217,7 +428,7 @@ def main():
         return result.get('exit_code', 2)
     if args.role or (command and config.get('runtime', {}).get('routing_profile_sha256')):
         parser.error('approved routed task requires its protected profile; command bypass forbidden')
-    imported = import_task(args.authority_root, args.db, args.task, args.policy)
+    imported = import_task(args.authority_root, args.db, args.task, args.policy,intake_request=args.intake_request,intake_profile=args.intake_profile or args.routing_config)
     if not command:
         print(json.dumps({'imported': list(imported), 'delivery_inferred': False}))
         return 0

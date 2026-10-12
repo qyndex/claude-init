@@ -8,7 +8,10 @@ from pathlib import Path
 helper=Path(sys.argv[1])/'.claude/scripts/factory-intake.py';s=importlib.util.spec_from_file_location('m',helper);m=importlib.util.module_from_spec(s);s.loader.exec_module(m)
 def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
 with tempfile.TemporaryDirectory() as d:
- base=Path(d).resolve();private=base/'private';private.mkdir(mode=0o700);candidate=base/'candidate';candidate.mkdir();authority=base/'authority';authority.mkdir()
+ base=Path(d).resolve();account_home=base/'os-account';account_home.mkdir(mode=0o700)
+ import pwd
+ pwd.getpwuid=lambda uid: type('Account',(),{'pw_dir':str(account_home)})()
+ private=base/'private';private.mkdir(mode=0o700);candidate=base/'candidate';candidate.mkdir();authority=base/'authority';authority.mkdir()
  policy=private/'policy.json';profile=private/'profile.json'
  for p in [policy,profile]:p.write_text('{}');p.chmod(0o600)
  config=private/'intake.json';value={'schema_version':1,'enabled':True,'repository':'fixture/intake','candidate_root':str(candidate),'authority_root':str(authority),'database':str(private/'runtime.sqlite'),'profile':str(profile),'policy':str(policy),'trusted_files':{str(p):sha(p) for p in [helper,profile,policy]},'limits':m.DEFAULT_LIMITS}

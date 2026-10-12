@@ -1,0 +1,7 @@
+# TDD ledger — green — T-239
+ledger_format: 2
+timestamp: 2026-10-13T10:35:39+11:00
+command: bash .claude/scripts/test/factory-request-intake.sh enqueue-guard
+exit_code: 0
+---
+enqueue-guard: actual API/CLI omitted/env/registry/profile/privacy/helper-pin/wrong-task/draft/stale/pause bypasses reject before enqueue; exact current T-1 queues alone with durable intent; disabled legacy unchanged

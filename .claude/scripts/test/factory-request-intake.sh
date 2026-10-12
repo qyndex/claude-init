@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
+if [ "${1:-all}" = enqueue-guard ]; then
+  exec bash "$ROOT/.claude/scripts/test/factory-intake-enqueue-guard.sh"
+fi
 if [ "${1:-all}" = proposal ]; then
   exec bash "$ROOT/.claude/scripts/test/factory-intake-proposal.sh"
 fi
@@ -42,7 +45,7 @@ if [ "${1:-all}" = context ]; then
   exec bash "$ROOT/.claude/scripts/test/factory-intake-context.sh"
 fi
 if [ "${1:-all}" = all ]; then
-  for suite in contract migration schema identity pending lightweight context assessment-profile assessment-process assessment-outcome proposed-scope contract-catalog flat-root session-continuation clarification-revisions decision-freshness approval-eligibility proposal; do bash "$0" "$suite"; done
+  for suite in contract migration schema identity pending lightweight context assessment-profile assessment-process assessment-outcome proposed-scope contract-catalog flat-root session-continuation clarification-revisions decision-freshness approval-eligibility proposal enqueue-guard; do bash "$0" "$suite"; done
   exit 0
 fi
 case "${1:-all}" in contract|migration|schema|identity|pending|lightweight) ;; *) echo "Unknown intake test selector" >&2; exit 2 ;; esac
@@ -58,7 +61,10 @@ def reject(fn):
  raise AssertionError('unsafe intake accepted')
 def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
 with tempfile.TemporaryDirectory() as d:
- base=Path(d).resolve();private=base/'private';private.mkdir(mode=0o700);candidate=base/'candidate';candidate.mkdir();authority=base/'authority';authority.mkdir()
+ base=Path(d).resolve();account_home=base/'os-account';account_home.mkdir(mode=0o700)
+ import pwd
+ pwd.getpwuid=lambda uid: type('Account',(),{'pw_dir':str(account_home)})()
+ private=base/'private';private.mkdir(mode=0o700);candidate=base/'candidate';candidate.mkdir();authority=base/'authority';authority.mkdir()
  for name in ['policy.json','profile.json']:
   (private/name).write_text('{}');(private/name).chmod(0o600)
  contract={'schema_version':1,'enabled':True,'repository':'fixture/intake','candidate_root':str(candidate),'authority_root':str(authority),'database':str(private/'runtime.sqlite'),'profile':str(private/'profile.json'),'policy':str(private/'policy.json'),'trusted_files':{str(helper):sha(helper),str(helper.with_name('factory-runtime.py')):sha(helper.with_name('factory-runtime.py')),str(private/'policy.json'):sha(private/'policy.json'),str(private/'profile.json'):sha(private/'profile.json')},'limits':{'request_chars':20000,'context_bytes':500000,'output_bytes':65536,'assessment_seconds':60}}

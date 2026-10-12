@@ -18,7 +18,10 @@ def reject(fn):
  raise AssertionError('hostile assessor profile accepted')
 def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
 with tempfile.TemporaryDirectory() as d:
- base=Path(d).resolve();private=base/'private';private.mkdir(mode=0o700);candidate=base/'candidate';candidate.mkdir()
+ base=Path(d).resolve();account_home=base/'os-account';account_home.mkdir(mode=0o700)
+ import pwd
+ pwd.getpwuid=lambda uid: type('Account',(),{'pw_dir':str(account_home)})()
+ private=base/'private';private.mkdir(mode=0o700);candidate=base/'candidate';candidate.mkdir()
  binary=private/'native';binary.write_text('#!/bin/sh\ntouch '+str(private/'executed')+'\nexit 99\n');binary.chmod(0o700)
  settings=private/'settings.json';settings.write_text('{}');settings.chmod(0o600)
  mcp=private/'mcp.json';mcp.write_text('{"mcpServers":{}}');mcp.chmod(0o600)

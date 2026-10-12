@@ -1408,7 +1408,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-request-intake.sh proposal
   owner: implementer
 
-- [ ] T-239  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-237  | parallel: no  | est: 5m
+- [x] T-239  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-237  | parallel: no  | est: 5m
   summary: Gate ledger enqueue from protected required-intake registry even when callers omit arguments
   files: .claude/scripts/factory-ledger.py, .claude/scripts/factory-intake.py, .claude/scripts/test/factory-request-intake.sh
   accept: bash .claude/scripts/test/factory-request-intake.sh enqueue-guard

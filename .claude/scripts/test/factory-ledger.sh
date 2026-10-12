@@ -24,6 +24,12 @@ def rejects(fn):
 
 with tempfile.TemporaryDirectory() as tmp:
     tmp=Path(tmp); (tmp/'tasks/archive').mkdir(parents=True); (tmp/'specs/active').mkdir(parents=True)
+    import pwd
+    account_home=(tmp/'os-account').resolve();account_home.mkdir(mode=0o700)
+    pwd.getpwuid=lambda uid: type('Account',(),{'pw_dir':str(account_home)})()
+    driver=tmp/'ledger-test-driver.py'
+    driver.write_text('import pwd,runpy,sys\npwd.getpwuid=lambda uid:type("Account",(),{"pw_dir":'+repr(str(account_home))+'})()\nsys.argv=sys.argv[1:]\nrunpy.run_path(sys.argv[0],run_name="__main__")\n')
+
     content='---\nid: 001\nstatus: approved\n---\n\n1. **AC-1**: fixture\n'
     path=tmp/'specs/active/001-fixture.md';path.write_text(content)
     revision=hashlib.sha256(path.read_bytes()).hexdigest()
@@ -77,7 +83,7 @@ with tempfile.TemporaryDirectory() as tmp:
     archive.write_text('- [x] T-900 | spec:001 | deps:\n')
     worker=tmp/'worker.py'
     worker.write_text('import json,os,socket,sys;from pathlib import Path;services=json.loads(os.environ["FACTORY_SERVICES"]);listener=socket.socket(fileno=services["http"]["fd"]);assert listener.getsockname()[1]==services["http"]["port"];Path(services["sqlite"]["directory"]).joinpath("db.sqlite").write_text("isolated");Path(sys.argv[1]).write_text(json.dumps({"namespace":os.environ["FACTORY_RESOURCE_NAMESPACE"],"services":services}));import time;deadline=time.monotonic()+8\nwhile not Path(sys.argv[2]).exists():\n if time.monotonic()>deadline: raise RuntimeError("barrier expired")\n time.sleep(.05)')
-    prefix=[sys.executable,str(scripts/'factory-ledger.py'),'--authority-root',str(tmp),'--policy',str(tmp/'factory.json'),'--db',str(db),'--cwd',str(tmp),'--attempts',str(tmp/'attempts')]
+    prefix=[sys.executable,str(driver),str(scripts/'factory-ledger.py'),'--authority-root',str(tmp),'--policy',str(tmp/'factory.json'),'--db',str(db),'--cwd',str(tmp),'--attempts',str(tmp/'attempts')]
     workers=[subprocess.Popen([*prefix,'--task',f'T-{i}','--',sys.executable,str(worker),str(tmp/f'resource-{i}.json'),str(tmp/'release-workers')]) for i in (10,11)]
     deadline=time.monotonic()+8
     while not all((tmp/f'resource-{i}.json').exists() for i in (10,11)):

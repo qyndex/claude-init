@@ -8,7 +8,10 @@ from pathlib import Path
 helper=Path(sys.argv[1])/'.claude/scripts/factory-intake.py';s=importlib.util.spec_from_file_location('m',helper);m=importlib.util.module_from_spec(s);s.loader.exec_module(m)
 def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
 with tempfile.TemporaryDirectory() as d:
- base=Path(d).resolve();private=base/'private';private.mkdir(mode=0o700);candidate=base/'candidate';candidate.mkdir();authority=base/'authority';authority.mkdir()
+ base=Path(d).resolve();account_home=base/'os-account';account_home.mkdir(mode=0o700)
+ import pwd
+ pwd.getpwuid=lambda uid: type('Account',(),{'pw_dir':str(account_home)})()
+ private=base/'private';private.mkdir(mode=0o700);candidate=base/'candidate';candidate.mkdir();authority=base/'authority';authority.mkdir()
  for folder in ['specs/active','plans/active','tasks']:(authority/folder).mkdir(parents=True)
  source=authority/'specs/active/001-fixture.md';source.write_text('---\nid: 001\nstatus: approved\n---\n**AC-1**: fixture\n')
  (authority/'plans/active/001-fixture.md').write_text('---\nstatus: approved\nspec: specs/active/001-fixture.md\n---\n')
