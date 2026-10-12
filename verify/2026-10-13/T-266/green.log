@@ -1,0 +1,7 @@
+# TDD ledger — green — T-266
+ledger_format: 2
+timestamp: 2026-10-13T00:09:05+11:00
+command: bash .claude/scripts/test/factory-request-intake.sh approval-eligibility
+exit_code: 0
+---
+approval-eligibility: strict first-header approval/spec bindings and malformed/duplicate/body-spoof/OQ rejection; intake/global pause fence fresh permits and valid scope resumes without provider/effects

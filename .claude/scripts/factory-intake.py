@@ -124,6 +124,34 @@ def load_contract(path):
     return value
 
 
+def header_values(raw, field):
+    """Parse the supported flat frontmatter; ambiguous/unsupported headers fail closed."""
+    header=re.match(rb'\A---\r?\n(.*?)\r?\n---(?:\r?\n|\Z)',raw,re.S)
+    if header is None:return []
+    values={}
+    for line in header[1].splitlines():
+        if not line.strip() or line.startswith(b'#'):continue
+        entry=re.fullmatch(rb'([A-Za-z_][A-Za-z0-9_-]*):[ \t]*(.*)',line)
+        if entry is None or entry[1] in values:return []
+        value=entry[2].strip()
+        if value.startswith((b'"',b"'")):
+            quoted=re.fullmatch(rb'([\'"])(.*?)\1(?:[ \t]+#[^\r\n]*)?',value)
+            if quoted is None:return []
+            if quoted[1]==b'"':
+                try:value=json.loads(quoted[1]+quoted[2]+quoted[1]).encode('utf-8')
+                except (ValueError,UnicodeError):return []
+            else:
+                if re.fullmatch(rb"(?:[^']|'')*",quoted[2]) is None:return []
+                value=quoted[2].replace(b"''",b"'")
+        else:
+            value=re.split(rb'[ \t]+#',value,maxsplit=1)[0].strip()
+            if (re.search(rb':[ \t]',value) or value.startswith((b'|',b'>',b'&',b'*'))
+                    or (value.startswith(b'[') and not value.endswith(b']'))
+                    or (value.startswith(b'{') and not value.endswith(b'}'))):return []
+        values[entry[1]]=value
+    return [] if field not in values else [values[field]]
+
+
 class Intake:
     """Owner-only additive projection bound to exact protected contract bytes."""
     def __init__(self, path):
@@ -218,6 +246,16 @@ class Intake:
             row = db.execute('SELECT version,repository,contract_sha256,contract_path,paused FROM intake_identity WHERE id=1').fetchall()
             require([tuple(value) for value in row]==[(1,self.config['repository'],self.binding,str(self.path),0)],
                     'intake unavailable or paused')
+
+    def execution_enabled(self):
+        self.ready()
+        with self.transaction() as db:
+            rows=db.execute('SELECT paused FROM control WHERE id=1').fetchall()
+            require([tuple(row) for row in rows] in ([(0,)],[(1,)]),'intake runtime pause control invalid')
+            return rows[0]['paused']==0
+
+    def execution_ready(self):
+        require(self.execution_enabled(),'intake runtime globally paused')
 
     def pause(self):
         with self.transaction() as db:
@@ -344,6 +382,7 @@ class Intake:
 
 
     def eligible(self):
+        if not self.execution_enabled():return []
         policy = decode(read_file(self.config['policy'],65536,True))
         require(policy.get('repository')==self.config['repository'], 'foreign approved policy')
         root = Path(self.config['authority_root'])
@@ -366,7 +405,7 @@ class Intake:
                 continue
             raw = read_file(source,self.config['limits']['context_bytes'])
             acs = re.findall(r'\*\*(AC-\d+)\*\*',raw.decode())
-            if (digest(raw)!=approved.get('sha256') or not re.search(rb'^status:\s*approved\s*$',raw,re.M)
+            if (digest(raw)!=approved.get('sha256') or header_values(raw,b'status')!=[b'approved']
                     or not acs or len(set(acs))!=len(acs) or set(acs)!=set(approved.get('ac_ids',[]))
                     or not approved.get('allowed_paths') or open_questions(raw.decode())):
                 continue
@@ -374,8 +413,7 @@ class Intake:
             if plan.resolve()!=plan or not plan.is_file():
                 continue
             plan_raw = read_file(plan,self.config['limits']['context_bytes'])
-            if not re.search(rb'^status:\s*approved\s*$',plan_raw,re.M) or not re.search(
-                    rb'^spec:\s*'+re.escape(approved['path'].encode())+rb'\s*$',plan_raw,re.M):
+            if header_values(plan_raw,b'status')!=[b'approved'] or header_values(plan_raw,b'spec')!=[approved['path'].encode()]:
                 continue
             deps = re.search(r'(?:^|\|)\s*deps:\s*([^|]*)',tail)
             dependencies = [value.strip() for value in deps[1].split(',') if value.strip()] if deps else []
@@ -388,7 +426,7 @@ class Intake:
                            'evidence':[{'kind':'spec','ref':approved['path'],'sha256':digest(raw)},
                                        {'kind':'plan','ref':str(plan.relative_to(root)),'sha256':digest(plan_raw)},
                                        {'kind':'repository','ref':'tasks/TASKS.md','sha256':digest(text.encode())}]})
-        return result
+        return result if self.execution_enabled() else []
 
     def proposal_revision(self, request_id):
         self.ready()
@@ -504,7 +542,7 @@ class Intake:
         action/claim checks; this check neither reserves nor starts an action.
         """
         require(hex_value(request_id,32),'fresh decision request identity invalid')
-        self.ready()
+        self.execution_ready()
         with self.transaction() as db:
             row=db.execute('SELECT * FROM intake_requests WHERE id=?',(request_id,)).fetchone()
             binding=db.execute('SELECT document FROM intake_decision_bindings WHERE request_id=?',(request_id,)).fetchone()
@@ -560,7 +598,7 @@ class Intake:
             if lineage is not None:
                 proposal=self.proposal_revision(request_id)
                 require(proposal['current'] and proposal['state']=='active','fresh decision proposal superseded or blocked')
-        self.ready()
+        self.execution_ready()
         with self.transaction() as db:
             current=db.execute('SELECT document,revision,decision,status FROM intake_requests WHERE id=?',(request_id,)).fetchone()
             require(tuple(current)==(row['document'],row['revision'],row['decision'],row['status']), 'fresh decision changed during validation')
@@ -680,10 +718,6 @@ class Intake:
         require(isinstance(specs,dict) and len(specs)<=100,'catalog approved specification list invalid')
         roots=[scout.source_root(value) for value in profile['source_roots']]
         authority=Path(self.config['authority_root']);result=[];seen=set()
-        def header_values(raw,field):
-            header=re.match(rb'\A---\r?\n(.*?)\r?\n---(?:\r?\n|\Z)',raw,re.S)
-            if header is None:return []
-            return [value.strip() for value in re.findall(rb'^'+field+rb':[ \t]*([^\r\n]*)$',header[1],re.M)]
         for identity,approved in specs.items():
             require(isinstance(identity,str) and re.fullmatch(r'\d{3}',identity) and isinstance(approved,dict),'catalog specification entry invalid')
             name=approved.get('path');path=scout.relative(name);scout.permitted(path)

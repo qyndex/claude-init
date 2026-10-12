@@ -1397,10 +1397,10 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   owner: implementer
 
 - [ ] T-236  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-266  | parallel: no  | est: 5m
-  summary: Resolve clarification parents and invalidate changed scope ref policy or source revisions
+  summary: Verify integrated session continuation clarification revisions freshness and approval controls
   files: .claude/scripts/factory-intake.py, .claude/scripts/test/factory-request-intake.sh
   accept: bash .claude/scripts/test/factory-request-intake.sh continuation-freshness
-  owner: implementer
+  owner: verifier
 
 - [ ] T-237  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-236  | parallel: no  | est: 5m
   summary: Publish draft-only proposal slots with idempotent content and no approval promotion
@@ -1570,7 +1570,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-request-intake.sh decision-freshness
   owner: implementer
 
-- [ ] T-266  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-265  | parallel: no  | est: 5m
+- [x] T-266  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-265  | parallel: no  | est: 5m
   summary: Require strict approved frontmatter and honor global pause in runnable eligibility
   files: .claude/scripts/factory-intake.py, .claude/scripts/test/factory-intake-approval-eligibility.sh, .claude/scripts/test/factory-request-intake.sh
   accept: bash .claude/scripts/test/factory-request-intake.sh approval-eligibility
