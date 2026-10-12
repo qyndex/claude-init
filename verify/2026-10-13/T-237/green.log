@@ -1,0 +1,7 @@
+# TDD ledger — green — T-237
+ledger_format: 2
+timestamp: 2026-10-13T00:28:21+11:00
+command: bash .claude/scripts/test/factory-request-intake.sh proposal
+exit_code: 0
+---
+proposal: actual private draft-only assigned slots/current guards, exact replay, immutable edits, hostile paths/links/collisions and unknown-effect reconciliation without approved scope/provider mutation

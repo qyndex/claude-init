@@ -604,6 +604,151 @@ class Intake:
             require(tuple(current)==(row['document'],row['revision'],row['decision'],row['status']), 'fresh decision changed during validation')
         return result
 
+    def proposal_document(self, request_id, decision):
+        with self.transaction() as db:
+            row=db.execute('SELECT document,revision FROM intake_requests WHERE id=?',(request_id,)).fetchone()
+            require(row is not None and row['revision']==decision['revision'],'proposal source revision differs')
+            request=decode(row['document'])
+        validate_request(request,self.config['limits'])
+        require(request['source_kind']=='claude','proposal source requires separate encrypted publication adapter')
+        proposal=self.proposal_revision(request_id)
+        require(proposal['current'] and proposal['state']=='active','proposal head not current')
+        lineage=self.proposal_context(request_id,request)
+        def literal_data(value):
+            text=canonical(value)
+            longest=max((len(match[0]) for match in re.finditer(r'`+',text)),default=0)
+            fence='`'*max(3,longest+1)
+            return [fence+'json',text,fence]
+        lines=['---','status: draft','proposal_id: '+proposal['proposal_id'],'request_id: '+request_id,
+               'request_revision: '+decision['revision'],'---','','# Proposed scope for human review','',
+               'Approval is pending. This draft is not execution authority or verification evidence.','',
+               '## Request','',*literal_data({'text':request['text']}),'','## Proposed behavior','']
+        for intent in decision['intents']:lines+=literal_data(intent)
+        lines+=['','## Proposed acceptance criteria','']
+        for number,intent in enumerate(decision['intents'],1):
+            lines.append(str(number)+'. **AC-'+str(number)+'**: Review and confirm the following proposed behavior.')
+            lines+=literal_data({'summary':intent['summary']})
+        lines+=['','## Open questions','',
+                '- [OQ-1] Confirm intended observable behavior, scope and acceptance criteria before approval.',
+                '- [OQ-2] Review the proposed change against existing approved contracts and delivery controls.',
+                '','## Source bindings','',*literal_data({'request_id':request_id,'revision':decision['revision'],
+                'repository':request['repository'],'ref':request['ref'],'proposal':proposal,
+                'decision_sha256':digest(canonical(decision).encode()),'evidence':decision['evidence']}),
+                '','## Clarification history','',*literal_data(lineage),'']
+        raw='\n'.join(lines).encode('utf-8')
+        require(len(raw)<=self.config['limits']['context_bytes'],'proposal document bound exceeded')
+        target='proposals/'+proposal['proposal_id']+'/'+decision['revision']+'.md'
+        action={'schema_version':1,'request_id':request_id,'revision':decision['revision'],
+                'decision_sha256':digest(canonical(decision).encode()),'kind':'proposal_publish',
+                'target':target,'target_revision':digest(raw),'stage':'draft','paths':[target],
+                'principal':None,'fence':None}
+        validate_action(action)
+        return action,raw
+
+    def proposal_directory(self, action):
+        """Walk only controller-derived private directories using pinned descriptors."""
+        require(relative(action['target']) and action['target']==
+                'proposals/'+self.proposal_revision(action['request_id'])['proposal_id']+'/'+action['revision']+'.md',
+                'proposal assigned target differs')
+        root=private(self.path.parent,True)
+        descriptor=os.open(root,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW)
+        try:
+            for component in Path(action['target']).parts[:-1]:
+                try:os.mkdir(component,0o700,dir_fd=descriptor)
+                except FileExistsError:pass
+                else:os.fsync(descriptor)
+                child=os.open(component,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW,dir_fd=descriptor)
+                info=os.fstat(child)
+                if not (stat.S_ISDIR(info.st_mode) and info.st_uid==os.getuid() and stat.S_IMODE(info.st_mode)==0o700):
+                    os.close(child);require(False,'proposal private directory owner/mode invalid')
+                os.close(descriptor);descriptor=child
+            target=root/action['target']
+            require(target.parent.resolve()==target.parent,'proposal directory moved or linked')
+            return descriptor,target
+        except BaseException:
+            os.close(descriptor);raise
+
+    def complete_proposal(self, action_id, action):
+        result={'action_id':action_id,'path':str(self.path.parent/action['target']),
+                'sha256':action['target_revision'],'request_id':action['request_id'],'revision':action['revision'],'status':'draft'}
+        self.execution_ready()
+        with self.transaction() as db:
+            row=db.execute('SELECT document,status FROM intake_actions WHERE id=?',(action_id,)).fetchone()
+            require(row is not None and row['document']==canonical(action)
+                    and row['status'] in {'started','unknown','completed'},'proposal action binding changed')
+            db.execute("UPDATE intake_actions SET status='completed',result=? WHERE id=?",(canonical(result),action_id))
+        return result
+
+    def publish_proposal(self, request_id):
+        """Publish an assigned local private draft; retries only reconcile exact effects."""
+        decision=self.fresh_decision(request_id)
+        require(decision['next_action']=='draft','proposal publication requires current draft disposition')
+        action,raw=self.proposal_document(request_id,decision)
+        action_id=digest(canonical(action).encode())
+        with self.transaction() as db:
+            row=db.execute('SELECT * FROM intake_actions WHERE id=?',(action_id,)).fetchone()
+            first=row is None
+            if first:
+                db.execute("INSERT INTO intake_actions VALUES(?,?,?,'started',NULL)",(action_id,request_id,canonical(action)))
+            else:
+                require(row['request_id']==request_id and row['document']==canonical(action)
+                        and row['status'] in {'started','unknown','completed'},'proposal action is conflicting or blocked')
+        descriptor=None;file_descriptor=None
+        try:
+            descriptor,target=self.proposal_directory(action)
+            require(self.fresh_decision(request_id)==decision,'proposal decision changed before publication')
+            parent=private(target.parent,True).stat();opened=os.fstat(descriptor)
+            require((parent.st_dev,parent.st_ino)==(opened.st_dev,opened.st_ino),'proposal assigned directory changed')
+            name=target.name;created=False
+            if first:
+                try:
+                    file_descriptor=os.open(name,os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW,0o600,dir_fd=descriptor)
+                    created=True
+                except FileExistsError:pass
+            if created:
+                info=os.fstat(file_descriptor)
+                require(info.st_nlink==1 and info.st_uid==os.getuid() and stat.S_IMODE(info.st_mode)==0o600,'proposal created file binding invalid')
+                with os.fdopen(file_descriptor,'wb',closefd=False) as output:
+                    output.write(raw);output.flush()
+                os.fsync(file_descriptor)
+            else:
+                file_descriptor=os.open(name,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK,dir_fd=descriptor)
+                info=os.fstat(file_descriptor)
+                require(stat.S_ISREG(info.st_mode) and info.st_nlink==1 and info.st_uid==os.getuid()
+                        and stat.S_IMODE(info.st_mode)==0o600 and info.st_size==len(raw),'proposal existing file binding invalid')
+                with os.fdopen(file_descriptor,'rb',closefd=False) as source:observed=source.read(len(raw)+1)
+                require(observed==raw,'proposal existing bytes conflict')
+            os.fsync(descriptor)
+            info=os.fstat(file_descriptor);current=os.stat(name,dir_fd=descriptor,follow_symlinks=False)
+            require(stat.S_ISREG(current.st_mode) and current.st_nlink==1
+                    and (current.st_dev,current.st_ino)==(info.st_dev,info.st_ino)
+                    and target.resolve()==target,'proposal effect path changed')
+            require(self.fresh_decision(request_id)==decision,'proposal decision changed after effect')
+            read_descriptor=os.open(name,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK,dir_fd=descriptor)
+            try:
+                observed_info=os.fstat(read_descriptor)
+                require(stat.S_ISREG(observed_info.st_mode) and observed_info.st_nlink==1
+                        and observed_info.st_uid==os.getuid() and stat.S_IMODE(observed_info.st_mode)==0o600
+                        and observed_info.st_size==len(raw)
+                        and (observed_info.st_dev,observed_info.st_ino)==(info.st_dev,info.st_ino),'proposal final file binding invalid')
+                with os.fdopen(read_descriptor,'rb',closefd=False) as source:observed=source.read(len(raw)+1)
+                after=os.fstat(read_descriptor)
+                require((after.st_size,after.st_mtime_ns,after.st_ctime_ns)==
+                        (observed_info.st_size,observed_info.st_mtime_ns,observed_info.st_ctime_ns)
+                        and observed==raw,'proposal final bytes changed')
+                parent=private(target.parent,True).stat();opened=os.fstat(descriptor);path_info=private(target).stat()
+                require((parent.st_dev,parent.st_ino)==(opened.st_dev,opened.st_ino)
+                        and (path_info.st_dev,path_info.st_ino)==(after.st_dev,after.st_ino),'proposal canonical effect path changed')
+            finally:os.close(read_descriptor)
+            return self.complete_proposal(action_id,action)
+        except BaseException:
+            with self.transaction() as db:
+                db.execute("UPDATE intake_actions SET status='unknown',result=NULL WHERE id=?",(action_id,))
+            raise
+        finally:
+            if file_descriptor is not None:os.close(file_descriptor)
+            if descriptor is not None:os.close(descriptor)
+
     def lightweight(self, request_id):
         self.ready()
         with self.transaction() as db:

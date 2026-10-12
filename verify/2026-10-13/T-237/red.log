@@ -1,0 +1,11 @@
+# TDD ledger — red — T-237
+ledger_format: 2
+timestamp: 2026-10-13T00:27:31+11:00
+command: bash .claude/scripts/test/factory-request-intake.sh proposal
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 132, in <module>
+  File "<stdin>", line 129, in inert_draft
+AssertionError: untrusted Markdown/HTML rendered outside literal fence
