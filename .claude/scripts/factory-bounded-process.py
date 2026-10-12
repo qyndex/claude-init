@@ -20,9 +20,11 @@ def terminate_group(process):
     process.wait(timeout=5)
 
 
-def run(command,*,env,cwd,timeout,limit=1000000,stdin=None,max_timeout=60):
+def run(command,*,env,cwd,timeout,limit=1000000,stdin=None,max_timeout=60,aggregate_limit=None):
     if type(max_timeout) is not int or not 0<max_timeout<=300 or not 0<timeout<=max_timeout or type(limit) is not int or not 1024<=limit<=8000000:
         raise ValueError('subprocess bounds invalid')
+    if aggregate_limit is not None and (type(aggregate_limit) is not int or not 1024<=aggregate_limit<=8000000):
+        raise ValueError('subprocess aggregate bound invalid')
     process=subprocess.Popen(command,env=env,cwd=cwd,stdin=stdin,stdout=subprocess.PIPE,stderr=subprocess.PIPE,start_new_session=True)
     buffers={'stdout':bytearray(),'stderr':bytearray()};deadline=time.monotonic()+timeout
     try:
@@ -36,6 +38,8 @@ def run(command,*,env,cwd,timeout,limit=1000000,stdin=None,max_timeout=60):
                     if not data:selector.unregister(event.fileobj);continue
                     output=buffers[event.data]
                     if len(output)+len(data)>limit:raise ValueError('trusted subprocess output limit')
+                    if aggregate_limit is not None and sum(len(value) for value in buffers.values())+len(data)>aggregate_limit:
+                        raise ValueError('trusted subprocess aggregate output limit')
                     output.extend(data)
             return subprocess.CompletedProcess(command,process.wait(),bytes(buffers['stdout']),bytes(buffers['stderr']))
     finally:

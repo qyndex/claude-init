@@ -1,0 +1,7 @@
+# TDD ledger — green — T-233
+ledger_format: 2
+timestamp: 2026-10-12T21:13:06+11:00
+command: bash .claude/scripts/test/factory-request-intake.sh assessment-profile
+exit_code: 0
+---
+assessment-profile: exact primary model/argv, pinned clean controls and bound observation; hostile overrides, fallback, changed/unsafe artifacts reject; no process launched

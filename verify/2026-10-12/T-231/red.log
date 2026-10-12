@@ -1,0 +1,10 @@
+# TDD ledger — red — T-231
+ledger_format: 2
+timestamp: 2026-10-12T21:00:05+11:00
+command: bash .claude/scripts/test/factory-request-intake.sh lightweight
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 113, in <module>
+AssertionError: lightweight intake routes absent

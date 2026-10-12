@@ -1,0 +1,7 @@
+# TDD ledger — green — T-259
+ledger_format: 2
+timestamp: 2026-10-12T21:24:04+11:00
+command: bash .claude/scripts/test/factory-intake-dependencies.sh
+exit_code: 0
+---
+private runtime dependency pins are required and checked before state mutation/import

@@ -1,0 +1,7 @@
+# TDD ledger — green — T-224
+ledger_format: 2
+timestamp: 2026-10-12T20:51:42+11:00
+command: bash .claude/scripts/test/factory-intake-bounds.sh
+exit_code: 0
+---
+combined output boundary, legacy limits, invalid bounds and descendant cleanup passed

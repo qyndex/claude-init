@@ -54,6 +54,29 @@ def argv(value):
 def relative(value):return isinstance(value,str) and bool(value) and not Path(value).is_absolute() and '..' not in Path(value).parts
 
 
+ASSESSMENT_CAPABILITIES={'foreground','model-selection','structured-output','tool-free','config-isolation','hook-failure-block'}
+
+
+def validate_assessment(runtime):
+    """Validate only an optional assessment definition; never probe or launch."""
+    if 'assessment' not in runtime:
+        return
+    assessment=runtime['assessment']
+    require(runtime['kind']=='claude-cli' and runtime['location']=='local' and isinstance(assessment,dict) and set(assessment)=={'argv','trusted_files','version','capabilities','observation'},'assessment schema invalid')
+    version=assessment['version']
+    require(isinstance(version,str) and re.fullmatch(r'2\.1\.[0-9]+',version) and int(version.split('.')[2])>=295,'assessment native failure-block version unsupported')
+    require(strings(assessment['capabilities']) and set(assessment['capabilities'])==ASSESSMENT_CAPABILITIES,'assessment capability observation incomplete')
+    args=assessment['argv'];require(argv(args) and len(args)==18,'assessment argv invalid')
+    expected=[args[0],'--print','--model','{model}','--output-format','json','--tools','','--disallowedTools','mcp__*','--strict-mcp-config','--mcp-config',args[12],'--setting-sources','','--settings',args[16],'--no-session-persistence']
+    require(args==expected and Path(args[12]).is_absolute() and Path(args[16]).is_absolute(),'assessment argv not exact tool-free foreground contract')
+    observation=assessment['observation'];require(isinstance(observation,dict) and set(observation)=={'path','sha256'} and isinstance(observation['path'],str) and Path(observation['path']).is_absolute() and isinstance(observation['sha256'],str) and re.fullmatch(r'[a-f0-9]{64}',observation['sha256']),'assessment observation binding invalid')
+    files=assessment['trusted_files'];references={args[0],args[12],args[16],observation['path']}
+    require(len(references)==4 and isinstance(files,dict) and set(files)==references,'assessment exact referenced artifact pins required')
+    for path,sha in files.items():require(isinstance(sha,str) and re.fullmatch(r'[a-f0-9]{64}',sha),'assessment hash pin invalid')
+    require(args[0] in runtime['probe']['trusted_files'] and runtime['probe']['trusted_files'][args[0]]==files[args[0]],'assessment executable not bound to protected planning runtime')
+    require(files[observation['path']]==observation['sha256'],'assessment observation pin differs')
+
+
 def validate(profile):
     require(isinstance(profile,dict) and set(profile)==FIELDS and type(profile['schema_version']) is int and profile['schema_version']==1 and type(profile['enabled']) is bool,'routing schema invalid')
     if not profile['enabled']:
@@ -66,7 +89,7 @@ def validate(profile):
         require(Path(adapter['acceptance'][0]).name not in {'true','echo','ls','pwd','printf',':'},'no-op stack acceptance forbidden')
     require(isinstance(profile['roles'],dict) and {'planning','implementation','review','verification','security'}<=set(profile['roles'])<=set(FLOORS) and isinstance(profile['runtimes'],dict) and bool(profile['runtimes']),'required factory roles missing')
     for name,runtime in profile['runtimes'].items():
-        require(re.fullmatch(r'[a-z][a-z0-9_-]{0,63}',name) and set(runtime)=={'kind','model','billing','location','probe','command','allowed_model_usage'},'runtime fields invalid')
+        require(re.fullmatch(r'[a-z][a-z0-9_-]{0,63}',name) and set(runtime) in ({'kind','model','billing','location','probe','command','allowed_model_usage'}, {'kind','model','billing','location','probe','command','allowed_model_usage','assessment'}),'runtime fields invalid')
         require(runtime['kind'] in {'claude-cli','command'} and runtime['location'] in {'local','actions'},'unsupported runtime/location')
         require(runtime['billing']==('subscription' if runtime['kind']=='claude-cli' else 'unknown'),'metered fallback unsupported in initial runtime')
         require((runtime['kind']=='command' and runtime['model'] is None and runtime['allowed_model_usage']==[]) or (runtime['kind']=='claude-cli' and isinstance(runtime['model'],str) and re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._:/-]{0,159}',runtime['model']) and strings(runtime['allowed_model_usage'],1) and runtime['model'] in runtime['allowed_model_usage']),'model usage mapping invalid')
@@ -76,6 +99,7 @@ def validate(profile):
             require(not any(arg=='--settings' or arg.startswith('--settings=') for arg in runtime['command']),'inline authentication/settings override forbidden')
         probe=runtime['probe'];require(set(probe)=={'argv','trusted_files','timeout'} and argv(probe['argv']) and type(probe['timeout']) is int and 1<=probe['timeout']<=30 and isinstance(probe['trusted_files'],dict) and probe['argv'][0] in probe['trusted_files'] and runtime['command'][0] in probe['trusted_files'],'probe definition invalid')
         for path,sha in probe['trusted_files'].items():require(Path(path).is_absolute() and isinstance(sha,str) and re.fullmatch(r'[a-f0-9]{64}',sha),'probe/runtime hash pin invalid')
+        validate_assessment(runtime)
     for role,route in profile['roles'].items():
         require(set(route)=={'primary','fallbacks','capabilities'} and isinstance(route['primary'],str) and strings(route['fallbacks'],0,2) and strings(route['capabilities'],1) and FLOORS[role]<=set(route['capabilities']),'role capabilities weakened')
         options=[route['primary'],*route['fallbacks']];require(len(set(options))==len(options),'duplicate fallback')
@@ -83,6 +107,9 @@ def validate(profile):
             require(name in profile['runtimes'] and profile['runtimes'][name]['location']==LOCATIONS[role],'role authority location differs')
             if role in {'planning','implementation','review'}:require(profile['runtimes'][name]['kind']=='claude-cli','model role requires explicit Claude subscription runtime')
             if role=='review':require('--no-session-persistence' in profile['runtimes'][name]['command'] and not any(arg in {'--continue','--resume','-c','-r'} for arg in profile['runtimes'][name]['command']),'review must be a separate fresh run')
+
+    for name,runtime in profile['runtimes'].items():
+        require('assessment' not in runtime or name==profile['roles']['planning']['primary'],'assessment only permitted on primary planning runtime')
 
 
 def protected(path,candidate_roots):

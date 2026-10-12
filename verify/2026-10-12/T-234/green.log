@@ -1,0 +1,7 @@
+# TDD ledger — green — T-234
+ledger_format: 2
+timestamp: 2026-10-12T21:20:40+11:00
+command: bash .claude/scripts/test/factory-request-intake.sh assessment-process
+exit_code: 0
+---
+assessment-process: actual pinned fake CLI clean env/private stdin/model JSON; aggregate flood, quota/schema/model/timeout/descendant failures have no retry; overall collection deadline passed

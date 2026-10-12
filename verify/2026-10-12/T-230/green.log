@@ -1,0 +1,7 @@
+# TDD ledger — green — T-230
+ledger_format: 2
+timestamp: 2026-10-12T20:59:13+11:00
+command: bash .claude/scripts/test/factory-request-intake.sh pending
+exit_code: 0
+---
+pending: exact session/cwd/digest match consumes once; generated/conflicting callbacks cannot allocate; lost or expired ingress fences replay

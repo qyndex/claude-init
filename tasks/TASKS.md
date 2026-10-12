@@ -1326,3 +1326,210 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   files: docs/FACTORY-ADOPTER-QUICKSTART.md
   accept: python3 -c "from pathlib import Path; t=Path('docs/FACTORY-ADOPTER-QUICKSTART.md').read_text(); assert all(s in t for s in ['Prerequisites','Dry-run adoption','immutable','existing','python3 .claude/scripts/factory-adopt.py --from /path/to/reviewed-harness --into /path/to/target --dry-run']); assert not any(s in t for s in ['qyndex','C0C7T1Y29K5','5251754','T0B2VADDUG4']); print('AC-1 quickstart adoption contract passed'); from pathlib import Path; t=Path('docs/FACTORY-ADOPTER-QUICKSTART.md').read_text(); assert all(s in t for s in ['Protected readiness','factory-preflight.py --policy /path/to/protected-policy.json','block','merge authority','reporting','production','secrets']); print('AC-2 protected readiness contract passed'); from pathlib import Path; t=Path('docs/FACTORY-ADOPTER-QUICKSTART.md').read_text(); assert all(s in t for s in ['Delivery and acceptance','engineering verification','merged delivery','product acceptance','SLO','rollback','FACTORY-ADOPTER-SETUP.md','FACTORY-ACTIVATION.md']); print('AC-3 distinct delivery and acceptance contract passed')"
   owner: codex
+
+
+## Spec050 — guarded request intake
+
+- [x] T-224  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps:  | parallel: no  | est: 5m
+  summary: Enforce combined output budget and verify real subprocess cleanup compatibility
+  files: .claude/scripts/factory-bounded-process.py, .claude/scripts/test/factory-intake-bounds.sh
+  accept: bash .claude/scripts/test/factory-intake-bounds.sh
+  owner: implementer
+
+- [x] T-226  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-224  | parallel: no  | est: 5m
+  summary: Validate canonical private contract and latched repository enablement without candidate overrides
+  files: .claude/scripts/factory-intake.py, .claude/scripts/test/factory-request-intake.sh
+  accept: bash .claude/scripts/test/factory-request-intake.sh contract
+  owner: implementer
+
+- [x] T-227  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-226  | parallel: no  | est: 5m
+  summary: Create additive intake schema with strict version and foreign-store rejection
+  files: .claude/scripts/factory-intake.py, .claude/scripts/test/factory-request-intake.sh
+  accept: bash .claude/scripts/test/factory-request-intake.sh migration
+  owner: implementer
+
+- [x] T-228  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-227  | parallel: no  | est: 5m
+  summary: Validate exact request decision and action schemas including duplicate keys and mixed intents
+  files: .claude/scripts/factory-intake.py, .claude/scripts/test/factory-request-intake.sh
+  accept: bash .claude/scripts/test/factory-request-intake.sh schema
+  owner: implementer
+
+- [x] T-229  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-228  | parallel: no  | est: 5m
+  summary: Allocate independent submission sequences and trusted retry tokens transactionally
+  files: .claude/scripts/factory-intake.py, .claude/scripts/test/factory-request-intake.sh
+  accept: bash .claude/scripts/test/factory-request-intake.sh identity
+  owner: implementer
+
+- [x] T-230  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-229  | parallel: no  | est: 5m
+  summary: Record one-shot native pending ingress and reject replay conflict or caller-origin spoofing
+  files: .claude/scripts/factory-intake.py, .claude/scripts/test/factory-request-intake.sh
+  accept: bash .claude/scripts/test/factory-request-intake.sh pending
+  owner: implementer
+
+- [x] T-231  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-230  | parallel: no  | est: 5m
+  summary: Implement cheap help status control and deterministic continuation dispositions
+  files: .claude/scripts/factory-intake.py, .claude/scripts/test/factory-request-intake.sh
+  accept: bash .claude/scripts/test/factory-request-intake.sh lightweight
+  owner: implementer
+
+- [x] T-232  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-231  | parallel: no  | est: 5m
+  summary: Collect bounded allowlisted context with exact digests and excluded secrets
+  files: .claude/scripts/factory-intake-scout.py, .claude/scripts/test/factory-request-intake.sh, .claude/scripts/test/factory-intake-context.sh
+  accept: bash .claude/scripts/test/factory-request-intake.sh context
+  owner: implementer
+
+- [x] T-233  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-232  | parallel: no  | est: 5m
+  summary: Validate separate pinned assessor argv tied to protected primary planning model
+  files: .claude/scripts/factory-routing.py, .claude/scripts/factory-intake-scout.py, .claude/scripts/test/factory-request-intake.sh, .claude/scripts/test/factory-intake-profile.sh
+  accept: bash .claude/scripts/test/factory-request-intake.sh assessment-profile
+  owner: implementer
+
+- [x] T-234  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-233  | parallel: no  | est: 5m
+  summary: Run tool-free fake native assessor with private cwd minimal environment and zero fallback
+  files: .claude/scripts/factory-intake-scout.py, .claude/scripts/test/factory-request-intake.sh, .claude/scripts/test/factory-intake-process.sh
+  accept: bash .claude/scripts/test/factory-request-intake.sh assessment-process
+  owner: implementer
+
+- [ ] T-235  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-234  | parallel: no  | est: 5m
+  summary: Reserve assessment and persist strict success or explicit quota schema timeout failure
+  files: .claude/scripts/factory-intake.py, .claude/scripts/factory-intake-scout.py, .claude/scripts/test/factory-request-intake.sh
+  accept: bash .claude/scripts/test/factory-request-intake.sh assessment-outcome
+  owner: implementer
+
+- [ ] T-236  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-235  | parallel: no  | est: 5m
+  summary: Resolve clarification parents and invalidate changed scope ref policy or source revisions
+  files: .claude/scripts/factory-intake.py, .claude/scripts/test/factory-request-intake.sh
+  accept: bash .claude/scripts/test/factory-request-intake.sh continuation-freshness
+  owner: implementer
+
+- [ ] T-237  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-236  | parallel: no  | est: 5m
+  summary: Publish draft-only proposal slots with idempotent content and no approval promotion
+  files: .claude/scripts/factory-intake.py, .claude/scripts/test/factory-request-intake.sh
+  accept: bash .claude/scripts/test/factory-request-intake.sh proposal
+  owner: implementer
+
+- [ ] T-239  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-237  | parallel: no  | est: 5m
+  summary: Gate ledger enqueue from protected required-intake registry even when callers omit arguments
+  files: .claude/scripts/factory-ledger.py, .claude/scripts/factory-intake.py, .claude/scripts/test/factory-request-intake.sh
+  accept: bash .claude/scripts/test/factory-request-intake.sh enqueue-guard
+  owner: implementer
+
+- [ ] T-240  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-239  | parallel: no  | est: 5m
+  summary: Gate routing task start with current intake action and existing claim scope authority
+  files: .claude/scripts/factory-routing.py, .claude/scripts/factory-intake.py, .claude/scripts/test/factory-request-intake.sh
+  accept: bash .claude/scripts/test/factory-request-intake.sh start-guard
+  owner: implementer
+
+- [ ] T-241  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-240  | parallel: no  | est: 5m
+  summary: Persist task action intents and reconcile competing requests lost acknowledgements and fences
+  files: .claude/scripts/factory-intake.py, .claude/scripts/factory-supervisor.py, .claude/scripts/test/factory-request-intake.sh
+  accept: bash .claude/scripts/test/factory-request-intake.sh actions-reconcile
+  owner: implementer
+
+- [ ] T-242  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-241  | parallel: no  | est: 5m
+  summary: Authorize mutation only for current task-stage principal or separate draft slot
+  files: .claude/scripts/factory-intake.py, .claude/scripts/test/factory-request-intake.sh
+  accept: bash .claude/scripts/test/factory-request-intake.sh mutation-guard
+  owner: implementer
+
+- [ ] T-243  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-242  | parallel: no  | est: 5m
+  summary: Install synchronous fail-closed native submit and tool guards with opaque Bash denial
+  files: .claude/hooks/request-intake.sh, .claude/hooks/pre-intake-action.sh, .claude/settings.json, .claude/scripts/test/factory-request-intake.sh
+  accept: bash .claude/scripts/test/factory-request-intake.sh hooks
+  owner: implementer
+
+- [ ] T-244  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-243  | parallel: no  | est: 5m
+  summary: Drive foreground console session creation resume and normal prompt input through pending ingress
+  files: .claude/scripts/factory-intake-console.py, .claude/scripts/test/factory-request-intake.sh
+  accept: bash .claude/scripts/test/factory-request-intake.sh console
+  owner: implementer
+
+- [ ] T-245  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-244  | parallel: no  | est: 5m
+  summary: Cancel owned work on urgent console control without waiting for Scout or durable storage
+  files: .claude/scripts/factory-intake-console.py, .claude/scripts/factory-intake.py, .claude/scripts/test/factory-request-intake.sh
+  accept: bash .claude/scripts/test/factory-request-intake.sh urgent-control
+  owner: implementer
+
+- [ ] T-246  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-245  | parallel: no  | est: 5m
+  summary: Demonstrate installed console hook action paths and maintain truthful native capability prerequisites
+  files: .claude/scripts/factory-intake-console.py, .claude/scripts/test/factory-request-intake.sh, docs/FACTORY-REQUEST-INTAKE.md
+  accept: bash .claude/scripts/test/factory-request-intake.sh phase1
+  owner: implementer
+
+- [ ] T-247  | spec:050  | phase:2  | priority: security  | created: 2026-10-12  | deps: T-246  | parallel: no  | est: 5m
+  summary: Bridge only receipt-validated explicit authenticated Slack feedback into intake identities
+  files: .claude/scripts/factory-slack-feedback.py, .claude/scripts/factory-intake.py, .claude/scripts/test/factory-intake-slack.sh
+  accept: bash .claude/scripts/test/factory-intake-slack.sh authenticated
+  owner: implementer
+
+- [ ] T-248  | spec:050  | phase:2  | priority: security  | created: 2026-10-12  | deps: T-247  | parallel: no  | est: 5m
+  summary: Link Slack edits and serialize repeated source retries without duplicate draft actions
+  files: .claude/scripts/factory-slack-feedback.py, .claude/scripts/factory-intake.py, .claude/scripts/test/factory-intake-slack.sh
+  accept: bash .claude/scripts/test/factory-intake-slack.sh edits-replay
+  owner: implementer
+
+- [ ] T-249  | spec:050  | phase:2  | priority: security  | created: 2026-10-12  | deps: T-248  | parallel: no  | est: 5m
+  summary: Require current intake decision at existing feedback draft publication boundary
+  files: .claude/scripts/factory-feedback.py, .claude/scripts/factory-intake.py, .claude/scripts/test/factory-intake-slack.sh
+  accept: bash .claude/scripts/test/factory-intake-slack.sh publication
+  owner: implementer
+
+- [ ] T-250  | spec:050  | phase:2  | priority: security  | created: 2026-10-12  | deps: T-249  | parallel: no  | est: 5m
+  summary: Preserve additive intake tables through encrypted hosted checkpoint validation and roundtrip
+  files: .claude/scripts/factory-encrypted-feedback.py, .claude/scripts/factory-hosted-feedback.py, .claude/scripts/test/factory-intake-slack.sh
+  accept: bash .claude/scripts/test/factory-intake-slack.sh checkpoint
+  owner: implementer
+
+- [ ] T-251  | spec:050  | phase:2  | priority: security  | created: 2026-10-12  | deps: T-250  | parallel: no  | est: 5m
+  summary: Block incompatible checkpoint writeback overflow and conflict without plaintext projection
+  files: .claude/scripts/factory-encrypted-feedback.py, .claude/scripts/factory-hosted-feedback.py, .claude/scripts/test/factory-intake-slack.sh
+  accept: bash .claude/scripts/test/factory-intake-slack.sh checkpoint-failure
+  owner: implementer
+
+- [ ] T-252  | spec:050  | phase:2  | priority: security  | created: 2026-10-12  | deps: T-251  | parallel: no  | est: 5m
+  summary: Demonstrate actual Slack bridge with encrypted replay and existing feedback regression suites
+  files: .claude/scripts/test/factory-intake-slack.sh, docs/FACTORY-REQUEST-INTAKE.md
+  accept: bash .claude/scripts/test/factory-intake-slack.sh phase2
+  owner: implementer
+
+- [ ] T-253  | spec:050  | phase:3  | priority: security  | created: 2026-10-12  | deps: T-252  | parallel: no  | est: 5m
+  summary: Package disabled neutral intake config scripts hooks and guide through immutable adoption ownership
+  files: .claude/scripts/factory-adopt.py, .claude/scripts/test/factory-intake-adoption.sh, docs/FACTORY-REQUEST-INTAKE.md
+  accept: bash .claude/scripts/test/factory-intake-adoption.sh package
+  owner: implementer
+
+- [ ] T-254  | spec:050  | phase:3  | priority: security  | created: 2026-10-12  | deps: T-253  | parallel: no  | est: 5m
+  summary: Prove fresh adoption upgrade collisions and preserved custom ownership without provider invocation
+  files: .claude/scripts/factory-adopt.py, .claude/scripts/test/factory-intake-adoption.sh
+  accept: bash .claude/scripts/test/factory-intake-adoption.sh upgrade
+  owner: implementer
+
+- [ ] T-255  | spec:050  | phase:3  | priority: security  | created: 2026-10-12  | deps: T-254  | parallel: no  | est: 5m
+  summary: Exercise full supported route injection and failure matrix through actual adapter entrypoints
+  files: .claude/scripts/test/factory-request-intake.sh, .claude/scripts/test/factory-intake-slack.sh, .claude/scripts/test/factory-intake-adoption.sh
+  accept: bash .claude/scripts/test/factory-intake-adoption.sh matrix
+  owner: implementer
+
+- [ ] T-256  | spec:050  | phase:3  | priority: security  | created: 2026-10-12  | deps: T-255  | parallel: no  | est: 5m
+  summary: Verify protected pause rollback retention and sanitized diagnostics preserve unresolved effects
+  files: .claude/scripts/factory-intake.py, .claude/scripts/test/factory-intake-adoption.sh, docs/FACTORY-REQUEST-INTAKE.md
+  accept: bash .claude/scripts/test/factory-intake-adoption.sh rollback-observability
+  owner: implementer
+
+- [ ] T-257  | spec:050  | phase:3  | priority: security  | created: 2026-10-12  | deps: T-256  | parallel: no  | est: 5m
+  summary: Record all fourteen AC evidence and run required repository regressions with live authority disabled
+  files: .claude/scripts/test/factory-intake-adoption.sh, docs/FACTORY-REQUEST-INTAKE.md
+  accept: bash .claude/scripts/test/factory-intake-adoption.sh phase3
+  owner: implementer
+
+- [x] T-258  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-231  | parallel: no  | est: 5m
+  summary: Reject continuation outside protected task allowlists or with unresolved numbered questions
+  files: .claude/scripts/factory-intake.py, .claude/scripts/test/factory-intake-eligibility.sh
+  accept: bash .claude/scripts/test/factory-intake-eligibility.sh
+  owner: implementer
+
+- [x] T-259  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-258  | parallel: no  | est: 5m
+  summary: Require private runtime dependency pins before controller imports or state mutation
+  files: .claude/scripts/factory-intake.py, .claude/scripts/test/factory-intake-dependencies.sh
+  accept: bash .claude/scripts/test/factory-intake-dependencies.sh
+  owner: implementer

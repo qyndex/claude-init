@@ -1,0 +1,7 @@
+# TDD ledger — green — T-258
+ledger_format: 2
+timestamp: 2026-10-12T21:06:54+11:00
+command: bash .claude/scripts/test/factory-intake-eligibility.sh
+exit_code: 0
+---
+task allowlist and open numbered questions fence continuation; resolved questions retain eligibility
