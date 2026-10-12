@@ -1,0 +1,7 @@
+# TDD ledger — green — T-261
+ledger_format: 2
+timestamp: 2026-10-12T21:48:17+11:00
+command: bash .claude/scripts/test/factory-intake-contract-catalog.sh
+exit_code: 0
+---
+contract-catalog: completed approved specs and optional bound plans feed actual defect draft/inspection; closed tasks never resume; stale/foreign/path/AC/budget contracts block

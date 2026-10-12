@@ -1,0 +1,10 @@
+# TDD ledger — red — T-263
+ledger_format: 2
+timestamp: 2026-10-12T23:37:11+11:00
+command: bash .claude/scripts/test/factory-request-intake.sh session-continuation
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 10, in <module>
+AssertionError: session-bound continuation context absent

@@ -30,10 +30,15 @@ def relative(value):
     return PurePosixPath(value)
 
 
+def source_root(value):
+    """Only root descriptors may denote the repository itself with a dot."""
+    return PurePosixPath('.') if value=='.' else relative(value)
+
+
 def permitted(path):
     for part in path.parts:
         lower = part.lower()
-        require(lower not in {'.git', '.ssh', '.aws', '.gnupg', 'secrets', 'credentials', 'node_modules', '.npmrc', '.netrc', '.pypirc', '.git-credentials'} and not lower.startswith('.env') and not any(word in lower for word in ('credential', 'secret', 'id_rsa', 'id_ed25519')) and not lower.endswith(('.pem', '.key', '.p12', '.pfx', '.kdbx', '.tfstate', '.tfvars')), 'secret or private context path rejected')
+        require(lower not in {'.git', '.ssh', '.aws', '.gnupg', 'private', 'secrets', 'credentials', 'node_modules', '.npmrc', '.netrc', '.pypirc', '.git-credentials'} and not lower.startswith('.env') and not any(word in lower for word in ('credential', 'secret', 'id_rsa', 'id_ed25519')) and not lower.endswith(('.pem', '.key', '.p12', '.pfx', '.kdbx', '.tfstate', '.tfvars')), 'secret or private context path rejected')
 
 
 def read_source(root, name, budget):
@@ -85,7 +90,7 @@ def collect_context(request, root, paths, source_roots, approved_evidence, *, co
     require(root.is_absolute() and root.resolve() == root and root.is_dir() and not root.is_symlink(), 'context root not canonical')
     require(isinstance(paths, list) and len(paths) <= 1000 and all(isinstance(value, str) for value in paths) and len(set(paths)) == len(paths), 'context path list invalid')
     require(isinstance(source_roots, list) and 0 < len(source_roots) <= 100, 'context roots invalid')
-    allowed = [relative(value) for value in source_roots]
+    allowed = [source_root(value) for value in source_roots]
     for value in allowed:
         permitted(value)
     require(isinstance(approved_evidence, list) and len(approved_evidence) <= 100, 'approved evidence invalid')

@@ -1,0 +1,7 @@
+# TDD ledger — green — T-262
+ledger_format: 2
+timestamp: 2026-10-12T21:55:23+11:00
+command: bash .claude/scripts/test/factory-intake-flat-root.sh
+exit_code: 0
+---
+flat-root: actual private assessment collects tracked main.py and proposes login.py under dot root; file-dot, unsafe roots, private/secret/link/traversal/untracked/over-budget paths reject

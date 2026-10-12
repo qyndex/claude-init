@@ -1,6 +1,21 @@
 #!/usr/bin/env bash
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
+if [ "${1:-all}" = session-continuation ]; then
+  exec bash "$ROOT/.claude/scripts/test/factory-intake-session-continuation.sh"
+fi
+if [ "${1:-all}" = flat-root ]; then
+  exec bash "$ROOT/.claude/scripts/test/factory-intake-flat-root.sh"
+fi
+if [ "${1:-all}" = contract-catalog ]; then
+  exec bash "$ROOT/.claude/scripts/test/factory-intake-contract-catalog.sh"
+fi
+if [ "${1:-all}" = proposed-scope ]; then
+  exec bash "$ROOT/.claude/scripts/test/factory-intake-proposed-scope.sh"
+fi
+if [ "${1:-all}" = assessment-outcome ]; then
+  exec bash "$ROOT/.claude/scripts/test/factory-intake-outcome.sh"
+fi
 if [ "${1:-all}" = assessment-process ]; then
   exec bash "$ROOT/.claude/scripts/test/factory-intake-process.sh"
 fi
@@ -11,7 +26,7 @@ if [ "${1:-all}" = context ]; then
   exec bash "$ROOT/.claude/scripts/test/factory-intake-context.sh"
 fi
 if [ "${1:-all}" = all ]; then
-  for suite in contract migration schema identity pending lightweight context assessment-profile assessment-process; do bash "$0" "$suite"; done
+  for suite in contract migration schema identity pending lightweight context assessment-profile assessment-process assessment-outcome proposed-scope contract-catalog flat-root session-continuation; do bash "$0" "$suite"; done
   exit 0
 fi
 case "${1:-all}" in contract|migration|schema|identity|pending|lightweight) ;; *) echo "Unknown intake test selector" >&2; exit 2 ;; esac
@@ -150,11 +165,12 @@ with tempfile.TemporaryDirectory() as d:
   (private/'policy.json').write_text(json.dumps(policy));contract['trusted_files'][str(private/'policy.json')]=sha(private/'policy.json');save()
   # A protected contract change is a new explicitly configured fixture installation, never implicit rebind.
   (private/'runtime.sqlite').unlink();store=m.Intake(config);session=store.new_session()
-  yes=route('continue');assert yes['disposition']=='existing_approved' and yes['task']=='T-1' and yes['next_action']=='resume',yes
+  assert route('continue')['disposition']=='clarify'
+  yes=route('continue T-1');assert yes['disposition']=='existing_approved' and yes['task']=='T-1' and yes['next_action']=='resume',yes
   assert store.lightweight(yes['request_id'])==yes
-  ledger.write_text(ledger.read_text()+'- [ ] T-2 | spec:001 | deps:\n');assert route('continue')['disposition']=='clarify'
+  ledger.write_text(ledger.read_text()+'- [ ] T-2 | spec:001 | deps:\n');assert route('continue')['task']=='T-1'
   ledger.write_text('## Active\n- [ ] T-1 | spec:001 | deps:\n');spec.write_text(spec.read_text()+'changed');assert route('continue')['disposition']=='clarify'
   stopped=route('stop');assert stopped['next_action']=='stop';reject(lambda:store.submit_console(session,'continue','a'*40))
   with store.transaction() as db:assert db.execute('SELECT sum(assessment_count) FROM intake_requests').fetchone()[0]==0
-  print('lightweight: answer/status use zero assessments; single approved continuation resolves; ambiguity/stale scope clarifies; mixed scope needs Scout and stop pauses')
+  print('lightweight: answer/status use zero assessments; explicit eligible session task resolves; unbound/stale scope clarifies; mixed scope needs Scout and stop pauses')
 PY

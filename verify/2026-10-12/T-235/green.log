@@ -1,0 +1,7 @@
+# TDD ledger — green — T-235
+ledger_format: 2
+timestamp: 2026-10-12T21:32:02+11:00
+command: bash .claude/scripts/test/factory-request-intake.sh assessment-outcome
+exit_code: 0
+---
+assessment-outcome: actual private end-to-end decision; reservation/restart/concurrency fences; dataflow/ref/pin/schema/evidence failures block; store failure has zero provider effects

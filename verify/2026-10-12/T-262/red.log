@@ -1,0 +1,10 @@
+# TDD ledger — red — T-262
+ledger_format: 2
+timestamp: 2026-10-12T21:54:44+11:00
+command: bash .claude/scripts/test/factory-intake-flat-root.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 101, in <module>
+AssertionError: {'schema_version': 1, 'request_id': '155cade1e2674f6b9eae437eb01e52aa', 'revision': '674e9ef1b39e1eedb5110e626f7f20c43500f7ee4c4832fc07a25164eb3f17ab', 'disposition': 'blocked', 'intents': [{'kind': 'blocked', 'summary': 'Intake assessment cannot advance', 'scope': []}], 'rationale': 'Assessment is blocked; reconcile protected prerequisites before dependent work', 'evidence': [], 'uncertainty': 'none', 'spec': None, 'plan': None, 'task': None, 'next_action': 'none', 'blocked_reason': 'assessment-failed'}

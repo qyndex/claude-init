@@ -20,7 +20,7 @@ with tempfile.TemporaryDirectory() as d:
   database=private/'runtime.sqlite'
   if database.exists():database.unlink()
   config=private/'intake.json';config.write_text(json.dumps({'schema_version':1,'enabled':True,'repository':'fixture/intake','candidate_root':str(candidate),'authority_root':str(authority),'database':str(database),'profile':str(profile),'policy':str(policy),'trusted_files':{str(p):sha(p) for p in [helper,helper.with_name('factory-runtime.py'),profile,policy]},'limits':m.DEFAULT_LIMITS}));config.chmod(0o600)
-  store=m.Intake(config);session=store.new_session();receipt=store.submit_console(session,'continue','a'*40);return store.lightweight(receipt['request_id'])
+  store=m.Intake(config);session=store.new_session();receipt=store.submit_console(session,'continue T-1','a'*40);return store.lightweight(receipt['request_id'])
  assert install(['T-2'])['disposition']=='clarify','unapproved task ID was reported resumable'
  assert install([])['disposition']=='clarify','empty approved task set was bypassed'
  assert install(['T-1'],'- [OQ-1] Which behavior is wanted?')['disposition']=='clarify','open numbered question was ignored'

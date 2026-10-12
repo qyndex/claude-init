@@ -1,6 +1,6 @@
 # Scout intake proposal — review guide
 
-Status: **spec approved by the human on 2026-10-12; implementation pending**. Spec050 extends the existing factory plan; spec approval authorizes planning and scoped implementation, while provider calls, live activation and authority changes remain subject to existing controls.
+Status: **spec approved by the human on 2026-10-12; implementation in progress**. Spec050 extends the existing factory plan; spec approval authorizes planning and scoped implementation, while provider calls, live activation and authority changes remain subject to existing controls.
 
 Read [spec050](../specs/active/050-request-intake-router.md).
 
@@ -53,3 +53,7 @@ Local drafting and fixture proof do not constitute live producer receipts or cou
 [Draft technical plan](../plans/active/050-request-intake-router.md) proposes launching a guarded factory console once per Claude Code session. It assigns each human request before native delivery. The native hook also receives generated callbacks and has no documented human-origin field, so ordinary unwrapped sessions cannot establish this guarantee from hook payload alone. Choosing the native UI requires a stronger proven provenance adapter. See [official hooks documentation](https://code.claude.com/docs/en/hooks). Spec approval remains recorded; this is an entry experience decision, not repeated scope approval.
 
 The human selected the guarded factory console on 2026-10-12. Plan050 is approved; native runtime prerequisites still apply before live enablement.
+
+## Verified implementation checkpoint
+
+The private intake foundation, single-attempt bounded Scout assessment, safe proposed paths, completed-contract context and flat repository roots have passed scoped local tests. T-260–T-262 also passed independent source review. These are source implementation results using fixture executables, not live Claude capability observations or completed spec050 acceptance. Session continuation, action guards, the factory console, Slack bridge and adopter packaging remain in progress. The feature stays disabled until the complete supported-entry evidence and protected activation prerequisites are satisfied.

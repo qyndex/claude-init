@@ -1390,13 +1390,13 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-request-intake.sh assessment-process
   owner: implementer
 
-- [ ] T-235  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-234  | parallel: no  | est: 5m
+- [x] T-235  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-234  | parallel: no  | est: 5m
   summary: Reserve assessment and persist strict success or explicit quota schema timeout failure
-  files: .claude/scripts/factory-intake.py, .claude/scripts/factory-intake-scout.py, .claude/scripts/test/factory-request-intake.sh
+  files: .claude/scripts/factory-intake.py, .claude/scripts/factory-intake-scout.py, .claude/scripts/test/factory-request-intake.sh, .claude/scripts/test/factory-intake-outcome.sh
   accept: bash .claude/scripts/test/factory-request-intake.sh assessment-outcome
   owner: implementer
 
-- [ ] T-236  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-235  | parallel: no  | est: 5m
+- [ ] T-236  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-266  | parallel: no  | est: 5m
   summary: Resolve clarification parents and invalidate changed scope ref policy or source revisions
   files: .claude/scripts/factory-intake.py, .claude/scripts/test/factory-request-intake.sh
   accept: bash .claude/scripts/test/factory-request-intake.sh continuation-freshness
@@ -1532,4 +1532,46 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   summary: Require private runtime dependency pins before controller imports or state mutation
   files: .claude/scripts/factory-intake.py, .claude/scripts/test/factory-intake-dependencies.sh
   accept: bash .claude/scripts/test/factory-intake-dependencies.sh
+  owner: implementer
+
+- [x] T-260  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-235  | parallel: no  | est: 5m
+  summary: Permit explicitly proposed safe new paths without treating them as evidence or authority
+  files: .claude/scripts/factory-intake.py, .claude/scripts/test/factory-intake-proposed-scope.sh, .claude/scripts/test/factory-intake-outcome.sh, .claude/scripts/test/factory-request-intake.sh
+  accept: bash .claude/scripts/test/factory-intake-proposed-scope.sh
+  owner: implementer
+
+- [x] T-261  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-260  | parallel: no  | est: 5m
+  summary: Collect completed approved contracts for defect context without granting runnable eligibility
+  files: .claude/scripts/factory-intake.py, .claude/scripts/test/factory-intake-contract-catalog.sh, .claude/scripts/test/factory-request-intake.sh
+  accept: bash .claude/scripts/test/factory-intake-contract-catalog.sh
+  owner: implementer
+
+- [x] T-262  | spec:050  | phase:1  | priority: normal  | created: 2026-10-12  | deps: T-261  | parallel: no  | est: 5m
+  summary: Support existing flat-repository source roots without relaxing actual path or secret constraints
+  files: .claude/scripts/factory-intake.py, .claude/scripts/factory-intake-scout.py, .claude/scripts/test/factory-intake-flat-root.sh, .claude/scripts/test/factory-request-intake.sh
+  accept: bash .claude/scripts/test/factory-intake-flat-root.sh
+  owner: implementer
+
+- [x] T-263  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-262  | parallel: no  | est: 5m
+  summary: Bind continuation to the current session request without selecting unrelated approved work
+  files: .claude/scripts/factory-intake.py, .claude/scripts/test/factory-intake-session-continuation.sh, .claude/scripts/test/factory-request-intake.sh, .claude/scripts/test/factory-request-intake.sh
+  accept: bash .claude/scripts/test/factory-request-intake.sh session-continuation
+  owner: implementer
+
+- [ ] T-264  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-263  | parallel: no  | est: 5m
+  summary: Link clarification replies to immutable proposal revisions and reject cross-session parents
+  files: .claude/scripts/factory-intake.py, .claude/scripts/test/factory-intake-clarification-revisions.sh, .claude/scripts/test/factory-request-intake.sh
+  accept: bash .claude/scripts/test/factory-request-intake.sh clarification-revisions
+  owner: implementer
+
+- [ ] T-265  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-264  | parallel: no  | est: 5m
+  summary: Revalidate stored decisions against current source approval policy and scope before actions
+  files: .claude/scripts/factory-intake.py, .claude/scripts/test/factory-intake-decision-freshness.sh, .claude/scripts/test/factory-request-intake.sh
+  accept: bash .claude/scripts/test/factory-request-intake.sh decision-freshness
+  owner: implementer
+
+- [ ] T-266  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-265  | parallel: no  | est: 5m
+  summary: Require strict approved frontmatter and honor global pause in runnable eligibility
+  files: .claude/scripts/factory-intake.py, .claude/scripts/test/factory-intake-approval-eligibility.sh, .claude/scripts/test/factory-request-intake.sh
+  accept: bash .claude/scripts/test/factory-request-intake.sh approval-eligibility
   owner: implementer

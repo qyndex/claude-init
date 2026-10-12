@@ -1,0 +1,10 @@
+# TDD ledger — red — T-260
+ledger_format: 2
+timestamp: 2026-10-12T21:39:14+11:00
+command: bash .claude/scripts/test/factory-intake-proposed-scope.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 101, in <module>
+AssertionError: {'schema_version': 1, 'request_id': '5c7ae92792a748c58d8ae0165632db80', 'revision': '86f2f8e611e9c83035e65629c1c351ed1df7168ef53d3bf41c0267f3b4738ec7', 'disposition': 'blocked', 'intents': [{'kind': 'blocked', 'summary': 'Intake assessment cannot advance', 'scope': []}], 'rationale': 'Assessment is blocked; reconcile protected prerequisites before dependent work', 'evidence': [], 'uncertainty': 'none', 'spec': None, 'plan': None, 'task': None, 'next_action': 'none', 'blocked_reason': 'assessment-failed'}

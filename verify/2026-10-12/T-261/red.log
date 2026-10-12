@@ -1,0 +1,10 @@
+# TDD ledger — red — T-261
+ledger_format: 2
+timestamp: 2026-10-12T21:47:53+11:00
+command: bash .claude/scripts/test/factory-intake-contract-catalog.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 125, in <module>
+AssertionError: body text spoofed approved catalog status

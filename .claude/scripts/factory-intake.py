@@ -171,6 +171,9 @@ class Intake:
                     id TEXT PRIMARY KEY,source_key TEXT UNIQUE NOT NULL,document TEXT NOT NULL,
                     revision TEXT NOT NULL,status TEXT NOT NULL,decision TEXT,
                     assessment_count INTEGER NOT NULL DEFAULT 0);
+                CREATE TABLE IF NOT EXISTS intake_request_sessions (
+                    request_id TEXT PRIMARY KEY REFERENCES intake_requests(id),session TEXT NOT NULL,
+                    sequence INTEGER NOT NULL,UNIQUE(session,sequence));
                 CREATE TABLE IF NOT EXISTS intake_delivery_tokens (
                     token TEXT PRIMARY KEY,request_id TEXT UNIQUE NOT NULL REFERENCES intake_requests(id));
                 CREATE TABLE IF NOT EXISTS intake_pending_native (
@@ -182,6 +185,9 @@ class Intake:
                 CREATE TABLE IF NOT EXISTS intake_actions (
                     id TEXT PRIMARY KEY,request_id TEXT NOT NULL REFERENCES intake_requests(id),
                     document TEXT NOT NULL,status TEXT NOT NULL,result TEXT);
+                CREATE TABLE IF NOT EXISTS intake_assessments (
+                    request_id TEXT PRIMARY KEY REFERENCES intake_requests(id),
+                    revision TEXT NOT NULL,status TEXT NOT NULL,result TEXT,reason TEXT);
                 CREATE TABLE IF NOT EXISTS intake_events (
                     sequence INTEGER PRIMARY KEY,request_id TEXT,event TEXT NOT NULL);
             '''
@@ -258,6 +264,7 @@ class Intake:
             db.execute('UPDATE intake_sessions SET sequence=? WHERE id=?',(sequence,session))
             db.execute('INSERT INTO intake_requests(id,source_key,document,revision,status) VALUES(?,?,?,?,?)',
                        (identity,key,canonical(request),revision,'submitted'))
+            db.execute('INSERT INTO intake_request_sessions VALUES(?,?,?)',(identity,session,sequence))
             db.execute('INSERT INTO intake_delivery_tokens VALUES(?,?)',(token,identity))
             db.execute('INSERT INTO intake_events(request_id,event) VALUES(?,?)',(identity,'submitted'))
             return self.receipt(identity,revision,token)
@@ -356,6 +363,39 @@ class Intake:
                                        {'kind':'repository','ref':'tasks/TASKS.md','sha256':digest(text.encode())}]})
         return result
 
+    def session_context(self, request_id, request):
+        """Latest relevant earlier human request from this exact console session."""
+        with self.transaction() as db:
+            current=db.execute('SELECT session,sequence FROM intake_request_sessions WHERE request_id=?',(request_id,)).fetchone()
+            if current is None:
+                # Pre-projection/unsupported adapters cannot establish a binding.
+                return None
+            require(current['session']==request['session'],'continuation session projection differs')
+            rows=db.execute('SELECT r.id,r.document,r.revision,r.status,r.decision,s.sequence FROM intake_request_sessions s '
+                            'JOIN intake_requests r ON r.id=s.request_id WHERE s.session=? AND s.sequence<? '
+                            'ORDER BY s.sequence DESC LIMIT 1001',(current['session'],current['sequence']))
+            consumed=0
+            for index,row in enumerate(rows):
+                require(index<1000,'continuation history count exceeded')
+                consumed+=len(row['document'].encode())+len((row['decision'] or '').encode())
+                require(consumed<=self.config['limits']['context_bytes'],'continuation history byte bound exceeded')
+                prior=decode(row['document']);validate_request(prior,self.config['limits'])
+                require(digest(canonical(prior).encode())==row['revision'] and prior['source_revision']==str(row['sequence'])
+                        and all(prior[name]==request[name] for name in ('session','actor','repository','source_kind')),
+                        'continuation prior request binding differs')
+                if prior['ref']!=request['ref']:
+                    return {'request_id':row['id'],'revision':row['revision'],'decision':None,'status':'binding_changed'}
+                decision=None if row['decision'] is None else decode(row['decision'])
+                if decision is not None:
+                    validate_decision(decision)
+                    require(decision['request_id']==row['id'] and decision['revision']==row['revision'],'continuation decision binding differs')
+                    if decision['disposition'] in {'answer','status'}:
+                        continue
+                elif prior['text'].strip().lower() in {'help','how does this work?','status','what is the status?'}:
+                    continue
+                return {'request_id':row['id'],'revision':row['revision'],'decision':decision,'status':row['status']}
+        return None
+
     def lightweight(self, request_id):
         self.ready()
         with self.transaction() as db:
@@ -378,16 +418,29 @@ class Intake:
         references = {'spec':None,'plan':None,'task':None}
         evidence = [{'kind':'request','ref':request_id,'sha256':row['revision']}]
         uncertainty = 'none'
-        if prompt in {'continue','keep continuing','resume'}:
-            eligible = self.eligible()
-            if len(eligible)==1:
-                chosen = eligible[0]
-                references = {name:chosen[name] for name in references}
-                evidence.extend(chosen['evidence'])
-                disposition,action,rationale = 'existing_approved','resume','Single current approved eligible task'
+        explicit=re.fullmatch(r'(?:continue|resume) (t-[1-9][0-9]*)',prompt)
+        if prompt in {'continue','keep continuing','resume'} or explicit:
+            eligible=self.eligible()
+            context=None if explicit else self.session_context(request_id,request)
+            selected=None
+            if explicit:
+                matches=[item for item in eligible if item['task']==explicit[1].upper()]
+                if len(matches)==1:selected=matches[0]
+            elif context is not None:
+                previous=context['decision']
+                evidence.append({'kind':'request','ref':context['request_id'],'sha256':context['revision']})
+                if previous is not None and previous['disposition']=='existing_approved':
+                    matches=[item for item in eligible if all(item[name]==previous[name] for name in ('spec','plan','task'))]
+                    if len(matches)==1:selected=matches[0]
+            if selected is not None:
+                references={name:selected[name] for name in references}
+                evidence.extend(selected['evidence'])
+                disposition,action,rationale='existing_approved','resume','Resume the explicitly selected current eligible session task'
             else:
-                disposition,action,rationale = 'clarify','question','Identify the intended eligible approved task'
-                uncertainty = 'ambiguous' if eligible else 'missing_context'
+                disposition,action='clarify','question'
+                rationale=('Confirm the outstanding proposal, clarification or blocked request before continuing'
+                           if context is not None else 'Name the approved task to continue; no eligible session task is bound')
+                uncertainty='ambiguous' if context is not None or len(eligible)>1 else 'missing_context'
         elif prompt in choices:
             disposition,action,rationale = choices[prompt]
         else:
@@ -405,6 +458,258 @@ class Intake:
             if action=='stop':
                 db.execute('UPDATE intake_identity SET paused=1 WHERE id=1')
                 db.execute('UPDATE control SET paused=1 WHERE id=1')
+        return result
+
+
+    @staticmethod
+    def assessment_block(request_id, revision, reason):
+        return {'schema_version':1,'request_id':request_id,'revision':revision,
+                'disposition':'blocked','intents':[{'kind':'blocked','summary':'Intake assessment cannot advance','scope':[]}],
+                'rationale':'Assessment is blocked; reconcile protected prerequisites before dependent work',
+                'evidence':[],'uncertainty':'none','spec':None,'plan':None,'task':None,
+                'next_action':'none','blocked_reason':reason}
+
+    def assessment_modules(self):
+        import importlib.util
+        directory=Path(__file__).resolve().parent
+        names=('factory-intake-scout.py','factory-routing.py','factory-bounded-process.py','factory-supervisor.py')
+        require(all(str(directory/name) in self.config['trusted_files'] for name in names),
+                'assessment executable closure pins missing')
+        # ready/load_contract verify all exact byte pins before imports.
+        self.ready()
+        modules=[]
+        for label,name in [('scout','factory-intake-scout.py'),('routing','factory-routing.py')]:
+            spec=importlib.util.spec_from_file_location('outcome_'+label,directory/name)
+            module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module);modules.append(module)
+        return modules
+
+    def contract_catalog(self, scout=None, routing=None):
+        """Approved contract applicability is read-only, never runnable eligibility."""
+        self.ready()
+        if scout is None or routing is None:
+            scout,routing=self.assessment_modules()
+        policy=decode(read_file(self.config['policy'],65536,True))
+        profile=routing.protected(Path(self.config['profile']),[Path(self.config[name]) for name in ('candidate_root','authority_root')])
+        require(profile['enabled'] and profile['repository']==policy.get('repository')==self.config['repository'],'foreign contract catalog')
+        require(isinstance(policy.get('runtime'),dict) and policy['runtime'].get('routing_profile_sha256')==digest(routing.canonical(profile).encode()),'catalog profile binding invalid')
+        specs=policy.get('specs',{})
+        require(isinstance(specs,dict) and len(specs)<=100,'catalog approved specification list invalid')
+        roots=[scout.source_root(value) for value in profile['source_roots']]
+        authority=Path(self.config['authority_root']);result=[];seen=set()
+        def header_values(raw,field):
+            header=re.match(rb'\A---\r?\n(.*?)\r?\n---(?:\r?\n|\Z)',raw,re.S)
+            if header is None:return []
+            return [value.strip() for value in re.findall(rb'^'+field+rb':[ \t]*([^\r\n]*)$',header[1],re.M)]
+        for identity,approved in specs.items():
+            require(isinstance(identity,str) and re.fullmatch(r'\d{3}',identity) and isinstance(approved,dict),'catalog specification entry invalid')
+            name=approved.get('path');path=scout.relative(name);scout.permitted(path)
+            require(name.startswith('specs/active/') and re.fullmatch(identity+r'-[a-z0-9-]+\.md',path.name)
+                    and name not in seen,'catalog specification path binding invalid')
+            seen.add(name)
+            source=authority/name
+            require(source.resolve()==source and source.is_file(),'catalog source not canonical')
+            raw=read_file(source,self.config['limits']['context_bytes']);text=raw.decode('utf-8')
+            acs=re.findall(r'\*\*(AC-\d+)(?:\s+[—-]\s+[^*]+)?\*\*',text)
+            expected=approved.get('ac_ids')
+            require(digest(raw)==approved.get('sha256') and header_values(raw,b'status')==[b'approved']
+                    and acs and len(set(acs))==len(acs) and isinstance(expected,list)
+                    and all(isinstance(ac,str) for ac in expected) and len(set(expected))==len(expected)
+                    and set(acs)==set(expected),'catalog specification approval bytes or ACs differ')
+            scope=approved.get('allowed_paths')
+            require(isinstance(scope,list) and 0<len(scope)<=100 and all(isinstance(value,str) for value in scope)
+                    and len(set(scope))==len(scope),'catalog approved paths invalid')
+            for value in scope:
+                # Preserve glob syntax as scope data; do not stat/read glob strings.
+                scoped=scout.relative(value);scout.permitted(scoped)
+                require(any(scoped==root or root in scoped.parents for root in roots),'catalog scope outside protected roots')
+            evidence=[{'kind':'spec','ref':name,'sha256':digest(raw)}]
+            plan=authority/'plans/active'/path.name;plan_name=None
+            require(not plan.is_symlink(),'catalog plan symlink rejected')
+            if plan.exists():
+                require(plan.resolve()==plan and plan.is_file(),'catalog plan not canonical')
+                plan_raw=read_file(plan,self.config['limits']['context_bytes'])
+                if header_values(plan_raw,b'status')==[b'approved']:
+                    require(header_values(plan_raw,b'spec')==[name.encode()],'catalog approved plan references foreign spec')
+                    plan_name=str(plan.relative_to(authority))
+                    evidence.append({'kind':'plan','ref':plan_name,'sha256':digest(plan_raw)})
+            result.append({'spec':name,'plan':plan_name,'task':None,'evidence':evidence,
+                           'open_questions':open_questions(text)})
+        return result
+
+    def assessment_context(self, request_id, request, revision, scout, routing):
+        import time
+        policy=decode(read_file(self.config['policy'],65536,True))
+        profile=routing.protected(Path(self.config['profile']),[Path(self.config[name]) for name in ('candidate_root','authority_root')])
+        require(profile['enabled'] and profile['repository']==policy.get('repository')==self.config['repository'],
+                'assessment repository binding invalid')
+        require(isinstance(policy.get('runtime'),dict) and policy['runtime'].get('routing_profile_sha256')==digest(routing.canonical(profile).encode()),
+                'assessment protected routing profile differs')
+        intake=policy.get('intake')
+        require(isinstance(intake,dict) and set(intake)=={'enabled','dataflow','context_paths'} and intake['enabled'] is True
+                and intake['dataflow']=='private-scout-v1' and isinstance(intake['context_paths'],list)
+                and len(intake['context_paths'])<=1000 and all(relative(path) for path in intake['context_paths'])
+                and len(set(intake['context_paths']))==len(intake['context_paths']), 'approved assessment dataflow missing')
+        require(request['repository']==self.config['repository'] and digest(canonical(request).encode())==revision,
+                'assessment stored request binding invalid')
+        root=Path(self.config['candidate_root']);deadline=time.monotonic()+20
+        environment={'PATH':'/usr/bin:/bin','HOME':'/nonexistent','GIT_CONFIG_NOSYSTEM':'1','GIT_CONFIG_SYSTEM':'/dev/null',
+                     'GIT_CONFIG_GLOBAL':'/dev/null','GIT_CONFIG_COUNT':'0','GIT_TERMINAL_PROMPT':'0','GIT_OPTIONAL_LOCKS':'0','LC_ALL':'C'}
+        command=['/usr/bin/git','--no-optional-locks','-c','core.fsmonitor=false','-c','core.hooksPath=/dev/null','-C',str(root),'rev-parse','--verify','HEAD']
+        observed=scout._bounded.run(command,env=environment,cwd=str(root),timeout=5,limit=8192)
+        require(observed.returncode==0 and observed.stdout.decode('ascii').strip()==request['ref'], 'assessment request ref stale')
+        # Delivery/retry secrets and private actor/session metadata never enter context.
+        public_request={'text':request['text'],'repository':request['repository'],'ref':request['ref'],
+                        'request_id':request_id,'revision':revision}
+        limits=self.config['limits']
+        def collect(tree, paths, roots, evidence):
+            remaining=deadline-time.monotonic();require(remaining>0,'assessment collection deadline')
+            return decode(scout.collect_context(public_request,tree,paths,roots,evidence,context_bytes=limits['context_bytes'],
+                                               request_chars=limits['request_chars'],collection_seconds=min(20,remaining)))
+        context=collect(root,intake['context_paths'],profile['source_roots'],[])
+        eligible=self.eligible()
+        catalog=self.contract_catalog(scout,routing)
+        documents={}
+        for item in [*eligible,*catalog]:
+            for evidence in item['evidence']:
+                kind=evidence['kind'] if evidence['kind'] in {'spec','plan'} else 'task'
+                documents[evidence['ref']]={'kind':kind,'path':evidence['ref'],'sha256':evidence['sha256']}
+        ledger=Path(self.config['authority_root'])/'tasks/TASKS.md'
+        if catalog and ledger.is_file():
+            require(ledger.resolve()==ledger,'catalog task ledger not canonical')
+            ledger_raw=read_file(ledger,limits['context_bytes'])
+            documents['tasks/TASKS.md']={'kind':'task','path':'tasks/TASKS.md','sha256':digest(ledger_raw)}
+        if documents:
+            authority=collect(Path(self.config['authority_root']),[],['specs','plans','tasks'],list(documents.values()))
+            context['approved_evidence']=authority['approved_evidence']
+        raw=canonical(context).encode('utf-8')
+        require(len(raw)<=limits['context_bytes'] and time.monotonic()<deadline,'combined assessment context bound exceeded')
+        evidence={(item['kind'],item['ref'],item['sha256']) for entry in [*eligible,*catalog] for item in entry['evidence']}
+        if 'tasks/TASKS.md' in documents:
+            evidence.add(('repository','tasks/TASKS.md',documents['tasks/TASKS.md']['sha256']))
+        evidence.add(('request',request_id,revision))
+        evidence.update(('repository',item['path'],item['sha256']) for item in context['sources'])
+        for entry in eligible:
+            ledger=next((item for item in entry['evidence'] if item['ref']=='tasks/TASKS.md'),None)
+            if ledger:evidence.add(('task',entry['task'],ledger['sha256']))
+        return raw,eligible,evidence,set(intake['context_paths']),catalog
+
+    def proposed_source_path(self, name, scout, routing):
+        """Validate a proposed filename only; never read it or mint evidence."""
+        path=scout.relative(name);scout.permitted(path)
+        profile=routing.protected(Path(self.config['profile']),[Path(self.config[key]) for key in ('candidate_root','authority_root')])
+        require(profile['enabled'] and profile['repository']==self.config['repository'],'proposed source profile differs')
+        roots=[scout.source_root(value) for value in profile['source_roots']]
+        require(any(path==base or base in path.parents for base in roots),'proposed source outside protected roots')
+        root=Path(self.config['candidate_root'])
+        descriptor=os.open(root,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW)
+        try:
+            for index,component in enumerate(path.parts):
+                try:info=os.stat(component,dir_fd=descriptor,follow_symlinks=False)
+                except FileNotFoundError:
+                    # Remaining components are only names in a proposal. Later
+                    # publication/mutation must independently revalidate effects.
+                    return
+                require(not stat.S_ISLNK(info.st_mode),'proposed source symlink rejected')
+                if index==len(path.parts)-1:
+                    require(stat.S_ISREG(info.st_mode) and info.st_nlink==1,'proposed source is not a regular unlinked file')
+                else:
+                    require(stat.S_ISDIR(info.st_mode),'proposed source ancestor not directory')
+                    child=os.open(component,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW,dir_fd=descriptor)
+                    os.close(descriptor);descriptor=child
+        finally:os.close(descriptor)
+
+    def assess(self, request_id):
+        """Reserve one attempt before execution; unknown attempts never replay."""
+        require(hex_value(request_id,32),'assessment request identity invalid')
+        self.ready()
+        with self.transaction() as db:
+            initial=db.execute('SELECT * FROM intake_requests WHERE id=?',(request_id,)).fetchone()
+            require(initial is not None,'unknown assessment request')
+            if initial['decision'] is not None:
+                result=decode(initial['decision']);validate_decision(result);return result
+            if db.execute('SELECT 1 FROM intake_assessments WHERE request_id=?',(request_id,)).fetchone():
+                return self.assessment_block(request_id,initial['revision'],'assessment-unresolved')
+            prompt=decode(initial['document'])['text'].strip().lower()
+        if re.fullmatch(r'(?:continue|resume) t-[1-9][0-9]*',prompt) or prompt in {'how does this work?','help','status','what is the status?','stop','pause','/stop','skip the gates','continue','keep continuing','resume'}:
+            return self.lightweight(request_id)
+        with self.transaction() as db:
+            row=db.execute('SELECT * FROM intake_requests WHERE id=?',(request_id,)).fetchone()
+            require(row is not None,'unknown assessment request')
+            revision=row['revision'];request=decode(row['document'])
+            previous=db.execute('SELECT * FROM intake_assessments WHERE request_id=?',(request_id,)).fetchone()
+            if previous is not None:
+                require(previous['revision']==revision,'assessment revision binding differs')
+                if row['decision'] is not None:
+                    result=decode(row['decision']);validate_decision(result);return result
+                return self.assessment_block(request_id,revision,'assessment-unresolved')
+            require(row['status']=='submitted' and row['assessment_count']==0,'assessment request not eligible')
+            db.execute("INSERT INTO intake_assessments(request_id,revision,status,result,reason) VALUES(?,?,'reserved',NULL,NULL)",(request_id,revision))
+            db.execute("UPDATE intake_requests SET status='assessing',assessment_count=1 WHERE id=?",(request_id,))
+            db.execute('INSERT INTO intake_events(request_id,event) VALUES(?,?)',(request_id,'assessment_reserved'))
+        raw_result=None
+        try:
+            scout,routing=self.assessment_modules()
+            raw,eligible,evidence,paths,catalog=self.assessment_context(request_id,request,revision,scout,routing)
+            # Commit running status, then release transaction before native execution.
+            with self.transaction() as db:
+                current=db.execute('SELECT status,revision FROM intake_assessments WHERE request_id=?',(request_id,)).fetchone()
+                require(tuple(current)==('reserved',revision),'assessment reservation changed')
+                db.execute("UPDATE intake_assessments SET status='running' WHERE request_id=?",(request_id,))
+            self.ready()
+            raw_result=scout.run_assessment(self.config['profile'],[Path(self.config[name]) for name in ('candidate_root','authority_root')],raw,
+                                            assessment_seconds=self.config['limits']['assessment_seconds'],output_bytes=self.config['limits']['output_bytes'],
+                                            context_bytes=self.config['limits']['context_bytes'],request_chars=self.config['limits']['request_chars'])
+            self.ready()
+            current_raw,current_eligible,current_evidence,current_paths,current_catalog=self.assessment_context(request_id,request,revision,scout,routing)
+            require(current_raw==raw and current_eligible==eligible and current_evidence==evidence and current_paths==paths and current_catalog==catalog,
+                    'assessment context changed during process')
+            result={**raw_result['assessment'],'request_id':request_id,'revision':revision}
+            validate_decision(result)
+            require(all((item['kind'],item['ref'],item['sha256']) in evidence for item in result['evidence']),
+                    'assessment invented evidence')
+            for item in result['intents']:
+                for path in item['scope']:
+                    if path in paths:
+                        continue
+                    require(result['next_action'] in {'draft','question'},'uncollected source cannot authorize execution')
+                    self.proposed_source_path(path,scout,routing)
+            kinds={item['kind'] for item in result['intents']}
+            require(result['disposition'] in kinds,'assessment disposition/intent mismatch')
+            require(not kinds&{'new_feature','changed_requirement'} or result['next_action'] in {'draft','question'},'assessment mixed change scope cannot execute')
+            references=tuple(result[name] for name in ('spec','plan','task'))
+            reference_choices=eligible
+            if result['disposition'] in {'defect','changed_requirement'} and result['next_action'] in {'draft','question','inspect'}:
+                reference_choices=[*eligible,*catalog]
+            require(references==(None,None,None) or any(references==tuple(item[name] for name in ('spec','plan','task')) for item in reference_choices),
+                    'assessment invented approved scope')
+            require(result['disposition']!='existing_approved' or references!=(None,None,None),'assessment approval match missing')
+            if references!=(None,None,None):
+                selected=next(item for item in reference_choices if references==tuple(item[name] for name in ('spec','plan','task')))
+                require(not selected.get('open_questions') or result['next_action'] in {'draft','question'},'catalog open questions require proposal or clarification')
+                cited={(item['kind'],item['ref'],item['sha256']) for item in result['evidence']}
+                require(all((item['kind'],item['ref'],item['sha256']) in cited for item in selected['evidence']),'assessment approved references not evidenced')
+            if result['next_action']=='resume':
+                policy=decode(read_file(self.config['policy'],65536,True))
+                matches=[value for value in policy.get('specs',{}).values() if isinstance(value,dict) and value.get('path')==references[0]]
+                require(len(matches)==1,'assessment approved scope ambiguous');approved=matches[0]
+                import fnmatch
+                require(all(any(fnmatch.fnmatchcase(path,pattern) for pattern in approved['allowed_paths'])
+                            for item in result['intents'] for path in item['scope']), 'assessment exceeds approved task scope')
+            final_status='blocked' if result['disposition'] in {'blocked','unsupported'} else 'clarify' if result['disposition']=='clarify' else 'decided'
+            assessment_status='completed'
+        except (ValueError,OSError,KeyError,TypeError,UnicodeError):
+            result=self.assessment_block(request_id,revision,'assessment-failed')
+            final_status='blocked';assessment_status='blocked'
+        validate_decision(result)
+        # Storage/ack failure leaves the reservation unknown; never retry process.
+        with self.transaction() as db:
+            row=db.execute('SELECT revision,status,decision FROM intake_requests WHERE id=?',(request_id,)).fetchone()
+            require(row is not None and row['revision']==revision and row['status']=='assessing' and row['decision'] is None,
+                    'assessment final binding changed')
+            db.execute('UPDATE intake_assessments SET status=?,result=?,reason=? WHERE request_id=?',
+                       (assessment_status,None if raw_result is None else canonical(raw_result),result['blocked_reason'],request_id))
+            db.execute('UPDATE intake_requests SET status=?,decision=? WHERE id=?',(final_status,canonical(result),request_id))
+            db.execute('INSERT INTO intake_events(request_id,event) VALUES(?,?)',(request_id,'assessment_'+final_status))
         return result
 
 

@@ -45,3 +45,7 @@ Three independently useful phases establish complete local guarded intake, then 
 ## Native compatibility amendment
 
 The primary hooks documentation exposes no human-origin field and includes generated callbacks; default hook failures continue. Therefore native payload origin claims are not accepted. A trusted console entry records identity before foreground print-mode session/resume delivery, suppresses ambiguous/generated reintake and blocks enablement absent observed ordering and fail-closed behavior. The separate assessor argv is explicitly pinned alongside the primary planning profile; task worker wrappers and safe-mode alone do not establish tool-free assessment. See official https://code.claude.com/docs/en/hooks and https://code.claude.com/docs/en/cli-reference.
+
+## Worker guard refinement
+
+Native safe-mode suppresses project hooks, so an enabled mandatory mutation path uses an opt-in pinned wrapper whose safe-mode contract means clean configuration. It launches native Claude with protected absolute fail-closed guards, narrowly supervisor-minted current task/action/fence references and a guarded read/write tool surface. Direct old safe-mode profiles remain unsupported for mandatory coverage; disabled legacy behavior remains compatible. Execution stays behind existing isolated acceptance boundaries, and the wrapper creates no OS sandbox. Guard ordering/failure and identity propagation need actual pinned-runtime observation before enablement. This refinement implements approved AC-6 rather than expanding source or activation authority.
