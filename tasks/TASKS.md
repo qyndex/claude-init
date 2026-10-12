@@ -1564,7 +1564,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-request-intake.sh clarification-revisions
   owner: implementer
 
-- [ ] T-265  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-264  | parallel: no  | est: 5m
+- [x] T-265  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-264  | parallel: no  | est: 5m
   summary: Revalidate stored decisions against current source approval policy and scope before actions
   files: .claude/scripts/factory-intake.py, .claude/scripts/test/factory-intake-decision-freshness.sh, .claude/scripts/test/factory-request-intake.sh
   accept: bash .claude/scripts/test/factory-request-intake.sh decision-freshness

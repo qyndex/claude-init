@@ -195,6 +195,8 @@ class Intake:
                     request_id TEXT PRIMARY KEY REFERENCES intake_requests(id),proposal_id TEXT NOT NULL REFERENCES intake_proposals(id),
                     number INTEGER NOT NULL,parent_request TEXT,request_revision TEXT NOT NULL,kind TEXT NOT NULL,
                     UNIQUE(proposal_id,number));
+                CREATE TABLE IF NOT EXISTS intake_decision_bindings (
+                    request_id TEXT PRIMARY KEY REFERENCES intake_requests(id),document TEXT NOT NULL);
                 CREATE TABLE IF NOT EXISTS intake_events (
                     sequence INTEGER PRIMARY KEY,request_id TEXT,event TEXT NOT NULL);
             '''
@@ -477,6 +479,93 @@ class Intake:
                 return {'request_id':row['id'],'revision':row['revision'],'decision':decision,'status':row['status']}
         return None
 
+    def candidate_identity(self, scout):
+        root=Path(self.config['candidate_root'])
+        environment={'PATH':'/usr/bin:/bin','HOME':'/nonexistent','GIT_CONFIG_NOSYSTEM':'1','GIT_CONFIG_SYSTEM':'/dev/null',
+                     'GIT_CONFIG_GLOBAL':'/dev/null','GIT_CONFIG_COUNT':'0','GIT_TERMINAL_PROMPT':'0','GIT_OPTIONAL_LOCKS':'0','LC_ALL':'C'}
+        command=['/usr/bin/git','--no-optional-locks','-c','core.fsmonitor=false','-c','core.hooksPath=/dev/null','-C',str(root),
+                 'rev-parse','--verify','HEAD']
+        head=scout._bounded.run(command,env=environment,cwd=str(root),timeout=5,limit=8192)
+        require(head.returncode==0,'fresh decision Git HEAD unavailable')
+        branch=scout._bounded.run(command[:-3]+['symbolic-ref','-q','HEAD'],env=environment,cwd=str(root),timeout=5,limit=8192)
+        require(branch.returncode in {0,1},'fresh decision Git ref unavailable')
+        return {'head':head.stdout.decode('ascii').strip(),'ref':branch.stdout.decode('ascii').strip()}
+
+    def decision_binding(self, request, result, scout, context=None):
+        candidate=self.candidate_identity(scout)
+        require(candidate['head']==request['ref'],'fresh decision request ref stale')
+        return {'request_sha256':digest(canonical(request).encode()),'decision_sha256':digest(canonical(result).encode()),
+                'candidate':candidate,'context_sha256':None if context is None else digest(context)}
+
+    def fresh_decision(self, request_id):
+        """Read-only pre-action guard. Cached outcomes grant no execution authority.
+
+        Future governed effect paths must call this immediately before their own
+        action/claim checks; this check neither reserves nor starts an action.
+        """
+        require(hex_value(request_id,32),'fresh decision request identity invalid')
+        self.ready()
+        with self.transaction() as db:
+            row=db.execute('SELECT * FROM intake_requests WHERE id=?',(request_id,)).fetchone()
+            binding=db.execute('SELECT document FROM intake_decision_bindings WHERE request_id=?',(request_id,)).fetchone()
+            require(row is not None and row['decision'] is not None and binding is not None
+                    and row['status'] in {'decided','clarify'},'fresh decision binding missing or blocked')
+            request=decode(row['document']);result=decode(row['decision']);saved=decode(binding['document'])
+        validate_request(request,self.config['limits']);validate_decision(result)
+        require(request['repository']==self.config['repository'] and result['request_id']==request_id
+                and row['revision']==result['revision']==digest(canonical(request).encode()),'fresh decision request binding differs')
+        require(result['next_action'] not in {'none','stop'} and result['blocked_reason'] is None,'fresh decision has no permitted action')
+        scout,routing=self.assessment_modules()
+        raw,eligible,evidence,paths,catalog=self.assessment_context(request_id,request,row['revision'],scout,routing)
+        current=self.decision_binding(request,result,scout,raw if saved['context_sha256'] is not None else None)
+        require(current==saved,'fresh decision source/context binding changed')
+        if request['text'].strip().lower() in {'continue','keep continuing','resume'}:
+            context=self.session_context(request_id,request)
+            if context is not None:
+                evidence.add(('request',context['request_id'],context['revision']))
+                if result['next_action']=='resume':
+                    prior=context['decision']
+                    require(prior is not None and prior['disposition']=='existing_approved'
+                            and all(prior[name]==result[name] for name in ('spec','plan','task')),
+                            'fresh decision session task binding changed')
+        require(all((item['kind'],item['ref'],item['sha256']) in evidence for item in result['evidence']),
+                'fresh decision evidence stale or unbound')
+        for intent in result['intents']:
+            for path in intent['scope']:
+                if path not in paths:
+                    require(result['next_action'] in {'draft','question'},'fresh decision source not collected')
+                    self.proposed_source_path(path,scout,routing)
+        references=tuple(result[name] for name in ('spec','plan','task'))
+        choices=eligible
+        if result['disposition'] in {'defect','changed_requirement'} and result['next_action'] in {'draft','question','inspect'}:
+            choices=[*eligible,*catalog]
+        require(references==(None,None,None) or any(references==tuple(item[name] for name in ('spec','plan','task')) for item in choices),
+                'fresh decision approved scope no longer eligible')
+        if references!=(None,None,None):
+            selected=next(item for item in choices if references==tuple(item[name] for name in ('spec','plan','task')))
+            cited={(item['kind'],item['ref'],item['sha256']) for item in result['evidence']}
+            require(all((item['kind'],item['ref'],item['sha256']) in cited for item in selected['evidence']),
+                    'fresh decision approved evidence changed')
+        if result['next_action']=='resume':
+            require(references!=(None,None,None),'fresh decision approval missing')
+            import fnmatch
+            policy=decode(read_file(self.config['policy'],65536,True))
+            matches=[value for value in policy.get('specs',{}).values() if isinstance(value,dict) and value.get('path')==result['spec']]
+            require(len(matches)==1,'fresh decision approved scope ambiguous')
+            require(all(any(fnmatch.fnmatchcase(path,pattern) for pattern in matches[0]['allowed_paths'])
+                        for intent in result['intents'] for path in intent['scope']),'fresh decision exceeds approved scope')
+        if result['next_action'] in {'draft','question'}:
+            with self.transaction() as db:
+                lineage=db.execute('SELECT 1 FROM intake_proposal_revisions WHERE request_id=?',(request_id,)).fetchone()
+            if lineage is not None:
+                proposal=self.proposal_revision(request_id)
+                require(proposal['current'] and proposal['state']=='active','fresh decision proposal superseded or blocked')
+        self.ready()
+        with self.transaction() as db:
+            current=db.execute('SELECT document,revision,decision,status FROM intake_requests WHERE id=?',(request_id,)).fetchone()
+            require(tuple(current)==(row['document'],row['revision'],row['decision'],row['status']), 'fresh decision changed during validation')
+        return result
+
     def lightweight(self, request_id):
         self.ready()
         with self.transaction() as db:
@@ -531,12 +620,25 @@ class Intake:
                   'rationale':rationale,'evidence':evidence,'uncertainty':uncertainty,
                   **references,'next_action':action,'blocked_reason':None}
         validate_decision(result)
+        binding=None
+        try:
+            scout,routing=self.assessment_modules()
+            raw=None
+            if action=='resume':
+                raw,*_=self.assessment_context(request_id,request,row['revision'],scout,routing)
+            binding=self.decision_binding(request,result,scout,raw)
+        except (ValueError,OSError,KeyError,TypeError,UnicodeError):
+            # Historical lightweight queries still work in advisory/non-Git installs;
+            # absence of a current private binding fences all dependent effects.
+            pass
         with self.transaction() as db:
             current = db.execute('SELECT decision,status FROM intake_requests WHERE id=?',(request_id,)).fetchone()
             require(current['status']=='submitted' or current['decision']==canonical(result), 'intake decision race')
             db.execute("UPDATE intake_requests SET decision=?,status='decided' WHERE id=?",(canonical(result),request_id))
             db.execute('INSERT INTO intake_events(request_id,event) VALUES(?,?)',(request_id,'lightweight_decision'))
             self.settle_proposal(db,request_id,request,result)
+            if binding is not None:
+                db.execute('INSERT INTO intake_decision_bindings VALUES(?,?)',(request_id,canonical(binding)))
             if action=='stop':
                 db.execute('UPDATE intake_identity SET paused=1 WHERE id=1')
                 db.execute('UPDATE control SET paused=1 WHERE id=1')
@@ -731,7 +833,7 @@ class Intake:
             db.execute("INSERT INTO intake_assessments(request_id,revision,status,result,reason) VALUES(?,?,'reserved',NULL,NULL)",(request_id,revision))
             db.execute("UPDATE intake_requests SET status='assessing',assessment_count=1 WHERE id=?",(request_id,))
             db.execute('INSERT INTO intake_events(request_id,event) VALUES(?,?)',(request_id,'assessment_reserved'))
-        raw_result=None
+        raw_result=None;binding=None
         try:
             scout,routing=self.assessment_modules()
             raw,eligible,evidence,paths,catalog=self.assessment_context(request_id,request,revision,scout,routing)
@@ -780,9 +882,11 @@ class Intake:
                 import fnmatch
                 require(all(any(fnmatch.fnmatchcase(path,pattern) for pattern in approved['allowed_paths'])
                             for item in result['intents'] for path in item['scope']), 'assessment exceeds approved task scope')
+            binding=self.decision_binding(request,result,scout,raw)
             final_status='blocked' if result['disposition'] in {'blocked','unsupported'} else 'clarify' if result['disposition']=='clarify' else 'decided'
             assessment_status='completed'
         except (ValueError,OSError,KeyError,TypeError,UnicodeError):
+            binding=None
             result=self.assessment_block(request_id,revision,'assessment-failed')
             final_status='blocked';assessment_status='blocked'
         validate_decision(result)
@@ -796,6 +900,8 @@ class Intake:
             db.execute('UPDATE intake_requests SET status=?,decision=? WHERE id=?',(final_status,canonical(result),request_id))
             db.execute('INSERT INTO intake_events(request_id,event) VALUES(?,?)',(request_id,'assessment_'+final_status))
             self.settle_proposal(db,request_id,request,result)
+            if binding is not None:
+                db.execute('INSERT INTO intake_decision_bindings VALUES(?,?)',(request_id,canonical(binding)))
         return result
 
 
