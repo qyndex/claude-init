@@ -1588,7 +1588,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-request-intake.sh worker-descriptor
   owner: implementer
 
-- [ ] T-269  | spec:050  | phase:1  | priority: security  | created: 2026-10-13  | deps: T-268  | parallel: no  | est: 5m
+- [x] T-269  | spec:050  | phase:1  | priority: security  | created: 2026-10-13  | deps: T-268  | parallel: no  | est: 5m
   summary: Enforce protected disclosure inventory through synchronous Read hook CLI and deny unsupported tools
   files: .claude/scripts/factory-intake-hooks.py, .claude/hooks/request-intake.sh, .claude/hooks/pre-intake-action.sh, .claude/scripts/test/factory-intake-tool-read.sh, .claude/scripts/test/factory-request-intake.sh
   accept: bash .claude/scripts/test/factory-request-intake.sh tool-read

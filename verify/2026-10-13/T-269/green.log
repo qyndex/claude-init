@@ -1,0 +1,7 @@
+# TDD ledger — green — T-269
+ledger_format: 2
+timestamp: 2026-10-13T17:39:01+11:00
+command: bash .claude/scripts/test/factory-request-intake.sh tool-read
+exit_code: 0
+---
+tool-read: real implementing claim and consumed submit, selected disclosure/exact task outputs only; unselected/control/private/changed data and unsupported tools reject; pending effects fence

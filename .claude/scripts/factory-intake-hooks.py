@@ -91,6 +91,7 @@ def validate_descriptor(controller,path):
     with controller.transaction() as db:
         row=db.execute('SELECT * FROM intake_worker_descriptors WHERE path=?',(str(path),)).fetchone()
     require(row is not None,'worker descriptor not reserved')
+    effect_checked=False
     try:
         require(row['state'] in {'reserved','issued','consumed'},'worker descriptor unresolved')
         raw=start_bytes(path,True)
@@ -110,14 +111,14 @@ def validate_descriptor(controller,path):
         require(document['contract']==str(controller.path) and document['contract_sha256']==controller.binding
                 and document['authority_root']==controller.config['authority_root']
                 and document['candidate_root']==controller.config['candidate_root'], 'worker descriptor installation differs')
-        controller.execution_ready()
-        receipt=controller.owned_start(document['start_id'],document['owner'],document['fence'])
         with controller.transaction() as db:
-            start=db.execute('SELECT snapshot FROM intake_task_starts WHERE action_id=?',(document['start_id'],)).fetchone()
+            start=db.execute('SELECT snapshot,task,revision,owner,fence FROM intake_task_starts WHERE action_id=?',(document['start_id'],)).fetchone()
             action=db.execute('SELECT request_id FROM intake_actions WHERE id=?',(document['start_id'],)).fetchone()
+        require(start is not None and action is not None,'worker immutable start binding missing')
         snapshot=decode(start['snapshot'])
-        expected_prompt=canonical({'schema_version':1,'task':receipt['task'],'context':snapshot['context']})
-        require(document['task']==receipt['task'] and document['task_revision']==receipt['revision']
+        expected_prompt=canonical({'schema_version':1,'task':start['task'],'context':snapshot['context']})
+        require(document['task']==start['task'] and document['task_revision']==start['revision']
+                and document['owner']==start['owner'] and document['fence']==start['fence']
                 and document['request_id']==action['request_id'] and document['request_revision']==snapshot['request'][1]
                 and document['prompt']==expected_prompt
                 and len(expected_prompt.encode())<=controller.config['limits']['context_bytes']
@@ -130,13 +131,23 @@ def validate_descriptor(controller,path):
                 'worker contract helper changed')
         worker=types.ModuleType('protected_submit_worker');worker.__file__=worker_path
         exec(compile(worker_raw,worker_path,'exec'),worker.__dict__)
-        selected=worker.load_worker_contract(controller.path,receipt['task'])
+        selected=worker.load_worker_contract(controller.path,start['task'])
         require(selected['worker_guard_sha256']==document['worker_guard_sha256'],'worker declaration differs')
-        require(start_bytes(path,True)==raw,'worker descriptor changed during validation')
+        # Only current live claim/pause/pending denials are temporary. All immutable
+        # request/task/prompt/worker bindings above remain structural uncertainty.
+        effect_checked=True
+        controller.execution_ready()
+        controller.owned_start(document['start_id'],document['owner'],document['fence'])
+        try:
+            require(start_bytes(path,True)==raw,'worker descriptor changed during validation')
+        except BaseException:
+            effect_checked=False
+            raise
         return document
     except BaseException:
-        with controller.transaction() as db:
-            db.execute("UPDATE intake_worker_descriptors SET state='unknown' WHERE start_id=?",(row['start_id'],))
+        if not effect_checked:
+            with controller.transaction() as db:
+                db.execute("UPDATE intake_worker_descriptors SET state='unknown' WHERE start_id=?",(row['start_id'],))
         raise
 
 
@@ -192,14 +203,90 @@ def consume_submit(path,payload):
     return {'continue':True}
 
 
+def authorize_read(path,payload):
+    """Authorize one exact native Read against explicit protected disclosure data."""
+    allowed_fields={'hook_event_name','session_id','cwd','tool_name','tool_use_id','tool_input',
+                    'transcript_path','permission_mode','run_in_background'}
+    require(isinstance(payload,dict) and set(payload)<=allowed_fields and payload.get('hook_event_name')=='PreToolUse'
+            and payload.get('tool_name')=='Read' and payload.get('run_in_background',False) is False
+            and isinstance(payload.get('tool_use_id'),str) and 0<len(payload['tool_use_id'])<=256,
+            'worker tool unsupported or malformed')
+    arguments=payload.get('tool_input')
+    require(isinstance(arguments,dict) and set(arguments)<={'file_path','offset','limit'}
+            and isinstance(arguments.get('file_path'),str),'worker Read payload invalid')
+    for key in ('offset','limit'):
+        if key in arguments:require(type(arguments[key]) is int and 0<arguments[key]<=500000,'worker Read bounds invalid')
+    controller=bound_controller(path);document=validate_descriptor(controller,path)
+    require(payload.get('session_id')==document['native_session'] and payload.get('cwd')==document['cwd'],
+            'worker Read native binding differs')
+    receipt=controller.owned_start(document['start_id'],document['owner'],document['fence'])
+    require(receipt['state']=='implementing','worker Read requires implementing stage')
+    with controller.transaction() as db:
+        descriptor=db.execute('SELECT state FROM intake_worker_descriptors WHERE start_id=?',(document['start_id'],)).fetchone()
+        start=db.execute('SELECT snapshot FROM intake_task_starts WHERE action_id=?',(document['start_id'],)).fetchone()
+        writes=db.execute('SELECT path,after_sha256,status FROM intake_mutations WHERE start_id=? ORDER BY number',(document['start_id'],)).fetchall()
+    require(descriptor is not None and descriptor['state']=='consumed','worker initial submit not consumed')
+    snapshot=decode(start['snapshot'])
+    policy=decode(start_bytes(controller.config['policy'],True))
+    selected=set(policy['intake']['context_paths'])
+    disclosure={item['path']:item['sha256'] for item in snapshot['context']['sources'] if item['path'] in selected}
+    for write in writes:
+        require(write['status']=='completed','worker uncertain writes fence Read')
+        disclosure[write['path']]=write['after_sha256']
+    root=Path(controller.config['candidate_root']);target=Path(arguments['file_path'])
+    require(target.is_absolute() and str(target)==arguments['file_path'] and target.resolve()==target,
+            'worker Read must use canonical absolute file')
+    name=str(target.relative_to(root))
+    require(name in disclosure,'worker file lacks explicit disclosure approval')
+    scout,routing=controller.assessment_modules();relative=scout.relative(name);scout.permitted(relative)
+    excluded={'.claude','.codex','.agents','.github','factory','specs','plans','tasks','initiatives','verify'}
+    require(relative.parts[0].lower() not in excluded
+            and not any(part.lower() in {'.venv','venv','__pycache__','.cache'} for part in relative.parts),
+            'worker protected/control Read rejected')
+    protected=policy.get('protected_paths',[])
+    require(isinstance(protected,list) and all(isinstance(value,str) for value in protected)
+            and not controller_scope_match(name,protected),'worker protected policy Read rejected')
+    profile=decode(start_bytes(controller.config['profile'],True))
+    roots=[scout.source_root(value) for value in profile['source_roots']]
+    require(any(relative==base or base in relative.parents for base in roots),'worker Read outside source roots')
+    for shim in ('request-intake.sh','pre-intake-action.sh'):
+        shim_path=str(Path(__file__).parent.parent/'hooks'/shim)
+        require(shim_path in controller.config['trusted_files']
+                and profile['runtimes'][profile['roles']['implementation']['primary']]['probe']['trusted_files'].get(shim_path)
+                ==controller.config['trusted_files'][shim_path],'worker hook shim closure missing')
+    fd=os.open(root,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW)
+    try:
+        for component in relative.parts[:-1]:
+            child=os.open(component,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW,dir_fd=fd)
+            os.close(fd);fd=child
+        raw,metadata=controller.mutation_bytes(fd,target)
+        require(raw is not None and hashlib.sha256(raw).hexdigest()==disclosure[name],
+                'worker Read approved bytes changed')
+        # Recheck scope/claim/unknown effects after byte validation, without disclosing bytes.
+        validate_descriptor(controller,path)
+        controller.owned_start(document['start_id'],document['owner'],document['fence'])
+        require(controller.mutation_parent(fd,target) is not None
+                and controller.file_metadata(os.stat(target.name,dir_fd=fd,follow_symlinks=False))==metadata,
+                'worker Read file changed before admission')
+    finally:os.close(fd)
+    return {'hookSpecificOutput':{'hookEventName':'PreToolUse','permissionDecision':'allow',
+                                 'permissionDecisionReason':'Exact protected disclosure and owned stage validated.'}}
+
+
+def controller_scope_match(path,patterns):
+    return any(path.startswith(pattern[:-1]) if pattern.endswith('*') else path==pattern for pattern in patterns)
+
+
 def main():
     import argparse
     parser=argparse.ArgumentParser();parser.add_argument('--descriptor',required=True);parser.add_argument('--event',required=True)
     args=parser.parse_args()
     try:
-        require(args.event=='UserPromptSubmit','worker tool guards not assembled')
+        require(args.event in {'UserPromptSubmit','PreToolUse'},'worker tool guards not assembled')
         raw=sys.stdin.buffer.read(2000001);require(len(raw)<=2000000,'worker submit input bound exceeded')
-        result=consume_submit(args.descriptor,decode(raw));print(canonical(result));return 0
+        payload=decode(raw)
+        result=consume_submit(args.descriptor,payload) if args.event=='UserPromptSubmit' else authorize_read(args.descriptor,payload)
+        print(canonical(result));return 0
     except (ValueError,OSError,KeyError,TypeError):
         print('Worker submit blocked by protected binding checks.',file=sys.stderr);return 2
 
