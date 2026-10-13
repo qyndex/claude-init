@@ -1600,9 +1600,9 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-request-intake.sh tool-mutation
   owner: implementer
 
-- [ ] T-271  | spec:050  | phase:1  | priority: security  | created: 2026-10-13  | deps: T-270  | parallel: no  | est: 5m
+- [x] T-271  | spec:050  | phase:1  | priority: security  | created: 2026-10-13  | deps: T-270  | parallel: no  | est: 5m
   summary: Launch pinned native worker in private clean directories with generated fail-closed settings and bounded subprocess
-  files: .claude/scripts/factory-intake-worker.py, .claude/scripts/factory-worker-guard.py, .claude/scripts/test/factory-intake-worker-launch.sh, .claude/scripts/test/factory-request-intake.sh
+  files: .claude/scripts/factory-intake-worker.py, .claude/scripts/factory-intake.py, .claude/scripts/factory-supervisor.py, .claude/scripts/factory-worker-guard.py, .claude/scripts/factory-bounded-process.py, .claude/scripts/test/factory-intake-worker-launch.sh, .claude/scripts/test/factory-request-intake.sh
   accept: bash .claude/scripts/test/factory-request-intake.sh worker-launch
   owner: implementer
 

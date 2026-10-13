@@ -280,6 +280,10 @@ class Intake:
                     start_id TEXT PRIMARY KEY REFERENCES intake_task_starts(action_id),nonce TEXT UNIQUE NOT NULL,
                     path TEXT UNIQUE NOT NULL,document TEXT NOT NULL,sha256 TEXT NOT NULL,
                     state TEXT NOT NULL CHECK(state IN ('reserved','issued','consumed','unknown')));
+                CREATE TABLE IF NOT EXISTS intake_worker_launches (
+                    start_id TEXT PRIMARY KEY REFERENCES intake_worker_descriptors(start_id),document TEXT NOT NULL,
+                    sha256 TEXT NOT NULL,state TEXT NOT NULL CHECK(state IN ('reserved','running','exited','unknown')),
+                    wrapper_pid INTEGER NOT NULL,guardian_pid INTEGER,result TEXT);
                 CREATE TABLE IF NOT EXISTS intake_native_tool_writes (
                     start_id TEXT NOT NULL REFERENCES intake_worker_descriptors(start_id),tool_use_id TEXT NOT NULL,
                     document TEXT NOT NULL,sha256 TEXT NOT NULL,mutation_id TEXT UNIQUE NOT NULL REFERENCES intake_mutations(id),

@@ -255,14 +255,21 @@ def worker_environment(source):
 
 
 def group_exists(pgid):
-    result = subprocess.run(['ps', '-axo', 'pgid=,stat='], capture_output=True, text=True, check=True)
+    result = subprocess.run(['/bin/ps', '-axo', 'pgid=,stat='], capture_output=True, text=True, check=True,timeout=2,
+                            env={'PATH':'/usr/bin:/bin','HOME':'/nonexistent','LANG':'C','LC_ALL':'C'})
     return any(fields[0] == str(pgid) and not fields[1].startswith('Z')
                for line in result.stdout.splitlines() if len(fields := line.split()) == 2)
 
 
 def terminate(worker, grace=2):
     # macOS may return EPERM rather than ESRCH for a vanished process group.
-    if not group_exists(worker.pid):
+    try:alive=group_exists(worker.pid)
+    except (OSError,subprocess.SubprocessError):
+        try:os.killpg(worker.pid,signal.SIGKILL)
+        except ProcessLookupError:pass
+        worker.wait(timeout=5)
+        raise ValueError('worker cleanup status uncertain')
+    if not alive:
         worker.wait(timeout=5)
         return
     try:

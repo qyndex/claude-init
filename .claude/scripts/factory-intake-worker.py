@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Protected worker contract validation only; no worker process is enabled here."""
+"""Protected contract and guarded worker transport; mandatory routing stays gated."""
 import hashlib
 import types
 import json
@@ -7,6 +7,13 @@ import os
 from pathlib import Path
 import re
 import stat
+import pwd
+import signal
+import shlex
+import time
+import subprocess
+import select
+import sys
 
 CAPABILITIES = ['foreground', 'model-selection', 'structured-output', 'config-isolation',
                 'hook-failure-block', 'guarded-read-write-edit',
@@ -220,3 +227,256 @@ def load_worker_contract(contract_path, task_id):
             'worker_guard_sha256': digest(canonical(guard).encode()),
             'native_executable': native, 'interpreter': interpreter,
             'capability_evidence': 'protected-observation'}
+
+
+def start_bytes(path,private_file=False):
+    path=Path(path)
+    require(path.is_absolute() and path.resolve()==path and not path.is_symlink(),'start control path not canonical')
+    if private_file:
+        require(path.parent.stat().st_uid==os.getuid() and stat.S_IMODE(path.parent.stat().st_mode)==0o700,'start control parent not private')
+    fd=os.open(path,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK)
+    try:
+        info=os.fstat(fd)
+        require(stat.S_ISREG(info.st_mode) and info.st_nlink==1 and info.st_size<=8000000,'start control file invalid')
+        if private_file:require(info.st_uid==os.getuid() and stat.S_IMODE(info.st_mode)==0o600,'start control file not private')
+        with os.fdopen(fd,'rb',closefd=False) as stream:raw=stream.read(8000001)
+        stable=lambda value:(value.st_dev,value.st_ino,value.st_mode,value.st_uid,value.st_nlink,value.st_size,value.st_mtime_ns,value.st_ctime_ns)
+        require(len(raw)<=8000000 and len(raw)==info.st_size and stable(info)==stable(os.fstat(fd))==stable(path.lstat()),'start control bytes changed or exceeded');return raw
+    finally:os.close(fd)
+
+
+def start_installation(root):
+    """Stdlib-only OS registry read; no candidate environment/config selection."""
+    home=Path(pwd.getpwuid(os.getuid()).pw_dir)
+    require(home.is_absolute() and home.resolve()==home and home.is_dir(),'start OS home not canonical')
+    directory=home/'.local/state/factory-required-intake';latch=home/'.factory-intake-required'
+    if not directory.exists() and not latch.exists():return None
+    require(directory.resolve()==directory and directory.is_dir() and directory.stat().st_uid==os.getuid()
+            and stat.S_IMODE(directory.stat().st_mode)==0o700 and latch.exists(),'start registry missing or unsafe')
+    latched=decode(start_bytes(latch));info=latch.stat()
+    require(info.st_uid==os.getuid() and stat.S_IMODE(info.st_mode)==0o600,'start latch not private')
+    records=decode(start_bytes(directory/'registry.json',True))
+    require(isinstance(latched,dict) and set(latched)=={'schema_version','bindings'} and type(latched['schema_version']) is int
+            and latched['schema_version']==1 and isinstance(latched['bindings'],dict)
+            and isinstance(records,dict) and set(records)=={'schema_version','roots'} and type(records['schema_version']) is int
+            and records['schema_version']==1 and isinstance(records['roots'],dict)
+            and set(records['roots'])==set(latched['bindings']) and 0<len(records['roots'])<=1000,'start registry schema differs')
+    fields={'repository','authority_root','candidate_root','contract','database','profile','policy','contract_sha256'}
+    matched=[]
+    for key,entry in records['roots'].items():
+        require(isinstance(entry,dict) and set(entry)==fields and entry['authority_root']==key
+                and isinstance(entry['repository'],str) and re.fullmatch(r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+',entry['repository'])
+                and isinstance(entry['contract_sha256'],str) and re.fullmatch(r'[a-f0-9]{64}',entry['contract_sha256'])
+                and latched['bindings'][key]==entry['contract_sha256'],'start registry entry differs')
+        for name in fields-{'repository','contract_sha256'}:
+            require(isinstance(entry[name],str) and Path(entry[name]).is_absolute() and Path(entry[name]).resolve()==Path(entry[name]),'start registry path malformed')
+        if str(root) in {entry['candidate_root'],entry['authority_root']}:matched.append(entry)
+    require(len(matched)<=1,'start registry selection ambiguous')
+    return matched[0] if matched else None
+
+
+def bootstrap(descriptor):
+    document=decode(start_bytes(descriptor,True));require(isinstance(document,dict),'worker descriptor malformed')
+    entry=start_installation(Path(document['authority_root']))
+    require(entry is not None and entry['contract']==document['contract']
+            and entry['contract_sha256']==document['contract_sha256'],'worker launch installation differs')
+    contract=decode(start_bytes(entry['contract'],True))
+    require(digest(canonical(contract).encode())==entry['contract_sha256'],'worker launch installed contract changed')
+    sources={}
+    for name,expected in contract['trusted_files'].items():
+        sources[name]=read_artifact(name,roots=[Path(contract[key]) for key in ('candidate_root','authority_root')])
+        require(digest(sources[name])==expected,'worker launch source pin changed')
+    require(str(Path('/bin/bash').resolve()) in sources,'worker hook shell interpreter not pinned')
+    path=str(Path(__file__).with_name('factory-intake-hooks.py').resolve())
+    require(path in sources,'worker launch hook bootstrap not pinned')
+    hooks=types.ModuleType('protected_launch_hooks');hooks.__file__=path
+    exec(compile(sources[path],path,'exec'),hooks.__dict__)
+    controller=hooks.bound_controller(descriptor)
+    document=hooks.validate_descriptor(controller,descriptor)
+    hooks.mutation_shim_closure(controller)
+    selected=load_worker_contract(controller.path,document['task'])
+    return controller,document,hooks,selected,sources
+
+
+def launch_material(document,selected):
+    directory=Path(document['cwd']).parent
+    hooks_directory=Path(__file__).parent.parent/'hooks'
+    settings_path=directory/'native-settings.json';mcp_path=directory/'native-mcp.json'
+    settings={'minimumVersion':selected.get('version','2.1.295'),'autoMemoryEnabled':False,
+              'pluginConfigs':{'cc-plugin-agents-md@builtin':{'options':{'instructionFiles':'managed-only'}}},
+              'claudeMdExcludes':[document['candidate_root']+'/**',document['authority_root']+'/**',str(directory)+'/**',
+                                 '/**/CLAUDE.md','/**/CLAUDE.local.md','/**/AGENTS.md','/**/.claude/rules/**'],
+              'hooks':{}}
+    for event,shim in [('UserPromptSubmit','request-intake.sh'),('PreToolUse','pre-intake-action.sh'),
+                       ('PostToolUse','post-intake-action.sh'),('PostToolUseFailure','post-intake-action.sh')]:
+        args=[str(Path('/bin/bash').resolve()),str(hooks_directory/shim),selected['interpreter'],str(Path(__file__).with_name('factory-intake-hooks.py').resolve()),document['contract']]
+        args[-1]=str(directory/'descriptor.json')
+        if event=='PostToolUseFailure':args.append(event)
+        settings['hooks'][event]=[{'matcher':'' if event=='UserPromptSubmit' else 'Read|Write|Edit' if event=='PreToolUse' else 'Write|Edit',
+                                  'hooks':[{'type':'command','command':shlex.join(args),'timeout':90,'onFailure':'block'}]}]
+    argv=[selected['native_executable'],'--print','--model',selected['model'],'--output-format','json',
+          '--tools','Read,Write,Edit','--disallowedTools','mcp__*','--strict-mcp-config','--mcp-config',str(mcp_path),
+          '--setting-sources','','--settings',str(settings_path),'--no-session-persistence','--session-id',document['native_session']]
+    return settings_path,mcp_path,canonical(settings).encode(),canonical({'mcpServers':{}}).encode(),argv
+
+
+def private_write(path,raw):
+    fd=os.open(path,os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW,0o600)
+    try:
+        with os.fdopen(fd,'wb',closefd=False) as stream:stream.write(raw);stream.flush();os.fsync(fd)
+    finally:os.close(fd)
+
+
+def launch_stage(controller,db,document):
+    task=db.execute('SELECT owner,fence,state,expires,revision FROM tasks WHERE id=?',(document['task'],)).fetchone()
+    identity=db.execute('SELECT version,repository,contract_sha256,contract_path,paused FROM intake_identity WHERE id=1').fetchone()
+    control=db.execute('SELECT paused FROM control WHERE id=1').fetchone()
+    descriptor=db.execute('SELECT state FROM intake_worker_descriptors WHERE start_id=?',(document['start_id'],)).fetchone()
+    require(task is not None and tuple(task)[:3]==(document['owner'],document['fence'],'implementing')
+            and task['expires'] is not None and task['expires']>controller.clock(None)
+            and task['revision']==document['task_revision'] and control is not None and control['paused']==0
+            and identity is not None and tuple(identity)==(1,controller.config['repository'],controller.binding,str(controller.path),0)
+            and descriptor is not None and descriptor['state']=='issued','worker issued launch stage unavailable')
+
+
+def launch_record(controller,document,selected,descriptor):
+    settings,mcp,settings_raw,mcp_raw,argv=launch_material(document,selected)
+    directory=Path(document['cwd']).parent
+    return {'schema_version':1,'descriptor_sha256':digest(start_bytes(descriptor,True)),
+            'settings':str(settings),'settings_sha256':digest(settings_raw),'mcp':str(mcp),'mcp_sha256':digest(mcp_raw),
+            'stdin':str(directory/'native-stdin'),'stdin_sha256':document['prompt_sha256'],'argv':argv,
+            'outcome':str(directory/'guardian-outcome.json'),'seconds':controller.config['limits']['assessment_seconds'],
+            'output_bytes':controller.config['limits']['output_bytes']}
+
+
+def validate_launch_record(controller,document,selected,descriptor,material):
+    require(canonical(material)==canonical(launch_record(controller,document,selected,descriptor)),'guardian immutable launch record differs')
+
+
+def run(descriptor):
+    controller,document,hooks,selected,sources=bootstrap(descriptor)
+    token=os.environ.get('FACTORY_IMPLEMENTATION_CLAUDE_OAUTH_TOKEN')
+    require(isinstance(token,str) and 0<len(token)<=20000 and '\0' not in token,'dedicated implementation credential unavailable')
+    settings,mcp,settings_raw,mcp_raw,argv=launch_material(document,selected)
+    directory=Path(document['cwd']).parent;stdin_path=directory/'native-stdin';outcome=directory/'guardian-outcome.json'
+    # This initial guarded adapter intentionally shares the stricter <=60s bound.
+    # It does not claim the longer capacity of legacy advisory workers.
+    limit=controller.config['limits']['output_bytes'];seconds=controller.config['limits']['assessment_seconds']
+    material=launch_record(controller,document,selected,descriptor)
+    encoded=canonical(material)
+    with controller.transaction() as db:
+        require(db.execute('SELECT 1 FROM intake_worker_launches WHERE start_id=?',(document['start_id'],)).fetchone() is None,'worker launch already reserved; replay fenced')
+        db.execute("INSERT INTO intake_worker_launches VALUES(?,?,?,'reserved',?,NULL,NULL)",(document['start_id'],encoded,digest(encoded.encode()),os.getpid()))
+    watch_read=watch_write=None;previous={};stopped=[]
+    try:
+        for path,raw in [(settings,settings_raw),(mcp,mcp_raw),(stdin_path,document['prompt'].encode())]:private_write(path,raw)
+        sync_path=str(Path(__file__).with_name('factory-supervisor.py').resolve());supervisor=types.ModuleType('protected_launch_supervisor');supervisor.__file__=sync_path
+        exec(compile(sources[sync_path],sync_path,'exec'),supervisor.__dict__);supervisor.sync_worker_directory(directory)
+        receipt=controller.owned_start(document['start_id'],document['owner'],document['fence'])
+        if receipt['state']=='claimed':controller.begin_implementation(document['start_id'],document['owner'],document['fence'])
+        controller.store.heartbeat(document['task'],document['owner'],document['fence'],max(90,seconds+30))
+        bootstrap(descriptor)
+        for key in ('cwd','home'):require(not list(Path(document[key]).iterdir()),'worker clean directory contains unmanaged data')
+        env={'PATH':'/usr/bin:/bin','LANG':'C','LC_ALL':'C','HOME':document['home'],'CLAUDE_CONFIG_DIR':document['home'],
+             'TMPDIR':document['home'],'CLAUDE_CODE_OAUTH_TOKEN':token,'CLAUDE_CODE_DISABLE_AUTO_MEMORY':'1'}
+        watch_read,watch_write=os.pipe()
+        def interrupted(signum,frame):
+            stopped.append(signum)
+            nonlocal watch_write
+            if watch_write is not None:os.close(watch_write);watch_write=None
+        for sig in (signal.SIGTERM,signal.SIGINT):previous[sig]=signal.signal(sig,interrupted)
+        def spawned(process):
+            with controller.transaction() as db:
+                launch_stage(controller,db,document)
+                require(db.execute("UPDATE intake_worker_launches SET state='running',guardian_pid=? WHERE start_id=? AND state='reserved' AND wrapper_pid=?",(process.pid,document['start_id'],os.getpid())).rowcount==1,'worker launch reservation changed')
+            os.write(watch_write,b'1')
+        bounded_path=str(Path(__file__).with_name('factory-bounded-process.py').resolve());bounded=types.ModuleType('protected_launch_bounded');bounded.__file__=bounded_path
+        exec(compile(sources[bounded_path],bounded_path,'exec'),bounded.__dict__)
+        command=[selected['interpreter'],'-I','-S',str(Path(__file__).with_name('factory-worker-guard.py').resolve()),'--intake-descriptor',str(descriptor),'--watch-fd',str(watch_read)]
+        with stdin_path.open('rb') as stdin:
+            result=bounded.run(command,env=env,cwd=document['cwd'],timeout=min(90,seconds+10),max_timeout=90,limit=limit,aggregate_limit=limit,stdin=stdin,pass_fds=(watch_read,),on_spawn=spawned,termination_grace=12)
+        guardian=decode(start_bytes(outcome,True))
+        require(not stopped and result.returncode==0 and guardian.get('cleanup_confirmed') is True and guardian.get('reason')=='native-exited','worker launch failed or cleanup uncertain')
+        bootstrap(descriptor)
+        transport={'transport_status':'exited','exit_code':result.returncode,'stdout':result.stdout.decode('utf-8'),'stderr':result.stderr.decode('utf-8')}
+        with controller.transaction() as db:
+            db.execute("UPDATE intake_worker_launches SET state='exited',result=? WHERE start_id=? AND state='running'",(canonical(transport),document['start_id']))
+        return {'transport_status':'exited','exit_code':result.returncode}
+    except BaseException:
+        with controller.transaction() as db:db.execute("UPDATE intake_worker_launches SET state='unknown' WHERE start_id=?",(document['start_id'],))
+        raise
+    finally:
+        for sig,handler in previous.items():signal.signal(sig,handler)
+        for fd in (watch_read,watch_write):
+            if fd is not None:os.close(fd)
+
+
+def guarded_native(descriptor,watch_fd):
+    controller,document,hooks,selected,sources=bootstrap(descriptor)
+    ready,_,_=select.select([watch_fd],[],[],5)
+    require(ready and os.read(watch_fd,1)==b'1','guardian launcher handshake missing')
+    with controller.transaction() as db:row=db.execute('SELECT * FROM intake_worker_launches WHERE start_id=?',(document['start_id'],)).fetchone()
+    require(row is not None and row['state']=='running' and row['guardian_pid']==os.getpid() and row['wrapper_pid']==os.getppid(),'guardian launch principal differs')
+    material=decode(row['document']);settings,mcp,settings_raw,mcp_raw,argv=launch_material(document,selected)
+    validate_launch_record(controller,document,selected,descriptor,material)
+    require(digest(row['document'].encode())==row['sha256'] and material['argv']==argv
+            and start_bytes(settings,True)==settings_raw and start_bytes(mcp,True)==mcp_raw
+            and material['stdin_sha256']==document['prompt_sha256'],'guardian immutable launch material differs')
+    stdin_raw=start_bytes(material['stdin'],True)
+    require(stdin_raw==document['prompt'].encode() and digest(stdin_raw)==document['prompt_sha256'],'guardian private input differs')
+    with controller.transaction() as db:launch_stage(controller,db,document)
+    native=None;reason='native-failed';cleanup=False;deadline=time.monotonic()+material['seconds'];captured=0;stopped=[]
+    for sig in (signal.SIGTERM,signal.SIGINT):signal.signal(sig,lambda signum,frame:stopped.append(signum))
+    try:
+        import tempfile
+        with tempfile.TemporaryFile(dir=document['home']) as native_stdin:
+            native_stdin.write(stdin_raw);native_stdin.seek(0)
+            native=subprocess.Popen(argv,stdin=native_stdin,stdout=subprocess.PIPE,stderr=subprocess.PIPE,start_new_session=True,env=dict(os.environ),cwd=document['cwd'])
+        streams={native.stdout.fileno():sys.stdout.fileno(),native.stderr.fileno():sys.stderr.fileno()}
+        pending={sink:bytearray() for sink in streams.values()}
+        for fd in [*streams,*pending]:os.set_blocking(fd,False)
+        while streams or native.poll() is None or any(pending.values()):
+            require(not stopped and time.monotonic()<deadline,'native stopped or timed out')
+            readable,writable,_=select.select([watch_fd,*streams],[fd for fd,data in pending.items() if data],[],.05)
+            if watch_fd in readable:require(os.read(watch_fd,1)!=b'','native launcher lost')
+            for fd in readable:
+                if fd==watch_fd:continue
+                data=os.read(fd,65536)
+                if not data:streams.pop(fd);continue
+                captured+=len(data);require(captured<=material['output_bytes'],'native aggregate output bound exceeded')
+                pending[streams[fd]].extend(data)
+            for fd in writable:
+                try:written=os.write(fd,pending[fd])
+                except BlockingIOError:continue
+                except OSError:raise ValueError('native output transport unavailable')
+                del pending[fd][:written]
+        require(native.wait()==0,'native exit failed');reason='native-exited'
+        return 0
+    finally:
+        try:
+            if native is not None:
+                bounded_path=str(Path(__file__).with_name('factory-bounded-process.py').resolve());bounded=types.ModuleType('protected_guard_cleanup');bounded.__file__=bounded_path
+                exec(compile(sources[bounded_path],bounded_path,'exec'),bounded.__dict__);bounded.terminate_group(native)
+                native.stdout.close();native.stderr.close()
+            cleanup=True
+        finally:
+            private_write(Path(material['outcome']),canonical({'reason':reason,'cleanup_confirmed':cleanup}).encode())
+            if reason!='native-exited':
+                with controller.transaction() as db:db.execute("UPDATE intake_worker_launches SET state='unknown' WHERE start_id=?",(document['start_id'],))
+            os.close(watch_fd)
+
+
+def main():
+    import argparse
+    parser=argparse.ArgumentParser();parser.add_argument('--descriptor',required=True);parser.add_argument('--safe-mode',action='store_true');parser.add_argument('--model');parser.add_argument('--output-format',choices=['json']);parser.add_argument('--print',action='store_true')
+    args=parser.parse_args()
+    try:
+        if args.model is not None:
+            _,document,_,selected,_=bootstrap(args.descriptor);require(args.model==selected['model'],'wrapper model override denied')
+        print(canonical(run(args.descriptor)));return 0
+    except (ValueError,OSError,KeyError,TypeError):print('Protected worker launch blocked.',file=sys.stderr);return 2
+
+
+if __name__=='__main__':
+    import sys
+    sys.exit(main())
