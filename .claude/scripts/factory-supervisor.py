@@ -143,6 +143,106 @@ def claim_intake(controller, action_id, lease=30):
 
 
 
+def sync_worker_directory(value):
+    """Persist private entries using the exact no-follow directory descriptor."""
+    path=Path(value);before=path.stat()
+    require(path.is_absolute() and path.resolve()==path and not path.is_symlink()
+            and stat.S_ISDIR(before.st_mode) and before.st_uid==os.getuid()
+            and stat.S_IMODE(before.st_mode)==0o700,'worker sync directory not private')
+    fd=os.open(path,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW)
+    try:
+        opened=os.fstat(fd)
+        identity=lambda info:(info.st_dev,info.st_ino,info.st_mode,info.st_uid)
+        require(identity(opened)==identity(before),'worker directory changed before sync')
+        os.fsync(fd)
+        require(not path.is_symlink() and identity(os.fstat(fd))==identity(opened)
+                and identity(path.stat())==identity(opened),'worker directory changed during sync')
+    finally:os.close(fd)
+
+
+def prepare_intake_worker(controller, start_id):
+    """Issue one private descriptor from an actual live claim; no launch permit."""
+    import types
+    entry=start_installation(Path(controller.config['candidate_root']))
+    expected={'repository':controller.config['repository'],'authority_root':controller.config['authority_root'],
+              'candidate_root':controller.config['candidate_root'],'contract':str(controller.path),
+              'database':str(controller.database),'profile':controller.config['profile'],
+              'policy':controller.config['policy'],'contract_sha256':controller.binding}
+    require(entry==expected,'descriptor protected installation differs')
+    controller.execution_ready()
+    sources={}
+    for name in ('factory-intake-worker.py','factory-intake-hooks.py'):
+        path=str(Path(__file__).with_name(name).resolve())
+        require(path in controller.config['trusted_files'],'descriptor helper must be pinned before import')
+        sources[path]=start_bytes(path)
+        require(hashlib.sha256(sources[path]).hexdigest()==controller.config['trusted_files'][path],
+                'descriptor helper pin changed')
+    worker_path=str(Path(__file__).with_name('factory-intake-worker.py').resolve())
+    worker=types.ModuleType('protected_descriptor_worker');worker.__file__=worker_path
+    exec(compile(sources[worker_path],worker_path,'exec'),worker.__dict__)
+    with controller.transaction() as db:
+        start=db.execute('SELECT * FROM intake_task_starts WHERE action_id=?',(start_id,)).fetchone()
+        effect=db.execute('SELECT request_id FROM intake_actions WHERE id=?',(start_id,)).fetchone()
+    require(start is not None and effect is not None,'descriptor actual start missing')
+    actual=controller.owned_start(start_id,start['owner'],start['fence'])
+    selected=worker.load_worker_contract(controller.path,actual['task'])
+    profile=decode(start_bytes(controller.config['profile'],True))
+    hook_path=str(Path(__file__).with_name('factory-intake-hooks.py').resolve())
+    require(profile['runtimes'][selected['runtime']]['probe']['trusted_files'].get(hook_path)==
+            controller.config['trusted_files'][hook_path],'descriptor hook lacks runtime closure pin')
+    snapshot=decode(start['snapshot'])
+    prompt=json.dumps({'schema_version':1,'task':actual['task'],'context':snapshot['context']},
+                      sort_keys=True,separators=(',',':'),ensure_ascii=False,allow_nan=False)
+    require(len(prompt.encode())<=controller.config['limits']['context_bytes'],'descriptor complete prompt budget exceeded')
+    reserved=False
+    with controller.transaction() as db:
+        row=db.execute('SELECT * FROM intake_worker_descriptors WHERE start_id=?',(start_id,)).fetchone()
+        current=db.execute('SELECT owner,fence,revision,state FROM intake_task_starts WHERE action_id=?',(start_id,)).fetchone()
+        require(current is not None and tuple(current)==(start['owner'],start['fence'],start['revision'],start['state']),
+                'descriptor start changed before reservation')
+        if row is None:
+            nonce=uuid.uuid4().hex;directory=controller.path.parent/('worker-'+nonce)
+            document={'schema_version':1,'nonce':nonce,'start_id':start_id,'request_id':effect['request_id'],
+                      'request_revision':snapshot['request'][1],
+                      'task':actual['task'],'task_revision':actual['revision'],'owner':actual['owner'],'fence':actual['fence'],
+                      'contract':str(controller.path),'contract_sha256':controller.binding,
+                      'authority_root':controller.config['authority_root'],'candidate_root':controller.config['candidate_root'],
+                      'native_session':str(uuid.uuid4()),'cwd':str(directory/'cwd'),'home':str(directory/'home'),
+                      'prompt':prompt,'prompt_sha256':hashlib.sha256(prompt.encode()).hexdigest(),
+                      'worker_guard_sha256':selected['worker_guard_sha256']}
+            encoded=json.dumps(document,sort_keys=True,separators=(',',':'),ensure_ascii=False,allow_nan=False)
+            path=directory/'descriptor.json';sha=hashlib.sha256(encoded.encode()).hexdigest()
+            db.execute("INSERT INTO intake_worker_descriptors VALUES(?,?,?,?,?,'reserved')",(start_id,nonce,str(path),encoded,sha))
+            reserved=True
+            row={'path':str(path),'document':encoded,'sha256':sha,'state':'reserved'}
+    if reserved:
+        try:
+            directory=Path(row['path']).parent;directory.mkdir(mode=0o700)
+            sync_worker_directory(directory.parent)
+            for name in ('cwd','home'):(directory/name).mkdir(mode=0o700)
+            fd=os.open(row['path'],os.O_CREAT|os.O_EXCL|os.O_WRONLY|os.O_NOFOLLOW,0o600)
+            try:
+                with os.fdopen(fd,'wb',closefd=False) as output:output.write(row['document'].encode());output.flush();os.fsync(fd)
+            finally:os.close(fd)
+        except BaseException:
+            with controller.transaction() as db:db.execute("UPDATE intake_worker_descriptors SET state='unknown' WHERE start_id=?",(start_id,))
+            raise
+    # A prior reserved effect may only reconcile exact observed bytes; never mkdir/rewrite it.
+    helper=types.ModuleType('protected_descriptor_hook');helper.__file__=hook_path
+    exec(compile(sources[hook_path],hook_path,'exec'),helper.__dict__)
+    try:
+        helper.validate_descriptor(controller,row['path'])
+        sync_worker_directory(Path(row['path']).parent.parent)
+        sync_worker_directory(Path(row['path']).parent)
+        with controller.transaction() as db:
+            db.execute("UPDATE intake_worker_descriptors SET state='issued' WHERE start_id=? AND state='reserved'",(start_id,))
+        return row['path']
+    except BaseException:
+        with controller.transaction() as db:
+            db.execute("UPDATE intake_worker_descriptors SET state='unknown' WHERE start_id=?",(start_id,))
+        raise
+
+
 def worker_environment(source):
     """Do not inherit coordinator authority or interpreter/proxy injection."""
     ordinary = {'PATH', 'HOME', 'USER', 'LOGNAME', 'SHELL', 'LANG', 'LC_ALL',

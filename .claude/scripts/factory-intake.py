@@ -276,6 +276,10 @@ class Intake:
                     action_id TEXT PRIMARY KEY REFERENCES intake_actions(id),task TEXT NOT NULL,revision TEXT NOT NULL,
                     snapshot TEXT NOT NULL,state TEXT NOT NULL,owner TEXT,fence INTEGER,
                     UNIQUE(task,revision));
+                CREATE TABLE IF NOT EXISTS intake_worker_descriptors (
+                    start_id TEXT PRIMARY KEY REFERENCES intake_task_starts(action_id),nonce TEXT UNIQUE NOT NULL,
+                    path TEXT UNIQUE NOT NULL,document TEXT NOT NULL,sha256 TEXT NOT NULL,
+                    state TEXT NOT NULL CHECK(state IN ('reserved','issued','consumed','unknown')));
                 CREATE TABLE IF NOT EXISTS intake_mutations (
                     id TEXT PRIMARY KEY REFERENCES intake_actions(id),start_id TEXT NOT NULL,
                     number INTEGER NOT NULL,path TEXT NOT NULL,before_sha256 TEXT,after_sha256 TEXT NOT NULL,
