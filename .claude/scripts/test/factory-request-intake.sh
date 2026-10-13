@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
+if [ "${1:-all}" = tool-mutation ]; then
+  exec bash "$ROOT/.claude/scripts/test/factory-intake-tool-mutation.sh"
+fi
 if [ "${1:-all}" = tool-read ]; then
   exec bash "$ROOT/.claude/scripts/test/factory-intake-tool-read.sh"
 fi
@@ -63,7 +66,7 @@ if [ "${1:-all}" = context ]; then
   exec bash "$ROOT/.claude/scripts/test/factory-intake-context.sh"
 fi
 if [ "${1:-all}" = all ]; then
-  for suite in contract migration schema identity pending lightweight context assessment-profile assessment-process assessment-outcome proposed-scope contract-catalog flat-root session-continuation clarification-revisions decision-freshness approval-eligibility proposal enqueue-guard start-guard actions-reconcile mutation-guard worker-contract worker-descriptor tool-read; do bash "$0" "$suite"; done
+  for suite in contract migration schema identity pending lightweight context assessment-profile assessment-process assessment-outcome proposed-scope contract-catalog flat-root session-continuation clarification-revisions decision-freshness approval-eligibility proposal enqueue-guard start-guard actions-reconcile mutation-guard worker-contract worker-descriptor tool-read tool-mutation; do bash "$0" "$suite"; done
   exit 0
 fi
 case "${1:-all}" in contract|migration|schema|identity|pending|lightweight) ;; *) echo "Unknown intake test selector" >&2; exit 2 ;; esac

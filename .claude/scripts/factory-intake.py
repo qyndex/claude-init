@@ -280,6 +280,10 @@ class Intake:
                     start_id TEXT PRIMARY KEY REFERENCES intake_task_starts(action_id),nonce TEXT UNIQUE NOT NULL,
                     path TEXT UNIQUE NOT NULL,document TEXT NOT NULL,sha256 TEXT NOT NULL,
                     state TEXT NOT NULL CHECK(state IN ('reserved','issued','consumed','unknown')));
+                CREATE TABLE IF NOT EXISTS intake_native_tool_writes (
+                    start_id TEXT NOT NULL REFERENCES intake_worker_descriptors(start_id),tool_use_id TEXT NOT NULL,
+                    document TEXT NOT NULL,sha256 TEXT NOT NULL,mutation_id TEXT UNIQUE NOT NULL REFERENCES intake_mutations(id),
+                    state TEXT NOT NULL CHECK(state IN ('permitted','completed','unknown')),PRIMARY KEY(start_id,tool_use_id));
                 CREATE TABLE IF NOT EXISTS intake_mutations (
                     id TEXT PRIMARY KEY REFERENCES intake_actions(id),start_id TEXT NOT NULL,
                     number INTEGER NOT NULL,path TEXT NOT NULL,before_sha256 TEXT,after_sha256 TEXT NOT NULL,
@@ -949,6 +953,9 @@ class Intake:
     def working_state(self, start_id, context, snapshot, owner, fence, mutation_id=None, outcome=False):
         with self.transaction() as db:
             writes=db.execute('SELECT m.*,a.document FROM intake_mutations m JOIN intake_actions a ON a.id=m.id WHERE start_id=? ORDER BY number',(start_id,)).fetchall()
+        with self.transaction() as db:
+            unresolved=db.execute("SELECT mutation_id FROM intake_native_tool_writes WHERE start_id=? AND state!='completed'",(start_id,)).fetchall()
+        require(all(row['mutation_id']==mutation_id for row in unresolved),'unresolved native tool acknowledgement fences actions')
         files=dict(snapshot['files']);expected_sources={item['path']:item['sha256'] for item in snapshot['context']['sources']}
         require(context['request']==snapshot['context']['request'] and context['approved_evidence']==snapshot['context']['approved_evidence'],
                 'owned immutable context changed')

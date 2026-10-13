@@ -7,6 +7,7 @@ from pathlib import Path
 import pwd
 import re
 import stat
+import sqlite3
 import sys
 import types
 
@@ -86,7 +87,7 @@ def private_directory(value):
     return path
 
 
-def validate_descriptor(controller,path):
+def validate_descriptor(controller,path,*,_mutation=None,_outcome=False):
     """Check immutable private effect and actual current claim; grant no tool permit."""
     with controller.transaction() as db:
         row=db.execute('SELECT * FROM intake_worker_descriptors WHERE path=?',(str(path),)).fetchone()
@@ -137,7 +138,7 @@ def validate_descriptor(controller,path):
         # request/task/prompt/worker bindings above remain structural uncertainty.
         effect_checked=True
         controller.execution_ready()
-        controller.owned_start(document['start_id'],document['owner'],document['fence'])
+        controller.owned_start(document['start_id'],document['owner'],document['fence'],_mutation=_mutation,_outcome=_outcome)
         try:
             require(start_bytes(path,True)==raw,'worker descriptor changed during validation')
         except BaseException:
@@ -226,6 +227,9 @@ def authorize_read(path,payload):
         start=db.execute('SELECT snapshot FROM intake_task_starts WHERE action_id=?',(document['start_id'],)).fetchone()
         writes=db.execute('SELECT path,after_sha256,status FROM intake_mutations WHERE start_id=? ORDER BY number',(document['start_id'],)).fetchall()
     require(descriptor is not None and descriptor['state']=='consumed','worker initial submit not consumed')
+    with controller.transaction() as db:
+        require(db.execute("SELECT 1 FROM intake_native_tool_writes WHERE start_id=? AND state!='completed'",(document['start_id'],)).fetchone() is None,
+                'worker native tool outcome unresolved')
     snapshot=decode(start['snapshot'])
     policy=decode(start_bytes(controller.config['policy'],True))
     selected=set(policy['intake']['context_paths'])
@@ -273,6 +277,154 @@ def authorize_read(path,payload):
                                  'permissionDecisionReason':'Exact protected disclosure and owned stage validated.'}}
 
 
+def native_identity(payload,event):
+    fields={'hook_event_name','session_id','cwd','tool_name','tool_use_id','tool_input',
+            'transcript_path','permission_mode','run_in_background'}
+    if event=='PostToolUse':fields.add('tool_response')
+    if event=='PostToolUseFailure':fields.update({'error','is_interrupt'})
+    require(isinstance(payload,dict) and set(payload)<=fields and payload.get('hook_event_name')==event
+            and payload.get('tool_name') in {'Write','Edit'} and payload.get('run_in_background',False) is False
+            and isinstance(payload.get('tool_use_id'),str) and 0<len(payload['tool_use_id'])<=256
+            and isinstance(payload.get('tool_input'),dict),'worker mutation callback unsupported')
+    return {key:payload.get(key) for key in ('session_id','cwd','tool_name','tool_use_id','tool_input')}
+
+
+def current_native_stage(controller,db,document):
+    actual=db.execute('SELECT owner,fence,state,expires,revision FROM tasks WHERE id=?',(document['task'],)).fetchone()
+    identity=db.execute('SELECT version,repository,contract_sha256,contract_path,paused FROM intake_identity WHERE id=1').fetchone()
+    paused=db.execute('SELECT paused FROM control WHERE id=1').fetchone()
+    require(actual is not None and tuple(actual)[:3]==(document['owner'],document['fence'],'implementing')
+            and actual['expires'] is not None and actual['expires']>controller.clock(None)
+            and actual['revision']==document['task_revision'] and paused is not None and paused['paused']==0
+            and identity is not None and tuple(identity)==(1,controller.config['repository'],controller.binding,str(controller.path),0),
+            'worker mutation stage changed before callback commit')
+    descriptor=db.execute('SELECT state FROM intake_worker_descriptors WHERE start_id=?',(document['start_id'],)).fetchone()
+    require(descriptor is not None and descriptor['state']=='consumed','worker mutation submit not consumed')
+
+
+def mutation_shim_closure(controller):
+    profile=decode(start_bytes(controller.config['profile'],True))
+    runtime=profile['runtimes'][profile['roles']['implementation']['primary']]
+    for name in ('request-intake.sh','pre-intake-action.sh','post-intake-action.sh'):
+        path=str(Path(__file__).parent.parent/'hooks'/name)
+        expected=controller.config['trusted_files'].get(path)
+        require(isinstance(expected,str) and runtime['probe']['trusted_files'].get(path)==expected
+                and hashlib.sha256(start_bytes(path)).hexdigest()==expected,'native mutation shim closure incomplete or changed')
+
+
+def mutation_binding(document,identity,mutation,row):
+    return {'native':identity,'mutation_id':mutation,'start_id':document['start_id'],
+            'request_id':document['request_id'],'request_revision':document['request_revision'],
+            'task':document['task'],'task_revision':document['task_revision'],
+            'owner':document['owner'],'fence':document['fence'],'path':row['path'],
+            'before_sha256':row['before_sha256'],'after_sha256':row['after_sha256']}
+
+
+def mark_native_unknown(controller,start_id,tool_id,mutation):
+    with controller.transaction() as db:
+        db.execute("UPDATE intake_native_tool_writes SET state='unknown' WHERE start_id=? AND tool_use_id=?",(start_id,tool_id))
+        db.execute("UPDATE intake_mutations SET status='unknown' WHERE id=? AND status IN ('intent','started')",(mutation,))
+        db.execute("UPDATE intake_actions SET status='unknown' WHERE id=? AND status IN ('intent','started')",(mutation,))
+
+
+def authorize_mutation(path,payload):
+    identity=native_identity(payload,'PreToolUse');controller=bound_controller(path)
+    document=validate_descriptor(controller,path)
+    mutation_shim_closure(controller)
+    require(identity['session_id']==document['native_session'] and identity['cwd']==document['cwd'],'worker mutation native binding differs')
+    with controller.transaction() as db:
+        require(db.execute('SELECT 1 FROM intake_native_tool_writes WHERE start_id=? AND tool_use_id=?',
+                           (document['start_id'],identity['tool_use_id'])).fetchone() is None,'worker mutation pre callback replayed')
+        require(db.execute("SELECT 1 FROM intake_native_tool_writes WHERE start_id=? AND state!='completed'",(document['start_id'],)).fetchone() is None,
+                'worker mutation outcome unresolved')
+        current_native_stage(controller,db,document)
+    args=identity['tool_input'];tool=identity['tool_name']
+    require(set(args)=={'file_path','content'} if tool=='Write' else {'file_path','old_string','new_string'}<=set(args)<={'file_path','old_string','new_string','replace_all'},
+            'worker mutation arguments differ')
+    require(isinstance(args.get('file_path'),str),'worker mutation file path invalid')
+    target=Path(args['file_path']);root=Path(controller.config['candidate_root'])
+    require(target.is_absolute() and str(target)==args['file_path'] and target.resolve()==target,'worker mutation absolute path not canonical')
+    name=str(target.relative_to(root))
+    fd,target=controller.mutation_path(document['start_id'],name)
+    try:before,_=controller.mutation_bytes(fd,target)
+    finally:os.close(fd)
+    if before is not None:
+        # Native Edit and Write diagnostics can expose an existing preimage.
+        authorize_read(path,{**identity,'hook_event_name':'PreToolUse','tool_name':'Read','tool_input':{'file_path':str(target)}})
+    else:require(tool=='Write','worker Edit target missing')
+    if tool=='Write':
+        content=args['content'];require(isinstance(content,str),'worker Write content invalid')
+    else:
+        old=args['old_string'];new=args['new_string'];replace_all=args.get('replace_all',False)
+        require(isinstance(old,str) and old and isinstance(new,str) and type(replace_all) is bool,'worker Edit fields invalid')
+        text=before.decode('utf-8');count=text.count(old)
+        require(count>0 and (replace_all or count==1),'worker Edit match missing or ambiguous')
+        uses=count if replace_all else 1
+        expected_size=len(before)+uses*(len(new.encode())-len(old.encode()))
+        require(0<=expected_size<=controller.config['limits']['context_bytes'],'worker Edit projected postimage bound exceeded')
+        content=text.replace(old,new) if replace_all else text.replace(old,new,1)
+    require(len(content.encode())<=controller.config['limits']['context_bytes'],'worker mutation postimage bound exceeded')
+    mutation=controller.mutation_intent(document['request_id'],document['start_id'],document['owner'],document['fence'],name,content)
+    try:
+        row,action=controller.mutation_record(mutation,document['owner'],document['fence'])
+        encoded=canonical(mutation_binding(document,identity,mutation,row));sha=hashlib.sha256(encoded.encode()).hexdigest()
+        require(len(encoded.encode())<=2000000,'native mutation binding bound exceeded')
+        controller.owned_start(document['start_id'],document['owner'],document['fence'],_mutation=mutation)
+        controller.execution_ready()
+        with controller.transaction() as db:
+            current_native_stage(controller,db,document)
+            db.execute("INSERT INTO intake_native_tool_writes VALUES(?,?,?,?,?,'permitted')",(document['start_id'],identity['tool_use_id'],encoded,sha,mutation))
+            require(db.execute("UPDATE intake_mutations SET status='started' WHERE id=? AND status='intent'",(mutation,)).rowcount==1,'worker mutation intent changed')
+            require(db.execute("UPDATE intake_actions SET status='started' WHERE id=? AND status='intent'",(mutation,)).rowcount==1,'worker mutation action changed')
+        return {'hookSpecificOutput':{'hookEventName':'PreToolUse','permissionDecision':'allow',
+                                     'permissionDecisionReason':'Exact current owned mutation reserved.'}}
+    except BaseException:
+        mark_native_unknown(controller,document['start_id'],identity['tool_use_id'],mutation)
+        raise
+
+
+def reconcile_native_mutation(path,payload,event):
+    identity=native_identity(payload,event);controller=bound_controller(path)
+    document=decode(start_bytes(path,True))
+    with controller.transaction() as db:
+        tool=db.execute('SELECT * FROM intake_native_tool_writes WHERE start_id=? AND tool_use_id=?',
+                        (document['start_id'],identity['tool_use_id'])).fetchone()
+    require(tool is not None,'worker post callback unbound')
+    mutation=tool['mutation_id']
+    try:
+        mutation_shim_closure(controller)
+        row,action=controller.mutation_record(mutation,document['owner'],document['fence'])
+        binding=decode(tool['document'])
+        require(binding==mutation_binding(document,identity,mutation,row)
+                and hashlib.sha256(tool['document'].encode()).hexdigest()==tool['sha256']
+                and row['start_id']==document['start_id'] and action['request_id']==document['request_id']
+                and row['path']==str(Path(identity['tool_input']['file_path']).relative_to(document['candidate_root']))
+                and row['after_sha256']==hashlib.sha256(row['content'].encode()).hexdigest(),
+                'worker post callback differs from derived mutation binding')
+        if identity['tool_name']=='Write':
+            require(isinstance(identity['tool_input'].get('content'),str)
+                    and hashlib.sha256(identity['tool_input']['content'].encode()).hexdigest()==row['after_sha256'],
+                    'worker Write callback intended bytes differ')
+        if tool['state']=='completed':
+            require(event=='PostToolUse','worker completed tool failure conflicts')
+            validate_descriptor(controller,path)
+            with controller.transaction() as db:current_native_stage(controller,db,document)
+            return {'continue':True}
+        validate_descriptor(controller,path,_mutation=mutation,_outcome=event=='PostToolUse')
+        require(event=='PostToolUse','worker tool failure leaves unknown outcome')
+        controller.complete_mutation(mutation,document['owner'],document['fence'])
+        controller.execution_ready()
+        with controller.transaction() as db:
+            current_native_stage(controller,db,document)
+            require(db.execute("UPDATE intake_native_tool_writes SET state='completed' WHERE start_id=? AND tool_use_id=? AND sha256=? AND mutation_id=? AND state IN ('permitted','unknown')",
+                               (document['start_id'],identity['tool_use_id'],tool['sha256'],mutation)).rowcount==1,
+                    'worker post outcome acknowledgement changed')
+        return {'continue':True}
+    except BaseException:
+        mark_native_unknown(controller,document['start_id'],identity['tool_use_id'],mutation)
+        raise
+
+
 def controller_scope_match(path,patterns):
     return any(path.startswith(pattern[:-1]) if pattern.endswith('*') else path==pattern for pattern in patterns)
 
@@ -282,12 +434,15 @@ def main():
     parser=argparse.ArgumentParser();parser.add_argument('--descriptor',required=True);parser.add_argument('--event',required=True)
     args=parser.parse_args()
     try:
-        require(args.event in {'UserPromptSubmit','PreToolUse'},'worker tool guards not assembled')
+        require(args.event in {'UserPromptSubmit','PreToolUse','PostToolUse','PostToolUseFailure'},'worker tool guards not assembled')
         raw=sys.stdin.buffer.read(2000001);require(len(raw)<=2000000,'worker submit input bound exceeded')
         payload=decode(raw)
-        result=consume_submit(args.descriptor,payload) if args.event=='UserPromptSubmit' else authorize_read(args.descriptor,payload)
+        if args.event=='UserPromptSubmit':result=consume_submit(args.descriptor,payload)
+        elif args.event=='PreToolUse':
+            result=authorize_read(args.descriptor,payload) if isinstance(payload,dict) and payload.get('tool_name')=='Read' else authorize_mutation(args.descriptor,payload)
+        else:result=reconcile_native_mutation(args.descriptor,payload,args.event)
         print(canonical(result));return 0
-    except (ValueError,OSError,KeyError,TypeError):
+    except (ValueError,OSError,KeyError,TypeError,sqlite3.Error):
         print('Worker submit blocked by protected binding checks.',file=sys.stderr);return 2
 
 

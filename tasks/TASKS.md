@@ -1594,7 +1594,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-request-intake.sh tool-read
   owner: implementer
 
-- [ ] T-270  | spec:050  | phase:1  | priority: security  | created: 2026-10-13  | deps: T-269  | parallel: no  | est: 5m
+- [x] T-270  | spec:050  | phase:1  | priority: security  | created: 2026-10-13  | deps: T-269  | parallel: no  | est: 5m
   summary: Reserve exact Write and Edit effects before tool execution and reconcile outcomes or fence unknown writes
   files: .claude/scripts/factory-intake.py, .claude/scripts/factory-intake-hooks.py, .claude/hooks/post-intake-action.sh, .claude/scripts/test/factory-intake-tool-mutation.sh, .claude/scripts/test/factory-request-intake.sh
   accept: bash .claude/scripts/test/factory-request-intake.sh tool-mutation
