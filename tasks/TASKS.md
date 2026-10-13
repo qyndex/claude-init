@@ -1576,7 +1576,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-request-intake.sh approval-eligibility
   owner: implementer
 
-- [ ] T-267  | spec:050  | phase:1  | priority: security  | created: 2026-10-13  | deps: T-242  | parallel: no  | est: 5m
+- [x] T-267  | spec:050  | phase:1  | priority: security  | created: 2026-10-13  | deps: T-242  | parallel: no  | est: 5m
   summary: Validate protected worker contract and exact pinned execution closure without invoking processes
   files: .claude/scripts/factory-intake-worker.py, .claude/scripts/test/factory-intake-worker-contract.sh, .claude/scripts/test/factory-request-intake.sh
   accept: bash .claude/scripts/test/factory-request-intake.sh worker-contract
