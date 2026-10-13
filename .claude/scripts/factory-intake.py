@@ -267,6 +267,10 @@ class Intake:
                 CREATE TABLE IF NOT EXISTS intake_actions (
                     id TEXT PRIMARY KEY,request_id TEXT NOT NULL REFERENCES intake_requests(id),
                     document TEXT NOT NULL,status TEXT NOT NULL,result TEXT);
+                CREATE TABLE IF NOT EXISTS intake_task_starts (
+                    action_id TEXT PRIMARY KEY REFERENCES intake_actions(id),task TEXT NOT NULL,revision TEXT NOT NULL,
+                    snapshot TEXT NOT NULL,state TEXT NOT NULL,owner TEXT,fence INTEGER,
+                    UNIQUE(task,revision));
                 CREATE TABLE IF NOT EXISTS intake_assessments (
                     request_id TEXT PRIMARY KEY REFERENCES intake_requests(id),
                     revision TEXT NOT NULL,status TEXT NOT NULL,result TEXT,reason TEXT);
@@ -818,6 +822,92 @@ class Intake:
         require(len(selected)==1,'enqueue approved task no longer eligible')
         return decision,selected[0]
 
+    def start_intent(self, request_id, task):
+        """Reserve one immutable queued start; uncertainty never authorizes retry."""
+        self.execution_ready()
+        with self.transaction() as db:
+            prior=db.execute('SELECT a.id,a.document FROM intake_task_starts s JOIN intake_actions a ON a.id=s.action_id WHERE s.task=? AND a.request_id=?',(task,request_id)).fetchone()
+        if prior is not None:
+            # Replay is observational; claimed replay is validated separately.
+            return prior['id'],decode(prior['document'])
+        decision,selected=self.enqueue_scope(request_id,task)
+        policy=decode(read_file(self.config['policy'],65536,True))
+        revision=next(item['sha256'] for item in selected['evidence'] if item['kind']=='spec')
+        approved=policy['specs'][Path(selected['spec']).name.split('-',1)[0]]
+        action={'schema_version':1,'request_id':request_id,'revision':decision['revision'],
+                'decision_sha256':digest(canonical(decision).encode()),'kind':'task_start','target':task,
+                'target_revision':revision,'stage':'queued','paths':approved['allowed_paths'],'principal':None,'fence':None}
+        validate_action(action);identity=digest(canonical(action).encode())
+        scout,routing=self.assessment_modules()
+        with self.transaction() as db:
+            request=db.execute('SELECT document,revision,decision,status FROM intake_requests WHERE id=?',(request_id,)).fetchone()
+        raw,inventory,*_=self.assessment_context(request_id,decode(request['document']),request['revision'],scout,routing)
+        with self.transaction() as db:
+            task_row=db.execute('SELECT * FROM tasks WHERE id=?',(task,)).fetchone()
+        require(task_row is not None,'start queued task missing')
+        snapshot={'request':list(request),'context_sha256':digest(raw),'inventory':inventory,
+                  'authority':task_row['authority'],'deps':task_row['deps'],'fence':task_row['fence']}
+        # Revalidate before reserving; the transaction checks exact queued authority.
+        self.enqueue_scope(request_id,task)
+        with self.transaction() as db:
+            row=db.execute('SELECT * FROM tasks WHERE id=?',(task,)).fetchone()
+            require(row is not None and row['state']=='queued' and row['owner'] is None
+                    and row['revision']==revision and row['authority']==snapshot['authority']
+                    and row['deps']==snapshot['deps'] and row['fence']==snapshot['fence'],'start queue changed during reservation')
+            require(db.execute('SELECT 1 FROM intake_task_starts WHERE task=? AND revision=?',(task,revision)).fetchone() is None,'approved task already has a start intent')
+            db.execute("INSERT INTO intake_actions VALUES(?,?,?,'intent',NULL)",(identity,request_id,canonical(action)))
+            db.execute("INSERT INTO intake_task_starts VALUES(?,?,?,?,'intent',NULL,NULL)",(identity,task,revision,canonical(snapshot)))
+        self.start_scope(request_id,task,identity)
+        return identity,action
+
+    def owned_start(self, action_id, owner, fence):
+        """Validate only the exact real claim without making claimed tasks eligible."""
+        require(hex_value(action_id,64) and isinstance(owner,str) and re.fullmatch(r'supervisor:[a-f0-9]{32}',owner) and type(fence) is int and fence>0,'owned start principal binding invalid')
+        self.execution_ready()
+        with self.transaction() as db:
+            start=db.execute('SELECT * FROM intake_task_starts WHERE action_id=?',(action_id,)).fetchone()
+            effect=db.execute('SELECT * FROM intake_actions WHERE id=?',(action_id,)).fetchone()
+            require(start is not None and effect is not None and start['state'] in {'claiming','claimed'},'owned start unresolved')
+            action=decode(effect['document']);snapshot=decode(start['snapshot'])
+            row=db.execute('SELECT * FROM tasks WHERE id=?',(start['task'],)).fetchone()
+            request=db.execute('SELECT document,revision,decision,status FROM intake_requests WHERE id=?',(effect['request_id'],)).fetchone()
+            require(request is not None and list(request)==snapshot['request'],'owned start request changed')
+            require(row is not None,'owned task missing')
+            require(owner==start['owner']==row['owner'] and fence==start['fence']==row['fence']
+                    and row['state']=='claimed' and row['expires'] is not None and row['expires']>self.clock(None)
+                    and row['revision']==start['revision'] and row['authority']==snapshot['authority']
+                    and row['deps']==snapshot['deps'],'owned start actual claim differs or expired')
+            require(all(db.execute('SELECT state FROM tasks WHERE id=?',(dep,)).fetchone()[0]=='merged' for dep in decode(row['deps'])),'owned start dependencies no longer merged')
+        validate_action(action)
+        require(action_id==digest(canonical(action).encode()) and action['request_id']==effect['request_id']
+                and action['decision_sha256']==digest(request['decision'].encode()),'owned start action binding changed')
+        scout,routing=self.assessment_modules()
+        raw,_,_,_,catalog=self.assessment_context(effect['request_id'],decode(request['document']),request['revision'],scout,routing,
+                                                  _owned_inventory=snapshot['inventory'])
+        require(digest(raw)==snapshot['context_sha256'],'owned start source or approved context changed')
+        decision=decode(request['decision']);selected=[item for item in catalog if item['spec']==decision['spec'] and item['plan']==decision['plan']]
+        require(len(selected)==1 and not selected[0]['open_questions'],'owned start approval revoked or unresolved')
+        # ready rechecks all protected code/config pins; no caller configuration grants authority.
+        self.execution_ready()
+        with self.transaction() as db:
+            actual=db.execute('SELECT owner,fence,state,expires FROM tasks WHERE id=?',(start['task'],)).fetchone()
+            require(tuple(actual)==(owner,fence,'claimed',row['expires']) and actual['expires']>self.clock(None),'owned start claim changed during validation')
+        return {'action_id':action_id,'task':start['task'],'revision':start['revision'],'owner':owner,'fence':fence,'state':'claimed'}
+
+    def reconcile_start(self, action_id):
+        with self.transaction() as db:
+            row=db.execute('SELECT state,owner,fence FROM intake_task_starts WHERE action_id=?',(action_id,)).fetchone()
+            require(row is not None and row['state'] in {'claiming','claimed'},'start has no reconcilable claim')
+        receipt=self.owned_start(action_id,row['owner'],row['fence'])
+        with self.transaction() as db:
+            actual=db.execute('SELECT state,owner,fence FROM intake_task_starts WHERE action_id=?',(action_id,)).fetchone()
+            require(tuple(actual)==tuple(row),'start changed during reconciliation')
+            task=db.execute('SELECT owner,fence,state,expires FROM tasks WHERE id=?',(receipt['task'],)).fetchone()
+            require(task is not None and tuple(task)[:3]==(receipt['owner'],receipt['fence'],'claimed') and task['expires']>self.clock(None),'actual claim changed during reconciliation')
+            db.execute("UPDATE intake_task_starts SET state='claimed' WHERE action_id=?",(action_id,))
+            db.execute("UPDATE intake_actions SET status='claimed',result=? WHERE id=?",(canonical(receipt),action_id))
+        return receipt
+
     def start_scope(self, request_id, task, action_id):
         """Validate a queued action against actual approved ledger authority.
 
@@ -839,6 +929,10 @@ class Intake:
                     and authority['deps']==decode(row['deps']) and set(authority['ac_ids'])==set(approved['ac_ids'])
                     and authority['allowed_paths']==approved['allowed_paths'],'start actual task authority differs')
             require(effect is not None and effect['request_id']==request_id and effect['status']=='intent','start action absent or unresolved')
+            binding=db.execute('SELECT snapshot,state FROM intake_task_starts WHERE action_id=?',(action_id,)).fetchone()
+            require(binding is not None and binding['state']=='intent','start intent missing or already reserved')
+            snapshot=decode(binding['snapshot'])
+            require(row['fence']==snapshot['fence'] and row['authority']==snapshot['authority'] and row['deps']==snapshot['deps'],'start queue snapshot changed')
             action=decode(effect['document']);validate_action(action)
             expected={'schema_version':1,'request_id':request_id,'revision':decision['revision'],
                       'decision_sha256':digest(canonical(decision).encode()),'kind':'task_start','target':task,
@@ -1040,7 +1134,7 @@ class Intake:
                            'open_questions':open_questions(text)})
         return result
 
-    def assessment_context(self, request_id, request, revision, scout, routing):
+    def assessment_context(self, request_id, request, revision, scout, routing, *, _owned_inventory=None):
         import time
         policy=decode(read_file(self.config['policy'],65536,True))
         profile=routing.protected(Path(self.config['profile']),[Path(self.config[name]) for name in ('candidate_root','authority_root')])
@@ -1072,7 +1166,7 @@ class Intake:
             return decode(scout.collect_context(public_request,tree,paths,roots,evidence,context_bytes=limits['context_bytes'],
                                                request_chars=limits['request_chars'],collection_seconds=min(20,remaining)))
         context=collect(root,intake['context_paths'],profile['source_roots'],[])
-        eligible=self.eligible()
+        eligible=self.eligible() if _owned_inventory is None else _owned_inventory
         catalog=self.contract_catalog(scout,routing)
         documents={}
         for item in [*eligible,*catalog]:

@@ -115,9 +115,7 @@ print(json.dumps(result))
  bound=request('continue T-1');store.lightweight(bound);store.enqueue_task(bound)
  # Exact queued task authority is independently validated; no fabricated claim owner.
  task=store.store.get('T-1');revision=task['revision'];decision=store.fresh_decision(bound)
- action={'schema_version':1,'request_id':bound,'revision':decision['revision'],'decision_sha256':core.digest(core.canonical(decision).encode()),'kind':'task_start','target':'T-1','target_revision':revision,'stage':'queued','paths':json.loads(task['authority'])['allowed_paths'],'principal':None,'fence':None}
- action_id=core.digest(core.canonical(action).encode())
- with store.transaction() as db:db.execute("INSERT INTO intake_actions VALUES(?,?,?,'intent',NULL)",(action_id,bound,core.canonical(action)))
+ action_id,action=store.start_intent(bound,'T-1')
  assert store.start_scope(bound,'T-1',action_id)['target_revision']==revision
  with patch.object(r,'choose',side_effect=forbidden_probe):
   for kw in [{},{'intake_request':bound},{'intake_request':bound,'intake_action':'0'*64},{'intake_request':bound,'intake_action':action_id}]:

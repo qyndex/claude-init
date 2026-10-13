@@ -1420,9 +1420,9 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-request-intake.sh start-guard
   owner: implementer
 
-- [ ] T-241  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-240  | parallel: no  | est: 5m
+- [x] T-241  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-240  | parallel: no  | est: 5m
   summary: Persist task action intents and reconcile competing requests lost acknowledgements and fences
-  files: .claude/scripts/factory-intake.py, .claude/scripts/factory-supervisor.py, .claude/scripts/test/factory-request-intake.sh
+  files: .claude/scripts/factory-intake.py, .claude/scripts/factory-supervisor.py, .claude/scripts/test/factory-request-intake.sh, .claude/scripts/factory-runtime.py, .claude/scripts/test/factory-intake-start-guard.sh, .claude/scripts/test/factory-intake-actions-reconcile.sh
   accept: bash .claude/scripts/test/factory-request-intake.sh actions-reconcile
   owner: implementer
 

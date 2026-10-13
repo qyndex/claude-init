@@ -6,6 +6,9 @@ import hashlib
 import importlib.util
 import json
 import os
+import pwd
+import re
+import stat
 from pathlib import Path
 import signal
 import shutil
@@ -15,9 +18,129 @@ import sys
 import time
 import uuid
 
-spec = importlib.util.spec_from_file_location('runtime', Path(__file__).with_name('factory-runtime.py'))
-runtime = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(runtime)
+class LazyRuntime:
+    def __init__(self):self.module=None
+    def __getattr__(self,name):
+        if self.module is None:
+            spec=importlib.util.spec_from_file_location('runtime',Path(__file__).with_name('factory-runtime.py'))
+            self.module=importlib.util.module_from_spec(spec);spec.loader.exec_module(self.module)
+        return getattr(self.module,name)
+runtime=LazyRuntime()
+
+
+def require(condition,message):
+    if not condition:raise ValueError(message)
+
+def decode(raw):
+    def pairs(items):
+        result={}
+        for key,value in items:
+            require(key not in result,'duplicate supervisor registry field');result[key]=value
+        return result
+    return json.loads(raw,object_pairs_hook=pairs,parse_constant=lambda value:(_ for _ in ()).throw(ValueError('nonfinite registry JSON')))
+
+def start_bytes(path,private_file=False):
+    path=Path(path)
+    require(path.is_absolute() and path.resolve()==path and not path.is_symlink(),'start control path not canonical')
+    if private_file:
+        require(path.parent.stat().st_uid==os.getuid() and stat.S_IMODE(path.parent.stat().st_mode)==0o700,'start control parent not private')
+    fd=os.open(path,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK)
+    try:
+        info=os.fstat(fd)
+        require(stat.S_ISREG(info.st_mode) and info.st_nlink==1 and info.st_size<=8000000,'start control file invalid')
+        if private_file:require(info.st_uid==os.getuid() and stat.S_IMODE(info.st_mode)==0o600,'start control file not private')
+        with os.fdopen(fd,'rb',closefd=False) as stream:raw=stream.read(8000001)
+        require(len(raw)<=8000000,'start control bytes exceeded');return raw
+    finally:os.close(fd)
+
+
+def start_installation(root):
+    """Stdlib-only OS registry read; no candidate environment/config selection."""
+    home=Path(pwd.getpwuid(os.getuid()).pw_dir)
+    require(home.is_absolute() and home.resolve()==home and home.is_dir(),'start OS home not canonical')
+    directory=home/'.local/state/factory-required-intake';latch=home/'.factory-intake-required'
+    if not directory.exists() and not latch.exists():return None
+    require(directory.resolve()==directory and directory.is_dir() and directory.stat().st_uid==os.getuid()
+            and stat.S_IMODE(directory.stat().st_mode)==0o700 and latch.exists(),'start registry missing or unsafe')
+    latched=decode(start_bytes(latch));info=latch.stat()
+    require(info.st_uid==os.getuid() and stat.S_IMODE(info.st_mode)==0o600,'start latch not private')
+    records=decode(start_bytes(directory/'registry.json',True))
+    require(isinstance(latched,dict) and set(latched)=={'schema_version','bindings'} and type(latched['schema_version']) is int
+            and latched['schema_version']==1 and isinstance(latched['bindings'],dict)
+            and isinstance(records,dict) and set(records)=={'schema_version','roots'} and type(records['schema_version']) is int
+            and records['schema_version']==1 and isinstance(records['roots'],dict)
+            and set(records['roots'])==set(latched['bindings']) and 0<len(records['roots'])<=1000,'start registry schema differs')
+    fields={'repository','authority_root','candidate_root','contract','database','profile','policy','contract_sha256'}
+    matched=[]
+    for key,entry in records['roots'].items():
+        require(isinstance(entry,dict) and set(entry)==fields and entry['authority_root']==key
+                and isinstance(entry['repository'],str) and re.fullmatch(r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+',entry['repository'])
+                and isinstance(entry['contract_sha256'],str) and re.fullmatch(r'[a-f0-9]{64}',entry['contract_sha256'])
+                and latched['bindings'][key]==entry['contract_sha256'],'start registry entry differs')
+        for name in fields-{'repository','contract_sha256'}:
+            require(isinstance(entry[name],str) and Path(entry[name]).is_absolute() and Path(entry[name]).resolve()==Path(entry[name]),'start registry path malformed')
+        if str(root) in {entry['candidate_root'],entry['authority_root']}:matched.append(entry)
+    require(len(matched)<=1,'start registry selection ambiguous')
+    return matched[0] if matched else None
+
+
+def registered_boundary(db, cwd):
+    """Refuse direct installed supervision before helpers, locks or effects.
+
+    The guarded wrapper protocol is not assembled yet; no input enables it.
+    """
+    import sqlite3
+    if start_installation(Path(cwd).resolve()) is not None:
+        raise ValueError('mandatory guarded supervisor unavailable until wrapper assembly')
+    database=Path(db).resolve()
+    if database.exists():
+        with sqlite3.connect(database.as_uri()+'?mode=ro',uri=True) as connection:
+            names={row[0] for row in connection.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+        if 'intake_identity' in names or 'runtime_intake_required' in names:
+            raise ValueError('required intake supervisor installation missing')
+
+
+def claim_intake(controller, action_id, lease=30):
+    """Mint an owner internally; Store.claim alone supplies its actual fence.
+
+    This is claim-only, never launch permission. Lost acknowledgements reconcile
+    the recorded exact owner/fence and never repeat an uncertain claim.
+    """
+    entry=start_installation(Path(controller.config['candidate_root']))
+    expected_installation={'repository':controller.config['repository'],'authority_root':controller.config['authority_root'],
+                          'candidate_root':controller.config['candidate_root'],'contract':str(controller.path),
+                          'database':str(controller.database),'profile':controller.config['profile'],
+                          'policy':controller.config['policy'],'contract_sha256':controller.binding}
+    require(entry==expected_installation,'owned claim protected installation differs')
+    require(hashlib.sha256(json.dumps(decode(start_bytes(entry['contract'],True)),sort_keys=True,separators=(',',':'),ensure_ascii=False,allow_nan=False).encode()).hexdigest()==entry['contract_sha256'],
+            'owned claim installed contract bytes changed')
+    if type(lease) not in {int,float} or not 3<=lease<=3600:
+        raise ValueError('invalid owned claim lease')
+    controller.execution_ready()
+    with controller.transaction() as db:
+        start=db.execute('SELECT * FROM intake_task_starts WHERE action_id=?',(action_id,)).fetchone()
+        effect=db.execute('SELECT request_id FROM intake_actions WHERE id=?',(action_id,)).fetchone()
+        if start is None or effect is None:raise ValueError('start intent missing')
+    if start['state'] in {'claiming','claimed'}:
+        return controller.reconcile_start(action_id)
+    if start['state']!='intent':raise ValueError('start intent unresolved')
+    controller.start_scope(effect['request_id'],start['task'],action_id)
+    snapshot=decode(start['snapshot'])
+    expected={'state':'queued','owner':None,'revision':start['revision'],'fence':snapshot['fence'],
+              'authority':snapshot['authority'],'deps':snapshot['deps']}
+    owner='supervisor:'+uuid.uuid4().hex
+    with controller.transaction() as db:
+        row=db.execute('SELECT * FROM tasks WHERE id=?',(start['task'],)).fetchone()
+        if row is None or not all(row[name]==value for name,value in expected.items()):
+            raise ValueError('queued task changed before claim reservation')
+        changed=db.execute("UPDATE intake_task_starts SET state='claiming',owner=?,fence=? WHERE action_id=? AND state='intent'",(owner,expected['fence']+1,action_id)).rowcount
+        if changed!=1:raise ValueError('start claim already reserved')
+    # No SQLite transaction is held over claim. Even a pre-effect exception
+    # leaves uncertainty explicit; callers cannot silently retry.
+    token=controller.store.claim(start['task'],owner,lease,expected=expected)
+    if token!=expected['fence']+1:raise ValueError('actual claim fence differs')
+    return controller.reconcile_start(action_id)
+
 
 
 def worker_environment(source):
@@ -66,6 +189,7 @@ def terminate(worker, grace=2):
 
 
 def supervise(db, task, command, cwd, attempts, timeout=1800, lease=30, resources=None):
+    registered_boundary(db,cwd)
     lock = Path(db).resolve().parent / ("worker-" + hashlib.sha256(task.encode()).hexdigest() + ".lock")
     lock.parent.mkdir(parents=True, exist_ok=True)
     fd = os.open(lock, os.O_CREAT | os.O_RDWR, 0o600)
@@ -80,6 +204,7 @@ def supervise(db, task, command, cwd, attempts, timeout=1800, lease=30, resource
 
 
 def supervised(db, task, command, cwd, attempts, timeout, lease, lock_fd, resources):
+    registered_boundary(db,cwd)
     if not command or '--bg' in command or '--background' in command:
         raise ValueError('foreground command required')
     if not 1 <= timeout <= 21600 or not 3 <= lease <= 3600:
@@ -208,6 +333,7 @@ def main():
     parser.add_argument('command', nargs=argparse.REMAINDER)
     args = parser.parse_args()
     command = args.command[1:] if args.command[:1] == ['--'] else args.command
+    registered_boundary(args.db,args.cwd)
     if args.detach:
         if not command or '--bg' in command or '--background' in command:
             parser.error('foreground command required')
