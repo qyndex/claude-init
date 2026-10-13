@@ -1432,11 +1432,11 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-request-intake.sh mutation-guard
   owner: implementer
 
-- [ ] T-243  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-242  | parallel: no  | est: 5m
-  summary: Install synchronous fail-closed native submit and tool guards with opaque Bash denial
-  files: .claude/hooks/request-intake.sh, .claude/hooks/pre-intake-action.sh, .claude/settings.json, .claude/scripts/test/factory-request-intake.sh
+- [ ] T-243  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-272  | parallel: no  | est: 5m
+  summary: Demonstrate assembled protected worker submit Read Write and Edit paths with actual fake native and hook subprocesses
+  files: .claude/scripts/test/factory-intake-hooks.sh, .claude/scripts/test/factory-request-intake.sh, docs/FACTORY-REQUEST-INTAKE.md
   accept: bash .claude/scripts/test/factory-request-intake.sh hooks
-  owner: implementer
+  owner: verifier
 
 - [ ] T-244  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-243  | parallel: no  | est: 5m
   summary: Drive foreground console session creation resume and normal prompt input through pending ingress
@@ -1574,4 +1574,40 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   summary: Require strict approved frontmatter and honor global pause in runnable eligibility
   files: .claude/scripts/factory-intake.py, .claude/scripts/test/factory-intake-approval-eligibility.sh, .claude/scripts/test/factory-request-intake.sh
   accept: bash .claude/scripts/test/factory-request-intake.sh approval-eligibility
+  owner: implementer
+
+- [ ] T-267  | spec:050  | phase:1  | priority: security  | created: 2026-10-13  | deps: T-242  | parallel: no  | est: 5m
+  summary: Validate protected worker contract and exact pinned execution closure without invoking processes
+  files: .claude/scripts/factory-intake-worker.py, .claude/scripts/test/factory-intake-worker-contract.sh, .claude/scripts/test/factory-request-intake.sh
+  accept: bash .claude/scripts/test/factory-request-intake.sh worker-contract
+  owner: implementer
+
+- [ ] T-268  | spec:050  | phase:1  | priority: security  | created: 2026-10-13  | deps: T-267  | parallel: no  | est: 5m
+  summary: Issue durable private worker descriptors from actual supervisor claims and consume initial bound submit once
+  files: .claude/scripts/factory-supervisor.py, .claude/scripts/factory-intake.py, .claude/scripts/factory-intake-hooks.py, .claude/scripts/test/factory-intake-worker-descriptor.sh, .claude/scripts/test/factory-request-intake.sh
+  accept: bash .claude/scripts/test/factory-request-intake.sh worker-descriptor
+  owner: implementer
+
+- [ ] T-269  | spec:050  | phase:1  | priority: security  | created: 2026-10-13  | deps: T-268  | parallel: no  | est: 5m
+  summary: Enforce protected disclosure inventory through synchronous Read hook CLI and deny unsupported tools
+  files: .claude/scripts/factory-intake-hooks.py, .claude/hooks/request-intake.sh, .claude/hooks/pre-intake-action.sh, .claude/scripts/test/factory-intake-tool-read.sh, .claude/scripts/test/factory-request-intake.sh
+  accept: bash .claude/scripts/test/factory-request-intake.sh tool-read
+  owner: implementer
+
+- [ ] T-270  | spec:050  | phase:1  | priority: security  | created: 2026-10-13  | deps: T-269  | parallel: no  | est: 5m
+  summary: Reserve exact Write and Edit effects before tool execution and reconcile outcomes or fence unknown writes
+  files: .claude/scripts/factory-intake.py, .claude/scripts/factory-intake-hooks.py, .claude/hooks/post-intake-action.sh, .claude/scripts/test/factory-intake-tool-mutation.sh, .claude/scripts/test/factory-request-intake.sh
+  accept: bash .claude/scripts/test/factory-request-intake.sh tool-mutation
+  owner: implementer
+
+- [ ] T-271  | spec:050  | phase:1  | priority: security  | created: 2026-10-13  | deps: T-270  | parallel: no  | est: 5m
+  summary: Launch pinned native worker in private clean directories with generated fail-closed settings and bounded subprocess
+  files: .claude/scripts/factory-intake-worker.py, .claude/scripts/factory-worker-guard.py, .claude/scripts/test/factory-intake-worker-launch.sh, .claude/scripts/test/factory-request-intake.sh
+  accept: bash .claude/scripts/test/factory-request-intake.sh worker-launch
+  owner: implementer
+
+- [ ] T-272  | spec:050  | phase:1  | priority: security  | created: 2026-10-13  | deps: T-271  | parallel: no  | est: 5m
+  summary: Validate native result independently against current owned stage and reconciled effects without retrying unknown launches
+  files: .claude/scripts/factory-intake-worker.py, .claude/scripts/factory-intake.py, .claude/scripts/test/factory-intake-worker-outcome.sh, .claude/scripts/test/factory-request-intake.sh
+  accept: bash .claude/scripts/test/factory-request-intake.sh worker-outcome
   owner: implementer
