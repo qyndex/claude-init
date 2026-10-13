@@ -1426,9 +1426,9 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-request-intake.sh actions-reconcile
   owner: implementer
 
-- [ ] T-242  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-241  | parallel: no  | est: 5m
+- [x] T-242  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-241  | parallel: no  | est: 5m
   summary: Authorize mutation only for current task-stage principal or separate draft slot
-  files: .claude/scripts/factory-intake.py, .claude/scripts/test/factory-request-intake.sh
+  files: .claude/scripts/factory-intake.py, .claude/scripts/test/factory-request-intake.sh, .claude/scripts/test/factory-intake-mutation-guard.sh
   accept: bash .claude/scripts/test/factory-request-intake.sh mutation-guard
   owner: implementer
 

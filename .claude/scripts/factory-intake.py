@@ -24,6 +24,11 @@ def canonical(value):
     return json.dumps(value, sort_keys=True, separators=(',', ':'), ensure_ascii=False, allow_nan=False)
 
 
+def scope_matches(path, patterns):
+    """Existing coordinator authority: exact literals or trailing-star prefixes."""
+    return any(path.startswith(pattern[:-1]) if pattern.endswith('*') else path==pattern for pattern in patterns)
+
+
 def pairs(items):
     result = {}
     for key, value in items:
@@ -271,6 +276,10 @@ class Intake:
                     action_id TEXT PRIMARY KEY REFERENCES intake_actions(id),task TEXT NOT NULL,revision TEXT NOT NULL,
                     snapshot TEXT NOT NULL,state TEXT NOT NULL,owner TEXT,fence INTEGER,
                     UNIQUE(task,revision));
+                CREATE TABLE IF NOT EXISTS intake_mutations (
+                    id TEXT PRIMARY KEY REFERENCES intake_actions(id),start_id TEXT NOT NULL,
+                    number INTEGER NOT NULL,path TEXT NOT NULL,before_sha256 TEXT,after_sha256 TEXT NOT NULL,
+                    content TEXT NOT NULL,status TEXT NOT NULL,metadata TEXT,before_metadata TEXT,parent_metadata TEXT NOT NULL,UNIQUE(start_id,number));
                 CREATE TABLE IF NOT EXISTS intake_assessments (
                     request_id TEXT PRIMARY KEY REFERENCES intake_requests(id),
                     revision TEXT NOT NULL,status TEXT NOT NULL,result TEXT,reason TEXT);
@@ -651,11 +660,10 @@ class Intake:
                     'fresh decision approved evidence changed')
         if result['next_action']=='resume':
             require(references!=(None,None,None),'fresh decision approval missing')
-            import fnmatch
             policy=decode(read_file(self.config['policy'],65536,True))
             matches=[value for value in policy.get('specs',{}).values() if isinstance(value,dict) and value.get('path')==result['spec']]
             require(len(matches)==1,'fresh decision approved scope ambiguous')
-            require(all(any(fnmatch.fnmatchcase(path,pattern) for pattern in matches[0]['allowed_paths'])
+            require(all(scope_matches(path,matches[0]['allowed_paths'])
                         for intent in result['intents'] for path in intent['scope']),'fresh decision exceeds approved scope')
         if result['next_action'] in {'draft','question'}:
             with self.transaction() as db:
@@ -846,6 +854,7 @@ class Intake:
             task_row=db.execute('SELECT * FROM tasks WHERE id=?',(task,)).fetchone()
         require(task_row is not None,'start queued task missing')
         snapshot={'request':list(request),'context_sha256':digest(raw),'inventory':inventory,
+                  'context':decode(raw),'files':self.candidate_inventory(),
                   'authority':task_row['authority'],'deps':task_row['deps'],'fence':task_row['fence']}
         # Revalidate before reserving; the transaction checks exact queued authority.
         self.enqueue_scope(request_id,task)
@@ -860,21 +869,29 @@ class Intake:
         self.start_scope(request_id,task,identity)
         return identity,action
 
-    def owned_start(self, action_id, owner, fence):
+    def owned_start(self, action_id, owner, fence, *, _mutation=None, _outcome=False):
         """Validate only the exact real claim without making claimed tasks eligible."""
         require(hex_value(action_id,64) and isinstance(owner,str) and re.fullmatch(r'supervisor:[a-f0-9]{32}',owner) and type(fence) is int and fence>0,'owned start principal binding invalid')
+        selected=installation_lookup(self.config['authority_root'])
+        expected_installation={'repository':self.config['repository'],'authority_root':self.config['authority_root'],
+                              'candidate_root':self.config['candidate_root'],'contract':str(self.path),'database':str(self.database),
+                              'profile':self.config['profile'],'policy':self.config['policy'],'contract_sha256':self.binding}
+        require(selected==expected_installation,'owned stage protected installation differs')
         self.execution_ready()
         with self.transaction() as db:
             start=db.execute('SELECT * FROM intake_task_starts WHERE action_id=?',(action_id,)).fetchone()
             effect=db.execute('SELECT * FROM intake_actions WHERE id=?',(action_id,)).fetchone()
-            require(start is not None and effect is not None and start['state'] in {'claiming','claimed'},'owned start unresolved')
+            require(start is not None and effect is not None and start['state'] in {'claiming','claimed','implementing_pending','implementing'},'owned start unresolved')
             action=decode(effect['document']);snapshot=decode(start['snapshot'])
             row=db.execute('SELECT * FROM tasks WHERE id=?',(start['task'],)).fetchone()
             request=db.execute('SELECT document,revision,decision,status FROM intake_requests WHERE id=?',(effect['request_id'],)).fetchone()
+            binding=db.execute('SELECT document FROM intake_decision_bindings WHERE request_id=?',(effect['request_id'],)).fetchone()
+            require(binding is not None,'owned decision binding missing')
+            saved_binding=decode(binding['document'])
             require(request is not None and list(request)==snapshot['request'],'owned start request changed')
             require(row is not None,'owned task missing')
             require(owner==start['owner']==row['owner'] and fence==start['fence']==row['fence']
-                    and row['state']=='claimed' and row['expires'] is not None and row['expires']>self.clock(None)
+                    and row['state'] in ({'claimed','implementing'} if start['state']=='implementing_pending' else {'implementing'} if start['state']=='implementing' else {'claimed'}) and row['expires'] is not None and row['expires']>self.clock(None)
                     and row['revision']==start['revision'] and row['authority']==snapshot['authority']
                     and row['deps']==snapshot['deps'],'owned start actual claim differs or expired')
             require(all(db.execute('SELECT state FROM tasks WHERE id=?',(dep,)).fetchone()[0]=='merged' for dep in decode(row['deps'])),'owned start dependencies no longer merged')
@@ -882,17 +899,254 @@ class Intake:
         require(action_id==digest(canonical(action).encode()) and action['request_id']==effect['request_id']
                 and action['decision_sha256']==digest(request['decision'].encode()),'owned start action binding changed')
         scout,routing=self.assessment_modules()
+        require(saved_binding['request_sha256']==digest(request['document'].encode())
+                and saved_binding['decision_sha256']==digest(request['decision'].encode())
+                and self.candidate_identity(scout)==saved_binding['candidate'],'owned decision HEAD/ref or binding changed')
         raw,_,_,_,catalog=self.assessment_context(effect['request_id'],decode(request['document']),request['revision'],scout,routing,
                                                   _owned_inventory=snapshot['inventory'])
-        require(digest(raw)==snapshot['context_sha256'],'owned start source or approved context changed')
+        self.working_state(action_id,decode(raw),snapshot,owner,fence,_mutation,_outcome)
         decision=decode(request['decision']);selected=[item for item in catalog if item['spec']==decision['spec'] and item['plan']==decision['plan']]
         require(len(selected)==1 and not selected[0]['open_questions'],'owned start approval revoked or unresolved')
         # ready rechecks all protected code/config pins; no caller configuration grants authority.
         self.execution_ready()
         with self.transaction() as db:
-            actual=db.execute('SELECT owner,fence,state,expires FROM tasks WHERE id=?',(start['task'],)).fetchone()
-            require(tuple(actual)==(owner,fence,'claimed',row['expires']) and actual['expires']>self.clock(None),'owned start claim changed during validation')
-        return {'action_id':action_id,'task':start['task'],'revision':start['revision'],'owner':owner,'fence':fence,'state':'claimed'}
+            actual=db.execute('SELECT owner,fence,state,expires,revision,authority,deps FROM tasks WHERE id=?',(start['task'],)).fetchone()
+            require(actual is not None and tuple(actual)[:3]==(owner,fence,row['state'])
+                    and tuple(actual)[4:]==(row['revision'],row['authority'],row['deps'])
+                    and actual['expires'] is not None and actual['expires']>=row['expires']
+                    and actual['expires']>self.clock(None),'owned start claim changed during validation')
+        return {'action_id':action_id,'task':start['task'],'revision':start['revision'],'owner':owner,'fence':fence,'state':row['state']}
+
+    @staticmethod
+    def file_metadata(info):
+        return {name:getattr(info,'st_'+name) for name in ('dev','ino','mode','nlink','size','mtime_ns','ctime_ns')}
+
+    def candidate_inventory(self):
+        """Bounded trusted Git names plus no-follow metadata; no uncited content reads."""
+        import time
+        scout,_=self.assessment_modules();root=Path(self.config['candidate_root'])
+        env={'PATH':'/usr/bin:/bin','HOME':'/nonexistent','GIT_CONFIG_NOSYSTEM':'1','GIT_CONFIG_SYSTEM':'/dev/null',
+             'GIT_CONFIG_GLOBAL':'/dev/null','GIT_CONFIG_COUNT':'0','GIT_TERMINAL_PROMPT':'0','GIT_OPTIONAL_LOCKS':'0','LC_ALL':'C'}
+        result=scout._bounded.run(['/usr/bin/git','--no-optional-locks','-c','core.fsmonitor=false','-c','core.hooksPath=/dev/null',
+                                   '-C',str(root),'ls-files','--cached','--others','-z',
+                                   '--exclude=node_modules/','--exclude=.venv/','--exclude=venv/','--exclude=__pycache__/',
+                                   '--exclude=.cache/','--exclude=.git/'],
+                                  env=env,cwd=str(root),timeout=5,limit=self.config['limits']['context_bytes'])
+        require(result.returncode==0,'mutation inventory unavailable')
+        names=set(result.stdout.decode('utf-8').split('\0'))-{''};require(len(names)<=10000,'mutation inventory count exceeded')
+        deadline=time.monotonic()+10;inventory={}
+        for name in sorted(names):
+            require(relative(name) and time.monotonic()<deadline,'mutation inventory path or deadline invalid')
+            path=root/name;require(path.parent.resolve()==path.parent,'mutation inventory ancestor linked')
+            inventory[name]=self.file_metadata(path.stat(follow_symlinks=False))
+        require(len(canonical(inventory).encode())<=self.config['limits']['context_bytes'],'mutation inventory bound exceeded')
+        return inventory
+
+    def working_state(self, start_id, context, snapshot, owner, fence, mutation_id=None, outcome=False):
+        with self.transaction() as db:
+            writes=db.execute('SELECT m.*,a.document FROM intake_mutations m JOIN intake_actions a ON a.id=m.id WHERE start_id=? ORDER BY number',(start_id,)).fetchall()
+        files=dict(snapshot['files']);expected_sources={item['path']:item['sha256'] for item in snapshot['context']['sources']}
+        require(context['request']==snapshot['context']['request'] and context['approved_evidence']==snapshot['context']['approved_evidence'],
+                'owned immutable context changed')
+        latest={}
+        for write in writes:
+            action=decode(write['document']);validate_action(action)
+            require(action['principal']==owner and action['fence']==fence and write['id']==digest(canonical(action).encode()),'working write binding changed')
+            if write['status']!='completed':
+                require(write['id']==mutation_id and write['status'] in {'intent','started','unknown'},'unknown or pending write fences actions')
+                if not outcome:continue
+            latest[write['path']]=write
+        for write in latest.values():
+            descriptor,target=self.mutation_path(start_id,write['path'])
+            try:
+                observed,metadata=self.mutation_bytes(descriptor,target)
+                require(observed is not None and digest(observed)==write['after_sha256'],'working bytes differ')
+                if write['status']=='completed':require(metadata==decode(write['metadata']),'working file metadata changed')
+                files[write['path']]=metadata
+                if write['path'] in expected_sources:expected_sources[write['path']]=write['after_sha256']
+            finally:os.close(descriptor)
+        require(self.candidate_inventory()==files,'candidate tracked/untracked inventory changed')
+        require({item['path']:item['sha256'] for item in context['sources']}==expected_sources,'owned source bytes changed')
+
+    def begin_implementation(self, start_id, owner, fence):
+        receipt=self.owned_start(start_id,owner,fence)
+        with self.transaction() as db:
+            start=db.execute('SELECT state FROM intake_task_starts WHERE action_id=?',(start_id,)).fetchone()
+            if start['state']=='implementing':return receipt
+            require(start['state']=='claimed','implementation transition unresolved')
+            db.execute("UPDATE intake_task_starts SET state='implementing_pending' WHERE action_id=?",(start_id,))
+        self.store.transition(receipt['task'],owner,fence,'implementing')
+        return self.reconcile_implementation(start_id,owner,fence)
+
+    def reconcile_implementation(self, start_id, owner, fence):
+        receipt=self.owned_start(start_id,owner,fence)
+        require(receipt['state']=='implementing','implementation transition not observed; replay fenced')
+        with self.transaction() as db:
+            row=db.execute('SELECT state FROM intake_task_starts WHERE action_id=?',(start_id,)).fetchone()
+            require(row['state'] in {'implementing_pending','implementing'},'implementation transition binding invalid')
+            db.execute("UPDATE intake_task_starts SET state='implementing' WHERE action_id=?",(start_id,))
+        return receipt
+
+    def mutation_path(self, start_id, name):
+        """Authorize a concrete file under existing no-follow parents; no mkdir permit."""
+        scout,routing=self.assessment_modules();path=scout.relative(name);scout.permitted(path)
+        require(path.parts[0].lower() not in {'.claude','.codex','.agents','.github','factory','specs','plans','tasks','initiatives','verify'}
+                and not any(part.lower() in {'.venv','venv','__pycache__','.cache'} for part in path.parts),'mutation protected control/cache path rejected')
+        policy=decode(read_file(self.config['policy'],65536,True))
+        protected=policy.get('protected_paths',[])
+        require(isinstance(protected,list) and len(protected)<=1000 and all(isinstance(pattern,str) and 0<len(pattern)<=1000 for pattern in protected)
+                and len(set(protected))==len(protected),'protected mutation patterns invalid')
+        for pattern in protected:scout.relative(pattern)
+        # Preserve coordinator.matches: literal exact paths or trailing-star prefixes.
+        require(not scope_matches(name,protected),
+                'mutation path is protected policy authority')
+        with self.transaction() as db:
+            start=db.execute('SELECT task,snapshot FROM intake_task_starts WHERE action_id=?',(start_id,)).fetchone()
+        require(start is not None,'mutation start missing')
+        authority=decode(decode(start['snapshot'])['authority'])
+        profile=routing.protected(Path(self.config['profile']),[Path(self.config[key]) for key in ('candidate_root','authority_root')])
+        roots=[scout.source_root(value) for value in profile['source_roots']]
+        require(any(path==root or root in path.parents for root in roots)
+                and scope_matches(name,authority['allowed_paths']),'mutation path outside approved source scope')
+        descriptor=os.open(self.config['candidate_root'],os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW)
+        try:
+            for component in path.parts[:-1]:
+                child=os.open(component,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW,dir_fd=descriptor)
+                os.close(descriptor);descriptor=child
+            target=Path(self.config['candidate_root'])/name
+            require(target.parent.resolve()==target.parent,'mutation parent linked or moved')
+            try:info=os.stat(path.name,dir_fd=descriptor,follow_symlinks=False)
+            except FileNotFoundError:pass
+            else:require(stat.S_ISREG(info.st_mode) and info.st_nlink==1,'mutation target linked or nonregular')
+            self.mutation_parent(descriptor,target)
+            return descriptor,target
+        except BaseException:os.close(descriptor);raise
+
+    def mutation_parent(self, descriptor, target):
+        require(target.parent.resolve()==target.parent,'mutation ancestor linked')
+        observed=target.parent.stat(follow_symlinks=False);opened=os.fstat(descriptor)
+        require((observed.st_dev,observed.st_ino)==(opened.st_dev,opened.st_ino) and stat.S_ISDIR(opened.st_mode),'mutation parent identity changed')
+        return {name:getattr(opened,'st_'+name) for name in ('dev','ino','mode')}
+
+    def mutation_bytes(self, descriptor, target):
+        self.mutation_parent(descriptor,target)
+        try:fd=os.open(target.name,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK,dir_fd=descriptor)
+        except FileNotFoundError:return None,None
+        try:
+            info=os.fstat(fd);entry=os.stat(target.name,dir_fd=descriptor,follow_symlinks=False)
+            require(stat.S_ISREG(info.st_mode) and info.st_nlink==1 and (info.st_dev,info.st_ino)==(entry.st_dev,entry.st_ino),'mutation read target identity changed')
+            with os.fdopen(fd,'rb',closefd=False) as stream:raw=stream.read(self.config['limits']['context_bytes']+1)
+            require(len(raw)<=self.config['limits']['context_bytes'],'mutation byte bound exceeded')
+            after=os.fstat(fd);final=os.stat(target.name,dir_fd=descriptor,follow_symlinks=False)
+            require(self.file_metadata(after)==self.file_metadata(info) and final.st_nlink==1
+                    and (final.st_dev,final.st_ino)==(after.st_dev,after.st_ino),'mutation bytes or leaf changed during read')
+            self.mutation_parent(descriptor,target)
+            return raw,self.file_metadata(after)
+        finally:os.close(fd)
+
+    def mutation_intent(self, request_id, start_id, owner, fence, path, content):
+        receipt=self.owned_start(start_id,owner,fence)
+        require(receipt['state']=='implementing','mutation requires controlled implementing stage')
+        require(isinstance(content,str) and len(content.encode('utf-8'))<=self.config['limits']['context_bytes'],'mutation content bound invalid')
+        descriptor,target=self.mutation_path(start_id,path)
+        try:
+            raw,before_metadata=self.mutation_bytes(descriptor,target)
+            before=digest(raw) if raw is not None else None
+            parent_metadata=self.mutation_parent(descriptor,target)
+        finally:os.close(descriptor)
+        with self.transaction() as db:
+            start=db.execute('SELECT a.document FROM intake_task_starts s JOIN intake_actions a ON a.id=s.action_id WHERE s.action_id=?',(start_id,)).fetchone()
+            origin=decode(start['document']);require(origin['request_id']==request_id,'mutation foreign request')
+            require(db.execute("SELECT 1 FROM intake_mutations WHERE start_id=? AND status!='completed'",(start_id,)).fetchone() is None,'mutation already pending')
+            number=db.execute('SELECT COALESCE(MAX(number),0)+1 FROM intake_mutations WHERE start_id=?',(start_id,)).fetchone()[0]
+            action={**origin,'kind':'implementation_mutation','target':path,'target_revision':digest(content.encode()),
+                    'stage':'implementing:'+str(number),'paths':[path],'principal':owner,'fence':fence}
+            validate_action(action);identity=digest(canonical(action).encode())
+            db.execute("INSERT INTO intake_actions VALUES(?,?,?,'intent',NULL)",(identity,request_id,canonical(action)))
+            db.execute("INSERT INTO intake_mutations VALUES(?,?,?,?,?,?,?,'intent',NULL,?,?)",(identity,start_id,number,path,before,action['target_revision'],content,canonical(before_metadata),canonical(parent_metadata)))
+        return identity
+
+    def mutation_record(self, identity, owner, fence):
+        require(hex_value(identity,64),'mutation action identity invalid')
+        with self.transaction() as db:
+            row=db.execute('SELECT m.*,a.document FROM intake_mutations m JOIN intake_actions a ON a.id=m.id WHERE m.id=?',(identity,)).fetchone()
+        require(row is not None,'mutation action missing');action=decode(row['document']);validate_action(action)
+        with self.transaction() as db:
+            start=db.execute('SELECT a.document FROM intake_task_starts s JOIN intake_actions a ON a.id=s.action_id WHERE s.action_id=?',(row['start_id'],)).fetchone()
+        require(start is not None,'mutation protected start missing')
+        origin=decode(start['document'])
+        expected={**origin,'kind':'implementation_mutation','target':row['path'],'target_revision':row['after_sha256'],
+                  'stage':'implementing:'+str(row['number']),'paths':[row['path']],'principal':owner,'fence':fence}
+        require(action==expected,'mutation derived action differs')
+        require(row['id']==digest(canonical(action).encode()) and action['principal']==owner and action['fence']==fence
+                and type(fence) is int and row['after_sha256']==action['target_revision']==digest(row['content'].encode())
+                and action['paths']==[row['path']] and action['target']==row['path'],'mutation binding invalid')
+        return row,action
+
+    def apply_mutation(self, identity, owner, fence):
+        row,action=self.mutation_record(identity,owner,fence)
+        require(row['status']=='intent','mutation replay requires exact outcome reconciliation')
+        receipt=self.owned_start(row['start_id'],owner,fence,_mutation=identity)
+        require(receipt['state']=='implementing','mutation stage invalid')
+        descriptor,target=self.mutation_path(row['start_id'],row['path']);fd=None
+        try:
+            raw,metadata=self.mutation_bytes(descriptor,target);observed=digest(raw) if raw is not None else None
+            require(observed==row['before_sha256'] and metadata==decode(row['before_metadata'])
+                    and self.mutation_parent(descriptor,target)==decode(row['parent_metadata']),'mutation before bytes or identity changed')
+            self.execution_ready()
+            with self.transaction() as db:
+                task=db.execute('SELECT owner,fence,state,expires FROM tasks WHERE id=?',(receipt['task'],)).fetchone()
+                require(task is not None and tuple(task)[:3]==(owner,fence,'implementing') and task['expires']>self.clock(None)
+                        and db.execute('SELECT paused FROM control WHERE id=1').fetchone()[0]==0
+                        and db.execute('SELECT paused FROM intake_identity WHERE id=1').fetchone()[0]==0,'mutation claim/control changed before effect')
+                changed=db.execute("UPDATE intake_mutations SET status='started' WHERE id=? AND status='intent'",(identity,)).rowcount
+                require(changed==1,'mutation effect already reserved')
+                db.execute("UPDATE intake_actions SET status='started' WHERE id=?",(identity,))
+            flags=os.O_RDWR|os.O_NOFOLLOW|os.O_NONBLOCK
+            flags|=os.O_CREAT|os.O_EXCL if observed is None else 0
+            fd=os.open(target.name,flags,0o600,dir_fd=descriptor);info=os.fstat(fd)
+            require(stat.S_ISREG(info.st_mode) and info.st_nlink==1,'mutation effect target changed')
+            require(self.mutation_parent(descriptor,target)==decode(row['parent_metadata']),'mutation parent changed')
+            entry=os.stat(target.name,dir_fd=descriptor,follow_symlinks=False)
+            require((info.st_dev,info.st_ino)==(entry.st_dev,entry.st_ino),'mutation leaf identity changed')
+            if observed is not None:
+                with os.fdopen(fd,'rb',closefd=False) as stream:preimage=stream.read(self.config['limits']['context_bytes']+1)
+                require(digest(preimage)==row['before_sha256'] and self.file_metadata(info)==decode(row['before_metadata']),'mutation raced preimage changed')
+            os.ftruncate(fd,0);os.lseek(fd,0,os.SEEK_SET)
+            with os.fdopen(fd,'wb',closefd=False) as stream:stream.write(row['content'].encode());stream.flush();os.fsync(fd)
+            os.fsync(descriptor)
+            entry=os.stat(target.name,dir_fd=descriptor,follow_symlinks=False);written=os.fstat(fd)
+            require(entry.st_nlink==1 and (entry.st_dev,entry.st_ino)==(written.st_dev,written.st_ino)
+                    and self.mutation_parent(descriptor,target)==decode(row['parent_metadata']),'mutation post-effect path identity changed')
+        except BaseException:
+            with self.transaction() as db:
+                db.execute("UPDATE intake_mutations SET status='unknown' WHERE id=? AND status='started'",(identity,))
+                db.execute("UPDATE intake_actions SET status='unknown' WHERE id=? AND status='started'",(identity,))
+            raise
+        finally:
+            if fd is not None:os.close(fd)
+            os.close(descriptor)
+        return self.complete_mutation(identity,owner,fence)
+
+    def complete_mutation(self, identity, owner, fence):
+        row,action=self.mutation_record(identity,owner,fence)
+        require(row['status'] in {'started','unknown','completed'},'mutation effect not observed')
+        receipt=self.owned_start(row['start_id'],owner,fence,_mutation=identity,_outcome=True)
+        require(receipt['state']=='implementing','mutation outcome stage invalid')
+        descriptor,target=self.mutation_path(row['start_id'],row['path'])
+        try:
+            observed,metadata=self.mutation_bytes(descriptor,target)
+            require(observed is not None and digest(observed)==row['after_sha256']
+                    and self.mutation_parent(descriptor,target)==decode(row['parent_metadata']),'mutation outcome bytes or parent differ')
+        finally:os.close(descriptor)
+        result={'action_id':identity,'path':row['path'],'sha256':row['after_sha256'],'status':'completed'}
+        with self.transaction() as db:
+            db.execute("UPDATE intake_mutations SET status='completed',metadata=? WHERE id=?",(canonical(metadata),identity))
+            db.execute("UPDATE intake_actions SET status='completed',result=? WHERE id=?",(canonical(result),identity))
+        return result
+
+    def reconcile_mutation(self, identity, owner, fence):
+        return self.complete_mutation(identity,owner,fence)
 
     def reconcile_start(self, action_id):
         with self.transaction() as db:
@@ -1293,8 +1547,7 @@ class Intake:
                 policy=decode(read_file(self.config['policy'],65536,True))
                 matches=[value for value in policy.get('specs',{}).values() if isinstance(value,dict) and value.get('path')==references[0]]
                 require(len(matches)==1,'assessment approved scope ambiguous');approved=matches[0]
-                import fnmatch
-                require(all(any(fnmatch.fnmatchcase(path,pattern) for pattern in approved['allowed_paths'])
+                require(all(scope_matches(path,approved['allowed_paths'])
                             for item in result['intents'] for path in item['scope']), 'assessment exceeds approved task scope')
             binding=self.decision_binding(request,result,scout,raw)
             final_status='blocked' if result['disposition'] in {'blocked','unsupported'} else 'clarify' if result['disposition']=='clarify' else 'decided'

@@ -1,0 +1,9 @@
+# TDD ledger — green — T-242
+ledger_format: 2
+timestamp: 2026-10-13T11:41:39+11:00
+command: bash .claude/scripts/test/factory-request-intake.sh mutation-guard
+exit_code: 0
+---
+mutation-guard: exact principal/stage/path, controlled write overlay, new file, unknown outcome fencing/reconciliation and outside-scope drift passed
+mutation-guard: interior wildcard does not broaden exact coordinator authority
+mutation-guard: actual assessment/freshness accepts existing trailing-star scope
