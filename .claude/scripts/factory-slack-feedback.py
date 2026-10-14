@@ -173,8 +173,9 @@ def run(config,api,client,now):
                 expected=(config['repository'],config['team_id'],config['destination'])
                 require(identity is None or tuple(identity)==expected, 'feedback runtime repository/workspace/destination differs')
                 if identity is None:transaction.execute('INSERT INTO feedback_ingress_identity VALUES(1,?,?,?)',expected)
-            identities=feedback.intake_batch(report,[document for document,_ in observations])
-            if intake is not None:intake.capture(feedback,[document for document,_ in observations],identities,proofs,config['branch'])
+            documents=[document for document,_ in observations]
+            capture=None if intake is None else lambda transaction,identities:intake.capture(feedback,documents,identities,proofs,config['branch'],transaction=transaction)
+            identities=feedback.intake_batch(report,documents,after_capture=capture)
             with feedback.store.transaction() as transaction:
                 for identity,(document,urgent) in zip(identities,observations):
                     if urgent:

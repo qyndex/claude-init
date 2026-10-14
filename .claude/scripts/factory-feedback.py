@@ -57,8 +57,9 @@ class Feedback:
     def intake(self, reporting_database, document):
         return self.intake_batch(reporting_database, [document])[0]
 
-    def intake_batch(self, reporting_database, documents):
+    def intake_batch(self, reporting_database, documents, *, after_capture=None):
         require(isinstance(documents, list) and len(documents) <= 1000, 'feedback batch too large')
+        require(after_capture is None or callable(after_capture), 'invalid private intake capture callback')
         prepared = [(document, *self.validate_intake(reporting_database, document)) for document in documents]
         require(len({identity for _, identity, _ in prepared}) == len(prepared), 'duplicate feedback source in batch')
         with self.store.transaction() as db:
@@ -68,6 +69,7 @@ class Feedback:
                 if old is None:
                     db.execute('INSERT INTO factory_feedback(id,document,status) VALUES(?,?,?)', (identity, encoded, 'open'))
                     self.event(db, identity, {'type': 'captured', 'document': document})
+            if after_capture is not None:after_capture(db,[identity for _, identity, _ in prepared])
         return [identity for _, identity, _ in prepared]
 
     def plan(self, identity, amendment, policy, expected_version=None):

@@ -179,35 +179,93 @@ class HostedSlackIntake:
         else:
             require(not any(name.startswith('intake_') for name in names), 'unbound hosted intake tables')
 
-    def capture(self, feedback, documents, identities, proofs, branch):
+    @staticmethod
+    def slack_source(source):
+        from decimal import Decimal
+        match=re.fullmatch(r'slack:([^/]+)/([^/]+)/([0-9]+\.[0-9]{1,6})(?::edit:([0-9]+\.[0-9]{1,6}))?',source)
+        require(match is not None and len(match[3])<=20 and (match[4] is None or len(match[4])<=20),
+                'hosted Slack source binding invalid')
+        revision=match[4] or match[3]
+        require(Decimal(revision)>=Decimal(match[3]), 'hosted Slack edit precedes source')
+        return match,source.split(':edit:',1)[0],revision
+
+    def source_head(self, db, source):
+        """Adopt already observed capture-only records without inventing original bytes."""
+        from decimal import Decimal
+        head=db.execute('SELECT * FROM intake_slack_heads WHERE source_key=?',(source,)).fetchone()
+        if head is not None:return head
+        prior=db.execute('SELECT id,source_key,document,revision FROM intake_requests WHERE source_key=? OR source_key LIKE ? LIMIT 1001',
+                         (source,source+':edit:%')).fetchall()
+        require(len(prior)<=1000,'hosted Slack observed source history exceeds bound')
+        prior=sorted(prior,key=lambda row:Decimal(self.slack_source(row['source_key'])[2]))
+        actor=None
+        for row in prior:
+            document=decode(row['document']);match,base,revision=self.slack_source(row['source_key'])
+            require(base==source and document['submission_key']==row['source_key'] and document['source_revision']==revision
+                    and document['repository']==self.policy['repository'] and document['session']==f'slack:{self.policy["team_id"]}/{self.policy["destination"]}'
+                    and digest(row['document'].encode())==row['revision'] and (actor is None or actor==document['actor']),
+                    'hosted Slack prior source binding differs')
+            actor=document['actor']
+            kind='previous_unobserved' if match[4] else 'initial'
+            db.execute('INSERT INTO intake_slack_revisions VALUES(?,?,?,?,?)',(row['id'],source,revision,document['parent_request'],kind))
+            if row['id']!=prior[-1]['id']:
+                db.execute("UPDATE intake_requests SET status='superseded' WHERE id=?",(row['id'],))
+        if prior:
+            latest=prior[-1];document=decode(latest['document'])
+            db.execute('INSERT INTO intake_slack_heads VALUES(?,?,?,?)',(source,latest['id'],document['source_revision'],document['actor']))
+            # Do not promote an older decision or change stored source bytes while adding provenance.
+            return db.execute('SELECT * FROM intake_slack_heads WHERE source_key=?',(source,)).fetchone()
+        return None
+
+    def capture(self, feedback, documents, identities, proofs, branch, *, transaction=None):
         if self.policy is None:return
         import uuid
-        with feedback.store.transaction() as db:
+        from decimal import Decimal
+        from contextlib import nullcontext
+        require(isinstance(documents,list) and isinstance(identities,list) and len(documents)==len(identities)<=1000
+                and len(set(identities))==len(identities),'hosted feedback batch identity count differs')
+        with (feedback.store.transaction() if transaction is None else nullcontext(transaction)) as db:
+            require(db.in_transaction and str(Path(feedback.store.path).resolve())==str(self.database)
+                    and [(row[1],row[2]) for row in db.execute('PRAGMA database_list')]==[('main',str(self.database))],
+                    'hosted capture transaction database differs')
             self.validate_store(db)
             db.execute('CREATE TABLE IF NOT EXISTS intake_hosted_identity(id INTEGER PRIMARY KEY CHECK(id=1),version INTEGER NOT NULL,mode TEXT NOT NULL,repository TEXT NOT NULL,contract_sha256 TEXT NOT NULL)')
             db.execute('INSERT OR IGNORE INTO intake_hosted_identity VALUES(1,1,?,?,?)',
                        ('hosted-slack-capture-v1',self.policy['repository'],self.binding))
             db.execute('CREATE TABLE IF NOT EXISTS intake_requests(id TEXT PRIMARY KEY,source_key TEXT UNIQUE NOT NULL,document TEXT NOT NULL,revision TEXT NOT NULL,status TEXT NOT NULL,decision TEXT,assessment_count INTEGER NOT NULL DEFAULT 0)')
             db.execute('CREATE TABLE IF NOT EXISTS intake_events(sequence INTEGER PRIMARY KEY,request_id TEXT,event TEXT NOT NULL)')
+            db.execute('CREATE TABLE IF NOT EXISTS intake_slack_heads(source_key TEXT PRIMARY KEY,request_id TEXT UNIQUE NOT NULL,source_revision TEXT NOT NULL,actor TEXT NOT NULL)')
+            db.execute('CREATE TABLE IF NOT EXISTS intake_slack_revisions(request_id TEXT PRIMARY KEY,source_key TEXT NOT NULL,source_revision TEXT NOT NULL,parent_request TEXT,kind TEXT NOT NULL)')
             for document,identity in zip(documents,identities):
                 row=db.execute('SELECT document FROM factory_feedback WHERE id=?',(identity,)).fetchone()
                 require(row is not None and decode(row[0])==document, 'authenticated feedback boundary differs')
-                source=document['source_ref'];match=re.fullmatch(r'slack:([^/]+)/([^/]+)/([0-9]+\.[0-9]{1,6})(?::edit:([0-9]+\.[0-9]{1,6}))?',source)
-                require(match is not None and match[1]==self.policy['team_id'] and match[2]==self.policy['destination'],
+                source=document['source_ref'];match,base,source_revision=self.slack_source(source)
+                require(match[1]==self.policy['team_id'] and match[2]==self.policy['destination'],
                         'hosted Slack source binding differs')
+                head=self.source_head(db,base)
+                require(head is None or head['actor']==document['reporter'], 'hosted Slack source actor differs')
+                old=db.execute('SELECT id,document FROM intake_requests WHERE source_key=?',(source,)).fetchone()
+                parent=decode(old['document'])['parent_request'] if old is not None else (head['request_id'] if head is not None else None)
                 proof=proofs[document['digest_key']]
                 request={'source_kind':'slack','origin':'human','session':f'slack:{match[1]}/{match[2]}',
-                         'submission_key':source,'source_revision':match[4] or match[3],'actor':document['reporter'],
+                         'submission_key':source,'source_revision':source_revision,'actor':document['reporter'],
                          'repository':document['repository'],'ref':branch,'content_revision':proof['content_revision'],
-                         'text':document['text'],'parent_request':None,'delivery_token':None,'feedback_id':identity,
+                         'text':document['text'],'parent_request':parent,'delivery_token':None,'feedback_id':identity,
                          'digest_key':document['digest_key'],'receipt_sha256':proof['receipt_sha256']}
                 encoded=canonical(request);revision=digest(encoded.encode())
-                old=db.execute('SELECT document FROM intake_requests WHERE source_key=?',(source,)).fetchone()
-                require(old is None or old[0]==encoded, 'hosted source retry conflicts')
-                if old is None:
-                    request_id=uuid.uuid4().hex
-                    db.execute("INSERT INTO intake_requests(id,source_key,document,revision,status) VALUES(?,?,?,?,'submitted')",(request_id,source,encoded,revision))
-                    db.execute('INSERT INTO intake_events(request_id,event) VALUES(?,?)',(request_id,'authenticated_slack_submitted'))
+                require(old is None or old['document']==encoded, 'hosted source retry conflicts')
+                if old is not None:continue
+                require(head is None or Decimal(source_revision)>Decimal(head['source_revision']),
+                        'unobserved older Slack revision cannot replace current source')
+                request_id=uuid.uuid4().hex
+                db.execute("INSERT INTO intake_requests(id,source_key,document,revision,status) VALUES(?,?,?,?,'submitted')",(request_id,source,encoded,revision))
+                kind='source_edit' if parent is not None else ('previous_unobserved' if match[4] else 'initial')
+                db.execute('INSERT INTO intake_slack_revisions VALUES(?,?,?,?,?)',(request_id,base,source_revision,parent,kind))
+                if head is not None:
+                    db.execute("UPDATE intake_requests SET status='superseded' WHERE id=?",(parent,))
+                    db.execute('UPDATE intake_slack_heads SET request_id=?,source_revision=? WHERE source_key=?',(request_id,source_revision,base))
+                else:db.execute('INSERT INTO intake_slack_heads VALUES(?,?,?,?)',(base,request_id,source_revision,document['reporter']))
+                db.execute('INSERT INTO intake_events(request_id,event) VALUES(?,?)',(request_id,'authenticated_slack_submitted'))
 
 def header_values(raw, field):
     """Parse the supported flat frontmatter; ambiguous/unsupported headers fail closed."""

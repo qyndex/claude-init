@@ -1,0 +1,10 @@
+# TDD ledger — red — T-248
+ledger_format: 2
+timestamp: 2026-10-14T21:21:49+11:00
+command: bash .claude/scripts/test/factory-intake-slack.sh edits-replay
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 188, in <module>
+AssertionError: existing current Slack request lost its disposition during lineage upgrade
