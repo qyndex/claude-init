@@ -1456,7 +1456,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-request-intake.sh urgent-control
   owner: implementer
 
-- [ ] T-246  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-245  | parallel: no  | est: 5m
+- [x] T-246  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-245  | parallel: no  | est: 5m
   summary: Demonstrate installed console hook action paths and maintain truthful native capability prerequisites
   files: .claude/scripts/factory-intake-console.py, .claude/scripts/test/factory-request-intake.sh, docs/FACTORY-REQUEST-INTAKE.md
   accept: bash .claude/scripts/test/factory-request-intake.sh phase1

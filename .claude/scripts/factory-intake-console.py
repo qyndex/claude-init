@@ -236,17 +236,106 @@ def urgent(text):
     return text.strip().lower() in {'stop','pause','/stop','revoke'}
 
 
+def pinned_module(store, name):
+    path=str(Path(__file__).with_name(name).resolve())
+    require(path in store.config['trusted_files'],'console dispatch helper not pinned')
+    raw=read_artifact(path,roots=tuple(Path(store.config[key]) for key in ('candidate_root','authority_root')))
+    require(digest(raw)==store.config['trusted_files'][path],'console dispatch helper changed')
+    module=types.ModuleType('protected_console_'+name.replace('-','_'));module.__file__=path
+    exec(compile(raw,path,'exec'),module.__dict__)
+    return module
+
+
+def dispatch(store, request_id, operation):
+    operation.check()
+    decision=store.fresh_decision(request_id)
+    action=decision['next_action']
+    if action=='draft':
+        return store.publish_proposal(request_id)
+    if action in {'answer','question','inspect','none','stop'}:
+        result={'kind':action,'intents':decision['intents'],'blocked_reason':decision['blocked_reason'],
+                'evidence':decision['evidence']}
+        if action=='answer':
+            result['response']='Requests are stored privately before assessment. New scope produces a private draft for human review. Only current eligible approved tasks may continue through the guarded worker; runtime completion still requires engineering verification.'
+        elif action=='question':
+            result['response']='Clarify the intended observable behavior, approved scope and acceptance criteria before continuing.'
+        elif action=='inspect':
+            with store.transaction() as db:
+                rows=db.execute('SELECT id,state FROM tasks ORDER BY id LIMIT 1001').fetchall()
+            require(len(rows)<=1000,'console status inventory exceeds bound')
+            result['tasks']=[{'task':row['id'],'state':row['state']} for row in rows]
+            result['eligible_tasks']=[item['task'] for item in store.eligible()]
+            result['response']='Current private task state; completion receipts do not establish engineering verification.'
+        else:result['response']=decision['blocked_reason'] or 'No governed action is authorized.'
+        return result
+    require(action=='resume','console action unsupported')
+    worker=pinned_module(store,'factory-intake-worker.py')
+    selected=worker.load_worker_contract(store.path,decision['task'])
+    token=os.environ.get('FACTORY_IMPLEMENTATION_CLAUDE_OAUTH_TOKEN')
+    require(isinstance(token,str) and 0<len(token)<=20000 and '\0' not in token,
+            'console implementation credential unavailable')
+    operation.check()
+    store.enqueue_task(request_id)
+    operation.check()
+    start_id,_=store.start_intent(request_id,decision['task'])
+    supervisor=pinned_module(store,'factory-supervisor.py')
+    operation.check()
+    supervisor.claim_intake(store,start_id,max(90,store.config['limits']['assessment_seconds']+30))
+    operation.check()
+    descriptor=supervisor.prepare_intake_worker(store,start_id)
+    operation.check()
+    bounded=pinned_module(store,'factory-bounded-process.py')
+    terminate=bounded.terminate_group
+    # SIGTERM lets the wrapper close its watch pipe and its guardian clean up.
+    def cleanup(process,*args,**kwargs):
+        return operation.cleanup(process,terminate,grace=12)
+    bounded.terminate_group=cleanup
+    env={'PATH':'/usr/bin:/bin','LANG':'C','LC_ALL':'C','HOME':'/nonexistent',
+         'FACTORY_IMPLEMENTATION_CLAUDE_OAUTH_TOKEN':token}
+    owned=[]
+    def spawned(process):
+        owned.append(process);operation.spawned(process,bounded)
+    try:
+        result=bounded.run([selected['interpreter'],'-I','-S',worker.__file__,'--descriptor',str(descriptor)],
+                           env=env,cwd=str(Path(descriptor).parent),timeout=90,max_timeout=90,
+                           limit=store.config['limits']['output_bytes'],aggregate_limit=store.config['limits']['output_bytes'],
+                           on_spawn=spawned,termination_grace=12)
+    finally:
+        for process in owned:operation.finished(process)
+    operation.check()
+    require(result.returncode==0,'console protected worker failed')
+    # Ignore subprocess narrative; independently read and validate its receipt.
+    return worker.validate_outcome(descriptor)
+
+
 def controlled_turn(root, session, text, options, operation):
     operation.check()
     store=controller(root)
     store.owned_operation=operation
+    execution_ready=store.execution_ready
+    def guarded_ready():
+        operation.check()
+        result=execution_ready()
+        operation.check()
+        return result
+    store.execution_ready=guarded_ready
     operation.check()
     receipt=store.submit_console(session,text,head(store),parent=options.parent,
                                  delivery_token=options.retry_token)
     operation.check()
     result=store.assess(receipt['request_id'])
     operation.check()
-    return {'event':'decision','receipt':receipt,'disposition':result['disposition'],
+    try:
+        action=dispatch(store,receipt['request_id'],operation)
+    except (ValueError,OSError,KeyError,TypeError,UnicodeError,sqlite3.Error):
+        operation.check()
+        # Keep the original approved decision intact; failure grants no fallback.
+        return {'event':'blocked','receipt':receipt,'disposition':result['disposition'],
+                'next_action':'none','blocked_reason':'protected-action-unavailable',
+                'native_delivery':'unavailable','action':{'kind':'none',
+                'response':'Protected action prerequisites or outcome validation are unavailable. No alternate worker or automatic retry is authorized.'}}
+    operation.check()
+    return {'event':'decision','receipt':receipt,'action':action,'disposition':result['disposition'],
             'next_action':result['next_action'],'blocked_reason':result['blocked_reason'],
             'native_delivery':'unavailable'}
 

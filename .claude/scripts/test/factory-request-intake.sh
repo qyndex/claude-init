@@ -99,6 +99,103 @@ exec(compile(fixture+tail,'urgent-fixture','exec'))
 URGENT
 exit 0
 fi
+if [ "${1:-all}" = phase1 ]; then
+python3 - "$ROOT" <<'PHASE1'
+# AC-1, AC-2, AC-4, AC-6, AC-9, AC-11: installed foreground action dispatch.
+import sys
+from pathlib import Path
+root=Path(sys.argv[1])
+fixture=(root/'.claude/scripts/test/factory-intake-console.sh').read_text().split("<<'PYTEST'\n",1)[1].rsplit('\nPYTEST',1)[0]
+fixture=fixture.replace("assert turns[2]['native_delivery']=='unavailable'", "assert Path(turns[2].get('action',{}).get('path','/missing')).is_file() and turns[2]['action']['status']=='draft';assert turns[2]['native_delivery']=='unavailable'")
+fixture=fixture.replace("assert resumed[0]['session']==current", "assert resumed[1]['action']['kind']=='answer' and resumed[1]['action']['response'];assert resumed[0]['session']==current")
+fixture=fixture.replace("assert linked[1]['next_action']=='question'", "assert linked[1]['action']['kind']=='question' and linked[1]['action']['response'];assert linked[1]['next_action']=='question'")
+fixture=fixture.replace("assert len(turns)==3", "assert turns[0]['action']['kind']==turns[1]['action']['kind']=='inspect' and 'tasks' in turns[0]['action'];assert len(turns)==3")
+exec(compile(fixture,'installed-console-actions','exec'))
+fixture=(root/'.claude/scripts/test/factory-intake-worker-launch.sh').read_text().split("<<'PY'\n",1)[1].rsplit('\nPY',1)[0]
+fixture=fixture.replace('mode=sys.argv[2]','mode="normal"')
+fixture=fixture.split(' # AC-6, AC-9, AC-11, AC-12: actual pinned fake native launch.',1)[0]
+fixture=fixture.replace('pins=[controller.with_name',"pins=[controller.with_name('factory-intake-console.py'),controller.with_name")
+tail=r"""
+ console=root/'.claude/scripts/factory-intake-console.py'
+ def foreground(text,success=True,credential=True):
+  env={'PATH':'/usr/bin:/bin','LANG':'C','LC_ALL':'C'}
+  if credential:env['FACTORY_IMPLEMENTATION_CLAUDE_OAUTH_TOKEN']='implementation-secret'
+  result=subprocess.run([str(driver),'-I','-S',str(console),'--root',str(candidate)],input=text,text=True,capture_output=True,timeout=90,env=env)
+  assert (result.returncode==0)==success,result.stderr
+  return [json.loads(line) for line in result.stdout.splitlines()]
+ blocked=foreground('continue T-1\n',credential=False)
+ assert blocked[1]['event']=='blocked' and blocked[1]['receipt']['request_id']
+ assert blocked[1]['next_action']=='none' and blocked[1]['action']['kind']=='none'
+ assert blocked[1]['blocked_reason']=='protected-action-unavailable'
+ assert not (private/'native-spawn').exists()
+ with store.transaction() as db:assert db.execute('SELECT count(*) FROM intake_task_starts').fetchone()[0]==0
+ events=foreground('continue T-1\n')
+ action=events[1]['action']
+ assert action['runtime_completed'] is True and action['engineering_verified'] is False,action
+ assert events[1]['native_delivery']=='unavailable','logical conversation falsely certified native delivery'
+ assert (candidate/'src/native.txt').read_text()=='guarded native output'
+ assert (private/'launch-count').read_text()=='1'
+ with store.transaction() as db:
+  assert db.execute('SELECT state FROM tasks WHERE id="T-1"').fetchone()[0]=='implementing'
+  assert db.execute('SELECT count(*) FROM intake_worker_outcomes WHERE state="validated"').fetchone()[0]==1
+  assert db.execute('SELECT count(*) FROM intake_pending_native').fetchone()[0]==0
+  assert db.execute('SELECT count(*) FROM intake_native_tool_writes WHERE state="completed"').fetchone()[0]==1
+ # An owned/ineligible task never causes a second native process.
+ blocked=foreground('continue T-1\n')
+ assert blocked[1]['next_action']!='resume',blocked
+ assert (private/'launch-count').read_text()=='1'
+ print('phase1: actual installed console to guarded worker and generated hook subprocesses; runtime completion only')
+"""
+negative=r"""
+ console=root/'.claude/scripts/factory-intake-console.py'
+ if variant=='approval':
+  (authority/'specs/active/001-a.md').write_text('---\nstatus: draft\n---\n1. **AC-1**: fixture\n')
+ result=subprocess.run([str(driver),'-I','-S',str(console),'--root',str(candidate)],input='continue T-1\n',text=True,capture_output=True,timeout=30,env={'PATH':'/usr/bin:/bin','LANG':'C','LC_ALL':'C','FACTORY_IMPLEMENTATION_CLAUDE_OAUTH_TOKEN':'implementation-secret'})
+ assert result.returncode in (0,2)
+ if result.returncode==0:assert json.loads(result.stdout.splitlines()[1])['next_action']!='resume'
+ assert not (private/'native-spawn').exists()
+ with store.transaction() as db:
+  assert db.execute('SELECT count(*) FROM intake_task_starts').fetchone()[0]==0
+  assert db.execute('SELECT count(*) FROM tasks').fetchone()[0]==0
+ print('phase1 prerequisite fenced: '+variant)
+"""
+for variant in ('capability','approval'):
+ selected_fixture=fixture
+ if variant=='capability':selected_fixture=selected_fixture.replace("'config-isolation','hook-failure-block','guarded-read-write-edit'", "'config-isolation','guarded-read-write-edit'")
+ exec(compile(selected_fixture+negative,'console-prerequisites','exec'))
+exec(compile(fixture+tail,'installed-console-worker','exec'))
+cancellation=r"""
+ console=root/'.claude/scripts/factory-intake-console.py'
+ process=subprocess.Popen([str(driver),'-I','-S',str(console),'--root',str(candidate)],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True,env={'PATH':'/usr/bin:/bin','LANG':'C','LC_ALL':'C','FACTORY_IMPLEMENTATION_CLAUDE_OAUTH_TOKEN':'implementation-secret'})
+ try:
+  process.stdin.write('continue T-1\n');process.stdin.flush()
+  deadline=time.monotonic()+30
+  while not (private/'native-pids').exists():
+   assert process.poll() is None,'console worker failed before cancellation'
+   assert time.monotonic()<deadline,'console did not reach real native process'
+   time.sleep(.02)
+  began=time.monotonic();process.stdin.write('stop\n');process.stdin.flush()
+  stdout,stderr=process.communicate(timeout=20)
+  control=json.loads(stdout.splitlines()[-1])
+  assert control['event']=='control' and control['cancelled'] is True,control
+  assert time.monotonic()-began<20,'guardian cancellation exceeded cleanup grace'
+  with store.transaction() as db:
+   descriptor=Path(db.execute('SELECT path FROM intake_worker_descriptors').fetchone()[0])
+   assert db.execute('SELECT count(*) FROM intake_worker_outcomes WHERE state="validated"').fetchone()[0]==0
+  assert json.loads((descriptor.parent/'guardian-outcome.json').read_text())['cleanup_confirmed'] is True
+  live=subprocess.check_output(['/bin/ps','-axo','pid=,stat='],text=True)
+  pids=set(json.loads((private/'native-pids').read_text()))
+  assert not any(int(parts[0]) in pids and not parts[1].startswith('Z') for line in live.splitlines() if len(parts:=line.split())==2),'owned native group survived urgent cancellation'
+  assert not (private/'launch-count').exists()
+ finally:
+  if process.poll() is None:process.terminate();process.wait(timeout=20)
+ print('phase1: urgent installed console stop confirms guardian cleanup of actual native group')
+"""
+exec(compile(fixture.replace('mode="normal"','mode="wrapper-death"')+cancellation,'console-worker-cancellation','exec'))
+
+PHASE1
+  exit 0
+fi
 if [ "${1:-all}" = console ]; then
   exec bash "$ROOT/.claude/scripts/test/factory-intake-console.sh"
 fi
@@ -176,7 +273,7 @@ if [ "${1:-all}" = context ]; then
   exec bash "$ROOT/.claude/scripts/test/factory-intake-context.sh"
 fi
 if [ "${1:-all}" = all ]; then
-  for suite in contract migration schema identity pending lightweight context assessment-profile assessment-process assessment-outcome proposed-scope contract-catalog flat-root session-continuation clarification-revisions decision-freshness approval-eligibility proposal enqueue-guard start-guard actions-reconcile mutation-guard worker-contract worker-descriptor tool-read tool-mutation worker-launch worker-outcome hooks console urgent-control; do bash "$0" "$suite"; done
+  for suite in contract migration schema identity pending lightweight context assessment-profile assessment-process assessment-outcome proposed-scope contract-catalog flat-root session-continuation clarification-revisions decision-freshness approval-eligibility proposal enqueue-guard start-guard actions-reconcile mutation-guard worker-contract worker-descriptor tool-read tool-mutation worker-launch worker-outcome hooks console urgent-control phase1; do bash "$0" "$suite"; done
   exit 0
 fi
 case "${1:-all}" in contract|migration|schema|identity|pending|lightweight) ;; *) echo "Unknown intake test selector" >&2; exit 2 ;; esac
