@@ -1432,7 +1432,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-request-intake.sh mutation-guard
   owner: implementer
 
-- [ ] T-243  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-272  | parallel: no  | est: 5m
+- [x] T-243  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-272  | parallel: no  | est: 5m
   summary: Demonstrate assembled protected worker submit Read Write and Edit paths with actual fake native and hook subprocesses
   files: .claude/scripts/test/factory-intake-hooks.sh, .claude/scripts/test/factory-request-intake.sh, docs/FACTORY-REQUEST-INTAKE.md
   accept: bash .claude/scripts/test/factory-request-intake.sh hooks

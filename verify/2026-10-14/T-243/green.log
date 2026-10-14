@@ -1,0 +1,13 @@
+# TDD ledger — green — T-243
+ledger_format: 2
+timestamp: 2026-10-14T15:29:06+11:00
+command: bash .claude/scripts/test/factory-request-intake.sh hooks
+exit_code: 0
+---
+assembled-hooks: normal; actual pinned native/hook subprocesses, observed files, no unauthorized effects or duplicate launch; no live native certificate
+assembled-hooks: denied-read; actual pinned native/hook subprocesses, observed files, no unauthorized effects or duplicate launch; no live native certificate
+assembled-hooks: denied-write; actual pinned native/hook subprocesses, observed files, no unauthorized effects or duplicate launch; no live native certificate
+assembled-hooks: wrong-session; actual pinned native/hook subprocesses, observed files, no unauthorized effects or duplicate launch; no live native certificate
+assembled-hooks: lost-pre; actual pinned native/hook subprocesses, observed files, no unauthorized effects or duplicate launch; no live native certificate
+assembled-hooks: failed-post; actual pinned native/hook subprocesses, observed files, no unauthorized effects or duplicate launch; no live native certificate
+assembled-hooks: lost-post; actual pinned native/hook subprocesses, observed files, no unauthorized effects or duplicate launch; no live native certificate
