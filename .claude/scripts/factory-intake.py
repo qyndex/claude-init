@@ -130,6 +130,85 @@ def load_contract(path):
     return value
 
 
+
+class HostedSlackIntake:
+    """Protected hosted capture only; never registers a local execution installation.
+
+    Stable configuration excludes private_root/runtime_database/implementation_roots
+    and intake_config, whose locations change on encrypted checkpoint restoration.
+    All remaining feedback configuration, including operators and state policy, is bound.
+    """
+    FIELDS={'schema_version','enabled','mode','repository','team_id','destination','stream',
+            'feedback_config_sha256','controller_sha256'}
+
+    def __init__(self, config, stream, policy_snapshot, controller_sha256):
+        import sqlite3
+        self.database=Path(config['runtime_database'])
+        self.policy=None
+        if config.get('intake_config') is not None:
+            path=private(config['intake_config']);private(path.parent,True)
+            require(path.parent==Path(config['private_root']), 'hosted intake config outside private root')
+            value=policy_snapshot
+            require(isinstance(value,dict) and set(value)==self.FIELDS and type(value['schema_version']) is int
+                    and value['schema_version']==1 and type(value['enabled']) is bool
+                    and value['mode']=='hosted-slack-capture-v1','hosted intake schema invalid')
+            stable={key:item for key,item in config.items() if key not in
+                    {'private_root','runtime_database','implementation_roots','intake_config'}}
+            require(value['enabled'] is True and value['repository']==config['repository']
+                    and value['team_id']==config['team_id'] and value['destination']==config['destination']
+                    and value['stream']==stream and value['feedback_config_sha256']==digest(canonical(stable).encode())
+                    and value['controller_sha256']==controller_sha256,
+                    'hosted intake protected binding differs')
+            self.policy=value
+        self.binding=None if self.policy is None else digest(canonical(self.policy).encode())
+        if self.database.exists():
+            private(self.database)
+            with sqlite3.connect(self.database.as_uri()+'?mode=ro',uri=True) as db:
+                self.validate_store(db)
+
+    def validate_store(self, db):
+        require(not db.execute("SELECT name FROM sqlite_master WHERE type IN ('trigger','view')").fetchall(),
+                'executable hosted intake schema rejected')
+        names={row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+        require(not {'intake_identity','runtime_intake_required'} & names, 'local intake store cannot become hosted intake')
+        if 'intake_hosted_identity' in names:
+            require(self.policy is not None, 'protected hosted intake config lost or disabled')
+            rows=db.execute('SELECT version,mode,repository,contract_sha256 FROM intake_hosted_identity').fetchall()
+            require([tuple(row) for row in rows]==[(1,'hosted-slack-capture-v1',self.policy['repository'],self.binding)],
+                    'hosted intake identity changed')
+        else:
+            require(not any(name.startswith('intake_') for name in names), 'unbound hosted intake tables')
+
+    def capture(self, feedback, documents, identities, proofs, branch):
+        if self.policy is None:return
+        import uuid
+        with feedback.store.transaction() as db:
+            self.validate_store(db)
+            db.execute('CREATE TABLE IF NOT EXISTS intake_hosted_identity(id INTEGER PRIMARY KEY CHECK(id=1),version INTEGER NOT NULL,mode TEXT NOT NULL,repository TEXT NOT NULL,contract_sha256 TEXT NOT NULL)')
+            db.execute('INSERT OR IGNORE INTO intake_hosted_identity VALUES(1,1,?,?,?)',
+                       ('hosted-slack-capture-v1',self.policy['repository'],self.binding))
+            db.execute('CREATE TABLE IF NOT EXISTS intake_requests(id TEXT PRIMARY KEY,source_key TEXT UNIQUE NOT NULL,document TEXT NOT NULL,revision TEXT NOT NULL,status TEXT NOT NULL,decision TEXT,assessment_count INTEGER NOT NULL DEFAULT 0)')
+            db.execute('CREATE TABLE IF NOT EXISTS intake_events(sequence INTEGER PRIMARY KEY,request_id TEXT,event TEXT NOT NULL)')
+            for document,identity in zip(documents,identities):
+                row=db.execute('SELECT document FROM factory_feedback WHERE id=?',(identity,)).fetchone()
+                require(row is not None and decode(row[0])==document, 'authenticated feedback boundary differs')
+                source=document['source_ref'];match=re.fullmatch(r'slack:([^/]+)/([^/]+)/([0-9]+\.[0-9]{1,6})(?::edit:([0-9]+\.[0-9]{1,6}))?',source)
+                require(match is not None and match[1]==self.policy['team_id'] and match[2]==self.policy['destination'],
+                        'hosted Slack source binding differs')
+                proof=proofs[document['digest_key']]
+                request={'source_kind':'slack','origin':'human','session':f'slack:{match[1]}/{match[2]}',
+                         'submission_key':source,'source_revision':match[4] or match[3],'actor':document['reporter'],
+                         'repository':document['repository'],'ref':branch,'content_revision':proof['content_revision'],
+                         'text':document['text'],'parent_request':None,'delivery_token':None,'feedback_id':identity,
+                         'digest_key':document['digest_key'],'receipt_sha256':proof['receipt_sha256']}
+                encoded=canonical(request);revision=digest(encoded.encode())
+                old=db.execute('SELECT document FROM intake_requests WHERE source_key=?',(source,)).fetchone()
+                require(old is None or old[0]==encoded, 'hosted source retry conflicts')
+                if old is None:
+                    request_id=uuid.uuid4().hex
+                    db.execute("INSERT INTO intake_requests(id,source_key,document,revision,status) VALUES(?,?,?,?,'submitted')",(request_id,source,encoded,revision))
+                    db.execute('INSERT INTO intake_events(request_id,event) VALUES(?,?)',(request_id,'authenticated_slack_submitted'))
+
 def header_values(raw, field):
     """Parse the supported flat frontmatter; ambiguous/unsupported headers fail closed."""
     header=re.match(rb'\A---\r?\n(.*?)\r?\n---(?:\r?\n|\Z)',raw,re.S)

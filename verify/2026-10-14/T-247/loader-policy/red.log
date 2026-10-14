@@ -1,0 +1,16 @@
+# TDD ledger — red — T-247
+ledger_format: 2
+timestamp: 2026-10-14T21:11:50+11:00
+command: bash .claude/scripts/test/factory-intake-slack.sh authenticated
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 72, in <module>
+  File "<stdin>", line 26, in rejects
+  File "<stdin>", line 72, in <lambda>
+  File "/Users/shravanjha/.codex/worktrees/factory-activation/claude-init/.claude/scripts/factory-slack-feedback.py", line 130, in run
+    exec(compile(intake_raw,str(intake_path),'exec'),namespace)
+    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmp211uwl3l/adapters/scripts/nested/factory-intake.py", line 1, in <module>
+AssertionError: untrusted helper executed before policy validation

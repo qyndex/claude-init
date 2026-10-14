@@ -1462,7 +1462,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-request-intake.sh phase1
   owner: implementer
 
-- [ ] T-247  | spec:050  | phase:2  | priority: security  | created: 2026-10-12  | deps: T-246  | parallel: no  | est: 5m
+- [x] T-247  | spec:050  | phase:2  | priority: security  | created: 2026-10-12  | deps: T-246  | parallel: no  | est: 5m
   summary: Bridge only receipt-validated explicit authenticated Slack feedback into intake identities
   files: .claude/scripts/factory-slack-feedback.py, .claude/scripts/factory-intake.py, .claude/scripts/test/factory-intake-slack.sh
   accept: bash .claude/scripts/test/factory-intake-slack.sh authenticated
