@@ -1,0 +1,7 @@
+# TDD ledger — green — T-244/contract-failure
+ledger_format: 2
+timestamp: 2026-10-14T16:15:28+11:00
+command: bash .claude/scripts/test/factory-request-intake.sh console
+exit_code: 0
+---
+console: real foreground stdin/subprocess, protected registry, distinct/retried ingress, logical resume and private proposal lineage; native delivery unavailable, no task launch

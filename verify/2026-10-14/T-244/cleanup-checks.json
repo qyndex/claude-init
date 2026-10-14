@@ -1,0 +1,40 @@
+{
+  "checks": [
+    {
+      "suite": "worker-launch",
+      "command": [
+        "bash",
+        ".claude/scripts/test/factory-request-intake.sh",
+        "worker-launch"
+      ],
+      "exit_code": 0
+    },
+    {
+      "suite": "worker-outcome",
+      "command": [
+        "bash",
+        ".claude/scripts/test/factory-request-intake.sh",
+        "worker-outcome"
+      ],
+      "exit_code": 0
+    },
+    {
+      "suite": "hooks",
+      "command": [
+        "bash",
+        ".claude/scripts/test/factory-request-intake.sh",
+        "hooks"
+      ],
+      "exit_code": 0
+    },
+    {
+      "suite": "console",
+      "command": [
+        "bash",
+        ".claude/scripts/test/factory-request-intake.sh",
+        "console"
+      ],
+      "exit_code": 0
+    }
+  ]
+}

@@ -137,6 +137,12 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
 
 ## Active
 
+- [ ] T-273  | spec:045  | phase:1  | priority: security  | created: 2026-10-14  | deps:  | parallel: no  | est: 5m
+  summary: Pin reviewer execution and observed model validation to operator-selected Claude Sonnet 5.5
+  files: .claude/agents/quality/reviewer.md, .claude/skills/review/SKILL.md, .claude/CLAUDE.md, CLAUDE.md, .github/workflows/claude-review.yml, .github/workflows/claude-security.yml, .github/workflows/pr-review.yml, .claude/scripts/factory-producer.py, .claude/scripts/test/factory-review-model.sh, .claude/scripts/test/factory-review-runtime.sh, .claude/scripts/test/factory-producers.sh, docs/FACTORY-PRODUCERS.md, docs/ARCHITECTURE.md, .claude/scripts/check-doc-consistency.sh
+  accept: bash .claude/scripts/test/factory-review-model.sh
+  owner: implementer
+
 - [x] T-191  | spec:018  | phase:1  | priority: security  | created: 2026-10-10  | last_touched: 2026-10-10  | deps: T-190  | parallel: no  | est: 30m
   summary: Prepare disabled protected Actions reporting with runner policy and private state preflight
   files: .claude/scripts/factory-reporting-preflight.py, .github/workflows/factory-digest.yml
@@ -1438,9 +1444,9 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-request-intake.sh hooks
   owner: verifier
 
-- [ ] T-244  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-243  | parallel: no  | est: 5m
-  summary: Drive foreground console session creation resume and normal prompt input through pending ingress
-  files: .claude/scripts/factory-intake-console.py, .claude/scripts/test/factory-request-intake.sh
+- [x] T-244  | spec:050  | phase:1  | priority: security  | created: 2026-10-12  | deps: T-243  | parallel: no  | est: 5m
+  summary: Drive foreground console session creation resume and normal prompt input through protected request ingress
+  files: .claude/scripts/factory-intake-console.py, .claude/scripts/test/factory-intake-console.sh, .claude/scripts/test/factory-request-intake.sh
   accept: bash .claude/scripts/test/factory-request-intake.sh console
   owner: implementer
 
