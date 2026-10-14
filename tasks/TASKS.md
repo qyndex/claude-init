@@ -1606,8 +1606,8 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-request-intake.sh worker-launch
   owner: implementer
 
-- [ ] T-272  | spec:050  | phase:1  | priority: security  | created: 2026-10-13  | deps: T-271  | parallel: no  | est: 5m
+- [x] T-272  | spec:050  | phase:1  | priority: security  | created: 2026-10-13  | deps: T-271  | parallel: no  | est: 5m
   summary: Validate native result independently against current owned stage and reconciled effects without retrying unknown launches
-  files: .claude/scripts/factory-intake-worker.py, .claude/scripts/factory-intake.py, .claude/scripts/test/factory-intake-worker-outcome.sh, .claude/scripts/test/factory-request-intake.sh
+  files: .claude/scripts/factory-intake-worker.py, .claude/scripts/factory-intake.py, .claude/scripts/test/factory-intake-worker-outcome.sh, .claude/scripts/test/factory-intake-worker-launch.sh, .claude/scripts/test/factory-request-intake.sh
   accept: bash .claude/scripts/test/factory-request-intake.sh worker-outcome
   owner: implementer

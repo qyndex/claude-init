@@ -91,7 +91,7 @@ for tool,inputs in [('Read',{'file_path':str(candidate/'src/a.txt')}),('Write',{
   (candidate/'src/native.txt').write_text(inputs['content'])
   hook('PostToolUse',{**payload,'tool_response':{'success':True}})
 count=Path(__file__).with_name('launch-count');count.write_text(str(int(count.read_text())+1) if count.exists() else '1')
-print(json.dumps({'type':'result','subtype':'success','is_error':False,'session_id':session,'modelUsage':{'fixture-model':{'inputTokens':1}},'result':'transport fixture'}))
+print(json.dumps({'type':'result','subtype':'success','is_error':False,'session_id':session,'modelUsage':{'fixture-model':{'inputTokens':1,'outputTokens':1}},'result':'transport fixture'}))
 """
  binary.write_text(code.replace('__PYTHON__',str(Path(sys.executable).resolve())).replace('__MODE__',mode));binary.chmod(0o700)
  settings=private/'settings.json';settings.write_text('{}');settings.chmod(0o600)
@@ -257,7 +257,7 @@ print(json.dumps({'type':'result','subtype':'success','is_error':False,'session_
   with store.transaction() as db:assert db.execute('SELECT state FROM intake_worker_launches WHERE start_id=?',(start_id,)).fetchone()[0]=='unknown'
   print('worker-launch case:',mode);sys.exit(0)
  result=worker_logic.run(descriptor)
- assert result['transport_status']=='exited' and 'engineering_verified' not in result
+ assert result['transport_status']=='exited' and result['engineering_verified'] is False
  assert (candidate/'src/native.txt').read_text()=='guarded native output'
  assert (private/'launch-count').read_text()=='1'
  reject(lambda:worker_logic.run(descriptor));assert (private/'launch-count').read_text()=='1','launch retried'

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Protected contract and guarded worker transport; mandatory routing stays gated."""
 import hashlib
+import math
 import types
 import json
 import os
@@ -367,7 +368,7 @@ def run(descriptor):
     with controller.transaction() as db:
         require(db.execute('SELECT 1 FROM intake_worker_launches WHERE start_id=?',(document['start_id'],)).fetchone() is None,'worker launch already reserved; replay fenced')
         db.execute("INSERT INTO intake_worker_launches VALUES(?,?,?,'reserved',?,NULL,NULL)",(document['start_id'],encoded,digest(encoded.encode()),os.getpid()))
-    watch_read=watch_write=None;previous={};stopped=[]
+    watch_read=watch_write=None;previous={};stopped=[];spawned_pids=[]
     try:
         for path,raw in [(settings,settings_raw),(mcp,mcp_raw),(stdin_path,document['prompt'].encode())]:private_write(path,raw)
         sync_path=str(Path(__file__).with_name('factory-supervisor.py').resolve());supervisor=types.ModuleType('protected_launch_supervisor');supervisor.__file__=sync_path
@@ -386,6 +387,7 @@ def run(descriptor):
             if watch_write is not None:os.close(watch_write);watch_write=None
         for sig in (signal.SIGTERM,signal.SIGINT):previous[sig]=signal.signal(sig,interrupted)
         def spawned(process):
+            spawned_pids.append(process.pid)
             with controller.transaction() as db:
                 launch_stage(controller,db,document)
                 require(db.execute("UPDATE intake_worker_launches SET state='running',guardian_pid=? WHERE start_id=? AND state='reserved' AND wrapper_pid=?",(process.pid,document['start_id'],os.getpid())).rowcount==1,'worker launch reservation changed')
@@ -395,13 +397,16 @@ def run(descriptor):
         command=[selected['interpreter'],'-I','-S',str(Path(__file__).with_name('factory-worker-guard.py').resolve()),'--intake-descriptor',str(descriptor),'--watch-fd',str(watch_read)]
         with stdin_path.open('rb') as stdin:
             result=bounded.run(command,env=env,cwd=document['cwd'],timeout=min(90,seconds+10),max_timeout=90,limit=limit,aggregate_limit=limit,stdin=stdin,pass_fds=(watch_read,),on_spawn=spawned,termination_grace=12)
-        guardian=decode(start_bytes(outcome,True))
+        guardian_raw=start_bytes(outcome,True);guardian=decode(guardian_raw)
         require(not stopped and result.returncode==0 and guardian.get('cleanup_confirmed') is True and guardian.get('reason')=='native-exited','worker launch failed or cleanup uncertain')
-        bootstrap(descriptor)
-        transport={'transport_status':'exited','exit_code':result.returncode,'stdout':result.stdout.decode('utf-8'),'stderr':result.stderr.decode('utf-8')}
+        transport={'transport_status':'exited','exit_code':result.returncode,'stdout':result.stdout.decode('utf-8'),'stderr':result.stderr.decode('utf-8'),'guardian_sha256':digest(guardian_raw)}
+        transport_raw=canonical(transport)
         with controller.transaction() as db:
-            db.execute("UPDATE intake_worker_launches SET state='exited',result=? WHERE start_id=? AND state='running'",(canonical(transport),document['start_id']))
-        return {'transport_status':'exited','exit_code':result.returncode}
+            require(len(spawned_pids)==1,'worker launch principal missing')
+            changed=db.execute("UPDATE intake_worker_launches SET state='exited',result=? WHERE start_id=? AND state='running' AND document=? AND sha256=? AND wrapper_pid=? AND guardian_pid=?",
+                               (transport_raw,document['start_id'],encoded,digest(encoded.encode()),os.getpid(),spawned_pids[0])).rowcount
+            require(changed==1,'worker transport commit binding changed')
+            db.execute("INSERT INTO intake_worker_outcomes VALUES(?,?,NULL,NULL,'captured')",(document['start_id'],digest(transport_raw.encode())))
     except BaseException:
         with controller.transaction() as db:db.execute("UPDATE intake_worker_launches SET state='unknown' WHERE start_id=?",(document['start_id'],))
         raise
@@ -409,6 +414,129 @@ def run(descriptor):
         for sig,handler in previous.items():signal.signal(sig,handler)
         for fd in (watch_read,watch_write):
             if fd is not None:os.close(fd)
+    # Captured transport is known even if current semantic authority is paused.
+    return {'transport_status':'exited','exit_code':result.returncode,**validate_outcome(descriptor)}
+
+
+def native_usage(raw, document, selected, limit):
+    require(isinstance(raw,str) and len(raw.encode())<=limit,'native result missing or over bound')
+    try:result=decode(raw)
+    except RecursionError:raise ValueError('native JSON nesting exceeded')
+    pending=[(result,0)];visited=0
+    while pending:
+        value,depth=pending.pop();visited+=1
+        require(depth<=64 and visited<=10000,'native JSON structure bound exceeded')
+        if type(value) is float:require(math.isfinite(value),'native numeric metadata nonfinite')
+        if isinstance(value,dict):pending.extend((item,depth+1) for item in value.values())
+        elif isinstance(value,list):pending.extend((item,depth+1) for item in value)
+    required={'type','subtype','is_error','session_id','modelUsage','result'}
+    optional={'total_cost_usd','duration_ms','duration_api_ms','num_turns','usage','uuid','stop_reason','permission_denials'}
+    require(isinstance(result,dict) and required<=set(result)<=required|optional
+            and result['type']=='result' and result['subtype']=='success' and result['is_error'] is False
+            and result['session_id']==document['native_session'] and isinstance(result['result'],str),
+            'native success envelope differs')
+    models=result['modelUsage']
+    require(isinstance(models,dict) and set(models)=={selected['model']} and isinstance(models[selected['model']],dict),
+            'native usage must identify exact protected primary model')
+    tokens={}
+    for field in ('inputTokens','outputTokens','cacheReadInputTokens','cacheCreationInputTokens'):
+        value=models[selected['model']].get(field)
+        require((field not in models[selected['model']] and field.startswith('cache'))
+                or (type(value) is int and 0<=value<=1000000000),'native token count invalid')
+        tokens[field]=value
+    estimate=result.get('total_cost_usd')
+    require(estimate is None or (type(estimate) in (int,float) and math.isfinite(estimate) and 0<=estimate<=1000000),'native client estimate invalid')
+    for field in ('duration_ms','duration_api_ms','num_turns'):
+        if field in result:require(type(result[field]) is int and 0<=result[field]<=1000000000000,'native metadata count invalid')
+    if 'usage' in result:require(isinstance(result['usage'],dict),'native aggregate usage invalid')
+    if 'uuid' in result:require(isinstance(result['uuid'],str),'native message identity invalid')
+    if 'stop_reason' in result:require(result['stop_reason'] is None or isinstance(result['stop_reason'],str),'native stop metadata invalid')
+    if 'permission_denials' in result:require(isinstance(result['permission_denials'],list),'native denial metadata invalid')
+    return {'model':selected['model'],'tokens':tokens,'estimated_api_usd':estimate,'actual_spend_usd':None}
+
+
+def validate_outcome(descriptor):
+    """Revalidate recorded transport/current authority; narrative is never evidence."""
+    controller,document,hooks,selected,sources=bootstrap(descriptor)
+    with controller.transaction() as db:
+        launch=db.execute('SELECT * FROM intake_worker_launches WHERE start_id=?',(document['start_id'],)).fetchone()
+        captured=db.execute('SELECT * FROM intake_worker_outcomes WHERE start_id=?',(document['start_id'],)).fetchone()
+        descriptor_row=db.execute('SELECT * FROM intake_worker_descriptors WHERE start_id=?',(document['start_id'],)).fetchone()
+        start=db.execute('SELECT * FROM intake_task_starts WHERE action_id=?',(document['start_id'],)).fetchone()
+        task=db.execute('SELECT * FROM tasks WHERE id=?',(document['task'],)).fetchone()
+        request_row=db.execute('SELECT * FROM intake_requests WHERE id=?',(document['request_id'],)).fetchone()
+        decision_row=db.execute('SELECT * FROM intake_decision_bindings WHERE request_id=?',(document['request_id'],)).fetchone()
+        dependencies=[db.execute('SELECT * FROM tasks WHERE id=?',(dep,)).fetchone() for dep in decode(task['deps'])]
+        require(all(dep is not None and dep['state']=='merged' for dep in dependencies),'worker dependency unavailable')
+        writes=db.execute('SELECT m.*,a.document AS action_document,a.status AS action_status,a.result AS action_result FROM intake_mutations m JOIN intake_actions a ON a.id=m.id WHERE m.start_id=? ORDER BY m.number',(document['start_id'],)).fetchall()
+        native_writes=db.execute('SELECT * FROM intake_native_tool_writes WHERE start_id=? ORDER BY tool_use_id',(document['start_id'],)).fetchall()
+    require(all(row['status']=='completed' and row['action_status']=='completed' for row in writes)
+            and all(row['state']=='completed' for row in native_writes),'worker effects unresolved')
+    effects=[list(row) for row in writes];acknowledgements=[list(row) for row in native_writes]
+    require(launch is not None and launch['state']=='exited' and captured is not None
+            and captured['state'] in {'captured','validated'} and descriptor_row['state']=='consumed'
+            and start['state']=='implementing' and task['state']=='implementing','worker outcome not terminal/current/consumed')
+    require(type(launch['wrapper_pid']) is int and launch['wrapper_pid']>0
+            and type(launch['guardian_pid']) is int and launch['guardian_pid']>0,'worker launch principal missing')
+    require(digest(launch['document'].encode())==launch['sha256'],'worker launch document changed')
+    material=decode(launch['document']);validate_launch_record(controller,document,selected,descriptor,material)
+    settings,mcp,settings_raw,mcp_raw,_=launch_material(document,selected)
+    require(start_bytes(settings,True)==settings_raw and start_bytes(mcp,True)==mcp_raw
+            and start_bytes(material['stdin'],True)==document['prompt'].encode(),'worker launch artifacts changed')
+    raw=launch['result'];require(isinstance(raw,str) and digest(raw.encode())==captured['transport_sha256'],'private worker transport changed')
+    transport=decode(raw)
+    require(isinstance(transport,dict) and set(transport)=={'transport_status','exit_code','stdout','stderr','guardian_sha256'}
+            and transport['transport_status']=='exited' and type(transport['exit_code']) is int and transport['exit_code']==0
+            and isinstance(transport['stdout'],str) and isinstance(transport['stderr'],str)
+            and len(transport['stdout'].encode())+len(transport['stderr'].encode())<=material['output_bytes'],'worker transport unsuccessful or over bound')
+    guardian_raw=start_bytes(material['outcome'],True)
+    require(digest(guardian_raw)==transport['guardian_sha256']
+            and decode(guardian_raw)=={'reason':'native-exited','cleanup_confirmed':True},'worker cleanup proof differs')
+    usage=native_usage(transport['stdout'],document,selected,material['output_bytes'])
+    receipt={'schema_version':1,'start_id':document['start_id'],'descriptor_sha256':material['descriptor_sha256'],
+             'launch_sha256':launch['sha256'],'transport_sha256':captured['transport_sha256'],
+             'task':document['task'],'task_revision':document['task_revision'],'request_id':document['request_id'],
+             'request_revision':document['request_revision'],'owner':document['owner'],'fence':document['fence'],
+             'runtime_completed':True,'engineering_verified':False,'usage':usage,
+             'effects_sha256':digest(canonical([effects,acknowledgements]).encode())}
+    encoded=canonical(receipt);receipt_sha=digest(encoded.encode())
+    # No transaction is held while checking current pins/HEAD/approval/owned bytes.
+    current,current_doc,_,current_selected,_=bootstrap(descriptor)
+    require(current.binding==controller.binding and current_doc==document and current_selected==selected,'worker outcome authority changed')
+    with current.transaction() as db:
+        actual=db.execute('SELECT * FROM intake_worker_launches WHERE start_id=?',(document['start_id'],)).fetchone()
+        actual_descriptor=db.execute('SELECT * FROM intake_worker_descriptors WHERE start_id=?',(document['start_id'],)).fetchone()
+        actual_start=db.execute('SELECT * FROM intake_task_starts WHERE action_id=?',(document['start_id'],)).fetchone()
+        actual_task=db.execute('SELECT * FROM tasks WHERE id=?',(document['task'],)).fetchone()
+        actual_request=db.execute('SELECT * FROM intake_requests WHERE id=?',(document['request_id'],)).fetchone()
+        actual_decision=db.execute('SELECT * FROM intake_decision_bindings WHERE request_id=?',(document['request_id'],)).fetchone()
+        actual_dependencies=[db.execute('SELECT * FROM tasks WHERE id=?',(dep['id'],)).fetchone() for dep in dependencies]
+        require(all(actual is not None and actual['state']=='merged' and tuple(actual)==tuple(expected)
+                    for actual,expected in zip(actual_dependencies,dependencies)),'worker dependency changed during validation')
+        require(actual_request is not None and actual_decision is not None and tuple(actual_request)==tuple(request_row)
+                and tuple(actual_decision)==tuple(decision_row),'worker bound request/decision changed during validation')
+        identity=db.execute('SELECT version,repository,contract_sha256,contract_path,paused FROM intake_identity WHERE id=1').fetchone()
+        control=db.execute('SELECT paused FROM control WHERE id=1').fetchone()
+        actual_capture=db.execute('SELECT * FROM intake_worker_outcomes WHERE start_id=?',(document['start_id'],)).fetchone()
+        current_writes=db.execute('SELECT m.*,a.document AS action_document,a.status AS action_status,a.result AS action_result FROM intake_mutations m JOIN intake_actions a ON a.id=m.id WHERE m.start_id=? ORDER BY m.number',(document['start_id'],)).fetchall()
+        current_native=db.execute('SELECT * FROM intake_native_tool_writes WHERE start_id=? ORDER BY tool_use_id',(document['start_id'],)).fetchall()
+        require([list(row) for row in current_writes]==effects and [list(row) for row in current_native]==acknowledgements,
+                'worker effects changed during semantic validation')
+        require(actual is not None and tuple(actual)==tuple(launch) and tuple(actual_descriptor)==tuple(descriptor_row)
+                and tuple(actual_start)==tuple(start),'worker terminal bindings changed during validation')
+        require(actual_task is not None and all(actual_task[key]==task[key] for key in ('id','owner','fence','state','revision','authority','deps'))
+                and actual_task['expires'] is not None and actual_task['expires']>=task['expires']
+                and actual_task['expires']>current.clock(None),'worker current lease/principal/stage changed')
+        require(identity is not None and tuple(identity)==(1,current.config['repository'],current.binding,str(current.path),0)
+                and control is not None and control['paused']==0,'worker outcome paused or identity changed')
+        require(actual_capture is not None and tuple(actual_capture)==tuple(captured),'worker capture changed during validation')
+        if captured['state']=='validated':
+            require(captured['document']==encoded and captured['sha256']==receipt_sha,'worker semantic replay differs')
+        else:
+            require(captured['document'] is None and captured['sha256'] is None,'worker semantic receipt partially issued')
+            require(db.execute("UPDATE intake_worker_outcomes SET document=?,sha256=?,state='validated' WHERE start_id=? AND state='captured' AND transport_sha256=? AND document IS NULL AND sha256 IS NULL",
+                               (encoded,receipt_sha,document['start_id'],captured['transport_sha256'])).rowcount==1,'worker semantic commit changed')
+    return {'runtime_completed':True,'engineering_verified':False,'usage':'reported','actual_spend_usd':None}
 
 
 def guarded_native(descriptor,watch_fd):
