@@ -11,6 +11,8 @@ import stat
 import sqlite3
 import sys
 import types
+import threading
+import queue
 
 def require(condition, message):
     if not condition:
@@ -184,6 +186,87 @@ def emit(value):
     print(canonical(value),flush=True)
 
 
+class OwnedOperation:
+    """Only processes explicitly registered by this console may be cancelled."""
+    def __init__(self):
+        self.cancelled=threading.Event()
+        self.lock=threading.RLock()
+        self.processes=[]
+        self.cleanup_states={}
+
+    def check(self):
+        require(not self.cancelled.is_set(),'console operation cancelled')
+
+    def spawned(self, process, bounded):
+        with self.lock:
+            if self.cancelled.is_set():
+                bounded.terminate_group(process)
+                raise ValueError('console operation cancelled')
+            self.processes.append((process,bounded))
+
+    def finished(self, process):
+        with self.lock:
+            self.processes=[item for item in self.processes if item[0] is not process]
+
+    def cleanup(self, process, terminate, *args, **kwargs):
+        with self.lock:
+            if process in self.cleanup_states:
+                require(self.cleanup_states[process],'owned process cleanup uncertain')
+                return
+            # Retain the process object, never just a recyclable numeric PID.
+            self.cleanup_states[process]=False
+            try:
+                result=terminate(process,*args,**kwargs)
+                self.cleanup_states[process]=True
+                return result
+            finally:self.finished(process)
+
+    def cancel(self):
+        self.cancelled.set()
+        with self.lock:
+            uncertain=False
+            for process,bounded in list(self.processes):
+                try:bounded.terminate_group(process)
+                except Exception:uncertain=True
+            require(not uncertain and all(self.cleanup_states.values()),
+                    'owned process cleanup uncertain')
+
+
+def urgent(text):
+    return text.strip().lower() in {'stop','pause','/stop','revoke'}
+
+
+def controlled_turn(root, session, text, options, operation):
+    operation.check()
+    store=controller(root)
+    store.owned_operation=operation
+    operation.check()
+    receipt=store.submit_console(session,text,head(store),parent=options.parent,
+                                 delivery_token=options.retry_token)
+    operation.check()
+    result=store.assess(receipt['request_id'])
+    operation.check()
+    return {'event':'decision','receipt':receipt,'disposition':result['disposition'],
+            'next_action':result['next_action'],'blocked_reason':result['blocked_reason'],
+            'native_delivery':'unavailable'}
+
+
+def urgent_pause(store, operation):
+    # Cancellation acknowledgement is independent of the durable pause attempt.
+    cancelled=True
+    try:operation.cancel()
+    except (ValueError,OSError):cancelled=False
+    acknowledged=threading.Event()
+    def persist():
+        try:store.pause();acknowledged.set()
+        except (ValueError,OSError,sqlite3.Error):pass
+    threading.Thread(target=persist,daemon=True).start()
+    acknowledged.wait(.15)
+    emit({'event':'control','next_action':'stop','cancelled':cancelled,
+          'durable':acknowledged.is_set(),'native_delivery':'unavailable'})
+    return 0 if cancelled and acknowledged.is_set() else 2
+
+
 def main():
     parser=argparse.ArgumentParser()
     parser.add_argument('--root',default=os.getcwd())
@@ -191,6 +274,7 @@ def main():
     parser.add_argument('--parent')
     parser.add_argument('--retry-token')
     options=parser.parse_args()
+    operation=None
     try:
         store=controller(options.root)
         session=options.session or store.new_session()
@@ -198,27 +282,56 @@ def main():
             require(db.execute('SELECT 1 FROM intake_sessions WHERE id=?',(session,)).fetchone() is not None,
                     'console session unknown')
         emit({'event':'session','session':session,'native_delivery':'unavailable'})
-        count=0
+        incoming=queue.Queue(maxsize=16)
+        def read_input():
+            try:
+                while True:
+                    line=sys.stdin.readline(store.config['limits']['request_chars']+2)
+                    incoming.put(line)
+                    if not line:break
+            except Exception:incoming.put(None)
+        threading.Thread(target=read_input,daemon=True).start()
+        count=0;pending=[];ended=False;queued_chars=0
         while True:
-            line=sys.stdin.readline(store.config['limits']['request_chars']+2)
+            line=pending.pop(0) if pending else incoming.get()
+            require(line is not None,'console input read failed')
             if not line:break
+            queued_chars=max(0,queued_chars-len(line))
             text=line[:-1] if line.endswith('\n') else line
             require(len(text)<=store.config['limits']['request_chars'],'console input exceeds bound')
+            operation=OwnedOperation()
+            if urgent(text):return urgent_pause(store,operation)
             require(not count or not (options.parent or options.retry_token),'linked console input must be one turn')
-            # Re-resolve protected installation before each accepted human ingress.
-            store=controller(options.root)
-            receipt=store.submit_console(session,text,head(store),parent=options.parent,
-                                         delivery_token=options.retry_token)
-            # Immutable request commit precedes any downstream assessment.
-            result=store.assess(receipt['request_id'])
-            emit({'event':'decision','receipt':receipt,'disposition':result['disposition'],
-                  'next_action':result['next_action'],'blocked_reason':result['blocked_reason'],
-                  'native_delivery':'unavailable'})
-            count+=1
+            completed=queue.Queue()
+            def run_turn():
+                try:completed.put((True,controlled_turn(options.root,session,text,options,operation)))
+                except Exception:completed.put((False,None))
+            threading.Thread(target=run_turn,daemon=True).start()
+            while completed.empty():
+                try:next_line=incoming.get(timeout=.01)
+                except queue.Empty:continue
+                require(next_line is not None,'console input read failed')
+                if not next_line:ended=True;continue
+                control=next_line[:-1] if next_line.endswith('\n') else next_line
+                require(len(control)<=store.config['limits']['request_chars'],'console input exceeds bound')
+                if urgent(control):return urgent_pause(store,operation)
+                queued_chars+=len(next_line)
+                if len(pending)>=16 or queued_chars>store.config['limits']['request_chars']:
+                    operation.cancel()
+                    raise ValueError('console queued input exceeds bound')
+                pending.append(next_line)
+            ok,value=completed.get()
+            require(ok,'console owned operation failed')
+            emit(value);count+=1
+            if ended and not pending:break
         return 0
     except (ValueError,OSError,KeyError,TypeError,UnicodeError,sqlite3.Error):
         print('Console blocked by protected ingress checks.',file=sys.stderr)
         return 2
+    finally:
+        if operation is not None:
+            try:operation.cancel()
+            except (ValueError,OSError):pass
 
 
 if __name__=='__main__':sys.exit(main())

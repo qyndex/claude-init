@@ -1355,6 +1355,25 @@ class Intake:
         for label,name in [('scout','factory-intake-scout.py'),('routing','factory-routing.py')]:
             spec=importlib.util.spec_from_file_location('outcome_'+label,directory/name)
             module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module);modules.append(module)
+        operation=getattr(self,'owned_operation',None)
+        if operation is not None:
+            operation.check()
+            bounded=modules[0]._bounded
+            original=bounded.run;terminate=bounded.terminate_group
+            def cleanup(process,*args,**kwargs):
+                return operation.cleanup(process,terminate,*args,**kwargs)
+            bounded.terminate_group=cleanup
+            def owned_run(*args,**kwargs):
+                operation.check()
+                prior=kwargs.get('on_spawn');owned=[]
+                def spawned(process):
+                    operation.spawned(process,bounded);owned.append(process)
+                    if prior is not None:prior(process)
+                kwargs['on_spawn']=spawned
+                try:return original(*args,**kwargs)
+                finally:
+                    for process in owned:operation.finished(process)
+            bounded.run=owned_run
         return modules
 
     def contract_catalog(self, scout=None, routing=None):

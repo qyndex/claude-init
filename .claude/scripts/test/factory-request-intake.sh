@@ -1,6 +1,104 @@
 #!/usr/bin/env bash
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
+if [ "${1:-all}" = urgent-control ]; then
+python3 - "$ROOT" <<'URGENT'
+# AC-10, AC-11: actual console input cancels owned Scout despite storage lock.
+import sys
+from pathlib import Path
+root=Path(sys.argv[1]);console=root/'.claude/scripts/factory-intake-console.py'
+# AC-11: cancellation and bounded-run finally share exactly one process cleanup.
+import importlib.util,os,tempfile,threading
+from types import SimpleNamespace
+def load(label,path):
+ spec=importlib.util.spec_from_file_location(label,path);module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module);return module
+owner=load('console_cleanup',console)
+bounded=load('bounded_cleanup',root/'.claude/scripts/factory-bounded-process.py')
+operation=owner.OwnedOperation();spawned=threading.Event();calls=[];failures=[]
+terminate=bounded.terminate_group
+def counted(process,*args,**kwargs):
+ calls.append(process)
+ return terminate(process,*args,**kwargs)
+def cleanup(process,*args,**kwargs):return operation.cleanup(process,counted,*args,**kwargs)
+bounded.terminate_group=cleanup
+def registered(process):operation.spawned(process,bounded);spawned.set()
+with tempfile.TemporaryDirectory() as directory:
+ def execute():
+  try:bounded.run([str(Path(sys.executable).resolve()),'-I','-S','-c','import time; time.sleep(5)'],env={'PATH':'/usr/bin:/bin'},cwd=directory,timeout=2,limit=1024,on_spawn=registered)
+  except Exception as error:failures.append(error)
+ worker=threading.Thread(target=execute);worker.start()
+ assert spawned.wait(2),'owned process did not start'
+ operation.cancel();worker.join(3)
+ assert not worker.is_alive(),'bounded finally failed to finish'
+ assert len(calls)==1,'cancel plus bounded finally repeated process-group cleanup'
+ assert not failures,failures
+# Unknown first cleanup never retries a potentially recycled identity, and
+# cancellation still attempts every other registered group.
+operation=owner.OwnedOperation();first=object();second=object();attempts=[]
+def uncertain(process):
+ attempts.append(process)
+ if process is first:raise ValueError('fixture cleanup uncertain')
+def owned_cleanup(process):return operation.cleanup(process,uncertain)
+transport=SimpleNamespace(terminate_group=owned_cleanup)
+operation.spawned(first,transport);operation.spawned(second,transport)
+try:operation.cancel()
+except ValueError:pass
+else:raise AssertionError('uncertain cleanup claimed confirmed cancellation')
+assert attempts==[first,second],'one uncertain group prevented other owned cleanup'
+try:operation.cleanup(first,uncertain)
+except ValueError:pass
+else:raise AssertionError('repeated uncertain cleanup claimed success')
+assert attempts==[first,second],'unknown cleanup retried recycled group identity'
+builder=(root/'.claude/scripts/test/factory-intake-console.sh').read_text().split("<<'PYTEST'\n",1)[1].rsplit('\nPYTEST',1)[0].split('tail=r"""',1)[0]
+exec(builder)
+fixture=fixture.replace("if mode=='timeout':time.sleep(5)","if mode=='timeout':\n Path(__file__).with_name('scout-pid').write_text(str(os.getpid()))\n time.sleep(5)")
+fixture=fixture.replace("if mode=='descendant':", "if mode=='orphan':\n import subprocess\n child=subprocess.Popen([sys.executable,'-c','import time; time.sleep(5)'])\n Path(__file__).with_name('scout-pid').write_text(str(child.pid))\n sys.exit(0)\nif mode=='descendant':")
+tail=r"""
+ import signal,sqlite3
+ driver=private/'driver.py'
+ driver.write_text('import pwd,runpy,sys\nfrom types import SimpleNamespace\npwd.getpwuid=lambda uid:SimpleNamespace(pw_dir='+repr(str(account_home))+')\nentry=sys.argv.pop(1);sys.argv[0]=entry;runpy.run_path(entry,run_name="__main__")\n')
+ command=[str(Path(sys.executable).resolve()),'-I','-S',str(driver),str(console),'--root',str(candidate)]
+ # AC-11: embedded control is ordinary scope; queued requests stay serialized.
+ ordinary=subprocess.run(command,input='propose:src/stop.txt\nstatus\n',text=True,capture_output=True,timeout=10,env={'PATH':'/usr/bin:/bin','LANG':'C','LC_ALL':'C','FACTORY_PLANNING_CLAUDE_OAUTH_TOKEN':'fixture-planning'})
+ assert ordinary.returncode==0,ordinary.stderr
+ ordinary_events=[json.loads(line) for line in ordinary.stdout.splitlines()]
+ assert [x.get('disposition') for x in ordinary_events[1:]]==['new_feature','status'],ordinary_events
+ assert all(x['event']!='control' for x in ordinary_events)
+ idle=subprocess.run(command,input='/stop\n',text=True,capture_output=True,timeout=5,env={'PATH':'/usr/bin:/bin','LANG':'C','LC_ALL':'C','FACTORY_PLANNING_CLAUDE_OAUTH_TOKEN':'fixture-planning'})
+ assert idle.returncode==0,idle.stderr
+ assert json.loads(idle.stdout.splitlines()[-1])['durable'] is True
+ with store.transaction() as db:assert db.execute('SELECT paused FROM intake_identity').fetchone()[0]==1;db.execute('UPDATE intake_identity SET paused=0')
+ for mode,overflow in [('timeout',False),('orphan',False),('timeout',True)]:
+  (private/'scout-pid').unlink(missing_ok=True)
+  process=subprocess.Popen(command,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True,env={'PATH':'/usr/bin:/bin','HOME':'/attacker','LANG':'C','LC_ALL':'C','FACTORY_PLANNING_CLAUDE_OAUTH_TOKEN':'fixture-planning'})
+  lock=None
+  try:
+   first=json.loads(process.stdout.readline());assert first['event']=='session'
+   process.stdin.write(mode+'\n');process.stdin.flush()
+   deadline=time.monotonic()+5
+   marker=private/'scout-pid'
+   while not marker.exists() and time.monotonic()<deadline:time.sleep(.01)
+   assert marker.exists(),'real Scout did not start'
+   pid=int(marker.read_text())
+   lock=sqlite3.connect(private/'runtime.sqlite');lock.execute('BEGIN IMMEDIATE')
+   started=time.monotonic();process.stdin.write(('status\n'*18) if overflow else 'pause\n');process.stdin.flush()
+   try:output,error=process.communicate(timeout=.8)
+   except subprocess.TimeoutExpired:raise AssertionError('urgent console control waited for Scout/storage lock')
+   assert time.monotonic()-started<.8
+   events=[json.loads(line) for line in output.splitlines()]
+   if not overflow:assert any(x.get('event')=='control' and x.get('cancelled') is True and x.get('durable') is False for x in events),events
+   assert process.returncode==2,'unacknowledged durable pause claimed success'
+   observed=subprocess.check_output(['/bin/ps','-axo','pid=,stat='],text=True)
+   assert not any(parts[0]==str(pid) and not parts[1].startswith('Z') for line in observed.splitlines() if len(parts:=line.split())==2),'owned Scout survived cancellation'
+  finally:
+   if lock is not None:lock.rollback();lock.close()
+   if process.poll() is None:process.kill();process.wait()
+ print('urgent-control: real stdin cancels owned Scout before SQLite lock release; failed durable pause remains blocked')
+"""
+exec(compile(fixture+tail,'urgent-fixture','exec'))
+URGENT
+exit 0
+fi
 if [ "${1:-all}" = console ]; then
   exec bash "$ROOT/.claude/scripts/test/factory-intake-console.sh"
 fi
@@ -78,7 +176,7 @@ if [ "${1:-all}" = context ]; then
   exec bash "$ROOT/.claude/scripts/test/factory-intake-context.sh"
 fi
 if [ "${1:-all}" = all ]; then
-  for suite in contract migration schema identity pending lightweight context assessment-profile assessment-process assessment-outcome proposed-scope contract-catalog flat-root session-continuation clarification-revisions decision-freshness approval-eligibility proposal enqueue-guard start-guard actions-reconcile mutation-guard worker-contract worker-descriptor tool-read tool-mutation worker-launch worker-outcome hooks console; do bash "$0" "$suite"; done
+  for suite in contract migration schema identity pending lightweight context assessment-profile assessment-process assessment-outcome proposed-scope contract-catalog flat-root session-continuation clarification-revisions decision-freshness approval-eligibility proposal enqueue-guard start-guard actions-reconcile mutation-guard worker-contract worker-descriptor tool-read tool-mutation worker-launch worker-outcome hooks console urgent-control; do bash "$0" "$suite"; done
   exit 0
 fi
 case "${1:-all}" in contract|migration|schema|identity|pending|lightweight) ;; *) echo "Unknown intake test selector" >&2; exit 2 ;; esac
