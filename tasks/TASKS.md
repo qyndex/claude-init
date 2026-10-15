@@ -1633,9 +1633,9 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-receipt-profiles.sh
   owner: implementer
 
-- [ ] T-276  | spec:014  | phase:1  | priority: security  | created: 2026-10-16  | deps: T-275  | parallel: no  | est: 5m
+- [x] T-276  | spec:014  | phase:1  | priority: security  | created: 2026-10-16  | deps: T-275  | parallel: no  | est: 5m
   summary: Authenticate immutable run workflow path and complete emitter source closure
-  files: .claude/scripts/factory-receipts.py, .claude/scripts/test/factory-receipt-source.sh
+  files: .claude/scripts/factory-receipts.py, .claude/scripts/test/factory-receipt-source.sh, .claude/scripts/test/factory-receipt-projection.sh, .claude/scripts/test/factory-receipts-recovery.sh
   accept: bash .claude/scripts/test/factory-receipt-source.sh
   owner: implementer
 

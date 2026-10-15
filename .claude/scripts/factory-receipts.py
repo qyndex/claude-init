@@ -83,20 +83,37 @@ def receipt_artifact(api, run):
         return json.loads(archive.read('receipt.json'), object_pairs_hook=coordinator.contract.no_duplicate_keys), artifact
 
 
-def authenticate(api, policy, run_id, *, historical=False):
+def authenticate(api, policy, run_id, *, historical=False, trust_path=None, trust_mode='legacy'):
     require(type(run_id) is int and run_id > 0 and api.repo == policy['repository'], 'invalid receipt source')
     repo = policy['repository']; root = f'repos/{repo}'
     require(type(policy['receipts']['workflow_id']) is int and policy['receipts']['workflow_id'] > 0, 'receipt workflow not configured')
     run = api.get(f'{root}/actions/runs/{run_id}')
-    require(run['id'] == run_id and type(run['run_attempt']) is int and run['run_attempt'] > 0, 'wrong run identity')
-    require(run['repository']['full_name'] == repo and run['workflow_id'] == policy['receipts']['workflow_id'], 'foreign receipt producer')
+    require(type(run['id']) is int and run['id'] == run_id and type(run['run_attempt']) is int and run['run_attempt'] > 0, 'wrong run identity')
+    require(run['repository']['full_name'] == repo and type(run['workflow_id']) is int and run['workflow_id'] == policy['receipts']['workflow_id'], 'foreign receipt producer')
     require(run['event'] in {'workflow_run', 'workflow_dispatch'} and run['head_branch'] == policy['base_branch'], 'unprotected receipt event/branch')
     require(run['status'] == 'completed' and run['conclusion'] == 'success', 'coordinator did not succeed')
-    pins = policy['receipts']['trusted_revisions'].get(run['head_sha'], {})
-    require(set(RUNTIME_PATHS) <= set(pins), 'receipt source revision not approved')
+    require(run.get('path') == RUNTIME_PATHS[0], 'receipt workflow path differs')
+    require(coordinator.contract.digest(run.get('head_sha'), 40), 'receipt source SHA invalid')
+    require(trust_mode in ('legacy', 'profile'), 'explicit receipt trust mode required')
+    require(trust_path is not None or trust_mode == 'legacy', 'external receipt profile required')
+    trust = load_receipt_trust(trust_path, repo, mode=trust_mode) if trust_path is not None else None
+
+    def source_bytes(path):
+        value = api.source(path, run['head_sha'])
+        require(isinstance(value, bytes) and 0 < len(value) <= 1048576, 'receipt source size exceeds bound')
+        return value
+
+    source = json.loads(source_bytes('factory/policy.json'), object_pairs_hook=coordinator.contract.no_duplicate_keys)
+    if trust_mode == 'profile':
+        matches = [profile for profile in trust['profiles'] if profile['status'] == 'active' and profile['policy_sha256'] == coordinator.policy_hash(source)]
+        require(len(matches) == 1, 'receipt source policy not approved or ambiguous')
+        pins = matches[0]['runtime']
+    else:
+        revisions = trust['legacy_revisions'] if trust is not None else policy['receipts']['trusted_revisions']
+        pins = revisions.get(run['head_sha'], {})
+        require(set(pins) == set(RUNTIME_PATHS), 'receipt source revision not approved')
     for path in RUNTIME_PATHS:
-        require(hashlib.sha256(api.source(path, run['head_sha'])).hexdigest() == pins[path], 'receipt producer source changed')
-    source = json.loads(api.source('factory/policy.json', run['head_sha']), object_pairs_hook=coordinator.contract.no_duplicate_keys)
+        require(hashlib.sha256(source_bytes(path)).hexdigest() == pins[path], 'receipt producer source changed')
     document, artifact = receipt_artifact(api, run)
     expected = {'schema_version', 'repository', 'pull_request', 'head_sha', 'base_sha', 'spec', 'spec_sha256',
                 'policy_sha256', 'verifier_run', 'reviewer_run', 'eligible', 'merged', 'merge_sha', 'task_ids'}
