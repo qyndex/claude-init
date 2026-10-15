@@ -1,0 +1,7 @@
+# TDD ledger — green — T-267
+ledger_format: 2
+timestamp: 2026-10-13T17:03:16+11:00
+command: bash .claude/scripts/test/factory-request-intake.sh worker-contract
+exit_code: 0
+---
+worker-contract: protected primary binding, exact closure and observation, hostile controls rejected; disabled unchanged; no process launched

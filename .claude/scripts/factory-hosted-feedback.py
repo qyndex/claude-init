@@ -21,6 +21,22 @@ state=ingress.state
 require=crypto.require
 
 
+def private_snapshots(config):
+    """Capture protected locators before the ephemeral holder replaces their parent."""
+    result={}
+    if config.get('intake_config') is None:return result
+    for field,maximum in [('intake_config',65536),('assessment_profile',8000000)]:
+        if config.get(field) is None:continue
+        path=Path(config[field]);parent=path.parent
+        require(parent.is_absolute() and parent.resolve()==parent and parent.is_dir() and not parent.is_symlink()
+                and parent.stat().st_uid==os.getuid() and stat.S_IMODE(parent.stat().st_mode)==0o700,
+                'hosted snapshot parent must be canonical private directory')
+        roots=[Path(__file__).resolve().parents[2],*[Path(item).resolve() for item in config.get('implementation_roots',[])]]
+        require(all(path!=root and root not in path.parents for root in roots),'hosted snapshot cannot live in candidate checkout')
+        result[field]=ingress.captured_file(path,maximum,True)
+    return result
+
+
 def run(config, api, client, secret, now):
     require(config.get('enabled') is True and config.get('feedback_enabled') is True,'hosted feedback disabled')
     require(config['repository']==config['state_repository']==api.repo,'foreign hosted feedback repository')
@@ -32,9 +48,22 @@ def run(config, api, client, secret, now):
     state.validate(snapshot,config['repository'],report_stream)
     require(any(batch['status']=='confirmed' for batch in snapshot['tables']['digest_batches']),'confirmed digest required before feedback bootstrap')
     checkpoint=state.GitState(api,config['state_branch'],binding['stream'],config.get('feedback_bootstrap_sha'),config.get('policy_approvals'),bootstrap_existing=True)
-    with crypto.private_database(checkpoint,secret,binding) as (root,path):
-        private={**config,'private_root':str(root),'runtime_database':str(path),'implementation_roots':[str(Path(__file__).resolve().parents[2])]}
-        result=ingress.run(private,api,client,now)
+    source_root=Path(__file__).resolve().parents[2];roots=[str(source_root)]
+    if config.get('intake_config') is not None:
+        declared=config.get('implementation_roots',[])
+        require(isinstance(declared,list) and all(isinstance(item,str) and Path(item).is_absolute()
+                and Path(item).resolve()==Path(item) and Path(item).is_dir() and not Path(item).is_symlink()
+                for item in declared),'hosted candidate roots must be canonical existing directories')
+        roots=sorted(set(roots+declared))
+    snapshots=private_snapshots(config);barriers=[]
+    with crypto.private_database(checkpoint,secret,binding,checkpoint_ready=barriers.append) as (root,path):
+        private={**config,'private_root':str(root),'runtime_database':str(path),'implementation_roots':roots}
+        for field,raw in snapshots.items():
+            target=root/(field+'.json');target.write_bytes(raw);target.chmod(0o600);private[field]=str(target)
+        def durable_barrier():
+            try:barriers[0]()
+            except Exception as error:raise RuntimeError('hosted encrypted intent checkpoint failed') from error
+        result=ingress.run(private,api,client,now,checkpoint_barrier=durable_barrier)
     return {'captured':result['captured'],'checkpoint':checkpoint.head}
 
 

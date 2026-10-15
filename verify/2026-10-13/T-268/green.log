@@ -1,0 +1,7 @@
+# TDD ledger — green — T-268
+ledger_format: 2
+timestamp: 2026-10-13T17:21:25+11:00
+command: bash .claude/scripts/test/factory-request-intake.sh worker-descriptor
+exit_code: 0
+---
+worker-descriptor: immutable actual-claim issuance/retry, private directories, once-only bound hook subprocess and uncertainty fencing; no human intake or native launch

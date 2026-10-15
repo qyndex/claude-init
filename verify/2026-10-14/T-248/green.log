@@ -1,0 +1,7 @@
+# TDD ledger — green — T-248
+ledger_format: 2
+timestamp: 2026-10-14T21:22:14+11:00
+command: bash .claude/scripts/test/factory-intake-slack.sh edits-replay
+exit_code: 0
+---
+AC-2/AC-9: actual authenticated edits, concurrent retries, restart, immutable lineage, missing-prior provenance and atomic actor-conflict rollback passed

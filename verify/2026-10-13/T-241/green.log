@@ -1,0 +1,7 @@
+# TDD ledger — green — T-241
+ledger_format: 2
+timestamp: 2026-10-13T11:05:42+11:00
+command: bash .claude/scripts/test/factory-request-intake.sh actions-reconcile
+exit_code: 0
+---
+actions-reconcile: immutable intent, competing request serialization, exact claim replay/freshness and registered supervisor refusal

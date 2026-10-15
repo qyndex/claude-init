@@ -1,0 +1,11 @@
+# TDD ledger — red — T-251
+ledger_format: 2
+timestamp: 2026-10-15T12:36:43+11:00
+command: bash .claude/scripts/test/factory-intake-slack.sh checkpoint-failure
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 344, in <module>
+  File "<stdin>", line 334, in fails
+AssertionError: incompatible hosted checkpoint accepted and written back

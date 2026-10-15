@@ -1,0 +1,8 @@
+{
+  "task": "T-250",
+  "independent_acceptance_exit": 0,
+  "independent_diff_check_exit": 0,
+  "interpreter": "bundled Python with cryptography",
+  "live_provider_calls": 0,
+  "activation_changed": false
+}

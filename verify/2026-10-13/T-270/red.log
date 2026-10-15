@@ -1,0 +1,14 @@
+# TDD ledger — red — T-270
+ledger_format: 2
+timestamp: 2026-10-13T18:01:17+11:00
+command: bash .claude/scripts/test/factory-request-intake.sh tool-mutation
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 157, in <module>
+AssertionError: ['native post acknowledged unrelated mutation mapping', 'oversized Edit allocated replacement before output budget check']
+Traceback (most recent call last):
+  File "<stdin>", line 90, in <module>
+AssertionError: native mutation admitted missing or changed post-shim closure
+tool-mutation: changed-post shim closure denied before native effect

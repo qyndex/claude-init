@@ -1,0 +1,5 @@
+{
+  ".claude/scripts/test/factory-intake-tool-read.sh": "8f8cc9d7b5c7de2853049502da42071bfd70941bfbaa5522aeb282063ec279fc",
+  ".claude/scripts/test/factory-intake-tool-mutation.sh": "20e5beab512dd33b50edfda68e1d6613329619b966f92cc665c023ba5028c58f",
+  ".claude/scripts/test/intake-ci-toolchain.sh": "4630b4cbb86e08fd0a656336d436a8f7f9ba9d8602ed7348577cb543a4ef0507"
+}

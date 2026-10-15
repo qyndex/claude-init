@@ -1,0 +1,7 @@
+# TDD ledger — green — T-227
+ledger_format: 2
+timestamp: 2026-10-12T20:55:22+11:00
+command: bash .claude/scripts/test/factory-request-intake.sh migration
+exit_code: 0
+---
+migration: additive private schema preserves existing bytes; foreign/version/trigger state rejects and pause survives restart

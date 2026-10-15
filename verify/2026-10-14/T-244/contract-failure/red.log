@@ -1,0 +1,27 @@
+# TDD ledger — red — T-244/contract-failure
+ledger_format: 2
+timestamp: 2026-10-14T16:14:57+11:00
+command: bash .claude/scripts/test/factory-request-intake.sh console
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 74, in <module>
+  File "console-fixture", line 153, in <module>
+  File "console-fixture", line 111, in foreground
+AssertionError: Traceback (most recent call last):
+  File "/private/var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmp5k59meuh/private/console-driver.py", line 4, in <module>
+    entry=sys.argv.pop(1);sys.argv[0]=entry;runpy.run_path(entry,run_name="__main__")
+                                            ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen runpy>", line 287, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Users/shravanjha/.codex/worktrees/factory-activation/claude-init/.claude/scripts/factory-intake-console.py", line 222, in <module>
+    if __name__=='__main__':sys.exit(main())
+                                     ~~~~^^
+  File "/Users/shravanjha/.codex/worktrees/factory-activation/claude-init/.claude/scripts/factory-intake-console.py", line 193, in main
+    store=controller(options.root)
+  File "/Users/shravanjha/.codex/worktrees/factory-activation/claude-init/.claude/scripts/factory-intake-console.py", line 144, in controller
+    require(contract.get('enabled') is True and contract.get('repository')==entry['repository']
+            ^^^^^^^^^^^^
+AttributeError: 'list' object has no attribute 'get'

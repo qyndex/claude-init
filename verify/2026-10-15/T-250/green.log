@@ -1,0 +1,7 @@
+# TDD ledger — green — T-250
+ledger_format: 2
+timestamp: 2026-10-15T12:30:11+11:00
+command: bash .claude/scripts/test/factory-intake-slack.sh checkpoint
+exit_code: 0
+---
+AC-9: actual encrypted hosted intake roundtrip, durable pre-Scout intent, fresh retry identity/proposal preservation and crashed-runner fencing passed

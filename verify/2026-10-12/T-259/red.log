@@ -1,0 +1,10 @@
+# TDD ledger — red — T-259
+ledger_format: 2
+timestamp: 2026-10-12T21:23:50+11:00
+command: bash .claude/scripts/test/factory-intake-dependencies.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 14, in <module>
+AssertionError: unpinned private runtime code dependency accepted

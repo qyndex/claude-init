@@ -1,0 +1,21 @@
+# TDD ledger — red — T-239
+ledger_format: 2
+timestamp: 2026-10-13T10:34:52+11:00
+command: bash .claude/scripts/test/factory-request-intake.sh enqueue-guard
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 145, in <module>
+  File "/Users/shravanjha/.codex/worktrees/factory-activation/claude-init/.claude/scripts/factory-intake.py", line 174, in __init__
+    require(str(ledger_path) in self.config['trusted_files'],'required installation ledger pin missing')
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/shravanjha/.codex/worktrees/factory-activation/claude-init/.claude/scripts/factory-intake.py", line 20, in require
+    raise ValueError(message)
+ValueError: required installation ledger pin missing
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "<stdin>", line 146, in <module>
+AssertionError: unrelated advisory controller required an installation ledger pin

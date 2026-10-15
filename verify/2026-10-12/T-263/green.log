@@ -1,0 +1,7 @@
+# TDD ledger — green — T-263
+ledger_format: 2
+timestamp: 2026-10-12T23:38:43+11:00
+command: bash .claude/scripts/test/factory-request-intake.sh session-continuation
+exit_code: 0
+---
+session-continuation: unbound/global/other-session work clarifies; explicit eligible task binds; proposal/blocked/unresolved dominance and completed-task fencing passed

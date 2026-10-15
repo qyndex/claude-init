@@ -1,0 +1,2 @@
+b1dae2487e03b513220e9a8c1952b45a38f3c8654f1b992d761c15ce1dab1879  .claude/scripts/factory-encrypted-feedback.py
+c6bfdd6556b7b0ff80d03c62b4fc4e1bc657ad2c2d9b751abb1c2a8dc1d711e7  .claude/scripts/test/factory-intake-slack.sh

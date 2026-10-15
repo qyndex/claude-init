@@ -1,0 +1,11 @@
+# TDD ledger — red — T-249
+ledger_format: 2
+timestamp: 2026-10-15T12:12:59+11:00
+command: bash .claude/scripts/test/factory-intake-slack.sh publication
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 269, in <module>
+  File "<stdin>", line 28, in rejects
+AssertionError: untrusted private feedback accepted

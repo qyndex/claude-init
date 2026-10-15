@@ -1,0 +1,11 @@
+# TDD ledger — red — T-271
+ledger_format: 2
+timestamp: 2026-10-14T10:43:30+11:00
+command: bash .claude/scripts/test/factory-request-intake.sh worker-launch
+exit_code: 1
+red_reason: assertion-failure
+---
+worker-launch case: blocked-forward
+Traceback (most recent call last):
+  File "<stdin>", line 238, in <module>
+AssertionError: outer timeout killed guardian before TERM-ignoring descendant cleanup

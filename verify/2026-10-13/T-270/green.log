@@ -1,0 +1,9 @@
+# TDD ledger — green — T-270
+ledger_format: 2
+timestamp: 2026-10-13T18:03:35+11:00
+command: bash .claude/scripts/test/factory-request-intake.sh tool-mutation
+exit_code: 0
+---
+tool-mutation: actual fake effects reserve once before write, exact bounded Edit and independent postimage reconciliation; replay/conflict/unsupported inputs deny and failed/missing outcomes fence
+tool-mutation: missing-post shim closure denied before native effect
+tool-mutation: changed-post shim closure denied before native effect

@@ -1,0 +1,7 @@
+0	bash .claude/scripts/test/factory-intake-adoption.sh phase3 (ledger GREEN; explicit local/crypto interpreters; 472.110s)
+0	bash -n .claude/scripts/test/factory-intake-adoption.sh
+0	git diff --check
+0	bash .claude/scripts/validate.sh
+0	python3 /tmp/t257-integrity.py (source/log/exit/AC proof integrity)
+0	python3 /tmp/t257-stories.py (five actual CLI story maps)
+0	bash .claude/scripts/spec-match.sh 050 (actual current CLI tagged results)

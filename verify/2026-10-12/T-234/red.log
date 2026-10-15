@@ -1,0 +1,10 @@
+# TDD ledger — red — T-234
+ledger_format: 2
+timestamp: 2026-10-12T21:17:55+11:00
+command: bash .claude/scripts/test/factory-request-intake.sh assessment-process
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 9, in <module>
+AssertionError: bounded native assessment process absent

@@ -1,0 +1,7 @@
+# TDD ledger — green — T-231
+ledger_format: 2
+timestamp: 2026-10-12T21:01:22+11:00
+command: bash .claude/scripts/test/factory-request-intake.sh lightweight
+exit_code: 0
+---
+lightweight: answer/status use zero assessments; single approved continuation resolves; ambiguity/stale scope clarifies; mixed scope needs Scout and stop pauses

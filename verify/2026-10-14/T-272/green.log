@@ -1,0 +1,7 @@
+# TDD ledger — green — T-272
+ledger_format: 2
+timestamp: 2026-10-14T11:26:43+11:00
+command: bash .claude/scripts/test/factory-request-intake.sh worker-outcome
+exit_code: 0
+---
+worker-outcome: actual private hooked subprocess result, exact session/model/bounds and current owned state; native narrative cannot grant engineering/merge authority; unknown launch has no retry

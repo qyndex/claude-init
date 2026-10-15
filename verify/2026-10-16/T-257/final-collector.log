@@ -1,0 +1,5 @@
+→ Collecting evidence for spec 050 (050-request-intake-router)
+
+✓ Evidence bundle: verify/2026-10-16-050-request-intake-router/
+  Verdict: PASS | ACs: 14/14 proven | smoke exit: 0
+  PR body: verify/2026-10-16-050-request-intake-router/pr-body.md

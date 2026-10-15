@@ -1,0 +1,21 @@
+# TDD ledger — red — T-271
+ledger_format: 2
+timestamp: 2026-10-14T10:44:21+11:00
+command: bash .claude/scripts/test/factory-request-intake.sh worker-launch
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 198, in <module>
+  File "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py", line 1279, in wait
+    return self._wait(timeout=timeout)
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py", line 2076, in _wait
+    raise TimeoutExpired(self.args, timeout)
+subprocess.TimeoutExpired: Command '['/private/var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmpbjkutgf_/private/interpreter', '-I', '-S', '/Users/shravanjha/.codex/worktrees/factory-activation/claude-init/.claude/scripts/factory-worker-guard.py', '--intake-descriptor', '/private/var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmpbjkutgf_/private/worker-8bb47de375d74b0aba7855e764916bc3/descriptor.json', '--watch-fd', '3']' timed out after 12 seconds
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "<stdin>", line 199, in <module>
+AssertionError: blocked forwarding prevented TERM cleanup of native group

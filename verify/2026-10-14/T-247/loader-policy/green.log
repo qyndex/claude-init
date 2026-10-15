@@ -1,0 +1,7 @@
+# TDD ledger — green — T-247
+ledger_format: 2
+timestamp: 2026-10-14T21:12:59+11:00
+command: bash .claude/scripts/test/factory-intake-slack.sh authenticated
+exit_code: 0
+---
+AC-1/AC-2: authenticated receipt-bound Slack capture, protected stable hosted identity, default-off compatibility, no worker grant passed

@@ -1,0 +1,8 @@
+1	hooks-red	PATH=<bundled-python>/bin:/usr/bin:/bin bash .claude/scripts/test/factory-intake-hooks.sh
+0	hooks-green	(same command)
+0	contract	PATH=<bundled-python>/bin:/usr/bin:/bin bash .claude/scripts/test/factory-intake-worker-contract.sh
+0	descriptor	PATH=<bundled-python>/bin:/usr/bin:/bin bash .claude/scripts/test/factory-intake-worker-descriptor.sh
+1	launch-sandbox	sandbox denied /bin/ps; initial attempt only; authorized rerun follows
+0	syntax	bash -n three changed shell fixtures
+0	diff	git diff --check
+0	launch-green	PATH=<bundled-python>/bin:/usr/bin:/bin bash .claude/scripts/test/factory-intake-worker-launch.sh (process inspection allowed)

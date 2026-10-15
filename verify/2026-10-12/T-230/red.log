@@ -1,0 +1,10 @@
+# TDD ledger — red — T-230
+ledger_format: 2
+timestamp: 2026-10-12T20:58:41+11:00
+command: bash .claude/scripts/test/factory-request-intake.sh pending
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 94, in <module>
+AssertionError: one-shot native ingress binding absent

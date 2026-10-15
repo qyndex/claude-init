@@ -1,0 +1,10 @@
+# TDD ledger — red — T-228
+ledger_format: 2
+timestamp: 2026-10-12T20:55:57+11:00
+command: bash .claude/scripts/test/factory-request-intake.sh schema
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 55, in <module>
+AssertionError: strict intake request schemas absent

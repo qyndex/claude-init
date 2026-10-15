@@ -1,0 +1,2 @@
+b0f45901376448a9ef75ec2667744b4fc442b1536741715f35f02081fd75d051  .claude/scripts/test/factory-intake-adoption.sh
+69096df673d62998d74c6e5567bca9c088d4354ffa3aafccd8db9194c2bdb129  docs/FACTORY-REQUEST-INTAKE.md

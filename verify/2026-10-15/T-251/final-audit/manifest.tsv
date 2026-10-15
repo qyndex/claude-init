@@ -1,0 +1,13 @@
+0	bash .claude/scripts/test/factory-intake-slack.sh checkpoint-failure
+0	bash .claude/scripts/test/factory-intake-slack.sh checkpoint
+0	bash .claude/scripts/test/factory-intake-slack.sh publication
+0	bash .claude/scripts/test/factory-intake-slack.sh authenticated
+0	bash .claude/scripts/test/factory-intake-slack.sh edits-replay
+0	bash .claude/scripts/test/factory-feedback.sh
+0	bash .claude/scripts/test/factory-legacy-feedback.sh
+0	bash .claude/scripts/test/factory-slack-feedback.sh
+0	bash .claude/scripts/test/factory-hosted-feedback.sh
+0	bash .claude/scripts/test/factory-encrypted-feedback.sh
+0	bash .claude/scripts/validate.sh
+0	git diff --check
+0	python3 /tmp/t251-file-bounds.py (direct AC-9/AC-10 file capture probes)

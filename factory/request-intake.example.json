@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "enabled": false,
+  "repository": null,
+  "candidate_root": null,
+  "authority_root": null,
+  "database": null,
+  "profile": null,
+  "policy": null,
+  "trusted_files": {},
+  "limits": {
+    "request_chars": 20000,
+    "context_bytes": 500000,
+    "output_bytes": 65536,
+    "assessment_seconds": 60
+  }
+}

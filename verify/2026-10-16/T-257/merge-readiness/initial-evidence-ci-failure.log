@@ -1,0 +1,347 @@
+evidence-gate	Re-execute proof against head (G49)	﻿2026-10-15T16:53:43.0056886Z ##[group]Run [ -n "${ev_path:-}" ] || { echo "::error::Evidence path missing"; exit 1; }
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.0057567Z [36;1m[ -n "${ev_path:-}" ] || { echo "::error::Evidence path missing"; exit 1; }[0m
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.0058007Z [36;1mspec=$(jq -r '.spec // empty' "$ev_path")[0m
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.0058556Z [36;1m[0m
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.0059047Z [36;1mecho "→ re-running smoke (bash .claude/scripts/verify.sh)"[0m
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.0059678Z [36;1m# Detached checkout acceptance uses the event's explicit base commit.[0m
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.0060292Z [36;1mif ! VERIFY_BASE="10026982e8d9e6b46bcfa0c3ee65218a32b7df9e" bash .claude/scripts/verify.sh; then[0m
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.0061180Z [36;1m  echo "::error::Smoke re-execution FAILED on head, but committed evidence.json claims smoke_exit_max=0 — evidence diverges from reality (G49)."[0m
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.0061869Z [36;1m  exit 1[0m
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.0062075Z [36;1mfi[0m
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.0062258Z [36;1m[0m
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.0062615Z [36;1mif [ -n "$spec" ] && [ -f playwright.evidence.config.ts ] && [ -d "e2e/$spec" ]; then[0m
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.0063169Z [36;1m  echo "→ re-running journey + spec-match for spec $spec"[0m
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.0063629Z [36;1m  # e2e-audit ci-gates-3: install un-muted — a browser-install failure[0m
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.0064116Z [36;1m  # must surface as a toolchain error, not as "evidence diverges".[0m
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.0064534Z [36;1m  npx playwright install --with-deps chromium[0m
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.0065073Z [36;1m  VERIFY_FEATURE="$spec" npx playwright test --config playwright.evidence.config.ts "e2e/$spec" || {[0m
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.0065801Z [36;1m    echo "::error::Journey re-execution failed for spec $spec — committed evidence is stale (G49)."; exit 1; }[0m
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.0066810Z [36;1m  results=$(find verify -name results.json -newer "$ev_path" 2>/dev/null | sort -r | head -1)[0m
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.0067282Z [36;1m  if [ -n "$results" ]; then[0m
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.0067629Z [36;1m    bash .claude/scripts/spec-match.sh "$spec" "$results" || {[0m
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.0068250Z [36;1m      echo "::error::spec-match divergence: an AC the evidence claims proven did not re-prove on head (G49)."; exit 1; }[0m
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.0068771Z [36;1m  fi[0m
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.0068953Z [36;1melse[0m
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.0069305Z [36;1m  echo "no playwright rig / e2e/$spec — smoke re-execution is the proof for this PR"[0m
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.0069713Z [36;1mfi[0m
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.0070023Z [36;1mecho "✓ proof regenerated on head; committed evidence is consistent"[0m
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.0131053Z shell: /usr/bin/bash -e {0}
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.0131321Z env:
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.0133699Z   GH_TOKEN: ***
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.0133922Z   PR_NUMBER: 104
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.0134238Z   ev_path: verify/2026-10-16-050-request-intake-router/evidence.json
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.0134601Z   GOTOOLCHAIN: local
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.0134815Z ##[endgroup]
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.0242240Z → re-running smoke (bash .claude/scripts/verify.sh)
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.0280754Z Verification root: /home/runner/work/claude-init/claude-init
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.0282087Z
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.0282433Z → Branch freshness
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.0438274Z   ✓ branch fresh against main
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.1026144Z
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.1027214Z → Stack accounting
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.1027935Z   ✓ no language stacks detected (template/docs/shell-only repo)
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.1028231Z
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.1028367Z → Assertion-density gate
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.1079459Z assert-density: no test files to check
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.1082196Z   ✓ all tests contain real assertions
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.1082575Z
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.1082972Z → TDD red→green ledger gate (check-tdd-ledger.sh)
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.1606745Z ✓ T-194: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.2010111Z ✓ T-193: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.2409046Z ✓ T-192: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.2823403Z ✓ T-186: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.3219621Z ✓ T-185: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.3613987Z ✓ T-184: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.4013996Z ✓ T-182: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.4415009Z ✓ T-183: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.4815612Z ✓ T-191: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.5213957Z ✓ T-190: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.5618907Z ✓ T-189: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.6025452Z ✓ T-188: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.6426905Z ✓ T-187: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.6831175Z ✓ T-181: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.7230979Z ✓ T-177: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.7630912Z ✓ T-178: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.8029568Z ✓ T-176: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.8426561Z ✓ T-175: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.8823315Z ✓ T-173: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.9220436Z ✓ T-174: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.9616247Z ✓ T-165: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:44.0011518Z ✓ T-166: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:44.0406851Z ✓ T-167: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:44.0807487Z ✓ T-168: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:44.1201665Z ✓ T-169: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:44.1597971Z ✓ T-170: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:44.1775190Z ✓ T-171: characterization task — green-only ledger accepted (no red phase for golden-master tests)
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:44.2141408Z ✓ T-172: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:44.2297219Z ⚠ T-001: legacy (pre-T-111) incomplete ledger — warn only
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:44.2658942Z ✓ T-002: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:44.3017555Z ✓ T-003: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:44.3172945Z ⚠ T-004: legacy (pre-T-111) incomplete ledger — warn only
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:44.3538790Z ✓ T-005: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:44.3905718Z ⚠ T-006: legacy ledger content invalid (warn only) — red timestamp (2026-05-29T00:56:23+10:00) not before green (2026-05-29T00:56:23+10:00);
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:44.4272708Z ✓ T-007: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:44.4639390Z ✓ T-008: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:44.5005187Z ✓ T-009: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:44.5375049Z ✓ T-010: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:44.5743363Z ⚠ T-011: legacy ledger content invalid (warn only) — red timestamp (2026-05-29T01:03:48+10:00) not before green (2026-05-29T01:03:48+10:00);
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:44.6112430Z ⚠ T-012: legacy ledger content invalid (warn only) — red timestamp (2026-05-29T01:04:18+10:00) not before green (2026-05-29T01:04:18+10:00);
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:44.6485237Z ⚠ T-013: legacy ledger content invalid (warn only) — red timestamp (2026-05-29T01:04:39+10:00) not before green (2026-05-29T01:04:39+10:00);
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:44.6856607Z ⚠ T-014: legacy ledger content invalid (warn only) — red timestamp (2026-05-29T01:06:48+10:00) not before green (2026-05-29T01:06:48+10:00);
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:44.7228250Z ⚠ T-015: legacy ledger content invalid (warn only) — red timestamp (2026-05-29T01:07:55+10:00) not before green (2026-05-29T01:07:55+10:00);
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:44.7598950Z ⚠ T-016: legacy ledger content invalid (warn only) — red timestamp (2026-05-29T01:08:32+10:00) not before green (2026-05-29T01:08:32+10:00);
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:44.7972120Z ⚠ T-017: legacy ledger content invalid (warn only) — red timestamp (2026-05-29T01:09:39+10:00) not before green (2026-05-29T01:09:39+10:00);
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:44.8340615Z ⚠ T-018: legacy ledger content invalid (warn only) — red timestamp (2026-05-29T01:10:26+10:00) not before green (2026-05-29T01:10:26+10:00);
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:44.8709645Z ✓ T-019: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:44.9076834Z ✓ T-020: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:44.9443759Z ✓ T-021: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:44.9813162Z ✓ T-022: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:45.0182659Z ⚠ T-023: legacy ledger content invalid (warn only) — red timestamp (2026-05-29T01:26:04+10:00) not before green (2026-05-29T01:26:04+10:00);
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:45.0559208Z ⚠ T-024: legacy ledger content invalid (warn only) — red timestamp (2026-05-29T01:27:08+10:00) not before green (2026-05-29T01:27:08+10:00);
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:45.0932223Z ⚠ T-025: legacy ledger content invalid (warn only) — red timestamp (2026-05-29T01:27:29+10:00) not before green (2026-05-29T01:27:29+10:00);
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:45.1302646Z ⚠ T-026: legacy ledger content invalid (warn only) — red timestamp (2026-05-29T01:29:12+10:00) not before green (2026-05-29T01:29:12+10:00);
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:45.1675262Z ⚠ T-027: legacy ledger content invalid (warn only) — red timestamp (2026-05-29T01:53:20+10:00) not before green (2026-05-29T01:53:20+10:00);
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:45.2046136Z ⚠ T-028: legacy ledger content invalid (warn only) — red timestamp (2026-05-29T01:54:08+10:00) not before green (2026-05-29T01:54:08+10:00);
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:45.2413754Z ⚠ T-029: legacy ledger content invalid (warn only) — red timestamp (2026-05-29T01:54:30+10:00) not before green (2026-05-29T01:54:30+10:00);
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:45.2784144Z ✓ T-030: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:45.3158706Z ⚠ T-031: legacy ledger content invalid (warn only) — red timestamp (2026-05-29T01:56:19+10:00) not before green (2026-05-29T01:56:19+10:00);
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:45.3534874Z ⚠ T-032: legacy ledger content invalid (warn only) — red timestamp (2026-05-29T01:57:01+10:00) not before green (2026-05-29T01:57:01+10:00);
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:45.3907567Z ⚠ T-033: legacy ledger content invalid (warn only) — red timestamp (2026-05-29T01:57:44+10:00) not before green (2026-05-29T01:57:44+10:00);
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:45.4277260Z ✓ T-034: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:45.4646565Z ✓ T-035: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:45.5020009Z ⚠ T-036: legacy ledger content invalid (warn only) — red timestamp (2026-05-29T01:59:55+10:00) not before green (2026-05-29T01:59:55+10:00);
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:45.5418505Z ✓ T-037: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:45.5792926Z ✓ T-038: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:45.6164785Z ✓ T-039: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:45.6538609Z ✓ T-040: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:45.6909636Z ✓ T-041: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:45.7280837Z ✓ T-042: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:45.7652114Z ✓ T-043: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:45.8023987Z ✓ T-044: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:45.8398743Z ✓ T-045: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:45.8774945Z ✓ T-046: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:45.9145389Z ✓ T-047: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:45.9516902Z ✓ T-048: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:45.9889526Z ✓ T-049: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:46.0264476Z ⚠ T-050: legacy ledger content invalid (warn only) — command differs between red and green (must prove the SAME test);
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:46.0636712Z ✓ T-051: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:46.1009321Z ✓ T-052: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:46.1379558Z ✓ T-053: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:46.1750869Z ✓ T-054: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:46.2122892Z ✓ T-055: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:46.2491876Z ✓ T-056: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:46.2650959Z ⚠ T-059: legacy (pre-T-111) incomplete ledger — warn only
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:46.2808995Z ⚠ T-060: legacy (pre-T-111) incomplete ledger — warn only
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:46.2965302Z ⚠ T-061: legacy (pre-T-111) incomplete ledger — warn only
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:46.3121891Z ⚠ T-062: legacy (pre-T-111) incomplete ledger — warn only
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:46.3278509Z ⚠ T-063: legacy (pre-T-111) incomplete ledger — warn only
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:46.3436753Z ⚠ T-064: legacy (pre-T-111) incomplete ledger — warn only
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:46.3592584Z ⚠ T-065: legacy (pre-T-111) incomplete ledger — warn only
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:46.3747143Z ⚠ T-066: legacy (pre-T-111) incomplete ledger — warn only
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:46.4118541Z ✓ T-067: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:46.4492499Z ✓ T-068: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:46.4866288Z ✓ T-069: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:46.5241206Z ⚠ T-070: legacy ledger content invalid (warn only) — command differs between red and green (must prove the SAME test);
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:46.5613065Z ✓ T-071: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:46.5984183Z ✓ T-072: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:46.6141953Z ⚠ T-073: legacy (pre-T-111) incomplete ledger — warn only
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:46.6297328Z ⚠ T-074: legacy (pre-T-111) incomplete ledger — warn only
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:46.6453509Z ⚠ T-075: legacy (pre-T-111) incomplete ledger — warn only
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:46.6608264Z ⚠ T-076: legacy (pre-T-111) incomplete ledger — warn only
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:46.6763741Z ⚠ T-077: legacy (pre-T-111) incomplete ledger — warn only
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:46.6918976Z ⚠ T-078: legacy (pre-T-111) incomplete ledger — warn only
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:46.7073557Z ⚠ T-079: legacy (pre-T-111) incomplete ledger — warn only
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:46.7228351Z ⚠ T-080: legacy (pre-T-111) incomplete ledger — warn only
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:46.7383328Z ⚠ T-081: legacy (pre-T-111) incomplete ledger — warn only
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:46.7538524Z ⚠ T-082: legacy (pre-T-111) incomplete ledger — warn only
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:46.7695057Z ⚠ T-083: legacy (pre-T-111) incomplete ledger — warn only
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:46.7853092Z ⚠ T-084: legacy (pre-T-111) incomplete ledger — warn only
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:46.8010449Z ⚠ T-085: legacy (pre-T-111) incomplete ledger — warn only
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:46.8166488Z ⚠ T-086: legacy (pre-T-111) incomplete ledger — warn only
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:46.8324575Z ⚠ T-087: legacy (pre-T-111) incomplete ledger — warn only
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:46.8480448Z ⚠ T-088: legacy (pre-T-111) incomplete ledger — warn only
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:46.8638248Z ⚠ T-089: legacy (pre-T-111) incomplete ledger — warn only
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:46.8794591Z ⚠ T-090: legacy (pre-T-111) incomplete ledger — warn only
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:46.8950860Z ⚠ T-091: legacy (pre-T-111) incomplete ledger — warn only
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:46.9106490Z ⚠ T-092: legacy (pre-T-111) incomplete ledger — warn only
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:46.9262446Z ⚠ T-093: legacy (pre-T-111) incomplete ledger — warn only
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:46.9418291Z ⚠ T-094: legacy (pre-T-111) incomplete ledger — warn only
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:46.9574121Z ⚠ T-095: legacy (pre-T-111) incomplete ledger — warn only
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:46.9729553Z ⚠ T-096: legacy (pre-T-111) incomplete ledger — warn only
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:46.9884985Z ⚠ T-097: legacy (pre-T-111) incomplete ledger — warn only
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:47.0041176Z ⚠ T-098: legacy (pre-T-111) incomplete ledger — warn only
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:47.0198128Z ⚠ T-099: legacy (pre-T-111) incomplete ledger — warn only
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:47.0354172Z ⚠ T-100: legacy (pre-T-111) incomplete ledger — warn only
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:47.0510598Z ⚠ T-101: legacy (pre-T-111) incomplete ledger — warn only
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:47.0667545Z ⚠ T-102: legacy (pre-T-111) incomplete ledger — warn only
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:47.0827206Z ⚠ T-103: legacy (pre-T-111) incomplete ledger — warn only
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:47.0984158Z ⚠ T-104: legacy (pre-T-111) incomplete ledger — warn only
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:47.1141087Z ⚠ T-105: legacy (pre-T-111) incomplete ledger — warn only
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:47.1298383Z ⚠ T-106: legacy (pre-T-111) incomplete ledger — warn only
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:47.1452489Z ⚠ T-107: legacy (pre-T-111) incomplete ledger — warn only
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:47.1608994Z ⚠ T-108: legacy (pre-T-111) incomplete ledger — warn only
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:47.1763769Z ⚠ T-109: legacy (pre-T-111) incomplete ledger — warn only
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:47.1919935Z ⚠ T-110: legacy (pre-T-111) incomplete ledger — warn only
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:47.2282922Z ✓ T-111: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:47.2648084Z ✓ T-112: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:47.3015202Z ✓ T-113: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:47.3381012Z ✓ T-114: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:47.3747068Z ✓ T-115: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:47.4114779Z ✓ T-116: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:47.4485348Z ✓ T-117: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:47.4852314Z ✓ T-118: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:47.5217688Z ✓ T-119: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:47.5583338Z ✓ T-120: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:47.5949418Z ✓ T-121: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:47.6315606Z ✓ T-122: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:47.6681119Z ✓ T-123: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:47.7046314Z ✓ T-124: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:47.7412653Z ✓ T-125: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:47.7777308Z ✓ T-126: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:47.8144418Z ✓ T-127: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:47.8511376Z ✓ T-128: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:47.8884089Z ✓ T-154: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:47.9252717Z ✓ T-195: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:47.9621726Z ✓ T-196: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:47.9999591Z ✓ T-197: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:48.0372721Z ✓ T-198: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:48.0751791Z ✓ T-199: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:48.1128167Z ✓ T-200: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:48.1502094Z ✓ T-201: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:48.1879097Z ✓ T-202: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:48.2251147Z ✓ T-203: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:48.2625054Z ✓ T-204: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:48.3000394Z ✓ T-205: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:48.3374324Z ✓ T-206: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:48.3748084Z ✓ T-207: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:48.4122809Z ✓ T-208: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:48.4495981Z ✓ T-209: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:48.4871255Z ✓ T-210: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:48.5254345Z ✓ T-211: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:48.5630333Z ✓ T-212: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:48.6005830Z ✓ T-213: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:48.6379972Z ✓ T-214: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:48.6769267Z ✓ T-215: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:48.7141806Z ✓ T-216: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:48.7514288Z ✓ T-217: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:48.7888955Z ✓ T-218: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:48.8260872Z ✓ T-219: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:48.8635821Z ✓ T-220: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:48.9008486Z ✓ T-221: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:48.9381837Z ✓ T-223: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:48.9755099Z ✓ T-224: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:49.0128549Z ✓ T-226: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:49.0502835Z ✓ T-227: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:49.0879369Z ✓ T-228: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:49.1254513Z ✓ T-229: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:49.1631104Z ✓ T-230: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:49.2020231Z ✓ T-231: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:49.2397694Z ✓ T-232: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:49.2777453Z ✓ T-233: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:49.3160027Z ✓ T-234: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:49.3539494Z ✓ T-235: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:49.3727400Z ✓ T-236: characterization task — green-only ledger accepted (no red phase for golden-master tests)
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:49.4102546Z ✓ T-237: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:49.4475387Z ✓ T-239: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:49.4847876Z ✓ T-240: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:49.5227722Z ✓ T-241: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:49.5603526Z ✓ T-242: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:49.5788379Z ✓ T-243: characterization task — green-only ledger accepted (no red phase for golden-master tests)
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:49.6162372Z ✓ T-244: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:49.6537032Z ✓ T-245: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:49.6908995Z ✓ T-246: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:49.7282123Z ✓ T-247: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:49.7655565Z ✓ T-248: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:49.8031864Z ✓ T-249: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:49.8405504Z ✓ T-250: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:49.8782309Z ✓ T-251: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:49.8965839Z ✓ T-252: characterization task — green-only ledger accepted (no red phase for golden-master tests)
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:49.9337995Z ✓ T-253: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:49.9521569Z ✓ T-254: characterization task — green-only ledger accepted (no red phase for golden-master tests)
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:49.9703973Z ✓ T-255: characterization task — green-only ledger accepted (no red phase for golden-master tests)
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:50.0075335Z ✓ T-256: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:50.0274598Z ✓ T-257: characterization task — green-only ledger accepted (no red phase for golden-master tests)
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:50.0652223Z ✓ T-258: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:50.1029397Z ✓ T-259: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:50.1401053Z ✓ T-260: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:50.1775260Z ✓ T-261: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:50.2148800Z ✓ T-262: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:50.2524506Z ✓ T-263: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:50.2901072Z ✓ T-264: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:50.3276312Z ✓ T-265: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:50.3651117Z ✓ T-266: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:50.4022289Z ✓ T-267: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:50.4395790Z ✓ T-268: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:50.4770432Z ✓ T-269: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:50.5144441Z ✓ T-270: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:50.5519822Z ✓ T-271: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:50.5894967Z ✓ T-272: red+green ledger present and content-valid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:50.5895912Z tdd-ledger: 0 fail(s), 0 warn(s), 70 legacy-incomplete (pre-T-111, not enforced)
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:50.5901876Z   ✓ TDD ledger gate clean
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:50.5902206Z
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:50.5902399Z → Rerun newly completed task acceptance
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:51.7693419Z combined output boundary, legacy limits, invalid bounds and descendant cleanup passed
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:51.7980270Z T-224: acceptance PASS
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:51.8830638Z contract: neutral OFF, private canonical paths, finite budgets, exact pins and hostile overrides passed
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:51.9121075Z T-226: acceptance PASS
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:51.9993514Z migration: additive private schema preserves existing bytes; foreign/version/trigger state rejects and pause survives restart
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:52.0262627Z T-227: acceptance PASS
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:52.0670596Z schema: exact request/decision/action fields, duplicate/nonfinite data, mixed-scope resume and unsafe paths reject
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:52.0902805Z T-228: acceptance PASS
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:52.2643966Z identity: identical human submissions remain distinct; trusted-token concurrent/restart retry is idempotent; conflicts have no new effect
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:52.3046447Z T-229: acceptance PASS
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:52.4019488Z pending: exact session/cwd/digest match consumes once; generated/conflicting callbacks cannot allocate; lost or expired ingress fences replay
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:52.4189001Z T-230: acceptance PASS
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:52.6105301Z lightweight: answer/status use zero assessments; explicit eligible session task resolves; unbound/stale scope clarifies; mixed scope needs Scout and stop pauses
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:52.6331679Z T-231: acceptance PASS
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:52.7414658Z context: tracked allowlisted data, approved digests, secrets/link rejection, inert Git metadata and exact request/envelope limits passed
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:52.7974316Z T-232: acceptance PASS
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:52.8982465Z assessment-profile: exact primary model/argv, pinned clean controls and bound observation; hostile overrides, fallback, changed/unsafe artifacts reject; no process launched
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:52.9115162Z T-233: acceptance PASS
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:55.6802624Z assessment-process: actual pinned fake CLI clean env/private stdin/model JSON; aggregate flood, quota/schema/model/timeout/descendant failures have no retry; overall collection deadline passed
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:55.7316385Z T-234: acceptance PASS
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:57.5494136Z assessment-outcome: actual private end-to-end decision; reservation/restart/concurrency fences; dataflow/ref/pin/schema/evidence failures block; store failure has zero provider effects
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:57.5996292Z T-235: acceptance PASS
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:58.3927538Z session-continuation: unbound/global/other-session work clarifies; explicit eligible task binds; proposal/blocked/unresolved dominance and completed-task fencing passed
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:59.1387171Z clarification-revisions: actual immutable thread APIs preserve identity/tokens; same-thread replies/edits advance; stale/foreign/unresolved/blocked links reject; standalone scope is separate
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:00.4773187Z decision-freshness: current context/Git/request/evidence/proposal/approval/eligibility/protected pins accept fresh and reject drift without effects or provider reruns
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:01.7951710Z approval-eligibility: strict first-header approval/spec bindings and malformed/duplicate/body-spoof/OQ rejection; intake/global pause fence fresh permits and valid scope resumes without provider/effects
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:01.8226329Z T-236: acceptance PASS
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:05.5136165Z proposal: actual private draft-only assigned slots/current guards, exact replay, immutable edits, hostile paths/links/collisions and unknown-effect reconciliation without approved scope/provider mutation
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:05.5442290Z T-237: acceptance PASS
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:08.0767439Z enqueue-guard: actual API/CLI omitted/env/registry/profile/privacy/helper-pin/wrong-task/draft/stale/pause bypasses reject before enqueue; exact current T-1 queues alone with durable intent; disabled legacy unchanged
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:08.1132704Z T-239: acceptance PASS
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:09.3223659Z start-guard: installed API/CLI omission/profile/store/action/authority bypasses reject before probe/effect; direct safe-mode mandatory start fenced; unregistered OFF behavior unchanged
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:09.3796496Z T-240: acceptance PASS
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:11.3493027Z actions-reconcile: immutable intent, competing request serialization, exact claim replay/freshness and registered supervisor refusal
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:11.3979435Z T-241: acceptance PASS
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:14.1444062Z mutation-guard: exact principal/stage/path, controlled write overlay, new file, unknown outcome fencing/reconciliation and outside-scope drift passed
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:15.3091546Z mutation-guard: interior wildcard does not broaden exact coordinator authority
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:15.9618068Z mutation-guard: actual assessment/freshness accepts existing trailing-star scope
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:16.0213906Z T-242: acceptance PASS
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:18.2592318Z Traceback (most recent call last):
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:18.2593001Z   File "<stdin>", line 137, in <module>
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:18.2593679Z   File "assembled-hooks-fixture", line 197, in <module>
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:18.2594859Z   File "/home/runner/work/claude-init/claude-init/.claude/scripts/factory-intake.py", line 567, in __init__
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:18.2595954Z     self.config = load_contract(self.path)
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:18.2597002Z                   ^^^^^^^^^^^^^^^^^^^^^^^^
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:18.2598010Z   File "/home/runner/work/claude-init/claude-init/.claude/scripts/factory-intake.py", line 129, in load_contract
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:18.2599283Z     require(digest(read_file(source, 8000000))==expected, 'intake trusted bytes changed')
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:18.2600223Z                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:18.2601094Z   File "/home/runner/work/claude-init/claude-init/.claude/scripts/factory-intake.py", line 67, in read_file
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:18.2602289Z     require(stat.S_ISREG(info.st_mode) and info.st_nlink==1 and info.st_size<=maximum,
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:18.2603369Z   File "/home/runner/work/claude-init/claude-init/.claude/scripts/factory-intake.py", line 20, in require
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:18.2604193Z     raise ValueError(message)
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:18.2604615Z ValueError: intake file type/size invalid
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:18.2907087Z acceptance: FAIL: T-243: acceptance failed (1)
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:18.2962970Z   ✗ task acceptance failed
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:18.2963287Z
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:18.2963533Z → Story → E2E coverage gate
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:18.6414961Z   ✓ every approved-spec user story has an E2E test
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:18.6415494Z
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:18.6415748Z → Integration coverage gate
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:24.7354887Z   ✓ changed API/DB files have integration tests
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:24.7356314Z
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:24.7356847Z verify: FAIL (1 check(s) failed)
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:24.7380204Z ##[error]Smoke re-execution FAILED on head, but committed evidence.json claims smoke_exit_max=0 — evidence diverges from reality (G49).
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:24.7389235Z ##[error]Process completed with exit code 1.

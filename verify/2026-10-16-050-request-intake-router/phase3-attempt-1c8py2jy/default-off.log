@@ -1,0 +1,2 @@
+Before: templates disabled; authority/merge/producers off; intake hooks unregistered
+After: templates disabled; authority/merge/producers off; intake hooks unregistered; source bytes unchanged.

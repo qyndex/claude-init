@@ -1,0 +1,105 @@
+{
+  "task": "T-249",
+  "checks": [
+    {
+      "command": "bash .claude/scripts/test/factory-intake-slack.sh authenticated",
+      "exit_code": 0,
+      "source_log": "regressions.log"
+    },
+    {
+      "command": "bash .claude/scripts/test/factory-intake-slack.sh edits-replay",
+      "exit_code": 0,
+      "source_log": "regressions.log"
+    },
+    {
+      "command": "bash .claude/scripts/test/factory-feedback.sh",
+      "exit_code": 0,
+      "source_log": "regressions.log"
+    },
+    {
+      "command": "bash .claude/scripts/test/factory-feedback-control.sh",
+      "exit_code": 0,
+      "source_log": "regressions.log"
+    },
+    {
+      "command": "bash .claude/scripts/test/factory-slack-feedback.sh",
+      "exit_code": 0,
+      "source_log": "regressions.log"
+    },
+    {
+      "command": "bash .claude/scripts/test/factory-legacy-feedback.sh",
+      "exit_code": 0,
+      "source_log": "regressions.log"
+    },
+    {
+      "command": "bash .claude/scripts/test/factory-encrypted-feedback.sh",
+      "exit_code": 0,
+      "source_log": "regressions.log"
+    },
+    {
+      "command": "bash .claude/scripts/test/factory-hosted-feedback.sh",
+      "exit_code": 0,
+      "source_log": "regressions.log"
+    },
+    {
+      "command": "bash .claude/scripts/test/factory-hosted-digest.sh",
+      "exit_code": 0,
+      "source_log": "regressions.log"
+    },
+    {
+      "command": "bash .claude/scripts/test/factory-request-intake.sh all",
+      "exit_code": 1,
+      "source_log": "regressions.log"
+    },
+    {
+      "command": "bash .claude/scripts/test/factory-request-intake.sh worker-descriptor",
+      "exit_code": 0,
+      "source_log": "system-python-regressions.log"
+    },
+    {
+      "command": "bash .claude/scripts/test/factory-request-intake.sh tool-read",
+      "exit_code": 0,
+      "source_log": "system-python-regressions.log"
+    },
+    {
+      "command": "bash .claude/scripts/test/factory-request-intake.sh tool-mutation",
+      "exit_code": 0,
+      "source_log": "system-python-regressions.log"
+    },
+    {
+      "command": "bash .claude/scripts/test/factory-request-intake.sh worker-launch",
+      "exit_code": 0,
+      "source_log": "system-python-regressions.log"
+    },
+    {
+      "command": "bash .claude/scripts/test/factory-request-intake.sh worker-outcome",
+      "exit_code": 0,
+      "source_log": "system-python-regressions.log"
+    },
+    {
+      "command": "bash .claude/scripts/test/factory-request-intake.sh hooks",
+      "exit_code": 0,
+      "source_log": "system-python-regressions.log"
+    },
+    {
+      "command": "bash .claude/scripts/test/factory-request-intake.sh console",
+      "exit_code": 0,
+      "source_log": "system-python-regressions.log"
+    },
+    {
+      "command": "bash .claude/scripts/test/factory-request-intake.sh urgent-control",
+      "exit_code": 0,
+      "source_log": "system-python-regressions.log"
+    },
+    {
+      "command": "bash .claude/scripts/test/factory-request-intake.sh phase1",
+      "exit_code": 0,
+      "source_log": "system-python-regressions.log"
+    }
+  ],
+  "limitations": [
+    "Bundled Python exceeds 8 MB source-pin limit in a worker fixture; remaining suites passed with Homebrew Python.",
+    "Apple Python lacks the required pathlib API."
+  ],
+  "publication_independently_verified": true
+}

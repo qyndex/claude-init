@@ -1,0 +1,13 @@
+0	bash .claude/scripts/test/factory-intake-adoption.sh rollback-observability (ledger GREEN; bundled crypto Python3.12.14)
+0	bash .claude/scripts/test/factory-intake-slack.sh authenticated (bundled crypto Python)
+0	bash .claude/scripts/test/factory-intake-slack.sh edits-replay (bundled crypto Python)
+0	bash .claude/scripts/test/factory-intake-slack.sh publication (bundled crypto Python)
+0	bash .claude/scripts/test/factory-intake-slack.sh checkpoint (bundled crypto Python)
+0	bash .claude/scripts/test/factory-intake-slack.sh checkpoint-failure (bundled crypto Python)
+0	bash .claude/scripts/test/factory-hosted-feedback.sh (bundled crypto Python)
+0	bash .claude/scripts/test/factory-encrypted-feedback.sh (bundled crypto Python)
+0	bash .claude/scripts/test/factory-request-intake.sh urgent-control (Homebrew Python3.14.4)
+0	bash .claude/scripts/test/factory-request-intake.sh approval-eligibility (Homebrew Python3.14.4)
+0	bash -n .claude/scripts/test/factory-intake-adoption.sh
+0	git diff --check
+0	bash .claude/scripts/validate.sh

@@ -1,0 +1,11 @@
+0	local-all	verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/local-all.log
+0	routes	verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/routes.log
+0	slack	verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/slack.log
+0	rollback	verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/rollback.log
+0	adoption	verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/adoption.log
+0	runtime	verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/runtime.log
+0	supervisor	verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/supervisor.log
+0	routing	verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/routing.log
+0	ledger	verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/ledger.log
+0	bounds	verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/bounds.log
+0	environment	verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/environment.log

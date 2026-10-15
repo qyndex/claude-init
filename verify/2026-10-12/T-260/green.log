@@ -1,0 +1,7 @@
+# TDD ledger — green — T-260
+ledger_format: 2
+timestamp: 2026-10-12T21:40:03+11:00
+command: bash .claude/scripts/test/factory-intake-proposed-scope.sh
+exit_code: 0
+---
+proposed-scope: actual assessor accepts safe new paths for draft/question only; escape/secret/link/noncanonical and uncollected resume/evidence scopes block without mutation

@@ -1,0 +1,7 @@
+# TDD ledger — green — T-226
+ledger_format: 2
+timestamp: 2026-10-12T20:53:45+11:00
+command: bash .claude/scripts/test/factory-request-intake.sh contract
+exit_code: 0
+---
+contract: neutral OFF, private canonical paths, finite budgets, exact pins and hostile overrides passed

@@ -1,0 +1,7 @@
+# TDD ledger — green — T-265
+ledger_format: 2
+timestamp: 2026-10-12T23:59:43+11:00
+command: bash .claude/scripts/test/factory-request-intake.sh decision-freshness
+exit_code: 0
+---
+decision-freshness: current context/Git/request/evidence/proposal/approval/eligibility/protected pins accept fresh and reject drift without effects or provider reruns

@@ -1,0 +1,2 @@
+worker-contract: >8MB designated interpreter indirect closure accepted; byte and hash drift rejected; source bound unchanged
+worker-contract: protected primary binding, exact closure and observation, hostile controls rejected; disabled unchanged; no process launched

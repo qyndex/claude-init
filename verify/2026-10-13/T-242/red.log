@@ -1,0 +1,12 @@
+# TDD ledger — red — T-242
+ledger_format: 2
+timestamp: 2026-10-13T11:37:12+11:00
+command: bash .claude/scripts/test/factory-request-intake.sh mutation-guard
+exit_code: 1
+red_reason: assertion-failure
+---
+mutation-guard: exact principal/stage/path, controlled write overlay, new file, unknown outcome fencing/reconciliation and outside-scope drift passed
+Traceback (most recent call last):
+  File "<stdin>", line 124, in <module>
+  File "<stdin>", line 14, in reject
+AssertionError: hostile assessor profile accepted

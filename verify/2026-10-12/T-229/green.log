@@ -1,0 +1,7 @@
+# TDD ledger — green — T-229
+ledger_format: 2
+timestamp: 2026-10-12T20:58:06+11:00
+command: bash .claude/scripts/test/factory-request-intake.sh identity
+exit_code: 0
+---
+identity: identical human submissions remain distinct; trusted-token concurrent/restart retry is idempotent; conflicts have no new effect

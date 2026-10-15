@@ -1,0 +1,11 @@
+# TDD ledger — red — T-272
+ledger_format: 2
+timestamp: 2026-10-14T11:25:26+11:00
+command: bash .claude/scripts/test/factory-request-intake.sh worker-outcome
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 145, in <module>
+  File "worker-outcome-fixture", line 240, in <module>
+AssertionError: post-bootstrap dependency change minted semantic receipt

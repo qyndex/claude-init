@@ -1,0 +1,12 @@
+# TDD ledger — red — T-246
+ledger_format: 2
+timestamp: 2026-10-14T20:56:43+11:00
+command: bash .claude/scripts/test/factory-request-intake.sh phase1
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 7, in <module>
+  File "installed-console-actions", line 81, in <module>
+  File "console-fixture", line 123, in <module>
+KeyError: 'action'

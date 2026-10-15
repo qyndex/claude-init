@@ -1,0 +1,10 @@
+# TDD ledger — red — T-267
+ledger_format: 2
+timestamp: 2026-10-13T17:01:39+11:00
+command: bash .claude/scripts/test/factory-request-intake.sh worker-contract
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 97, in <module>
+AssertionError: ['atime-only read must preserve valid artifact', 'large pinned executable must use protected indirect pin chain', 'verified helper bytes must execute without reopening source or pycache']

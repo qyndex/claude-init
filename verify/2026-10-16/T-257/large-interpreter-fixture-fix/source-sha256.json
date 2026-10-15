@@ -1,0 +1,5 @@
+{
+  ".claude/scripts/test/factory-intake-worker-contract.sh": "98d550c85e49f393ebafcf28d0478cef6b0eee8da430599403ed3a870a9b6a15",
+  ".claude/scripts/test/factory-intake-worker-descriptor.sh": "0dc865ae22169c056b29bf6762a7d201e66322c8902583b887d9e3d356dfd8fe",
+  ".claude/scripts/test/factory-intake-worker-launch.sh": "5d5cf756b6e653abb7975d140df06e3b0dd8aafe0f9fd853997f8265862b275f"
+}

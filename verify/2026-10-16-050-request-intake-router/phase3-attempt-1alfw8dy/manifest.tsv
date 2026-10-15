@@ -1,0 +1,11 @@
+1	local-all	verify/2026-10-16-050-request-intake-router/phase3-attempt-1alfw8dy/local-all.log
+1	routes	verify/2026-10-16-050-request-intake-router/phase3-attempt-1alfw8dy/routes.log
+1	slack	verify/2026-10-16-050-request-intake-router/phase3-attempt-1alfw8dy/slack.log
+0	rollback	verify/2026-10-16-050-request-intake-router/phase3-attempt-1alfw8dy/rollback.log
+0	adoption	verify/2026-10-16-050-request-intake-router/phase3-attempt-1alfw8dy/adoption.log
+0	runtime	verify/2026-10-16-050-request-intake-router/phase3-attempt-1alfw8dy/runtime.log
+0	supervisor	verify/2026-10-16-050-request-intake-router/phase3-attempt-1alfw8dy/supervisor.log
+0	routing	verify/2026-10-16-050-request-intake-router/phase3-attempt-1alfw8dy/routing.log
+0	ledger	verify/2026-10-16-050-request-intake-router/phase3-attempt-1alfw8dy/ledger.log
+0	bounds	verify/2026-10-16-050-request-intake-router/phase3-attempt-1alfw8dy/bounds.log
+0	environment	verify/2026-10-16-050-request-intake-router/phase3-attempt-1alfw8dy/environment.log

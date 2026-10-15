@@ -110,12 +110,18 @@ class Store:
             db.execute('INSERT INTO tasks(id,revision,deps,state) VALUES(?,?,?,?)',
                        (task, revision, encoded, 'queued'))
 
-    def claim(self, task, owner, seconds, now=None):
+    def claim(self, task, owner, seconds, now=None, *, expected=None):
         now = self.instant(now); self.duration(seconds)
         if not isinstance(owner, str) or not owner.strip():
             raise ValueError('owner required')
         with self.transaction() as db:
             row = self.row(db, task)
+            if expected is not None:
+                fields={'state','owner','revision','fence','authority','deps'}
+                if not isinstance(expected,dict) or set(expected)!=fields or expected['state']!='queued' or expected['owner'] is not None or type(expected['fence']) is not int or expected['fence']<0 or not isinstance(expected['revision'],str) or re.fullmatch(r'[0-9a-f]{64}',expected['revision']) is None or not isinstance(expected['deps'],str) or not isinstance(expected['authority'],str):
+                    raise ValueError('invalid expected queued claim binding')
+                if not all(row[name]==expected[name] for name in fields):
+                    raise Blocked('expected queued claim changed')
             if db.execute('SELECT paused FROM control WHERE id=1').fetchone()[0]:
                 raise Blocked('factory paused')
             if row['state'] in TERMINAL or (row['expires'] is not None and row['expires'] > now):

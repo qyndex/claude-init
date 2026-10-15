@@ -36,6 +36,24 @@ def private_paths(config):
     return root,db
 
 
+
+def captured_file(path, maximum, protected=False):
+    """Finite stable no-follow regular-file capture before executing pinned bytes."""
+    require(path.is_absolute() and path.resolve()==path, 'hosted intake file must be canonical')
+    descriptor=os.open(path,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK)
+    try:
+        opened=os.fstat(descriptor)
+        require(stat.S_ISREG(opened.st_mode) and opened.st_uid==os.getuid() and opened.st_nlink==1
+                and opened.st_size<=maximum and not opened.st_mode & 0o022
+                and (not protected or stat.S_IMODE(opened.st_mode)==0o600),'hosted intake file type/owner/mode/link invalid')
+        with os.fdopen(descriptor,'rb',closefd=False) as handle:raw=handle.read(maximum+1)
+        after=os.fstat(descriptor);current=path.lstat()
+        identity=lambda value:(value.st_dev,value.st_ino,value.st_mode,value.st_uid,value.st_nlink,value.st_size,value.st_mtime_ns,value.st_ctime_ns)
+        require(len(raw)<=maximum and identity(opened)==identity(after)==identity(current),
+                'hosted intake file changed while reading')
+        return raw
+    finally:os.close(descriptor)
+
 def timestamp(value):
     require(isinstance(value,str) and len(value)<=20 and re.fullmatch(r'[0-9]+\.[0-9]{1,6}',value),'Slack source timestamp invalid')
     return Decimal(value)
@@ -82,7 +100,7 @@ def messages(client,config,now):
     raise ValueError('feedback history exceeds capture bound')
 
 
-def run(config,api,client,now):
+def run(config,api,client,now, *, checkpoint_barrier=None):
     require(config.get('enabled') is True and config.get('feedback_enabled') is True and api.repo==config['repository']==config['state_repository'],'Slack feedback disabled or foreign')
     root,db=private_paths(config)
     operators=config['operators'];require(isinstance(operators,list) and 0<len(operators)<=100 and len(set(operators))==len(operators) and all(isinstance(operator,str) and re.fullmatch(r'[UW][A-Z0-9]+',operator) for operator in operators),'explicit operator allowlist required')
@@ -94,7 +112,7 @@ def run(config,api,client,now):
     require(checkpoint.bytes is not None,'source report checkpoint missing')
     snapshot=json.loads(checkpoint.bytes,object_pairs_hook=f.digest.coordinator.contract.no_duplicate_keys)
     state.validate(snapshot,config['repository'],stream)
-    verified=set()
+    verified=set();proofs={}
     for document,_ in observations:
         choices=[]
         for batch in snapshot['tables']['digest_batches']:
@@ -106,6 +124,38 @@ def run(config,api,client,now):
             adapter=state.slack.transport(client,config,batch)
             require(adapter.lookup(batch['key']).get('receipt')==json.loads(batch['receipt']),'source digest remote receipt differs')
             verified.add(batch['key'])
+        proofs[batch['key']]={'receipt_sha256':state.hashlib.sha256(state.canonical(json.loads(batch['receipt'])).encode()).hexdigest(),
+                              'content_revision':state.hashlib.sha256(batch['payload'].encode()).hexdigest(),'payload':batch['payload']}
+    intake=None
+    if config.get('intake_config') is None:
+        if db.exists():
+            with sqlite3.connect(db.as_uri()+'?mode=ro',uri=True) as existing:
+                require(not existing.execute("SELECT name FROM sqlite_master WHERE type='table' AND name GLOB 'intake_*'").fetchone(),
+                        'protected hosted intake config lost or disabled')
+    else:
+        # Execute captured controller bytes only after private configuration and all receipts validate.
+        config_path=Path(config['intake_config'])
+        require(config_path.is_absolute() and config_path.parent==root and config_path.resolve()==config_path
+                and not config_path.is_symlink() and config_path.is_file() and config_path.stat().st_uid==os.getuid()
+                and stat.S_IMODE(config_path.stat().st_mode)==0o600 and config_path.stat().st_nlink==1
+                and config_path.stat().st_size<=65536,'hosted intake config must be protected private-root file')
+        raw=captured_file(config_path,65536,True)
+        protected=json.loads(raw,object_pairs_hook=f.digest.coordinator.contract.no_duplicate_keys)
+        fields={'schema_version','enabled','mode','repository','team_id','destination','stream','feedback_config_sha256','controller_sha256'}
+        stable={key:value for key,value in config.items() if key not in {'private_root','runtime_database','implementation_roots','intake_config','assessment_profile'}}
+        require(isinstance(protected,dict) and set(protected) in (fields,fields|{'assessment'}) and type(protected['schema_version']) is int
+                and protected['schema_version']==1 and protected['enabled'] is True and protected['mode']=='hosted-slack-capture-v1'
+                and protected['repository']==config['repository'] and protected['team_id']==config['team_id']
+                and protected['destination']==config['destination'] and protected['stream']==stream
+                and protected['feedback_config_sha256']==state.hashlib.sha256(state.canonical(stable).encode()).hexdigest(),
+                'hosted intake protected schema/binding differs')
+        intake_path=Path(__file__).with_name('factory-intake.py')
+        intake_path=intake_path.absolute()
+        intake_raw=captured_file(intake_path,8000000)
+        require(protected.get('controller_sha256')==state.hashlib.sha256(intake_raw).hexdigest(),'hosted intake controller pin differs')
+        namespace={'__file__':str(intake_path.resolve()),'__name__':'hosted_slack_intake'}
+        exec(compile(intake_raw,str(intake_path),'exec'),namespace)
+        intake=namespace['HostedSlackIntake'](config,stream,protected,state.hashlib.sha256(intake_raw).hexdigest(),checkpoint_barrier=checkpoint_barrier)
     old_umask=os.umask(0o077)
     try:
         with tempfile.TemporaryDirectory(dir=root) as tmp:
@@ -123,7 +173,9 @@ def run(config,api,client,now):
                 expected=(config['repository'],config['team_id'],config['destination'])
                 require(identity is None or tuple(identity)==expected, 'feedback runtime repository/workspace/destination differs')
                 if identity is None:transaction.execute('INSERT INTO feedback_ingress_identity VALUES(1,?,?,?)',expected)
-            identities=feedback.intake_batch(report,[document for document,_ in observations])
+            documents=[document for document,_ in observations]
+            capture=None if intake is None else lambda transaction,identities:intake.capture(feedback,documents,identities,proofs,config['branch'],transaction=transaction)
+            identities=feedback.intake_batch(report,documents,after_capture=capture)
             with feedback.store.transaction() as transaction:
                 for identity,(document,urgent) in zip(identities,observations):
                     if urgent:
@@ -132,6 +184,7 @@ def run(config,api,client,now):
                         matching=[item for item in prior if item.get('type')=='urgent-requested']
                         require(not matching or matching==[event],'urgent request replay conflicts')
                         if not matching:feedback.event(transaction,identity,event)
+            if intake is not None:intake.process(feedback,documents,identities,proofs)
             return {'captured':len(identities),'identities':identities}
     finally:os.umask(old_umask)
 

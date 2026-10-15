@@ -1,0 +1,59 @@
+contract: neutral OFF, private canonical paths, finite budgets, exact pins and hostile overrides passed
+migration: additive private schema preserves existing bytes; foreign/version/trigger state rejects and pause survives restart
+schema: exact request/decision/action fields, duplicate/nonfinite data, mixed-scope resume and unsafe paths reject
+identity: identical human submissions remain distinct; trusted-token concurrent/restart retry is idempotent; conflicts have no new effect
+pending: exact session/cwd/digest match consumes once; generated/conflicting callbacks cannot allocate; lost or expired ingress fences replay
+lightweight: answer/status use zero assessments; explicit eligible session task resolves; unbound/stale scope clarifies; mixed scope needs Scout and stop pauses
+context: tracked allowlisted data, approved digests, secrets/link rejection, inert Git metadata and exact request/envelope limits passed
+assessment-profile: exact primary model/argv, pinned clean controls and bound observation; hostile overrides, fallback, changed/unsafe artifacts reject; no process launched
+assessment-process: actual pinned fake CLI clean env/private stdin/model JSON; aggregate flood, quota/schema/model/timeout/descendant failures have no retry; overall collection deadline passed
+assessment-outcome: actual private end-to-end decision; reservation/restart/concurrency fences; dataflow/ref/pin/schema/evidence failures block; store failure has zero provider effects
+proposed-scope: actual assessor accepts safe new paths for draft/question only; escape/secret/link/noncanonical and uncollected resume/evidence scopes block without mutation
+contract-catalog: completed approved specs and optional bound plans feed actual defect draft/inspection; closed tasks never resume; stale/foreign/path/AC/budget contracts block
+flat-root: actual private assessment collects tracked main.py and proposes login.py under dot root; file-dot, unsafe roots, private/secret/link/traversal/untracked/over-budget paths reject
+session-continuation: unbound/global/other-session work clarifies; explicit eligible task binds; proposal/blocked/unresolved dominance and completed-task fencing passed
+clarification-revisions: actual immutable thread APIs preserve identity/tokens; same-thread replies/edits advance; stale/foreign/unresolved/blocked links reject; standalone scope is separate
+decision-freshness: current context/Git/request/evidence/proposal/approval/eligibility/protected pins accept fresh and reject drift without effects or provider reruns
+approval-eligibility: strict first-header approval/spec bindings and malformed/duplicate/body-spoof/OQ rejection; intake/global pause fence fresh permits and valid scope resumes without provider/effects
+proposal: actual private draft-only assigned slots/current guards, exact replay, immutable edits, hostile paths/links/collisions and unknown-effect reconciliation without approved scope/provider mutation
+enqueue-guard: actual API/CLI omitted/env/registry/profile/privacy/helper-pin/wrong-task/draft/stale/pause bypasses reject before enqueue; exact current T-1 queues alone with durable intent; disabled legacy unchanged
+start-guard: installed API/CLI omission/profile/store/action/authority bypasses reject before probe/effect; direct safe-mode mandatory start fenced; unregistered OFF behavior unchanged
+actions-reconcile: immutable intent, competing request serialization, exact claim replay/freshness and registered supervisor refusal
+mutation-guard: exact principal/stage/path, controlled write overlay, new file, unknown outcome fencing/reconciliation and outside-scope drift passed
+mutation-guard: interior wildcard does not broaden exact coordinator authority
+mutation-guard: actual assessment/freshness accepts existing trailing-star scope
+worker-contract: >8MB designated interpreter indirect closure accepted; byte and hash drift rejected; source bound unchanged
+worker-contract: protected primary binding, exact closure and observation, hostile controls rejected; disabled unchanged; no process launched
+worker-descriptor: immutable actual-claim issuance/retry, private directories, once-only bound hook subprocess and uncertainty fencing; no human intake or native launch
+tool-read: real implementing claim and consumed submit, selected disclosure/exact task outputs only; unselected/control/private/changed data and unsupported tools reject; pending effects fence
+tool-mutation: actual fake effects reserve once before write, exact bounded Edit and independent postimage reconciliation; replay/conflict/unsupported inputs deny and failed/missing outcomes fence
+tool-mutation: missing-post shim closure denied before native effect
+tool-mutation: changed-post shim closure denied before native effect
+worker-launch case: blocked-forward
+worker-launch case: outer-timeout
+worker-launch case: missing-shell
+worker-launch: actual pinned fake native clean cwd/home/env/argv and protected submit/Read/Write/post hooks; durable launch has no replay or engineering verdict
+worker-launch case: corrupt-seconds
+worker-launch case: corrupt-output
+worker-launch case: corrupt-outcome
+worker-launch case: corrupt-stdin
+worker-launch case: hook-missing
+worker-launch case: hook-crash
+worker-launch case: hook-invalid
+worker-launch case: hook-timeout
+worker-launch case: wrapper-death
+worker-outcome: actual private hooked subprocess result, exact session/model/bounds and current owned state; native narrative cannot grant engineering/merge authority; unknown launch has no retry
+assembled-hooks: normal; actual pinned native/hook subprocesses, observed files, no unauthorized effects or duplicate launch; no live native certificate
+assembled-hooks: denied-read; actual pinned native/hook subprocesses, observed files, no unauthorized effects or duplicate launch; no live native certificate
+assembled-hooks: denied-write; actual pinned native/hook subprocesses, observed files, no unauthorized effects or duplicate launch; no live native certificate
+assembled-hooks: wrong-session; actual pinned native/hook subprocesses, observed files, no unauthorized effects or duplicate launch; no live native certificate
+assembled-hooks: lost-pre; actual pinned native/hook subprocesses, observed files, no unauthorized effects or duplicate launch; no live native certificate
+assembled-hooks: failed-post; actual pinned native/hook subprocesses, observed files, no unauthorized effects or duplicate launch; no live native certificate
+assembled-hooks: lost-post; actual pinned native/hook subprocesses, observed files, no unauthorized effects or duplicate launch; no live native certificate
+console: real foreground stdin/subprocess, protected registry, distinct/retried ingress, logical resume and private proposal lineage; native delivery unavailable, no task launch
+urgent-control: real stdin cancels owned Scout before SQLite lock release; failed durable pause remains blocked
+console: real foreground stdin/subprocess, protected registry, distinct/retried ingress, logical resume and private proposal lineage; native delivery unavailable, no task launch
+phase1 prerequisite fenced: capability
+phase1 prerequisite fenced: approval
+phase1: actual installed console to guarded worker and generated hook subprocesses; runtime completion only
+phase1: urgent installed console stop confirms guardian cleanup of actual native group

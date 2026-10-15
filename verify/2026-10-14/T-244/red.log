@@ -1,0 +1,10 @@
+# TDD ledger — red — T-244
+ledger_format: 2
+timestamp: 2026-10-14T15:33:45+11:00
+command: bash .claude/scripts/test/factory-request-intake.sh console
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 5, in <module>
+AssertionError: protected foreground console entry is absent

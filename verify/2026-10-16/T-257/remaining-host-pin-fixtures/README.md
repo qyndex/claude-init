@@ -1,0 +1,7 @@
+# Remaining host interpreter pin copies
+
+The second Linux CI phase3 attempt passed the other ten suites but local-all reached Read and failed the unchanged 8 MB intake source bound. Local Read and mutation suites both reproduced that exact error using the bundled 18,058,560-byte Python before edits, then passed identical commands after removing the redundant host interpreter from their source/probe pin collections. Configured guarded wrappers remain pinned; production is unchanged.
+
+A repository-wide test-fixture audit found exactly those two remaining direct sys.executable pin copies. Existing routing/release fixtures intentionally use designated runtime executable pins and do not place host Python in intake source contracts. Ordinary host subprocess commands/shebangs remain testing tools. The generic regression scans every factory fixture for direct source/probe pin statements and parses multiline pins assignments/extend/append to catch copied host interpreter entries. Its original RED identifies both copies. After strengthening multiline parsing, restoring the exact old Read pin temporarily reproduces RED; finally restores exact fixed bytes and GREEN.
+
+All focused Read/Edit real hook suites, the generic regression, syntax, and diff checks passed. No production guard, source-size cap, deadline, task status, or commit changed. Full current Linux CI remains owner responsibility; no aggregate rerun claimed.

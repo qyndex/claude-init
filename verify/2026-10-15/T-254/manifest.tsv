@@ -1,0 +1,6 @@
+0	bash .claude/scripts/test/factory-intake-adoption.sh upgrade (characterization green.log; Homebrew Python 3.14.4)
+0	bash .claude/scripts/test/factory-intake-adoption.sh package (compatibility)
+0	bash .claude/scripts/test/factory-adopt.sh (once)
+0	bash -n .claude/scripts/test/factory-intake-adoption.sh
+0	git diff --check
+0	bash .claude/scripts/validate.sh

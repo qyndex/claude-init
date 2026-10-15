@@ -1,0 +1,10 @@
+# TDD ledger — red — T-269
+ledger_format: 2
+timestamp: 2026-10-13T17:38:01+11:00
+command: bash .claude/scripts/test/factory-request-intake.sh tool-read
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 95, in <module>
+AssertionError: malformed immutable binding treated as temporary authority denial

@@ -1,0 +1,7 @@
+# TDD ledger — green — T-232
+ledger_format: 2
+timestamp: 2026-10-12T21:08:07+11:00
+command: bash .claude/scripts/test/factory-request-intake.sh context
+exit_code: 0
+---
+context: tracked allowlisted data, approved digests, secrets/link rejection, inert Git metadata and exact request/envelope limits passed

@@ -1,0 +1,17 @@
+# TDD ledger — red — T-250
+ledger_format: 2
+timestamp: 2026-10-15T12:27:26+11:00
+command: bash .claude/scripts/test/factory-intake-slack.sh checkpoint
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 283, in <module>
+  File "/Users/shravanjha/.codex/worktrees/factory-activation/claude-init/.claude/scripts/factory-hosted-feedback.py", line 37, in run
+    result=ingress.run(private,api,client,now)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/shravanjha/.codex/worktrees/factory-activation/claude-init/.claude/scripts/factory-slack-feedback.py", line 138, in run
+    require(config_path.is_absolute() and config_path.parent==root and config_path.resolve()==config_path
+  File "/Users/shravanjha/.codex/worktrees/factory-activation/claude-init/.claude/scripts/validate-candidate-evidence.py", line 19, in require
+    raise ValueError(message)
+ValueError: hosted intake config must be protected private-root file

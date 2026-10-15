@@ -1,0 +1,7 @@
+# TDD ledger — green — T-245
+ledger_format: 2
+timestamp: 2026-10-14T17:37:08+11:00
+command: bash .claude/scripts/test/factory-request-intake.sh urgent-control
+exit_code: 0
+---
+urgent-control: real stdin cancels owned Scout before SQLite lock release; failed durable pause remains blocked

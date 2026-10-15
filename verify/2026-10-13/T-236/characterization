@@ -1,0 +1,1 @@
+Verification-only aggregate characterization of controller behavior already implemented by T-263, T-264, T-265 and T-266. The canonical command passed on its first run. No production behavior was changed and no RED failure was fabricated.

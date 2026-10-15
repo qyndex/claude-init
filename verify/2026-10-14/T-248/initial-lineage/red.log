@@ -1,0 +1,10 @@
+# TDD ledger — red — T-248
+ledger_format: 2
+timestamp: 2026-10-14T21:18:48+11:00
+command: bash .claude/scripts/test/factory-intake-slack.sh edits-replay
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 139, in <module>
+AssertionError: authenticated Slack edit did not link its immutable previous request

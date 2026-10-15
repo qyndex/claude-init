@@ -57,8 +57,9 @@ class Feedback:
     def intake(self, reporting_database, document):
         return self.intake_batch(reporting_database, [document])[0]
 
-    def intake_batch(self, reporting_database, documents):
+    def intake_batch(self, reporting_database, documents, *, after_capture=None):
         require(isinstance(documents, list) and len(documents) <= 1000, 'feedback batch too large')
+        require(after_capture is None or callable(after_capture), 'invalid private intake capture callback')
         prepared = [(document, *self.validate_intake(reporting_database, document)) for document in documents]
         require(len({identity for _, identity, _ in prepared}) == len(prepared), 'duplicate feedback source in batch')
         with self.store.transaction() as db:
@@ -68,7 +69,34 @@ class Feedback:
                 if old is None:
                     db.execute('INSERT INTO factory_feedback(id,document,status) VALUES(?,?,?)', (identity, encoded, 'open'))
                     self.event(db, identity, {'type': 'captured', 'document': document})
+            if after_capture is not None:after_capture(db,[identity for _, identity, _ in prepared])
         return [identity for _, identity, _ in prepared]
+
+    def publish_private_proposal(self, intake, request_id, action_id):
+        """Commit only a current protected hosted proposal to this exact private store.
+
+        The draft is review material; existing amendment and acceptance authority
+        remains independent. SQLite publication and its completion share one commit.
+        """
+        require(type(intake).__name__=='HostedSlackIntake' and str(Path(self.store.path).resolve())==str(intake.database)
+                and self.repository==intake.policy['repository'],'hosted proposal store differs')
+        intake.ready_assessment()
+        with self.store.transaction() as db:
+            action,encoded=intake.proposal_material(db,request_id)
+            require(action_id==hashlib.sha256(canonical(action).encode()).hexdigest(), 'hosted proposal action differs')
+            reservation=db.execute('SELECT request_id,document,status FROM intake_actions WHERE id=?',(action_id,)).fetchone()
+            require(reservation is not None and reservation['request_id']==request_id and reservation['document']==canonical(action)
+                    and reservation['status'] in {'reserved','unknown','completed'},'hosted proposal action not reserved')
+            db.execute('CREATE TABLE IF NOT EXISTS feedback_private_proposals(action_id TEXT PRIMARY KEY,request_id TEXT UNIQUE NOT NULL,document TEXT NOT NULL)')
+            prior=db.execute('SELECT request_id,document FROM feedback_private_proposals WHERE action_id=?',(action_id,)).fetchone()
+            require(prior is None or tuple(prior)==(request_id,encoded),'hosted proposal effect conflicts')
+            require(reservation['status']!='completed' or prior is not None,'completed hosted proposal effect missing')
+            if prior is None:db.execute('INSERT INTO feedback_private_proposals VALUES(?,?,?)',(action_id,request_id,encoded))
+            intake.ready_assessment()
+            require(intake.proposal_material(db,request_id)==(action,encoded),'hosted proposal decision changed before commit')
+            result={'action_id':action_id,'request_id':request_id,'sha256':action['target_revision'],'status':'draft'}
+            db.execute("UPDATE intake_actions SET status='completed',result=? WHERE id=?",(canonical(result),action_id))
+            return result
 
     def plan(self, identity, amendment, policy, expected_version=None):
         require(set(amendment) == {'impact', 'bindings', 'supersedes'}, 'malformed amendment')

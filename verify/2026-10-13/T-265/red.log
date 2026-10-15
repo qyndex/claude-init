@@ -1,0 +1,11 @@
+# TDD ledger — red — T-265
+ledger_format: 2
+timestamp: 2026-10-13T00:01:24+11:00
+command: bash .claude/scripts/test/factory-request-intake.sh decision-freshness
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 135, in <module>
+  File "<stdin>", line 14, in reject
+AssertionError: hostile assessor profile accepted

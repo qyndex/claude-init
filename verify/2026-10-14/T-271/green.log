@@ -1,0 +1,19 @@
+# TDD ledger — green — T-271
+ledger_format: 2
+timestamp: 2026-10-14T10:45:22+11:00
+command: bash .claude/scripts/test/factory-request-intake.sh worker-launch
+exit_code: 0
+---
+worker-launch case: blocked-forward
+worker-launch case: outer-timeout
+worker-launch case: missing-shell
+worker-launch: actual pinned fake native clean cwd/home/env/argv and protected submit/Read/Write/post hooks; durable launch has no replay or engineering verdict
+worker-launch case: corrupt-seconds
+worker-launch case: corrupt-output
+worker-launch case: corrupt-outcome
+worker-launch case: corrupt-stdin
+worker-launch case: hook-missing
+worker-launch case: hook-crash
+worker-launch case: hook-invalid
+worker-launch case: hook-timeout
+worker-launch case: wrapper-death
