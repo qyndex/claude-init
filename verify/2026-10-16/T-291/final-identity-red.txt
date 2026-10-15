@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "<stdin>", line 145, in <module>
+  File "<stdin>", line 50, in check
+AssertionError: {'schema_version': 1, 'repository': 'qyndex/claude-init', 'pull_request': 42, 'head_sha': 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 'base_sha': 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', 'spec': '007', 'spec_sha256': 'cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc', 'policy_sha256': '65b253520431278096c864b345730dc1e9eb2bd89e73c1cd257f433c50e0f7d6', 'verifier_run': 1, 'reviewer_run': 2, 'eligible': True, 'merged': True, 'merge_sha': 'dddddddddddddddddddddddddddddddddddddddd'}
