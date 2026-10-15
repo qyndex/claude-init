@@ -1,0 +1,10 @@
+# TDD ledger — red — T-249
+ledger_format: 2
+timestamp: 2026-10-14T21:28:51+11:00
+command: bash .claude/scripts/test/factory-intake-slack.sh publication
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 256, in <module>
+AssertionError: authenticated bounded Scout draft was not stored privately

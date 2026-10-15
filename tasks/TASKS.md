@@ -1474,7 +1474,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-intake-slack.sh edits-replay
   owner: implementer
 
-- [ ] T-249  | spec:050  | phase:2  | priority: security  | created: 2026-10-12  | deps: T-248  | parallel: no  | est: 5m
+- [x] T-249  | spec:050  | phase:2  | priority: security  | created: 2026-10-12  | deps: T-248  | parallel: no  | est: 5m
   summary: Require current intake decision at existing feedback draft publication boundary
   files: .claude/scripts/factory-feedback.py, .claude/scripts/factory-intake.py, .claude/scripts/test/factory-intake-slack.sh
   accept: bash .claude/scripts/test/factory-intake-slack.sh publication

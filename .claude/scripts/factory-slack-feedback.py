@@ -125,7 +125,7 @@ def run(config,api,client,now):
             require(adapter.lookup(batch['key']).get('receipt')==json.loads(batch['receipt']),'source digest remote receipt differs')
             verified.add(batch['key'])
         proofs[batch['key']]={'receipt_sha256':state.hashlib.sha256(state.canonical(json.loads(batch['receipt'])).encode()).hexdigest(),
-                              'content_revision':state.hashlib.sha256(batch['payload'].encode()).hexdigest()}
+                              'content_revision':state.hashlib.sha256(batch['payload'].encode()).hexdigest(),'payload':batch['payload']}
     intake=None
     if config.get('intake_config') is None:
         if db.exists():
@@ -142,8 +142,8 @@ def run(config,api,client,now):
         raw=captured_file(config_path,65536,True)
         protected=json.loads(raw,object_pairs_hook=f.digest.coordinator.contract.no_duplicate_keys)
         fields={'schema_version','enabled','mode','repository','team_id','destination','stream','feedback_config_sha256','controller_sha256'}
-        stable={key:value for key,value in config.items() if key not in {'private_root','runtime_database','implementation_roots','intake_config'}}
-        require(isinstance(protected,dict) and set(protected)==fields and type(protected['schema_version']) is int
+        stable={key:value for key,value in config.items() if key not in {'private_root','runtime_database','implementation_roots','intake_config','assessment_profile'}}
+        require(isinstance(protected,dict) and set(protected) in (fields,fields|{'assessment'}) and type(protected['schema_version']) is int
                 and protected['schema_version']==1 and protected['enabled'] is True and protected['mode']=='hosted-slack-capture-v1'
                 and protected['repository']==config['repository'] and protected['team_id']==config['team_id']
                 and protected['destination']==config['destination'] and protected['stream']==stream
@@ -184,6 +184,7 @@ def run(config,api,client,now):
                         matching=[item for item in prior if item.get('type')=='urgent-requested']
                         require(not matching or matching==[event],'urgent request replay conflicts')
                         if not matching:feedback.event(transaction,identity,event)
+            if intake is not None:intake.process(feedback,documents,identities,proofs)
             return {'captured':len(identities),'identities':identities}
     finally:os.umask(old_umask)
 

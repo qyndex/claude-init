@@ -1,0 +1,7 @@
+# TDD ledger — green — T-249
+ledger_format: 2
+timestamp: 2026-10-15T12:14:17+11:00
+command: bash .claude/scripts/test/factory-intake-slack.sh publication
+exit_code: 0
+---
+AC-5/AC-6/AC-9: actual bounded Scout, guarded current-source private proposal, usage/schema/quota failures, concurrent replay and edit races passed

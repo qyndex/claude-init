@@ -144,21 +144,24 @@ class HostedSlackIntake:
     def __init__(self, config, stream, policy_snapshot, controller_sha256):
         import sqlite3
         self.database=Path(config['runtime_database'])
+        self.config=config
         self.policy=None
         if config.get('intake_config') is not None:
             path=private(config['intake_config']);private(path.parent,True)
             require(path.parent==Path(config['private_root']), 'hosted intake config outside private root')
             value=policy_snapshot
-            require(isinstance(value,dict) and set(value)==self.FIELDS and type(value['schema_version']) is int
+            require(isinstance(value,dict) and set(value) in (self.FIELDS,self.FIELDS|{'assessment'}) and type(value['schema_version']) is int
                     and value['schema_version']==1 and type(value['enabled']) is bool
                     and value['mode']=='hosted-slack-capture-v1','hosted intake schema invalid')
             stable={key:item for key,item in config.items() if key not in
-                    {'private_root','runtime_database','implementation_roots','intake_config'}}
+                    {'private_root','runtime_database','implementation_roots','intake_config','assessment_profile'}}
             require(value['enabled'] is True and value['repository']==config['repository']
                     and value['team_id']==config['team_id'] and value['destination']==config['destination']
                     and value['stream']==stream and value['feedback_config_sha256']==digest(canonical(stable).encode())
                     and value['controller_sha256']==controller_sha256,
                     'hosted intake protected binding differs')
+            assessment=value.get('assessment')
+            if assessment is not None:self.validate_assessment_policy(assessment)
             self.policy=value
         self.binding=None if self.policy is None else digest(canonical(self.policy).encode())
         if self.database.exists():
@@ -266,6 +269,211 @@ class HostedSlackIntake:
                     db.execute('UPDATE intake_slack_heads SET request_id=?,source_revision=? WHERE source_key=?',(request_id,source_revision,base))
                 else:db.execute('INSERT INTO intake_slack_heads VALUES(?,?,?,?)',(base,request_id,source_revision,document['reporter']))
                 db.execute('INSERT INTO intake_events(request_id,event) VALUES(?,?)',(request_id,'authenticated_slack_submitted'))
+
+    @staticmethod
+    def validate_assessment_policy(value):
+        require(isinstance(value,dict) and set(value)=={'enabled','dataflow','profile_sha256','trusted_files','limits'}
+                and type(value['enabled']) is bool,'hosted assessment schema invalid')
+        limits=value['limits']
+        require(isinstance(limits,dict) and set(limits)==set(DEFAULT_LIMITS) and all(type(limits[key]) is int
+                and (1024 if key=='output_bytes' else 1)<=limits[key]<=maximum for key,maximum in DEFAULT_LIMITS.items()),
+                'hosted assessment limits invalid')
+        names={'factory-intake.py','factory-intake-scout.py','factory-routing.py','factory-bounded-process.py','factory-feedback.py'}
+        if not value['enabled']:
+            require(value['dataflow'] is None and value['profile_sha256'] is None and value['trusted_files']=={},
+                    'disabled hosted assessment must be neutral')
+            return
+        require(value['dataflow']=='private-scout-v1' and hex_value(value['profile_sha256'],64)
+                and isinstance(value['trusted_files'],dict) and set(value['trusted_files'])==names
+                and all(hex_value(sha,64) for sha in value['trusted_files'].values()),'hosted assessment protected pins missing')
+
+    @staticmethod
+    def profile_semantics(profile):
+        aliases={}
+        for runtime in profile['runtimes'].values():
+            for collection in (runtime['probe']['trusted_files'],runtime.get('assessment',{}).get('trusted_files',{})):
+                for path,sha in collection.items():
+                    require(path not in aliases or aliases[path]=='sha256:'+sha,'hosted profile artifact aliases conflict')
+                    aliases[path]='sha256:'+sha
+        def normalize(value):
+            if isinstance(value,dict):
+                result={aliases.get(key,key):normalize(item) for key,item in value.items()}
+                require(len(result)==len(value),'hosted profile normalized artifact aliases collide')
+                return result
+            if isinstance(value,list):return [normalize(item) for item in value]
+            return aliases.get(value,value) if isinstance(value,str) else value
+        return digest(canonical(normalize(profile)).encode())
+
+    def ready_assessment(self):
+        require(self.policy is not None and decode(read_file(private(self.config['intake_config']),65536,True))==self.policy,
+                'hosted protected configuration changed')
+        value=self.policy.get('assessment')
+        require(value is not None and value['enabled'] is True,'hosted assessment disabled')
+        self.validate_assessment_policy(value)
+        stable={key:item for key,item in self.config.items() if key not in
+                {'private_root','runtime_database','implementation_roots','intake_config','assessment_profile'}}
+        require(digest(canonical(stable).encode())==self.policy['feedback_config_sha256'], 'hosted feedback configuration changed')
+        # Each module owns an import proxy; concurrent adapters never alter global import machinery.
+        import builtins,importlib.util,importlib.machinery,types
+        directory=Path(__file__).resolve().parent
+        captured={str(directory/name):read_file(directory/name,8000000) for name in value['trusted_files']}
+        require(all(digest(captured[str(directory/name)])==sha for name,sha in value['trusted_files'].items()),
+                'hosted assessment controller closure changed')
+        proxy=types.SimpleNamespace(util=None)
+        original_import=builtins.__import__
+        def importer(name,*args,**kwargs):
+            return proxy if name=='importlib.util' else original_import(name,*args,**kwargs)
+        class Loader:
+            def __init__(self,path):self.path=path
+            def create_module(self,spec):return None
+            def exec_module(self,module):
+                module.__file__=self.path
+                module.__dict__['__builtins__']={**vars(builtins),'__import__':importer}
+                exec(compile(captured[self.path],self.path,'exec'),module.__dict__)
+        def source_spec(name,path):
+            path=str(Path(path))
+            require(path in captured and Path(path).name!='factory-feedback.py','unapproved hosted module import')
+            spec=importlib.machinery.ModuleSpec(name,Loader(path),origin=path);spec.has_location=True;return spec
+        proxy.util=types.SimpleNamespace(spec_from_file_location=source_spec,module_from_spec=importlib.util.module_from_spec)
+        def load(name):
+            spec=source_spec('hosted_'+name,str(directory/name));module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module);return module
+        scout=load('factory-intake-scout.py');routing=load('factory-routing.py')
+        profile_path=private(self.config.get('assessment_profile'));private(profile_path.parent,True)
+        require(profile_path.parent==self.database.parent,'hosted profile locator outside private store')
+        profile=decode(read_file(profile_path,8000000,True));routing.validate(profile)
+        require(profile['repository']==self.policy['repository'] and 'mandatory_intake' not in profile
+                and self.profile_semantics(profile)==value['profile_sha256'],'hosted effective profile differs')
+        selected=scout.load_assessment(profile_path,[Path(item) for item in self.config.get('implementation_roots',[])])
+        return scout,profile,selected
+
+    def current_request(self, db, request_id, *, decision=False):
+        self.validate_store(db)
+        row=db.execute('SELECT * FROM intake_requests WHERE id=?',(request_id,)).fetchone()
+        require(row is not None and row['status']!='superseded','hosted request superseded or missing')
+        request=decode(row['document']);match,base,revision=self.slack_source(row['source_key'])
+        head=db.execute('SELECT * FROM intake_slack_heads WHERE source_key=?',(base,)).fetchone()
+        require(head is not None and head['request_id']==request_id and head['source_revision']==revision
+                and head['actor']==request['actor'] and request['source_revision']==revision
+                and request['repository']==self.policy['repository'] and request['ref']==self.config['branch']
+                and request['session']==f'slack:{self.policy["team_id"]}/{self.policy["destination"]}'
+                and request['submission_key']==row['source_key'] and request['actor'] in self.config['operators']
+                and digest(row['document'].encode())==row['revision'],'hosted current source binding differs')
+        if decision:
+            require(row['status']=='decided' and row['decision'] is not None,'hosted current decision missing')
+            result=decode(row['decision']);validate_decision(result)
+            require(result['request_id']==request_id and result['revision']==row['revision'], 'hosted decision request binding differs')
+        return row,request
+
+    def process(self, feedback, documents, identities, proofs):
+        if self.policy.get('assessment',{}).get('enabled') is not True:return
+        for document,identity in zip(documents,identities):
+            with feedback.store.transaction() as db:
+                row=db.execute('SELECT * FROM intake_requests WHERE source_key=?',(document['source_ref'],)).fetchone()
+                require(row is not None and decode(row['document'])['feedback_id']==identity,'hosted assessment feedback binding differs')
+                if row['status']=='superseded':continue
+                request_id=row['id'];request=decode(row['document']);revision=row['revision']
+                self.current_request(db,request_id)
+                db.execute('CREATE TABLE IF NOT EXISTS intake_assessments(request_id TEXT PRIMARY KEY,revision TEXT NOT NULL,status TEXT NOT NULL,result TEXT,reason TEXT)')
+                db.execute('CREATE TABLE IF NOT EXISTS intake_decision_bindings(request_id TEXT PRIMARY KEY,document TEXT NOT NULL)')
+                prior=db.execute('SELECT * FROM intake_assessments WHERE request_id=?',(request_id,)).fetchone()
+                if prior is not None and prior['status'] in {'running','unknown'}:continue
+                decided=row['decision'] is not None
+            if not decided:
+                binding=None;raw_result=None
+                try:
+                    scout,profile,selected=self.ready_assessment()
+                    public={**request,'request_id':request_id,'revision':revision};public.pop('delivery_token',None)
+                    payload=proofs[document['digest_key']]['payload']
+                    require(digest(payload.encode())==request['content_revision'],'hosted digest context changed')
+                    context=canonical({'schema_version':1,'request':public,'sources':[{'path':'delivered/digest.json','sha256':request['content_revision'],'content':payload}],'approved_evidence':[]}).encode()
+                    limits=self.policy['assessment']['limits'];require(len(context)<=limits['context_bytes'],'hosted context bound exceeded')
+                    import uuid
+                    binding={'attempt':uuid.uuid4().hex,'revision':revision,'request_document':row['document'],'contract_sha256':self.binding,
+                             'profile_sha256':self.policy['assessment']['profile_sha256'],'context_sha256':digest(context),'selected':selected}
+                    with feedback.store.transaction() as db:
+                        current,_=self.current_request(db,request_id)
+                        prior=db.execute('SELECT * FROM intake_assessments WHERE request_id=?',(request_id,)).fetchone()
+                        if prior is not None:continue
+                        require(current['status']=='submitted' and current['assessment_count']==0,'hosted assessment already started')
+                        db.execute("INSERT INTO intake_assessments VALUES(?,?,'running',NULL,NULL)",(request_id,revision))
+                        db.execute('INSERT INTO intake_decision_bindings VALUES(?,?)',(request_id,canonical(binding)))
+                        db.execute("UPDATE intake_requests SET status='assessing',assessment_count=1 WHERE id=?",(request_id,))
+                    # Durable reservation committed; no SQLite transaction spans the native process.
+                    raw_result=scout.run_assessment(self.config['assessment_profile'],[Path(item) for item in self.config.get('implementation_roots',[])],context,**limits)
+                    self.ready_assessment()
+                    result={**raw_result['assessment'],'request_id':request_id,'revision':revision};validate_decision(result)
+                    require(result['next_action'] in {'draft','question','answer','inspect','none','stop'}
+                            and all(result[key] is None for key in ('spec','plan','task'))
+                            and result['disposition']!='existing_approved','hosted assessment cannot invent approved scope')
+                    allowed={('request',request_id,revision),('repository','delivered/digest.json',request['content_revision'])}
+                    require(all((item['kind'],item['ref'],item['sha256']) in allowed for item in result['evidence']), 'hosted assessment invented evidence')
+                    kinds={item['kind'] for item in result['intents']}
+                    require(result['disposition'] in kinds and (not kinds&{'new_feature','changed_requirement'} or result['next_action'] in {'draft','question'}),
+                            'hosted mixed scope cannot execute')
+                    for intent in result['intents']:
+                        for path in intent['scope']:
+                            selected_path=scout.relative(path);scout.permitted(selected_path)
+                            require(result['next_action'] in {'draft','question'} and any(root=='.' or path==root or path.startswith(root+'/') for root in profile['source_roots']),
+                                    'hosted proposed scope outside protected roots')
+                    state='completed'
+                except (ValueError,OSError,KeyError,TypeError,UnicodeError):
+                    result=Intake.assessment_block(request_id,revision,'hosted-assessment-failed');state='blocked'
+                with feedback.store.transaction() as db:
+                    current=db.execute('SELECT * FROM intake_requests WHERE id=?',(request_id,)).fetchone()
+                    if current['status']=='superseded':
+                        db.execute("UPDATE intake_assessments SET status='unknown',reason='source-superseded' WHERE request_id=?",(request_id,));continue
+                    self.current_request(db,request_id)
+                    attempt=db.execute('SELECT document FROM intake_decision_bindings WHERE request_id=?',(request_id,)).fetchone()
+                    if binding is not None:
+                        require(attempt is not None and attempt[0]==canonical(binding) and current['revision']==revision
+                                and current['document']==binding['request_document'],'hosted assessment reservation changed')
+                        db.execute('UPDATE intake_assessments SET status=?,result=?,reason=? WHERE request_id=?',
+                                   (state,None if raw_result is None else canonical(raw_result),result['blocked_reason'],request_id))
+                        if state=='completed':
+                            binding['result_sha256']=digest(canonical(raw_result).encode())
+                            db.execute('UPDATE intake_decision_bindings SET document=? WHERE request_id=?',(canonical(binding),request_id))
+                    db.execute('UPDATE intake_requests SET status=?,decision=? WHERE id=?',('decided' if state=='completed' else 'blocked',canonical(result),request_id))
+            with feedback.store.transaction() as db:
+                current,_=self.current_request(db,request_id)
+                result=decode(current['decision']) if current['decision'] is not None else None
+            if result is not None and result['next_action']=='draft':self.publish_proposal(feedback,request_id)
+
+    def proposal_material(self, db, request_id):
+        row,request=self.current_request(db,request_id,decision=True);decision=decode(row['decision'])
+        require(decision['next_action']=='draft' and decision['disposition'] in {'new_feature','changed_requirement','defect'}, 'hosted proposal requires current draft decision')
+        binding=db.execute('SELECT document FROM intake_decision_bindings WHERE request_id=?',(request_id,)).fetchone()
+        assessment=db.execute('SELECT revision,status,result FROM intake_assessments WHERE request_id=?',(request_id,)).fetchone()
+        require(binding is not None and assessment is not None and assessment['revision']==row['revision']
+                and assessment['status']=='completed' and assessment['result'] is not None,'hosted proposal assessment missing')
+        recorded=decode(binding[0]);raw=decode(assessment['result'])
+        _,_,selected=self.ready_assessment()
+        require(recorded['contract_sha256']==self.binding and recorded['request_document']==row['document']
+                and recorded['revision']==row['revision'] and recorded['profile_sha256']==self.policy['assessment']['profile_sha256']
+                and recorded.get('result_sha256')==digest(canonical(raw).encode())
+                and all(raw.get(key)==value for key,value in recorded['selected'].items())
+                and all(raw.get(key)==selected[key] for key in ('runtime','model','capability_evidence'))
+                and {**raw['assessment'],'request_id':request_id,'revision':row['revision']}==decision,
+                'hosted proposal assessment binding differs')
+        proposal={'schema_version':1,'status':'draft','approval':'pending','repository':request['repository'],'request_id':request_id,
+                  'revision':row['revision'],'source':request,'decision':decision}
+        encoded=canonical(proposal)
+        action={'request_id':request_id,'revision':row['revision'],'kind':'proposal_publish','contract_sha256':self.binding,
+                'decision_sha256':digest(row['decision'].encode()),'target_revision':digest(encoded.encode())}
+        return action,encoded
+
+    def publish_proposal(self, feedback, request_id):
+        self.ready_assessment()
+        with feedback.store.transaction() as db:
+            action,encoded=self.proposal_material(db,request_id);action_id=digest(canonical(action).encode())
+            db.execute('CREATE TABLE IF NOT EXISTS intake_actions(id TEXT PRIMARY KEY,request_id TEXT NOT NULL,document TEXT NOT NULL,status TEXT NOT NULL,result TEXT)')
+            prior=db.execute('SELECT document,status FROM intake_actions WHERE id=?',(action_id,)).fetchone()
+            require(prior is None or (prior['document']==canonical(action) and prior['status'] in {'reserved','unknown','completed'}), 'hosted proposal action conflicts')
+            if prior is None:db.execute("INSERT INTO intake_actions VALUES(?,?,?,'reserved',NULL)",(action_id,request_id,canonical(action)))
+        try:return feedback.publish_private_proposal(self,request_id,action_id)
+        except (OSError,ValueError):
+            with feedback.store.transaction() as db:
+                db.execute("UPDATE intake_actions SET status='unknown' WHERE id=? AND status='reserved'",(action_id,))
+            return None
 
 def header_values(raw, field):
     """Parse the supported flat frontmatter; ambiguous/unsupported headers fail closed."""

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
-case "${1:-authenticated}" in authenticated|edits-replay) ;; *) exit 2 ;; esac
+case "${1:-authenticated}" in authenticated|edits-replay|publication) ;; *) exit 2 ;; esac
 python3 - "$ROOT" "${1:-authenticated}" <<'PYTEST'
 import copy,importlib.util,json,os,sqlite3,sys,tempfile
 from pathlib import Path
@@ -193,5 +193,134 @@ elif sys.argv[2]=='edits-replay':
             assert db.execute('SELECT id,document,revision,status FROM intake_requests').fetchone()==upgrade_before, 'existing current Slack request lost its disposition during lineage upgrade'
         assert before==(api.head,api.writes,client.posts)
         print('AC-2/AC-9: actual authenticated edits, concurrent retries, restart, immutable lineage, missing-prior provenance and atomic actor-conflict rollback passed')
+
+elif sys.argv[2]=='publication':
+
+    # AC-5 / AC-6 / AC-9: actual bounded primary tool-free Scout and guarded private SQLite proposals.
+    import hashlib,threading,time
+    from concurrent.futures import ThreadPoolExecutor
+    with tempfile.TemporaryDirectory() as tmp:
+        private=Path(tmp).resolve();private.chmod(0o700);now=datetime(2026,10,4,22,tzinfo=timezone.utc)
+        config=dict(ns['config'],feedback_enabled=True,state_repository='org/repo',private_root=str(private),runtime_database=str(private/'runtime.sqlite'),operators=['U1'],feedback_start='2026-10-04T00:00:00Z',implementation_roots=[str(root)])
+        api=API();client=Client();assert hosted.run(config,ns['ReportAPI'](),api,client,private/'initial-report',now)['status']=='delivered'
+        api.forbid_writes=True;before=(api.head,api.writes,client.posts)
+        def module(name,path):
+            spec=importlib.util.spec_from_file_location(name,path);result=importlib.util.module_from_spec(spec);spec.loader.exec_module(result);return result
+        routing=module('publication_routing',root/'.claude/scripts/factory-routing.py');core=module('publication_core',root/'.claude/scripts/factory-intake.py')
+        def sha(path):return hashlib.sha256(path.read_bytes()).hexdigest()
+        binary=private/'native';binary.write_text(r'''#!__PYTHON__
+import json,os,sys,time,sqlite3
+from pathlib import Path
+assert sys.argv[1:]==['--print','--model','fixture-model','--output-format','json','--tools','','--disallowedTools','mcp__*','--strict-mcp-config','--mcp-config',str(Path(__file__).with_name('mcp.json')),'--setting-sources','','--settings',str(Path(__file__).with_name('settings.json')),'--no-session-persistence']
+assert set(os.environ)<={'PATH','LANG','LC_ALL','HOME','CLAUDE_CONFIG_DIR','TMPDIR','CLAUDE_CODE_OAUTH_TOKEN','__CF_USER_TEXT_ENCODING'}
+assert os.environ['CLAUDE_CODE_OAUTH_TOKEN']=='fixture-planning' and Path.cwd()==Path(os.environ['HOME'])
+assert not list(Path.cwd().iterdir())
+context=json.loads(sys.stdin.read().split('\nCONTEXT_JSON\n',1)[1]);assert set(context)=={'schema_version','request','sources','approved_evidence'}
+assert context['approved_evidence']==[] and context['sources'];assert 'delivery_token' not in context['request']
+with sqlite3.connect(Path(__file__).with_name('runtime.sqlite'),timeout=.1) as db:db.execute('BEGIN IMMEDIATE');db.rollback()
+mode=context['request']['text'].split(': ',1)[1]
+counter=Path(__file__).with_name('count');counter.write_text(str(int(counter.read_text())+1) if counter.exists() else '1')
+if mode in {'slow','edit-race'}:Path(__file__).with_name('spawned').write_text('ready');time.sleep(.5)
+if mode=='timeout':time.sleep(5)
+assessment={'schema_version':1,'disposition':'new_feature','intents':[{'kind':'new_feature','summary':'Proposed login','scope':['src/login.py']}],'rationale':'new request requires human approval','evidence':[],'uncertainty':'none','spec':None,'plan':None,'task':None,'next_action':'draft','blocked_reason':None}
+result={'type':'result','subtype':'success','is_error':False,'modelUsage':{'fixture-model':{'inputTokens':1,'outputTokens':1}},'result':json.dumps(assessment)}
+if mode=='wrong-model':result['modelUsage']={'foreign':{}}
+if mode=='quota':result.update(subtype='error_during_execution',is_error=True)
+if mode=='invalid':result['result']='not-json'
+if mode=='invent-approval':assessment.update(spec='specs/active/001-login.md',plan='plans/active/001-login.md',task='T-1');result['result']=json.dumps(assessment)
+if mode=='clarify':assessment.update(disposition='clarify',next_action='question',intents=[{'kind':'clarify','summary':'Which login provider?','scope':[]}],uncertainty='missing_context');result['result']=json.dumps(assessment)
+print(json.dumps(result))
+'''.replace('__PYTHON__',str(Path(sys.executable).resolve())));binary.chmod(0o700)
+        settings=private/'settings.json';settings.write_text('{}');settings.chmod(0o600)
+        mcp=private/'mcp.json';mcp.write_text('{"mcpServers":{}}');mcp.chmod(0o600)
+        proof=private/'observation.json';caps=['foreground','model-selection','structured-output','tool-free','config-isolation','hook-failure-block'];proof.write_text(json.dumps({'schema_version':1,'runtime':'primary','model':'fixture-model','executable_sha256':sha(binary),'version':'2.1.295','capabilities':caps}));proof.chmod(0o600)
+        assessment={'argv':[str(binary),'--print','--model','{model}','--output-format','json','--tools','','--disallowedTools','mcp__*','--strict-mcp-config','--mcp-config',str(mcp),'--setting-sources','','--settings',str(settings),'--no-session-persistence'],'trusted_files':{str(item):sha(item) for item in [binary,settings,mcp,proof]},'version':'2.1.295','capabilities':caps,'observation':{'path':str(proof),'sha256':sha(proof)}}
+        native={'kind':'claude-cli','model':'fixture-model','billing':'subscription','location':'local','allowed_model_usage':['fixture-model'],'command':[str(binary),'--safe-mode','--model','{model}','--output-format','json','--print'],'probe':{'argv':[str(binary),'--version'],'trusted_files':{str(binary):sha(binary)},'timeout':5}}
+        checks={'kind':'command','model':None,'billing':'unknown','location':'actions','allowed_model_usage':[],'command':[str(binary)],'probe':{'argv':[str(binary)],'trusted_files':{str(binary):sha(binary)},'timeout':5}}
+        profile={'schema_version':1,'enabled':True,'repository':'org/repo','source_roots':['src'],'stacks':{'python':{'tools':[str(binary)],'acceptance':[str(binary),'test']}},'runtimes':{'primary':dict(native,assessment=assessment),'review':dict(native,location='actions',command=native['command']+['--no-session-persistence']),'checks':checks},'roles':{role:{'primary':name,'fallbacks':[],'capabilities':sorted(routing.FLOORS[role])} for role,name in [('planning','primary'),('implementation','primary'),('review','review'),('verification','checks'),('security','checks')]}}
+        profile_path=private/'profile.json';profile_path.write_text(json.dumps(profile));profile_path.chmod(0o600)
+        # Independently normalize only explicitly pinned artifact locators; every remaining profile field stays bound.
+        aliases={str(item):'sha256:'+sha(item) for item in [binary,settings,mcp,proof]}
+        def normalize(value):
+            if isinstance(value,dict):return {aliases.get(key,key):normalize(item) for key,item in value.items()}
+            if isinstance(value,list):return [normalize(item) for item in value]
+            return aliases.get(value,value) if isinstance(value,str) else value
+        semantic_hash=hashlib.sha256(hosted.canonical(normalize(profile)).encode()).hexdigest()
+        config['assessment_profile']=str(profile_path)
+        stable={key:value for key,value in config.items() if key not in {'private_root','runtime_database','implementation_roots','intake_config','assessment_profile'}}
+        closure=['factory-intake.py','factory-intake-scout.py','factory-routing.py','factory-bounded-process.py','factory-feedback.py']
+        policy={'schema_version':1,'enabled':True,'mode':'hosted-slack-capture-v1','repository':'org/repo','team_id':'T1','destination':'C1','stream':hashlib.sha256(hosted.canonical(['org/repo','C1','main']).encode()).hexdigest(),'feedback_config_sha256':hashlib.sha256(hosted.canonical(stable).encode()).hexdigest(),'controller_sha256':sha(root/'.claude/scripts/factory-intake.py'),'assessment':{'enabled':True,'dataflow':'private-scout-v1','profile_sha256':semantic_hash,'trusted_files':{name:sha(root/'.claude/scripts'/name) for name in closure},'limits':{'request_chars':20000,'context_bytes':500000,'output_bytes':65536,'assessment_seconds':3}}}
+        policy_path=private/'intake.json';policy_path.write_text(json.dumps(policy));policy_path.chmod(0o600);config['intake_config']=str(policy_path)
+        os.environ['FACTORY_PLANNING_CLAUDE_OAUTH_TOKEN']='fixture-planning'
+        ts=str(int(now.timestamp())-10)+'.000001'
+        def message(mode,stamp=ts):return {'type':'message','user':'U1','ts':stamp,'text':'factory feedback #1 enhancement: '+mode}
+        client.input=[message('login')]
+        try:result=m.run(config,api,client,now)
+        except ValueError:result=None
+        with sqlite3.connect(config['runtime_database']) as db:
+            assert db.execute("SELECT name FROM sqlite_master WHERE name='feedback_private_proposals'").fetchone(), 'authenticated bounded Scout draft was not stored privately'
+            proposals=db.execute('SELECT document FROM feedback_private_proposals').fetchall();assert len(proposals)==1
+            proposal=json.loads(proposals[0][0]);assert proposal['status']=='draft' and proposal['approval']=='pending' and proposal['repository']=='org/repo'
+            assert db.execute('SELECT COUNT(*) FROM tasks').fetchone()[0]==0
+            assert db.execute('SELECT status FROM factory_feedback').fetchone()[0]=='open'
+            assert db.execute('SELECT assessment_count FROM intake_requests').fetchone()[0]==1
+        # AC-6: valid-shaped substituted decisions and provenance must not authorize publication.
+        adapter=core.HostedSlackIntake(config,policy['stream'],policy,policy['controller_sha256'])
+        with sqlite3.connect(config['runtime_database']) as db:
+            db.row_factory=sqlite3.Row
+            saved=db.execute('SELECT id,decision FROM intake_requests').fetchone();identity=saved['id']
+            altered=json.loads(saved['decision']);altered['rationale']='different unassessed scope'
+            db.execute('UPDATE intake_requests SET decision=? WHERE id=?',(hosted.canonical(altered),identity))
+            rejects(lambda:adapter.proposal_material(db,identity))
+            db.execute('UPDATE intake_requests SET decision=? WHERE id=?',(saved['decision'],identity))
+            original=db.execute('SELECT result FROM intake_assessments WHERE request_id=?',(identity,)).fetchone()[0]
+            for key,value in [('model','foreign-model'),('profile_sha256','0'*64),('assessment_sha256','0'*64)]:
+                changed=json.loads(original);changed[key]=value
+                db.execute('UPDATE intake_assessments SET result=? WHERE request_id=?',(hosted.canonical(changed),identity))
+                rejects(lambda:adapter.proposal_material(db,identity))
+            db.execute('UPDATE intake_assessments SET result=? WHERE request_id=?',(original,identity))
+            assert adapter.proposal_material(db,identity)[0]['kind']=='proposal_publish'
+        # AC-9: private restore relocates pinned artifacts without invalidating the same assessed draft.
+        import shutil
+        with tempfile.TemporaryDirectory() as restored_tmp:
+            restored=Path(restored_tmp).resolve();restored.chmod(0o700)
+            for artifact in [binary,settings,mcp,proof,policy_path]:shutil.copy2(artifact,restored/artifact.name)
+            restored_profile=restored/profile_path.name
+            restored_profile.write_text(profile_path.read_text().replace(str(private),str(restored)));restored_profile.chmod(0o600)
+            with sqlite3.connect(config['runtime_database']) as source_db,sqlite3.connect(restored/'runtime.sqlite') as restored_db:source_db.backup(restored_db)
+            (restored/'runtime.sqlite').chmod(0o600)
+            moved=dict(config,private_root=str(restored),runtime_database=str(restored/'runtime.sqlite'),intake_config=str(restored/policy_path.name),assessment_profile=str(restored_profile))
+            moved_adapter=core.HostedSlackIntake(moved,policy['stream'],policy,policy['controller_sha256'])
+            feedback_module=module('relocated_feedback',root/'.claude/scripts/factory-feedback.py')
+            assert moved_adapter.publish_proposal(feedback_module.Feedback(moved['runtime_database'],'org/repo'),identity)['status']=='draft'
+            assert not (restored/'count').exists(), 'restore retry launched Scout again'
+        count=(private/'count').read_text();assert count=='1'
+        assert m.run(config,api,client,now)==result and (private/'count').read_text()==count
+        for number,mode in enumerate(['wrong-model','quota','invalid','invent-approval','clarify'],1):
+            client.input=[message(mode,str(int(now.timestamp())-9)+f'.00000{number}')];m.run(config,api,client,now)
+            with sqlite3.connect(config['runtime_database']) as db:
+                row=db.execute('SELECT status,decision FROM intake_requests WHERE source_key=?',(f"slack:T1/C1/{client.input[0]['ts']}",)).fetchone();decision=json.loads(row[1])
+                assert decision['next_action']==('question' if mode=='clarify' else 'none')
+                assert decision['spec'] is None and decision['task'] is None
+                assert db.execute('SELECT COUNT(*) FROM feedback_private_proposals').fetchone()[0]==1
+        # Actual duplicate contenders cannot start a second assessor or publish twice.
+        client.input=[message('slow',str(int(now.timestamp())-8)+'.000001')]
+        with ThreadPoolExecutor(max_workers=4) as pool:list(pool.map(lambda _:m.run(config,api,client,now),range(8)))
+        assert (private/'count').read_text()=='7'
+        with sqlite3.connect(config['runtime_database']) as db:assert db.execute('SELECT COUNT(*) FROM feedback_private_proposals').fetchone()[0]==2
+        # Source edit during the real subprocess invalidates its prior decision and prevents publication.
+        (private/'spawned').unlink(missing_ok=True);racing=message('edit-race',str(int(now.timestamp())-7)+'.000001');client.input=[racing]
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            future=pool.submit(m.run,config,api,client,now)
+            deadline=time.monotonic()+3
+            while not (private/'spawned').exists() and time.monotonic()<deadline:time.sleep(.01)
+            assert (private/'spawned').exists();client.input=[dict(racing,text='factory feedback #1 enhancement: clarify',edited={'user':'U1','ts':str(int(now.timestamp())-2)+'.000001'})];m.run(config,api,client,now);future.result()
+        with sqlite3.connect(config['runtime_database']) as db:
+            old=db.execute('SELECT status FROM intake_requests WHERE source_key=?',(f"slack:T1/C1/{racing['ts']}",)).fetchone();assert old[0]=='superseded'
+            assert db.execute('SELECT COUNT(*) FROM feedback_private_proposals').fetchone()[0]==2
+        assert before==(api.head,api.writes,client.posts)
+        public=hosted.GitState(api,config['state_branch'],policy['stream'],config['bootstrap_sha']).bytes
+        assert b'Proposed login' not in public and b'factory feedback' not in public
+        print('AC-5/AC-6/AC-9: actual bounded Scout, guarded current-source private proposal, usage/schema/quota failures, concurrent replay and edit races passed')
 
 PYTEST
