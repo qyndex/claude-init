@@ -34,17 +34,17 @@ evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.0134601Z  
 evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.0134815Z ##[endgroup]
 evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.0242240Z → re-running smoke (bash .claude/scripts/verify.sh)
 evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.0280754Z Verification root: /home/runner/work/claude-init/claude-init
-evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.0282087Z 
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.0282087Z
 evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.0282433Z → Branch freshness
 evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.0438274Z   ✓ branch fresh against main
-evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.1026144Z 
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.1026144Z
 evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.1027214Z → Stack accounting
 evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.1027935Z   ✓ no language stacks detected (template/docs/shell-only repo)
-evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.1028231Z 
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.1028231Z
 evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.1028367Z → Assertion-density gate
 evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.1079459Z assert-density: no test files to check
 evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.1082196Z   ✓ all tests contain real assertions
-evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.1082575Z 
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.1082575Z
 evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.1082972Z → TDD red→green ledger gate (check-tdd-ledger.sh)
 evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.1606745Z ✓ T-194: red+green ledger present and content-valid
 evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:43.2010111Z ✓ T-193: red+green ledger present and content-valid
@@ -278,7 +278,7 @@ evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:50.5519822Z �
 evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:50.5894967Z ✓ T-272: red+green ledger present and content-valid
 evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:50.5895912Z tdd-ledger: 0 fail(s), 0 warn(s), 70 legacy-incomplete (pre-T-111, not enforced)
 evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:50.5901876Z   ✓ TDD ledger gate clean
-evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:50.5902206Z 
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:50.5902206Z
 evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:50.5902399Z → Rerun newly completed task acceptance
 evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:51.7693419Z combined output boundary, legacy limits, invalid bounds and descendant cleanup passed
 evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:53:51.7980270Z T-224: acceptance PASS
@@ -335,13 +335,13 @@ evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:18.2604193Z  
 evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:18.2604615Z ValueError: intake file type/size invalid
 evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:18.2907087Z acceptance: FAIL: T-243: acceptance failed (1)
 evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:18.2962970Z   ✗ task acceptance failed
-evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:18.2963287Z 
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:18.2963287Z
 evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:18.2963533Z → Story → E2E coverage gate
 evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:18.6414961Z   ✓ every approved-spec user story has an E2E test
-evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:18.6415494Z 
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:18.6415494Z
 evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:18.6415748Z → Integration coverage gate
 evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:24.7354887Z   ✓ changed API/DB files have integration tests
-evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:24.7356314Z 
+evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:24.7356314Z
 evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:24.7356847Z verify: FAIL (1 check(s) failed)
 evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:24.7380204Z ##[error]Smoke re-execution FAILED on head, but committed evidence.json claims smoke_exit_max=0 — evidence diverges from reality (G49).
 evidence-gate	Re-execute proof against head (G49)	2026-10-15T16:54:24.7389235Z ##[error]Process completed with exit code 1.
