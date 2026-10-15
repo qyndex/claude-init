@@ -1,0 +1,9 @@
+# TDD ledger — green — T-251
+ledger_format: 2
+timestamp: 2026-10-15T12:38:17+11:00
+command: bash .claude/scripts/test/factory-intake-slack.sh checkpoint-failure
+exit_code: 0
+---
+AC-9/AC-10: finite plaintext/envelope overflow, CAS conflicts and lost acknowledgements before/after Scout preserve encrypted authority and fence reassessment
+AC-9/AC-10: incompatible version, namespace, shape, missing marker and substituted provenance reject without provider/writeback
+AC-9: actual encrypted hosted intake roundtrip, durable pre-Scout intent, fresh retry identity/proposal preservation and crashed-runner fencing passed

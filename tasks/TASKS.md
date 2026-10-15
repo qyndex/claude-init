@@ -1486,7 +1486,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-intake-slack.sh checkpoint
   owner: implementer
 
-- [ ] T-251  | spec:050  | phase:2  | priority: security  | created: 2026-10-12  | deps: T-250  | parallel: no  | est: 5m
+- [x] T-251  | spec:050  | phase:2  | priority: security  | created: 2026-10-12  | deps: T-250  | parallel: no  | est: 5m
   summary: Block incompatible checkpoint writeback overflow and conflict without plaintext projection
   files: .claude/scripts/factory-encrypted-feedback.py, .claude/scripts/factory-hosted-feedback.py, .claude/scripts/test/factory-intake-slack.sh
   accept: bash .claude/scripts/test/factory-intake-slack.sh checkpoint-failure
