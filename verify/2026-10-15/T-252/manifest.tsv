@@ -1,0 +1,6 @@
+0	bash .claude/scripts/test/factory-intake-slack.sh phase2 (ledger green.log)
+0	phase2 green.log exact ordered inventory assertions
+0	bash .claude/scripts/test/factory-intake-slack.sh (unchanged default)
+0	bash -n .claude/scripts/test/factory-intake-slack.sh
+0	git diff --check
+0	bash .claude/scripts/validate.sh

@@ -1492,7 +1492,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-intake-slack.sh checkpoint-failure
   owner: implementer
 
-- [ ] T-252  | spec:050  | phase:2  | priority: security  | created: 2026-10-12  | deps: T-251  | parallel: no  | est: 5m
+- [x] T-252  | spec:050  | phase:2  | priority: security  | created: 2026-10-12  | deps: T-251  | parallel: no  | est: 5m
   summary: Demonstrate actual Slack bridge with encrypted replay and existing feedback regression suites
   files: .claude/scripts/test/factory-intake-slack.sh, docs/FACTORY-REQUEST-INTAKE.md
   accept: bash .claude/scripts/test/factory-intake-slack.sh phase2

@@ -1,0 +1,2 @@
+ea31a6f958444d749ec81e9e3516690919ae2a1dc933c91cf3bf90c7fe1da2fc  .claude/scripts/test/factory-intake-slack.sh
+3e843f2a52b8c5c401f1f55445724a0bc0ae3f896bbe0ce039977c51afced9a2  docs/FACTORY-REQUEST-INTAKE.md

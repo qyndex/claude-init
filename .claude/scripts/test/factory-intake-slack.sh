@@ -1,7 +1,20 @@
 #!/usr/bin/env bash
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
-case "${1:-authenticated}" in authenticated|edits-replay|publication|checkpoint|checkpoint-failure) ;; *) exit 2 ;; esac
+if [[ "${1:-authenticated}" == phase2 ]]; then
+  # AC-1/AC-2/AC-5/AC-6/AC-9/AC-10: assembled offline entry and regression inventory.
+  for selector in hosted-journey authenticated edits-replay publication checkpoint checkpoint-failure; do
+    printf 'phase2 selector: %s\n' "$selector"
+    bash "$0" "$selector"
+  done
+  for suite in factory-legacy-feedback factory-slack-feedback factory-encrypted-feedback factory-hosted-feedback; do
+    printf 'phase2 regression: %s\n' "$suite"
+    bash "$ROOT/.claude/scripts/test/$suite.sh"
+  done
+  printf 'phase2 complete: 6 intake selectors, 4 feedback regressions\n'
+  exit 0
+fi
+case "${1:-authenticated}" in authenticated|edits-replay|publication|checkpoint|checkpoint-failure|hosted-journey) ;; *) exit 2 ;; esac
 python3 - "$ROOT" "${1:-authenticated}" <<'PYTEST'
 import copy,importlib.util,json,os,sqlite3,sys,tempfile
 from pathlib import Path
@@ -11,8 +24,9 @@ spec=importlib.util.spec_from_file_location('ingress',path);m=importlib.util.mod
 fixture=(root/'.claude/scripts/test/factory-hosted-digest.sh').read_text();ns={};exec(fixture.split("<<'PYTEST'\n",1)[1].split('with tempfile.TemporaryDirectory() as tmp:',1)[0],ns)
 hosted=ns['m']
 class API(ns['GitAPI']):
-    def __init__(self):super().__init__();self.forbid_writes=False
+    def __init__(self):super().__init__();self.forbid_writes=False;self.payloads=[]
     def request(self,path,method='GET',payload=None):
+        if payload is not None:self.payloads.append(copy.deepcopy(payload))
         if self.forbid_writes:assert method=='GET' and payload is None
         return super().request(path,method,payload)
 class Client:
@@ -38,8 +52,8 @@ if sys.argv[2]=='authenticated':
         private=Path(tmp).resolve();private.chmod(0o700);now=datetime(2026,10,4,22,tzinfo=timezone.utc)
         config=dict(ns['config'],feedback_enabled=True,state_repository='org/repo',private_root=str(private),runtime_database=str(private/'runtime.sqlite'),operators=['U1'],feedback_start='2026-10-04T00:00:00Z',implementation_roots=[str(root)])
         api=API();client=Client();assert hosted.run(config,ns['ReportAPI'](),api,client,private/'initial-report',now)['status']=='delivered'
-        api.forbid_writes=sys.argv[2] not in {'checkpoint','checkpoint-failure'};before=(api.head,api.writes,client.posts)
-        if sys.argv[2] in {'checkpoint','checkpoint-failure'}:config.update(feedback_key_id='key-v1',feedback_bootstrap_sha=api.head)
+        api.forbid_writes=sys.argv[2] not in {'checkpoint','checkpoint-failure','hosted-journey'};before=(api.head,api.writes,client.posts)
+        if sys.argv[2] in {'checkpoint','checkpoint-failure','hosted-journey'}:config.update(feedback_key_id='key-v1',feedback_bootstrap_sha=api.head)
         controller=root/'.claude/scripts/factory-intake.py'
         stable={key:value for key,value in config.items() if key not in {'private_root','runtime_database','implementation_roots','intake_config'}}
         policy={'schema_version':1,'enabled':True,'mode':'hosted-slack-capture-v1','repository':'org/repo','team_id':'T1','destination':'C1','stream':hashlib.sha256(hosted.canonical(['org/repo','C1','main']).encode()).hexdigest(),'feedback_config_sha256':hashlib.sha256(hosted.canonical(stable).encode()).hexdigest(),'controller_sha256':hashlib.sha256(controller.read_bytes()).hexdigest()}
@@ -124,8 +138,8 @@ elif sys.argv[2]=='edits-replay':
         private=Path(tmp).resolve();private.chmod(0o700);now=datetime(2026,10,4,22,tzinfo=timezone.utc)
         config=dict(ns['config'],feedback_enabled=True,state_repository='org/repo',private_root=str(private),runtime_database=str(private/'runtime.sqlite'),operators=['U1','U2'],feedback_start='2026-10-04T00:00:00Z',implementation_roots=[str(root)])
         api=API();client=Client();assert hosted.run(config,ns['ReportAPI'](),api,client,private/'initial-report',now)['status']=='delivered'
-        api.forbid_writes=sys.argv[2] not in {'checkpoint','checkpoint-failure'};before=(api.head,api.writes,client.posts)
-        if sys.argv[2] in {'checkpoint','checkpoint-failure'}:config.update(feedback_key_id='key-v1',feedback_bootstrap_sha=api.head)
+        api.forbid_writes=sys.argv[2] not in {'checkpoint','checkpoint-failure','hosted-journey'};before=(api.head,api.writes,client.posts)
+        if sys.argv[2] in {'checkpoint','checkpoint-failure','hosted-journey'}:config.update(feedback_key_id='key-v1',feedback_bootstrap_sha=api.head)
         controller=root/'.claude/scripts/factory-intake.py'
         stable={key:value for key,value in config.items() if key not in {'private_root','runtime_database','implementation_roots','intake_config'}}
         policy={'schema_version':1,'enabled':True,'mode':'hosted-slack-capture-v1','repository':'org/repo','team_id':'T1','destination':'C1','stream':hashlib.sha256(hosted.canonical(['org/repo','C1','main']).encode()).hexdigest(),'feedback_config_sha256':hashlib.sha256(hosted.canonical(stable).encode()).hexdigest(),'controller_sha256':hashlib.sha256(controller.read_bytes()).hexdigest()}
@@ -196,7 +210,7 @@ elif sys.argv[2]=='edits-replay':
         assert before==(api.head,api.writes,client.posts)
         print('AC-2/AC-9: actual authenticated edits, concurrent retries, restart, immutable lineage, missing-prior provenance and atomic actor-conflict rollback passed')
 
-elif sys.argv[2] in {'publication','checkpoint','checkpoint-failure'}:
+elif sys.argv[2] in {'publication','checkpoint','checkpoint-failure','hosted-journey'}:
 
     # AC-5 / AC-6 / AC-9: actual bounded primary tool-free Scout and guarded private SQLite proposals.
     import hashlib,threading,time
@@ -205,8 +219,8 @@ elif sys.argv[2] in {'publication','checkpoint','checkpoint-failure'}:
         private=Path(tmp).resolve();private.chmod(0o700);now=datetime(2026,10,4,22,tzinfo=timezone.utc)
         config=dict(ns['config'],feedback_enabled=True,state_repository='org/repo',private_root=str(private),runtime_database=str(private/'runtime.sqlite'),operators=['U1'],feedback_start='2026-10-04T00:00:00Z',implementation_roots=[str(root)])
         api=API();client=Client();assert hosted.run(config,ns['ReportAPI'](),api,client,private/'initial-report',now)['status']=='delivered'
-        api.forbid_writes=sys.argv[2] not in {'checkpoint','checkpoint-failure'};before=(api.head,api.writes,client.posts)
-        if sys.argv[2] in {'checkpoint','checkpoint-failure'}:config.update(feedback_key_id='key-v1',feedback_bootstrap_sha=api.head)
+        api.forbid_writes=sys.argv[2] not in {'checkpoint','checkpoint-failure','hosted-journey'};before=(api.head,api.writes,client.posts)
+        if sys.argv[2] in {'checkpoint','checkpoint-failure','hosted-journey'}:config.update(feedback_key_id='key-v1',feedback_bootstrap_sha=api.head)
         def module(name,path):
             spec=importlib.util.spec_from_file_location(name,path);result=importlib.util.module_from_spec(spec);spec.loader.exec_module(result);return result
         routing=module('publication_routing',root/'.claude/scripts/factory-routing.py');core=module('publication_core',root/'.claude/scripts/factory-intake.py')
@@ -258,9 +272,15 @@ print(json.dumps(result))
         os.environ['FACTORY_PLANNING_CLAUDE_OAUTH_TOKEN']='fixture-planning'
         ts=str(int(now.timestamp())-10)+'.000001'
         def message(mode,stamp=ts):return {'type':'message','user':'U1','ts':stamp,'text':'factory feedback #1 enhancement: '+mode}
-        if sys.argv[2] in {'checkpoint','checkpoint-failure'}:
+        if sys.argv[2] in {'checkpoint','checkpoint-failure','hosted-journey'}:
             # AC-9: real hosted restore, AES-GCM ciphertext and pre-provider durable intent.
             encrypted=module('checkpoint_hosted',root/'.claude/scripts/factory-hosted-feedback.py');secret=os.urandom(32)
+            import contextlib,io
+            journey_stdout=io.StringIO();journey_stderr=io.StringIO()
+            def run_encrypted(*args,**kwargs):
+                if sys.argv[2]!='hosted-journey':return encrypted.run(*args,**kwargs)
+                with contextlib.redirect_stdout(journey_stdout),contextlib.redirect_stderr(journey_stderr):
+                    return encrypted.run(*args,**kwargs)
             # AC-5/AC-9: restored holders retain every declared candidate exclusion.
             import shutil
             candidate=private/'additional-candidate';candidate.mkdir(mode=0o700)
@@ -269,7 +289,7 @@ print(json.dumps(result))
             hostile_profile.write_text(profile_path.read_text().replace(str(private),str(candidate)));hostile_profile.chmod(0o600)
             bad_config=dict(config,implementation_roots=[str(root),str(candidate)],assessment_profile=str(hostile_profile))
             bad_client=copy.deepcopy(client);bad_client.input=[message('login')]
-            encrypted.run(bad_config,copy.deepcopy(api),bad_client,secret,now)
+            run_encrypted(bad_config,copy.deepcopy(api),bad_client,secret,now)
             assert not (candidate/'count').exists(), 'hosted restore dropped an additional candidate root and launched its executable'
             cryptobinding=encrypted.crypto.context('org/repo','C1','main','key-v1')
             report_before=hosted.GitState(api,config['state_branch'],policy['stream'],config['bootstrap_sha']).bytes
@@ -295,7 +315,7 @@ print(json.dumps(result))
                 return result
             api.request=monitored
             client.input=[message('checkpoint')]
-            first=encrypted.run(config,api,client,secret,now)
+            first=run_encrypted(config,api,client,secret,now)
             assert first['captured']==1
             checkpoint,requests,running,proposals=snapshot();assert len(requests)==len(proposals)==1 and not running, 'hosted draft did not complete after durable Scout intent'
             assert (private/'count').read_text()=='1'
@@ -306,15 +326,49 @@ print(json.dumps(result))
                     db.execute('INSERT INTO older_decoder_extension VALUES(?)',(b'private older state',))
             assert requests[0][4]=='decided' and json.loads(requests[0][5])['next_action']=='draft'
             old=(requests,proposals);head=api.head;writes=api.writes
-            assert encrypted.run(config,api,client,secret,now)['captured']==1
+            assert run_encrypted(config,api,client,secret,now)['captured']==1
             assert (snapshot()[1],snapshot()[3])==old and api.head==head and api.writes==writes and (private/'count').read_text()=='1'
             assert any(running and not proposals for _,running,proposals in seen)
+            if sys.argv[2]=='hosted-journey':
+                # AC-2/AC-6/AC-9: authenticated edit after a fresh encrypted restore fences the old draft.
+                import contextlib,io
+                public_output=io.StringIO();public_errors=io.StringIO()
+                original=requests[0];old_proposal=proposals[0]
+                edit_ts=str(int(now.timestamp())-5)+'.000001'
+                client.input=[dict(message('checkpoint'),text='factory feedback #1 enhancement: secure-login-private',edited={'user':'U1','ts':edit_ts})]
+                with contextlib.redirect_stdout(public_output),contextlib.redirect_stderr(public_errors):
+                    assert run_encrypted(config,api,client,secret,now)['captured']==1
+                    _,edited,unresolved,drafts=snapshot()
+                    assert len(edited)==len(drafts)==2 and not unresolved
+                    prior=next(row for row in edited if row[0]==original[0]);current=next(row for row in edited if row[0]!=original[0])
+                    assert prior[2:4]==original[2:4] and prior[4]=='superseded'
+                    assert json.loads(current[2])['parent_request']==original[0] and json.loads(current[2])['source_revision']==edit_ts
+                    assert current[4]=='decided' and all(row[6]==1 for row in edited) and (private/'count').read_text()=='2'
+                    assert old_proposal in drafts and all(json.loads(row[2])['approval']=='pending' for row in drafts)
+                    head,writes=api.head,api.writes
+                    assert run_encrypted(config,api,client,secret,now)['captured']==1
+                    assert api.head==head and api.writes==writes and snapshot()[1]==edited and snapshot()[3]==drafts and (private/'count').read_text()=='2'
+                    with encrypted.crypto.private_database(snapshot()[0],secret,cryptobinding) as (_,database):
+                        restored_config=dict(config,runtime_database=str(database))
+                        adapter=core.HostedSlackIntake(restored_config,policy['stream'],policy,policy['controller_sha256'])
+                        feedback=m.f.Feedback(database,'org/repo')
+                        rejects(lambda:adapter.publish_proposal(feedback,original[0]))
+                        with sqlite3.connect(database) as db:
+                            assert db.execute('SELECT COUNT(*) FROM tasks').fetchone()[0]==0
+                            assert db.execute('SELECT COUNT(*) FROM feedback_private_proposals').fetchone()[0]==2
+                            assert set(row[0] for row in db.execute('SELECT status FROM factory_feedback'))=={'open'}
+                assert api.head==head and api.writes==writes and client.posts==before[2]
+                public=[*api.blobs.values(),json.dumps(api.payloads).encode(),journey_stdout.getvalue().encode(),journey_stderr.getvalue().encode(),public_output.getvalue().encode(),public_errors.getvalue().encode()]
+                assert all(secret_text not in channel for channel in public for secret_text in [b'Proposed login',b'factory feedback',b'secure-login-private',b'new request requires human approval'])
+                assert hosted.GitState(api,config['state_branch'],policy['stream'],config['bootstrap_sha']).bytes==report_before
+                print('AC-1/AC-2/AC-5/AC-6/AC-9: actual authenticated encrypted hosted subprocess journey, restored retry, edited-source supersession, private pending drafts and old-publication rejection passed; public outputs withheld')
+                sys.exit(0)
             crash[0]=True;client.input=[message('checkpoint',str(int(now.timestamp())-9)+'.000001')]
-            try:encrypted.run(config,api,client,secret,now)
+            try:run_encrypted(config,api,client,secret,now)
             except RunnerDied:pass
             else:raise AssertionError('runner death did not reach committed remote intent')
             assert len(snapshot()[2])==1 and (private/'count').read_text()=='1'
-            crash[0]=False;encrypted.run(config,api,client,secret,now)
+            crash[0]=False;run_encrypted(config,api,client,secret,now)
             assert len(snapshot()[2])==1 and len(snapshot()[3])==1 and (private/'count').read_text()=='1'
             assert hosted.GitState(api,config['state_branch'],policy['stream'],config['bootstrap_sha']).bytes==report_before
             assert all(b'Proposed login' not in blob and b'factory feedback' not in blob for blob in api.blobs.values())
@@ -346,7 +400,7 @@ print(json.dumps(result))
                                  lambda db:db.execute('DROP TABLE intake_hosted_identity'),
                                  lambda db:db.execute("UPDATE intake_requests SET decision=json_set(decision,'$.rationale','substituted') WHERE status='decided'")]:
                     other=fork_api(mutation);head=other.head;count=(private/'count').read_text()
-                    fails(lambda:encrypted.run(config,other,fresh_client(),secret,now))
+                    fails(lambda:run_encrypted(config,other,fresh_client(),secret,now))
                     assert other.head==head and (private/'count').read_text()==count
                 checked=[]
                 original_ingress=encrypted.ingress.run
@@ -361,11 +415,11 @@ print(json.dumps(result))
                                 return original_barrier()
                             return original_ingress(*args,**dict(kwargs,checkpoint_barrier=barrier))
                         saved=getattr(encrypted.crypto,limit);encrypted.ingress.run=limited
-                        try:fails(lambda:encrypted.run(config,other,fresh_client(),secret,now))
+                        try:fails(lambda:run_encrypted(config,other,fresh_client(),secret,now))
                         finally:encrypted.ingress.run=original_ingress;setattr(encrypted.crypto,limit,saved)
                         assert int((private/'count').read_text())==before_count+(stage==2)
                         if stage==1:assert other.head==head
-                        encrypted.run(config,other,copy.deepcopy(client) if stage==1 else fresh_client(),secret,now)
+                        run_encrypted(config,other,copy.deepcopy(client) if stage==1 else fresh_client(),secret,now)
                         assert int((private/'count').read_text())==before_count+(stage==2), 'overflow recovery reassessed an unresolved intent'
                         checked.append(other)
                 for fault in ['conflict','lost-ack']:
@@ -381,9 +435,9 @@ print(json.dumps(result))
                                         winner.checkpoint(encrypted.crypto.seal(encrypted.crypto.unseal(winner.bytes,secret,cryptobinding),secret,cryptobinding))
                             return request(path,method,payload)
                         other.request=faulting
-                        fails(lambda:encrypted.run(config,other,fresh_client(),secret,now))
+                        fails(lambda:run_encrypted(config,other,fresh_client(),secret,now))
                         assert int((private/'count').read_text())==before_count+(stage==2)
-                        encrypted.run(config,other,fresh_client(),secret,now)
+                        run_encrypted(config,other,fresh_client(),secret,now)
                         # A pre-intent CAS loser had no committed intent; only that exact case may start on a later fresh authoritative run.
                         expected=before_count+((stage==2) or fault=='conflict' and stage==1)
                         assert int((private/'count').read_text())==expected, 'uncertain checkpoint replay repeated Scout'
