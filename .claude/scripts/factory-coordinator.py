@@ -108,11 +108,18 @@ def coordinate(api, policy, number, merge=False):
             require(name in policy['required_checks'], 'producer check must be required')
             selected = [check for check in observed_checks if check['name'] == name and check['app']['id'] == policy['required_checks'][name]]
             require(len(selected) == 1, 'producer check unavailable')
-            link = re.fullmatch(r'https://github\.com/' + re.escape(repo) + r'/actions/runs/([0-9]+)', selected[0].get('details_url', ''))
-            require(link is not None, f'producer check must identify its authenticated run: {repo} / {selected[0].get("details_url")}')
-            run = api.get(f'{root}/actions/runs/{link[1]}')
-            require(run['workflow_id'] == producer['workflow_id'] and run['event'] == 'pull_request_target', 'wrong protected producer run')
-            require(run['id'] == int(link[1]) and run['head_sha'] == head, 'protected producer candidate changed')
+            relevant = [value for value in runs if value['workflow_id'] == producer['workflow_id']]
+            require(bool(relevant), f'{role}: trusted run missing')
+            require(all(type(value['id']) is int and value['id'] > 0 and type(value['workflow_id']) is int for value in relevant), 'protected producer run identity invalid')
+            latest = max(relevant, key=lambda value: value['id'])
+            require(sum(value['id'] == latest['id'] for value in relevant) == 1, 'protected producer run identity ambiguous')
+            require(type(latest.get('run_attempt')) is int and latest['run_attempt'] > 0, 'protected producer attempt invalid')
+            run = api.get(f'{root}/actions/runs/{latest["id"]}')
+            fields = ('id', 'workflow_id', 'head_sha', 'event', 'path', 'run_attempt', 'status', 'conclusion', 'created_at', 'updated_at')
+            require(all(run.get(key) == latest.get(key) for key in fields) and type(run.get('run_attempt')) is int, 'protected producer run metadata changed')
+            require(all(run.get(key, {}).get('full_name') == latest.get(key, {}).get('full_name') for key in ('repository', 'head_repository')), 'protected producer repository metadata changed')
+            require(type(run['workflow_id']) is int and run['workflow_id'] == producer['workflow_id'] and run['event'] == 'pull_request_target', 'wrong protected producer run')
+            require(type(run['id']) is int and run['id'] == latest['id'] and run['head_sha'] == head, 'protected producer candidate changed')
             require(run['repository']['full_name'] == repo and run['path'] == f'.github/workflows/factory-{role}.yml', 'protected producer repository/path differs')
         else:
             relevant = [run for run in runs if run['workflow_id'] == producer['workflow_id']]
@@ -155,6 +162,17 @@ def coordinate(api, policy, number, merge=False):
     fresh = api.get(f'{root}/pulls/{number}')
     require(fresh['state'] == 'open' and not fresh['draft'] and not fresh['merged'] and fresh['head']['sha'] == head and fresh['base']['sha'] == base, 'candidate changed during evaluation')
     protection(api, root, pr['base']['ref'], policy['required_checks'], policy['app_id'])
+    # A newer run must not be hidden behind a formerly successful snapshot.
+    if any(producer.get('event') == 'pull_request_target' for producer in policy['producers'].values()):
+        fresh_runs = api.get(f'{root}/actions/runs?head_sha={head}')
+        for (role, producer), selected_run in zip(policy['producers'].items(), selected_runs):
+            if producer.get('event') != 'pull_request_target':
+                continue
+            relevant = [value for value in fresh_runs if value['workflow_id'] == producer['workflow_id']]
+            require(bool(relevant) and all(type(value['id']) is int and value['id'] > 0 and type(value['workflow_id']) is int for value in relevant), 'producer latest run unavailable')
+            latest = max(relevant, key=lambda value: value['id'])
+            require(sum(value['id'] == latest['id'] for value in relevant) == 1 and latest['id'] == selected_run['id'] and type(latest.get('run_attempt')) is int and latest['run_attempt'] == selected_run['run_attempt'] and latest['status'] == 'completed' and latest['conclusion'] == 'success', 'producer latest run changed during verification')
+            require(all(latest.get(key) == selected_run.get(key) for key in ('workflow_id', 'head_sha', 'event', 'path', 'created_at', 'updated_at')) and all(latest.get(key, {}).get('full_name') == selected_run.get(key, {}).get('full_name') for key in ('repository', 'head_repository')), 'producer latest immutable identity changed')
     result = {'schema_version': 1, 'repository': repo, 'pull_request': number, 'head_sha': head, 'base_sha': base,
               'spec': sid, 'spec_sha256': approved['sha256'], 'policy_sha256': context['policy_sha256'],
               'verifier_run': selected_runs[0]['id'], 'reviewer_run': selected_runs[1]['id'], 'eligible': True, 'merged': False}

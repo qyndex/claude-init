@@ -1,0 +1,9 @@
+{
+  "only_changes": [
+    "producers.verification.trusted_files.coordinator",
+    "producers.review.trusted_files.coordinator"
+  ],
+  "coordinator_sha256": "d1d02dd51199cf6cc308b644c611fec3d4f007d0a291b9be289bc18824213784",
+  "all_other_policy_fields_identical": true,
+  "merge_enabled": false
+}

@@ -1,4 +1,1 @@
-$ bash .claude/scripts/test/factory-producers.sh
 passed: 36; failed: 0
-
-exit_code: 0

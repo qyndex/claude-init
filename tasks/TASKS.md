@@ -137,6 +137,12 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
 
 ## Active
 
+- [x] T-291  | spec:010  | phase:1  | priority: security  | created: 2026-10-16  | deps: T-274  | parallel: no  | est: 30m
+  summary: Bind producer evidence to latest immutable workflow run rather than check display URL
+  files: .claude/scripts/factory-coordinator.py, .claude/scripts/test/factory-coordinator.sh, factory/policy.json, specs/active/010-protected-proof-producers.md, plans/active/010-protected-proof-producers.md
+  accept: bash .claude/scripts/test/factory-coordinator.sh
+  owner: implementer
+
 - [x] T-274  | spec:010  | phase:1  | priority: security  | created: 2026-10-16  | deps: T-183  | parallel: no  | est: 30m
   summary: Bind real protected producer provenance to immutable candidate metadata and actual execution base
   files: .claude/scripts/factory-preflight.py, .claude/scripts/factory-receipts.py, docs/FACTORY-PRODUCERS.md, .claude/scripts/factory-producer.py, .claude/scripts/factory-coordinator.py, .claude/scripts/factory-provenance.py, .claude/scripts/test/factory-producers.sh, .claude/scripts/test/factory-coordinator.sh, .claude/scripts/test/factory-provenance.sh, .github/workflows/factory-verification.yml, .github/workflows/factory-review.yml, docs/FACTORY-ACTIVATION.md

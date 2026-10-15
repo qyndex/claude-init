@@ -101,16 +101,54 @@ for role,name in [('verification','factory-verification'),('review','factory-ind
 f=Fake()
 f.rules[1]['parameters']['required_status_checks'] += [{'context':name,'integration_id':123} for name in ('factory-verification','factory-independent-review')]
 for index,name in enumerate(('factory-verification','factory-independent-review'),1):
- f.checks.append({'name':name,'head_sha':head,'app':{'id':123},'id':88+index,'status':'completed','conclusion':'success','details_url':f'https://github.com/qyndex/claude-init/actions/runs/{index}'})
- f.runs[index-1].update(event='pull_request_target',head_sha=head,pull_requests=[],repository={'full_name':policy['repository']},path=f'.github/workflows/factory-{("verification","review")[index-1]}.yml')
+ f.checks.append({'name':name,'head_sha':head,'app':{'id':123},'id':88+index,'status':'completed','conclusion':'success','details_url':f'https://github.com/qyndex/claude-init/runs/{(116718131349,116718157648)[index-1]}','check_suite':{'id':105208672410}})
+ f.runs[index-1].update(event='pull_request_target',run_attempt=1,head_sha=head,pull_requests=[],repository={'full_name':policy['repository']},path=f'.github/workflows/factory-{("verification","review")[index-1]}.yml')
 ph=m.policy_hash(p)
 for document in f.docs.values():document['policy_sha256']=ph
 check(f,p,valid=True)
-for mutate in [lambda a:a.checks[-1].update(details_url='https://foreign/run/2'),lambda a:a.runs[-1].update(head_sha=base),lambda a:a.runs[-1].update(event='workflow_dispatch'),lambda a:a.runs[-1].update(workflow_id=999)]:
+for url in ('https://foreign/run/2','',None,'https://github.com/qyndex/claude-init/actions/runs/999999'):
+ bad=copy.deepcopy(f);bad.calls=[];bad.checks[-1]['details_url']=url;check(bad,p,valid=True)
+for mutate in [lambda a:a.runs[-1].update(head_sha=base),lambda a:a.runs[-1].update(event='workflow_dispatch'),lambda a:a.runs[-1].update(workflow_id=999)]:
  bad=copy.deepcopy(f);bad.calls=[];mutate(bad);check(bad,p)
 # Old immutable candidate cannot be rescued by updated mutable PR associations.
 bad=copy.deepcopy(f);bad.calls=[];bad.runs[-1]['head_sha']='f'*40;bad.runs[-1]['pull_requests']=[{'number':42,'head':{'sha':head},'base':{'sha':base}}];check(bad,p)
 for mutate in [lambda a:a.pr['base'].update(sha='f'*40),lambda a:[doc.update(base_sha='f'*40) for doc in a.docs.values()],lambda a:a.runs[-1].pop('repository'),lambda a:a.runs[-1].update(repository={'full_name':'foreign/repo'}),lambda a:a.runs[-1].update(path='.github/workflows/foreign.yml')]:
  bad=copy.deepcopy(f);bad.calls=[];mutate(bad);check(bad,p)
-print(f'passed: {len(mutations)+19}; failed: 0')
+# AC-4: select latest by workflow identity BEFORE event/status filtering.
+for changes in ({'event':'workflow_dispatch'},{'conclusion':'failure'},{'conclusion':'cancelled'},{'status':'in_progress','conclusion':None},{'head_sha':base},{'repository':{'full_name':'foreign/repo'}},{'run_attempt':0},{'run_attempt':True}):
+ bad=copy.deepcopy(f);bad.calls=[];latest=dict(bad.runs[-1],id=99,**changes);bad.runs.append(latest);check(bad,p)
+# Another workflow cannot displace the latest required workflow.
+bad=copy.deepcopy(f);bad.calls=[];bad.runs.append(dict(bad.runs[-1],id=100,workflow_id=999));check(bad,p,valid=True)
+# Detail/list attempt disagreement and duplicate latest identity reject.
+class AttemptDrift(Fake):
+ def get(self,path):
+  result=super().get(path)
+  return dict(result,run_attempt=2) if path.endswith('/actions/runs/2') else result
+bad=AttemptDrift();bad.__dict__.update(copy.deepcopy(f.__dict__));bad.calls=[];check(bad,p)
+bad=copy.deepcopy(f);bad.calls=[];bad.runs.append(copy.deepcopy(bad.runs[-1]));check(bad,p)
+# A newer attempt/run appearing during artifact validation invalidates the snapshot.
+class LatestRace(Fake):
+ reads=0
+ def get(self,path):
+  result=super().get(path)
+  if '/actions/runs?' in path:
+   self.reads+=1
+   if self.reads>1:return result+[dict(result[-1],id=99,conclusion='failure')]
+  return result
+bad=LatestRace();bad.__dict__.update(copy.deepcopy(f.__dict__));bad.calls=[];check(bad,p)
+for race in ({'run_attempt':2},{'conclusion':'failure'},{'status':'in_progress','conclusion':None},{'event':'workflow_dispatch'},{'head_sha':base},{'path':'.github/workflows/foreign.yml'},{'repository':{'full_name':'foreign/repo'}}):
+ class FreshRace(Fake):
+  reads=0
+  def get(self,path):
+   result=super().get(path)
+   if '/actions/runs?' in path:
+    self.reads+=1
+    if self.reads>1:
+     result=copy.deepcopy(result);result[-1].update(race)
+   return result
+ bad=FreshRace();bad.__dict__.update(copy.deepcopy(f.__dict__));bad.calls=[];check(bad,p)
+# A current successful rerun attempt is eligible only with matching metadata.
+bad=copy.deepcopy(f);bad.calls=[];bad.runs[-1]['run_attempt']=2;check(bad,p,valid=True)
+print(f'passed: {len(mutations)+43}; failed: 0')
+
 PY
