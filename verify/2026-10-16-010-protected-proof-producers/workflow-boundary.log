@@ -1,0 +1,4 @@
+$ bash .claude/scripts/test/factory-workflows.sh
+passed: 8; failed: 0
+
+exit_code: 0

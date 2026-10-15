@@ -1,0 +1,4 @@
+$ bash .claude/scripts/test/factory-provenance.sh
+provenance: PASS; assertions=41; injected verified-certificate positive fixtures; nonzero verifier rejection; no live signing/hosted verdict
+
+exit_code: 0
