@@ -327,3 +327,10 @@ The canonical next task is T-273: finish the operator-selected exact Claude Sonn
 Remaining sequence: merge the verified reviewer configuration through the operator route; refresh source-bound shadow policy, runtime pins and live rule before-images; prove separate protected verifier/reviewer runs on the exact controlled pilot candidate; restore paused checks under the existing conditional approval; run positive and negative shadow cases with merge_enabled=false; present genuine shadow evidence and the exact merge-mode revision for the separate human decision. T-222 remains open until actual authenticated delivery, followed by morning digest and authentic feedback/amendment delivery. Twenty useful real eligible deliveries are required before broadening autonomy.
 
 Online workers remain per-adopter and independently gated. Optional oversized attachments and Healthchecks stay disabled. Production remains target-specific and disabled without actual health/SLO/rollback proof. No live switch, policy or rule was changed by this continuation record.
+
+
+### Reviewer readiness completed; shadow refresh prepared — 2026-10-16
+
+PR105 merged at cf3b2fff928169973494fc15eb86a0176aa2dd1f with all seven required checks passing. T-273 pins Sonnet5.5 and validates exact observed model usage; a deterministic test-only counter race found by Linux CI is fixed. The separate bounded live local Claude Max probe succeeded; it is not an independent hosted verdict. Claude PR Review and Claude Security Review are restored to active after the existing date/capacity conditions, with no required-check bypass.
+
+The refreshed shadow package in docs/activation/2026-10-16 binds the actual merged runtime. Spec048 scope, commands and image remain unchanged; merge_enabled remains false. Its proposed policy, preserved live rule before-image, additive proposal and metadata preflight are reviewable together. This preparation does not enable repository producer/authority switches or apply live rules. Genuine exact-candidate producer runs and shadow cases remain next; merge mode still needs the separate post-shadow decision.

@@ -1,0 +1,49 @@
+{
+  "runner": "actual-shell-acceptance-recorder",
+  "source_sha": "cf3b2fff928169973494fc15eb86a0176aa2dd1f",
+  "independent_attestation": false,
+  "commands": [
+    "bash .claude/scripts/test/factory-coordinator.sh",
+    "bash .claude/scripts/test/factory-producers.sh",
+    "bash .claude/scripts/test/factory-activation-planning.sh",
+    "bash .claude/scripts/test/factory-activation-package.sh",
+    "bash .claude/scripts/test/autonomous-ship.sh"
+  ],
+  "log_sha256": {
+    "verify/2026-10-16-shadow-readiness/request-boundary.log": "b9e1093e755aca768bafa5afc6ad3c3906818cad4aa0e1f7b50786d2df45c78a",
+    "verify/2026-10-16-shadow-readiness/planning.log": "46a676cb274e4ca20239b419603caeca94f8e8638e6cc98be86562601cbbf852",
+    "verify/2026-10-16-shadow-readiness/producers.log": "d98ff283aa24045386e6ae0b605433e84f5c29d10404f23fb354a33a387795e0",
+    "verify/2026-10-16-shadow-readiness/coordinator.log": "97626a95d348ca3c10efdd18c041b8d32c74fda9dcd12ff6f961d7019295c0eb",
+    "verify/2026-10-16-shadow-readiness/package.log": "1a4e7774ecf481197f0f183ef753b2549c9c3ccb6c50dbf91ed9294864179ad4"
+  },
+  "limitations": [
+    "Offline implementation/configuration regressions; no live shadow verdict or merge receipt",
+    "Historical disabled-bootstrap checks refer to recorded bootstrap source; current policy is an explicit shadow-only activation proposal"
+  ],
+  "testResults": [
+    {
+      "assertionResults": [
+        {
+          "fullName": "AC-1: actual coordinator, package and request boundary regressions; retained logs",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-2: actual coordinator, package and request boundary regressions; retained logs",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-3: actual coordinator, package and request boundary regressions; retained logs",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-4: actual coordinator, package and request boundary regressions; retained logs",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-5: actual coordinator, package and request boundary regressions; retained logs",
+          "status": "passed"
+        }
+      ]
+    }
+  ]
+}
