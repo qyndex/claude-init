@@ -1,6 +1,7 @@
 {
   "runner": "actual-protected-shell-acceptance-recorder",
-  "source_sha": "721c7a0a55568e43b77ac4694856d00e02a499cc",
+  "source_sha": "8fb71c3af91b6a08c686e2146d7d39553812dcfa",
+  "executed_at": "2026-10-15T22:55:01.922720+00:00",
   "independent_attestation": false,
   "commands": {
     "AC-1": [

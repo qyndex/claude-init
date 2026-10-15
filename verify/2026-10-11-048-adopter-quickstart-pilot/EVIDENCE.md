@@ -1,5 +1,5 @@
 ## Evidence Bundle — Spec 048 (048-adopter-quickstart-pilot)
-Spec: `specs/active/048-adopter-quickstart-pilot.md` · Commit: `721c7a0`
+Spec: `specs/active/048-adopter-quickstart-pilot.md` · Commit: `8fb71c3`
 
 ### Acceptance criteria (3/3 proven)
 | AC | Proven by | Result |
@@ -10,7 +10,7 @@ Spec: `specs/active/048-adopter-quickstart-pilot.md` · Commit: `721c7a0`
 
 ### Smoke test (exit codes are load-bearing)
 ```
-# Smoke test — 2026-10-16T08:56:16+11:00
+# Smoke test — 2026-10-16T09:55:01+11:00
 $ bash .claude/scripts/verify.sh
 
 → Integration coverage gate
@@ -35,6 +35,7 @@ line ?% · branch ?% (gate: line≥90 branch≥85)
 ## Artifact index
 - verify/2026-10-11-048-adopter-quickstart-pilot/evidence.json
 - verify/2026-10-11-048-adopter-quickstart-pilot/pr-body.md
+- verify/2026-10-11-048-adopter-quickstart-pilot/acceptance.log
 - verify/2026-10-11-048-adopter-quickstart-pilot/EVIDENCE.md
 - verify/2026-10-11-048-adopter-quickstart-pilot/results.json
 - verify/2026-10-11-048-adopter-quickstart-pilot/smoke.log

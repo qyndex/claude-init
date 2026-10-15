@@ -1,10 +1,10 @@
-Actual acceptance revalidation 2026-10-16T08:56:16.516645+11:00
-AC-1
+Executed 2026-10-15T22:55:01.916872+00:00
+AC-1 argv=["python3", "-c", "from pathlib import Path; t=Path('docs/FACTORY-ADOPTER-QUICKSTART.md').read_text(); assert all(s in t for s in ['Prerequisites','Dry-run adoption','immutable','existing','python3 .claude/scripts/factory-adopt.py --from /path/to/reviewed-harness --into /path/to/target --dry-run']); assert not any(s in t for s in ['qyndex','C0C7T1Y29K5','5251754','T0B2VADDUG4']); print('AC-1 quickstart adoption contract passed')"]
 AC-1 quickstart adoption contract passed
-exit_code: 0
-AC-2
+exit: 0
+AC-2 argv=["python3", "-c", "from pathlib import Path; t=Path('docs/FACTORY-ADOPTER-QUICKSTART.md').read_text(); assert all(s in t for s in ['Protected readiness','factory-preflight.py --policy /path/to/protected-policy.json','block','merge authority','reporting','production','secrets']); print('AC-2 protected readiness contract passed')"]
 AC-2 protected readiness contract passed
-exit_code: 0
-AC-3
+exit: 0
+AC-3 argv=["python3", "-c", "from pathlib import Path; t=Path('docs/FACTORY-ADOPTER-QUICKSTART.md').read_text(); assert all(s in t for s in ['Delivery and acceptance','engineering verification','merged delivery','product acceptance','SLO','rollback','FACTORY-ADOPTER-SETUP.md','FACTORY-ACTIVATION.md']); print('AC-3 distinct delivery and acceptance contract passed')"]
 AC-3 distinct delivery and acceptance contract passed
-exit_code: 0
+exit: 0
