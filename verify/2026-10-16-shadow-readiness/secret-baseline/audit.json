@@ -1,0 +1,514 @@
+{
+  "finding_count": 48,
+  "unique_fingerprints": 21,
+  "findings": [
+    {
+      "file": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1alfw8dy/routes.log",
+      "commit": "f2e14119001141748a410f86d2ffb7cb50f7be19",
+      "line": 8,
+      "fingerprint": "f2e14119001141748a410f86d2ffb7cb50f7be19:verify/2026-10-16-050-request-intake-router/phase3-attempt-1alfw8dy/routes.log:generic-api-key:8",
+      "classification": "discarded-fixture-receipt",
+      "field_paths": [
+        "/retained-failed-fixture/receipt/delivery_token"
+      ]
+    },
+    {
+      "file": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1alfw8dy/routes.log",
+      "commit": "f682e2385e3f0b5e367ade33b881dba90706bd95",
+      "line": 8,
+      "fingerprint": "f682e2385e3f0b5e367ade33b881dba90706bd95:verify/2026-10-16-050-request-intake-router/phase3-attempt-1alfw8dy/routes.log:generic-api-key:8",
+      "classification": "discarded-fixture-receipt",
+      "field_paths": [
+        "/retained-failed-fixture/receipt/delivery_token"
+      ]
+    },
+    {
+      "file": "reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json",
+      "commit": "debf677dbd1b9d4e6c5eaf39169ab1d9834efdae",
+      "line": 1,
+      "fingerprint": "debf677dbd1b9d4e6c5eaf39169ab1d9834efdae:reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json:generic-api-key:1",
+      "classification": "public-reporting-state-hash",
+      "field_paths": [
+        "/alerts/0/key"
+      ]
+    },
+    {
+      "file": "reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json",
+      "commit": "debf677dbd1b9d4e6c5eaf39169ab1d9834efdae",
+      "line": 1,
+      "fingerprint": "debf677dbd1b9d4e6c5eaf39169ab1d9834efdae:reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json:generic-api-key:1",
+      "classification": "public-reporting-state-hash",
+      "field_paths": [
+        "/alerts/1/key"
+      ]
+    },
+    {
+      "file": "reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json",
+      "commit": "debf677dbd1b9d4e6c5eaf39169ab1d9834efdae",
+      "line": 1,
+      "fingerprint": "debf677dbd1b9d4e6c5eaf39169ab1d9834efdae:reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json:generic-api-key:1",
+      "classification": "public-reporting-state-hash",
+      "field_paths": [
+        "/tables/digest_batches/0/key"
+      ]
+    },
+    {
+      "file": "reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json",
+      "commit": "debf677dbd1b9d4e6c5eaf39169ab1d9834efdae",
+      "line": 1,
+      "fingerprint": "debf677dbd1b9d4e6c5eaf39169ab1d9834efdae:reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json:generic-api-key:1",
+      "classification": "public-reporting-state-hash",
+      "field_paths": [
+        "/tables/digest_batches/1/key"
+      ]
+    },
+    {
+      "file": "reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json",
+      "commit": "debf677dbd1b9d4e6c5eaf39169ab1d9834efdae",
+      "line": 1,
+      "fingerprint": "debf677dbd1b9d4e6c5eaf39169ab1d9834efdae:reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json:generic-api-key:1",
+      "classification": "public-reporting-state-hash",
+      "field_paths": [
+        "/tables/digest_batches/2/key"
+      ]
+    },
+    {
+      "file": "reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json",
+      "commit": "55ec6affb6f57102a93ee42a8bee6e46c2f84901",
+      "line": 1,
+      "fingerprint": "55ec6affb6f57102a93ee42a8bee6e46c2f84901:reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json:generic-api-key:1",
+      "classification": "public-reporting-state-hash",
+      "field_paths": [
+        "/alerts/0/key"
+      ]
+    },
+    {
+      "file": "reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json",
+      "commit": "55ec6affb6f57102a93ee42a8bee6e46c2f84901",
+      "line": 1,
+      "fingerprint": "55ec6affb6f57102a93ee42a8bee6e46c2f84901:reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json:generic-api-key:1",
+      "classification": "public-reporting-state-hash",
+      "field_paths": [
+        "/alerts/1/key"
+      ]
+    },
+    {
+      "file": "reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json",
+      "commit": "55ec6affb6f57102a93ee42a8bee6e46c2f84901",
+      "line": 1,
+      "fingerprint": "55ec6affb6f57102a93ee42a8bee6e46c2f84901:reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json:generic-api-key:1",
+      "classification": "public-reporting-state-hash",
+      "field_paths": [
+        "/tables/digest_batches/0/key"
+      ]
+    },
+    {
+      "file": "reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json",
+      "commit": "55ec6affb6f57102a93ee42a8bee6e46c2f84901",
+      "line": 1,
+      "fingerprint": "55ec6affb6f57102a93ee42a8bee6e46c2f84901:reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json:generic-api-key:1",
+      "classification": "public-reporting-state-hash",
+      "field_paths": [
+        "/tables/digest_batches/1/key"
+      ]
+    },
+    {
+      "file": "reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json",
+      "commit": "55ec6affb6f57102a93ee42a8bee6e46c2f84901",
+      "line": 1,
+      "fingerprint": "55ec6affb6f57102a93ee42a8bee6e46c2f84901:reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json:generic-api-key:1",
+      "classification": "public-reporting-state-hash",
+      "field_paths": [
+        "/tables/digest_batches/2/key"
+      ]
+    },
+    {
+      "file": "reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json",
+      "commit": "9e962a98712704b1c06ed75ce086586f06822e58",
+      "line": 1,
+      "fingerprint": "9e962a98712704b1c06ed75ce086586f06822e58:reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json:generic-api-key:1",
+      "classification": "public-reporting-state-hash",
+      "field_paths": [
+        "/alerts/0/key"
+      ]
+    },
+    {
+      "file": "reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json",
+      "commit": "9e962a98712704b1c06ed75ce086586f06822e58",
+      "line": 1,
+      "fingerprint": "9e962a98712704b1c06ed75ce086586f06822e58:reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json:generic-api-key:1",
+      "classification": "public-reporting-state-hash",
+      "field_paths": [
+        "/alerts/1/key"
+      ]
+    },
+    {
+      "file": "reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json",
+      "commit": "9e962a98712704b1c06ed75ce086586f06822e58",
+      "line": 1,
+      "fingerprint": "9e962a98712704b1c06ed75ce086586f06822e58:reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json:generic-api-key:1",
+      "classification": "public-reporting-state-hash",
+      "field_paths": [
+        "/tables/digest_batches/0/key"
+      ]
+    },
+    {
+      "file": "reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json",
+      "commit": "9e962a98712704b1c06ed75ce086586f06822e58",
+      "line": 1,
+      "fingerprint": "9e962a98712704b1c06ed75ce086586f06822e58:reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json:generic-api-key:1",
+      "classification": "public-reporting-state-hash",
+      "field_paths": [
+        "/tables/digest_batches/1/key"
+      ]
+    },
+    {
+      "file": "reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json",
+      "commit": "9e962a98712704b1c06ed75ce086586f06822e58",
+      "line": 1,
+      "fingerprint": "9e962a98712704b1c06ed75ce086586f06822e58:reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json:generic-api-key:1",
+      "classification": "public-reporting-state-hash",
+      "field_paths": [
+        "/tables/digest_batches/2/key"
+      ]
+    },
+    {
+      "file": "docs/audits/2026-10-10/reporting-live/alerts.json",
+      "commit": "3e755cd1d732fb146a2495ef889dcb815b2cdfca",
+      "line": 15,
+      "fingerprint": "3e755cd1d732fb146a2495ef889dcb815b2cdfca:docs/audits/2026-10-10/reporting-live/alerts.json:generic-api-key:15",
+      "classification": "public-reporting-audit-hash",
+      "field_paths": [
+        "/confirmed_alerts/0/key"
+      ]
+    },
+    {
+      "file": "docs/audits/2026-10-10/reporting-live/alerts.json",
+      "commit": "3e755cd1d732fb146a2495ef889dcb815b2cdfca",
+      "line": 25,
+      "fingerprint": "3e755cd1d732fb146a2495ef889dcb815b2cdfca:docs/audits/2026-10-10/reporting-live/alerts.json:generic-api-key:25",
+      "classification": "public-reporting-audit-hash",
+      "field_paths": [
+        "/confirmed_alerts/1/key"
+      ]
+    },
+    {
+      "file": "docs/audits/2026-10-10/reporting-live/alerts.json",
+      "commit": "db976272403e1abcae51a87dbc7e5656bfee4e4d",
+      "line": 15,
+      "fingerprint": "db976272403e1abcae51a87dbc7e5656bfee4e4d:docs/audits/2026-10-10/reporting-live/alerts.json:generic-api-key:15",
+      "classification": "public-reporting-audit-hash",
+      "field_paths": [
+        "/confirmed_alerts/0/key"
+      ]
+    },
+    {
+      "file": "docs/audits/2026-10-10/reporting-live/alerts.json",
+      "commit": "db976272403e1abcae51a87dbc7e5656bfee4e4d",
+      "line": 25,
+      "fingerprint": "db976272403e1abcae51a87dbc7e5656bfee4e4d:docs/audits/2026-10-10/reporting-live/alerts.json:generic-api-key:25",
+      "classification": "public-reporting-audit-hash",
+      "field_paths": [
+        "/confirmed_alerts/1/key"
+      ]
+    },
+    {
+      "file": "reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json",
+      "commit": "3b198ccdb930f3791f07d5762bcb5b774954fcfb",
+      "line": 1,
+      "fingerprint": "3b198ccdb930f3791f07d5762bcb5b774954fcfb:reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json:generic-api-key:1",
+      "classification": "public-reporting-state-hash",
+      "field_paths": [
+        "/alerts/0/key"
+      ]
+    },
+    {
+      "file": "reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json",
+      "commit": "3b198ccdb930f3791f07d5762bcb5b774954fcfb",
+      "line": 1,
+      "fingerprint": "3b198ccdb930f3791f07d5762bcb5b774954fcfb:reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json:generic-api-key:1",
+      "classification": "public-reporting-state-hash",
+      "field_paths": [
+        "/tables/digest_batches/0/key"
+      ]
+    },
+    {
+      "file": "reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json",
+      "commit": "a5c989ecb69d6edf51dfe5d49c9e0f18968def57",
+      "line": 1,
+      "fingerprint": "a5c989ecb69d6edf51dfe5d49c9e0f18968def57:reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json:generic-api-key:1",
+      "classification": "public-reporting-state-hash",
+      "field_paths": [
+        "/alerts/0/key"
+      ]
+    },
+    {
+      "file": "reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json",
+      "commit": "a5c989ecb69d6edf51dfe5d49c9e0f18968def57",
+      "line": 1,
+      "fingerprint": "a5c989ecb69d6edf51dfe5d49c9e0f18968def57:reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json:generic-api-key:1",
+      "classification": "public-reporting-state-hash",
+      "field_paths": [
+        "/alerts/1/key"
+      ]
+    },
+    {
+      "file": "reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json",
+      "commit": "a5c989ecb69d6edf51dfe5d49c9e0f18968def57",
+      "line": 1,
+      "fingerprint": "a5c989ecb69d6edf51dfe5d49c9e0f18968def57:reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json:generic-api-key:1",
+      "classification": "public-reporting-state-hash",
+      "field_paths": [
+        "/tables/digest_batches/0/key"
+      ]
+    },
+    {
+      "file": "reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json",
+      "commit": "f8478a96ecc0c4dcff1bc625587ec1bd73393fbc",
+      "line": 1,
+      "fingerprint": "f8478a96ecc0c4dcff1bc625587ec1bd73393fbc:reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json:generic-api-key:1",
+      "classification": "public-reporting-state-hash",
+      "field_paths": [
+        "/alerts/0/key"
+      ]
+    },
+    {
+      "file": "reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json",
+      "commit": "f8478a96ecc0c4dcff1bc625587ec1bd73393fbc",
+      "line": 1,
+      "fingerprint": "f8478a96ecc0c4dcff1bc625587ec1bd73393fbc:reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json:generic-api-key:1",
+      "classification": "public-reporting-state-hash",
+      "field_paths": [
+        "/alerts/1/key"
+      ]
+    },
+    {
+      "file": "reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json",
+      "commit": "f8478a96ecc0c4dcff1bc625587ec1bd73393fbc",
+      "line": 1,
+      "fingerprint": "f8478a96ecc0c4dcff1bc625587ec1bd73393fbc:reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json:generic-api-key:1",
+      "classification": "public-reporting-state-hash",
+      "field_paths": [
+        "/tables/digest_batches/0/key"
+      ]
+    },
+    {
+      "file": "reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json",
+      "commit": "b0d3eb1a5ae2d48a208827c09ab683a6e9e48fc6",
+      "line": 1,
+      "fingerprint": "b0d3eb1a5ae2d48a208827c09ab683a6e9e48fc6:reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json:generic-api-key:1",
+      "classification": "public-reporting-state-hash",
+      "field_paths": [
+        "/alerts/0/key"
+      ]
+    },
+    {
+      "file": "reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json",
+      "commit": "b0d3eb1a5ae2d48a208827c09ab683a6e9e48fc6",
+      "line": 1,
+      "fingerprint": "b0d3eb1a5ae2d48a208827c09ab683a6e9e48fc6:reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json:generic-api-key:1",
+      "classification": "public-reporting-state-hash",
+      "field_paths": [
+        "/alerts/1/key"
+      ]
+    },
+    {
+      "file": "reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json",
+      "commit": "b0d3eb1a5ae2d48a208827c09ab683a6e9e48fc6",
+      "line": 1,
+      "fingerprint": "b0d3eb1a5ae2d48a208827c09ab683a6e9e48fc6:reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json:generic-api-key:1",
+      "classification": "public-reporting-state-hash",
+      "field_paths": [
+        "/tables/digest_batches/0/key"
+      ]
+    },
+    {
+      "file": "reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json",
+      "commit": "b0d3eb1a5ae2d48a208827c09ab683a6e9e48fc6",
+      "line": 1,
+      "fingerprint": "b0d3eb1a5ae2d48a208827c09ab683a6e9e48fc6:reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json:generic-api-key:1",
+      "classification": "public-reporting-state-hash",
+      "field_paths": [
+        "/tables/digest_batches/1/key"
+      ]
+    },
+    {
+      "file": "reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json",
+      "commit": "93e34926f56a5c042ada6d590bdc3cdcb73bb929",
+      "line": 1,
+      "fingerprint": "93e34926f56a5c042ada6d590bdc3cdcb73bb929:reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json:generic-api-key:1",
+      "classification": "public-reporting-state-hash",
+      "field_paths": [
+        "/alerts/0/key"
+      ]
+    },
+    {
+      "file": "reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json",
+      "commit": "93e34926f56a5c042ada6d590bdc3cdcb73bb929",
+      "line": 1,
+      "fingerprint": "93e34926f56a5c042ada6d590bdc3cdcb73bb929:reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json:generic-api-key:1",
+      "classification": "public-reporting-state-hash",
+      "field_paths": [
+        "/alerts/1/key"
+      ]
+    },
+    {
+      "file": "reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json",
+      "commit": "93e34926f56a5c042ada6d590bdc3cdcb73bb929",
+      "line": 1,
+      "fingerprint": "93e34926f56a5c042ada6d590bdc3cdcb73bb929:reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json:generic-api-key:1",
+      "classification": "public-reporting-state-hash",
+      "field_paths": [
+        "/tables/digest_batches/0/key"
+      ]
+    },
+    {
+      "file": "reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json",
+      "commit": "93e34926f56a5c042ada6d590bdc3cdcb73bb929",
+      "line": 1,
+      "fingerprint": "93e34926f56a5c042ada6d590bdc3cdcb73bb929:reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json:generic-api-key:1",
+      "classification": "public-reporting-state-hash",
+      "field_paths": [
+        "/tables/digest_batches/1/key"
+      ]
+    },
+    {
+      "file": "reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json",
+      "commit": "0c985f95b7e94b7f2ebfffd52a17b92be8a7009a",
+      "line": 1,
+      "fingerprint": "0c985f95b7e94b7f2ebfffd52a17b92be8a7009a:reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json:generic-api-key:1",
+      "classification": "public-reporting-state-hash",
+      "field_paths": [
+        "/alerts/0/key"
+      ]
+    },
+    {
+      "file": "reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json",
+      "commit": "0c985f95b7e94b7f2ebfffd52a17b92be8a7009a",
+      "line": 1,
+      "fingerprint": "0c985f95b7e94b7f2ebfffd52a17b92be8a7009a:reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json:generic-api-key:1",
+      "classification": "public-reporting-state-hash",
+      "field_paths": [
+        "/tables/digest_batches/0/key"
+      ]
+    },
+    {
+      "file": "docs/audits/2026-10-10/reporting-live/status.json",
+      "commit": "b85245aac449f220b5ddb55f5e8782e656360b2b",
+      "line": 11,
+      "fingerprint": "b85245aac449f220b5ddb55f5e8782e656360b2b:docs/audits/2026-10-10/reporting-live/status.json:generic-api-key:11",
+      "classification": "public-reporting-audit-hash",
+      "field_paths": [
+        "/receipt/key"
+      ]
+    },
+    {
+      "file": "docs/audits/2026-10-10/reporting-live/status.json",
+      "commit": "5afd7faccff6fed739cef7eecb686a98f9592613",
+      "line": 11,
+      "fingerprint": "5afd7faccff6fed739cef7eecb686a98f9592613:docs/audits/2026-10-10/reporting-live/status.json:generic-api-key:11",
+      "classification": "public-reporting-audit-hash",
+      "field_paths": [
+        "/receipt/key"
+      ]
+    },
+    {
+      "file": "reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json",
+      "commit": "0891bc63d211d97d29283803206dec417a588bfb",
+      "line": 1,
+      "fingerprint": "0891bc63d211d97d29283803206dec417a588bfb:reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json:generic-api-key:1",
+      "classification": "public-reporting-state-hash",
+      "field_paths": [
+        "/alerts/0/key"
+      ]
+    },
+    {
+      "file": "reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json",
+      "commit": "0891bc63d211d97d29283803206dec417a588bfb",
+      "line": 1,
+      "fingerprint": "0891bc63d211d97d29283803206dec417a588bfb:reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json:generic-api-key:1",
+      "classification": "public-reporting-state-hash",
+      "field_paths": [
+        "/alerts/1/key"
+      ]
+    },
+    {
+      "file": "reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json",
+      "commit": "0891bc63d211d97d29283803206dec417a588bfb",
+      "line": 1,
+      "fingerprint": "0891bc63d211d97d29283803206dec417a588bfb:reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json:generic-api-key:1",
+      "classification": "public-reporting-state-hash",
+      "field_paths": [
+        "/tables/digest_batches/0/key"
+      ]
+    },
+    {
+      "file": "reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json",
+      "commit": "0891bc63d211d97d29283803206dec417a588bfb",
+      "line": 1,
+      "fingerprint": "0891bc63d211d97d29283803206dec417a588bfb:reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json:generic-api-key:1",
+      "classification": "public-reporting-state-hash",
+      "field_paths": [
+        "/tables/digest_batches/1/key"
+      ]
+    },
+    {
+      "file": "reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json",
+      "commit": "333104acce138924243515a24b0071c28e356f7a",
+      "line": 1,
+      "fingerprint": "333104acce138924243515a24b0071c28e356f7a:reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json:generic-api-key:1",
+      "classification": "public-reporting-state-hash",
+      "field_paths": [
+        "/tables/digest_batches/0/key"
+      ]
+    },
+    {
+      "file": "reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json",
+      "commit": "ed6fdf83e1102d9b857b125be9894391fff70086",
+      "line": 1,
+      "fingerprint": "ed6fdf83e1102d9b857b125be9894391fff70086:reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json:generic-api-key:1",
+      "classification": "public-reporting-state-hash",
+      "field_paths": [
+        "/tables/digest_batches/0/key"
+      ]
+    },
+    {
+      "file": "reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json",
+      "commit": "50a3e8aab5f073138eca5cfbb23bbeb2108a868e",
+      "line": 1,
+      "fingerprint": "50a3e8aab5f073138eca5cfbb23bbeb2108a868e:reports/6391bb7aacaa65c4e16423d1d32c1181eb1d5889bfeeb3f0773f9ac6a24d5bc9.json:generic-api-key:1",
+      "classification": "public-reporting-state-hash",
+      "field_paths": [
+        "/tables/digest_batches/0/key"
+      ]
+    }
+  ],
+  "historical_scope": "Initial default all-ref audit; retained for provenance, superseded by candidate-reachable baseline.",
+  "current_candidate_findings": [
+    {
+      "file": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1alfw8dy/routes.log",
+      "commit": "f2e14119001141748a410f86d2ffb7cb50f7be19",
+      "fingerprint": "f2e14119001141748a410f86d2ffb7cb50f7be19:verify/2026-10-16-050-request-intake-router/phase3-attempt-1alfw8dy/routes.log:generic-api-key:8",
+      "line": 8
+    },
+    {
+      "file": "docs/audits/2026-10-10/reporting-live/alerts.json",
+      "commit": "3e755cd1d732fb146a2495ef889dcb815b2cdfca",
+      "fingerprint": "3e755cd1d732fb146a2495ef889dcb815b2cdfca:docs/audits/2026-10-10/reporting-live/alerts.json:generic-api-key:15",
+      "line": 15
+    },
+    {
+      "file": "docs/audits/2026-10-10/reporting-live/alerts.json",
+      "commit": "3e755cd1d732fb146a2495ef889dcb815b2cdfca",
+      "fingerprint": "3e755cd1d732fb146a2495ef889dcb815b2cdfca:docs/audits/2026-10-10/reporting-live/alerts.json:generic-api-key:25",
+      "line": 25
+    },
+    {
+      "file": "docs/audits/2026-10-10/reporting-live/status.json",
+      "commit": "b85245aac449f220b5ddb55f5e8782e656360b2b",
+      "fingerprint": "b85245aac449f220b5ddb55f5e8782e656360b2b:docs/audits/2026-10-10/reporting-live/status.json:generic-api-key:11",
+      "line": 11
+    }
+  ],
+  "current_candidate_fingerprint_count": 4
+}

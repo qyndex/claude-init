@@ -1,0 +1,12 @@
+
+    ○
+    │╲
+    │ ○
+    ○ ░
+    ░    gitleaks
+
+5:44AM INF Unknown SCM platform. Use --platform to include links in findings. host=github.com-qyndex
+5:44AM INF 143 commits scanned.
+5:44AM INF scanned ~9723126 bytes (9.72 MB) in 1.03s
+5:44AM WRN leaks found: 4
+exit_code: 1

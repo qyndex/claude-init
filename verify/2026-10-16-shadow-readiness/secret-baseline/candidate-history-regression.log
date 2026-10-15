@@ -1,0 +1,5 @@
+old all-ref scan rejects unrelated branch fixture: PASS; exit=1; findings=1
+actual candidate-history command ignores unrelated branch: PASS; exit=0; findings=0
+new candidate credential in historical report path detected: PASS; exit=1; findings=1
+removed ancestor credential still detected through full source history: PASS; exit=1; findings=1
+Gitleaks 8.30.1 actual workflow command regression PASS; synthetic values discarded

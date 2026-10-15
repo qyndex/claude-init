@@ -16,7 +16,9 @@
     ".claude/scripts/verify.sh",
     ".claude/scripts/rerun-acceptance.py",
     ".claude/scripts/autonomous-ship.sh",
-    ".claude/scripts/verified-merge.sh"
+    ".claude/scripts/verified-merge.sh",
+    ".gitleaks.toml",
+    ".gitleaksignore"
   ],
   "required_checks": {
     "lint-test": 15368,
