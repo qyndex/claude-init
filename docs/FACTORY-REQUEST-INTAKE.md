@@ -125,3 +125,38 @@ bash .claude/scripts/test/factory-intake-adoption.sh rollback-observability
 ```
 
 Run this hosted crypto fixture with an appropriate Python plus `cryptography`. It exercises fresh encrypted restores, pause before and during the real fake Scout subprocess, pause inside the durable proposal boundary, exact retry, unresolved-intent retention, no downgrade, and sanitized diagnostics. Existing local console urgent-control and approval/pause fixtures cover local fencing separately. These are offline observations of the adapters, not live cancellation, capability certification, blanket interception, new retention policy or full spec050 completion.
+
+## Final offline acceptance and evidence (T-257)
+
+```sh
+FACTORY_INTAKE_LOCAL_PYTHON=/absolute/path/to/local/python3 \
+FACTORY_INTAKE_CRYPTO_PYTHON=/absolute/path/to/crypto/python3 \
+  bash .claude/scripts/test/factory-intake-adoption.sh phase3
+```
+
+Choose the appropriate local Python for the console/worker/filesystem fixtures and a Python with `cryptography` for hosted state. The maintained run uses Homebrew Python 3.14 and bundled crypto Python 3.12; paths are adopter-specific. `phase3` runs the complete local request-intake suite, the additional actual console route matrix, Slack phase2, hosted rollback/observability, adoption upgrades, and runtime/supervisor/routing/ledger/bounded-process/environment compatibility checks. It forwards only ordinary environment settings, creates isolated fixture credentials/processes and does not call live providers, Slack, cloud control planes or account-registry bootstrap.
+
+Every invocation creates a separate `verify/<date>-050-request-intake-router/phase3-attempt-*` directory with complete suite logs, command/interpreter versions, exits, durations, source/log hashes, source-default-off checks, `manifest.tsv`, `AC-EVIDENCE.md` and machine-readable `results.json`. The bundle's current `results.json` is initially marked running/unproven, then atomically replaced by that completed attempt, including failures. The acceptance process returns the runner's exact status. A failed compatibility suite or changed source/control state prevents overall success even when some AC cases pass. No stale passing result is silently reused.
+
+The following map names the actual cases whose completed exits and observed assertion markers drive each tagged result. It is an inventory, not evidence inferred from guide text:
+
+| Criterion | Executed proof cases |
+| --- | --- |
+| AC-1 | Installed console stdin and explicit authenticated Slack source, plus unsupported boundaries |
+| AC-2 | Distinct submissions, issued-token retries, immutable Slack edits and actor-conflict rollback |
+| AC-3 | Exact decision/action schema and actual mixed-intent draft route |
+| AC-4 | Bound continuation, immutable clarification revisions and linked actual console reply |
+| AC-5 | Pinned tool-free Scout, private clean subprocess context and isolated credentials |
+| AC-6 | Actual enqueue/start guards, generated native mutation hooks and current-source private publication |
+| AC-7 | Strict approval/OQ/spec bindings and drafts that remain pending, including unmatched maintenance |
+| AC-8 | Unmatched defect proposal, read-only Scout and existing private legacy feedback fences |
+| AC-9 | Encrypted intent/replay/CAS/lost acknowledgment, durable outbox and retained unknown outcomes |
+| AC-10 | Quota/schema/model/context/storage/output failures, no fallback and sanitized CLI errors |
+| AC-11 | Changed context/approval/pins, hostile imported approval, urgent control and hosted pause races |
+| AC-12 | Zero-call answer/status and exact context/request/output/deadline/descendant bounds |
+| AC-13 | Actual console routes and guarded worker, authenticated Slack, retry/edit/failure matrix |
+| AC-14 | Neutral templates, immutable adoption/upgrade, foreign/custom ownership and unchanged disabled controls |
+
+The results use AC-tagged assertion records compatible with the existing CLI evidence reader. A criterion is recorded passing only when its required suites exit zero and its specific behavioral case markers occur in those logs. This proves those maintained offline cases; it does not establish general model classification quality, every possible runtime, live native hook capability, adopter approval, engineering delivery, merge or deployment. Bare native/IDE edits remain advisory/unsupported. Source templates, source authority/merge/producers and unregistered global intake hooks are checked before and after; source bytes must remain unchanged during acceptance.
+
+`phase3` deliberately never invokes `verify.sh` or `collect-evidence.sh`. After source/evidence review and sanctioned task completion, the owner runs repository verification/evidence collection separately with the intended `VERIFY_BASE`; its newly completed acceptance rerun can then call `phase3` safely without recursion. `collect-evidence.sh 050 --check-only` must consume the actual current tagged results and still run its required smoke gate. Failed repository gates remain failures and must be reported with their logs; the offline AC results do not waive them. No browser rig is required for these CLI entrypoints, and these tests do not activate a live adopter.

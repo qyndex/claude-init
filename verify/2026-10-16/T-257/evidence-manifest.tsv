@@ -1,0 +1,3 @@
+0	python3 /tmp/t257-integrity.py (source/log/exit/AC proof integrity)
+0	python3 /tmp/t257-stories.py (five actual CLI story maps)
+0	bash .claude/scripts/spec-match.sh 050 (actual current CLI tagged results)

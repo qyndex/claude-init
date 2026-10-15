@@ -1,0 +1,4 @@
+PASS: 11 completed suite exits/log hashes, current source hashes, 14 exact AC tags, and every concrete proof marker independently validated.
+Measured aggregate seconds: 472.11
+Measured suite seconds: {"adoption": 3.087, "bounds": 1.187, "environment": 1.721, "ledger": 0.445, "local-all": 430.64, "rollback": 2.185, "routes": 12.531, "routing": 2.667, "runtime": 0.13, "slack": 6.588, "supervisor": 10.913}
+Interpreters: {"/Users/shravanjha/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3.12": "Python 3.12.14", "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/bin/python3.14": "Python 3.14.4"}

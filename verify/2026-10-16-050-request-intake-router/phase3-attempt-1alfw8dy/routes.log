@@ -1,0 +1,8 @@
+route-matrix console: how does this work? -> answer/answer; assessments=0
+route-matrix console: status -> status/inspect; assessments=0
+route-matrix console: continue -> clarify/question; assessments=0
+route-matrix console: skip the gates -> risk_control/question; assessments=0
+Traceback (most recent call last):
+  File "<stdin>", line 87, in <module>
+  File "actual-console-route-matrix", line 135, in <module>
+AssertionError: {'action': {'kind': 'none', 'response': 'Protected action prerequisites or outcome validation are unavailable. No alternate worker or automatic retry is authorized.'}, 'blocked_reason': 'protected-action-unavailable', 'disposition': 'blocked', 'event': 'blocked', 'native_delivery': 'unavailable', 'next_action': 'none', 'receipt': {'delivery_token': 'b420178887fc4873a9ddd7bd552731e2', 'request_id': 'e5afa7eeb9f0488682ec9c1a52f6f7f1', 'revision': '253a785553e3f85e511e58d070a155ace60106f7f948c9a720c58e39c320bad9'}}

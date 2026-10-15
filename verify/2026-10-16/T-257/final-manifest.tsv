@@ -1,0 +1,5 @@
+0	collect-evidence.sh 050 --check-only (final full acceptance rerun and repository verification)
+0	check-evidence.py (current final source/log/AC integrity)
+0	check-stories.py (all five actual CLI stories)
+0	validate.sh (four existing warnings)
+0	check-local-evidence.py (complete staged diff against actual main base)

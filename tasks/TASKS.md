@@ -1522,9 +1522,9 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-intake-adoption.sh rollback-observability
   owner: implementer
 
-- [ ] T-257  | spec:050  | phase:3  | priority: security  | created: 2026-10-12  | deps: T-256  | parallel: no  | est: 5m
+- [x] T-257  | spec:050  | phase:3  | priority: security  | created: 2026-10-12  | deps: T-256  | parallel: no  | est: 5m
   summary: Record all fourteen AC evidence and run required repository regressions with live authority disabled
-  files: .claude/scripts/test/factory-intake-adoption.sh, docs/FACTORY-REQUEST-INTAKE.md
+  files: .claude/scripts/test/factory-intake-adoption.sh, .claude/scripts/test/factory-request-intake.sh, .claude/scripts/test/factory-intake-console.sh, .claude/scripts/test/factory-intake-slack.sh, .claude/scripts/test/intake-private-diagnostics.py, docs/FACTORY-REQUEST-INTAKE.md
   accept: bash .claude/scripts/test/factory-intake-adoption.sh phase3
   owner: implementer
 

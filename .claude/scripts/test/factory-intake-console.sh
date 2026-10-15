@@ -16,8 +16,9 @@ fixture=fixture.replace("with sqlite3.connect(Path(__file__).with_name('runtime.
 fixture=fixture.replace('pins=[controller,', 'pins=[console,controller,controller.with_name(\'factory-ledger.py\'),')
 fixture=fixture.replace(" policy={'repository'"," profile['mandatory_intake']={'required':True,'contract':str(private/'intake.json'),'database':str(private/'runtime.sqlite')};save()\n policy={'repository'",1)
 tail=r"""
+ import runpy
  driver=private/'console-driver.py'
- driver.write_text('import pwd,runpy,sys\nfrom types import SimpleNamespace\npwd.getpwuid=lambda uid:SimpleNamespace(pw_dir='+repr(str(account_home))+')\nentry=sys.argv.pop(1);sys.argv[0]=entry;runpy.run_path(entry,run_name=\"__main__\")\n')
+ driver.write_text(runpy.run_path(str(root/'.claude/scripts/test/intake-private-diagnostics.py'))['driver_prefix']('console')+'import pwd,runpy,sys\nfrom types import SimpleNamespace\npwd.getpwuid=lambda uid:SimpleNamespace(pw_dir='+repr(str(account_home))+')\nentry=sys.argv.pop(1);sys.argv[0]=entry;runpy.run_path(entry,run_name=\"__main__\")\n')
  def foreground(lines,*args,success=True,sanitized=False):
   command=[str(Path(sys.executable).resolve()),'-I','-S',str(driver),str(console),'--root',str(candidate),*args]
   process=subprocess.run(command,input=lines,text=True,capture_output=True,timeout=60,env={'PATH':'/usr/bin:/bin','HOME':'/attacker','LANG':'C','LC_ALL':'C','FACTORY_PLANNING_CLAUDE_OAUTH_TOKEN':'fixture-planning'})

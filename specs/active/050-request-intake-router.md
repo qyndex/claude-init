@@ -1,11 +1,11 @@
 ---
 id: 050
 slug: request-intake-router
-status: approved
+status: shipped
 owner: "@codex"
 human_owner: "@operator" # adopting repository supplies the actual accountable owner
 created: 2026-10-12
-updated: 2026-10-12
+updated: 2026-10-16
 complexity: L
 objective: KR-PLATFORM
 service_tier: T2

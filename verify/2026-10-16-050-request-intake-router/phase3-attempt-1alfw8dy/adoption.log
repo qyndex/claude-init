@@ -1,0 +1,4 @@
+AC-14: actual CLI packages current immutable intake scripts, hooks, neutral example and guide with exact ownership hashes/modes
+AC-14: disabled schema validates, feedback intake stays absent, adopter state survives, no private source/keys/DB/registry imported, and audited CLI performs only local Git reads
+AC-14: actual CLI upgrades clean source A to B with exact script/template/guide hashes and modes; explicit upgrade required, exact replay is idempotent, adopter policy/state remain unchanged
+AC-14: preexisting foreign intake template/guide and locally modified managed script reject before target/manifest/journal mutation; audited CLI retains default-off without provider/network/registry effects

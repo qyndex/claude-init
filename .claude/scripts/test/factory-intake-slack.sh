@@ -19,6 +19,8 @@ python3 - "$ROOT" "${1:-authenticated}" <<'PYTEST'
 import copy,importlib.util,json,os,sqlite3,sys,tempfile
 from pathlib import Path
 from datetime import datetime,timedelta,timezone
+import runpy
+runpy.run_path(str(Path(sys.argv[1])/'.claude/scripts/test/intake-private-diagnostics.py'))['install_requested']('slack')
 root=Path(sys.argv[1]);path=root/'.claude/scripts/factory-slack-feedback.py';assert path.exists(),'authenticated private Slack feedback adapter is absent'
 spec=importlib.util.spec_from_file_location('ingress',path);m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
 fixture=(root/'.claude/scripts/test/factory-hosted-digest.sh').read_text();ns={};exec(fixture.split("<<'PYTEST'\n",1)[1].split('with tempfile.TemporaryDirectory() as tmp:',1)[0],ns)

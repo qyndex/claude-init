@@ -1,0 +1,185 @@
+{
+  "kind": "executed-cli-story-map",
+  "scope": "maintained offline fixture cases; no fake browser wrapper or live capability claim",
+  "results": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/results.json",
+  "results_sha256": "f78bcfa04c14467a32138cec5ed1f952b7a14cb5b0acf9768e6b90d9a214a360",
+  "stories": [
+    {
+      "id": "story-1",
+      "text": "As a requester I want ordinary language to enter the appropriate workflow so that I do not have to know factory command names.",
+      "text_sha256": "ab71cae1cc5edacbea51aa4dc90324aabb10825b57111776526ebd88d6428e83",
+      "status": "passed",
+      "proof": [
+        {
+          "suite": "routes",
+          "case_marker": "how does this work? -> answer/answer",
+          "suite_exit": 0,
+          "marker_observed": true,
+          "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/routes.log",
+          "log_sha256": "b5c5a0445870375949ce106b314ccc9e84eb3fdc3eecc609ccffd7b3740d6584"
+        },
+        {
+          "suite": "routes",
+          "case_marker": "add login -> new_feature/draft",
+          "suite_exit": 0,
+          "marker_observed": true,
+          "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/routes.log",
+          "log_sha256": "b5c5a0445870375949ce106b314ccc9e84eb3fdc3eecc609ccffd7b3740d6584"
+        },
+        {
+          "suite": "local-all",
+          "case_marker": "phase1: actual installed console to guarded worker",
+          "suite_exit": 0,
+          "marker_observed": true,
+          "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/local-all.log",
+          "log_sha256": "bcd79447ccf35e20f44dd9f4ca1d54c73c7dc8b4af254d111e4844a624d11e38"
+        },
+        {
+          "suite": "slack",
+          "case_marker": "authenticated receipt-bound Slack capture",
+          "suite_exit": 0,
+          "marker_observed": true,
+          "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/slack.log",
+          "log_sha256": "67b9b50ad18fc08861d109d93fa52d04aa65b21b4ef8c1778e4ce68e32ea5b56"
+        }
+      ]
+    },
+    {
+      "id": "story-2",
+      "text": "As a requester I want follow-up requests to retain their work context so that \u201ccontinue\u201d resumes the intended approved task and clarification answers update the same proposal.",
+      "text_sha256": "3578a25a27f6826bdaa1914562c5d22c201bbf2f389b599791bdef2a5ecaa0f0",
+      "status": "passed",
+      "proof": [
+        {
+          "suite": "local-all",
+          "case_marker": "session-continuation: unbound/global/other-session work clarifies",
+          "suite_exit": 0,
+          "marker_observed": true,
+          "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/local-all.log",
+          "log_sha256": "bcd79447ccf35e20f44dd9f4ca1d54c73c7dc8b4af254d111e4844a624d11e38"
+        },
+        {
+          "suite": "local-all",
+          "case_marker": "clarification-revisions: actual immutable thread APIs",
+          "suite_exit": 0,
+          "marker_observed": true,
+          "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/local-all.log",
+          "log_sha256": "bcd79447ccf35e20f44dd9f4ca1d54c73c7dc8b4af254d111e4844a624d11e38"
+        },
+        {
+          "suite": "routes",
+          "case_marker": "clarification reply retains proposal parent",
+          "suite_exit": 0,
+          "marker_observed": true,
+          "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/routes.log",
+          "log_sha256": "b5c5a0445870375949ce106b314ccc9e84eb3fdc3eecc609ccffd7b3740d6584"
+        },
+        {
+          "suite": "slack",
+          "case_marker": "immutable lineage, missing-prior provenance and atomic actor-conflict rollback",
+          "suite_exit": 0,
+          "marker_observed": true,
+          "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/slack.log",
+          "log_sha256": "67b9b50ad18fc08861d109d93fa52d04aa65b21b4ef8c1778e4ce68e32ea5b56"
+        }
+      ]
+    },
+    {
+      "id": "story-3",
+      "text": "As an accountable owner I want new or changed requirements surfaced as proposed scope so that automation cannot approve its own work.",
+      "text_sha256": "41617f2af1ee4ebc56bb98446391b41820baaaad6452b3257c32340e90d2efca",
+      "status": "passed",
+      "proof": [
+        {
+          "suite": "routes",
+          "case_marker": "continue and add login -> changed_requirement/draft",
+          "suite_exit": 0,
+          "marker_observed": true,
+          "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/routes.log",
+          "log_sha256": "b5c5a0445870375949ce106b314ccc9e84eb3fdc3eecc609ccffd7b3740d6584"
+        },
+        {
+          "suite": "routes",
+          "case_marker": "all drafts pending",
+          "suite_exit": 0,
+          "marker_observed": true,
+          "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/routes.log",
+          "log_sha256": "b5c5a0445870375949ce106b314ccc9e84eb3fdc3eecc609ccffd7b3740d6584"
+        },
+        {
+          "suite": "local-all",
+          "case_marker": "approval-eligibility: strict first-header approval/spec bindings",
+          "suite_exit": 0,
+          "marker_observed": true,
+          "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/local-all.log",
+          "log_sha256": "bcd79447ccf35e20f44dd9f4ca1d54c73c7dc8b4af254d111e4844a624d11e38"
+        }
+      ]
+    },
+    {
+      "id": "story-4",
+      "text": "As an adopter I want explicit runtime coverage and prerequisites so that installing a hook does not imply universal routing or production authority.",
+      "text_sha256": "693e7a7ba961c62401111502912c3fcfc8c87a5f347bcba9478ed1243eceae40",
+      "status": "passed",
+      "proof": [
+        {
+          "suite": "adoption",
+          "case_marker": "actual CLI packages current immutable intake scripts",
+          "suite_exit": 0,
+          "marker_observed": true,
+          "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/adoption.log",
+          "log_sha256": "bb89bb4bd9268ce795cb912119aa1801f4fb2eae138156b6bab1ce9d673c7aab"
+        },
+        {
+          "suite": "adoption",
+          "case_marker": "audited CLI retains default-off without provider/network/registry effects",
+          "suite_exit": 0,
+          "marker_observed": true,
+          "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/adoption.log",
+          "log_sha256": "bb89bb4bd9268ce795cb912119aa1801f4fb2eae138156b6bab1ce9d673c7aab"
+        },
+        {
+          "suite": "local-all",
+          "case_marker": "start-guard: installed API/CLI",
+          "suite_exit": 0,
+          "marker_observed": true,
+          "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/local-all.log",
+          "log_sha256": "bcd79447ccf35e20f44dd9f4ca1d54c73c7dc8b4af254d111e4844a624d11e38"
+        }
+      ]
+    },
+    {
+      "id": "story-5",
+      "text": "As an operator I want failed and replayed intake to have explicit recorded outcomes so that recovery cannot duplicate work or silently bypass a decision.",
+      "text_sha256": "97d43d7793f64d8d277cf6a479605c9641ab539c9f9caf6b4b8c6d514add17d5",
+      "status": "passed",
+      "proof": [
+        {
+          "suite": "rollback",
+          "case_marker": "committed unresolved running intent survives pause, unpause and exact retry",
+          "suite_exit": 0,
+          "marker_observed": true,
+          "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/rollback.log",
+          "log_sha256": "30fbd5d11c6752eb420fb45b18e4497f10b3c89cf20dc32375bc45f328e9fe07"
+        },
+        {
+          "suite": "slack",
+          "case_marker": "CAS conflicts and lost acknowledgements before/after Scout",
+          "suite_exit": 0,
+          "marker_observed": true,
+          "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/slack.log",
+          "log_sha256": "67b9b50ad18fc08861d109d93fa52d04aa65b21b4ef8c1778e4ce68e32ea5b56"
+        },
+        {
+          "suite": "local-all",
+          "case_marker": "store failure has zero provider effects",
+          "suite_exit": 0,
+          "marker_observed": true,
+          "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/local-all.log",
+          "log_sha256": "bcd79447ccf35e20f44dd9f4ca1d54c73c7dc8b4af254d111e4844a624d11e38"
+        }
+      ]
+    }
+  ],
+  "source_controls_unchanged": true
+}
