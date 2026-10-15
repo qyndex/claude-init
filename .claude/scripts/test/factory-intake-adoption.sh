@@ -1,6 +1,31 @@
 #!/usr/bin/env bash
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
+if [[ "${1:-package}" == matrix ]]; then
+  # AC-1 through AC-14: actual adapter journeys; fixtures do not certify live runtimes.
+  local_python="${FACTORY_INTAKE_LOCAL_PYTHON:-$(command -v python3)}"
+  crypto_python="${FACTORY_INTAKE_CRYPTO_PYTHON:-$local_python}"
+  for interpreter in "$local_python" "$crypto_python"; do
+    [[ "$interpreter" == /* && -x "$interpreter" ]] || { echo 'matrix: absolute executable Python required' >&2; exit 2; }
+  done
+  printf 'matrix local interpreter: %s\n' "$local_python"
+  "$local_python" --version
+  printf 'matrix crypto interpreter: %s\n' "$crypto_python"
+  "$crypto_python" - <<'CRYPTO'
+import sys,cryptography
+print('matrix crypto runtime: '+sys.executable+'; cryptography '+cryptography.__version__)
+CRYPTO
+  for selector in route-matrix phase1 urgent-control; do
+    printf 'matrix console selector: %s\n' "$selector"
+    PATH="$(dirname "$local_python"):$PATH" bash "$ROOT/.claude/scripts/test/factory-request-intake.sh" "$selector"
+  done
+  printf 'matrix Slack selector: phase2\n'
+  PATH="$(dirname "$crypto_python"):$PATH" bash "$ROOT/.claude/scripts/test/factory-intake-slack.sh" phase2
+  printf 'matrix adoption selector: upgrade\n'
+  PATH="$(dirname "$local_python"):$PATH" bash "$0" upgrade
+  printf 'matrix complete: 3 console selectors, Slack phase2, adoption upgrade; offline fixtures only\n'
+  exit 0
+fi
 case "${1:-package}" in package|upgrade) ;; *) exit 2 ;; esac
 python3 - "$ROOT" "${1:-package}" <<'PYTEST'
 import hashlib,importlib.util,json,os,shutil,stat,subprocess,sys,tempfile

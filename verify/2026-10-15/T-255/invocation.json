@@ -1,0 +1,11 @@
+{
+  "command": "bash .claude/scripts/test/factory-intake-adoption.sh matrix",
+  "environment": {
+    "FACTORY_INTAKE_LOCAL_PYTHON": "/opt/homebrew/bin/python3",
+    "FACTORY_INTAKE_CRYPTO_PYTHON": "/Users/shravanjha/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3"
+  },
+  "local_version": "Python 3.14.4",
+  "crypto_version": "Python 3.12.14",
+  "ledger_output_limit": 50,
+  "live_provider_calls": false
+}

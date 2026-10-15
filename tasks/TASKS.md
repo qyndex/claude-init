@@ -1510,7 +1510,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-intake-adoption.sh upgrade
   owner: implementer
 
-- [ ] T-255  | spec:050  | phase:3  | priority: security  | created: 2026-10-12  | deps: T-254  | parallel: no  | est: 5m
+- [x] T-255  | spec:050  | phase:3  | priority: security  | created: 2026-10-12  | deps: T-254  | parallel: no  | est: 5m
   summary: Exercise full supported route injection and failure matrix through actual adapter entrypoints
   files: .claude/scripts/test/factory-request-intake.sh, .claude/scripts/test/factory-intake-slack.sh, .claude/scripts/test/factory-intake-adoption.sh
   accept: bash .claude/scripts/test/factory-intake-adoption.sh matrix

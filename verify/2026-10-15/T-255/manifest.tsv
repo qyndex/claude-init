@@ -1,0 +1,6 @@
+0	bash .claude/scripts/test/factory-intake-adoption.sh matrix (actual ledger acceptance; explicit interpreters in invocation.json)
+0	bash .claude/scripts/test/factory-request-intake.sh route-matrix (full focused output; Homebrew Python)
+0	python3 /tmp/t255-evidence.py (ordered ledger tail and complete focused inventory)
+0	bash -n request-intake.sh intake-adoption.sh
+0	git diff --check
+0	bash .claude/scripts/validate.sh

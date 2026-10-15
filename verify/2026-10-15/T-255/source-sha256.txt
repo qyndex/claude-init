@@ -1,0 +1,3 @@
+dded577e0e1d7a85e4101f95e031e415919a3bbf784a4e85bba069a9c78cf135  .claude/scripts/test/factory-request-intake.sh
+47f54acbb827c7c1556aada400d07ca8cc233a3a7f40c9f4ba86f7a277afbc09  .claude/scripts/test/factory-intake-adoption.sh
+ea31a6f958444d749ec81e9e3516690919ae2a1dc933c91cf3bf90c7fe1da2fc  .claude/scripts/test/factory-intake-slack.sh
