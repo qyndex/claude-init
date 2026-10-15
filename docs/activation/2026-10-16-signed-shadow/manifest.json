@@ -1,0 +1,23 @@
+{
+  "source_sha": "bc678f611e7c2e05b1eb427e805654644c84dd67",
+  "prepared_at": "2026-10-15T22:37:05.984165+00:00",
+  "shadow_only": true,
+  "merge_enabled": false,
+  "pilot_scope_unchanged": true,
+  "declared_preflight_is_not_authentication": true,
+  "live_producer_verdicts": false,
+  "live_rules_applied": false,
+  "repository_switches_changed": false,
+  "files": {
+    "docs/activation/2026-10-16-signed-shadow/README.md": "f2fd877a3ed6d7880677b8108a10812218f67d575c5b7067ff30b8a5fa757263",
+    "docs/activation/2026-10-16-signed-shadow/policy.before.json": "26d3a765e2366645c426cc6dddddbf712a35dc0d09751683e2e936fc704569db",
+    "docs/activation/2026-10-16-signed-shadow/policy.shadow.signed-pins.json": "f23864df6bde258676d9d9b79d96afb2aed70fd15bd0907129b68ad12949f056",
+    "docs/activation/2026-10-16-signed-shadow/preflight.after.metadata.json": "1ceef2997025462abd07d40d6ec667aeaa2a003ddd1423adadd6c573aa5f911b",
+    "docs/activation/2026-10-16-signed-shadow/preflight.before.metadata.json": "fabf11271401ecbe3f0a7e8bc228630bc3cd4d17ed9fbd91c75b22850cd7b6a7",
+    "docs/activation/2026-10-16-signed-shadow/rules.applied.before.json": "c249f25a19c3d8694afd1ab45ecfa58726970f8d169fcae1e351825a52b42fd8",
+    "docs/activation/2026-10-16-signed-shadow/ruleset.before.json": "e42f37bf0558e492f84b9f5259a993c369802272e660e3979662dc4d3e26348b",
+    "docs/activation/2026-10-16-signed-shadow/ruleset.proposed.json": "608e2721e770f178289c8d02a1451fa1a3d49aa1b91bc7183d3a6a280b14b4a1",
+    "docs/activation/2026-10-16-signed-shadow/source.json": "72eacc5d3a6a7f779358711c2edfadafa7b444b87e52b770dab1ee0b9b94125e",
+    "docs/activation/2026-10-16-signed-shadow/validation.json": "b11f416a30aa69adabeaa4f9f9d00f4f3685d828a22cb29572946ebcd35abc73"
+  }
+}

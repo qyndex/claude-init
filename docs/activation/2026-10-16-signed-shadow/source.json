@@ -1,0 +1,34 @@
+{
+  "source_sha": "bc678f611e7c2e05b1eb427e805654644c84dd67",
+  "source_kind": "actual-reviewed-merged-runtime",
+  "producer_runtime_paths_per_role": 7,
+  "trusted_files": {
+    "verification": {
+      ".claude/scripts/factory-bounded-process.py": "91d077e6badb7c606a31cf85d8fbb8315b91d9d211b4fe1ab8fb970693207f47",
+      ".claude/scripts/factory-coordinator.py": "b5df1f0565030f6c3075453a8bcf31343b879950d5d460c67ae38da01381af8e",
+      ".claude/scripts/factory-producer-check.py": "848474c98c55c9281f47ce97a9bd3a7c302dd51033860cbebf154e478a0c6f07",
+      ".claude/scripts/factory-producer.py": "c4f55db3a85d32c88e82432cb26d15ad183707d060e344300d14574bb75da417",
+      ".claude/scripts/factory-provenance.py": "0b169e5fefa78ee683ecf3aaf13bfce975929b113ff3d1052a59a95cc3077b01",
+      ".claude/scripts/validate-candidate-evidence.py": "ad0be5042d8dce5e0372159bbcbdbb84bc39b96e57435865eb62e7e5d4d0b52c",
+      ".github/workflows/factory-verification.yml": "1ec9a5a9f2b3b30934814832b47a5da667782d529f1b504fe562141042de137c"
+    },
+    "review": {
+      ".claude/scripts/factory-bounded-process.py": "91d077e6badb7c606a31cf85d8fbb8315b91d9d211b4fe1ab8fb970693207f47",
+      ".claude/scripts/factory-coordinator.py": "b5df1f0565030f6c3075453a8bcf31343b879950d5d460c67ae38da01381af8e",
+      ".claude/scripts/factory-producer-check.py": "848474c98c55c9281f47ce97a9bd3a7c302dd51033860cbebf154e478a0c6f07",
+      ".claude/scripts/factory-producer.py": "c4f55db3a85d32c88e82432cb26d15ad183707d060e344300d14574bb75da417",
+      ".claude/scripts/factory-provenance.py": "0b169e5fefa78ee683ecf3aaf13bfce975929b113ff3d1052a59a95cc3077b01",
+      ".claude/scripts/validate-candidate-evidence.py": "ad0be5042d8dce5e0372159bbcbdbb84bc39b96e57435865eb62e7e5d4d0b52c",
+      ".github/workflows/factory-review.yml": "20fe2a543849530f034dc5307e0c240cd7b3fb3fa285e1b1c260d36fd9bff082"
+    }
+  },
+  "policy_before_sha256": "26d3a765e2366645c426cc6dddddbf712a35dc0d09751683e2e936fc704569db",
+  "policy_after_sha256": "f23864df6bde258676d9d9b79d96afb2aed70fd15bd0907129b68ad12949f056",
+  "only_producer_trusted_files_changed": true,
+  "pilot_spec_scope_commands_image_unchanged": true,
+  "merge_enabled": false,
+  "receipt_trusted_revisions_unchanged_empty": true,
+  "live_signing_proof": false,
+  "live_rules_applied": false,
+  "repository_switches_changed": false
+}

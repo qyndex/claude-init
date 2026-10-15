@@ -204,7 +204,7 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
 - [b] T-180  | spec:009  | phase:3  | priority: security  | created: 2026-10-09  | last_touched: 2026-10-09  | deps: T-179  | parallel: no  | est: 5m
   summary: Activate reviewed factory App policy after authenticated shadow proof
   accept: python3 .claude/scripts/factory-preflight.py --policy factory/policy.json
-  blocked_by: Operator App registration/key installation, independent proof producers and reviewed authority cutover
+  blocked_by: Authenticated signed producer artifacts, genuine shadow proof and reviewed authority cutover; App setup completed
   owner: operator
 
 - [x] T-176  | spec:007  | phase:1  | priority: security  | created: 2026-10-09  | last_touched: 2026-10-09  | deps:  | parallel: no  | est: 5m
