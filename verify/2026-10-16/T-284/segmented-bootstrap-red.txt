@@ -1,0 +1,13 @@
+$ bash .claude/scripts/test/factory-receipt-discovery.sh
+Traceback (most recent call last):
+  File "<stdin>", line 92, in <module>
+  File "real-git-discovery-fixture", line 138, in <module>
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-discovery.py", line 89, in advance
+    anchor = archive.verify_bootstrap(api, approval_path)
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 220, in verify_bootstrap
+    require(tree['complete'], 'archive bootstrap tree incomplete; authenticated cursor continuation required')
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/validate-candidate-evidence.py", line 19, in require
+    raise ValueError(message)
+ValueError: archive bootstrap tree incomplete; authenticated cursor continuation required
+exit: 1

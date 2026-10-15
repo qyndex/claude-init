@@ -17,14 +17,15 @@ def validate_entry(item):
     require(isinstance(item, dict) and valid_hash(item.get('sha'), 40), 'state entry identity invalid')
     path = item.get('path')
     require(isinstance(path, str), 'state path invalid')
+    checked_path = path.replace('receipt-archive/pending/', 'receipt-archive/index/', 1)
     if item.get('type') == 'tree':
-        allowed = path in {'reports', 'receipt-archive', 'receipt-archive/objects', 'receipt-archive/materials', 'receipt-archive/index', 'receipt-archive/discovery'} or re.fullmatch(r'receipt-archive/(objects|materials)/[0-9a-f]{2}', path) or re.fullmatch(r'receipt-archive/index/[0-9a-f]{64}(/identities(/[0-9a-f]{2})?)?', path) or re.fullmatch(r'receipt-archive/index/[0-9a-f]{64}(/[0-9]{3}){1,3}', path)
+        allowed = path in {'reports', 'receipt-archive', 'receipt-archive/objects', 'receipt-archive/materials', 'receipt-archive/index', 'receipt-archive/discovery', 'receipt-archive/progress', 'receipt-archive/pending'} or re.fullmatch(r'receipt-archive/(objects|materials)/[0-9a-f]{2}', checked_path) or re.fullmatch(r'receipt-archive/index/[0-9a-f]{64}(/identities(/[0-9a-f]{2})?)?', checked_path) or re.fullmatch(r'receipt-archive/index/[0-9a-f]{64}(/[0-9]{3}){1,3}', checked_path)
         require(item.get('mode') == '040000' and bool(allowed), 'state tree path/mode invalid')
     else:
-        allowed = path == 'README.md' or re.fullmatch(r'reports/[0-9a-f]{64}\.json', path) or re.fullmatch(r'receipt-archive/discovery/[0-9a-f]{64}\.json', path)
-        sharded = re.fullmatch(r'receipt-archive/(objects|materials)/([0-9a-f]{2})/([0-9a-f]{64})\.json', path)
-        identity = re.fullmatch(r'receipt-archive/index/[0-9a-f]{64}/identities/([0-9a-f]{2})/([0-9a-f]{64})\.json', path)
-        segment = re.fullmatch(r'receipt-archive/index/[0-9a-f]{64}/([0-9]{3})/([0-9]{3})/([0-9]{3})/([0-9]{12})\.json', path)
+        allowed = path == 'README.md' or re.fullmatch(r'reports/[0-9a-f]{64}\.json', checked_path) or re.fullmatch(r'receipt-archive/(discovery|progress)/[0-9a-f]{64}\.json', checked_path)
+        sharded = re.fullmatch(r'receipt-archive/(objects|materials)/([0-9a-f]{2})/([0-9a-f]{64})\.json', checked_path)
+        identity = re.fullmatch(r'receipt-archive/index/[0-9a-f]{64}/identities/([0-9a-f]{2})/([0-9a-f]{64})\.json', checked_path)
+        segment = re.fullmatch(r'receipt-archive/index/[0-9a-f]{64}/([0-9]{3})/([0-9]{3})/([0-9]{3})/([0-9]{12})\.json', checked_path)
         allowed = allowed or (segment and segment[4].startswith(segment[1]+segment[2]+segment[3]))
         allowed = allowed or (sharded and sharded[3].startswith(sharded[2])) or (identity and identity[2].startswith(identity[1]))
         if path.startswith('receipt-archive/'):
@@ -101,3 +102,7 @@ def segment_path(stream, number):
     require(valid_hash(stream, 64) and type(number) is int and 0 <= number < 10**12, 'archive segment path identity invalid')
     digits = f'{number:012d}'
     return f'receipt-archive/index/{stream}/{digits[:3]}/{digits[3:6]}/{digits[6:9]}/{digits}.json'
+
+
+def pending_segment_path(stream, number):
+    return segment_path(stream, number).replace('receipt-archive/index/', 'receipt-archive/pending/', 1)

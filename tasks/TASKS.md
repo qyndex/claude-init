@@ -1687,9 +1687,9 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-receipt-retained-proof.sh
   owner: implementer
 
-- [ ] T-284  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-283  | parallel: no  | est: 5m
+- [x] T-284  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-283  | parallel: no  | est: 5m
   summary: Persist bounded segmented discovery cursor and unresolved attempt journal
-  files: .claude/scripts/factory-receipt-discovery.py, .claude/scripts/test/factory-receipt-discovery.sh
+  files: .claude/scripts/factory-receipt-discovery.py, .claude/scripts/test/factory-receipt-discovery.sh, .claude/scripts/factory-state-paths.py, .claude/scripts/test/factory-receipt-state-paths.sh, plans/active/014-authenticated-receipt-recovery.md, .claude/scripts/factory-receipt-archive.py
   accept: bash .claude/scripts/test/factory-receipt-discovery.sh
   owner: implementer
 

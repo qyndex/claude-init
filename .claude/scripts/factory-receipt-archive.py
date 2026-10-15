@@ -168,10 +168,12 @@ def verify_bootstrap(api, approval_path, *, now=None):
     require(all(receipts.coordinator.contract.digest(approval[k], 40) for k in ('bootstrap_sha', 'bootstrap_tree')), 'archive bootstrap revision invalid')
     observed = instant(approval['observed_at']); origin = instant(approval['coverage_from'])
     require(origin <= observed <= now, 'archive coverage/approval clock invalid')
-    consumed = 0
+    consumed = 0; calls = 0
 
     def read(path):
-        nonlocal consumed
+        nonlocal consumed, calls
+        require(calls < 2048, 'archive bootstrap API call bound reached; explicit coverage gap')
+        calls += 1
         value = api.request(path)
         size = len(canonical(value)); consumed += size
         require(size <= MAX_OBJECT and consumed <= 33554432, 'archive bootstrap API response bound reached; explicit coverage gap')
@@ -216,7 +218,12 @@ def verify_bootstrap(api, approval_path, *, now=None):
         class Reader:
             repo = api.repo
             request = staticmethod(read)
-        tree = state_paths.scan_tree(Reader(), root, tree_sha)
+        cursor = None
+        for tree_window in range(10):
+            tree = state_paths.scan_tree(Reader(), root, tree_sha, cursor=cursor)
+            if tree['complete']:
+                break
+            cursor = tree['cursor']  # Checked in-memory continuation; never external input.
         require(tree['complete'], 'archive bootstrap tree incomplete; authenticated cursor continuation required')
         if sha == approval['bootstrap_sha']:
             require(tree_sha == approval['bootstrap_tree'], 'archive bootstrap tree differs')

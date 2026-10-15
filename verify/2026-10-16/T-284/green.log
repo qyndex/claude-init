@@ -1,0 +1,7 @@
+# TDD ledger — green — T-284
+ledger_format: 2
+timestamp: 2026-10-16T10:55:38+11:00
+command: bash .claude/scripts/test/factory-receipt-discovery.sh
+exit_code: 0
+---
+11 bounded protected discovery/CAS/restart/origin scenarios passed; complete coverage remains false
