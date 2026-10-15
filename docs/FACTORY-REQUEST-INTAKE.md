@@ -87,3 +87,25 @@ Assessment and proposal action intent must cross the encrypted checkpoint barrie
 Retention stays under the existing private feedback contract. This acceptance adds no deletion, history compaction, plaintext export or public telemetry policy. Operators must retain unresolved intent and its source/action provenance until reconciliation; exceeding bounds blocks instead of truncating or silently pruning. Disablement blocks dependent intake rather than granting ungated execution. Per-adopter retention, key custody/recovery and protected dataflow approval remain operator responsibilities.
 
 T-252 characterizes and assembles existing phase-two behavior; it has no fabricated RED phase or production change. Adoption, rollback and the final acceptance matrix remain in T-253 and later tasks. These offline fixtures do not complete spec050, activate live intake, certify an adopter or authorize planning/execution of new scope.
+
+## Neutral adoption package (T-253)
+
+The immutable adoption package now includes `factory/request-intake.example.json` and this guide. Existing directory ownership already distributes intake controller/Scout/console scripts, generated-callback helpers and the three intake hook scripts. The example validates as disabled: repository, candidate/authority roots, database, profile and policy are null; trusted pins are empty; finite limits remain explicit. It is a template, not protected runtime configuration. The existing feedback example remains disabled and has no `intake_config` locator, so adoption does not enable hosted intake or select an assessment model/dataflow.
+
+Use a reviewed, clean, immutable factory Git source and the existing transactional adopter CLI. For example, with your own absolute paths:
+
+```sh
+python3 /trusted/claude-init/.claude/scripts/factory-adopt.py \
+  --from /trusted/claude-init --into /work/product \
+  --state-root /private/adopter/adoption-journal
+```
+
+Requirements are POSIX filesystem/process semantics, Git, Bash and a suitable Python 3 interpreter. The packaging fixture is tested with Homebrew Python 3.14; the system Apple Python may be too old for runtime filesystem APIs such as `Path.stat(follow_symlinks=False)`. The CLI's optional `--check-tools` also checks `jq`. `cryptography` is required only when exercising the hosted encrypted feedback path; adopting the package itself does not require it or install dependencies.
+
+The source and target must be canonical distinct Git roots, and the source must be clean. The CLI preflights ownership hashes/modes and foreign collisions, then writes its private external journal and `.claude/install-manifest.json` transactionally. Existing target task authority, private settings, state and memory remain adopter-owned. Active source backlog, memory, runtime state, pilot policy, private databases and credentials are excluded. Review the resulting manifest and diff before committing the target installation. No model/provider calls, network activation, cloud resources, account registry bootstrap, private intake policy/key/database creation or execution of copied scripts occurs during adoption. The adoption journal is the only private operational state this packaging step creates.
+
+Copying scripts into a developer-editable candidate repository does not make those copies a protected enforcement boundary. Mandatory guarded console/worker support requires separately reviewed and pinned source/executable/interpreter/settings copies outside both candidate and authority roots, a private adopter policy and profile, explicit repository identity, current authoritative eligibility, dedicated credentials and independently observed capabilities. Only an explicit per-adopter bootstrap after those prerequisites may bind the protected installation into the OS-account registry. Installing these package files does not perform that bootstrap. Bare native/IDE paths remain advisory or unsupported.
+
+The installed settings do not register the intake hooks or enable local/global intake settings; protected generated settings supply absolute callbacks only after trusted configuration is established. Do not enable an example by replacing `false` alone or reuse source pilot identity, pins or credentials. For hosted Slack, keep the existing feedback template disabled until the per-adopter prerequisites above are satisfied; the optional assessment object must stay neutral (`enabled: false`, null `dataflow`/`profile_sha256`, empty `trusted_files`, finite limits) until the private Scout dataflow is separately approved.
+
+Packaging acceptance is `bash .claude/scripts/test/factory-intake-adoption.sh package`. It creates a clean isolated source image from current tracked package bytes plus this task's explicit new files and runs the actual adopter CLI into a fresh local product Git repository. It verifies exact ownership bytes/hashes/modes, target state preservation, disabled schemas and an audited local-Git-only installation. This proves packaging and default-off behavior. Upgrade/collision and later adoption/rollback acceptance remain separate tasks; it does not enable live intake or complete spec050.

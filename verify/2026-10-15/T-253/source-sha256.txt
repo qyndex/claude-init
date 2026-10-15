@@ -1,0 +1,4 @@
+6c5aa2862cbd9599a8c7226012e0a38e6584060097d80f044bc8b5b57c1bac81  .claude/scripts/factory-adopt.py
+9cb66ff5495a93fe0a78da9b140bd0f1d86ee8ef23000faf22dfde27887847c6  .claude/scripts/test/factory-intake-adoption.sh
+35223c0be0c6642f8afb71f83bbe44fb8ca6426793e83b4c671b889a469eb52a  factory/request-intake.example.json
+f0178c20af4f90ff20d4a1f2e9b4a2c73237714cea0c0f493f232e8ea6a11b5a  docs/FACTORY-REQUEST-INTAKE.md

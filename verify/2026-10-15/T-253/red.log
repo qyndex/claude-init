@@ -1,0 +1,10 @@
+# TDD ledger — red — T-253
+ledger_format: 2
+timestamp: 2026-10-15T20:06:27+11:00
+command: bash .claude/scripts/test/factory-intake-adoption.sh package
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 51, in <module>
+AssertionError: neutral intake package omitted docs/FACTORY-REQUEST-INTAKE.md

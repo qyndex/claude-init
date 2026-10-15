@@ -1,0 +1,5 @@
+0	bash .claude/scripts/test/factory-intake-adoption.sh package (ledger green.log; Homebrew Python 3.14)
+0	bash .claude/scripts/test/factory-adopt.sh (Homebrew Python)
+0	bash -n .claude/scripts/test/factory-intake-adoption.sh
+0	git diff --check
+0	bash .claude/scripts/validate.sh

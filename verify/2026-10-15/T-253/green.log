@@ -1,0 +1,8 @@
+# TDD ledger — green — T-253
+ledger_format: 2
+timestamp: 2026-10-15T20:08:00+11:00
+command: bash .claude/scripts/test/factory-intake-adoption.sh package
+exit_code: 0
+---
+AC-14: actual CLI packages current immutable intake scripts, hooks, neutral example and guide with exact ownership hashes/modes
+AC-14: disabled schema validates, feedback intake stays absent, adopter state survives, no private source/keys/DB/registry imported, and audited CLI performs only local Git reads

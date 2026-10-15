@@ -1470,19 +1470,19 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
 
 - [x] T-248  | spec:050  | phase:2  | priority: security  | created: 2026-10-12  | deps: T-247  | parallel: no  | est: 5m
   summary: Link Slack edits and serialize repeated source retries without duplicate draft actions
-  files: .claude/scripts/factory-slack-feedback.py, .claude/scripts/factory-intake.py, .claude/scripts/test/factory-intake-slack.sh
+  files: .claude/scripts/factory-slack-feedback.py, .claude/scripts/factory-intake.py, .claude/scripts/test/factory-intake-slack.sh, .claude/scripts/factory-feedback.py
   accept: bash .claude/scripts/test/factory-intake-slack.sh edits-replay
   owner: implementer
 
 - [x] T-249  | spec:050  | phase:2  | priority: security  | created: 2026-10-12  | deps: T-248  | parallel: no  | est: 5m
   summary: Require current intake decision at existing feedback draft publication boundary
-  files: .claude/scripts/factory-feedback.py, .claude/scripts/factory-intake.py, .claude/scripts/test/factory-intake-slack.sh
+  files: .claude/scripts/factory-feedback.py, .claude/scripts/factory-intake.py, .claude/scripts/test/factory-intake-slack.sh, .claude/scripts/factory-slack-feedback.py
   accept: bash .claude/scripts/test/factory-intake-slack.sh publication
   owner: implementer
 
 - [x] T-250  | spec:050  | phase:2  | priority: security  | created: 2026-10-12  | deps: T-249  | parallel: no  | est: 5m
   summary: Preserve additive intake tables through encrypted hosted checkpoint validation and roundtrip
-  files: .claude/scripts/factory-encrypted-feedback.py, .claude/scripts/factory-hosted-feedback.py, .claude/scripts/test/factory-intake-slack.sh
+  files: .claude/scripts/factory-encrypted-feedback.py, .claude/scripts/factory-hosted-feedback.py, .claude/scripts/test/factory-intake-slack.sh, .claude/scripts/factory-intake.py, .claude/scripts/factory-slack-feedback.py
   accept: bash .claude/scripts/test/factory-intake-slack.sh checkpoint
   owner: implementer
 
@@ -1498,9 +1498,9 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-intake-slack.sh phase2
   owner: implementer
 
-- [ ] T-253  | spec:050  | phase:3  | priority: security  | created: 2026-10-12  | deps: T-252  | parallel: no  | est: 5m
+- [x] T-253  | spec:050  | phase:3  | priority: security  | created: 2026-10-12  | deps: T-252  | parallel: no  | est: 5m
   summary: Package disabled neutral intake config scripts hooks and guide through immutable adoption ownership
-  files: .claude/scripts/factory-adopt.py, .claude/scripts/test/factory-intake-adoption.sh, docs/FACTORY-REQUEST-INTAKE.md
+  files: .claude/scripts/factory-adopt.py, .claude/scripts/test/factory-intake-adoption.sh, docs/FACTORY-REQUEST-INTAKE.md, factory/request-intake.example.json
   accept: bash .claude/scripts/test/factory-intake-adoption.sh package
   owner: implementer
 
