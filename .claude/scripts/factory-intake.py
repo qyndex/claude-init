@@ -141,8 +141,10 @@ class HostedSlackIntake:
     FIELDS={'schema_version','enabled','mode','repository','team_id','destination','stream',
             'feedback_config_sha256','controller_sha256'}
 
-    def __init__(self, config, stream, policy_snapshot, controller_sha256):
+    def __init__(self, config, stream, policy_snapshot, controller_sha256, *, checkpoint_barrier=None):
         import sqlite3
+        require(checkpoint_barrier is None or callable(checkpoint_barrier),'invalid runtime hosted checkpoint barrier')
+        self.checkpoint_barrier=checkpoint_barrier
         self.database=Path(config['runtime_database'])
         self.config=config
         self.policy=None
@@ -398,7 +400,9 @@ class HostedSlackIntake:
                         db.execute("INSERT INTO intake_assessments VALUES(?,?,'running',NULL,NULL)",(request_id,revision))
                         db.execute('INSERT INTO intake_decision_bindings VALUES(?,?)',(request_id,canonical(binding)))
                         db.execute("UPDATE intake_requests SET status='assessing',assessment_count=1 WHERE id=?",(request_id,))
-                    # Durable reservation committed; no SQLite transaction spans the native process.
+                    # Hosted holders must confirm encrypted intent before any external model effect.
+                    if self.checkpoint_barrier is not None:self.checkpoint_barrier()
+                    # No SQLite transaction spans the native process.
                     raw_result=scout.run_assessment(self.config['assessment_profile'],[Path(item) for item in self.config.get('implementation_roots',[])],context,**limits)
                     self.ready_assessment()
                     result={**raw_result['assessment'],'request_id':request_id,'revision':revision};validate_decision(result)
@@ -469,6 +473,7 @@ class HostedSlackIntake:
             prior=db.execute('SELECT document,status FROM intake_actions WHERE id=?',(action_id,)).fetchone()
             require(prior is None or (prior['document']==canonical(action) and prior['status'] in {'reserved','unknown','completed'}), 'hosted proposal action conflicts')
             if prior is None:db.execute("INSERT INTO intake_actions VALUES(?,?,?,'reserved',NULL)",(action_id,request_id,canonical(action)))
+        if self.checkpoint_barrier is not None:self.checkpoint_barrier()
         try:return feedback.publish_private_proposal(self,request_id,action_id)
         except (OSError,ValueError):
             with feedback.store.transaction() as db:

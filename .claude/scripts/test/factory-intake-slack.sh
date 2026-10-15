@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
-case "${1:-authenticated}" in authenticated|edits-replay|publication) ;; *) exit 2 ;; esac
+case "${1:-authenticated}" in authenticated|edits-replay|publication|checkpoint) ;; *) exit 2 ;; esac
 python3 - "$ROOT" "${1:-authenticated}" <<'PYTEST'
 import copy,importlib.util,json,os,sqlite3,sys,tempfile
 from pathlib import Path
@@ -38,7 +38,8 @@ if sys.argv[2]=='authenticated':
         private=Path(tmp).resolve();private.chmod(0o700);now=datetime(2026,10,4,22,tzinfo=timezone.utc)
         config=dict(ns['config'],feedback_enabled=True,state_repository='org/repo',private_root=str(private),runtime_database=str(private/'runtime.sqlite'),operators=['U1'],feedback_start='2026-10-04T00:00:00Z',implementation_roots=[str(root)])
         api=API();client=Client();assert hosted.run(config,ns['ReportAPI'](),api,client,private/'initial-report',now)['status']=='delivered'
-        api.forbid_writes=True;before=(api.head,api.writes,client.posts)
+        api.forbid_writes=sys.argv[2]!='checkpoint';before=(api.head,api.writes,client.posts)
+        if sys.argv[2]=='checkpoint':config.update(feedback_key_id='key-v1',feedback_bootstrap_sha=api.head)
         controller=root/'.claude/scripts/factory-intake.py'
         stable={key:value for key,value in config.items() if key not in {'private_root','runtime_database','implementation_roots','intake_config'}}
         policy={'schema_version':1,'enabled':True,'mode':'hosted-slack-capture-v1','repository':'org/repo','team_id':'T1','destination':'C1','stream':hashlib.sha256(hosted.canonical(['org/repo','C1','main']).encode()).hexdigest(),'feedback_config_sha256':hashlib.sha256(hosted.canonical(stable).encode()).hexdigest(),'controller_sha256':hashlib.sha256(controller.read_bytes()).hexdigest()}
@@ -123,7 +124,8 @@ elif sys.argv[2]=='edits-replay':
         private=Path(tmp).resolve();private.chmod(0o700);now=datetime(2026,10,4,22,tzinfo=timezone.utc)
         config=dict(ns['config'],feedback_enabled=True,state_repository='org/repo',private_root=str(private),runtime_database=str(private/'runtime.sqlite'),operators=['U1','U2'],feedback_start='2026-10-04T00:00:00Z',implementation_roots=[str(root)])
         api=API();client=Client();assert hosted.run(config,ns['ReportAPI'](),api,client,private/'initial-report',now)['status']=='delivered'
-        api.forbid_writes=True;before=(api.head,api.writes,client.posts)
+        api.forbid_writes=sys.argv[2]!='checkpoint';before=(api.head,api.writes,client.posts)
+        if sys.argv[2]=='checkpoint':config.update(feedback_key_id='key-v1',feedback_bootstrap_sha=api.head)
         controller=root/'.claude/scripts/factory-intake.py'
         stable={key:value for key,value in config.items() if key not in {'private_root','runtime_database','implementation_roots','intake_config'}}
         policy={'schema_version':1,'enabled':True,'mode':'hosted-slack-capture-v1','repository':'org/repo','team_id':'T1','destination':'C1','stream':hashlib.sha256(hosted.canonical(['org/repo','C1','main']).encode()).hexdigest(),'feedback_config_sha256':hashlib.sha256(hosted.canonical(stable).encode()).hexdigest(),'controller_sha256':hashlib.sha256(controller.read_bytes()).hexdigest()}
@@ -194,7 +196,7 @@ elif sys.argv[2]=='edits-replay':
         assert before==(api.head,api.writes,client.posts)
         print('AC-2/AC-9: actual authenticated edits, concurrent retries, restart, immutable lineage, missing-prior provenance and atomic actor-conflict rollback passed')
 
-elif sys.argv[2]=='publication':
+elif sys.argv[2] in {'publication','checkpoint'}:
 
     # AC-5 / AC-6 / AC-9: actual bounded primary tool-free Scout and guarded private SQLite proposals.
     import hashlib,threading,time
@@ -203,7 +205,8 @@ elif sys.argv[2]=='publication':
         private=Path(tmp).resolve();private.chmod(0o700);now=datetime(2026,10,4,22,tzinfo=timezone.utc)
         config=dict(ns['config'],feedback_enabled=True,state_repository='org/repo',private_root=str(private),runtime_database=str(private/'runtime.sqlite'),operators=['U1'],feedback_start='2026-10-04T00:00:00Z',implementation_roots=[str(root)])
         api=API();client=Client();assert hosted.run(config,ns['ReportAPI'](),api,client,private/'initial-report',now)['status']=='delivered'
-        api.forbid_writes=True;before=(api.head,api.writes,client.posts)
+        api.forbid_writes=sys.argv[2]!='checkpoint';before=(api.head,api.writes,client.posts)
+        if sys.argv[2]=='checkpoint':config.update(feedback_key_id='key-v1',feedback_bootstrap_sha=api.head)
         def module(name,path):
             spec=importlib.util.spec_from_file_location(name,path);result=importlib.util.module_from_spec(spec);spec.loader.exec_module(result);return result
         routing=module('publication_routing',root/'.claude/scripts/factory-routing.py');core=module('publication_core',root/'.claude/scripts/factory-intake.py')
@@ -219,6 +222,7 @@ context=json.loads(sys.stdin.read().split('\nCONTEXT_JSON\n',1)[1]);assert set(c
 assert context['approved_evidence']==[] and context['sources'];assert 'delivery_token' not in context['request']
 with sqlite3.connect(Path(__file__).with_name('runtime.sqlite'),timeout=.1) as db:db.execute('BEGIN IMMEDIATE');db.rollback()
 mode=context['request']['text'].split(': ',1)[1]
+if mode=='checkpoint':assert Path(__file__).with_name('durable-running').exists(), 'Scout ran before encrypted reservation committed'
 counter=Path(__file__).with_name('count');counter.write_text(str(int(counter.read_text())+1) if counter.exists() else '1')
 if mode in {'slow','edit-race'}:Path(__file__).with_name('spawned').write_text('ready');time.sleep(.5)
 if mode=='timeout':time.sleep(5)
@@ -254,6 +258,71 @@ print(json.dumps(result))
         os.environ['FACTORY_PLANNING_CLAUDE_OAUTH_TOKEN']='fixture-planning'
         ts=str(int(now.timestamp())-10)+'.000001'
         def message(mode,stamp=ts):return {'type':'message','user':'U1','ts':stamp,'text':'factory feedback #1 enhancement: '+mode}
+        if sys.argv[2]=='checkpoint':
+            # AC-9: real hosted restore, AES-GCM ciphertext and pre-provider durable intent.
+            encrypted=module('checkpoint_hosted',root/'.claude/scripts/factory-hosted-feedback.py');secret=os.urandom(32)
+            # AC-5/AC-9: restored holders retain every declared candidate exclusion.
+            import shutil
+            candidate=private/'additional-candidate';candidate.mkdir(mode=0o700)
+            for artifact in [binary,settings,mcp,proof]:shutil.copy2(artifact,candidate/artifact.name)
+            hostile_profile=private/'candidate-profile.json'
+            hostile_profile.write_text(profile_path.read_text().replace(str(private),str(candidate)));hostile_profile.chmod(0o600)
+            bad_config=dict(config,implementation_roots=[str(root),str(candidate)],assessment_profile=str(hostile_profile))
+            bad_client=copy.deepcopy(client);bad_client.input=[message('login')]
+            encrypted.run(bad_config,copy.deepcopy(api),bad_client,secret,now)
+            assert not (candidate/'count').exists(), 'hosted restore dropped an additional candidate root and launched its executable'
+            cryptobinding=encrypted.crypto.context('org/repo','C1','main','key-v1')
+            report_before=hosted.GitState(api,config['state_branch'],policy['stream'],config['bootstrap_sha']).bytes
+            original_request=api.request;crash=[False];seen=[]
+            def snapshot():
+                checkpoint=hosted.GitState(api,config['state_branch'],cryptobinding['stream'],config['feedback_bootstrap_sha'],bootstrap_existing=True)
+                raw=encrypted.crypto.unseal(checkpoint.bytes,secret,cryptobinding)
+                check=private/'remote-inspection.sqlite';check.write_bytes(raw)
+                with sqlite3.connect(check) as db:
+                    tables={row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+                    requests=db.execute('SELECT id,source_key,document,revision,status,decision,assessment_count FROM intake_requests ORDER BY source_key').fetchall() if 'intake_requests' in tables else []
+                    running=db.execute("SELECT request_id FROM intake_assessments WHERE status='running'").fetchall() if 'intake_assessments' in tables else []
+                    proposals=db.execute('SELECT * FROM feedback_private_proposals').fetchall() if 'feedback_private_proposals' in tables else []
+                return checkpoint,requests,running,proposals
+            class RunnerDied(BaseException):pass
+            def monitored(path,method='GET',payload=None):
+                result=original_request(path,method,payload)
+                if method=='PATCH':
+                    checkpoint,requests,running,proposals=snapshot();seen.append((requests,running,proposals))
+                    if running:
+                        (private/'durable-running').write_text('confirmed encrypted reservation')
+                        if crash[0]:raise RunnerDied()
+                return result
+            api.request=monitored
+            client.input=[message('checkpoint')]
+            first=encrypted.run(config,api,client,secret,now)
+            assert first['captured']==1
+            checkpoint,requests,running,proposals=snapshot();assert len(requests)==len(proposals)==1 and not running, 'hosted draft did not complete after durable Scout intent'
+            assert (private/'count').read_text()=='1'
+            # Unrecognized additive older-decoder state is retained byte-for-byte inside SQLite.
+            with encrypted.crypto.private_database(checkpoint,secret,cryptobinding) as (_,database):
+                with sqlite3.connect(database) as db:
+                    db.execute('CREATE TABLE older_decoder_extension(value BLOB)')
+                    db.execute('INSERT INTO older_decoder_extension VALUES(?)',(b'private older state',))
+            assert requests[0][4]=='decided' and json.loads(requests[0][5])['next_action']=='draft'
+            old=(requests,proposals);head=api.head;writes=api.writes
+            assert encrypted.run(config,api,client,secret,now)['captured']==1
+            assert (snapshot()[1],snapshot()[3])==old and api.head==head and api.writes==writes and (private/'count').read_text()=='1'
+            assert any(running and not proposals for _,running,proposals in seen)
+            crash[0]=True;client.input=[message('checkpoint',str(int(now.timestamp())-9)+'.000001')]
+            try:encrypted.run(config,api,client,secret,now)
+            except RunnerDied:pass
+            else:raise AssertionError('runner death did not reach committed remote intent')
+            assert len(snapshot()[2])==1 and (private/'count').read_text()=='1'
+            crash[0]=False;encrypted.run(config,api,client,secret,now)
+            assert len(snapshot()[2])==1 and len(snapshot()[3])==1 and (private/'count').read_text()=='1'
+            assert hosted.GitState(api,config['state_branch'],policy['stream'],config['bootstrap_sha']).bytes==report_before
+            assert all(b'Proposed login' not in blob and b'factory feedback' not in blob for blob in api.blobs.values())
+            with encrypted.crypto.private_database(snapshot()[0],secret,cryptobinding) as (_,database):
+                with sqlite3.connect(database) as db:assert db.execute('SELECT value FROM older_decoder_extension').fetchall()==[(b'private older state',)]
+            assert client.posts==before[2]
+            print('AC-9: actual encrypted hosted intake roundtrip, durable pre-Scout intent, fresh retry identity/proposal preservation and crashed-runner fencing passed')
+            sys.exit(0)
         client.input=[message('login')]
         try:result=m.run(config,api,client,now)
         except ValueError:result=None

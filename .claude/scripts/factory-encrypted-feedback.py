@@ -92,8 +92,9 @@ def validate_database(path, repository):
 
 
 @contextmanager
-def private_database(checkpoint, secret, binding):
+def private_database(checkpoint, secret, binding, *, checkpoint_ready=None):
     """Fresh authoritative holder per retry; failed operations never publish plaintext."""
+    require(checkpoint_ready is None or callable(checkpoint_ready),'invalid runtime checkpoint receiver')
     previous=None if checkpoint.bytes is None else unseal(checkpoint.bytes,secret,binding)
     old=os.umask(0o077)
     try:
@@ -107,12 +108,17 @@ def private_database(checkpoint, secret, binding):
                 path.write_bytes(previous)
             path.chmod(0o600)
             validate_database(path,binding['repository'])
+            def persist():
+                nonlocal previous
+                require(not path.is_symlink() and path.is_file() and path.stat().st_uid==os.getuid() and path.stat().st_mode&0o777==0o600,'private database path/mode changed')
+                require(not any(Path(str(path)+suffix).exists() for suffix in ('-wal','-shm','-journal')),'feedback database has uncheckpointed journals')
+                validate_database(path,binding['repository'])
+                current=path.read_bytes()
+                if current!=previous:
+                    checkpoint.checkpoint(seal(current,secret,binding))
+                    previous=current
+            if checkpoint_ready is not None:checkpoint_ready(persist)
             yield root,path
-            require(not path.is_symlink() and path.is_file() and path.stat().st_uid==os.getuid() and path.stat().st_mode&0o777==0o600,'private database path/mode changed')
-            require(not any(Path(str(path)+suffix).exists() for suffix in ('-wal','-shm','-journal')),'feedback database has uncheckpointed journals')
-            validate_database(path,binding['repository'])
-            current=path.read_bytes()
-            if current!=previous:
-                checkpoint.checkpoint(seal(current,secret,binding))
+            persist()
     finally:
         os.umask(old)

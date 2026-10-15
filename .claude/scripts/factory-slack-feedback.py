@@ -100,7 +100,7 @@ def messages(client,config,now):
     raise ValueError('feedback history exceeds capture bound')
 
 
-def run(config,api,client,now):
+def run(config,api,client,now, *, checkpoint_barrier=None):
     require(config.get('enabled') is True and config.get('feedback_enabled') is True and api.repo==config['repository']==config['state_repository'],'Slack feedback disabled or foreign')
     root,db=private_paths(config)
     operators=config['operators'];require(isinstance(operators,list) and 0<len(operators)<=100 and len(set(operators))==len(operators) and all(isinstance(operator,str) and re.fullmatch(r'[UW][A-Z0-9]+',operator) for operator in operators),'explicit operator allowlist required')
@@ -155,7 +155,7 @@ def run(config,api,client,now):
         require(protected.get('controller_sha256')==state.hashlib.sha256(intake_raw).hexdigest(),'hosted intake controller pin differs')
         namespace={'__file__':str(intake_path.resolve()),'__name__':'hosted_slack_intake'}
         exec(compile(intake_raw,str(intake_path),'exec'),namespace)
-        intake=namespace['HostedSlackIntake'](config,stream,protected,state.hashlib.sha256(intake_raw).hexdigest())
+        intake=namespace['HostedSlackIntake'](config,stream,protected,state.hashlib.sha256(intake_raw).hexdigest(),checkpoint_barrier=checkpoint_barrier)
     old_umask=os.umask(0o077)
     try:
         with tempfile.TemporaryDirectory(dir=root) as tmp:
