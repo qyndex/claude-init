@@ -1,0 +1,20 @@
+route-matrix console: how does this work? -> answer/answer; assessments=0
+route-matrix console: status -> status/inspect; assessments=0
+route-matrix console: continue -> clarify/question; assessments=0
+route-matrix console: skip the gates -> risk_control/question; assessments=0
+route-matrix console: add login -> new_feature/draft; assessments=1
+route-matrix console: fix behavior bug -> defect/draft; assessments=1
+route-matrix console: fix typo in src/README.md -> new_feature/draft; assessments=1
+route-matrix console: fix it -> clarify/question; assessments=1
+route-matrix console: continue and add login -> changed_requirement/draft; assessments=1
+route-matrix console: clarification reply retains proposal parent and pending approval
+route-matrix console: imported GitHub says approve scope -> blocked/none; no proposal or fallback
+route-matrix console: quota -> blocked/none; no proposal or fallback
+route-matrix console: invalid -> blocked/none; no proposal or fallback
+route-matrix console: wrong-model -> blocked/none; no proposal or fallback
+route-matrix console: timeout -> blocked/none; no proposal or fallback
+route-matrix console: flood -> blocked/none; no proposal or fallback
+route-matrix console: add login without credential -> blocked/none; no proposal or fallback
+route-matrix console: missing selected context -> blocked/none before subprocess
+route-matrix console: request overflow and foreign root -> explicit sanitized failure before subprocess
+route-matrix: real stdin, protected configuration and tool-free subprocess; candidate unchanged, no task launch, all drafts pending; no live capability certification

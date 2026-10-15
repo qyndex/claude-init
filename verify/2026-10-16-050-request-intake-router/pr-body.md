@@ -1,5 +1,5 @@
 ## Evidence Bundle — Spec 050 (050-request-intake-router)
-Spec: `specs/active/050-request-intake-router.md` · Commit: `05527ec`
+Spec: `specs/active/050-request-intake-router.md` · Commit: `bf880d6`
 
 ### Acceptance criteria (14/14 proven)
 | AC | Proven by | Result |
@@ -21,7 +21,7 @@ Spec: `specs/active/050-request-intake-router.md` · Commit: `05527ec`
 
 ### Smoke test (exit codes are load-bearing)
 ```
-# Smoke test — 2026-10-16T04:09:16+11:00
+# Smoke test — 2026-10-16T04:30:03+11:00
 $ bash .claude/scripts/verify.sh
 
 → Integration coverage gate

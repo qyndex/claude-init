@@ -1,5 +1,5 @@
 ## Evidence Bundle — Spec 050 (050-request-intake-router)
-Spec: `specs/active/050-request-intake-router.md` · Commit: `05527ec`
+Spec: `specs/active/050-request-intake-router.md` · Commit: `bf880d6`
 
 ### Acceptance criteria (14/14 proven)
 | AC | Proven by | Result |
@@ -21,7 +21,7 @@ Spec: `specs/active/050-request-intake-router.md` · Commit: `05527ec`
 
 ### Smoke test (exit codes are load-bearing)
 ```
-# Smoke test — 2026-10-16T04:09:16+11:00
+# Smoke test — 2026-10-16T04:30:03+11:00
 $ bash .claude/scripts/verify.sh
 
 → Integration coverage gate
@@ -92,6 +92,21 @@ line ?% · branch ?% (gate: line≥90 branch≥85)
 - verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/bounds.log
 - verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/diagnostics-rollback/slack-m_5nj8je.jsonl
 - verify/2026-10-16-050-request-intake-router/EVIDENCE.md
+- verify/2026-10-16-050-request-intake-router/phase3-attempt-kmrhn623/environment.log
+- verify/2026-10-16-050-request-intake-router/phase3-attempt-kmrhn623/ledger.log
+- verify/2026-10-16-050-request-intake-router/phase3-attempt-kmrhn623/routing.log
+- verify/2026-10-16-050-request-intake-router/phase3-attempt-kmrhn623/manifest.tsv
+- verify/2026-10-16-050-request-intake-router/phase3-attempt-kmrhn623/results.json
+- verify/2026-10-16-050-request-intake-router/phase3-attempt-kmrhn623/slack.log
+- verify/2026-10-16-050-request-intake-router/phase3-attempt-kmrhn623/routes.log
+- verify/2026-10-16-050-request-intake-router/phase3-attempt-kmrhn623/local-all.log
+- verify/2026-10-16-050-request-intake-router/phase3-attempt-kmrhn623/supervisor.log
+- verify/2026-10-16-050-request-intake-router/phase3-attempt-kmrhn623/default-off.log
+- verify/2026-10-16-050-request-intake-router/phase3-attempt-kmrhn623/rollback.log
+- verify/2026-10-16-050-request-intake-router/phase3-attempt-kmrhn623/runtime.log
+- verify/2026-10-16-050-request-intake-router/phase3-attempt-kmrhn623/AC-EVIDENCE.md
+- verify/2026-10-16-050-request-intake-router/phase3-attempt-kmrhn623/adoption.log
+- verify/2026-10-16-050-request-intake-router/phase3-attempt-kmrhn623/bounds.log
 - verify/2026-10-16-050-request-intake-router/results.json
 - verify/2026-10-16-050-request-intake-router/smoke.log
 - verify/2026-10-16-050-request-intake-router/phase3-attempt-b67fny0p/CLI-STORY-EVIDENCE.json
@@ -128,3 +143,5 @@ line ?% · branch ?% (gate: line≥90 branch≥85)
 - verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/AC-EVIDENCE.md
 - verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/adoption.log
 - verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/bounds.log
+- verify/2026-10-16-050-request-intake-router/phase3-attempt-92ai_i43/local-all.log
+- verify/2026-10-16-050-request-intake-router/phase3-attempt-92ai_i43/default-off.log
