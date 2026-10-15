@@ -1,0 +1,9 @@
+1	tool-read-red	bundled Python: bash .claude/scripts/test/factory-intake-tool-read.sh
+0	tool-read-green	same command
+1	tool-mutation-red	bundled Python: bash .claude/scripts/test/factory-intake-tool-mutation.sh
+0	tool-mutation-green	same command
+1	pin-audit-red	bash .claude/scripts/test/intake-ci-toolchain.sh before fixture corrections
+1	pin-audit-final-scanner-red	same command with exact former Read pin temporarily restored and then reverted in finally
+0	pin-audit-green	bash .claude/scripts/test/intake-ci-toolchain.sh
+0	syntax	bash -n three changed test fixtures
+0	diff	git diff --check

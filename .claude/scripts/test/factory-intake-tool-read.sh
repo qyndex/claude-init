@@ -55,7 +55,7 @@ with tempfile.TemporaryDirectory() as d:
  policy_path=private/'policy.json';policy_path.write_text(json.dumps(policy));policy_path.chmod(0o600)
  controller=root/'.claude/scripts/factory-intake.py'
  pins=[controller.with_name('factory-ledger.py'),controller,controller.with_name('factory-runtime.py'),controller.with_name('factory-intake-scout.py'),controller.with_name('factory-routing.py'),controller.with_name('factory-bounded-process.py'),controller.with_name('factory-supervisor.py'),policy_path,config]
- pins.extend([worker,worker.with_name('factory-worker-guard.py'),driver,Path(sys.executable).resolve(),worker_proof])
+ pins.extend([worker,worker.with_name('factory-worker-guard.py'),driver,worker_proof])
  if hook.exists():pins.append(hook)
  for name in ('request-intake.sh','pre-intake-action.sh'):
   shim=root/'.claude/hooks'/name
