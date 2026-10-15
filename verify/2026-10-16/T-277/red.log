@@ -1,13 +1,14 @@
-# Historical baseline regression only; NOT a failure of current T-276 code.
-# source_revision: c871ae5e4648451976cbdf0fe4030826e70d3ad2
-# test_sha256: 38bf61acbb96734e8b18522a16bc6b280f07888d25292ee103db9c7507ba7a8b
 # TDD ledger — red — T-277
 ledger_format: 2
-timestamp: 2026-10-16T10:10:15+11:00
-command: bash /tmp/factory-t277-historical-baseline/.claude/scripts/test/factory-receipt-equivalence.sh
+timestamp: 2026-10-16T10:48:12+11:00
+command: bash .claude/scripts/test/factory-receipt-equivalence.sh
 exit_code: 1
 red_reason: assertion-failure
 ---
 Traceback (most recent call last):
   File "<stdin>", line 28, in <module>
 TypeError: authenticate() got an unexpected keyword argument 'trust_path'
+# Historical replay after implementation; NOT a new-feature RED.
+# baseline_sha: c871ae5e4648451976cbdf0fe4030826e70d3ad2
+# cwd: /tmp/factory-t277-ledger-replay-20261016
+# test_sha256: 38bf61acbb96734e8b18522a16bc6b280f07888d25292ee103db9c7507ba7a8b

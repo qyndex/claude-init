@@ -1,3 +1,4 @@
+Original pre-repair observation (preserved):
 T-277
 red
 timestamp: 2026-10-16T10:10:15+11:00
@@ -18,3 +19,20 @@ green
 timestamp: 2026-10-16T10:47:06+11:00
 command: bash .claude/scripts/test/factory-receipt-retained-proof.sh
 exit_code: 0
+
+Corrected replay observation:
+red
+timestamp: 2026-10-16T10:48:12+11:00
+command: bash .claude/scripts/test/factory-receipt-equivalence.sh
+exit_code: 1
+red_reason: assertion-failure
+# baseline_sha: c871ae5e4648451976cbdf0fe4030826e70d3ad2
+# cwd: /tmp/factory-t277-ledger-replay-20261016
+# test_sha256: 38bf61acbb96734e8b18522a16bc6b280f07888d25292ee103db9c7507ba7a8b
+green
+timestamp: 2026-10-16T10:48:21+11:00
+command: bash .claude/scripts/test/factory-receipt-equivalence.sh
+exit_code: 0
+# current_source_sha: 62804186e4bc909c2435010d51ac50de1cd67560
+# cwd: /private/tmp/factory-receipt-planning-20261016
+# test_sha256: 38bf61acbb96734e8b18522a16bc6b280f07888d25292ee103db9c7507ba7a8b
