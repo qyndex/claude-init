@@ -32,7 +32,7 @@ def load_receipt_trust(path, repository, *, mode):
     This parser alone grants no receipt authority. Authentication integration must
     independently bind immutable GitHub source bytes and the selected profile.
     """
-    require(isinstance(mode, str) and mode in {'profile', 'legacy'}, 'explicit receipt trust mode required')
+    require(isinstance(mode, str) and mode in {'profile', 'legacy', 'report'}, 'explicit receipt trust mode required')
     raw = Path(path).read_bytes()
     require(0 < len(raw) <= 262144, 'receipt trust document size exceeds bound')
     trust = json.loads(raw, object_pairs_hook=coordinator.contract.no_duplicate_keys)
@@ -63,7 +63,7 @@ def load_receipt_trust(path, repository, *, mode):
         runtime(pins)
     if mode == 'profile':
         require(any(profile['status'] == 'active' for profile in profiles), 'receipt trust active profile missing')
-    else:
+    elif mode == 'legacy':
         require(bool(revisions), 'receipt trust legacy revisions missing')
     return trust
 
@@ -96,7 +96,7 @@ def authenticate(api, policy, run_id, *, historical=False, trust_path=None, trus
     require(coordinator.contract.digest(run.get('head_sha'), 40), 'receipt source SHA invalid')
     require(trust_mode in ('legacy', 'profile'), 'explicit receipt trust mode required')
     require(trust_path is not None or trust_mode == 'legacy', 'external receipt profile required')
-    trust = load_receipt_trust(trust_path, repo, mode=trust_mode) if trust_path is not None else None
+    trust = load_receipt_trust(trust_path, repo, mode='report') if trust_path is not None else None
 
     def source_bytes(path):
         value = api.source(path, run['head_sha'])
@@ -104,16 +104,21 @@ def authenticate(api, policy, run_id, *, historical=False, trust_path=None, trus
         return value
 
     source = json.loads(source_bytes('factory/policy.json'), object_pairs_hook=coordinator.contract.no_duplicate_keys)
+    observed = {path: hashlib.sha256(source_bytes(path)).hexdigest() for path in RUNTIME_PATHS}
+    if trust is not None:
+        require(not any(profile['status'] == 'revoked' and profile['policy_sha256'] == coordinator.policy_hash(source) and profile['runtime'] == observed for profile in trust['profiles']), 'receipt source profile revoked')
+    selected = None
     if trust_mode == 'profile':
         matches = [profile for profile in trust['profiles'] if profile['status'] == 'active' and profile['policy_sha256'] == coordinator.policy_hash(source)]
         require(len(matches) == 1, 'receipt source policy not approved or ambiguous')
-        pins = matches[0]['runtime']
+        selected = matches[0]
+        pins = selected['runtime']
     else:
         revisions = trust['legacy_revisions'] if trust is not None else policy['receipts']['trusted_revisions']
         pins = revisions.get(run['head_sha'], {})
         require(set(pins) == set(RUNTIME_PATHS), 'receipt source revision not approved')
     for path in RUNTIME_PATHS:
-        require(hashlib.sha256(source_bytes(path)).hexdigest() == pins[path], 'receipt producer source changed')
+        require(observed[path] == pins[path], 'receipt producer source changed')
     document, artifact = receipt_artifact(api, run)
     expected = {'schema_version', 'repository', 'pull_request', 'head_sha', 'base_sha', 'spec', 'spec_sha256',
                 'policy_sha256', 'verifier_run', 'reviewer_run', 'eligible', 'merged', 'merge_sha', 'task_ids'}
@@ -139,15 +144,38 @@ def authenticate(api, policy, run_id, *, historical=False, trust_path=None, trus
     require(pr['base']['repo']['full_name'] == repo and pr['base']['ref'] == policy['base_branch'] == source['base_branch'], 'actual merge target differs')
     delivery = {'repository': repo, 'pr': document['pull_request'], 'merge_sha': document['merge_sha']}
     encoded = json.dumps(delivery, sort_keys=True)
-    provenance = json.dumps({'run_id': run_id, 'attempt': run['run_attempt'], 'workflow_id': run['workflow_id'],
-                             'source_sha': run['head_sha'], 'artifact_id': artifact['id'], 'artifact_digest': artifact['digest'],
-                             'receipt': document}, sort_keys=True)
+    provenance_facts = {'run_id': run_id, 'attempt': run['run_attempt'], 'workflow_id': run['workflow_id'],
+                        'source_sha': run['head_sha'], 'artifact_id': artifact['id'], 'artifact_digest': artifact['digest'],
+                        'receipt': document}
+    if trust is not None:
+        provenance_facts['trust'] = {'mode': trust_mode, 'profile_id': selected['id'] if selected else None,
+                                     'document_sha256': coordinator.policy_hash(trust),
+                                     'policy_sha256': coordinator.policy_hash(source), 'runtime': observed}
+    provenance = json.dumps(provenance_facts, sort_keys=True)
     return {'tasks': tasks, 'revision': document['spec_sha256'], 'delivery': encoded,
             'provenance': provenance, 'run_id': run_id, 'merge_sha': document['merge_sha']}
 
 
-def ingest(api, policy, db_path, run_id):
-    proof = authenticate(api, policy, run_id)
+def annotate_reported_trust(proof, trust_path, repository):
+    """Label an already-authenticated retained fact; never authenticate copied JSON.
+
+    Archive integration must establish the protected origin of proof before this
+    reporting-only annotation. It cannot grant runtime credit or rewrite facts.
+    """
+    trust = load_receipt_trust(trust_path, repository, mode='report')
+    facts = json.loads(proof['provenance'])['trust']
+    equivalent = [profile for profile in trust['profiles'] if profile['policy_sha256'] == facts['policy_sha256'] and profile['runtime'] == facts['runtime']]
+    revoked = any(profile['status'] == 'revoked' for profile in equivalent)
+    if facts['mode'] == 'profile':
+        approved = any(profile['id'] == facts['profile_id'] and profile['status'] == 'active' for profile in equivalent)
+    else:
+        source = json.loads(proof['provenance'])['source_sha']
+        approved = trust['legacy_revisions'].get(source) == facts['runtime']
+    return dict(proof, trust_status='active' if approved and not revoked else 'withdrawn')
+
+
+def ingest(api, policy, db_path, run_id, *, trust_path=None, trust_mode='legacy'):
+    proof = authenticate(api, policy, run_id, trust_path=trust_path, trust_mode=trust_mode)
     tasks = proof['tasks']; encoded = proof['delivery']; provenance = proof['provenance']
     store = ledger.runtime.Store(db_path)
     with store.transaction() as db:

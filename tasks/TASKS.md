@@ -1645,9 +1645,9 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-receipt-equivalence.sh
   owner: implementer
 
-- [ ] T-278  | spec:014  | phase:1  | priority: security  | created: 2026-10-16  | deps: T-277  | parallel: no  | est: 5m
+- [x] T-278  | spec:014  | phase:1  | priority: security  | created: 2026-10-16  | deps: T-277  | parallel: no  | est: 5m
   summary: Enforce profile revocation and current-task versus historical report separation
-  files: .claude/scripts/factory-receipts.py, .claude/scripts/test/factory-receipt-revocation.sh
+  files: .claude/scripts/factory-receipts.py, .claude/scripts/test/factory-receipt-revocation.sh, plans/active/014-authenticated-receipt-recovery.md
   accept: bash .claude/scripts/test/factory-receipt-revocation.sh
   owner: implementer
 

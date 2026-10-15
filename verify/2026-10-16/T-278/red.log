@@ -1,0 +1,11 @@
+# TDD ledger — red — T-278
+ledger_format: 2
+timestamp: 2026-10-16T10:10:59+11:00
+command: bash .claude/scripts/test/factory-receipt-revocation.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 20, in <module>
+  File "<stdin>", line 15, in reject
+AssertionError: accepted revoked
