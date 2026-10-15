@@ -1,0 +1,7 @@
+# TDD ledger — green — T-279
+ledger_format: 2
+timestamp: 2026-10-16T10:15:06+11:00
+command: bash .claude/scripts/test/factory-receipt-archive.sh
+exit_code: 0
+---
+31 compact receipt archive cases passed; bootstrap/CAS origin not implemented

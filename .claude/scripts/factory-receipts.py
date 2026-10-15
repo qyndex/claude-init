@@ -68,19 +68,27 @@ def load_receipt_trust(path, repository, *, mode):
     return trust
 
 
-def receipt_artifact(api, run):
+def receipt_artifact(api, run, *, retain_blob=False):
     name = f'factory-receipt-{run["id"]}-{run["run_attempt"]}'
     pages = api.request(f'repos/{api.repo}/actions/runs/{run["id"]}/artifacts', paginate=True)
     candidates = [a for page in pages for a in page['artifacts'] if a['name'] == name and not a['expired']]
     require(len(candidates) == 1, 'receipt artifact missing or ambiguous')
     artifact = candidates[0]
+    origin = artifact.get('workflow_run')
+    repository_id = run['repository'].get('id')
+    require(type(repository_id) is int and repository_id > 0 and isinstance(origin, dict), 'receipt artifact origin missing')
+    require(type(origin.get('id')) is int and origin['id'] == run['id'] and
+            type(origin.get('repository_id')) is int and origin['repository_id'] == repository_id and
+            type(origin.get('head_repository_id')) is int and origin['head_repository_id'] == repository_id and
+            origin.get('head_sha') == run['head_sha'], 'receipt artifact origin differs')
     require(0 < artifact['size_in_bytes'] <= 1_000_000, 'receipt archive too large')
     blob = api.request(f'repos/{api.repo}/actions/artifacts/{artifact["id"]}/zip', raw=True)
     require(len(blob) <= 1_000_000 and artifact.get('digest') == 'sha256:' + hashlib.sha256(blob).hexdigest(), 'receipt archive digest differs')
     with zipfile.ZipFile(io.BytesIO(blob)) as archive:
         require(archive.namelist() == ['receipt.json'], 'unexpected receipt archive entries')
         require(0 < archive.infolist()[0].file_size <= 256_000, 'receipt document too large')
-        return json.loads(archive.read('receipt.json'), object_pairs_hook=coordinator.contract.no_duplicate_keys), artifact
+        document = json.loads(archive.read('receipt.json'), object_pairs_hook=coordinator.contract.no_duplicate_keys)
+        return (document, artifact, blob) if retain_blob else (document, artifact)
 
 
 def authenticate(api, policy, run_id, *, historical=False, trust_path=None, trust_mode='legacy'):
@@ -148,6 +156,7 @@ def authenticate(api, policy, run_id, *, historical=False, trust_path=None, trus
                         'source_sha': run['head_sha'], 'artifact_id': artifact['id'], 'artifact_digest': artifact['digest'],
                         'receipt': document}
     if trust is not None:
+        provenance_facts['execution'] = {'repository_id': run['repository']['id'], 'repository': repo, 'event': run['event'], 'branch': run['head_branch'], 'path': run['path'], 'status': run['status'], 'conclusion': run['conclusion']}
         provenance_facts['trust'] = {'mode': trust_mode, 'profile_id': selected['id'] if selected else None,
                                      'document_sha256': coordinator.policy_hash(trust),
                                      'policy_sha256': coordinator.policy_hash(source), 'runtime': observed}

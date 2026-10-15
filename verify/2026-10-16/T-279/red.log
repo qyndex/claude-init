@@ -1,0 +1,13 @@
+# TDD ledger — red — T-279
+ledger_format: 2
+timestamp: 2026-10-16T10:12:40+11:00
+command: bash .claude/scripts/test/factory-receipt-archive.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 5, in <module>
+  File "<frozen importlib._bootstrap_external>", line 755, in exec_module
+  File "<frozen importlib._bootstrap_external>", line 892, in get_code
+  File "<frozen importlib._bootstrap_external>", line 950, in get_data
+FileNotFoundError: [Errno 2] No such file or directory: '/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py'

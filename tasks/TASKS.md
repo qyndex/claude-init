@@ -1651,9 +1651,9 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-receipt-revocation.sh
   owner: implementer
 
-- [ ] T-279  | spec:014  | phase:2  | priority: security  | created: 2026-10-16  | deps: T-278  | parallel: no  | est: 5m
+- [x] T-279  | spec:014  | phase:2  | priority: security  | created: 2026-10-16  | deps: T-278  | parallel: no  | est: 5m
   summary: Validate bounded compact archive records and shared proof material
-  files: .claude/scripts/factory-receipt-archive.py, .claude/scripts/test/factory-receipt-archive.sh
+  files: .claude/scripts/factory-receipt-archive.py, .claude/scripts/test/factory-receipt-archive.sh, .claude/scripts/factory-receipts.py, .claude/scripts/test/factory-receipt-projection.sh, .claude/scripts/test/factory-receipts-recovery.sh
   accept: bash .claude/scripts/test/factory-receipt-archive.sh
   owner: implementer
 
