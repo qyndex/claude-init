@@ -2,7 +2,7 @@
 name: reviewer
 description: Use after implementation but before /ship. Reviews the diff for correctness, readability, maintainability, performance, and adherence to project conventions. Read-only — posts comments only. Loops with the implementer until the diff is clean. Modeled on the Anthropic claude-code-security-review multi-pass pattern (re-verifies each finding to filter false positives).
 tools: Read, Glob, Grep, Bash, TodoWrite
-model: opus
+model: claude-sonnet-5-5
 permissionMode: plan
 maxTurns: 25
 effort: high

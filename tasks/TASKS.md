@@ -137,7 +137,7 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
 
 ## Active
 
-- [ ] T-273  | spec:045  | phase:1  | priority: security  | created: 2026-10-14  | deps:  | parallel: no  | est: 5m
+- [x] T-273  | spec:045  | phase:1  | priority: security  | created: 2026-10-14  | deps:  | parallel: no  | est: 5m
   summary: Pin reviewer execution and observed model validation to operator-selected Claude Sonnet 5.5
   files: .claude/agents/quality/reviewer.md, .claude/skills/review/SKILL.md, .claude/CLAUDE.md, CLAUDE.md, .github/workflows/claude-review.yml, .github/workflows/claude-security.yml, .github/workflows/pr-review.yml, .claude/scripts/factory-producer.py, .claude/scripts/test/factory-review-model.sh, .claude/scripts/test/factory-review-runtime.sh, .claude/scripts/test/factory-producers.sh, docs/FACTORY-PRODUCERS.md, docs/ARCHITECTURE.md, .claude/scripts/check-doc-consistency.sh
   accept: bash .claude/scripts/test/factory-review-model.sh

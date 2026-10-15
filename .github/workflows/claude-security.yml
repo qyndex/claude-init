@@ -19,8 +19,7 @@ name: Claude Security Review
 #   - OAuth token, not API key → no metered spend.
 #   - Every updated eligible PR head receives a security check.
 #     Concurrency cancels superseded heads; quota failure blocks completion.
-#   - Sonnet 4.6, not Opus — adequate for diff-scoped SAST, far cheaper if a key
-#     is ever used as a fallback.
+#   - Sonnet 5.5 — operator-selected hosted review model.
 #   - concurrency cancels superseded runs.
 
 on:
@@ -89,7 +88,7 @@ jobs:
           # the action treats turn-exhaustion as exit 1, hard-failing the GATE on
           # a non-finding. Raise to 40 so the agent can finish; still bounded so a
           # runaway can't burn unbounded subscription turns.
-          claude_args: "--model claude-sonnet-4-6 --max-turns 40"
+          claude_args: "--model claude-sonnet-5-5 --max-turns 40"
           prompt: |
             You are the security agent (.claude/agents/quality/security.md).
             Perform a security audit of THIS PULL REQUEST'S DIFF ONLY — do not

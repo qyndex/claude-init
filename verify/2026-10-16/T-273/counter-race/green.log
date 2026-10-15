@@ -1,0 +1,2 @@
+assessment-outcome: actual private end-to-end decision; reservation/restart/concurrency fences; dataflow/ref/pin/schema/evidence failures block; store failure has zero provider effects
+exit_code: 0

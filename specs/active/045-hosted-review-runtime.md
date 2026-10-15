@@ -1,10 +1,10 @@
 ---
 id: 045
 slug: hosted-review-runtime
-status: approved
+status: shipped
 owner: "@codex"
 created: 2026-10-11
-updated: 2026-10-11
+updated: 2026-10-15
 complexity: M
 objective: KR-PLATFORM
 service_tier: T2

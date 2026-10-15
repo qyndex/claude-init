@@ -5,7 +5,7 @@ name: Claude PR Review
 #
 # Gap-audit G46: the gating reviewer runs a DIFFERENT model than the
 # implementer agent (Opus 4.8). Opus reviewing Opus shares blind spots;
-# cross-model review (Sonnet 4.6 here) is deliberate diversity on the
+# cross-model review (Sonnet 5.5 here) is deliberate diversity on the
 # verification axis. check-model-consistency.sh fails if this drifts back
 # to the implementer's model family.
 #
@@ -72,7 +72,7 @@ jobs:
           # v1 takes CLI flags via claude_args — `model:`/`mode:` were never
           # declared inputs (actionlint catch, oauth-fallback 2026-06-12); the
           # G46 cross-model pin only takes effect through --model here.
-          claude_args: "--model claude-sonnet-4-6"
+          claude_args: "--model claude-sonnet-5-5"
           prompt: |
             You are the reviewer agent (.claude/agents/quality/reviewer.md).
             Review the PR diff for: correctness, edge cases, idiomatic style, naming,

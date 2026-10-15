@@ -316,3 +316,14 @@ The human approved spec050. The draft technical plan050 and proposed ADR0005 now
 ### Spec050 guarded-console decision — 2026-10-12
 
 The human selected the guarded factory console. Plan050 is approved and ADR0005 accepted. Proceed with source implementation and offline fixtures in phase order; model calls and live activation remain separately gated. Bare native sessions remain advisory. Existing pilot048 and its exact approval scope are unchanged.
+
+
+### Current continuation — 2026-10-16
+
+Spec050 merged as PR #104 at f2e14119001141748a410f86d2ffb7cb50f7be19 after all seven required checks passed. Its full offline acceptance passed 11 suites and 14/14 criteria; this does not certify live native intake or activate factory authority. Earlier proposed/paused entries above are historical.
+
+The canonical next task is T-273: finish the operator-selected exact Claude Sonnet 5.5 reviewer pin before refreshing protected runtime hashes. Current local CLI 2.1.300 authenticated as first-party Claude Max, and the bounded tool-free exact-model probe returned available=true. Quota remains unknown and reported client cost is an estimate, not subscription spend. This is local capacity evidence, not an authenticated hosted review verdict.
+
+Remaining sequence: merge the verified reviewer configuration through the operator route; refresh source-bound shadow policy, runtime pins and live rule before-images; prove separate protected verifier/reviewer runs on the exact controlled pilot candidate; restore paused checks under the existing conditional approval; run positive and negative shadow cases with merge_enabled=false; present genuine shadow evidence and the exact merge-mode revision for the separate human decision. T-222 remains open until actual authenticated delivery, followed by morning digest and authentic feedback/amendment delivery. Twenty useful real eligible deliveries are required before broadening autonomy.
+
+Online workers remain per-adopter and independently gated. Optional oversized attachments and Healthchecks stay disabled. Production remains target-specific and disabled without actual health/SLO/rollback proof. No live switch, policy or rule was changed by this continuation record.
