@@ -1,4 +1,1 @@
-$ bash .claude/scripts/test/factory-coordinator.sh
-passed: 39; failed: 0
-
-exit_code: 0
+passed: 63; failed: 0
