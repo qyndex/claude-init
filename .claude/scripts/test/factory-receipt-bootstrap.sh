@@ -27,8 +27,8 @@ with tempfile.TemporaryDirectory() as tmp:
     sha=path.rsplit('/',1)[1];parts=git('show','-s','--format=%T %P',sha).split();return {'sha':sha,'tree':{'sha':parts[0]},'parents':[{'sha':p} for p in parts[1:]]}
    if '/git/trees/' in path:
     tree=path.rsplit('/',1)[1].split('?')[0];rows=[]
-    for line in git('ls-tree','-r',tree).splitlines():
-     mode,kind,rest=line.split(' ',2);sha,name=rest.split('\t');rows.append({'mode':mode,'type':kind,'sha':sha,'path':name})
+    for line in git('ls-tree',tree).splitlines():
+     mode,kind,rest=line.split(' ',2);sha,name=rest.split('\t');rows.append({'mode':mode,'type':kind,'sha':sha,'path':name, **({'size':int(git('cat-file','-s',sha))} if kind=='blob' else {})})
     return {'sha':tree,'truncated':False,'tree':rows}
    raise AssertionError(path)
  approval={'schema_version':1,'repository':'org/repo','repository_id':101,'private':False,'branch':branch,'bootstrap_sha':bootstrap,'bootstrap_tree':btree,'coverage_from':'2026-10-16T00:00:00Z','observed_at':'2026-10-16T00:00:00Z','writer_app_id':app,'policies':{str(i):a.digest(a.canonical(p)) for i,p in policies.items()}}

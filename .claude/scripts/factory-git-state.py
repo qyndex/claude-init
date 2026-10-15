@@ -30,6 +30,9 @@ TABLES = {
 MAX_STATE = 8_000_000
 
 
+paths_spec = importlib.util.spec_from_file_location('state_paths', Path(__file__).with_name('factory-state-paths.py'))
+state_paths = importlib.util.module_from_spec(paths_spec); paths_spec.loader.exec_module(state_paths)
+
 def git_hash(blob):
     return hashlib.sha1(b'blob ' + str(len(blob)).encode() + b'\0' + blob).hexdigest()
 
@@ -134,7 +137,7 @@ class GitState:
         require(tree.get('truncated') is False, 'state tree incomplete')
         self.path = 'reports/' + stream + '.json'
         # Data-only branch: no workflows, executables or source files can be imported.
-        require(all(item['type'] == 'tree' or (item['type'] == 'blob' and item['mode'] == '100644' and (item['path'] == 'README.md' or re.fullmatch(r'reports/[0-9a-f]{64}\.json', item['path']))) for item in tree['tree']), 'state branch contains unexpected paths or modes')
+        state_paths.validate_tree(tree['tree'])
         entries = [item for item in tree['tree'] if item['path'] == self.path]
         require(len(entries) <= 1, 'state path ambiguous')
         self.bytes = None

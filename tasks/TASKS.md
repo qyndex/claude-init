@@ -1663,9 +1663,9 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-receipt-bootstrap.sh
   owner: implementer
 
-- [ ] T-281  | spec:014  | phase:2  | priority: security  | created: 2026-10-16  | deps: T-280  | parallel: no  | est: 5m
+- [x] T-281  | spec:014  | phase:2  | priority: security  | created: 2026-10-16  | deps: T-280  | parallel: no  | est: 5m
   summary: Extend exact data-only state paths for bounded immutable archive segments
-  files: .claude/scripts/factory-git-state.py, .claude/scripts/factory-receipt-archive.py, .claude/scripts/test/factory-receipt-state-paths.sh
+  files: .claude/scripts/factory-git-state.py, .claude/scripts/factory-receipt-archive.py, .claude/scripts/test/factory-receipt-state-paths.sh, .claude/scripts/factory-state-paths.py, .claude/scripts/test/factory-receipt-bootstrap.sh, plans/active/014-authenticated-receipt-recovery.md
   accept: bash .claude/scripts/test/factory-receipt-state-paths.sh
   owner: implementer
 

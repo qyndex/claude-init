@@ -1,0 +1,4 @@
+AC-1: typed reporting state rejects foreign schema, unknown tables, broken blobs, missing protection and later missing streams; private source cannot publish public state
+AC-2: actual immutable Git object writes and unique commit nonces fence stale checkpoint writers before external sends
+AC-3: durable intent and receipt restore recover lost Slack/storage acknowledgements without duplicate sends or silent cursor reset
+AC-4: protected default-branch workflow, explicit hosted/self-hosted guards and fixed-host separated credential envelope pass actual fixtures

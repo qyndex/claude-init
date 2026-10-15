@@ -14,6 +14,9 @@ spec = importlib.util.spec_from_file_location('receipts', Path(__file__).with_na
 receipts = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(receipts)
 require = receipts.require
+paths_spec = importlib.util.spec_from_file_location('state_paths', Path(__file__).with_name('factory-state-paths.py'))
+state_paths = importlib.util.module_from_spec(paths_spec); paths_spec.loader.exec_module(state_paths)
+
 MAX_OBJECT = 1048576
 
 
@@ -210,10 +213,11 @@ def verify_bootstrap(api, approval_path, *, now=None):
         tree_sha = commit['tree']['sha']
         if head_tree is None:
             head_tree = tree_sha
-        tree = read(root + '/git/trees/' + tree_sha + '?recursive=1')
-        require(tree.get('sha') == tree_sha and tree.get('truncated') is False and isinstance(tree.get('tree'), list) and len(tree['tree']) <= 1024, 'archive bootstrap tree incomplete')
-        # T-281 will explicitly extend these data-only paths; no executable paths here.
-        require(all((item['type'] == 'tree' and item['path'] == 'reports') or (item['type'] == 'blob' and item['mode'] == '100644' and (item['path'] == 'README.md' or re.fullmatch(r'reports/[0-9a-f]{64}\.json', item['path']))) for item in tree['tree']), 'archive bootstrap data-only paths differ')
+        class Reader:
+            repo = api.repo
+            request = staticmethod(read)
+        tree = state_paths.scan_tree(Reader(), root, tree_sha)
+        require(tree['complete'], 'archive bootstrap tree incomplete; authenticated cursor continuation required')
         if sha == approval['bootstrap_sha']:
             require(tree_sha == approval['bootstrap_tree'], 'archive bootstrap tree differs')
             break
