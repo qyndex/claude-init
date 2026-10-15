@@ -2,9 +2,9 @@
   "schema_version": 1,
   "kind": "offline-cli-acceptance",
   "success": true,
-  "started": 1792079714.280967,
-  "completed": 1792080261.496827,
-  "source_sha": "dc35078762c63638ec3723bbbc61391836748687",
+  "started": 1792083714.8557508,
+  "completed": 1792084136.712859,
+  "source_sha": "05527ec66829602713c7acd2850902109b9458aa",
   "source_hashes": {
     "specs/active/050-request-intake-router.md": "dbcc93d50df8bd5442066324913cb2966a25b5b1a585e515d7c48082064bcf74",
     "plans/active/050-request-intake-router.md": "2b8edc253637946b7bbeb6674d63717550a9ab18d1ea3e6d607c13109a40b6f0",
@@ -86,9 +86,9 @@
     ".claude/scripts/test/factory-intake-start-guard.sh": "ff0741437ea9685c59c45ae69f0291289dc0cc7dc7517e5e7016ae8779c482a5",
     ".claude/scripts/test/factory-intake-tool-mutation.sh": "4fb59419f9f8d53ad1d21a415cad1462bf4395e2adf711dd9b63dfd9b81866e1",
     ".claude/scripts/test/factory-intake-tool-read.sh": "3c0494b4fc3cf753e95e58fc87967cd69257b3d3aadb9e1c81ba7535bd672cbf",
-    ".claude/scripts/test/factory-intake-worker-contract.sh": "7cadc0550b176ee47d005e36318c145d0850dc96cfb6e6ffd11c8e9a899921b0",
-    ".claude/scripts/test/factory-intake-worker-descriptor.sh": "b5420a48493652cd97d7ae6deba719c4a7a6880c26d672e7148bd40fbe0e6c88",
-    ".claude/scripts/test/factory-intake-worker-launch.sh": "23f0d92869857f9cb77e464610232b7f34245f01001f6344af63a46f97b30725",
+    ".claude/scripts/test/factory-intake-worker-contract.sh": "98d550c85e49f393ebafcf28d0478cef6b0eee8da430599403ed3a870a9b6a15",
+    ".claude/scripts/test/factory-intake-worker-descriptor.sh": "0dc865ae22169c056b29bf6762a7d201e66322c8902583b887d9e3d356dfd8fe",
+    ".claude/scripts/test/factory-intake-worker-launch.sh": "5d5cf756b6e653abb7975d140df06e3b0dd8aafe0f9fd853997f8265862b275f",
     ".claude/scripts/test/factory-intake-worker-outcome.sh": "18ddc23cda88f8bf9964a6086b9304f0a4b3f08cbc2519ff86c2c76502854023",
     ".claude/scripts/test/factory-ledger.sh": "8dc09d719d0dec329446a1c168f5a02c21e5ff1fec5da00e20570509fff4bb55",
     ".claude/scripts/test/factory-legacy-feedback.sh": "4ae7c2c0128bb3aee3cd0ebf96a2f60506557c0d3d708949862a041cbcda8b5f",
@@ -123,134 +123,134 @@
     ".claude/settings.json": "c755a571f998cc8a209b05b51fd35920c301e58249cbc8186c25952339ca575d"
   },
   "interpreters": {
-    "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/bin/python3.14": "Python 3.14.4",
-    "/Users/shravanjha/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3.12": "Python 3.12.14"
+    "/Users/shravanjha/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3.12": "Python 3.12.14",
+    "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/bin/python3.14": "Python 3.14.4"
   },
   "suites": {
     "local-all": {
       "command": [
         "bash",
-        "/Users/shravanjha/.codex/worktrees/factory-activation/claude-init/.claude/scripts/test/factory-request-intake.sh",
+        "/private/tmp/spec050-merge-ramkcle3/.claude/scripts/test/factory-request-intake.sh",
         "all"
       ],
       "interpreter": "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
       "exit_code": 0,
-      "seconds": 502.894,
-      "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/local-all.log",
-      "log_sha256": "bcd79447ccf35e20f44dd9f4ca1d54c73c7dc8b4af254d111e4844a624d11e38"
+      "seconds": 380.444,
+      "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/local-all.log",
+      "log_sha256": "6e4d87b75ee0e435cec5ad278498b1dcc5510e4efc0bd4727d0720f3691cd767"
     },
     "routes": {
       "command": [
         "bash",
-        "/Users/shravanjha/.codex/worktrees/factory-activation/claude-init/.claude/scripts/test/factory-request-intake.sh",
+        "/private/tmp/spec050-merge-ramkcle3/.claude/scripts/test/factory-request-intake.sh",
         "route-matrix"
       ],
       "interpreter": "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
       "exit_code": 0,
-      "seconds": 13.924,
-      "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/routes.log",
+      "seconds": 12.14,
+      "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/routes.log",
       "log_sha256": "b5c5a0445870375949ce106b314ccc9e84eb3fdc3eecc609ccffd7b3740d6584"
     },
     "slack": {
       "command": [
         "bash",
-        "/Users/shravanjha/.codex/worktrees/factory-activation/claude-init/.claude/scripts/test/factory-intake-slack.sh",
+        "/private/tmp/spec050-merge-ramkcle3/.claude/scripts/test/factory-intake-slack.sh",
         "phase2"
       ],
       "interpreter": "/Users/shravanjha/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3.12",
       "exit_code": 0,
-      "seconds": 7.951,
-      "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/slack.log",
+      "seconds": 7.721,
+      "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/slack.log",
       "log_sha256": "67b9b50ad18fc08861d109d93fa52d04aa65b21b4ef8c1778e4ce68e32ea5b56"
     },
     "rollback": {
       "command": [
         "bash",
-        "/Users/shravanjha/.codex/worktrees/factory-activation/claude-init/.claude/scripts/test/factory-intake-adoption.sh",
+        "/private/tmp/spec050-merge-ramkcle3/.claude/scripts/test/factory-intake-adoption.sh",
         "rollback-observability"
       ],
       "interpreter": "/Users/shravanjha/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3.12",
       "exit_code": 0,
-      "seconds": 2.363,
-      "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/rollback.log",
+      "seconds": 2.385,
+      "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/rollback.log",
       "log_sha256": "30fbd5d11c6752eb420fb45b18e4497f10b3c89cf20dc32375bc45f328e9fe07"
     },
     "adoption": {
       "command": [
         "bash",
-        "/Users/shravanjha/.codex/worktrees/factory-activation/claude-init/.claude/scripts/test/factory-intake-adoption.sh",
+        "/private/tmp/spec050-merge-ramkcle3/.claude/scripts/test/factory-intake-adoption.sh",
         "upgrade"
       ],
       "interpreter": "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
       "exit_code": 0,
-      "seconds": 3.176,
-      "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/adoption.log",
+      "seconds": 2.873,
+      "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/adoption.log",
       "log_sha256": "bb89bb4bd9268ce795cb912119aa1801f4fb2eae138156b6bab1ce9d673c7aab"
     },
     "runtime": {
       "command": [
         "bash",
-        "/Users/shravanjha/.codex/worktrees/factory-activation/claude-init/.claude/scripts/test/factory-runtime.sh"
+        "/private/tmp/spec050-merge-ramkcle3/.claude/scripts/test/factory-runtime.sh"
       ],
       "interpreter": "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
       "exit_code": 0,
-      "seconds": 0.09,
-      "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/runtime.log",
+      "seconds": 0.128,
+      "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/runtime.log",
       "log_sha256": "8515fabf8c2cd1f651b3cdec47c2c404380227e60944a00bd92d1aa096be68d7"
     },
     "supervisor": {
       "command": [
         "bash",
-        "/Users/shravanjha/.codex/worktrees/factory-activation/claude-init/.claude/scripts/test/factory-supervisor.sh"
+        "/private/tmp/spec050-merge-ramkcle3/.claude/scripts/test/factory-supervisor.sh"
       ],
       "interpreter": "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
       "exit_code": 0,
-      "seconds": 11.084,
-      "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/supervisor.log",
+      "seconds": 10.562,
+      "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/supervisor.log",
       "log_sha256": "3532defebbac935c6c647f66a241101d47e38550826f83900dd6e5813fc69a13"
     },
     "routing": {
       "command": [
         "bash",
-        "/Users/shravanjha/.codex/worktrees/factory-activation/claude-init/.claude/scripts/test/factory-routing.sh"
+        "/private/tmp/spec050-merge-ramkcle3/.claude/scripts/test/factory-routing.sh"
       ],
       "interpreter": "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
       "exit_code": 0,
-      "seconds": 2.342,
-      "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/routing.log",
+      "seconds": 2.286,
+      "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/routing.log",
       "log_sha256": "5a39eb13be1f6cf9f6b00ffb1bfcf435b54bafcc0c25098976065caff510f228"
     },
     "ledger": {
       "command": [
         "bash",
-        "/Users/shravanjha/.codex/worktrees/factory-activation/claude-init/.claude/scripts/test/factory-ledger.sh"
+        "/private/tmp/spec050-merge-ramkcle3/.claude/scripts/test/factory-ledger.sh"
       ],
       "interpreter": "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
       "exit_code": 0,
-      "seconds": 0.536,
-      "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/ledger.log",
+      "seconds": 0.455,
+      "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/ledger.log",
       "log_sha256": "93461a306936775accbd83bf17e5574b01f4c947f37af08c5254837ce743f272"
     },
     "bounds": {
       "command": [
         "bash",
-        "/Users/shravanjha/.codex/worktrees/factory-activation/claude-init/.claude/scripts/test/factory-intake-bounds.sh"
+        "/private/tmp/spec050-merge-ramkcle3/.claude/scripts/test/factory-intake-bounds.sh"
       ],
       "interpreter": "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
       "exit_code": 0,
-      "seconds": 1.158,
-      "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/bounds.log",
+      "seconds": 1.189,
+      "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/bounds.log",
       "log_sha256": "e4851109c081d555ebccc0d8673cf89b235852949765c8e3a1f5a7fe39a6c863"
     },
     "environment": {
       "command": [
         "bash",
-        "/Users/shravanjha/.codex/worktrees/factory-activation/claude-init/.claude/scripts/test/factory-worker-environment.sh"
+        "/private/tmp/spec050-merge-ramkcle3/.claude/scripts/test/factory-worker-environment.sh"
       ],
       "interpreter": "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
       "exit_code": 0,
-      "seconds": 1.683,
-      "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/environment.log",
+      "seconds": 1.66,
+      "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/environment.log",
       "log_sha256": "06c82c337ad241f492de20f27639fff4d241075914547f678f14f5e9cc76e7da"
     }
   },
@@ -272,15 +272,15 @@
               "case_marker": "console: real foreground stdin/subprocess",
               "suite_exit": 0,
               "marker_observed": true,
-              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/local-all.log",
-              "log_sha256": "bcd79447ccf35e20f44dd9f4ca1d54c73c7dc8b4af254d111e4844a624d11e38"
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/local-all.log",
+              "log_sha256": "6e4d87b75ee0e435cec5ad278498b1dcc5510e4efc0bd4727d0720f3691cd767"
             },
             {
               "suite": "slack",
               "case_marker": "authenticated receipt-bound Slack capture",
               "suite_exit": 0,
               "marker_observed": true,
-              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/slack.log",
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/slack.log",
               "log_sha256": "67b9b50ad18fc08861d109d93fa52d04aa65b21b4ef8c1778e4ce68e32ea5b56"
             }
           ]
@@ -295,15 +295,15 @@
               "case_marker": "identity: identical human submissions remain distinct",
               "suite_exit": 0,
               "marker_observed": true,
-              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/local-all.log",
-              "log_sha256": "bcd79447ccf35e20f44dd9f4ca1d54c73c7dc8b4af254d111e4844a624d11e38"
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/local-all.log",
+              "log_sha256": "6e4d87b75ee0e435cec5ad278498b1dcc5510e4efc0bd4727d0720f3691cd767"
             },
             {
               "suite": "slack",
               "case_marker": "immutable lineage, missing-prior provenance and atomic actor-conflict rollback",
               "suite_exit": 0,
               "marker_observed": true,
-              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/slack.log",
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/slack.log",
               "log_sha256": "67b9b50ad18fc08861d109d93fa52d04aa65b21b4ef8c1778e4ce68e32ea5b56"
             }
           ]
@@ -318,15 +318,15 @@
               "case_marker": "schema: exact request/decision/action fields",
               "suite_exit": 0,
               "marker_observed": true,
-              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/local-all.log",
-              "log_sha256": "bcd79447ccf35e20f44dd9f4ca1d54c73c7dc8b4af254d111e4844a624d11e38"
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/local-all.log",
+              "log_sha256": "6e4d87b75ee0e435cec5ad278498b1dcc5510e4efc0bd4727d0720f3691cd767"
             },
             {
               "suite": "routes",
               "case_marker": "continue and add login -> changed_requirement/draft",
               "suite_exit": 0,
               "marker_observed": true,
-              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/routes.log",
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/routes.log",
               "log_sha256": "b5c5a0445870375949ce106b314ccc9e84eb3fdc3eecc609ccffd7b3740d6584"
             }
           ]
@@ -341,23 +341,23 @@
               "case_marker": "session-continuation: unbound/global/other-session work clarifies",
               "suite_exit": 0,
               "marker_observed": true,
-              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/local-all.log",
-              "log_sha256": "bcd79447ccf35e20f44dd9f4ca1d54c73c7dc8b4af254d111e4844a624d11e38"
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/local-all.log",
+              "log_sha256": "6e4d87b75ee0e435cec5ad278498b1dcc5510e4efc0bd4727d0720f3691cd767"
             },
             {
               "suite": "local-all",
               "case_marker": "clarification-revisions: actual immutable thread APIs",
               "suite_exit": 0,
               "marker_observed": true,
-              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/local-all.log",
-              "log_sha256": "bcd79447ccf35e20f44dd9f4ca1d54c73c7dc8b4af254d111e4844a624d11e38"
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/local-all.log",
+              "log_sha256": "6e4d87b75ee0e435cec5ad278498b1dcc5510e4efc0bd4727d0720f3691cd767"
             },
             {
               "suite": "routes",
               "case_marker": "clarification reply retains proposal parent",
               "suite_exit": 0,
               "marker_observed": true,
-              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/routes.log",
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/routes.log",
               "log_sha256": "b5c5a0445870375949ce106b314ccc9e84eb3fdc3eecc609ccffd7b3740d6584"
             }
           ]
@@ -372,23 +372,23 @@
               "case_marker": "assessment-profile: exact primary model/argv",
               "suite_exit": 0,
               "marker_observed": true,
-              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/local-all.log",
-              "log_sha256": "bcd79447ccf35e20f44dd9f4ca1d54c73c7dc8b4af254d111e4844a624d11e38"
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/local-all.log",
+              "log_sha256": "6e4d87b75ee0e435cec5ad278498b1dcc5510e4efc0bd4727d0720f3691cd767"
             },
             {
               "suite": "local-all",
               "case_marker": "assessment-process: actual pinned fake CLI clean env/private stdin/model JSON",
               "suite_exit": 0,
               "marker_observed": true,
-              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/local-all.log",
-              "log_sha256": "bcd79447ccf35e20f44dd9f4ca1d54c73c7dc8b4af254d111e4844a624d11e38"
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/local-all.log",
+              "log_sha256": "6e4d87b75ee0e435cec5ad278498b1dcc5510e4efc0bd4727d0720f3691cd767"
             },
             {
               "suite": "environment",
               "case_marker": "deny-by-default environment drops",
               "suite_exit": 0,
               "marker_observed": true,
-              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/environment.log",
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/environment.log",
               "log_sha256": "06c82c337ad241f492de20f27639fff4d241075914547f678f14f5e9cc76e7da"
             }
           ]
@@ -403,31 +403,31 @@
               "case_marker": "enqueue-guard: actual API/CLI",
               "suite_exit": 0,
               "marker_observed": true,
-              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/local-all.log",
-              "log_sha256": "bcd79447ccf35e20f44dd9f4ca1d54c73c7dc8b4af254d111e4844a624d11e38"
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/local-all.log",
+              "log_sha256": "6e4d87b75ee0e435cec5ad278498b1dcc5510e4efc0bd4727d0720f3691cd767"
             },
             {
               "suite": "local-all",
               "case_marker": "start-guard: installed API/CLI",
               "suite_exit": 0,
               "marker_observed": true,
-              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/local-all.log",
-              "log_sha256": "bcd79447ccf35e20f44dd9f4ca1d54c73c7dc8b4af254d111e4844a624d11e38"
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/local-all.log",
+              "log_sha256": "6e4d87b75ee0e435cec5ad278498b1dcc5510e4efc0bd4727d0720f3691cd767"
             },
             {
               "suite": "local-all",
               "case_marker": "phase1: actual installed console to guarded worker and generated hook subprocesses",
               "suite_exit": 0,
               "marker_observed": true,
-              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/local-all.log",
-              "log_sha256": "bcd79447ccf35e20f44dd9f4ca1d54c73c7dc8b4af254d111e4844a624d11e38"
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/local-all.log",
+              "log_sha256": "6e4d87b75ee0e435cec5ad278498b1dcc5510e4efc0bd4727d0720f3691cd767"
             },
             {
               "suite": "slack",
               "case_marker": "guarded current-source private proposal",
               "suite_exit": 0,
               "marker_observed": true,
-              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/slack.log",
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/slack.log",
               "log_sha256": "67b9b50ad18fc08861d109d93fa52d04aa65b21b4ef8c1778e4ce68e32ea5b56"
             }
           ]
@@ -442,15 +442,15 @@
               "case_marker": "approval-eligibility: strict first-header approval/spec bindings",
               "suite_exit": 0,
               "marker_observed": true,
-              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/local-all.log",
-              "log_sha256": "bcd79447ccf35e20f44dd9f4ca1d54c73c7dc8b4af254d111e4844a624d11e38"
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/local-all.log",
+              "log_sha256": "6e4d87b75ee0e435cec5ad278498b1dcc5510e4efc0bd4727d0720f3691cd767"
             },
             {
               "suite": "routes",
               "case_marker": "all drafts pending",
               "suite_exit": 0,
               "marker_observed": true,
-              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/routes.log",
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/routes.log",
               "log_sha256": "b5c5a0445870375949ce106b314ccc9e84eb3fdc3eecc609ccffd7b3740d6584"
             },
             {
@@ -458,7 +458,7 @@
               "case_marker": "fix typo in src/README.md -> new_feature/draft",
               "suite_exit": 0,
               "marker_observed": true,
-              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/routes.log",
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/routes.log",
               "log_sha256": "b5c5a0445870375949ce106b314ccc9e84eb3fdc3eecc609ccffd7b3740d6584"
             }
           ]
@@ -473,7 +473,7 @@
               "case_marker": "fix behavior bug -> defect/draft",
               "suite_exit": 0,
               "marker_observed": true,
-              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/routes.log",
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/routes.log",
               "log_sha256": "b5c5a0445870375949ce106b314ccc9e84eb3fdc3eecc609ccffd7b3740d6584"
             },
             {
@@ -481,7 +481,7 @@
               "case_marker": "historical closure never accepts feedback",
               "suite_exit": 0,
               "marker_observed": true,
-              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/slack.log",
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/slack.log",
               "log_sha256": "67b9b50ad18fc08861d109d93fa52d04aa65b21b4ef8c1778e4ce68e32ea5b56"
             },
             {
@@ -489,8 +489,8 @@
               "case_marker": "assessment-profile: exact primary model/argv",
               "suite_exit": 0,
               "marker_observed": true,
-              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/local-all.log",
-              "log_sha256": "bcd79447ccf35e20f44dd9f4ca1d54c73c7dc8b4af254d111e4844a624d11e38"
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/local-all.log",
+              "log_sha256": "6e4d87b75ee0e435cec5ad278498b1dcc5510e4efc0bd4727d0720f3691cd767"
             }
           ]
         },
@@ -504,7 +504,7 @@
               "case_marker": "CAS conflicts and lost acknowledgements before/after Scout",
               "suite_exit": 0,
               "marker_observed": true,
-              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/slack.log",
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/slack.log",
               "log_sha256": "67b9b50ad18fc08861d109d93fa52d04aa65b21b4ef8c1778e4ce68e32ea5b56"
             },
             {
@@ -512,7 +512,7 @@
               "case_marker": "committed unresolved running intent survives pause, unpause and exact retry",
               "suite_exit": 0,
               "marker_observed": true,
-              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/rollback.log",
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/rollback.log",
               "log_sha256": "30fbd5d11c6752eb420fb45b18e4497f10b3c89cf20dc32375bc45f328e9fe07"
             },
             {
@@ -520,7 +520,7 @@
               "case_marker": "transactional idempotent outbox preserves dispatch uncertainty",
               "suite_exit": 0,
               "marker_observed": true,
-              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/runtime.log",
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/runtime.log",
               "log_sha256": "8515fabf8c2cd1f651b3cdec47c2c404380227e60944a00bd92d1aa096be68d7"
             }
           ]
@@ -535,7 +535,7 @@
               "case_marker": "quota -> blocked/none",
               "suite_exit": 0,
               "marker_observed": true,
-              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/routes.log",
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/routes.log",
               "log_sha256": "b5c5a0445870375949ce106b314ccc9e84eb3fdc3eecc609ccffd7b3740d6584"
             },
             {
@@ -543,7 +543,7 @@
               "case_marker": "missing selected context -> blocked/none",
               "suite_exit": 0,
               "marker_observed": true,
-              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/routes.log",
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/routes.log",
               "log_sha256": "b5c5a0445870375949ce106b314ccc9e84eb3fdc3eecc609ccffd7b3740d6584"
             },
             {
@@ -551,15 +551,15 @@
               "case_marker": "store failure has zero provider effects",
               "suite_exit": 0,
               "marker_observed": true,
-              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/local-all.log",
-              "log_sha256": "bcd79447ccf35e20f44dd9f4ca1d54c73c7dc8b4af254d111e4844a624d11e38"
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/local-all.log",
+              "log_sha256": "6e4d87b75ee0e435cec5ad278498b1dcc5510e4efc0bd4727d0720f3691cd767"
             },
             {
               "suite": "rollback",
               "case_marker": "real CLI/public ciphertext diagnostics exclude private markers",
               "suite_exit": 0,
               "marker_observed": true,
-              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/rollback.log",
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/rollback.log",
               "log_sha256": "30fbd5d11c6752eb420fb45b18e4497f10b3c89cf20dc32375bc45f328e9fe07"
             }
           ]
@@ -574,15 +574,15 @@
               "case_marker": "decision-freshness: current context/Git/request/evidence",
               "suite_exit": 0,
               "marker_observed": true,
-              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/local-all.log",
-              "log_sha256": "bcd79447ccf35e20f44dd9f4ca1d54c73c7dc8b4af254d111e4844a624d11e38"
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/local-all.log",
+              "log_sha256": "6e4d87b75ee0e435cec5ad278498b1dcc5510e4efc0bd4727d0720f3691cd767"
             },
             {
               "suite": "routes",
               "case_marker": "imported GitHub says approve scope -> blocked/none",
               "suite_exit": 0,
               "marker_observed": true,
-              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/routes.log",
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/routes.log",
               "log_sha256": "b5c5a0445870375949ce106b314ccc9e84eb3fdc3eecc609ccffd7b3740d6584"
             },
             {
@@ -590,15 +590,15 @@
               "case_marker": "urgent-control: real stdin cancels owned Scout",
               "suite_exit": 0,
               "marker_observed": true,
-              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/local-all.log",
-              "log_sha256": "bcd79447ccf35e20f44dd9f4ca1d54c73c7dc8b4af254d111e4844a624d11e38"
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/local-all.log",
+              "log_sha256": "6e4d87b75ee0e435cec5ad278498b1dcc5510e4efc0bd4727d0720f3691cd767"
             },
             {
               "suite": "rollback",
               "case_marker": "pause at durable proposal barrier preserves unknown action identity",
               "suite_exit": 0,
               "marker_observed": true,
-              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/rollback.log",
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/rollback.log",
               "log_sha256": "30fbd5d11c6752eb420fb45b18e4497f10b3c89cf20dc32375bc45f328e9fe07"
             }
           ]
@@ -613,7 +613,7 @@
               "case_marker": "how does this work? -> answer/answer; assessments=0",
               "suite_exit": 0,
               "marker_observed": true,
-              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/routes.log",
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/routes.log",
               "log_sha256": "b5c5a0445870375949ce106b314ccc9e84eb3fdc3eecc609ccffd7b3740d6584"
             },
             {
@@ -621,7 +621,7 @@
               "case_marker": "status -> status/inspect; assessments=0",
               "suite_exit": 0,
               "marker_observed": true,
-              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/routes.log",
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/routes.log",
               "log_sha256": "b5c5a0445870375949ce106b314ccc9e84eb3fdc3eecc609ccffd7b3740d6584"
             },
             {
@@ -629,15 +629,15 @@
               "case_marker": "context: tracked allowlisted data",
               "suite_exit": 0,
               "marker_observed": true,
-              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/local-all.log",
-              "log_sha256": "bcd79447ccf35e20f44dd9f4ca1d54c73c7dc8b4af254d111e4844a624d11e38"
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/local-all.log",
+              "log_sha256": "6e4d87b75ee0e435cec5ad278498b1dcc5510e4efc0bd4727d0720f3691cd767"
             },
             {
               "suite": "bounds",
               "case_marker": "combined output boundary, legacy limits, invalid bounds and descendant cleanup passed",
               "suite_exit": 0,
               "marker_observed": true,
-              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/bounds.log",
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/bounds.log",
               "log_sha256": "e4851109c081d555ebccc0d8673cf89b235852949765c8e3a1f5a7fe39a6c863"
             }
           ]
@@ -652,7 +652,7 @@
               "case_marker": "route-matrix: real stdin, protected configuration and tool-free subprocess",
               "suite_exit": 0,
               "marker_observed": true,
-              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/routes.log",
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/routes.log",
               "log_sha256": "b5c5a0445870375949ce106b314ccc9e84eb3fdc3eecc609ccffd7b3740d6584"
             },
             {
@@ -660,15 +660,15 @@
               "case_marker": "phase1: actual installed console to guarded worker",
               "suite_exit": 0,
               "marker_observed": true,
-              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/local-all.log",
-              "log_sha256": "bcd79447ccf35e20f44dd9f4ca1d54c73c7dc8b4af254d111e4844a624d11e38"
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/local-all.log",
+              "log_sha256": "6e4d87b75ee0e435cec5ad278498b1dcc5510e4efc0bd4727d0720f3691cd767"
             },
             {
               "suite": "slack",
               "case_marker": "phase2 complete: 6 intake selectors, 4 feedback regressions",
               "suite_exit": 0,
               "marker_observed": true,
-              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/slack.log",
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/slack.log",
               "log_sha256": "67b9b50ad18fc08861d109d93fa52d04aa65b21b4ef8c1778e4ce68e32ea5b56"
             }
           ]
@@ -683,7 +683,7 @@
               "case_marker": "actual CLI packages current immutable intake scripts",
               "suite_exit": 0,
               "marker_observed": true,
-              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/adoption.log",
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/adoption.log",
               "log_sha256": "bb89bb4bd9268ce795cb912119aa1801f4fb2eae138156b6bab1ce9d673c7aab"
             },
             {
@@ -691,7 +691,7 @@
               "case_marker": "actual CLI upgrades clean source A to B",
               "suite_exit": 0,
               "marker_observed": true,
-              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/adoption.log",
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/adoption.log",
               "log_sha256": "bb89bb4bd9268ce795cb912119aa1801f4fb2eae138156b6bab1ce9d673c7aab"
             },
             {
@@ -699,7 +699,7 @@
               "case_marker": "audited CLI retains default-off without provider/network/registry effects",
               "suite_exit": 0,
               "marker_observed": true,
-              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/adoption.log",
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/adoption.log",
               "log_sha256": "bb89bb4bd9268ce795cb912119aa1801f4fb2eae138156b6bab1ce9d673c7aab"
             }
           ]

@@ -1,0 +1,715 @@
+{
+  "schema_version": 1,
+  "kind": "offline-cli-acceptance",
+  "success": true,
+  "started": 1792083714.8557508,
+  "completed": 1792084136.712859,
+  "source_sha": "05527ec66829602713c7acd2850902109b9458aa",
+  "source_hashes": {
+    "specs/active/050-request-intake-router.md": "dbcc93d50df8bd5442066324913cb2966a25b5b1a585e515d7c48082064bcf74",
+    "plans/active/050-request-intake-router.md": "2b8edc253637946b7bbeb6674d63717550a9ab18d1ea3e6d607c13109a40b6f0",
+    "docs/FACTORY-REQUEST-INTAKE.md": "69096df673d62998d74c6e5567bca9c088d4354ffa3aafccd8db9194c2bdb129",
+    ".claude/scripts/factory-adopt.py": "6c5aa2862cbd9599a8c7226012e0a38e6584060097d80f044bc8b5b57c1bac81",
+    ".claude/scripts/factory-attest-state-policy.py": "ebfb2a1f3e3a1bd7ca3e2b0e9c30d7315b36d89abd0b13be40e2d20ff4c56a6b",
+    ".claude/scripts/factory-bounded-process.py": "91d077e6badb7c606a31cf85d8fbb8315b91d9d211b4fe1ab8fb970693207f47",
+    ".claude/scripts/factory-claude-probe.py": "4b279cb798edec95d2099af360786c6e05ec255186786cf983728ffad26bfbc7",
+    ".claude/scripts/factory-container.py": "2d2e7b9f27e562f55be4a21c916e5086bab358cdd7aa163a8d694719b43963d7",
+    ".claude/scripts/factory-coordinator.py": "3ea5f6f9a008425586afcc9f012b71055198a51265e27dfb222b8704fc931b3c",
+    ".claude/scripts/factory-digest.py": "3575e8cde5f584998497222bc5958a2213da6cc53cb0fb16bb9e4a797c65eb7a",
+    ".claude/scripts/factory-encrypted-feedback.py": "b1dae2487e03b513220e9a8c1952b45a38f3c8654f1b992d761c15ce1dab1879",
+    ".claude/scripts/factory-feedback-control.py": "5933a7e1a9ba03e2ba4be49545345d94e0e63abfccdb7747a45ed05f5664bd71",
+    ".claude/scripts/factory-feedback.py": "3bf2e67ac4036a01e14c0c8bddee11bc9cfea97f67e182cd491206a9212400fa",
+    ".claude/scripts/factory-git-state.py": "b57b20255b9e3e817d445e25fbb7737a370776b6b57fdb17eb60e7050f699a7a",
+    ".claude/scripts/factory-hosted-feedback.py": "447e9b8141f89cfe712ed2e829461121937999521c2734a57672670079d3be6f",
+    ".claude/scripts/factory-intake-console.py": "8e0b26ec4183048d1b6b4d8ab195b0e61a5a430e0bff3c64fc862db33cd26644",
+    ".claude/scripts/factory-intake-hooks.py": "16785b416524f087b5d5bcc9f699d0cc227546453167180fb9da691298ce8ca0",
+    ".claude/scripts/factory-intake-scout.py": "2e32398c986f0659198bcc2bd1dd465ac68f3e3988e811af1cba373c6834ba2c",
+    ".claude/scripts/factory-intake-worker.py": "f462c62b5ff3a4cd99d43f12de29d676f61c12dd9f453f001bed8bdd2d0ba866",
+    ".claude/scripts/factory-intake.py": "9bf25e55d23f88e70e2cdda4a7ed9147ef5f8d238f35ac97393ba7b31cc6f48e",
+    ".claude/scripts/factory-ledger.py": "d403fb95cd87e31bc009c9ac3b055b23ba18a4accf2c7ab08d4f8d41b40c22ef",
+    ".claude/scripts/factory-legacy-feedback.py": "e0e520524365e4f0c5cdb6bd141e6a1a72e5de456cad153abe02d9e8999eb9c0",
+    ".claude/scripts/factory-preflight.py": "e51afbc45bc8c3636ab830c7df06b7ebeee20c2ecd0f608ddd618dfa58b48cc1",
+    ".claude/scripts/factory-private-artifacts.py": "c2b2bb414ade6a8676f161aeb0e5b3ee4ec45fafb349c7c780b486ba26e553ca",
+    ".claude/scripts/factory-producer-check.py": "848474c98c55c9281f47ce97a9bd3a7c302dd51033860cbebf154e478a0c6f07",
+    ".claude/scripts/factory-producer.py": "21d86e8080925236013a97a1fb6f8f9825ae613b1b7dce448984c9aee0ffddfb",
+    ".claude/scripts/factory-receipts.py": "fc60e558c4b0e37c6d8a6785b1a9169a026eeb38abacd4531bca43bf3605e5cc",
+    ".claude/scripts/factory-release.py": "97d04c6064dcef9aa99ac7cad470610e02f5fb9a5e9d3bef0e4ada4c1bebffed",
+    ".claude/scripts/factory-reporting-alerts.py": "3caa828bcd8a9bc8451eb61a890622cc98771508ebfa2162cc1619764529a520",
+    ".claude/scripts/factory-reporting-preflight.py": "f8d90411fc5ec9402faa4bc3620b2248b9ed9b5e84197b97edf1146d0b379943",
+    ".claude/scripts/factory-reporting-watchdog.py": "69554f3fe0479436109bcae2e93fd5ce4e5092a6d426cc032ebf22f200eb5105",
+    ".claude/scripts/factory-routing.py": "cb00763032265edc0bda37b085f614037aee2ce3d481c859f53ef2795a34e696",
+    ".claude/scripts/factory-ruleset-plan.py": "f4e2257667779d2567cba2f89f929504a1337011e8a697f1ba9420e1d9e2cecf",
+    ".claude/scripts/factory-runtime.py": "a69ec22bbd6fd9403cc70f93b3e2c38554603d97d99cdaf06df27f4470983f45",
+    ".claude/scripts/factory-slack-attachment.py": "28633c0673f39d56cb6f44a8327581eb352ba9a1216e5b8e6ae516641b07659b",
+    ".claude/scripts/factory-slack-digest.py": "8f6d2f7770d3225727a8dc3d30192510b206b1f3382b83ea1ef7ceedec8048a4",
+    ".claude/scripts/factory-slack-feedback.py": "af939c96e7d6fe78ba538335751281213002bff9627e38fa246510971eab0770",
+    ".claude/scripts/factory-slack-file-canary.py": "a5f5b0987e27d1247919f44b91880b1760d2d0bb11670ae1e6692e0cbd163cc1",
+    ".claude/scripts/factory-supervisor.py": "b9e80cc594e1b14a133d6850dd7b11eb52e4e39e1113b4cddd65c230d13b1c2f",
+    ".claude/scripts/factory-worker-guard.py": "adc3bf10d5c6172f844e7748d9cfdae4be1b7b9cf40777ae59c2bdf896d8844c",
+    ".claude/scripts/test/factory-activation-package.sh": "9add284566191862b50fe4b4d489f754dbdd14cc3a2d0f785aff371cd1505e50",
+    ".claude/scripts/test/factory-activation-planning.sh": "63b92fec41ba5edc5a717a9e1cc4bc42ed51e13324c9612e97e5c2f2e727c8f7",
+    ".claude/scripts/test/factory-adopt.sh": "7362a9fba759d20ed4d70a1e3c2abfb8d846f28d9c9f1256af46cbe736850b58",
+    ".claude/scripts/test/factory-container-live.sh": "ac4394dcfc035c1818fa4d7b255bbbc0fb2c1821d0a656cb9ad632a8a6913877",
+    ".claude/scripts/test/factory-container.sh": "b945076617a524e7fe8424173a20fa26741d2aeff10a0f46324dfe822eb75ceb",
+    ".claude/scripts/test/factory-coordinator.sh": "c67176be8f5e73f62b71f5525f280056c58e998a436628325914003a95dc18ef",
+    ".claude/scripts/test/factory-digest-coverage.sh": "64a00191bb4aedb2fc96ab28f9c5cdac9db4e7119ca8c026d073f74dd9b4b9a3",
+    ".claude/scripts/test/factory-digest.sh": "7e04a23a6d040fd3c3ce6a5ad26395cbaef17b57b267ff92820fbb308de7babd",
+    ".claude/scripts/test/factory-distribution.sh": "0b9c726c52f372d9913cd99fd2758509cc654ed2982a79290a5b6db9abc47735",
+    ".claude/scripts/test/factory-encrypted-feedback.sh": "262f06f8e8796e4011a51ee037f8a87d04d897edf03eb4244750b776c47e14a9",
+    ".claude/scripts/test/factory-feedback-control.sh": "ed906f9eedc94645bdf89deb5948a44172472525de2e6b5e5ce45f231fd68c38",
+    ".claude/scripts/test/factory-feedback.sh": "bff8026cf187afa596d5e958a480281ddcc9556ee2a72c0b97fe97bdd4c95faf",
+    ".claude/scripts/test/factory-hosted-digest.sh": "a8a9ab26ab0e59a8753288b00c2fd4da846bc5254294bbc053533aa7fdbe0261",
+    ".claude/scripts/test/factory-hosted-feedback.sh": "070251642826ddb4e0839022b649de5ca3689ff43967b955fca0aafbff855d3b",
+    ".claude/scripts/test/factory-installer-source.sh": "4b099c0c076b9794ad39d918c53a0c0a7711392ace1917a64c2e952a6a701113",
+    ".claude/scripts/test/factory-intake-actions-reconcile.sh": "865f07e8520b88eeda8b6c8fcc3bc7400b29fa0ba06719c999151fbae3e310dc",
+    ".claude/scripts/test/factory-intake-adoption.sh": "f7d506e91ee7950d76e63218e4c9a574282a87edc6999ea6ffc11aa56cd1d2b1",
+    ".claude/scripts/test/factory-intake-approval-eligibility.sh": "2b4b325ae46a662d1cd11816d71616fe25b0efa05b10ff70a27eba22c2dc2304",
+    ".claude/scripts/test/factory-intake-bounds.sh": "3318d55823e71f7174e99a9861d8cb59ccfc8e361033ba67b069d41a25bc76b1",
+    ".claude/scripts/test/factory-intake-clarification-revisions.sh": "ce340bcb93def0ddb907521d33795ecfdb0d966a6f926b036d2828db2679c47b",
+    ".claude/scripts/test/factory-intake-console.sh": "e04cd255c622a17776bee756b1cd3451896d042d987dd630df4e5ddc090d46f3",
+    ".claude/scripts/test/factory-intake-context.sh": "79647aefd77d253686abdf353a7512f60b516c23e9b1b1b774d2e3d805094c43",
+    ".claude/scripts/test/factory-intake-contract-catalog.sh": "c00ca4cefc772de5d748af72e34028c921db0b3892d8d0a62acd213cfed420cd",
+    ".claude/scripts/test/factory-intake-decision-freshness.sh": "1fda4254dc74d0b41616461e00f53aabc3fe652daf96e24560ff5a9e3046c8ab",
+    ".claude/scripts/test/factory-intake-dependencies.sh": "1bb5069836906594cb197646da976ecba125292b214ba31ebbaaa95cf88f104b",
+    ".claude/scripts/test/factory-intake-eligibility.sh": "59bd1dbc61454c3c6959e71986d5dd369b927cd28367c94d621eecfd4213b915",
+    ".claude/scripts/test/factory-intake-enqueue-guard.sh": "9de30e16ef33d1584d8588a9210f58f5fad9e649db7637d3dae5c36b915421ec",
+    ".claude/scripts/test/factory-intake-flat-root.sh": "92c8df6acc50fa586c110ed2ec2f850cd7f4200e6abd35231687cb0adf4a713f",
+    ".claude/scripts/test/factory-intake-hooks.sh": "1bf8db5d3844e5bb2fd508ca142bc9c54337f5c3fa82438dfef5591c9b2ff797",
+    ".claude/scripts/test/factory-intake-mutation-guard.sh": "89cd811922bcc256464fdda3b0828896a759c28b855e7a76a55625a3a70f2a59",
+    ".claude/scripts/test/factory-intake-outcome.sh": "ad47b84d0a33d6580003eaefd980535434db2136973608c5ef83165ef3e3220f",
+    ".claude/scripts/test/factory-intake-process.sh": "aa10f4979eed0640995e8c9543b0422b0ad53afe1c6ccb024d5c53ce942a7e6d",
+    ".claude/scripts/test/factory-intake-profile.sh": "48cfe1ab1eb594231d9f7a673d1d4302fc385d3099f026299269a87bf319c376",
+    ".claude/scripts/test/factory-intake-proposal.sh": "1e3255372b8bbd4226d59079c5efb00c048368995685a242463107ef51517349",
+    ".claude/scripts/test/factory-intake-proposed-scope.sh": "d35023ff424f888e0a53e8afa3b456a4b0ea83fcb50cae765eeae9f050a489d6",
+    ".claude/scripts/test/factory-intake-session-continuation.sh": "e7aa472f266ab9b9eec8b182e7cd14e45c13e25a449373b612efa0b24408f537",
+    ".claude/scripts/test/factory-intake-slack.sh": "fddab94e096d67289f9a7bfbe98c9cc67b9d8421867aeb498d5402f1cb47e14f",
+    ".claude/scripts/test/factory-intake-start-guard.sh": "ff0741437ea9685c59c45ae69f0291289dc0cc7dc7517e5e7016ae8779c482a5",
+    ".claude/scripts/test/factory-intake-tool-mutation.sh": "4fb59419f9f8d53ad1d21a415cad1462bf4395e2adf711dd9b63dfd9b81866e1",
+    ".claude/scripts/test/factory-intake-tool-read.sh": "3c0494b4fc3cf753e95e58fc87967cd69257b3d3aadb9e1c81ba7535bd672cbf",
+    ".claude/scripts/test/factory-intake-worker-contract.sh": "98d550c85e49f393ebafcf28d0478cef6b0eee8da430599403ed3a870a9b6a15",
+    ".claude/scripts/test/factory-intake-worker-descriptor.sh": "0dc865ae22169c056b29bf6762a7d201e66322c8902583b887d9e3d356dfd8fe",
+    ".claude/scripts/test/factory-intake-worker-launch.sh": "5d5cf756b6e653abb7975d140df06e3b0dd8aafe0f9fd853997f8265862b275f",
+    ".claude/scripts/test/factory-intake-worker-outcome.sh": "18ddc23cda88f8bf9964a6086b9304f0a4b3f08cbc2519ff86c2c76502854023",
+    ".claude/scripts/test/factory-ledger.sh": "8dc09d719d0dec329446a1c168f5a02c21e5ff1fec5da00e20570509fff4bb55",
+    ".claude/scripts/test/factory-legacy-feedback.sh": "4ae7c2c0128bb3aee3cd0ebf96a2f60506557c0d3d708949862a041cbcda8b5f",
+    ".claude/scripts/test/factory-pilot-sandbox.sh": "e2f5b0f0bc3ae3376cb202c6a22beb5da01eac59462ec88def8d35a672e063fe",
+    ".claude/scripts/test/factory-policy-approval.sh": "8984adff79fe6e4b34dc2bb4dd71a23fa0c78d1aef34508cda5df6d9608b66cb",
+    ".claude/scripts/test/factory-private-artifacts.sh": "4fdc76824daa309a8edfaa8cb6fd63b6a5e5f225b05aa951bfdcf1ad92072d25",
+    ".claude/scripts/test/factory-producers.sh": "15c1225cae8ed488c0e8de9b9cc6c85401e374b0e84dffbb75f608cd2b679966",
+    ".claude/scripts/test/factory-production-stub.sh": "86ea08c8b3be7799059eee50e77e3ce7b8aefdb30c0602f0474a13fbb0f43f25",
+    ".claude/scripts/test/factory-receipt-projection.sh": "e35ad9d2bcfd61531811d32cbae3a22d963a49740d59dd16d9c77e4d90c715dc",
+    ".claude/scripts/test/factory-receipts-recovery.sh": "b9fec05860c9149abbee8b34842c732d0274ff701eea23386e72722896e5340b",
+    ".claude/scripts/test/factory-release.sh": "01b1e5f95de0d99acfe28eba6f56c766d904d5d67d78280709420ebe6d72f819",
+    ".claude/scripts/test/factory-reporting-actions.sh": "38ed037892f3c7820a5e910a8b956a37b0bb03483c0969e7b1c8c7f1b70b4281",
+    ".claude/scripts/test/factory-reporting-alerts.sh": "427adb6becb35fe0e5657e4d750ef14509ec7131aafffdaa260bb4a985c30049",
+    ".claude/scripts/test/factory-reporting-watchdog.sh": "7a5ccba3302887886d2c52e74f927fb69cc18fe66a258ca5f75db44fa3d644fe",
+    ".claude/scripts/test/factory-request-intake.sh": "7f27a43386c9e21f47e7ba0d005980a3ed8e1f66701d7fa688e657ce5fbeccbf",
+    ".claude/scripts/test/factory-review-runtime.sh": "b4acb706542982d762a4dda5b7d018bfe6e30e58f695b50059ac05f8869adc05",
+    ".claude/scripts/test/factory-routing.sh": "ea43855cdeff98988c164c5311264f733cfe5f4bbf2ec6b3274b3aaa30b1cb42",
+    ".claude/scripts/test/factory-runtime.sh": "0cee0f6056f2783ac0f66e47b1b67946d123a916c54945c674d5c9d924679c5d",
+    ".claude/scripts/test/factory-slack-attachment.sh": "9c0e8da295f88b7c925844d2c0b2bfe0bffa7903f797c5e075aceaa0fc5cfb2c",
+    ".claude/scripts/test/factory-slack-digest.sh": "49b19ecabeb5bff8ada7a4499d9cfa100bb4a5eed376eda7619ee25e7b976904",
+    ".claude/scripts/test/factory-slack-feedback.sh": "0c27eb963a6de0b14213ad2166b53e786fb914691471d9fb76e6618ec09e0a39",
+    ".claude/scripts/test/factory-slack-file-canary.sh": "fc85b3bbe3dfdbebb9e160fa54ce912c65c227cfb97aa6730e3285be8d1aadf0",
+    ".claude/scripts/test/factory-slack-scope-preflight.sh": "335957201d615f43409a6f2ff69ae0c790b7e13818d329c3096ee0dd32fd1ff8",
+    ".claude/scripts/test/factory-supervisor.sh": "1db32a0992f97dd676ccb1142fc0ed2dee6cd692fbf070e388f5c313e95ebb42",
+    ".claude/scripts/test/factory-worker-effects.sh": "96ecc347156fffa395e5ece9284bac029f1d85211e85b068ece29897fd2c2658",
+    ".claude/scripts/test/factory-worker-environment.sh": "09a197fec3f2f51a0cf463a210f94d2c01ff2af9c4cce3d4cfc4c86f3e8687c4",
+    ".claude/scripts/test/factory-workflow-baseline.sh": "7cbed9e3130815bd12fcf78ab4269a664330725a7a0c8333d061da781b84062b",
+    ".claude/scripts/test/factory-workflows.sh": "54cea3b8e9234560c77ed95f6f95ef9d475558ea05d91dc34c98ba06a0a82eab",
+    ".claude/scripts/test/intake-private-diagnostics.py": "9cd1a700aeada00326c9d48ffabbd3e0b87c5fda7636764dd1398b63ccc34d66",
+    "factory/request-intake.example.json": "35223c0be0c6642f8afb71f83bbe44fb8ca6426793e83b4c671b889a469eb52a",
+    "factory/policy.json": "ee5756f3e44ee0bf7e729dc8ee94647e66c6278f84fabf4af4fd8dbb7ca4e3f5",
+    ".claude/settings.json": "c755a571f998cc8a209b05b51fd35920c301e58249cbc8186c25952339ca575d"
+  },
+  "interpreters": {
+    "/Users/shravanjha/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3.12": "Python 3.12.14",
+    "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/bin/python3.14": "Python 3.14.4"
+  },
+  "suites": {
+    "local-all": {
+      "command": [
+        "bash",
+        "/private/tmp/spec050-merge-ramkcle3/.claude/scripts/test/factory-request-intake.sh",
+        "all"
+      ],
+      "interpreter": "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
+      "exit_code": 0,
+      "seconds": 380.444,
+      "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/local-all.log",
+      "log_sha256": "6e4d87b75ee0e435cec5ad278498b1dcc5510e4efc0bd4727d0720f3691cd767"
+    },
+    "routes": {
+      "command": [
+        "bash",
+        "/private/tmp/spec050-merge-ramkcle3/.claude/scripts/test/factory-request-intake.sh",
+        "route-matrix"
+      ],
+      "interpreter": "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
+      "exit_code": 0,
+      "seconds": 12.14,
+      "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/routes.log",
+      "log_sha256": "b5c5a0445870375949ce106b314ccc9e84eb3fdc3eecc609ccffd7b3740d6584"
+    },
+    "slack": {
+      "command": [
+        "bash",
+        "/private/tmp/spec050-merge-ramkcle3/.claude/scripts/test/factory-intake-slack.sh",
+        "phase2"
+      ],
+      "interpreter": "/Users/shravanjha/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3.12",
+      "exit_code": 0,
+      "seconds": 7.721,
+      "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/slack.log",
+      "log_sha256": "67b9b50ad18fc08861d109d93fa52d04aa65b21b4ef8c1778e4ce68e32ea5b56"
+    },
+    "rollback": {
+      "command": [
+        "bash",
+        "/private/tmp/spec050-merge-ramkcle3/.claude/scripts/test/factory-intake-adoption.sh",
+        "rollback-observability"
+      ],
+      "interpreter": "/Users/shravanjha/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3.12",
+      "exit_code": 0,
+      "seconds": 2.385,
+      "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/rollback.log",
+      "log_sha256": "30fbd5d11c6752eb420fb45b18e4497f10b3c89cf20dc32375bc45f328e9fe07"
+    },
+    "adoption": {
+      "command": [
+        "bash",
+        "/private/tmp/spec050-merge-ramkcle3/.claude/scripts/test/factory-intake-adoption.sh",
+        "upgrade"
+      ],
+      "interpreter": "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
+      "exit_code": 0,
+      "seconds": 2.873,
+      "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/adoption.log",
+      "log_sha256": "bb89bb4bd9268ce795cb912119aa1801f4fb2eae138156b6bab1ce9d673c7aab"
+    },
+    "runtime": {
+      "command": [
+        "bash",
+        "/private/tmp/spec050-merge-ramkcle3/.claude/scripts/test/factory-runtime.sh"
+      ],
+      "interpreter": "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
+      "exit_code": 0,
+      "seconds": 0.128,
+      "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/runtime.log",
+      "log_sha256": "8515fabf8c2cd1f651b3cdec47c2c404380227e60944a00bd92d1aa096be68d7"
+    },
+    "supervisor": {
+      "command": [
+        "bash",
+        "/private/tmp/spec050-merge-ramkcle3/.claude/scripts/test/factory-supervisor.sh"
+      ],
+      "interpreter": "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
+      "exit_code": 0,
+      "seconds": 10.562,
+      "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/supervisor.log",
+      "log_sha256": "3532defebbac935c6c647f66a241101d47e38550826f83900dd6e5813fc69a13"
+    },
+    "routing": {
+      "command": [
+        "bash",
+        "/private/tmp/spec050-merge-ramkcle3/.claude/scripts/test/factory-routing.sh"
+      ],
+      "interpreter": "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
+      "exit_code": 0,
+      "seconds": 2.286,
+      "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/routing.log",
+      "log_sha256": "5a39eb13be1f6cf9f6b00ffb1bfcf435b54bafcc0c25098976065caff510f228"
+    },
+    "ledger": {
+      "command": [
+        "bash",
+        "/private/tmp/spec050-merge-ramkcle3/.claude/scripts/test/factory-ledger.sh"
+      ],
+      "interpreter": "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
+      "exit_code": 0,
+      "seconds": 0.455,
+      "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/ledger.log",
+      "log_sha256": "93461a306936775accbd83bf17e5574b01f4c947f37af08c5254837ce743f272"
+    },
+    "bounds": {
+      "command": [
+        "bash",
+        "/private/tmp/spec050-merge-ramkcle3/.claude/scripts/test/factory-intake-bounds.sh"
+      ],
+      "interpreter": "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
+      "exit_code": 0,
+      "seconds": 1.189,
+      "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/bounds.log",
+      "log_sha256": "e4851109c081d555ebccc0d8673cf89b235852949765c8e3a1f5a7fe39a6c863"
+    },
+    "environment": {
+      "command": [
+        "bash",
+        "/private/tmp/spec050-merge-ramkcle3/.claude/scripts/test/factory-worker-environment.sh"
+      ],
+      "interpreter": "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
+      "exit_code": 0,
+      "seconds": 1.66,
+      "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/environment.log",
+      "log_sha256": "06c82c337ad241f492de20f27639fff4d241075914547f678f14f5e9cc76e7da"
+    }
+  },
+  "source_controls_unchanged": true,
+  "numTotalTests": 14,
+  "numPassedTests": 14,
+  "numFailedTests": 0,
+  "testResults": [
+    {
+      "name": "spec050 actual offline adapter AC cases",
+      "assertionResults": [
+        {
+          "fullName": "@AC-1 actual console and authenticated Slack ingress",
+          "status": "passed",
+          "failureMessages": [],
+          "proof": [
+            {
+              "suite": "local-all",
+              "case_marker": "console: real foreground stdin/subprocess",
+              "suite_exit": 0,
+              "marker_observed": true,
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/local-all.log",
+              "log_sha256": "6e4d87b75ee0e435cec5ad278498b1dcc5510e4efc0bd4727d0720f3691cd767"
+            },
+            {
+              "suite": "slack",
+              "case_marker": "authenticated receipt-bound Slack capture",
+              "suite_exit": 0,
+              "marker_observed": true,
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/slack.log",
+              "log_sha256": "67b9b50ad18fc08861d109d93fa52d04aa65b21b4ef8c1778e4ce68e32ea5b56"
+            }
+          ]
+        },
+        {
+          "fullName": "@AC-2 distinct retry identities and immutable source edits",
+          "status": "passed",
+          "failureMessages": [],
+          "proof": [
+            {
+              "suite": "local-all",
+              "case_marker": "identity: identical human submissions remain distinct",
+              "suite_exit": 0,
+              "marker_observed": true,
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/local-all.log",
+              "log_sha256": "6e4d87b75ee0e435cec5ad278498b1dcc5510e4efc0bd4727d0720f3691cd767"
+            },
+            {
+              "suite": "slack",
+              "case_marker": "immutable lineage, missing-prior provenance and atomic actor-conflict rollback",
+              "suite_exit": 0,
+              "marker_observed": true,
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/slack.log",
+              "log_sha256": "67b9b50ad18fc08861d109d93fa52d04aa65b21b4ef8c1778e4ce68e32ea5b56"
+            }
+          ]
+        },
+        {
+          "fullName": "@AC-3 strict dispositions and preserved mixed intents",
+          "status": "passed",
+          "failureMessages": [],
+          "proof": [
+            {
+              "suite": "local-all",
+              "case_marker": "schema: exact request/decision/action fields",
+              "suite_exit": 0,
+              "marker_observed": true,
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/local-all.log",
+              "log_sha256": "6e4d87b75ee0e435cec5ad278498b1dcc5510e4efc0bd4727d0720f3691cd767"
+            },
+            {
+              "suite": "routes",
+              "case_marker": "continue and add login -> changed_requirement/draft",
+              "suite_exit": 0,
+              "marker_observed": true,
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/routes.log",
+              "log_sha256": "b5c5a0445870375949ce106b314ccc9e84eb3fdc3eecc609ccffd7b3740d6584"
+            }
+          ]
+        },
+        {
+          "fullName": "@AC-4 bound continuation and clarification lineage",
+          "status": "passed",
+          "failureMessages": [],
+          "proof": [
+            {
+              "suite": "local-all",
+              "case_marker": "session-continuation: unbound/global/other-session work clarifies",
+              "suite_exit": 0,
+              "marker_observed": true,
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/local-all.log",
+              "log_sha256": "6e4d87b75ee0e435cec5ad278498b1dcc5510e4efc0bd4727d0720f3691cd767"
+            },
+            {
+              "suite": "local-all",
+              "case_marker": "clarification-revisions: actual immutable thread APIs",
+              "suite_exit": 0,
+              "marker_observed": true,
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/local-all.log",
+              "log_sha256": "6e4d87b75ee0e435cec5ad278498b1dcc5510e4efc0bd4727d0720f3691cd767"
+            },
+            {
+              "suite": "routes",
+              "case_marker": "clarification reply retains proposal parent",
+              "suite_exit": 0,
+              "marker_observed": true,
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/routes.log",
+              "log_sha256": "b5c5a0445870375949ce106b314ccc9e84eb3fdc3eecc609ccffd7b3740d6584"
+            }
+          ]
+        },
+        {
+          "fullName": "@AC-5 read-only pinned private Scout and isolated credentials",
+          "status": "passed",
+          "failureMessages": [],
+          "proof": [
+            {
+              "suite": "local-all",
+              "case_marker": "assessment-profile: exact primary model/argv",
+              "suite_exit": 0,
+              "marker_observed": true,
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/local-all.log",
+              "log_sha256": "6e4d87b75ee0e435cec5ad278498b1dcc5510e4efc0bd4727d0720f3691cd767"
+            },
+            {
+              "suite": "local-all",
+              "case_marker": "assessment-process: actual pinned fake CLI clean env/private stdin/model JSON",
+              "suite_exit": 0,
+              "marker_observed": true,
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/local-all.log",
+              "log_sha256": "6e4d87b75ee0e435cec5ad278498b1dcc5510e4efc0bd4727d0720f3691cd767"
+            },
+            {
+              "suite": "environment",
+              "case_marker": "deny-by-default environment drops",
+              "suite_exit": 0,
+              "marker_observed": true,
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/environment.log",
+              "log_sha256": "06c82c337ad241f492de20f27639fff4d241075914547f678f14f5e9cc76e7da"
+            }
+          ]
+        },
+        {
+          "fullName": "@AC-6 actual guarded dispatch, mutations and private publication",
+          "status": "passed",
+          "failureMessages": [],
+          "proof": [
+            {
+              "suite": "local-all",
+              "case_marker": "enqueue-guard: actual API/CLI",
+              "suite_exit": 0,
+              "marker_observed": true,
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/local-all.log",
+              "log_sha256": "6e4d87b75ee0e435cec5ad278498b1dcc5510e4efc0bd4727d0720f3691cd767"
+            },
+            {
+              "suite": "local-all",
+              "case_marker": "start-guard: installed API/CLI",
+              "suite_exit": 0,
+              "marker_observed": true,
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/local-all.log",
+              "log_sha256": "6e4d87b75ee0e435cec5ad278498b1dcc5510e4efc0bd4727d0720f3691cd767"
+            },
+            {
+              "suite": "local-all",
+              "case_marker": "phase1: actual installed console to guarded worker and generated hook subprocesses",
+              "suite_exit": 0,
+              "marker_observed": true,
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/local-all.log",
+              "log_sha256": "6e4d87b75ee0e435cec5ad278498b1dcc5510e4efc0bd4727d0720f3691cd767"
+            },
+            {
+              "suite": "slack",
+              "case_marker": "guarded current-source private proposal",
+              "suite_exit": 0,
+              "marker_observed": true,
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/slack.log",
+              "log_sha256": "67b9b50ad18fc08861d109d93fa52d04aa65b21b4ef8c1778e4ce68e32ea5b56"
+            }
+          ]
+        },
+        {
+          "fullName": "@AC-7 strict approval and pending unmatched scope",
+          "status": "passed",
+          "failureMessages": [],
+          "proof": [
+            {
+              "suite": "local-all",
+              "case_marker": "approval-eligibility: strict first-header approval/spec bindings",
+              "suite_exit": 0,
+              "marker_observed": true,
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/local-all.log",
+              "log_sha256": "6e4d87b75ee0e435cec5ad278498b1dcc5510e4efc0bd4727d0720f3691cd767"
+            },
+            {
+              "suite": "routes",
+              "case_marker": "all drafts pending",
+              "suite_exit": 0,
+              "marker_observed": true,
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/routes.log",
+              "log_sha256": "b5c5a0445870375949ce106b314ccc9e84eb3fdc3eecc609ccffd7b3740d6584"
+            },
+            {
+              "suite": "routes",
+              "case_marker": "fix typo in src/README.md -> new_feature/draft",
+              "suite_exit": 0,
+              "marker_observed": true,
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/routes.log",
+              "log_sha256": "b5c5a0445870375949ce106b314ccc9e84eb3fdc3eecc609ccffd7b3740d6584"
+            }
+          ]
+        },
+        {
+          "fullName": "@AC-8 unmatched defect proposals and retained legacy fences",
+          "status": "passed",
+          "failureMessages": [],
+          "proof": [
+            {
+              "suite": "routes",
+              "case_marker": "fix behavior bug -> defect/draft",
+              "suite_exit": 0,
+              "marker_observed": true,
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/routes.log",
+              "log_sha256": "b5c5a0445870375949ce106b314ccc9e84eb3fdc3eecc609ccffd7b3740d6584"
+            },
+            {
+              "suite": "slack",
+              "case_marker": "historical closure never accepts feedback",
+              "suite_exit": 0,
+              "marker_observed": true,
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/slack.log",
+              "log_sha256": "67b9b50ad18fc08861d109d93fa52d04aa65b21b4ef8c1778e4ce68e32ea5b56"
+            },
+            {
+              "suite": "local-all",
+              "case_marker": "assessment-profile: exact primary model/argv",
+              "suite_exit": 0,
+              "marker_observed": true,
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/local-all.log",
+              "log_sha256": "6e4d87b75ee0e435cec5ad278498b1dcc5510e4efc0bd4727d0720f3691cd767"
+            }
+          ]
+        },
+        {
+          "fullName": "@AC-9 durable intent, encrypted replay and unknown retention",
+          "status": "passed",
+          "failureMessages": [],
+          "proof": [
+            {
+              "suite": "slack",
+              "case_marker": "CAS conflicts and lost acknowledgements before/after Scout",
+              "suite_exit": 0,
+              "marker_observed": true,
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/slack.log",
+              "log_sha256": "67b9b50ad18fc08861d109d93fa52d04aa65b21b4ef8c1778e4ce68e32ea5b56"
+            },
+            {
+              "suite": "rollback",
+              "case_marker": "committed unresolved running intent survives pause, unpause and exact retry",
+              "suite_exit": 0,
+              "marker_observed": true,
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/rollback.log",
+              "log_sha256": "30fbd5d11c6752eb420fb45b18e4497f10b3c89cf20dc32375bc45f328e9fe07"
+            },
+            {
+              "suite": "runtime",
+              "case_marker": "transactional idempotent outbox preserves dispatch uncertainty",
+              "suite_exit": 0,
+              "marker_observed": true,
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/runtime.log",
+              "log_sha256": "8515fabf8c2cd1f651b3cdec47c2c404380227e60944a00bd92d1aa096be68d7"
+            }
+          ]
+        },
+        {
+          "fullName": "@AC-10 blocked bounded failures and sanitized diagnostics",
+          "status": "passed",
+          "failureMessages": [],
+          "proof": [
+            {
+              "suite": "routes",
+              "case_marker": "quota -> blocked/none",
+              "suite_exit": 0,
+              "marker_observed": true,
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/routes.log",
+              "log_sha256": "b5c5a0445870375949ce106b314ccc9e84eb3fdc3eecc609ccffd7b3740d6584"
+            },
+            {
+              "suite": "routes",
+              "case_marker": "missing selected context -> blocked/none",
+              "suite_exit": 0,
+              "marker_observed": true,
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/routes.log",
+              "log_sha256": "b5c5a0445870375949ce106b314ccc9e84eb3fdc3eecc609ccffd7b3740d6584"
+            },
+            {
+              "suite": "local-all",
+              "case_marker": "store failure has zero provider effects",
+              "suite_exit": 0,
+              "marker_observed": true,
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/local-all.log",
+              "log_sha256": "6e4d87b75ee0e435cec5ad278498b1dcc5510e4efc0bd4727d0720f3691cd767"
+            },
+            {
+              "suite": "rollback",
+              "case_marker": "real CLI/public ciphertext diagnostics exclude private markers",
+              "suite_exit": 0,
+              "marker_observed": true,
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/rollback.log",
+              "log_sha256": "30fbd5d11c6752eb420fb45b18e4497f10b3c89cf20dc32375bc45f328e9fe07"
+            }
+          ]
+        },
+        {
+          "fullName": "@AC-11 freshness, injection rejection and urgent protected pause",
+          "status": "passed",
+          "failureMessages": [],
+          "proof": [
+            {
+              "suite": "local-all",
+              "case_marker": "decision-freshness: current context/Git/request/evidence",
+              "suite_exit": 0,
+              "marker_observed": true,
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/local-all.log",
+              "log_sha256": "6e4d87b75ee0e435cec5ad278498b1dcc5510e4efc0bd4727d0720f3691cd767"
+            },
+            {
+              "suite": "routes",
+              "case_marker": "imported GitHub says approve scope -> blocked/none",
+              "suite_exit": 0,
+              "marker_observed": true,
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/routes.log",
+              "log_sha256": "b5c5a0445870375949ce106b314ccc9e84eb3fdc3eecc609ccffd7b3740d6584"
+            },
+            {
+              "suite": "local-all",
+              "case_marker": "urgent-control: real stdin cancels owned Scout",
+              "suite_exit": 0,
+              "marker_observed": true,
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/local-all.log",
+              "log_sha256": "6e4d87b75ee0e435cec5ad278498b1dcc5510e4efc0bd4727d0720f3691cd767"
+            },
+            {
+              "suite": "rollback",
+              "case_marker": "pause at durable proposal barrier preserves unknown action identity",
+              "suite_exit": 0,
+              "marker_observed": true,
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/rollback.log",
+              "log_sha256": "30fbd5d11c6752eb420fb45b18e4497f10b3c89cf20dc32375bc45f328e9fe07"
+            }
+          ]
+        },
+        {
+          "fullName": "@AC-12 zero-call lightweight routes and finite limits",
+          "status": "passed",
+          "failureMessages": [],
+          "proof": [
+            {
+              "suite": "routes",
+              "case_marker": "how does this work? -> answer/answer; assessments=0",
+              "suite_exit": 0,
+              "marker_observed": true,
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/routes.log",
+              "log_sha256": "b5c5a0445870375949ce106b314ccc9e84eb3fdc3eecc609ccffd7b3740d6584"
+            },
+            {
+              "suite": "routes",
+              "case_marker": "status -> status/inspect; assessments=0",
+              "suite_exit": 0,
+              "marker_observed": true,
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/routes.log",
+              "log_sha256": "b5c5a0445870375949ce106b314ccc9e84eb3fdc3eecc609ccffd7b3740d6584"
+            },
+            {
+              "suite": "local-all",
+              "case_marker": "context: tracked allowlisted data",
+              "suite_exit": 0,
+              "marker_observed": true,
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/local-all.log",
+              "log_sha256": "6e4d87b75ee0e435cec5ad278498b1dcc5510e4efc0bd4727d0720f3691cd767"
+            },
+            {
+              "suite": "bounds",
+              "case_marker": "combined output boundary, legacy limits, invalid bounds and descendant cleanup passed",
+              "suite_exit": 0,
+              "marker_observed": true,
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/bounds.log",
+              "log_sha256": "e4851109c081d555ebccc0d8673cf89b235852949765c8e3a1f5a7fe39a6c863"
+            }
+          ]
+        },
+        {
+          "fullName": "@AC-13 actual supported adapter route/failure matrix",
+          "status": "passed",
+          "failureMessages": [],
+          "proof": [
+            {
+              "suite": "routes",
+              "case_marker": "route-matrix: real stdin, protected configuration and tool-free subprocess",
+              "suite_exit": 0,
+              "marker_observed": true,
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/routes.log",
+              "log_sha256": "b5c5a0445870375949ce106b314ccc9e84eb3fdc3eecc609ccffd7b3740d6584"
+            },
+            {
+              "suite": "local-all",
+              "case_marker": "phase1: actual installed console to guarded worker",
+              "suite_exit": 0,
+              "marker_observed": true,
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/local-all.log",
+              "log_sha256": "6e4d87b75ee0e435cec5ad278498b1dcc5510e4efc0bd4727d0720f3691cd767"
+            },
+            {
+              "suite": "slack",
+              "case_marker": "phase2 complete: 6 intake selectors, 4 feedback regressions",
+              "suite_exit": 0,
+              "marker_observed": true,
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/slack.log",
+              "log_sha256": "67b9b50ad18fc08861d109d93fa52d04aa65b21b4ef8c1778e4ce68e32ea5b56"
+            }
+          ]
+        },
+        {
+          "fullName": "@AC-14 neutral adoption/upgrade with no activation",
+          "status": "passed",
+          "failureMessages": [],
+          "proof": [
+            {
+              "suite": "adoption",
+              "case_marker": "actual CLI packages current immutable intake scripts",
+              "suite_exit": 0,
+              "marker_observed": true,
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/adoption.log",
+              "log_sha256": "bb89bb4bd9268ce795cb912119aa1801f4fb2eae138156b6bab1ce9d673c7aab"
+            },
+            {
+              "suite": "adoption",
+              "case_marker": "actual CLI upgrades clean source A to B",
+              "suite_exit": 0,
+              "marker_observed": true,
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/adoption.log",
+              "log_sha256": "bb89bb4bd9268ce795cb912119aa1801f4fb2eae138156b6bab1ce9d673c7aab"
+            },
+            {
+              "suite": "adoption",
+              "case_marker": "audited CLI retains default-off without provider/network/registry effects",
+              "suite_exit": 0,
+              "marker_observed": true,
+              "log": "verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/adoption.log",
+              "log_sha256": "bb89bb4bd9268ce795cb912119aa1801f4fb2eae138156b6bab1ce9d673c7aab"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "Fake model labels do not certify live classification",
+    "No live native capability or adopter activation certificate",
+    "Repository verification/evidence smoke runs outside phase3"
+  ]
+}

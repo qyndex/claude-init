@@ -1,0 +1,4 @@
+AC-1: actual shared OS writer and nested-lock races preserve single-owner mutations
+AC-2: actual foreground claim, heartbeat and worker exit advance only to verifying or blocked
+AC-3: timeout, cancellation, lease loss, background rejection and active-claim fencing preserve bounded worker lifetime
+AC-4: detached supervisor and actual nightly foreground launcher fixtures retain lock ownership and terminate on timeout

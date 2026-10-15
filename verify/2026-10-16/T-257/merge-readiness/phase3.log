@@ -1,0 +1,38 @@
+phase3 evidence: verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2
+phase3 suite local-all: START; /opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/bin/python3.14
+phase3 suite local-all: EXIT 0
+phase3 suite routes: START; /opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/bin/python3.14
+phase3 suite routes: EXIT 0
+phase3 suite slack: START; /Users/shravanjha/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3.12
+phase3 suite slack: EXIT 0
+phase3 suite rollback: START; /Users/shravanjha/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3.12
+phase3 suite rollback: EXIT 0
+phase3 suite adoption: START; /opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/bin/python3.14
+phase3 suite adoption: EXIT 0
+phase3 suite runtime: START; /opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/bin/python3.14
+phase3 suite runtime: EXIT 0
+phase3 suite supervisor: START; /opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/bin/python3.14
+phase3 suite supervisor: EXIT 0
+phase3 suite routing: START; /opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/bin/python3.14
+phase3 suite routing: EXIT 0
+phase3 suite ledger: START; /opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/bin/python3.14
+phase3 suite ledger: EXIT 0
+phase3 suite bounds: START; /opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/bin/python3.14
+phase3 suite bounds: EXIT 0
+phase3 suite environment: START; /opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/bin/python3.14
+phase3 suite environment: EXIT 0
+phase3 AC-1: PASS
+phase3 AC-2: PASS
+phase3 AC-3: PASS
+phase3 AC-4: PASS
+phase3 AC-5: PASS
+phase3 AC-6: PASS
+phase3 AC-7: PASS
+phase3 AC-8: PASS
+phase3 AC-9: PASS
+phase3 AC-10: PASS
+phase3 AC-11: PASS
+phase3 AC-12: PASS
+phase3 AC-13: PASS
+phase3 AC-14: PASS
+phase3 complete: 14/14 AC cases; PASS; verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2

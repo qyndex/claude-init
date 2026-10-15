@@ -1,5 +1,5 @@
 ## Evidence Bundle — Spec 050 (050-request-intake-router)
-Spec: `specs/active/050-request-intake-router.md` · Commit: `dc35078`
+Spec: `specs/active/050-request-intake-router.md` · Commit: `05527ec`
 
 ### Acceptance criteria (14/14 proven)
 | AC | Proven by | Result |
@@ -21,7 +21,7 @@ Spec: `specs/active/050-request-intake-router.md` · Commit: `dc35078`
 
 ### Smoke test (exit codes are load-bearing)
 ```
-# Smoke test — 2026-10-16T02:54:57+11:00
+# Smoke test — 2026-10-16T04:09:16+11:00
 $ bash .claude/scripts/verify.sh
 
 → Integration coverage gate
@@ -45,6 +45,8 @@ line ?% · branch ?% (gate: line≥90 branch≥85)
 
 ## Artifact index
 - verify/2026-10-16-050-request-intake-router/evidence.json
+- verify/2026-10-16-050-request-intake-router/phase3-attempt-yummvn2z/local-all.log
+- verify/2026-10-16-050-request-intake-router/phase3-attempt-yummvn2z/default-off.log
 - verify/2026-10-16-050-request-intake-router/phase3-attempt-1alfw8dy/environment.log
 - verify/2026-10-16-050-request-intake-router/phase3-attempt-1alfw8dy/ledger.log
 - verify/2026-10-16-050-request-intake-router/phase3-attempt-1alfw8dy/routing.log
@@ -61,6 +63,34 @@ line ?% · branch ?% (gate: line≥90 branch≥85)
 - verify/2026-10-16-050-request-intake-router/phase3-attempt-1alfw8dy/adoption.log
 - verify/2026-10-16-050-request-intake-router/phase3-attempt-1alfw8dy/bounds.log
 - verify/2026-10-16-050-request-intake-router/pr-body.md
+- verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/CLI-STORY-EVIDENCE.json
+- verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/environment.log
+- verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/ledger.log
+- verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/routing.log
+- verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/diagnostics-local-all/console-ofi3__8k.jsonl
+- verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/diagnostics-local-all/urgent-907ciqtw.jsonl
+- verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/diagnostics-local-all/console-znngozh2.jsonl
+- verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/manifest.tsv
+- verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/results.json
+- verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/CLI-STORY-EVIDENCE.md
+- verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/diagnostics-routes/routes-8lcukf4n.jsonl
+- verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/slack.log
+- verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/routes.log
+- verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/diagnostics-slack/slack-en30t583.jsonl
+- verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/diagnostics-slack/slack-zz1ek8ok.jsonl
+- verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/diagnostics-slack/slack-8_lqp_st.jsonl
+- verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/diagnostics-slack/slack-alnchy48.jsonl
+- verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/diagnostics-slack/slack-90pxrdow.jsonl
+- verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/diagnostics-slack/slack-ejtaxunr.jsonl
+- verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/local-all.log
+- verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/supervisor.log
+- verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/default-off.log
+- verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/rollback.log
+- verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/runtime.log
+- verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/AC-EVIDENCE.md
+- verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/adoption.log
+- verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/bounds.log
+- verify/2026-10-16-050-request-intake-router/phase3-attempt-ej3fc2p2/diagnostics-rollback/slack-m_5nj8je.jsonl
 - verify/2026-10-16-050-request-intake-router/EVIDENCE.md
 - verify/2026-10-16-050-request-intake-router/results.json
 - verify/2026-10-16-050-request-intake-router/smoke.log
@@ -81,23 +111,15 @@ line ?% · branch ?% (gate: line≥90 branch≥85)
 - verify/2026-10-16-050-request-intake-router/phase3-attempt-b67fny0p/AC-EVIDENCE.md
 - verify/2026-10-16-050-request-intake-router/phase3-attempt-b67fny0p/adoption.log
 - verify/2026-10-16-050-request-intake-router/phase3-attempt-b67fny0p/bounds.log
+- verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/CLI-STORY-EVIDENCE.json
 - verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/environment.log
 - verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/ledger.log
 - verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/routing.log
-- verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/diagnostics-local-all/console-iaufpuzq.jsonl
-- verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/diagnostics-local-all/console-i367r93u.jsonl
-- verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/diagnostics-local-all/urgent-k1248i3l.jsonl
 - verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/manifest.tsv
 - verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/results.json
-- verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/diagnostics-routes/routes-71md1j_f.jsonl
+- verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/CLI-STORY-EVIDENCE.md
 - verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/slack.log
 - verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/routes.log
-- verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/diagnostics-slack/slack-kfsxscgu.jsonl
-- verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/diagnostics-slack/slack-wci8isou.jsonl
-- verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/diagnostics-slack/slack-rnjfo6_l.jsonl
-- verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/diagnostics-slack/slack-mofnektg.jsonl
-- verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/diagnostics-slack/slack-4oe42hea.jsonl
-- verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/diagnostics-slack/slack-tv45kqsx.jsonl
 - verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/local-all.log
 - verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/supervisor.log
 - verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/default-off.log
@@ -106,4 +128,3 @@ line ?% · branch ?% (gate: line≥90 branch≥85)
 - verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/AC-EVIDENCE.md
 - verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/adoption.log
 - verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/bounds.log
-- verify/2026-10-16-050-request-intake-router/phase3-attempt-1c8py2jy/diagnostics-rollback/slack-g9hdyj0i.jsonl
