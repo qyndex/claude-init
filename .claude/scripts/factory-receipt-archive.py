@@ -129,3 +129,109 @@ def build_record(api, policy, run_id, trust_path, store, *, trust_mode='profile'
               'artifact': dict({k: artifact[k] for k in ('id', 'name', 'digest')}, workflow_run={k: artifact['workflow_run'][k] for k in ('id', 'repository_id', 'head_repository_id', 'head_sha')}), 'proof': proof,
               'receipt_zip': base64.b64encode(blob).decode(), 'materials': {p: digest(v) for p, v in raw.items()}}
     return validate_record(record, materials, api.repo, store['visibility']), materials
+
+
+def instant(value):
+    from datetime import datetime
+    require(isinstance(value, str), 'archive coverage timestamp invalid')
+    try:
+        parsed = datetime.fromisoformat(value.replace('Z', '+00:00'))
+    except ValueError as error:
+        raise ValueError('archive coverage timestamp invalid') from error
+    require(parsed.tzinfo is not None, 'archive coverage timestamp requires timezone')
+    return parsed
+
+
+def verify_bootstrap(api, approval_path, *, now=None):
+    """Read-only proof under an explicitly reviewed protected approval input.
+
+    GitHub API reads are the external trust boundary. A caller must load approval
+    from reviewed authority, never from a candidate or the data branch itself.
+    Existing state protection without exclusive App updates is insufficient.
+    """
+    from datetime import datetime, timezone
+    from urllib.parse import quote
+    import re
+    now = now or datetime.now(timezone.utc)
+    raw = Path(approval_path).read_bytes()
+    require(0 < len(raw) <= 65536, 'archive bootstrap approval size invalid')
+    approval = document(raw)
+    expected = {'schema_version', 'repository', 'repository_id', 'private', 'branch', 'bootstrap_sha', 'bootstrap_tree', 'coverage_from', 'observed_at', 'writer_app_id', 'policies'}
+    require(isinstance(approval, dict) and set(approval) == expected and type(approval['schema_version']) is int and approval['schema_version'] == 1, 'archive bootstrap schema differs')
+    require(approval['repository'] == api.repo, 'archive bootstrap repository differs')
+    require(all(type(approval[k]) is int and approval[k] > 0 for k in ('repository_id', 'writer_app_id')) and type(approval['private']) is bool, 'archive bootstrap repository/writer invalid')
+    branch = approval['branch']
+    require(isinstance(branch, str) and re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._/-]*', branch) is not None and '..' not in branch and not branch.endswith('/'), 'archive bootstrap branch invalid')
+    require(all(receipts.coordinator.contract.digest(approval[k], 40) for k in ('bootstrap_sha', 'bootstrap_tree')), 'archive bootstrap revision invalid')
+    observed = instant(approval['observed_at']); origin = instant(approval['coverage_from'])
+    require(origin <= observed <= now, 'archive coverage/approval clock invalid')
+    consumed = 0
+
+    def read(path):
+        nonlocal consumed
+        value = api.request(path)
+        size = len(canonical(value)); consumed += size
+        require(size <= MAX_OBJECT and consumed <= 33554432, 'archive bootstrap API response bound reached; explicit coverage gap')
+        return value
+
+    root = f'repos/{api.repo}'
+    repo = read(root)
+    require(repo['full_name'] == api.repo and type(repo['id']) is int and repo['id'] == approval['repository_id'] and type(repo['private']) is bool and repo['private'] == approval['private'] and repo['archived'] is False, 'archive bootstrap repository differs')
+    require(branch != repo['default_branch'], 'archive cannot use default branch')
+    rules = read(root + '/rules/branches/' + quote(branch, safe=''))
+    require(isinstance(rules, list) and len(rules) <= 64, 'archive protection rules invalid')
+    ids = {str(rule.get('ruleset_id')) for rule in rules}
+    require(isinstance(approval['policies'], dict) and 0 < len(ids) <= 16 and ids == set(approval['policies']), 'archive reviewed protection identities differ')
+    covered = set(); exclusive = 0
+    conditions = {'ref_name': {'include': ['refs/heads/' + branch], 'exclude': []}}
+    for identity in sorted(ids):
+        require(identity.isdecimal() and int(identity) > 0, 'archive protection identity invalid')
+        policy = read(root + '/rulesets/' + identity)
+        require(digest(canonical(policy)) == approval['policies'][identity], 'archive protection policy changed')
+        require(type(policy['id']) is int and policy['id'] == int(identity) and policy['source'] == api.repo and policy['source_type'] == 'Repository' and policy['target'] == 'branch' and policy['enforcement'] == 'active' and policy['conditions'] == conditions, 'archive protection scope differs')
+        require((observed - instant(policy['updated_at'])).total_seconds() >= 60, 'archive protection must settle before approval')
+        kinds = [rule['type'] for rule in policy['rules']]
+        if 'update' in kinds:
+            require(policy['rules'] == [{'type': 'update'}], 'archive exclusive writer policy must be update-only')
+            require(policy['bypass_actors'] == [{'actor_id': approval['writer_app_id'], 'actor_type': 'Integration', 'bypass_mode': 'always'}], 'archive exclusive App writer differs')
+            exclusive += 1
+        else:
+            require(policy['bypass_actors'] == [] and set(kinds) <= {'non_fast_forward', 'deletion'}, 'archive rewrite/deletion protection must be no-bypass')
+            covered.update(kinds)
+    require(exclusive == 1 and covered == {'non_fast_forward', 'deletion'}, 'archive exclusive writer or immutable protection missing')
+    ref = read(root + '/git/ref/heads/' + quote(branch, safe=''))
+    require(ref['ref'] == 'refs/heads/' + branch and ref['object']['type'] == 'commit', 'archive state reference differs')
+    head = ref['object']['sha']; sha = head; seen = set(); head_tree = None
+    for _ in range(256):
+        require(receipts.coordinator.contract.digest(sha, 40) and sha not in seen, 'archive bootstrap ancestry invalid')
+        seen.add(sha)
+        commit = read(root + '/git/commits/' + sha)
+        require(commit['sha'] == sha and receipts.coordinator.contract.digest(commit['tree']['sha'], 40), 'archive bootstrap commit/tree differs')
+        tree_sha = commit['tree']['sha']
+        if head_tree is None:
+            head_tree = tree_sha
+        tree = read(root + '/git/trees/' + tree_sha + '?recursive=1')
+        require(tree.get('sha') == tree_sha and tree.get('truncated') is False and isinstance(tree.get('tree'), list) and len(tree['tree']) <= 1024, 'archive bootstrap tree incomplete')
+        # T-281 will explicitly extend these data-only paths; no executable paths here.
+        require(all((item['type'] == 'tree' and item['path'] == 'reports') or (item['type'] == 'blob' and item['mode'] == '100644' and (item['path'] == 'README.md' or re.fullmatch(r'reports/[0-9a-f]{64}\.json', item['path']))) for item in tree['tree']), 'archive bootstrap data-only paths differ')
+        if sha == approval['bootstrap_sha']:
+            require(tree_sha == approval['bootstrap_tree'], 'archive bootstrap tree differs')
+            break
+        require(isinstance(commit['parents'], list) and len(commit['parents']) == 1, 'archive bootstrap ancestry missing or merged')
+        sha = commit['parents'][0]['sha']
+    else:
+        raise ValueError('archive bootstrap ancestry bound reached; explicit coverage gap')
+    for identity in sorted(ids):
+        require(digest(canonical(read(root + '/rulesets/' + identity))) == approval['policies'][identity], 'archive protection changed during verification')
+    require(read(root + '/git/ref/heads/' + quote(branch, safe='')) == ref, 'archive state changed during bootstrap verification')
+    return {'repository': api.repo, 'repository_id': repo['id'], 'private': repo['private'], 'branch': branch, 'head': head, 'tree': head_tree,
+            'bootstrap_sha': approval['bootstrap_sha'], 'bootstrap_tree': approval['bootstrap_tree'], 'coverage_from': approval['coverage_from'],
+            'writer_app_id': approval['writer_app_id'], 'policies': approval['policies'], 'approval_sha256': digest(canonical(approval))}
+
+
+def coverage_status(bootstrap, timestamp, *, available):
+    """Classify proof availability without resetting origin or authorizing delivery."""
+    require(type(available) is bool, 'archive availability must be explicit')
+    before = instant(timestamp) < instant(bootstrap['coverage_from'])
+    status = 'outside-coverage' if before else 'complete' if available else 'gap'
+    return {'status': status, 'coverage_from': bootstrap['coverage_from'], 'reason': 'before reviewed origin' if before else 'retained proof available' if available else 'required history unavailable'}

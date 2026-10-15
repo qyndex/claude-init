@@ -1,0 +1,7 @@
+# TDD ledger — green — T-280
+ledger_format: 2
+timestamp: 2026-10-16T10:17:34+11:00
+command: bash .claude/scripts/test/factory-receipt-bootstrap.sh
+exit_code: 0
+---
+15 bootstrap/coverage cases passed with real disposable Git ancestry; no live bootstrap
