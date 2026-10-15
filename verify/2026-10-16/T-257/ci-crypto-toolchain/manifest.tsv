@@ -1,0 +1,5 @@
+1	RED	bash .claude/scripts/test/intake-ci-toolchain.sh
+0	GREEN	bash .claude/scripts/test/intake-ci-toolchain.sh
+0	actionlint	/opt/homebrew/bin/actionlint .github/workflows/evidence-gate.yml
+0	syntax	bash -n .claude/scripts/test/intake-ci-toolchain.sh
+0	diff	git diff --check
