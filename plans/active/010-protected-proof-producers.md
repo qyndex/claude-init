@@ -15,3 +15,17 @@ T-182 implements AC-1–AC-3 in a default-branch producer with injected regressi
 T-183 implements AC-4: producer-created head checks link to authenticated protected workflow runs. The coordinator obtains each run from its required check receipt, checks the default/base runtime hashes, validates exact bound proof and preserves conditional merge semantics. Completed target workflow runs resolve PR numbers from uniquely named artifacts; no candidate code runs in merge authority.
 
 Account bootstrap and genuine shadow proof remain blocked in T-180 until the dedicated App exists and subscription capacity resets. Do not advance to unattended delivery before the shared execution and recovery package F-04 also passes. Test fixtures are implementation evidence, not live independent attestation.
+
+
+## Live provenance repair — 2026-10-16
+
+Actual protected runs38813649635/38813649657 stopped before acceptance/model execution because REST run.head_sha identifies the candidate, while GITHUB_SHA and the checkout identify protected default source. REST pull_requests associations are mutable: historical run38139128097 retained its old immutable head_sha but now reports the updated PR base/head. Do not treat those associations as execution-base provenance.
+
+Repair the existing AC-1/AC-4 contract with immutable run candidate identity, protected execution-context/checkout validation and authenticated artifact base binding. Preserve exact workflow/event/repository/runtime/spec/policy/AC authentication. Same-head stale-base, candidate updates, foreign origins, missing/ambiguous metadata and tampered artifact bases must block. No candidate checkout with credentials, fallback, merge enablement or new external service is authorized. Refresh producer runtime pins only after recording the repaired source commit. Resume the pilot only after the reviewed fix is merged.
+
+T-274 prepares pinned official GitHub-native artifact signing of the exact evidence root. The coordinator verifies the uploaded bundle cryptographically with `gh`, then checks immutable certificate source/signer/ref/repository/event/hosted-runner/run-attempt claims; user-controllable predicate fields never establish execution origin. Protected execution validates its actual checkout and GitHub-provided context before effects. Signing permissions (`id-token: write`, `attestations: write`) and public/Enterprise Cloud private-repository capability are explicit review items; preparation does not activate them. No unsigned fallback is allowed. The helper and bounded subprocess dependency enter complete producer, preflight and receipt runtime pins. Local certificate fixtures and official unrelated signed CLI vectors do not complete the live pilot tasks.
+
+## References
+
+- Accepted ADR: .claude/memory/decisions/0006-signed-protected-producer-execution-provenance.md
+- Operator approved option A and solely proof-signing permissions on 2026-10-16; docs/activation/2026-10-16/producer-provenance-decision.md records the exact boundary.

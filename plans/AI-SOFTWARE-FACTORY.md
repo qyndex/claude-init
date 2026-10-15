@@ -334,3 +334,29 @@ Online workers remain per-adopter and independently gated. Optional oversized at
 PR105 merged at cf3b2fff928169973494fc15eb86a0176aa2dd1f with all seven required checks passing. T-273 pins Sonnet5.5 and validates exact observed model usage; a deterministic test-only counter race found by Linux CI is fixed. The separate bounded live local Claude Max probe succeeded; it is not an independent hosted verdict. Claude PR Review and Claude Security Review are restored to active after the existing date/capacity conditions, with no required-check bypass.
 
 The refreshed shadow package in docs/activation/2026-10-16 binds the actual merged runtime. Spec048 scope, commands and image remain unchanged; merge_enabled remains false. Its proposed policy, preserved live rule before-image, additive proposal and metadata preflight are reviewable together. This preparation does not enable repository producer/authority switches or apply live rules. Genuine exact-candidate producer runs and shadow cases remain next; merge mode still needs the separate post-shadow decision.
+
+### Shadow attempt and producer provenance repair — 2026-10-16
+
+The operator selected option A approving PR106's scanner-policy change and the
+shadow-only continuation. PR106 merged at
+d036af6740cb8e4b9cf56a640ff796f617b191ee with required checks passing. The refreshed
+pilot PR101 reached candidate 78c690b78c856369d8e2e2f0efa35e9ec71132bf with its
+approved nine-path scope and fresh local acceptance evidence.
+
+Genuine verifier run38813649635 and reviewer run38813649657 failed safely before
+acceptance/model execution: their REST head_sha identifies the candidate, while
+the existing code expected the protected base. Historical run associations can
+report updated PR base/head values and cannot establish executed-source identity.
+T-274 repairs the existing Spec010 provenance contract; its local fixtures cannot
+substitute for genuine signed proof. The reviewable proposal and adoption tradeoff
+are in docs/activation/2026-10-16/producer-provenance-decision.md. The proposed
+GitHub-native attestation approach and solely the proof-signing permissions were
+approved by the operator on 2026-10-16 (option A). Private/internal repositories
+require Enterprise Cloud for that backend; unsupported adopters fail closed.
+This decision does not authorize merge mode or production.
+
+The pilot is back in draft, producers are paused, authority remains unset, and
+merge_enabled remains false. No additive live ruleset has been applied. Reporting
+and approved encrypted feedback remain enabled. After the repair is reviewed,
+merged and pinned, resume genuine producers, then shadow cases and the separate
+merge-mode decision. T-180 and T-222 remain unresolved.

@@ -1,0 +1,17 @@
+# TDD ledger — red — T-274
+ledger_format: 2
+timestamp: 2026-10-16T09:06:25+11:00
+command: bash .claude/scripts/test/factory-producers.sh && bash .claude/scripts/test/factory-coordinator.sh && bash .claude/scripts/test/factory-provenance.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 35, in <module>
+  File "<stdin>", line 28, in succeeds
+  File "<stdin>", line 35, in <lambda>
+  File "/private/tmp/factory-review-resume-20261016/.claude/scripts/factory-producer.py", line 42, in candidate
+    require(run['head_sha'] == pr['base']['sha'] and run['head_repository']['full_name'] == repo, 'stale or foreign producer run')
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-review-resume-20261016/.claude/scripts/validate-candidate-evidence.py", line 19, in require
+    raise ValueError(message)
+ValueError: stale or foreign producer run

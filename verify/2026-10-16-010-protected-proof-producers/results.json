@@ -1,0 +1,83 @@
+{
+  "runner": "fresh-shell-acceptance-recorder",
+  "source_sha": "10f8049114273c9b1e34b67f4b1ff4b4945d8836",
+  "recorded_at": "2026-10-15T22:18:44.982918+00:00",
+  "independent_attestation": false,
+  "live_factory_signing": false,
+  "native_docker_run": false,
+  "commands": [
+    {
+      "name": "producer-contracts",
+      "command": "bash .claude/scripts/test/factory-producers.sh",
+      "exit_code": 0,
+      "log": "verify/2026-10-16-010-protected-proof-producers/producer-contracts.log",
+      "log_sha256": "96aa359763fa88cb57d77b9e2bda30540fb215ba9b28bf50299afdf1231f1af8"
+    },
+    {
+      "name": "coordinator-contracts",
+      "command": "bash .claude/scripts/test/factory-coordinator.sh",
+      "exit_code": 0,
+      "log": "verify/2026-10-16-010-protected-proof-producers/coordinator-contracts.log",
+      "log_sha256": "57ba855c7633f2ad1dbbef1efc8ca7783c69c2c4fba3de295e9610b65f4bc6d2"
+    },
+    {
+      "name": "signed-provenance",
+      "command": "bash .claude/scripts/test/factory-provenance.sh",
+      "exit_code": 0,
+      "log": "verify/2026-10-16-010-protected-proof-producers/signed-provenance.log",
+      "log_sha256": "cc6906ea88cbd5d6656b223d2847a3e17ff2b741947ad83768d11a05176033ea"
+    },
+    {
+      "name": "bounded-review-runtime",
+      "command": "bash .claude/scripts/test/factory-review-runtime.sh",
+      "exit_code": 0,
+      "log": "verify/2026-10-16-010-protected-proof-producers/bounded-review-runtime.log",
+      "log_sha256": "709dac0842d18b482b9d196183242790eb97caaac1919852a91e1e8e7b29589c"
+    },
+    {
+      "name": "workflow-boundary",
+      "command": "bash .claude/scripts/test/factory-workflows.sh",
+      "exit_code": 0,
+      "log": "verify/2026-10-16-010-protected-proof-producers/workflow-boundary.log",
+      "log_sha256": "1a78f45164381366408a1054f50000fd35116df1e4bda29f511df4987604deaf"
+    }
+  ],
+  "testResults": [
+    {
+      "assertionResults": [
+        {
+          "fullName": "AC-1: actual protected-context, candidate, scope and runtime validation fixtures",
+          "status": "passed",
+          "command_names": [
+            "producer-contracts",
+            "signed-provenance"
+          ]
+        },
+        {
+          "fullName": "AC-2: actual sandbox argv/output contract fixtures; native Docker execution remains CI",
+          "status": "passed",
+          "command_names": [
+            "producer-contracts"
+          ]
+        },
+        {
+          "fullName": "AC-3: actual bounded fake reviewer subprocess and strict exact-model results",
+          "status": "passed",
+          "command_names": [
+            "bounded-review-runtime",
+            "producer-contracts"
+          ]
+        },
+        {
+          "fullName": "AC-4: actual archive/digest/context and injected verified-certificate binding regressions",
+          "status": "passed",
+          "command_names": [
+            "coordinator-contracts",
+            "signed-provenance",
+            "workflow-boundary"
+          ]
+        }
+      ]
+    }
+  ]
+}

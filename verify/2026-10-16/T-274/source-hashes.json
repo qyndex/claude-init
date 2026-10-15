@@ -1,0 +1,20 @@
+{
+  ".claude/scripts/factory-coordinator.py": "b5df1f0565030f6c3075453a8bcf31343b879950d5d460c67ae38da01381af8e",
+  ".claude/scripts/factory-preflight.py": "1543073e3fc82c0b7672d898a655be90efff615da60ab49e99c298ee8b8fe103",
+  ".claude/scripts/factory-producer.py": "c4f55db3a85d32c88e82432cb26d15ad183707d060e344300d14574bb75da417",
+  ".claude/scripts/factory-provenance.py": "0b169e5fefa78ee683ecf3aaf13bfce975929b113ff3d1052a59a95cc3077b01",
+  ".claude/scripts/factory-receipts.py": "4c5ae7e7e68211d7b74415b68503df8408461d7a1fe9d898540dcfe57711aa57",
+  ".claude/scripts/test/factory-coordinator.sh": "85cd797a80eafcd1143f709677317c91d98d36fafd9a6398fe62486f344ec351",
+  ".claude/scripts/test/factory-producers.sh": "7e8c91ad8bc668229899ea904f40c14c8b8bc3be9ecd36f2c2cd38d7538f2350",
+  ".claude/scripts/test/factory-provenance.sh": "c0e4dfc50139f625bdf14890c949ade2400d506c5c8b608c0e694016b839fb11",
+  ".github/workflows/factory-review.yml": "20fe2a543849530f034dc5307e0c240cd7b3fb3fa285e1b1c260d36fd9bff082",
+  ".github/workflows/factory-verification.yml": "1ec9a5a9f2b3b30934814832b47a5da667782d529f1b504fe562141042de137c",
+  "docs/FACTORY-ACTIVATION.md": "b054970e1fe7a77db29b665e22ebd310b998cd2992df7f5d19edb6d1e4817991",
+  "docs/FACTORY-PRODUCERS.md": "3572c41e206436b5757034d5cbee196b78ae7c27e7383b98f5b3aaefbc00845d",
+  "docs/activation/2026-10-16/producer-provenance-decision.md": "12c33322a006b7c399a358a7344b83574823123c5470ee2aca31b5c83b53999e",
+  "plans/AI-SOFTWARE-FACTORY.md": "4dea7a81f22534e3273c53c598a2b7144dbcb25c6366195b5138de11d9458bf7",
+  "plans/active/010-protected-proof-producers.md": "afeea72881224c5134db0e560ce6ec5d6b409cc81fb54b37ef70a5df0b43acd8",
+  "specs/active/010-protected-proof-producers.md": "a8e623650a64c0407134f6b14c446325d38dc45ae7397870334317da79579c60",
+  "tasks/TASKS.md": "07d3b76f454105bbbac0e0b4d0d072ee8804e02cd7681668ee506176f03268eb",
+  ".claude/memory/decisions/0006-signed-protected-producer-execution-provenance.md": "e8a9f9bbf3efd6b35075336823014feacbcafc74b7df60eaabc3bc119bf393c4"
+}
