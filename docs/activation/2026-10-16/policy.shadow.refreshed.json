@@ -1,0 +1,113 @@
+{
+  "schema_version": 1,
+  "enabled": true,
+  "merge_enabled": false,
+  "repository": "qyndex/claude-init",
+  "base_branch": "main",
+  "app_id": 5251754,
+  "protected_paths": [
+    ".github/*",
+    "factory/*",
+    ".claude/CLAUDE.md",
+    ".claude/settings.json",
+    ".claude/hooks/*",
+    ".claude/scripts/factory-*",
+    ".claude/scripts/validate-candidate-evidence.py",
+    ".claude/scripts/verify.sh",
+    ".claude/scripts/rerun-acceptance.py",
+    ".claude/scripts/autonomous-ship.sh",
+    ".claude/scripts/verified-merge.sh",
+    ".gitleaks.toml",
+    ".gitleaksignore"
+  ],
+  "required_checks": {
+    "lint-test": 15368,
+    "review": 15368,
+    "security-review": 15368,
+    "harness-validate": 15368,
+    "evidence-gate": 15368,
+    "adr-gate": 15368,
+    "commitlint": 15368,
+    "lint-exception-audit": 15368,
+    "check-daily-batch": 15368,
+    "factory-verification": 15368,
+    "factory-independent-review": 15368
+  },
+  "specs": {
+    "048": {
+      "path": "specs/active/048-adopter-quickstart-pilot.md",
+      "sha256": "b1d8c41cd3213f264237e3308244f561b43777a0630aa5dee98cb9891a7e9458",
+      "ac_ids": [
+        "AC-1",
+        "AC-2",
+        "AC-3"
+      ],
+      "allowed_paths": [
+        "docs/FACTORY-ADOPTER-QUICKSTART.md",
+        "verify/2026-10-11-048-adopter-quickstart-pilot/results.json",
+        "verify/2026-10-11-048-adopter-quickstart-pilot/evidence.json",
+        "verify/2026-10-11-048-adopter-quickstart-pilot/EVIDENCE.md",
+        "verify/2026-10-11-048-adopter-quickstart-pilot/pr-body.md",
+        "verify/2026-10-11-048-adopter-quickstart-pilot/acceptance.log",
+        "verify/2026-10-11-048-adopter-quickstart-pilot/smoke.log",
+        "verify/2026-10-11/T-222/red.log",
+        "verify/2026-10-11/T-222/green.log"
+      ],
+      "task_ids": [
+        "T-222"
+      ],
+      "acceptance_commands": {
+        "AC-1": [
+          "python3",
+          "-c",
+          "from pathlib import Path; t=Path('docs/FACTORY-ADOPTER-QUICKSTART.md').read_text(); assert all(s in t for s in ['Prerequisites','Dry-run adoption','immutable','existing','python3 .claude/scripts/factory-adopt.py --from /path/to/reviewed-harness --into /path/to/target --dry-run']); assert not any(s in t for s in ['qyndex','C0C7T1Y29K5','5251754','T0B2VADDUG4']); print('AC-1 quickstart adoption contract passed')"
+        ],
+        "AC-2": [
+          "python3",
+          "-c",
+          "from pathlib import Path; t=Path('docs/FACTORY-ADOPTER-QUICKSTART.md').read_text(); assert all(s in t for s in ['Protected readiness','factory-preflight.py --policy /path/to/protected-policy.json','block','merge authority','reporting','production','secrets']); print('AC-2 protected readiness contract passed')"
+        ],
+        "AC-3": [
+          "python3",
+          "-c",
+          "from pathlib import Path; t=Path('docs/FACTORY-ADOPTER-QUICKSTART.md').read_text(); assert all(s in t for s in ['Delivery and acceptance','engineering verification','merged delivery','product acceptance','SLO','rollback','FACTORY-ADOPTER-SETUP.md','FACTORY-ACTIVATION.md']); print('AC-3 distinct delivery and acceptance contract passed')"
+        ]
+      },
+      "verification_image": "python@sha256:a6e34c598f2467ed0e9a8d349809fcd8b5c603269512df273a0bb1784edc11b1"
+    }
+  },
+  "producers": {
+    "verification": {
+      "workflow_id": 379732143,
+      "artifact_name": "factory-verification",
+      "trusted_files": {
+        ".claude/scripts/factory-bounded-process.py": "91d077e6badb7c606a31cf85d8fbb8315b91d9d211b4fe1ab8fb970693207f47",
+        ".claude/scripts/factory-coordinator.py": "3ea5f6f9a008425586afcc9f012b71055198a51265e27dfb222b8704fc931b3c",
+        ".claude/scripts/factory-producer-check.py": "848474c98c55c9281f47ce97a9bd3a7c302dd51033860cbebf154e478a0c6f07",
+        ".claude/scripts/factory-producer.py": "f9a119daed1569aa0e7d4c3f4a06920d269e7848930e9233b0b02f57b382430f",
+        ".claude/scripts/validate-candidate-evidence.py": "ad0be5042d8dce5e0372159bbcbdbb84bc39b96e57435865eb62e7e5d4d0b52c",
+        ".github/workflows/factory-verification.yml": "7150a463f48a9126b619c9f9265d465c6d8df2c5cbb77888d976f472a5760bf0"
+      },
+      "event": "pull_request_target",
+      "check_name": "factory-verification"
+    },
+    "review": {
+      "workflow_id": 379732140,
+      "artifact_name": "factory-review",
+      "trusted_files": {
+        ".claude/scripts/factory-bounded-process.py": "91d077e6badb7c606a31cf85d8fbb8315b91d9d211b4fe1ab8fb970693207f47",
+        ".claude/scripts/factory-coordinator.py": "3ea5f6f9a008425586afcc9f012b71055198a51265e27dfb222b8704fc931b3c",
+        ".claude/scripts/factory-producer-check.py": "848474c98c55c9281f47ce97a9bd3a7c302dd51033860cbebf154e478a0c6f07",
+        ".claude/scripts/factory-producer.py": "f9a119daed1569aa0e7d4c3f4a06920d269e7848930e9233b0b02f57b382430f",
+        ".claude/scripts/validate-candidate-evidence.py": "ad0be5042d8dce5e0372159bbcbdbb84bc39b96e57435865eb62e7e5d4d0b52c",
+        ".github/workflows/factory-review.yml": "3d8355b1337babb8729e2ee35971e2e4c3b220765aade218d3e0c3e1be055411"
+      },
+      "event": "pull_request_target",
+      "check_name": "factory-independent-review"
+    }
+  },
+  "receipts": {
+    "workflow_id": 379732139,
+    "trusted_revisions": {}
+  }
+}

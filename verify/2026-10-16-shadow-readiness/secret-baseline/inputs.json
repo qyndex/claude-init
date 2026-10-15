@@ -1,0 +1,14 @@
+{
+  "scanner": "gitleaks 8.30.1",
+  "source_head": "63d7995",
+  "config_sha256": "a57cbde439a438f11a0d0243eb05f9fd9c790fa37ac2cd202fa4933a6aaeec9e",
+  "ignore_sha256": "b690061987964eb5404d1d1d6a498dd21abd48a1c6eebb6db7cd338c1316139a",
+  "historical_all_ref_findings": 48,
+  "historical_all_ref_unique_fingerprints": 21,
+  "current_candidate_findings": 4,
+  "current_candidate_exact_fingerprints": 4,
+  "current_scan_scope": "--log-opts \"--full-history HEAD\"",
+  "current_candidate_commits_scanned": 143,
+  "workflow_sha256": "1cf074f978a3e93dde7269431e2ea039416d8821ba16b6752e00a09b35eb954d",
+  "harness_toolchain_sha256": "170612f0bcd828b10bc39ca029af05fbdc7b69b1674bc761c170e0ddf5c902bd"
+}

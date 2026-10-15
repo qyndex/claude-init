@@ -1,0 +1,1 @@
+{"actual_spend_usd": null, "available": true, "capabilities": ["foreground", "model-selection", "structured-output", "tool-free", "separate-run"], "estimated_api_usd": 0.005972900000000001, "model": "claude-sonnet-5-5", "quota": "unknown", "reset_at": null, "schema_version": 1, "version": "2.1.300 (Claude Code)"}

@@ -141,7 +141,8 @@ jobs:
           tar -xzf /tmp/gitleaks.tgz -C /tmp gitleaks
           cfg=""; [ -f .gitleaks.toml ] && cfg="--config .gitleaks.toml"
           # shellcheck disable=SC2086 # cfg is a controlled two-token flag or empty; intentional word-split
-          /tmp/gitleaks git --redact --exit-code 1 $cfg
+          # Scan all candidate-reachable source history; reporting state refs are separate data.
+          /tmp/gitleaks git --redact --exit-code 1 --log-opts "--full-history HEAD" $cfg
 
       # dependency-review needs Dependency Graph (+ GHAS on private repos) — advisory
       # where the capability is absent (T-144); gitleaks + the LLM scan still gate.

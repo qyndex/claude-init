@@ -1,0 +1,21 @@
+{
+  "source_sha": "cf3b2fff928169973494fc15eb86a0176aa2dd1f",
+  "shadow_only": true,
+  "merge_enabled": false,
+  "pilot_scope_unchanged": true,
+  "live_producer_verdicts": false,
+  "live_rules_applied": false,
+  "repository_switches_changed": false,
+  "files": {
+    "docs/activation/2026-10-16/README.md": "6d2dc23f493f85817efe737261174770e50a881c68fc557a223e967e5ea320fc",
+    "docs/activation/2026-10-16/capacity.local.json": "fe88a888419d4ab50f8a8ba5817f02c2f84eb400aa879c33ac7a95b55be209a5",
+    "docs/activation/2026-10-16/policy.shadow.refreshed.json": "26d3a765e2366645c426cc6dddddbf712a35dc0d09751683e2e936fc704569db",
+    "docs/activation/2026-10-16/preflight.json": "be30a9a2da0736c7e0357d7d0f44abe0a2ab303126284f01eb8663f390bdfbd5",
+    "docs/activation/2026-10-16/ruleset.before.json": "e42f37bf0558e492f84b9f5259a993c369802272e660e3979662dc4d3e26348b",
+    "docs/activation/2026-10-16/ruleset.proposed.json": "608e2721e770f178289c8d02a1451fa1a3d49aa1b91bc7183d3a6a280b14b4a1"
+  },
+  "scanner_policy_paths_protected": [
+    ".gitleaks.toml",
+    ".gitleaksignore"
+  ]
+}

@@ -1,0 +1,1 @@
+Actual extracted harness install shell PASS: pinned official Linux release URL/flags, archive extraction and GITHUB_PATH. Download substituted with controlled local archive containing installed Gitleaks 8.30.1; no claim of network/Linux binary execution. Installed local fixture executable version verified.
