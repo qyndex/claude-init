@@ -1669,9 +1669,9 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-receipt-state-paths.sh
   owner: implementer
 
-- [ ] T-282  | spec:014  | phase:2  | priority: security  | created: 2026-10-16  | deps: T-281  | parallel: no  | est: 5m
+- [x] T-282  | spec:014  | phase:2  | priority: security  | created: 2026-10-16  | deps: T-281  | parallel: no  | est: 5m
   summary: Append authenticated records with atomic CAS and encrypted-state preservation
-  files: .claude/scripts/factory-git-state.py, .claude/scripts/factory-receipt-archive.py, .claude/scripts/test/factory-receipt-cas.sh
+  files: .claude/scripts/factory-git-state.py, .claude/scripts/factory-receipt-archive.py, .claude/scripts/test/factory-receipt-cas.sh, .claude/scripts/factory-state-paths.py, .claude/scripts/test/factory-receipt-state-paths.sh, plans/active/014-authenticated-receipt-recovery.md
   accept: bash .claude/scripts/test/factory-receipt-cas.sh
   owner: implementer
 

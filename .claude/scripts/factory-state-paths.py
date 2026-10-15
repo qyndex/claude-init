@@ -18,12 +18,15 @@ def validate_entry(item):
     path = item.get('path')
     require(isinstance(path, str), 'state path invalid')
     if item.get('type') == 'tree':
-        allowed = path in {'reports', 'receipt-archive', 'receipt-archive/objects', 'receipt-archive/materials', 'receipt-archive/index', 'receipt-archive/discovery'} or re.fullmatch(r'receipt-archive/(objects|materials)/[0-9a-f]{2}', path) or re.fullmatch(r'receipt-archive/index/[0-9a-f]{64}', path)
+        allowed = path in {'reports', 'receipt-archive', 'receipt-archive/objects', 'receipt-archive/materials', 'receipt-archive/index', 'receipt-archive/discovery'} or re.fullmatch(r'receipt-archive/(objects|materials)/[0-9a-f]{2}', path) or re.fullmatch(r'receipt-archive/index/[0-9a-f]{64}(/identities(/[0-9a-f]{2})?)?', path) or re.fullmatch(r'receipt-archive/index/[0-9a-f]{64}(/[0-9]{3}){1,3}', path)
         require(item.get('mode') == '040000' and bool(allowed), 'state tree path/mode invalid')
     else:
-        allowed = path == 'README.md' or re.fullmatch(r'reports/[0-9a-f]{64}\.json', path) or re.fullmatch(r'receipt-archive/(index/[0-9a-f]{64}/[0-9]{12}|discovery/[0-9a-f]{64})\.json', path)
+        allowed = path == 'README.md' or re.fullmatch(r'reports/[0-9a-f]{64}\.json', path) or re.fullmatch(r'receipt-archive/discovery/[0-9a-f]{64}\.json', path)
         sharded = re.fullmatch(r'receipt-archive/(objects|materials)/([0-9a-f]{2})/([0-9a-f]{64})\.json', path)
-        allowed = allowed or (sharded and sharded[3].startswith(sharded[2]))
+        identity = re.fullmatch(r'receipt-archive/index/[0-9a-f]{64}/identities/([0-9a-f]{2})/([0-9a-f]{64})\.json', path)
+        segment = re.fullmatch(r'receipt-archive/index/[0-9a-f]{64}/([0-9]{3})/([0-9]{3})/([0-9]{3})/([0-9]{12})\.json', path)
+        allowed = allowed or (segment and segment[4].startswith(segment[1]+segment[2]+segment[3]))
+        allowed = allowed or (sharded and sharded[3].startswith(sharded[2])) or (identity and identity[2].startswith(identity[1]))
         if path.startswith('receipt-archive/'):
             require(type(item.get('size')) is int and 0 < item['size'] <= 1048576, 'archive entry size exceeds bound')
         require(item.get('type') == 'blob' and item.get('mode') == '100644' and bool(allowed), 'state blob path/mode invalid')
@@ -92,3 +95,9 @@ def scan_tree(api, root, tree_sha, *, cursor=None, page_budget=100):
         pending.extend(children)
         require(len(pending) <= 4096, 'state traversal frontier capacity gap')
     return {'entries': entries, 'complete': not pending, 'cursor': {'root': tree_sha, 'pending': pending} if pending else None, 'pages': pages}
+
+
+def segment_path(stream, number):
+    require(valid_hash(stream, 64) and type(number) is int and 0 <= number < 10**12, 'archive segment path identity invalid')
+    digits = f'{number:012d}'
+    return f'receipt-archive/index/{stream}/{digits[:3]}/{digits[3:6]}/{digits[6:9]}/{digits}.json'

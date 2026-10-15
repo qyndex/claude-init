@@ -239,3 +239,165 @@ def coverage_status(bootstrap, timestamp, *, available):
     before = instant(timestamp) < instant(bootstrap['coverage_from'])
     status = 'outside-coverage' if before else 'complete' if available else 'gap'
     return {'status': status, 'coverage_from': bootstrap['coverage_from'], 'reason': 'before reviewed origin' if before else 'retained proof available' if available else 'required history unavailable'}
+
+
+def archive_stream(repository):
+    return digest(canonical(['factory-receipt-archive-v1', repository]))
+
+
+def append_delivery(source_api, state_api, policy, run_id, trust_path, store, approval_path, stream):
+    """Authenticate and atomically append; no runtime credit or legacy policy relaxation."""
+    from urllib.parse import quote
+    import uuid
+    require(source_api.repo == state_api.repo == policy['repository'] == store['repository'] and stream == archive_stream(policy['repository']), 'foreign archive append repository/stream')
+    root = f'repos/{state_api.repo}'
+    consumed = 0; immutable_cache = {}; uncertain = False
+
+    def charge(value, *, source_file=False):
+        nonlocal consumed
+        size = (2*len(value)+16384 if source_file else len(value)) if isinstance(value, bytes) else len(canonical(value))
+        consumed += size
+        require(size <= 2097152 and consumed <= 33554432, 'archive append API observation budget exceeded')
+        return value
+
+    class ObservedSource:
+        repo = source_api.repo
+
+        def get(self, path):
+            return charge(source_api.get(path))
+
+        def source(self, path, sha):
+            return charge(source_api.source(path, sha), source_file=True)
+
+        def request(self, path, **kwargs):
+            require(kwargs.get('method', 'GET') == 'GET', 'archive source API must be read-only')
+            return charge(source_api.request(path, **kwargs))
+
+    record, materials = build_record(ObservedSource(), policy, run_id, trust_path, store)
+    record_bytes = canonical(record); record_hash = digest(record_bytes)
+    execution = {'repository': state_api.repo, 'stream': stream, 'run_id': record['run']['id'], 'attempt': record['run']['attempt']}
+    identity = digest(canonical(execution))  # Artifact replacement cannot evade same-attempt identity.
+    identity_path = f'receipt-archive/index/{stream}/identities/{identity[:2]}/{identity}.json'
+    journal_path = f'receipt-archive/discovery/{stream}.json'
+
+    class Bounded:
+        repo = state_api.repo
+
+        def request(self, path, method='GET', payload=None):
+            nonlocal consumed
+            require(path == root or path.startswith(root+'/'), 'foreign archive state API path')
+            require(method == 'GET' or (method == 'POST' and path in {root+'/git/blobs', root+'/git/trees', root+'/git/commits'}) or (method == 'PATCH' and path.startswith(root+'/git/refs/heads/')), 'archive write endpoint not permitted')
+            cacheable = method == 'GET' and ('/git/trees/' in path or '/git/blobs/' in path)
+            if cacheable and path in immutable_cache:
+                return immutable_cache[path]
+            require(consumed <= 31457280, 'archive append invocation byte budget exhausted')
+            try:
+                value = state_api.request(path, method=method, payload=payload)
+            except Exception as error:
+                if uncertain:
+                    raise ValueError('archive append uncertain; authoritative state could not be reconciled') from error
+                raise
+            charge(value)
+            if cacheable:
+                immutable_cache[path] = value
+            return value
+
+    api = Bounded()
+
+    def item_at(tree_sha, path):
+        current = tree_sha; prefix = ''
+        for part in path.split('/'):
+            tree = api.request(root+'/git/trees/'+current)
+            require(tree.get('sha') == current and tree.get('truncated') is False and isinstance(tree.get('tree'), list), 'archive fixed-path tree incomplete')
+            found = [entry for entry in tree['tree'] if entry.get('path') == part]
+            require(len(found) <= 1, 'archive fixed path ambiguous')
+            if not found:
+                return None
+            item = dict(found[0], path=prefix+part); state_paths.validate_entry(item)
+            prefix += part+'/'
+            if prefix[:-1] == path:
+                return item
+            require(item['type'] == 'tree', 'archive fixed path crosses blob')
+            current = item['sha']
+        raise ValueError('archive fixed path invalid')
+
+    def blob_at(tree_sha, path):
+        item = item_at(tree_sha, path)
+        if item is None:
+            return None
+        require(item['type'] == 'blob' and 0 < item['size'] <= MAX_OBJECT, 'archive stored blob size/mode invalid')
+        value = api.request(root+'/git/blobs/'+item['sha'])
+        require(value.get('encoding') == 'base64' and value.get('sha') == item['sha'], 'archive stored blob identity differs')
+        raw = base64.b64decode(''.join(value['content'].split()), validate=True)
+        require(len(raw) == value['size'] == item['size'] and hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest() == item['sha'], 'archive stored blob bytes differ')
+        return raw
+
+    for attempt in range(3):
+        anchor = verify_bootstrap(api, approval_path)
+        require(record['run']['repository_id'] == anchor['repository_id'] and record['source_private'] == anchor['private'], 'archive source/store repository identity differs')
+        require(store['visibility'] == ('private' if anchor['private'] else 'public'), 'archive actual store visibility differs')
+        head = anchor['head']; tree = anchor['tree']
+        journal_raw = blob_at(tree, journal_path)
+        if journal_raw is None:
+            require(item_at(tree, 'receipt-archive/index/'+stream) is None, 'archive discovery missing for existing stream; never reset')
+            journal = {'schema_version': 1, 'repository': state_api.repo, 'stream': stream, 'coverage_from': anchor['coverage_from'], 'next_segment': 0, 'records_count': 0}
+        else:
+            journal = document(journal_raw)
+            require(set(journal) == {'schema_version', 'repository', 'stream', 'coverage_from', 'next_segment', 'records_count'} and type(journal['schema_version']) is int and journal['schema_version'] == 1 and journal['repository'] == state_api.repo and journal['stream'] == stream and journal['coverage_from'] == anchor['coverage_from'] and type(journal['next_segment']) is int and 0 <= journal['next_segment'] < 10**12 and type(journal['records_count']) is int and journal['records_count'] == journal['next_segment'], 'archive discovery identity/progress differs')
+        previous = blob_at(tree, identity_path)
+        if previous is not None:
+            old = document(previous)
+            require(set(old) == {'schema_version', 'repository', 'stream', 'run_id', 'attempt', 'artifact_id', 'record_sha256', 'segment'} and type(old['schema_version']) is int and old['schema_version'] == 1 and all(type(old[key]) is int and old[key] > 0 for key in ('run_id', 'attempt', 'artifact_id')) and all(old[key] == execution[key] for key in execution), 'archive conflicting execution index')
+            require(old['artifact_id'] == record['artifact']['id'] and old['record_sha256'] == record_hash and type(old['segment']) is int and 0 <= old['segment'] < journal['next_segment'], 'archive conflicting retained execution/artifact')
+            retained = blob_at(tree, f'receipt-archive/objects/{record_hash[:2]}/{record_hash}.json')
+            require(retained == record_bytes, 'archive conflicting retained object')
+            retained_materials = {}
+            for key in materials:
+                raw = blob_at(tree, f'receipt-archive/materials/{key[:2]}/{key}.json')
+                wrapper = document(raw) if raw is not None else {}
+                require(type(wrapper.get('schema_version')) is int and wrapper == {'schema_version': 1, 'sha256': key, 'encoding': 'base64', 'content': materials[key]}, 'archive conflicting retained material')
+                retained_materials[key] = wrapper['content']
+            validate_record(document(retained), retained_materials, state_api.repo, store['visibility'])
+            segment_raw = blob_at(tree, state_paths.segment_path(stream, old['segment']))
+            segment = state_paths.validate_segment(document(segment_raw), state_api.repo, stream, old['segment'])
+            require(segment['records'] == [{'run_id': execution['run_id'], 'attempt': execution['attempt'], 'artifact_id': old['artifact_id'], 'record_sha256': record_hash}], 'archive conflicting retained segment')
+            return {'status': 'already-appended', 'head': head, 'record_sha256': record_hash}
+        number = journal['next_segment']
+        segment = {'schema_version': 1, 'repository': state_api.repo, 'stream': stream, 'number': number, 'records': [{'run_id': execution['run_id'], 'attempt': execution['attempt'], 'artifact_id': record['artifact']['id'], 'record_sha256': record_hash}]}
+        state_paths.validate_segment(segment, state_api.repo, stream, number)
+        segment_path = state_paths.segment_path(stream, number)
+        require(blob_at(tree, segment_path) is None, 'archive conflicting occupied index sequence')
+        index = dict(execution, schema_version=1, artifact_id=record['artifact']['id'], record_sha256=record_hash, segment=number)
+        changes = {f'receipt-archive/objects/{record_hash[:2]}/{record_hash}.json': record_bytes, identity_path: canonical(index), segment_path: canonical(segment)}
+        for key, value in materials.items():
+            changes[f'receipt-archive/materials/{key[:2]}/{key}.json'] = canonical({'schema_version': 1, 'sha256': key, 'encoding': 'base64', 'content': value})
+        journal.update(next_segment=number+1, records_count=number+1)
+        changes[journal_path] = canonical(journal)
+        entries = []; prepared = []
+        for path, raw in changes.items():
+            require(0 < len(raw) <= MAX_OBJECT, 'archive encoded object size exceeds bound')
+            existing = blob_at(tree, path)
+            require(existing is None or existing == raw or path == journal_path, 'archive conflicting immutable object')
+            if existing == raw:
+                continue
+            sha = hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()
+            state_paths.validate_entry({'path': path, 'type': 'blob', 'mode': '100644', 'sha': sha, 'size': len(raw)})
+            prepared.append((path, raw, sha))
+        for path, raw, sha in prepared:
+            uploaded = api.request(root+'/git/blobs', 'POST', {'encoding': 'base64', 'content': base64.b64encode(raw).decode()})
+            require(uploaded.get('sha') == sha, 'archive uploaded blob differs')
+            entries.append({'path': path, 'type': 'blob', 'mode': '100644', 'sha': sha})
+        newtree = api.request(root+'/git/trees', 'POST', {'base_tree': tree, 'tree': entries})
+        require(state_paths.valid_hash(newtree.get('sha'), 40), 'archive created tree invalid')
+        commit = api.request(root+'/git/commits', 'POST', {'message': 'factory: compact receipt append '+uuid.uuid4().hex, 'tree': newtree['sha'], 'parents': [head]})
+        require(state_paths.valid_hash(commit.get('sha'), 40) and commit['tree']['sha'] == newtree['sha'] and [parent['sha'] for parent in commit['parents']] == [head], 'archive created commit ancestry differs')
+        for policy_id, expected_hash in anchor['policies'].items():
+            require(digest(canonical(api.request(root+'/rulesets/'+policy_id))) == expected_hash, 'archive writer protection changed before append')
+        try:
+            result = api.request(root+'/git/refs/heads/'+quote(anchor['branch'], safe=''), 'PATCH', {'sha': commit['sha'], 'force': False})
+            require(result['ref'] == 'refs/heads/'+anchor['branch'] and result['object']['sha'] == commit['sha'], 'archive reference acknowledgement differs')
+        except Exception:
+            uncertain = True
+            continue  # Ref may have committed: re-read authoritative origin before any progress claim.
+        return {'status': 'appended', 'head': commit['sha'], 'record_sha256': record_hash}
+    raise ValueError('archive append uncertain after three CAS observations; reconcile before advancing')

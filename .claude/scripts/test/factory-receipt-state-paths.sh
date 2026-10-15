@@ -7,7 +7,7 @@ import pathlib,sys,json,copy,importlib.util,hashlib,tempfile
 text=pathlib.Path('.claude/scripts/test/factory-hosted-digest.sh').read_text().split("<<'PYTEST'\n",1)[1].split('with tempfile.TemporaryDirectory()',1)[0]
 sys.argv=['test',str(pathlib.Path.cwd())];exec(compile(text,'existing-state-fixture','exec'))
 api=GitAPI();stream='c'*64;tree=api.trees['b'*40]
-paths=['README.md','reports/'+'0'*64+'.json','receipt-archive/objects/aa/'+'a'*64+'.json','receipt-archive/materials/bb/'+'b'*64+'.json','receipt-archive/index/'+'c'*64+'/000000000000.json','receipt-archive/discovery/'+'c'*64+'.json']
+paths=['README.md','reports/'+'0'*64+'.json','receipt-archive/objects/aa/'+'a'*64+'.json','receipt-archive/materials/bb/'+'b'*64+'.json','receipt-archive/index/'+'c'*64+'/000/000/000/000000000000.json','receipt-archive/discovery/'+'c'*64+'.json']
 for path in paths:
  data=b'opaque encrypted existing bytes' if path.startswith('reports/') else b'{}';sha=m.git_hash(data);api.blobs[sha]=data;tree.append({'path':path,'type':'blob','mode':'100644','sha':sha,'size':len(data)})
 state=m.GitState(api,'factory-reporting-state',stream,api.head,bootstrap_existing=True)
@@ -15,7 +15,7 @@ before=copy.deepcopy(tree);state.checkpoint(b'{"new":"report"}')
 after=api.trees[api.commits[api.head]['tree']['sha']];assert all(entry in after for entry in before);assert all(api.blobs[e['sha']]==b'opaque encrypted existing bytes' for e in after if e['path'].startswith('reports/0'))
 s=importlib.util.spec_from_file_location('paths','.claude/scripts/factory-state-paths.py');p=importlib.util.module_from_spec(s);s.loader.exec_module(p)
 count=2
-for path in ['.github/workflows/run.yml','receipt-archive/run.py','receipt-archive/objects/zz/'+'a'*64+'.json','receipt-archive/objects/ab/'+'a'*64+'.json','receipt-archive/index/'+'c'*64+'/latest.json','receipt-archive/discovery/other.json','reports/../README.md','receipt-archive/materials/bb/'+'b'*64+'.sh']:
+for path in ['.github/workflows/run.yml','receipt-archive/run.py','receipt-archive/objects/zz/'+'a'*64+'.json','receipt-archive/objects/ab/'+'a'*64+'.json','receipt-archive/index/'+'c'*64+'/latest.json','receipt-archive/discovery/other.json','reports/../README.md','receipt-archive/index/'+'c'*64+'/000000000000.json','receipt-archive/index/'+'c'*64+'/000/000/001/000000000000.json','receipt-archive/materials/bb/'+'b'*64+'.sh']:
  try:p.validate_entry({'path':path,'type':'blob','mode':'100644','sha':'a'*40})
  except ValueError:count+=1
  else:raise AssertionError('unsafe path '+path)
@@ -64,5 +64,5 @@ class TruncatedPages(Pages):
 try:p.scan_tree(TruncatedPages(),'repos/org/repo','f'*40)
 except ValueError:count+=1
 else:raise AssertionError('truncated tree accepted')
-print(f'{count} state path/index/resumable tree cases passed; CAS archive writes remain pending')
+print(f'{count} state path/index/resumable tree cases passed; path/index suite performs no CAS writes')
 PY
