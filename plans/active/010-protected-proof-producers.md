@@ -5,7 +5,7 @@ spec: specs/active/010-protected-proof-producers.md
 status: approved
 owner: "@codex"
 created: 2026-10-09
-updated: 2026-10-09
+updated: 2026-10-16
 ---
 
 # Protected proof producers
@@ -29,3 +29,11 @@ T-274 prepares pinned official GitHub-native artifact signing of the exact evide
 
 - Accepted ADR: .claude/memory/decisions/0006-signed-protected-producer-execution-provenance.md
 - Operator approved option A and solely proof-signing permissions on 2026-10-16; docs/activation/2026-10-16/producer-provenance-decision.md records the exact boundary.
+
+## Latest producer run binding repair — T-291 — 2026-10-16
+
+Public pilot head45f3a9c3513855ea701778c5f2fe5c468f3c461e passed genuine signed runs38821253115 (verification workflow379732143) and38821253085 (review workflow379732140), but shadow coordination rejected GitHub-normalized check URLs. A fresh public API read confirms verifier check116718131349 URL `/runs/116718131349` and reviewer116718157648 URL `/runs/116718157648`; both point to suite105208672410. Neither URL nor suite reliably identifies a workflow run.
+
+Select the latest run by immutable configured workflow ID from the existing paginated candidate-head run listing, before event/status filtering. Require unique positive integer run ID and attempt, re-fetch that exact run and reject stale/changed attempt or identity/status snapshots. Require exact workflow/event/path/repository/candidate head and successful conclusion; then retain every protected runtime, signed certificate/source/base and artifact check. Latest failure/cancelled/in-progress/wrong-event must block even with older successful evidence. Ignore display URL contents; never infer workflow identity from suite IDs. Keep unique App/head/success check guards intact.
+
+Scope is T-291 source/test/policy and approved spec/plan plus task evidence. Refresh only each producer's coordinator trusted-file hash to actual candidate source bytes; all other policy values and merge-disabled state stay identical. Existing signed provenance/source/artifact tamper regressions remain required. Tests include actual normalized URL/shared-suite metadata, URL independence, latest failure/older pass, wrong workflow/event/repository/head/path and run-attempt drift. No permission, live flag, ruleset or merge activation changes. Local proof is not a live fix until merged protected source and fresh pilot proof succeed. This repairs ADR-0006's immutable workflow-run authentication without changing the signing trust boundary.

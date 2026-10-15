@@ -1,0 +1,7 @@
+# TDD ledger — green — T-291
+ledger_format: 2
+timestamp: 2026-10-16T10:20:34+11:00
+command: bash .claude/scripts/test/factory-coordinator.sh
+exit_code: 0
+---
+passed: 63; failed: 0

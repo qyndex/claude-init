@@ -1,5 +1,5 @@
 ## Evidence Bundle — Spec 010 (010-protected-proof-producers)
-Spec: `specs/active/010-protected-proof-producers.md` · Commit: `10f8049`
+Spec: `specs/active/010-protected-proof-producers.md` · Commit: `8f4e1a3`
 
 ### Acceptance criteria (4/4 proven)
 | AC | Proven by | Result |
@@ -11,7 +11,7 @@ Spec: `specs/active/010-protected-proof-producers.md` · Commit: `10f8049`
 
 ### Smoke test (exit codes are load-bearing)
 ```
-# Smoke test — 2026-10-16T09:18:45+11:00
+# Smoke test — 2026-10-16T10:23:12+11:00
 $ bash .claude/scripts/verify.sh
 
 → Integration coverage gate
@@ -44,7 +44,3 @@ line ?% · branch ?% (gate: line≥90 branch≥85)
 - verify/2026-10-16-010-protected-proof-producers/signed-provenance.log
 - verify/2026-10-16-010-protected-proof-producers/producer-contracts.log
 - verify/2026-10-16-010-protected-proof-producers/coordinator-contracts.log
-
-## Proof boundary
-
-Five shell suites ran freshly before collector --check-only consumed their new AC-tagged results and reran actual verify.sh smoke. Results bind source10f8049 after commit-message formatting and ADR YAML corrections; later commits only refresh the decision index and package evidence. No historical PASS was reused. AC-2 locally proves sandbox argv/output contracts through injected runners; native Docker remains CI. Certificate-positive policy fixtures inject verified results; the unrelated official signed fixture/tampered-subject pair proves actual CLI compatibility only. No live factory signing, hosted verdict or shadow eligibility is claimed. Protected runtime policy pins remain unchanged until the reviewed merged source is recorded.

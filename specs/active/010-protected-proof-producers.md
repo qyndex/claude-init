@@ -5,7 +5,7 @@ status: approved
 owner: "@codex"
 human_owner: "@operator"
 created: 2026-10-09
-updated: 2026-10-09
+updated: 2026-10-16
 complexity: L
 objective: KR-PLATFORM
 service_tier: T2
@@ -21,7 +21,7 @@ Implementation scope authorized by the operator's instruction to complete the fa
 1. **AC-1**: Protected policy selects the approved spec bytes, complete AC set, path scope and pinned producer runtime. Foreign candidates, authority changes, wrong workflow/event/base and incomplete diffs fail before running candidate code.
 2. **AC-2**: Each approved AC executes an explicit argv in a digest-pinned Docker image with no network, credentials, host writes, capabilities or root user. Fresh candidate state, bounded resources/output and exit-code-bound observation digests form the verifier artifact; failed or missing commands cannot emit a passing verdict.
 3. **AC-3**: A separate tool-free model reviewer receives complete spec and before/after sources within a bounded input size. An explicitly selected credential route is used, never an automatic metered fallback. Missing/quota-limited credentials, model errors, malformed verdicts and PASS with unresolved findings fail.
-4. **AC-4**: Candidate-head check receipts identify authenticated protected workflow runs; the coordinator validates the producer's workflow ID, protected base, runtime hashes and exact artifact bindings. A forged run link, changed base, wrong event or wrong workflow is rejected. Automatic reevaluation resolves the candidate from the completed producer artifact.
+4. **AC-4**: Unique candidate-head check receipts retain exact approved App/head/success guards. Authenticate the latest candidate-head run selected by immutable pinned workflow ID before checking event, status or success; never fall back to an older successful run. Verify exact repository/path/head/workflow/event/run/attempt metadata, complete protected source pins, cryptographic attestation and artifact/base bindings. Display URLs and check-suite associations confer no run authority. Missing/ambiguous/latest failed or stale runs reject. Automatic reevaluation resolves the candidate from the completed producer artifact.
 
 ## Activation dependencies
 

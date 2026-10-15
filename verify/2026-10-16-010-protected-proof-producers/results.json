@@ -1,7 +1,7 @@
 {
   "runner": "fresh-shell-acceptance-recorder",
-  "source_sha": "10f8049114273c9b1e34b67f4b1ff4b4945d8836",
-  "recorded_at": "2026-10-15T22:18:44.982918+00:00",
+  "source_sha": "8f4e1a3b15e0e50163492c003a077d96d0e857c9",
+  "recorded_at": "2026-10-15T23:23:12.374766+00:00",
   "independent_attestation": false,
   "live_factory_signing": false,
   "native_docker_run": false,
@@ -11,35 +11,35 @@
       "command": "bash .claude/scripts/test/factory-producers.sh",
       "exit_code": 0,
       "log": "verify/2026-10-16-010-protected-proof-producers/producer-contracts.log",
-      "log_sha256": "96aa359763fa88cb57d77b9e2bda30540fb215ba9b28bf50299afdf1231f1af8"
+      "log_sha256": "8af571ba726a616ad682eced08a47087f7dae286436ebbff09907ec18b47f34b"
     },
     {
       "name": "coordinator-contracts",
       "command": "bash .claude/scripts/test/factory-coordinator.sh",
       "exit_code": 0,
       "log": "verify/2026-10-16-010-protected-proof-producers/coordinator-contracts.log",
-      "log_sha256": "57ba855c7633f2ad1dbbef1efc8ca7783c69c2c4fba3de295e9610b65f4bc6d2"
+      "log_sha256": "79b9b52fcc2ff219a5a7f57347833a4270e1042d37694919c47c886de2785dcd"
     },
     {
       "name": "signed-provenance",
       "command": "bash .claude/scripts/test/factory-provenance.sh",
       "exit_code": 0,
       "log": "verify/2026-10-16-010-protected-proof-producers/signed-provenance.log",
-      "log_sha256": "cc6906ea88cbd5d6656b223d2847a3e17ff2b741947ad83768d11a05176033ea"
+      "log_sha256": "76c2d807d46eb55b71b7ccb764ca30ba1592912f87079b0ce822db87d23ab4e3"
     },
     {
       "name": "bounded-review-runtime",
       "command": "bash .claude/scripts/test/factory-review-runtime.sh",
       "exit_code": 0,
       "log": "verify/2026-10-16-010-protected-proof-producers/bounded-review-runtime.log",
-      "log_sha256": "709dac0842d18b482b9d196183242790eb97caaac1919852a91e1e8e7b29589c"
+      "log_sha256": "05dcb7d85a53e006d84de168d18487ca08311bdd9a887ceb12d4099e61396162"
     },
     {
       "name": "workflow-boundary",
       "command": "bash .claude/scripts/test/factory-workflows.sh",
       "exit_code": 0,
       "log": "verify/2026-10-16-010-protected-proof-producers/workflow-boundary.log",
-      "log_sha256": "1a78f45164381366408a1054f50000fd35116df1e4bda29f511df4987604deaf"
+      "log_sha256": "d90a76eefa08a6e16893f9b84c31a7cde184a1ca6d779111c136b20a158d9f06"
     }
   ],
   "testResults": [
