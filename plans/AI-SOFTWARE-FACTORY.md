@@ -350,8 +350,10 @@ report updated PR base/head values and cannot establish executed-source identity
 T-274 repairs the existing Spec010 provenance contract; its local fixtures cannot
 substitute for genuine signed proof. The reviewable proposal and adoption tradeoff
 are in docs/activation/2026-10-16/producer-provenance-decision.md. The proposed
-GitHub-native attestation approach and proof-signing permissions await an explicit
-operator choice; private repositories require Enterprise Cloud for that backend.
+GitHub-native attestation approach and solely the proof-signing permissions were
+approved by the operator on 2026-10-16 (option A). Private/internal repositories
+require Enterprise Cloud for that backend; unsupported adopters fail closed.
+This decision does not authorize merge mode or production.
 
 The pilot is back in draft, producers are paused, authority remains unset, and
 merge_enabled remains false. No additive live ruleset has been applied. Reporting

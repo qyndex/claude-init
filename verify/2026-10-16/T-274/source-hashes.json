@@ -11,9 +11,10 @@
   ".github/workflows/factory-verification.yml": "1ec9a5a9f2b3b30934814832b47a5da667782d529f1b504fe562141042de137c",
   "docs/FACTORY-ACTIVATION.md": "b054970e1fe7a77db29b665e22ebd310b998cd2992df7f5d19edb6d1e4817991",
   "docs/FACTORY-PRODUCERS.md": "3572c41e206436b5757034d5cbee196b78ae7c27e7383b98f5b3aaefbc00845d",
-  "docs/activation/2026-10-16/producer-provenance-decision.md": "855ae56451ee178fe3aba122b9fccefe7d84b8e7837ea25008db77a098a929db",
-  "plans/AI-SOFTWARE-FACTORY.md": "087b590cbd6f767bc08c271b8eb5cead25896a8d53a177e6c7894e007c77e9b1",
-  "plans/active/010-protected-proof-producers.md": "a62e1be38f993ee9ad51b8e9cb292e65ce0f74aee691177e61feeefb0a73daae",
+  "docs/activation/2026-10-16/producer-provenance-decision.md": "12c33322a006b7c399a358a7344b83574823123c5470ee2aca31b5c83b53999e",
+  "plans/AI-SOFTWARE-FACTORY.md": "4dea7a81f22534e3273c53c598a2b7144dbcb25c6366195b5138de11d9458bf7",
+  "plans/active/010-protected-proof-producers.md": "afeea72881224c5134db0e560ce6ec5d6b409cc81fb54b37ef70a5df0b43acd8",
   "specs/active/010-protected-proof-producers.md": "a8e623650a64c0407134f6b14c446325d38dc45ae7397870334317da79579c60",
-  "tasks/TASKS.md": "07d3b76f454105bbbac0e0b4d0d072ee8804e02cd7681668ee506176f03268eb"
+  "tasks/TASKS.md": "07d3b76f454105bbbac0e0b4d0d072ee8804e02cd7681668ee506176f03268eb",
+  ".claude/memory/decisions/0006-signed-protected-producer-execution-provenance.md": "e8a9f9bbf3efd6b35075336823014feacbcafc74b7df60eaabc3bc119bf393c4"
 }

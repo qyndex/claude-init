@@ -1,6 +1,6 @@
 # Protected producer provenance repair
 
-Status: proposed; operator choice pending. This document grants no live permission.
+Status: operator approved option A on 2026-10-16: GitHub-native attestation for the public pilot, explicit Enterprise Cloud prerequisite for private/internal adopters, and solely the two producer workflows’ proof-signing permissions. This approval does not enable factory merge mode or production.
 
 ## Observed failure
 
@@ -16,7 +16,7 @@ Historical run `38139128097` retained its original immutable head SHA while its
 `pull_requests` association reported the pilot's newer base and head. Therefore
 that association cannot establish the source revision executed by an old run.
 
-## Recommended repair (option A)
+## Approved repair (option A)
 
 Keep the existing Spec010 AC-1/AC-4 contract. Authenticate the immutable candidate
 run and separately authenticate the protected execution source:
@@ -38,7 +38,7 @@ run and separately authenticate the protected execution source:
 5. Require signing, bundle preservation and artifact upload to succeed before
    publishing a successful producer check.
 
-The two producer jobs would gain `id-token: write` and `attestations: write` to
+The operator approved the two producer jobs gaining `id-token: write` and `attestations: write` to
 sign proof bundles. The factory App gains no permissions. Merge mode, production,
 live rulesets and other integrations are outside this repair's permission change.
 
@@ -49,7 +49,7 @@ not claim all private repositories can activate the factory or accept unsigned
 proof as a fallback. This does not prevent copying or using the harness's other
 development workflows.
 
-## Alternative (option B)
+## Alternative not selected (option B)
 
 Keep the pilot paused and first design a provenance mechanism that supports
 private repositories without Enterprise Cloud. That requires a separate design
@@ -66,8 +66,8 @@ credential, cost or trust boundary is selected by this document.
   A local fixture pass cannot close T-180 or T-222.
 - Complete source review and required CI. Record the source commit before
   refreshing runtime hashes in protected policy.
-- After operator approval of the selected approach and reviewed permission
-  change, merge through the existing operator route, refresh the pilot against
+- The operator approved the selected approach and the scoped signing permission
+  change. After source review and required CI, merge through the existing operator route, refresh the pilot against
   the resulting protected base, and retry genuine producers.
 - Apply only the reviewed additive shadow ruleset after genuine proof succeeds.
   Shadow eligibility remains separate from approval to enable merging.
