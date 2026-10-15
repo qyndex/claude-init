@@ -1639,7 +1639,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-receipt-source.sh
   owner: implementer
 
-- [ ] T-277  | spec:014  | phase:1  | priority: security  | created: 2026-10-16  | deps: T-276  | parallel: no  | est: 5m
+- [x] T-277  | spec:014  | phase:1  | priority: security  | created: 2026-10-16  | deps: T-276  | parallel: no  | est: 5m
   summary: Accept equivalent ordinary source commits while rejecting changed authority bytes
   files: .claude/scripts/factory-receipts.py, .claude/scripts/test/factory-receipt-equivalence.sh
   accept: bash .claude/scripts/test/factory-receipt-equivalence.sh
