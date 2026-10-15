@@ -1,0 +1,13 @@
+{
+  "proof_kind": "metadata-only; App ID/key-presence declarations are not authentication",
+  "declared_app_id": 5251754,
+  "declared_key_present": true,
+  "exit_code": 1,
+  "result": {
+    "ready": false,
+    "missing": [
+      "verification complete transitive runtime hashes",
+      "review complete transitive runtime hashes"
+    ]
+  }
+}

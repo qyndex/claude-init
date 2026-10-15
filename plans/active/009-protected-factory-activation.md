@@ -21,3 +21,7 @@ Replace every merge trigger with a coordinator request. Local verified-merge can
 Publish only owned work on an isolated origin/main worktree; leave the original checkout and five initiative STATE edits untouched. Do not enable live authority before the activation PR has an operator decision and a successful shadow candidate.
 
 - T-181: AC-2/AC-5 complete touched-spec bootstrap evidence and zero-AC rejection; added after the actual PR gate exposed a false-pass consumer.
+
+## Signed producer runtime pin continuation — 2026-10-16
+
+Existing T-180 remains blocked, not completed. The approved signed-provenance repair is merged at bc678f611e7c2e05b1eb427e805654644c84dd67 (PR107). Refresh only producer trusted-file maps from that actual merged source and prepare a new immutable activation package; preserve all approved pilot scope and merge/receipt controls. Metadata declarations and injected tests do not replace genuine signed producer artifacts, shadow cases or the reviewed authority cutover. ADR reference: .claude/memory/decisions/0006-signed-protected-producer-execution-provenance.md. The user approved the native signing backend and scoped permissions; no further merge-mode or production activation is approved here.

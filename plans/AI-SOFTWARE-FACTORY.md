@@ -360,3 +360,23 @@ merge_enabled remains false. No additive live ruleset has been applied. Reportin
 and approved encrypted feedback remain enabled. After the repair is reviewed,
 merged and pinned, resume genuine producers, then shadow cases and the separate
 merge-mode decision. T-180 and T-222 remain unresolved.
+
+### Merged provenance repair and source-bound pin refresh — 2026-10-16
+
+PR107 merged at bc678f611e7c2e05b1eb427e805654644c84dd67 after all seven required
+checks and independent review/security passed. The operator approved option A:
+GitHub-native attestations for the public pilot and solely proof-signing workflow
+permissions; private/internal adopters require Enterprise Cloud capability.
+
+The next reviewed change refreshes only both producer trusted-file maps from that
+actual merged runtime, including the signed-provenance helper (seven files per
+role). docs/activation/2026-10-16-signed-shadow retains source hashes, fresh GET-only
+protection before-images, the actual additive twelve-pin proposal and declared
+metadata preflight proof. Spec048, its nine paths/commands/image, required checks,
+merge_enabled=false and empty receipt trusted revisions remain unchanged.
+
+No repository switch, live ruleset, pilot branch or production setting is changed
+by preparation. T-180 remains blocked on genuine signed producers/shadow proof and
+reviewed authority cutover; T-222 remains pending. After source review/CI and merge,
+refresh the exact pilot and obtain real signed independent artifacts before the
+reviewed shadow cutover. Merge mode still requires a separate operator decision.

@@ -1,0 +1,17 @@
+{
+  "source_sha": "bc678f611e7c2e05b1eb427e805654644c84dd67",
+  "validated_at": "2026-10-15T22:37:05.983920+00:00",
+  "checks": [
+    "actual git-show merged runtime hashes:7 per role",
+    "only two producer trusted_files maps changed",
+    "pilot scope/commands/image invariant",
+    "required check map invariant",
+    "merge_enabled false",
+    "receipt trusted_revisions empty",
+    "old metadata preflight missing-helper rejection",
+    "new declared metadata preflight PASS",
+    "T180 blocked and T222 pending"
+  ],
+  "verdict": "PASS",
+  "proof_boundary": "Local source/metadata assertions only; no authenticated signed producer or shadow eligibility proof."
+}

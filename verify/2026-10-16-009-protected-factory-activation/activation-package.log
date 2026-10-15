@@ -1,0 +1,8 @@
+$ bash .claude/scripts/test/factory-activation-package.sh
+AC-1: source-bound complete runtime pins and shadow-only proposal; live policy unchanged
+AC-2: complete proposed pilot scope and commands; no implementation or delivery claim
+AC-3/AC-4: complete proposal, reproducible metadata preflight, blocked live gates and ordered genuine-proof checklist
+passed: 39; failed: 0
+passed: 36; failed: 0
+
+exit_code: 0

@@ -1,0 +1,10 @@
+{
+  "proof_kind": "metadata-only; App ID/key-presence declarations are not authentication",
+  "declared_app_id": 5251754,
+  "declared_key_present": true,
+  "exit_code": 0,
+  "result": {
+    "ready": true,
+    "missing": []
+  }
+}

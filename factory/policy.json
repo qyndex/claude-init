@@ -82,11 +82,12 @@
       "artifact_name": "factory-verification",
       "trusted_files": {
         ".claude/scripts/factory-bounded-process.py": "91d077e6badb7c606a31cf85d8fbb8315b91d9d211b4fe1ab8fb970693207f47",
-        ".claude/scripts/factory-coordinator.py": "3ea5f6f9a008425586afcc9f012b71055198a51265e27dfb222b8704fc931b3c",
+        ".claude/scripts/factory-coordinator.py": "b5df1f0565030f6c3075453a8bcf31343b879950d5d460c67ae38da01381af8e",
         ".claude/scripts/factory-producer-check.py": "848474c98c55c9281f47ce97a9bd3a7c302dd51033860cbebf154e478a0c6f07",
-        ".claude/scripts/factory-producer.py": "f9a119daed1569aa0e7d4c3f4a06920d269e7848930e9233b0b02f57b382430f",
+        ".claude/scripts/factory-producer.py": "c4f55db3a85d32c88e82432cb26d15ad183707d060e344300d14574bb75da417",
+        ".claude/scripts/factory-provenance.py": "0b169e5fefa78ee683ecf3aaf13bfce975929b113ff3d1052a59a95cc3077b01",
         ".claude/scripts/validate-candidate-evidence.py": "ad0be5042d8dce5e0372159bbcbdbb84bc39b96e57435865eb62e7e5d4d0b52c",
-        ".github/workflows/factory-verification.yml": "7150a463f48a9126b619c9f9265d465c6d8df2c5cbb77888d976f472a5760bf0"
+        ".github/workflows/factory-verification.yml": "1ec9a5a9f2b3b30934814832b47a5da667782d529f1b504fe562141042de137c"
       },
       "event": "pull_request_target",
       "check_name": "factory-verification"
@@ -96,11 +97,12 @@
       "artifact_name": "factory-review",
       "trusted_files": {
         ".claude/scripts/factory-bounded-process.py": "91d077e6badb7c606a31cf85d8fbb8315b91d9d211b4fe1ab8fb970693207f47",
-        ".claude/scripts/factory-coordinator.py": "3ea5f6f9a008425586afcc9f012b71055198a51265e27dfb222b8704fc931b3c",
+        ".claude/scripts/factory-coordinator.py": "b5df1f0565030f6c3075453a8bcf31343b879950d5d460c67ae38da01381af8e",
         ".claude/scripts/factory-producer-check.py": "848474c98c55c9281f47ce97a9bd3a7c302dd51033860cbebf154e478a0c6f07",
-        ".claude/scripts/factory-producer.py": "f9a119daed1569aa0e7d4c3f4a06920d269e7848930e9233b0b02f57b382430f",
+        ".claude/scripts/factory-producer.py": "c4f55db3a85d32c88e82432cb26d15ad183707d060e344300d14574bb75da417",
+        ".claude/scripts/factory-provenance.py": "0b169e5fefa78ee683ecf3aaf13bfce975929b113ff3d1052a59a95cc3077b01",
         ".claude/scripts/validate-candidate-evidence.py": "ad0be5042d8dce5e0372159bbcbdbb84bc39b96e57435865eb62e7e5d4d0b52c",
-        ".github/workflows/factory-review.yml": "3d8355b1337babb8729e2ee35971e2e4c3b220765aade218d3e0c3e1be055411"
+        ".github/workflows/factory-review.yml": "20fe2a543849530f034dc5307e0c240cd7b3fb3fa285e1b1c260d36fd9bff082"
       },
       "event": "pull_request_target",
       "check_name": "factory-independent-review"

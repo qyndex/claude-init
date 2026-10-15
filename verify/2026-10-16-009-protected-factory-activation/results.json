@@ -1,47 +1,105 @@
 {
-  "runner": "actual-shell-acceptance-recorder",
-  "source_sha": "cf3b2fff928169973494fc15eb86a0176aa2dd1f",
+  "runner": "fresh-shell-acceptance-recorder",
+  "source_sha": "61964c16930ec5a8747b6860b6d9e27ea79ea345",
+  "recorded_at": "2026-10-15T22:37:49.568573+00:00",
   "independent_attestation": false,
+  "live_shadow_proof": false,
+  "app_authenticated": false,
   "commands": [
-    "bash .claude/scripts/test/factory-coordinator.sh",
-    "bash .claude/scripts/test/factory-producers.sh",
-    "bash .claude/scripts/test/factory-activation-planning.sh",
-    "bash .claude/scripts/test/factory-activation-package.sh",
-    "bash .claude/scripts/test/autonomous-ship.sh"
-  ],
-  "log_sha256": {
-    "verify/2026-10-16-shadow-readiness/request-boundary.log": "b9e1093e755aca768bafa5afc6ad3c3906818cad4aa0e1f7b50786d2df45c78a",
-    "verify/2026-10-16-shadow-readiness/planning.log": "46a676cb274e4ca20239b419603caeca94f8e8638e6cc98be86562601cbbf852",
-    "verify/2026-10-16-shadow-readiness/producers.log": "d98ff283aa24045386e6ae0b605433e84f5c29d10404f23fb354a33a387795e0",
-    "verify/2026-10-16-shadow-readiness/coordinator.log": "97626a95d348ca3c10efdd18c041b8d32c74fda9dcd12ff6f961d7019295c0eb",
-    "verify/2026-10-16-shadow-readiness/package.log": "1a4e7774ecf481197f0f183ef753b2549c9c3ccb6c50dbf91ed9294864179ad4"
-  },
-  "limitations": [
-    "Offline implementation/configuration regressions; no live shadow verdict or merge receipt",
-    "Historical disabled-bootstrap checks refer to recorded bootstrap source; current policy is an explicit shadow-only activation proposal"
+    {
+      "name": "coordinator",
+      "command": "bash .claude/scripts/test/factory-coordinator.sh",
+      "exit_code": 0,
+      "log": "verify/2026-10-16-009-protected-factory-activation/coordinator.log",
+      "log_sha256": "57ba855c7633f2ad1dbbef1efc8ca7783c69c2c4fba3de295e9610b65f4bc6d2"
+    },
+    {
+      "name": "producers",
+      "command": "bash .claude/scripts/test/factory-producers.sh",
+      "exit_code": 0,
+      "log": "verify/2026-10-16-009-protected-factory-activation/producers.log",
+      "log_sha256": "96aa359763fa88cb57d77b9e2bda30540fb215ba9b28bf50299afdf1231f1af8"
+    },
+    {
+      "name": "signed-provenance",
+      "command": "bash .claude/scripts/test/factory-provenance.sh",
+      "exit_code": 0,
+      "log": "verify/2026-10-16-009-protected-factory-activation/signed-provenance.log",
+      "log_sha256": "cc6906ea88cbd5d6656b223d2847a3e17ff2b741947ad83768d11a05176033ea"
+    },
+    {
+      "name": "request-only-shipping",
+      "command": "bash .claude/scripts/test/autonomous-ship.sh",
+      "exit_code": 0,
+      "log": "verify/2026-10-16-009-protected-factory-activation/request-only-shipping.log",
+      "log_sha256": "a82a26edcaf296ad7e0ab89b8cd78958a1f0ca339a9d17fbb1bcade19eb1a1ea"
+    },
+    {
+      "name": "workflow-boundary",
+      "command": "bash .claude/scripts/test/factory-workflows.sh",
+      "exit_code": 0,
+      "log": "verify/2026-10-16-009-protected-factory-activation/workflow-boundary.log",
+      "log_sha256": "1a78f45164381366408a1054f50000fd35116df1e4bda29f511df4987604deaf"
+    },
+    {
+      "name": "activation-package",
+      "command": "bash .claude/scripts/test/factory-activation-package.sh",
+      "exit_code": 0,
+      "log": "verify/2026-10-16-009-protected-factory-activation/activation-package.log",
+      "log_sha256": "02aeab0f1e2e73110ebb81957193e941d4a2e8f007b9eda60eb40c14016dfa46"
+    },
+    {
+      "name": "activation-planning",
+      "command": "bash .claude/scripts/test/factory-activation-planning.sh",
+      "exit_code": 0,
+      "log": "verify/2026-10-16-009-protected-factory-activation/activation-planning.log",
+      "log_sha256": "d463f56569ba6accda17273f56545f9fe9f1381e31f229eaf614b85e4ba91297"
+    }
   ],
   "testResults": [
     {
       "assertionResults": [
         {
-          "fullName": "AC-1: actual coordinator, package and request boundary regressions; retained logs",
-          "status": "passed"
+          "fullName": "AC-1: actual coordinator/context and exact pinned protected-source contract fixtures",
+          "status": "passed",
+          "command_names": [
+            "coordinator",
+            "producers",
+            "signed-provenance"
+          ]
         },
         {
-          "fullName": "AC-2: actual coordinator, package and request boundary regressions; retained logs",
-          "status": "passed"
+          "fullName": "AC-2: actual stale-binding and source/certificate/ZIP-origin negatives",
+          "status": "passed",
+          "command_names": [
+            "coordinator",
+            "signed-provenance"
+          ]
         },
         {
-          "fullName": "AC-3: actual coordinator, package and request boundary regressions; retained logs",
-          "status": "passed"
+          "fullName": "AC-3: actual request-only shipping and unified workflow regressions",
+          "status": "passed",
+          "command_names": [
+            "request-only-shipping",
+            "workflow-boundary"
+          ]
         },
         {
-          "fullName": "AC-4: actual coordinator, package and request boundary regressions; retained logs",
-          "status": "passed"
+          "fullName": "AC-4: actual approved package/planner fixtures and source-bound declared preflight; no live authentication",
+          "status": "passed",
+          "command_names": [
+            "activation-package",
+            "activation-planning"
+          ]
         },
         {
-          "fullName": "AC-5: actual coordinator, package and request boundary regressions; retained logs",
-          "status": "passed"
+          "fullName": "AC-5: actual injected stale/fake/drift/API negatives and pinned-head fixture merge",
+          "status": "passed",
+          "command_names": [
+            "coordinator",
+            "producers",
+            "signed-provenance"
+          ]
         }
       ]
     }

@@ -26,3 +26,11 @@ The installer omits source pilot policy, App manifest, live workflows and privat
 
 
 For a separately reviewed authority setup, run `python3 .claude/scripts/factory-ruleset-plan.py --policy <protected-policy.json> --ruleset-id <this-branch-active-id> --app-id <this-installation-app-id> --output <proposal.json>`. The policy supplies this repository/base branch and its complete check producer map. Review the generated proposal before applying anything; the tool never enables workflows, changes rules or merges candidates.
+
+## Signed autonomous proof capability
+
+Protected producer proofs use the operator-selected GitHub-native attestation backend. Public repositories support this capability on current GitHub plans; private/internal repositories require GitHub Enterprise Cloud. Confirm that capability before activating autonomous merge authority; unsupported adopters remain blocked rather than accepting unsigned evidence. This prerequisite does not prevent installing the harness or using its other development workflows. See [GitHub's repository-plan requirements](https://docs.github.com/en/enterprise-cloud%40latest/actions/how-tos/secure-your-work/use-artifact-attestations/use-artifact-attestations).
+
+Use each adopter's own reviewed producer workflows, `id-token: write` and `attestations: write` permission decision, complete runtime source pins, approved spec and genuine signed verifier/reviewer evidence. A public source pilot is not an adopter's certification. Exact certificate identity, protected source/ref/repository, hosted runner and run/attempt must pass independently; no unsigned fallback is provided. ADR0006 records this trust boundary. Production adapters and merge-mode approval remain separate gates.
+
+Enterprise Cloud attestation capability is necessary, not a complete private-repository activation certificate. Private adopters must also configure and prove secure private-candidate retrieval, native provider execution, independent signed evidence and the full repository-specific shadow gates. The public pilot does not certify private operation; this pin refresh does not implement a private-fetch adapter.
