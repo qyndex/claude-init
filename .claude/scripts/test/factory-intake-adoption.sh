@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
-case "${1:-package}" in package) ;; *) exit 2 ;; esac
-python3 - "$ROOT" <<'PYTEST'
+case "${1:-package}" in package|upgrade) ;; *) exit 2 ;; esac
+python3 - "$ROOT" "${1:-package}" <<'PYTEST'
 import hashlib,importlib.util,json,os,shutil,stat,subprocess,sys,tempfile
 from pathlib import Path
 root=Path(sys.argv[1])
@@ -73,4 +73,81 @@ sys.addaudithook(guard)
  assert state.stat().st_mode&0o777==0o700 and len(list(state.glob('*.json')))==1
  assert all(path.stat().st_mode&0o777==0o600 for path in state.glob('*.json'))
  print('AC-14: disabled schema validates, feedback intake stays absent, adopter state survives, no private source/keys/DB/registry imported, and audited CLI performs only local Git reads')
+ if sys.argv[2]=='upgrade':
+  # AC-14: actual CLI ownership preflight and revision-bound upgrades are atomic.
+  def inventory(path):
+   if not path.exists():return None
+   return {str(item.relative_to(path)):(stat.S_IMODE(item.stat().st_mode),None if item.is_dir() else item.read_bytes())
+           for item in path.rglob('*') if '.git' not in item.relative_to(path).parts}
+  def invoke(destination=target,journal=state,upgrade=False):
+   args=[sys.executable,str(source/'.claude/scripts/factory-adopt.py'),'--from',str(source),'--into',str(destination),'--state-root',str(journal)]
+   if upgrade:args.append('--upgrade')
+   return subprocess.run(args,env=env,text=True,capture_output=True,timeout=60)
+  def success(process,sha):
+   assert process.returncode==0,(process.stdout,process.stderr)
+   value=json.loads(process.stdout);assert value['source_sha']==sha and value['activation_enabled'] is False and not process.stderr
+   return value
+  def blocked(destination,journal,upgrade):
+   saved,history=inventory(destination),inventory(journal)
+   process=invoke(destination,journal,upgrade)
+   assert process.returncode==2 and not process.stdout and 'Harness adoption blocked' in process.stderr
+   assert inventory(destination)==saved,'conflict partially changed target bytes/modes/directories or ownership manifest'
+   assert inventory(journal)==history,'conflict created or changed an adoption journal'
+  protected=base/'operator-policy';protected.mkdir(mode=0o700)
+  private_policy=protected/'intake.json';private_policy.write_text(json.dumps(neutral));private_policy.chmod(0o600)
+  protected_before=inventory(protected)
+  unchanged,history=inventory(target),inventory(state)
+  assert success(invoke(),source_sha)['changed_files']==0
+  assert inventory(target)==unchanged and inventory(state)==history
+  changed=['factory/request-intake.example.json','docs/FACTORY-REQUEST-INTAKE.md','.claude/scripts/factory-intake-scout.py']
+  stricter=dict(neutral,limits=dict(neutral['limits'],request_chars=12000))
+  (source/changed[0]).write_text(json.dumps(stricter,indent=2)+'\n')
+  with (source/changed[1]).open('a') as handle:handle.write('\nIsolated fixture revision B: neutral packaging only.\n')
+  with (source/changed[2]).open('a') as handle:handle.write('\n# Isolated fixture revision B.\n')
+  old_mode=stat.S_IMODE((source/changed[2]).stat().st_mode);(source/changed[2]).chmod(0o644 if old_mode==0o755 else 0o755)
+  git(source,'add','-f','.');git(source,'commit','-m','neutral package revision B');next_sha=git(source,'rev-parse','HEAD')
+  assert next_sha!=source_sha and not git(source,'status','--porcelain')
+  blocked(target,state,False)
+  result=success(invoke(upgrade=True),next_sha);assert result['changed_files']==len(changed)+1
+  updated=json.loads((target/adopt.MANIFEST).read_text());assert updated['source_sha']==next_sha
+  for name in changed:
+   assert (target/name).read_bytes()==(source/name).read_bytes()
+   assert stat.S_IMODE((target/name).stat().st_mode)==stat.S_IMODE((source/name).stat().st_mode)
+   assert updated['files'][name]=={'sha256':hashlib.sha256((source/name).read_bytes()).hexdigest(),'mode':stat.S_IMODE((source/name).stat().st_mode)}
+  assert updated['files'][changed[2]]['mode']!=manifest['files'][changed[2]]['mode']
+  core.validate_contract(json.loads((target/changed[0]).read_text()));assert json.loads((target/changed[0]).read_text())==stricter
+  stable,history=inventory(target),inventory(state)
+  assert success(invoke(upgrade=True),next_sha)['changed_files']==0
+  assert inventory(target)==stable and inventory(state)==history and len(list(state.glob('*.json')))==2
+  for name,data in own.items():assert (target/name).read_text()==data
+  assert inventory(protected)==protected_before
+  assert (target/'.claude/settings.json').read_bytes()==(source/'.claude/settings.json').read_bytes()
+  assert 'intake_config' not in json.loads((target/'factory/feedback.example.json').read_text())
+  assert all(name not in json.dumps(json.loads((target/'.claude/settings.json').read_text())['hooks']) for name in ['request-intake.sh','pre-intake-action.sh','post-intake-action.sh'])
+  print('AC-14: actual CLI upgrades clean source A to B with exact script/template/guide hashes and modes; explicit upgrade required, exact replay is idempotent, adopter policy/state remain unchanged')
+  for index,name in enumerate(changed[:2]):
+   foreign=base/('foreign-'+str(index));initialize(foreign)
+   for path,data in own.items():put(foreign,path,data)
+   put(foreign,name,'foreign adopter-owned intake asset')
+   git(foreign,'add','-f','.');git(foreign,'commit','-m','foreign ownership fixture')
+   foreign_state=base/('foreign-journal-'+str(index))
+   blocked(foreign,foreign_state,False);blocked(foreign,foreign_state,True)
+   assert not (foreign/adopt.MANIFEST).exists() and not foreign_state.exists()
+  customized=base/'customized';initialize(customized);put(customized,'README.md','customized adopter')
+  git(customized,'add','.');git(customized,'commit','-m','customized product')
+  custom_state=base/'customized-journal'
+  git(source,'checkout',source_sha);assert not git(source,'status','--porcelain')
+  success(invoke(customized,custom_state),source_sha)
+  customized_asset=customized/changed[2]
+  with customized_asset.open('a') as handle:handle.write('\n# Adopter customization must survive.\n')
+  git(source,'checkout',next_sha);assert not git(source,'status','--porcelain')
+  blocked(customized,custom_state,True)
+  assert json.loads((customized/adopt.MANIFEST).read_text())['source_sha']==source_sha
+  assert inventory(protected)==protected_before and not list(home.iterdir())
+  for destination in [target,customized]:
+   for name in excluded:
+    if name not in own:assert not (destination/name).exists(),name
+   assert all(not name.endswith(('.sqlite','.db','.key','.pem')) for name in snapshot(destination))
+  print('AC-14: preexisting foreign intake template/guide and locally modified managed script reject before target/manifest/journal mutation; audited CLI retains default-off without provider/network/registry effects')
+
 PYTEST

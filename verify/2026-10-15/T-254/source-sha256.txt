@@ -1,0 +1,2 @@
+6c5aa2862cbd9599a8c7226012e0a38e6584060097d80f044bc8b5b57c1bac81  .claude/scripts/factory-adopt.py
+67b35a346ee496b49df63a79e5d03814b0290ac72d70564a43a88f9bc6c64869  .claude/scripts/test/factory-intake-adoption.sh

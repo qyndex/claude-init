@@ -1504,7 +1504,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-intake-adoption.sh package
   owner: implementer
 
-- [ ] T-254  | spec:050  | phase:3  | priority: security  | created: 2026-10-12  | deps: T-253  | parallel: no  | est: 5m
+- [x] T-254  | spec:050  | phase:3  | priority: security  | created: 2026-10-12  | deps: T-253  | parallel: no  | est: 5m
   summary: Prove fresh adoption upgrade collisions and preserved custom ownership without provider invocation
   files: .claude/scripts/factory-adopt.py, .claude/scripts/test/factory-intake-adoption.sh
   accept: bash .claude/scripts/test/factory-intake-adoption.sh upgrade
