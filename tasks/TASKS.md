@@ -1627,7 +1627,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
 
 ## Approved Spec 014 durable receipt continuation
 
-- [ ] T-275  | spec:014  | phase:1  | priority: security  | created: 2026-10-16  | deps: T-187  | parallel: no  | est: 5m
+- [x] T-275  | spec:014  | phase:1  | priority: security  | created: 2026-10-16  | deps: T-187  | parallel: no  | est: 5m
   summary: Parse strict external receipt profiles and explicit legacy mode
   files: .claude/scripts/factory-receipts.py, factory/receipt-trust.json, .claude/scripts/test/factory-receipt-profiles.sh
   accept: bash .claude/scripts/test/factory-receipt-profiles.sh

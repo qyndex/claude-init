@@ -1,0 +1,7 @@
+# T-275 strict external receipt trust parsing
+
+Implemented only profile parsing and an inactive template; no authentication/reporting integration, live profile, source pins, flags or authority changed. The explicit mode argument cannot fall back. Profile schema requires exact repository, unique bounded identity, active/revoked status, lowercase policy digest and exact complete six-file emitter closure. Legacy revision keys/pins are strict. Both empty template modes reject. Document bound is 262144 bytes; at most 64 profiles and 128 explicit legacy revisions.
+
+Actual RED: acceptance failed because the required external loader was absent. GREEN: 33 behavioral cases passed. Additional malformed-mode RED exposed an unhashable list; guarded type check now rejects it explicitly. Tests cover unknown/self-hash keys, missing keys, duplicate JSON/IDs, closure omissions/extras, repository/status/schema/digests, empty/revoked/no-fallback selection and size bound.
+
+Regressions: existing receipt projection AC-1–4 passed; existing receipt/guardian recovery AC-1–4 passed with process-inspection escalation. Initial sandbox recovery drill timed out; that is not counted as a behavior regression pass. Structural validation exited zero with four existing warnings. No live calls or independent hosted proof are claimed. Later T-276–290 remain pending, including immutable-source authentication, revocation integration, archive and discovery.

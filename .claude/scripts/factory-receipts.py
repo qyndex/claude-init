@@ -26,6 +26,48 @@ RUNTIME_PATHS = ('.github/workflows/factory-merge.yml', '.claude/scripts/factory
 require = coordinator.require
 
 
+def load_receipt_trust(path, repository, *, mode):
+    """Parse separately reviewed trust data; callers must explicitly select a mode.
+
+    This parser alone grants no receipt authority. Authentication integration must
+    independently bind immutable GitHub source bytes and the selected profile.
+    """
+    require(isinstance(mode, str) and mode in {'profile', 'legacy'}, 'explicit receipt trust mode required')
+    raw = Path(path).read_bytes()
+    require(0 < len(raw) <= 262144, 'receipt trust document size exceeds bound')
+    trust = json.loads(raw, object_pairs_hook=coordinator.contract.no_duplicate_keys)
+    require(isinstance(trust, dict) and set(trust) == {'schema_version', 'repository', 'profiles', 'legacy_revisions'}, 'receipt trust schema differs')
+    require(type(trust['schema_version']) is int and trust['schema_version'] == 1, 'receipt trust schema version differs')
+    require(isinstance(repository, str) and re.fullmatch(r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+', repository) is not None and trust['repository'] == repository, 'receipt trust repository differs')
+
+    def runtime(pins):
+        require(isinstance(pins, dict) and set(pins) == set(RUNTIME_PATHS), 'receipt trust runtime closure differs')
+        require(all(coordinator.contract.digest(value, 64) for value in pins.values()), 'receipt trust runtime digest invalid')
+
+    profiles = trust['profiles']
+    require(isinstance(profiles, list) and len(profiles) <= 64, 'receipt trust profiles malformed')
+    identities = set()
+    for profile in profiles:
+        require(isinstance(profile, dict) and set(profile) == {'id', 'status', 'policy_sha256', 'runtime'}, 'receipt trust profile schema differs')
+        identity = profile['id']
+        require(isinstance(identity, str) and re.fullmatch(r'[a-z][a-z0-9-]{0,63}', identity) is not None, 'receipt trust profile identity invalid')
+        require(identity not in identities, 'duplicate receipt trust profile identity')
+        identities.add(identity)
+        require(profile['status'] in ('active', 'revoked'), 'receipt trust profile status invalid')
+        require(coordinator.contract.digest(profile['policy_sha256'], 64), 'receipt trust policy digest invalid')
+        runtime(profile['runtime'])
+    revisions = trust['legacy_revisions']
+    require(isinstance(revisions, dict) and len(revisions) <= 128, 'receipt trust legacy revisions malformed')
+    for revision, pins in revisions.items():
+        require(coordinator.contract.digest(revision, 40), 'receipt trust legacy revision invalid')
+        runtime(pins)
+    if mode == 'profile':
+        require(any(profile['status'] == 'active' for profile in profiles), 'receipt trust active profile missing')
+    else:
+        require(bool(revisions), 'receipt trust legacy revisions missing')
+    return trust
+
+
 def receipt_artifact(api, run):
     name = f'factory-receipt-{run["id"]}-{run["run_attempt"]}'
     pages = api.request(f'repos/{api.repo}/actions/runs/{run["id"]}/artifacts', paginate=True)
