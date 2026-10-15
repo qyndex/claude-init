@@ -1,0 +1,11 @@
+# TDD ledger — red — T-256
+ledger_format: 2
+timestamp: 2026-10-16T01:51:16+11:00
+command: bash .claude/scripts/test/factory-intake-adoption.sh rollback-observability
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 113, in <module>
+  File "actual-hosted-rollback", line 369, in <module>
+AssertionError: protected pause allowed hosted Scout after fresh encrypted restore

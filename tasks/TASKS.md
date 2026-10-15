@@ -1516,7 +1516,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-intake-adoption.sh matrix
   owner: implementer
 
-- [ ] T-256  | spec:050  | phase:3  | priority: security  | created: 2026-10-12  | deps: T-255  | parallel: no  | est: 5m
+- [x] T-256  | spec:050  | phase:3  | priority: security  | created: 2026-10-12  | deps: T-255  | parallel: no  | est: 5m
   summary: Verify protected pause rollback retention and sanitized diagnostics preserve unresolved effects
   files: .claude/scripts/factory-intake.py, .claude/scripts/test/factory-intake-adoption.sh, docs/FACTORY-REQUEST-INTAKE.md
   accept: bash .claude/scripts/test/factory-intake-adoption.sh rollback-observability

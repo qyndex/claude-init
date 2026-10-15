@@ -1,0 +1,12 @@
+# TDD ledger — green — T-256
+ledger_format: 2
+timestamp: 2026-10-16T01:55:05+11:00
+command: bash .claude/scripts/test/factory-intake-adoption.sh rollback-observability
+exit_code: 0
+---
+AC-9/AC-11: paused fresh restore retains authenticated capture as blocked, zero assessment, exact history and fenced direct publication
+AC-9/AC-11: committed unresolved running intent survives pause, unpause and exact retry without deleting history or reassessing
+AC-9/AC-11: pause racing real Scout preserves unknown bound intent, blocks proposal and fences restored reassessment
+AC-9/AC-11: pause at durable proposal barrier preserves unknown action identity and existing private effects across retry
+AC-9/AC-11: pause after encrypted model intent prevents subprocess launch and retains uncertain reservation across unpause
+AC-9/AC-10/AC-14: additive private provenance retained, missing/disabled bound policy cannot downgrade, real CLI/public ciphertext diagnostics exclude private markers

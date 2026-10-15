@@ -1,6 +1,150 @@
 #!/usr/bin/env bash
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
+if [[ "${1:-package}" == rollback-observability ]]; then
+python3 - "$ROOT" <<'ROLLBACK'
+# AC-9/AC-10/AC-11/AC-14: actual encrypted hosted pause and retained recovery state.
+import sys
+from pathlib import Path
+root=Path(sys.argv[1])
+source=(root/'.claude/scripts/test/factory-intake-slack.sh').read_text().split("<<'PYTEST'\n",1)[1].rsplit('\nPYTEST',1)[0]
+needle="            crash[0]=True;client.input=[message('checkpoint',str(int(now.timestamp())-9)+'.000001')]"
+assert source.count(needle)==1
+source=source.replace("'U1'","'UPRIVATEACTORMARKER'")
+source=source.replace("if mode=='invalid':result['result']='not-json'","if mode=='invalid':sys.stderr.write('PRIVATE-PROVIDER-STDERR-MARKER');result['result']='not-json'")
+checks=r"""
+            import contextlib,io,subprocess
+            from concurrent.futures import ThreadPoolExecutor
+            public_stdout=io.StringIO();public_stderr=io.StringIO()
+            marker='PRIVATE-REQUEST-ACTOR-TOKEN-STDERR-MARKER'
+            def mutate(fn):
+                with encrypted.crypto.private_database(snapshot()[0],secret,cryptobinding) as (_,database):
+                    with sqlite3.connect(database) as db:fn(db)
+            def state():
+                raw=encrypted.crypto.unseal(snapshot()[0].bytes,secret,cryptobinding)
+                database=private/'rollback-inspection.sqlite';database.write_bytes(raw)
+                with sqlite3.connect(database) as db:
+                    tables={row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+                    return {name:db.execute('SELECT * FROM '+name+' ORDER BY 1').fetchall() for name in tables if name.startswith('intake_') or name in {'feedback_private_proposals','factory_feedback','control'}}
+            def fresh(mode,offset):
+                client.input=[message(mode,str(int(now.timestamp())-offset)+'.000001')]
+            def paused_run():
+                with contextlib.redirect_stdout(public_stdout),contextlib.redirect_stderr(public_stderr):return run_encrypted(config,api,client,secret,now)
+            mutate(lambda db:db.execute('UPDATE control SET paused=1 WHERE id=1'))
+            before_count=(private/'count').read_text();retained=state();fresh(marker,8)
+            assert paused_run()['captured']==1
+            assert (private/'count').read_text()==before_count,'protected pause allowed hosted Scout after fresh encrypted restore'
+            _,rows,running,drafts=snapshot();paused=next(row for row in rows if marker in row[2])
+            assert paused[4]=='blocked' and paused[6]==0 and json.loads(paused[5])['blocked_reason']=='hosted-paused'
+            assert drafts==old[1] and not running
+            after=state();assert after['intake_actions']==retained['intake_actions'] and after['feedback_private_proposals']==retained['feedback_private_proposals']
+            head,writes=api.head,api.writes;assert paused_run()['captured']==1
+            assert api.head==head and api.writes==writes and (private/'count').read_text()==before_count
+            # Direct publication cannot reuse an already assessed decision during pause.
+            with encrypted.crypto.private_database(snapshot()[0],secret,cryptobinding) as (_,database):
+                adapted=dict(config,runtime_database=str(database));adapter=core.HostedSlackIntake(adapted,policy['stream'],policy,policy['controller_sha256'])
+                rejects(lambda:adapter.publish_proposal(m.f.Feedback(database,'org/repo'),requests[0][0]))
+            print('AC-9/AC-11: paused fresh restore retains authenticated capture as blocked, zero assessment, exact history and fenced direct publication')
+            # An existing committed running intent remains fenced through pause and unpause.
+            mutate(lambda db:db.execute('UPDATE control SET paused=0 WHERE id=1'));fresh('checkpoint',7);crash[0]=True
+            try:paused_run()
+            except RunnerDied:pass
+            else:raise AssertionError('committed running checkpoint did not exercise runner death')
+            crash[0]=False;pending=state();assert snapshot()[2] and (private/'count').read_text()==before_count
+            mutate(lambda db:db.execute('UPDATE control SET paused=1 WHERE id=1'));paused_run()
+            assert state()['intake_assessments']==pending['intake_assessments'] and state()['intake_decision_bindings']==pending['intake_decision_bindings']
+            mutate(lambda db:db.execute('UPDATE control SET paused=0 WHERE id=1'));paused_run()
+            assert state()['intake_assessments']==pending['intake_assessments'] and (private/'count').read_text()==before_count
+            print('AC-9/AC-11: committed unresolved running intent survives pause, unpause and exact retry without deleting history or reassessing')
+            # Protected pause during the actual fake Scout subprocess is durable before its result.
+            (private/'spawned').unlink(missing_ok=True);fresh('slow',6);holders=[];original_ingress=encrypted.ingress.run
+            def tracked(config,*args,**kwargs):
+                holders.append((Path(config['runtime_database']),kwargs['checkpoint_barrier']))
+                return original_ingress(config,*args,**kwargs)
+            encrypted.ingress.run=tracked
+            try:
+                with ThreadPoolExecutor(max_workers=1) as pool:
+                    future=pool.submit(paused_run);deadline=time.monotonic()+3
+                    while not (private/'spawned').exists() and time.monotonic()<deadline:time.sleep(.005)
+                    assert (private/'spawned').exists() and holders,'actual Scout did not start'
+                    with sqlite3.connect(holders[0][0]) as db:db.execute('UPDATE control SET paused=1 WHERE id=1')
+                    holders[0][1]()
+                    assert future.result()['captured']==1
+            finally:encrypted.ingress.run=original_ingress
+            raced=state();unknown=[row for row in raced['intake_assessments'] if row[2]=='unknown']
+            assert len(unknown)==1 and unknown[0][4]=='hosted-paused' and len(snapshot()[3])==1
+            assert int((private/'count').read_text())==int(before_count)+1
+            head=api.head;paused_run();assert api.head==head and state()['intake_assessments']==raced['intake_assessments']
+            mutate(lambda db:db.execute('UPDATE control SET paused=0 WHERE id=1'));paused_run()
+            assert state()['intake_assessments']==raced['intake_assessments'] and int((private/'count').read_text())==int(before_count)+1
+            print('AC-9/AC-11: pause racing real Scout preserves unknown bound intent, blocks proposal and fences restored reassessment')
+            # Pause after durable action reservation but before SQLite proposal effect.
+            fresh('login',5);calls=[0]
+            def at_publication(config,*args,**kwargs):
+                barrier=kwargs['checkpoint_barrier']
+                def paused_barrier():
+                    calls[0]+=1;barrier()
+                    if calls[0]==2:
+                        with sqlite3.connect(config['runtime_database']) as db:db.execute('UPDATE control SET paused=1 WHERE id=1')
+                        barrier()
+                return original_ingress(config,*args,**dict(kwargs,checkpoint_barrier=paused_barrier))
+            encrypted.ingress.run=at_publication
+            try:assert paused_run()['captured']==1
+            finally:encrypted.ingress.run=original_ingress
+            reserved=state();actions=[row for row in reserved['intake_actions'] if row[3]=='unknown']
+            assert len(actions)==1 and actions[0][4] is None and len(snapshot()[3])==1
+            count=(private/'count').read_text();head=api.head;paused_run()
+            assert state()['intake_actions']==reserved['intake_actions'] and api.head==head and (private/'count').read_text()==count
+            print('AC-9/AC-11: pause at durable proposal barrier preserves unknown action identity and existing private effects across retry')
+            # A pause arriving at the pre-model durable barrier must prevent launch too.
+            mutate(lambda db:db.execute('UPDATE control SET paused=0 WHERE id=1'));fresh('login',4);calls=[0]
+            def before_launch(config,*args,**kwargs):
+                barrier=kwargs['checkpoint_barrier']
+                def paused_barrier():
+                    calls[0]+=1;barrier()
+                    if calls[0]==1:
+                        with sqlite3.connect(config['runtime_database']) as db:db.execute('UPDATE control SET paused=1 WHERE id=1')
+                        barrier()
+                return original_ingress(config,*args,**dict(kwargs,checkpoint_barrier=paused_barrier))
+            encrypted.ingress.run=before_launch
+            try:assert paused_run()['captured']==1
+            finally:encrypted.ingress.run=original_ingress
+            prelaunch=state();assert (private/'count').read_text()==count and len(snapshot()[3])==1
+            latest=next(row for row in snapshot()[1] if row[1].endswith('/'+client.input[0]['ts']))
+            attempt=next(row for row in prelaunch['intake_assessments'] if row[0]==latest[0])
+            assert attempt[2]=='unknown' and attempt[3] is None and attempt[4]=='hosted-paused'
+            paused_run();mutate(lambda db:db.execute('UPDATE control SET paused=0 WHERE id=1'));paused_run()
+            assert state()['intake_assessments']==prelaunch['intake_assessments'] and (private/'count').read_text()==count
+            print('AC-9/AC-11: pause after encrypted model intent prevents subprocess launch and retains uncertain reservation across unpause')
+            # Existing disabled/absent config cannot downgrade an already bound hosted store.
+            baseline=api.head;missing={key:value for key,value in config.items() if key!='intake_config'}
+            rejects(lambda:run_encrypted(missing,api,client,secret,now));assert api.head==baseline
+            disabled=private/'disabled-policy.json';disabled.write_text(json.dumps(dict(policy,enabled=False)));disabled.chmod(0o600)
+            rejects(lambda:run_encrypted(dict(config,intake_config=str(disabled)),api,client,secret,now));assert api.head==baseline
+            # A real failing subprocess may emit sensitive stderr; its public outcome stays fixed.
+            fresh('invalid',3);assert paused_run()['captured']==1
+            invalid=next(row for row in snapshot()[1] if row[1].endswith('/'+client.input[0]['ts']))
+            assert invalid[4]=='blocked' and invalid[6]==1 and json.loads(invalid[5])['blocked_reason']=='hosted-assessment-failed'
+            # Real CLI errors sanitize malformed private configuration; no providers can be initialized.
+            bad=private/'malformed.json';bad.write_text('{"private":"'+marker+'",');bad.chmod(0o600)
+            cli=subprocess.run([str(Path(sys.executable).resolve()),str(root/'.claude/scripts/factory-hosted-feedback.py'),'--config',str(bad)],text=True,capture_output=True,timeout=10,env={'PATH':'/usr/bin:/bin'})
+            assert cli.returncode==2 and cli.stdout=='' and cli.stderr=='Hosted feedback blocked; reconcile protected state and configuration. Private data withheld.\n'
+            channels=[public_stdout.getvalue().encode(),public_stderr.getvalue().encode(),cli.stdout.encode(),cli.stderr.encode(),*api.blobs.values(),json.dumps(api.payloads).encode()]
+            assert all(secret_text not in channel for channel in channels for secret_text in [marker.encode(),b'UPRIVATEACTORMARKER',b'PRIVATE-PROVIDER-STDERR-MARKER',b'Proposed login',b'fixture-planning',b'new request requires human approval'])
+            final=state()
+            assert len(final['intake_requests'])>=5 and len(final['intake_assessments'])>=4
+            assert any(marker in row[2] for row in final['intake_requests']) and all(row[3]=='org/repo' for row in final['intake_hosted_identity'])
+            assert snapshot()[2] and len(snapshot()[3])==1
+            assert hosted.GitState(api,config['state_branch'],policy['stream'],config['bootstrap_sha']).bytes==report_before and client.posts==before[2]
+            print('AC-9/AC-10/AC-14: additive private provenance retained, missing/disabled bound policy cannot downgrade, real CLI/public ciphertext diagnostics exclude private markers')
+            sys.exit(0)
+"""
+source=source.replace(needle,checks+'\n'+needle)
+sys.argv=['rollback-fixture',str(root),'checkpoint']
+exec(compile(source,'actual-hosted-rollback','exec'))
+ROLLBACK
+exit 0
+fi
 if [[ "${1:-package}" == matrix ]]; then
   # AC-1 through AC-14: actual adapter journeys; fixtures do not certify live runtimes.
   local_python="${FACTORY_INTAKE_LOCAL_PYTHON:-$(command -v python3)}"

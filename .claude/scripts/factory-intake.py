@@ -348,7 +348,14 @@ class HostedSlackIntake:
         selected=scout.load_assessment(profile_path,[Path(item) for item in self.config.get('implementation_roots',[])])
         return scout,profile,selected
 
+    @staticmethod
+    def execution_enabled(db):
+        rows=db.execute('SELECT paused FROM control WHERE id=1').fetchall()
+        require(len(rows)==1 and type(rows[0][0]) is int and rows[0][0] in (0,1),'hosted runtime control invalid')
+        return rows[0][0]==0
+
     def current_request(self, db, request_id, *, decision=False):
+        require(self.execution_enabled(db),'hosted runtime paused')
         self.validate_store(db)
         row=db.execute('SELECT * FROM intake_requests WHERE id=?',(request_id,)).fetchone()
         require(row is not None and row['status']!='superseded','hosted request superseded or missing')
@@ -374,6 +381,12 @@ class HostedSlackIntake:
                 require(row is not None and decode(row['document'])['feedback_id']==identity,'hosted assessment feedback binding differs')
                 if row['status']=='superseded':continue
                 request_id=row['id'];request=decode(row['document']);revision=row['revision']
+                if not self.execution_enabled(db):
+                    if row['status']=='submitted' and row['decision'] is None and row['assessment_count']==0:
+                        result=Intake.assessment_block(request_id,revision,'hosted-paused')
+                        db.execute("UPDATE intake_requests SET status='blocked',decision=? WHERE id=?",(canonical(result),request_id))
+                        db.execute('INSERT INTO intake_events(request_id,event) VALUES(?,?)',(request_id,'hosted_paused'))
+                    continue
                 self.current_request(db,request_id)
                 db.execute('CREATE TABLE IF NOT EXISTS intake_assessments(request_id TEXT PRIMARY KEY,revision TEXT NOT NULL,status TEXT NOT NULL,result TEXT,reason TEXT)')
                 db.execute('CREATE TABLE IF NOT EXISTS intake_decision_bindings(request_id TEXT PRIMARY KEY,document TEXT NOT NULL)')
@@ -402,6 +415,8 @@ class HostedSlackIntake:
                         db.execute("UPDATE intake_requests SET status='assessing',assessment_count=1 WHERE id=?",(request_id,))
                     # Hosted holders must confirm encrypted intent before any external model effect.
                     if self.checkpoint_barrier is not None:self.checkpoint_barrier()
+                    # The durable checkpoint can race an operator pause before launch.
+                    with feedback.store.transaction() as db:self.current_request(db,request_id)
                     # No SQLite transaction spans the native process.
                     raw_result=scout.run_assessment(self.config['assessment_profile'],[Path(item) for item in self.config.get('implementation_roots',[])],context,**limits)
                     self.ready_assessment()
@@ -426,6 +441,13 @@ class HostedSlackIntake:
                     current=db.execute('SELECT * FROM intake_requests WHERE id=?',(request_id,)).fetchone()
                     if current['status']=='superseded':
                         db.execute("UPDATE intake_assessments SET status='unknown',reason='source-superseded' WHERE request_id=?",(request_id,));continue
+                    if not self.execution_enabled(db):
+                        if binding is not None:
+                            db.execute("UPDATE intake_assessments SET status='unknown',reason='hosted-paused' WHERE request_id=?",(request_id,))
+                        else:
+                            result=Intake.assessment_block(request_id,revision,'hosted-paused')
+                            db.execute("UPDATE intake_requests SET status='blocked',decision=? WHERE id=?",(canonical(result),request_id))
+                        continue
                     self.current_request(db,request_id)
                     attempt=db.execute('SELECT document FROM intake_decision_bindings WHERE request_id=?',(request_id,)).fetchone()
                     if binding is not None:
@@ -438,6 +460,7 @@ class HostedSlackIntake:
                             db.execute('UPDATE intake_decision_bindings SET document=? WHERE request_id=?',(canonical(binding),request_id))
                     db.execute('UPDATE intake_requests SET status=?,decision=? WHERE id=?',('decided' if state=='completed' else 'blocked',canonical(result),request_id))
             with feedback.store.transaction() as db:
+                if not self.execution_enabled(db):continue
                 current,_=self.current_request(db,request_id)
                 result=decode(current['decision']) if current['decision'] is not None else None
             if result is not None and result['next_action']=='draft':self.publish_proposal(feedback,request_id)

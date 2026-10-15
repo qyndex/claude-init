@@ -1,0 +1,3 @@
+9bf25e55d23f88e70e2cdda4a7ed9147ef5f8d238f35ac97393ba7b31cc6f48e  .claude/scripts/factory-intake.py
+f7f545c7c0cb8d8da9afaff5c3b8cfe4bf3d68c3ac0a4296fdfb4b54e08c8c08  .claude/scripts/test/factory-intake-adoption.sh
+2bb4bd77314232fa6dfd7e30cb9e35468aa1903ea4cadfbde703fe39017db77a  docs/FACTORY-REQUEST-INTAKE.md
