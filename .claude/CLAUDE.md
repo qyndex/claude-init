@@ -57,13 +57,14 @@
 
 ## V. `<model_routing>`
 
-- **Opus 4.8** → architect, implementer, reviewer, security, debugger, designer, extractor (hard thinking / high-craft)
+- **Opus 4.8** → architect, implementer, security, debugger, designer, extractor (hard thinking / high-craft)
+- **Sonnet 5.5** → reviewer (operator-selected independent review; `claude-sonnet-5-5`)
 - **Sonnet 4.6** → planner, tester, verifier, researcher, doc-writer, release, roadmap-architect, coordinator, feature-stream, feedback-extractor, anti-slop-reviewer (daily driver; Round 5 demoted the orchestration agents)
 - **Haiku 4.5** → `Explore` subagent (built-in), keyword routing, simple greps
 
 **Rule of thumb:** Sonnet unless proven otherwise. This list is authoritative — every agent's frontmatter `model:` must match it.
 
-**Cross-model review (gap-audit G46):** the CI gating reviewer (`claude-review.yml`) must NOT resolve to the same model id as the implementer agent — same-model review shares blind spots. Implementer is Opus 4.8 → the CI review job runs Sonnet 4.6. `check-model-consistency.sh` fails on drift.
+**Cross-model review (gap-audit G46):** the CI gating reviewer (`claude-review.yml`) must NOT resolve to the same model id as the implementer agent — same-model review shares blind spots. Implementer is Opus 4.8 → the CI review job runs Sonnet 5.5. `check-model-consistency.sh` fails on drift.
 
 ---
 

@@ -101,7 +101,7 @@ How the pieces of this harness fit together.
 | **planner** | core | sonnet | Read, Edit (TASKS only), TodoWrite | decompose plans into atomic tasks |
 | **implementer** | core | opus | Read, Edit, Write, Bash, TodoWrite | TDD per task → commit |
 | **tester** | quality | sonnet | Read, Edit, Write, Bash | expand coverage, mutation testing |
-| **reviewer** | quality | opus | Read, Glob, Grep, Bash | multi-pass code review (read-only) |
+| **reviewer** | quality | claude-sonnet-5-5 | Read, Glob, Grep, Bash | multi-pass code review (read-only) |
 | **security** | quality | opus | Read, Glob, Grep, Bash, WebFetch | OWASP + LLM Top 10 audit (read-only) |
 | **verifier** | quality | sonnet | Read, Bash, WebFetch + browser MCP | run app, exercise journey, capture evidence |
 | **debugger** | specialist | opus | Read, Glob, Grep, Bash, WebSearch | systematic 4-phase debugging |
@@ -117,7 +117,8 @@ How the pieces of this harness fit together.
 | **feedback-extractor** | specialist | sonnet | Read, Glob, Grep, WebFetch, Write | pulls customer signal from transcripts/tickets/surveys into structured entries |
 
 **Tiered model assignment** (from `wshobson/agents`):
-- Opus for hard-thinking: architecture, security, debugging, code review
+- Opus for hard-thinking: architecture, security, debugging
+- Sonnet 5.5 (`claude-sonnet-5-5`) for the operator-selected reviewer and `/review` skill
 - Sonnet for everyday work: planning, verifying, testing, releasing, doc-writing
 - Haiku for retrieval (via `Explore` subagent): grep, file searches, summaries
 

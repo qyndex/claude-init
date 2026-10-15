@@ -1,0 +1,18 @@
+{
+  ".claude/CLAUDE.md": "846ecb48fe2a637571ffbf5579647c4cafacb09721513c3529f7174d2ebce479",
+  ".claude/agents/quality/reviewer.md": "3df0c8f46e88914a8e6c292af9557be01f1b7321d60c22f93c494f51b852fcb6",
+  ".claude/scripts/check-doc-consistency.sh": "c6502f125d5b0269c88a8dcc0c66222b6fe5db59f3b004a0cd5aef19a7a1d00d",
+  ".claude/scripts/factory-producer.py": "f9a119daed1569aa0e7d4c3f4a06920d269e7848930e9233b0b02f57b382430f",
+  ".claude/scripts/test/factory-producers.sh": "885d0e0c6989c759c0630160a1f9e5a956e68cfe88b2169c91f68d79f74b2953",
+  ".claude/scripts/test/factory-review-runtime.sh": "f3124f6d2eaf9e997f79466ce7d861d653d7137e6d1a2ffe26359a84f5f146a2",
+  ".claude/skills/review/SKILL.md": "221a6fca7833dba2665fc50730b19ff5415f97338f523a193a5e24b89aee07b8",
+  ".github/workflows/claude-review.yml": "1762ac514717a153dd6ce50a3454ac2fcdad5b260d9fb744520adc9897555c90",
+  ".github/workflows/claude-security.yml": "3f02c7d120953c47cf3cd97c81927803a07c47f4a268a4aa4922d88d685c0ae7",
+  ".github/workflows/pr-review.yml": "cbd496eef1c5c7d1ac014a26e18c78901b848de61a3983a49a9ea488be0b5c91",
+  "CLAUDE.md": "ee1dfc39aedbdd3ea4c69310fd81845a7bc62f79d9926b2407e32f79d5250035",
+  "docs/ARCHITECTURE.md": "bad86d5a5562fc616a4985358a5cf44d6ece9ec72efec0d369ec1921a4f266b9",
+  "docs/FACTORY-PRODUCERS.md": "3b70e64a69175e5a15f00ba12a271c7cc34fee4089b1c734991df04c783cec4e",
+  "plans/active/045-hosted-review-runtime.md": "13a7c80258bc32130d15824f59bdaf51ee2f1e0ef386ab96a478f844b4927677",
+  "specs/active/045-hosted-review-runtime.md": "b49aa8015201a5358868cb926f09d72c89ee00de6bef5028ca30810f42bd4804",
+  ".claude/scripts/test/factory-review-model.sh": "ecc6d8dff110775ceef37de4141261ba95d5d5aee77b5929759672f1ea8746c4"
+}

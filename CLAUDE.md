@@ -89,7 +89,8 @@ Routines       .claude/routines/          — Cloud Routine YAML (overnight-buil
 
 **Agent model assignments** (frontmatter `model:` must match):
 
-- Opus 4.8: architect, implementer, reviewer, security, debugger, designer, extractor
+- Opus 4.8: architect, implementer, security, debugger, designer, extractor
+- Sonnet 5.5: reviewer
 - Sonnet 4.6: planner, tester, verifier, researcher, doc-writer, release, roadmap-architect, coordinator, feature-stream, feedback-extractor, anti-slop-reviewer
 - Haiku 4.5: `Explore` subagent (retrieval only)
 

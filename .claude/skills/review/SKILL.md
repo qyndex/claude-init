@@ -3,7 +3,7 @@ name: review
 description: Run code review and (optionally) security review on the current diff. Phase 7 of the eight-phase workflow. Delegates to reviewer + security agents. Multi-pass — each finding is re-verified to filter false positives (Anthropic pattern).
 when_to_use: Implementation + verification complete; about to /ship. User says "review", "code review", "security review", "audit", "lgtm?".
 argument-hint: "[--security] [--diff <ref>]"
-model: opus
+model: claude-sonnet-5-5
 allowed-tools: Read, Glob, Grep, Bash, TodoWrite
 ---
 

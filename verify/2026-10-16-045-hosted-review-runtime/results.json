@@ -1,0 +1,33 @@
+{
+  "runner": "shell-acceptance-recorder",
+  "source_sha": "f2e14119001141748a410f86d2ffb7cb50f7be19",
+  "independent_attestation": false,
+  "commands": [
+    "bash .claude/scripts/test/factory-review-runtime.sh"
+  ],
+  "testResults": [
+    {
+      "assertionResults": [
+        {
+          "fullName": "AC-1: file-backed large prompt and actual subprocess flood/timeout bounds",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-2: fresh neutral environment, explicit executable launch and fixed OAuth pilot",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-3: wrong/missing models, invalid usage, errors and unresolved verdicts reject",
+          "status": "passed"
+        },
+        {
+          "fullName": "AC-4: transitive helper pins, existing producer and full workflow lint regressions",
+          "status": "passed"
+        }
+      ]
+    }
+  ],
+  "source_state": "working tree; exact changed-source hashes in verify/2026-10-16/T-273/source-hashes.json",
+  "log": "verify/2026-10-16/T-273/runtime.log",
+  "log_sha256": "2e29f7ce3997398808e377232ef6f546e105bf6ebd12d34ab1f707a0b2b21d90"
+}

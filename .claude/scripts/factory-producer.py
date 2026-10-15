@@ -165,15 +165,15 @@ def review(prompt, binding, actor, runner=bounded.run):
         env.update(HOME=directory, CLAUDE_CONFIG_DIR=directory, TMPDIR=directory)
         stream.write(prompt.encode()); stream.seek(0)
         process = runner([str(node.resolve()), str(executable.resolve()), '--safe-mode', '--no-session-persistence', '--disable-slash-commands',
-                          '--setting-sources', '', '--tools', '', '--model', 'claude-sonnet-4-6',
+                          '--setting-sources', '', '--tools', '', '--model', 'claude-sonnet-5-5',
                           '--max-turns', '1', '--output-format', 'json', '--json-schema', json.dumps(schema), '-p'],
                          cwd=directory, env=env, stdin=stream, timeout=300, max_timeout=300)
     require(process.returncode == 0, 'independent review execution failed; inspect credential capacity')
     result = json.loads(process.stdout, object_pairs_hook=coordinator.contract.no_duplicate_keys)
     require(isinstance(result, dict) and result.get('type') == 'result' and result.get('is_error') is False and result.get('subtype') == 'success', 'model did not complete review')
     models = result.get('modelUsage')
-    require(isinstance(models, dict) and set(models) == {'claude-sonnet-4-6'}, 'review model usage differs from protected model')
-    usage = models['claude-sonnet-4-6']
+    require(isinstance(models, dict) and set(models) == {'claude-sonnet-5-5'}, 'review model usage differs from protected model')
+    usage = models['claude-sonnet-5-5']
     require(isinstance(usage, dict), 'review usage invalid')
     for field in ('inputTokens', 'outputTokens', 'cacheReadInputTokens', 'cacheCreationInputTokens'):
         value = usage.get(field)

@@ -47,12 +47,12 @@ extract_mappings() {
   # Version-agnostic tier match: normalize to a tier keyword (opus/sonnet/haiku)
   # rather than a pinned version. A hardcoded version (e.g. "Opus 4.7") silently
   # drops a whole tier the moment the constitution bumps the version, making this
-  # consistency gate pass by comparing empty-vs-empty. Match the tier, any minor.
-  grep -E '^\-[[:space:]](\*\*)?(Opus|Sonnet|Haiku) 4\.[0-9]' "$file" \
+  # consistency gate pass by comparing empty-vs-empty. Match the tier, any major and minor.
+  grep -E '^\-[[:space:]](\*\*)?(Opus|Sonnet|Haiku) [0-9]+\.[0-9]+' "$file" \
     | while IFS= read -r line; do
-        if echo "$line" | grep -qE 'Opus 4\.[0-9]';     then model="opus"
-        elif echo "$line" | grep -qE 'Sonnet 4\.[0-9]'; then model="sonnet"
-        elif echo "$line" | grep -qE 'Haiku 4\.[0-9]';  then model="haiku"
+        if echo "$line" | grep -qE 'Opus [0-9]+\.[0-9]+';     then model="opus"
+        elif echo "$line" | grep -qE 'Sonnet [0-9]+\.[0-9]+'; then model="sonnet"
+        elif echo "$line" | grep -qE 'Haiku [0-9]+\.[0-9]+';  then model="haiku"
         else continue
         fi
         parse_routing_line "$line" "$model"
