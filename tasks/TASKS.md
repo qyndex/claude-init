@@ -137,6 +137,13 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
 
 ## Active
 
+- [x] T-274  | spec:010  | phase:1  | priority: security  | created: 2026-10-16  | deps: T-183  | parallel: no  | est: 30m
+  summary: Bind real protected producer provenance to immutable candidate metadata and actual execution base
+  files: .claude/scripts/factory-preflight.py, .claude/scripts/factory-receipts.py, docs/FACTORY-PRODUCERS.md, .claude/scripts/factory-producer.py, .claude/scripts/factory-coordinator.py, .claude/scripts/factory-provenance.py, .claude/scripts/test/factory-producers.sh, .claude/scripts/test/factory-coordinator.sh, .claude/scripts/test/factory-provenance.sh, .github/workflows/factory-verification.yml, .github/workflows/factory-review.yml, docs/FACTORY-ACTIVATION.md
+  accept: bash .claude/scripts/test/factory-producers.sh && bash .claude/scripts/test/factory-coordinator.sh && bash .claude/scripts/test/factory-provenance.sh
+  owner: implementer
+
+
 - [x] T-273  | spec:045  | phase:1  | priority: security  | created: 2026-10-14  | deps:  | parallel: no  | est: 5m
   summary: Pin reviewer execution and observed model validation to operator-selected Claude Sonnet 5.5
   files: .claude/agents/quality/reviewer.md, .claude/skills/review/SKILL.md, .claude/CLAUDE.md, CLAUDE.md, .github/workflows/claude-review.yml, .github/workflows/claude-security.yml, .github/workflows/pr-review.yml, .claude/scripts/factory-producer.py, .claude/scripts/test/factory-review-model.sh, .claude/scripts/test/factory-review-runtime.sh, .claude/scripts/test/factory-producers.sh, docs/FACTORY-PRODUCERS.md, docs/ARCHITECTURE.md, .claude/scripts/check-doc-consistency.sh

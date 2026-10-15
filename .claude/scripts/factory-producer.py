@@ -19,6 +19,9 @@ spec = importlib.util.spec_from_file_location('coordinator', Path(__file__).with
 coordinator = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(coordinator)
 require = coordinator.require
+spec = importlib.util.spec_from_file_location('provenance', Path(__file__).with_name('factory-provenance.py'))
+provenance = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(provenance)
 spec = importlib.util.spec_from_file_location('bounded', Path(__file__).with_name('factory-bounded-process.py'))
 bounded = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(bounded)
@@ -39,13 +42,16 @@ def candidate(api, policy, number, run_id, role):
     run = api.get(f'repos/{repo}/actions/runs/{run_id}')
     producer = policy['producers'][role]
     require(run['workflow_id'] == producer['workflow_id'] and run['event'] == 'pull_request_target', 'wrong producer workflow/event')
-    require(run['head_sha'] == pr['base']['sha'] and run['head_repository']['full_name'] == repo, 'stale or foreign producer run')
+    require(run['id'] == run_id and run['repository']['full_name'] == repo and run['head_sha'] == pr['head']['sha'] and run['head_repository']['full_name'] == repo, 'stale or foreign producer run')
+    require(run['path'] == f'.github/workflows/factory-{role}.yml', 'producer workflow path differs')
+    execution = provenance.execution_base(policy, role, run, number)
+    require(execution == pr['base']['sha'], 'protected execution base changed')
     require(producer.get('event') == 'pull_request_target', 'protected default-branch producer event required')
     require(coordinator.runtime_paths(role) <= set(producer['trusted_files']), 'complete trusted runtime pins missing')
     for path, digest in producer['trusted_files'].items():
         require(coordinator.matches(path, policy['protected_paths']), 'unprotected producer runtime')
         require(coordinator.contract.digest(digest, 64), 'invalid runtime hash')
-        require(hashlib.sha256(api.source(path, run['head_sha'])).hexdigest() == digest, 'protected producer runtime changed')
+        require(hashlib.sha256(api.source(path, execution)).hexdigest() == digest, 'protected producer runtime changed')
         require(hashlib.sha256(api.source(path, pr['head']['sha'])).hexdigest() == digest, 'candidate changes producer runtime')
     content = api.source(approved['path'], pr['base']['sha'])
     require(hashlib.sha256(content).hexdigest() == approved['sha256'], 'approved spec bytes changed')

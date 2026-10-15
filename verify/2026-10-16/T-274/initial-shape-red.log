@@ -1,0 +1,10 @@
+# TDD ledger — red — T-274
+ledger_format: 2
+timestamp: 2026-10-16T09:04:09+11:00
+command: bash .claude/scripts/test/factory-producers.sh && bash .claude/scripts/test/factory-coordinator.sh && bash .claude/scripts/test/factory-provenance.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 34, in <module>
+AssertionError: signed provenance execution boundary absent

@@ -34,7 +34,7 @@ def main():
         if definition.get('event') != 'pull_request_target' or definition.get('check_name') != expected:
             missing.append(f'{role} protected event and candidate-check identity')
         paths = {f'.github/workflows/factory-{role}.yml', '.claude/scripts/factory-producer.py',
-                 '.claude/scripts/factory-producer-check.py', '.claude/scripts/factory-coordinator.py',
+                 '.claude/scripts/factory-producer-check.py', '.claude/scripts/factory-coordinator.py', '.claude/scripts/factory-provenance.py',
                  '.claude/scripts/validate-candidate-evidence.py', '.claude/scripts/factory-bounded-process.py'}
         if not paths <= set(definition.get('trusted_files', {})):
             missing.append(f'{role} complete transitive runtime hashes')

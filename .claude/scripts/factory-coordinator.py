@@ -17,6 +17,9 @@ _contract_spec = importlib.util.spec_from_file_location('contract', Path(__file_
 contract = importlib.util.module_from_spec(_contract_spec)
 _contract_spec.loader.exec_module(contract)
 require = contract.require
+_provenance_spec = importlib.util.spec_from_file_location('provenance', Path(__file__).with_name('factory-provenance.py'))
+provenance = importlib.util.module_from_spec(_provenance_spec)
+_provenance_spec.loader.exec_module(provenance)
 
 
 def policy_hash(policy):
@@ -31,7 +34,7 @@ def matches(path, patterns):
 def runtime_paths(role):
     require(role in ('verification', 'review'), 'unknown producer role')
     return {f'.github/workflows/factory-{role}.yml', '.claude/scripts/factory-producer.py',
-            '.claude/scripts/factory-producer-check.py', '.claude/scripts/factory-coordinator.py',
+            '.claude/scripts/factory-producer-check.py', '.claude/scripts/factory-provenance.py', '.claude/scripts/factory-coordinator.py',
             '.claude/scripts/validate-candidate-evidence.py', '.claude/scripts/factory-bounded-process.py'}
 
 
@@ -109,7 +112,8 @@ def coordinate(api, policy, number, merge=False):
             require(link is not None, f'producer check must identify its authenticated run: {repo} / {selected[0].get("details_url")}')
             run = api.get(f'{root}/actions/runs/{link[1]}')
             require(run['workflow_id'] == producer['workflow_id'] and run['event'] == 'pull_request_target', 'wrong protected producer run')
-            require(run['head_sha'] == base, 'protected producer base changed')
+            require(run['id'] == int(link[1]) and run['head_sha'] == head, 'protected producer candidate changed')
+            require(run['repository']['full_name'] == repo and run['path'] == f'.github/workflows/factory-{role}.yml', 'protected producer repository/path differs')
         else:
             relevant = [run for run in runs if run['workflow_id'] == producer['workflow_id']]
             require(bool(relevant), f'{role}: trusted run missing')
@@ -124,9 +128,9 @@ def coordinate(api, policy, number, merge=False):
             require(matches(path, policy['protected_paths']), 'trusted runtime must be an authority-protected path')
             require(hashlib.sha256(api.source(path, head)).hexdigest() == digest, f'{role}: runtime definition changed')
             if target_event:
-                require(hashlib.sha256(api.source(path, run['head_sha'])).hexdigest() == digest, f'{role}: protected runtime definition changed')
+                require(hashlib.sha256(api.source(path, base)).hexdigest() == digest, f'{role}: protected runtime definition changed')
         artifact_name = producer['artifact_name'] + (f'-pr-{number}' if target_event else '')
-        document, blobs = api.artifact(run, artifact_name)
+        document, blobs = api.artifact(run, artifact_name, policy=policy, role=role, base=base) if target_event else api.artifact(run, artifact_name)
         documents[role] = document
         authorities[role] = f'workflow:{run["workflow_id"]}/run:{run["id"]}'
         selected_runs.append(run)
@@ -191,11 +195,14 @@ class GitHub:
         require(value.get('encoding') == 'base64', 'trusted source unavailable')
         return base64.b64decode(value['content'])
 
-    def artifact(self, run, name):
+    def artifact(self, run, name, *, policy=None, role=None, base=None):
         pages = self.request(f'repos/{self.repo}/actions/runs/{run["id"]}/artifacts', paginate=True)
         artifacts = [item for page in pages for item in page['artifacts'] if item['name'] == name and not item['expired']]
         require(len(artifacts) == 1, 'trusted artifact missing or ambiguous')
         artifact = artifacts[0]
+        if policy is not None:
+            metadata = artifact.get('workflow_run', {})
+            require(metadata.get('id') == run['id'] and metadata.get('head_sha') == run['head_sha'] and metadata.get('head_repository_id') == run['head_repository']['id'] and metadata.get('repository_id') == run['repository']['id'], 'artifact run origin differs')
         require(0 < artifact['size_in_bytes'] <= 4_000_000 and isinstance(artifact.get('digest'), str), 'artifact size/digest unavailable')
         blob = self.request(f'repos/{self.repo}/actions/artifacts/{artifact["id"]}/zip', raw=True)
         require(len(blob) <= 4_000_000 and artifact['digest'] == 'sha256:' + hashlib.sha256(blob).hexdigest(), 'artifact archive digest mismatch')
@@ -205,12 +212,15 @@ class GitHub:
             require(sum(item.file_size for item in archive.infolist()) <= 8_000_000, 'unpacked artifact too large')
             attachments = {}
             for name in names:
-                if name == 'evidence.json':
+                if name == 'evidence.json' or (policy is not None and name == 'provenance.sigstore.json'):
                     continue
                 require(re.fullmatch(r'artifacts/[0-9a-f]{64}', name) is not None, 'unexpected artifact entry')
                 contents = archive.read(name)
                 require(hashlib.sha256(contents).hexdigest() == name.split('/')[1], 'observation digest mismatch')
                 attachments[name.split('/')[1]] = contents
+            if policy is not None:
+                require('provenance.sigstore.json' in names, 'signed producer root missing')
+                provenance.verify(archive.read('evidence.json'), archive.read('provenance.sigstore.json'), policy, role, run, base)
             document = json.loads(archive.read('evidence.json'), object_pairs_hook=contract.no_duplicate_keys)
             return document, attachments
 

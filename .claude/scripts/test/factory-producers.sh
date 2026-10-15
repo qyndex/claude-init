@@ -15,7 +15,7 @@ p={'enabled':True,'repository':repo,'base_branch':'main','protected_paths':['.gi
  'producers':{'verification':{'workflow_id':10,'event':'pull_request_target','trusted_files':{'.github/proof.yml':hashlib.sha256(b'trusted').hexdigest()}}}}
 p['producers']['verification']['trusted_files']={path:hashlib.sha256(b'trusted').hexdigest() for path in m.coordinator.runtime_paths('verification')}
 pr={'state':'open','draft':False,'merged':False,'changed_files':1,'head':{'sha':head,'ref':'factory/spec-010/pilot','repo':{'full_name':repo}},'base':{'sha':base,'ref':'main','repo':{'full_name':repo}}}
-run={'workflow_id':10,'event':'pull_request_target','head_sha':base,'head_repository':{'full_name':repo}}
+run={'id':1,'run_attempt':1,'repository':{'full_name':repo},'path':'.github/workflows/factory-verification.yml','workflow_id':10,'event':'pull_request_target','head_sha':head,'head_repository':{'full_name':repo}}
 class API:
  def __init__(self):self.pr=copy.deepcopy(pr);self.run=copy.deepcopy(run);self.files=[{'filename':'src/app.py','status':'modified'}];self.bad_spec=False;self.bad_runtime=False
  def get(self,path):
@@ -35,9 +35,18 @@ def rejects(fn):
  try:fn()
  except (ValueError,KeyError,TypeError):passed+=1;return
  raise AssertionError('invalid producer input accepted')
+if hasattr(m,'provenance'):m.provenance.execution_base=lambda *args:base
 succeeds(lambda:m.candidate(API(),p,42,1,'verification'))
-for change in [lambda a:a.pr.update(draft=True),lambda a:a.pr['head']['repo'].update(full_name='foreign/repo'),lambda a:a.run.update(head_sha=head),lambda a:a.run.update(event='pull_request'),lambda a:a.run.update(workflow_id=99),lambda a:a.pr.update(changed_files=2),lambda a:a.files[0].update(filename='factory/policy.json'),lambda a:a.files[0].update(filename='other/app.py'),lambda a:setattr(a,'bad_spec',True),lambda a:setattr(a,'bad_runtime',True),lambda a:a.files[0].update(previous_filename='.github/old.yml')]:
+for change in [lambda a:a.pr.update(draft=True),lambda a:a.pr['head']['repo'].update(full_name='foreign/repo'),lambda a:a.run.update(head_sha=base),lambda a:a.run.update(event='pull_request'),lambda a:a.run.update(workflow_id=99),lambda a:a.pr.update(changed_files=2),lambda a:a.files[0].update(filename='factory/policy.json'),lambda a:a.files[0].update(filename='other/app.py'),lambda a:setattr(a,'bad_spec',True),lambda a:setattr(a,'bad_runtime',True),lambda a:a.files[0].update(previous_filename='.github/old.yml')]:
  a=API();change(a);rejects(lambda:m.candidate(a,p,42,1,'verification'))
+# Captured API behavior: mutable associations cannot replace immutable run candidate identity.
+a=API();a.run['pull_requests']=[{'number':42,'head':{'sha':'f'*40},'base':{'sha':'f'*40}}];succeeds(lambda:m.candidate(a,p,42,1,'verification'))
+for change in [lambda a:a.run.update(id=999),lambda a:a.run['repository'].update(full_name='foreign/repo'),lambda a:a.run.update(path='.github/workflows/foreign.yml'),lambda a:a.run.update(head_sha='f'*40)]:
+ a=API();change(a);rejects(lambda:m.candidate(a,p,42,1,'verification'))
+if hasattr(m,'provenance'):
+ m.provenance.execution_base=lambda *args:'f'*40
+ rejects(lambda:m.candidate(API(),p,42,1,'verification'))
+ m.provenance.execution_base=lambda *args:base
 bad=copy.deepcopy(p);bad['enabled']=False;rejects(lambda:m.candidate(API(),bad,42,1,'verification'))
 bad=copy.deepcopy(p);bad['specs']['010']['ac_ids']=['AC-1','AC-2'];rejects(lambda:m.candidate(API(),bad,42,1,'verification'))
 approved=p['specs']['010'];binding=m.candidate(API(),p,42,1,'verification')[4];actor='workflow:10/run:1'

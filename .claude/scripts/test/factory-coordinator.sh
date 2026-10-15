@@ -40,7 +40,7 @@ class Fake:
   if '/actions/runs/' in path:return next(run for run in self.runs if str(run['id'])==path.rsplit('/',1)[1])
   raise AssertionError(path)
  def source(self,path,sha):return b'tampered' if self.bad_source else b'trusted'
- def artifact(self,run,name):
+ def artifact(self,run,name,**provenance):
   if self.bad_artifact:raise ValueError('artifact digest mismatch')
   return self.docs[run['id']],{hashlib.sha256(proof).hexdigest():proof}
  def post(self,path,payload):self.calls.append((path,payload));return {'id':123,'merged':True,'sha':'d'*40}
@@ -102,11 +102,15 @@ f=Fake()
 f.rules[1]['parameters']['required_status_checks'] += [{'context':name,'integration_id':123} for name in ('factory-verification','factory-independent-review')]
 for index,name in enumerate(('factory-verification','factory-independent-review'),1):
  f.checks.append({'name':name,'head_sha':head,'app':{'id':123},'id':88+index,'status':'completed','conclusion':'success','details_url':f'https://github.com/qyndex/claude-init/actions/runs/{index}'})
- f.runs[index-1].update(event='pull_request_target',head_sha=base,pull_requests=[])
+ f.runs[index-1].update(event='pull_request_target',head_sha=head,pull_requests=[],repository={'full_name':policy['repository']},path=f'.github/workflows/factory-{("verification","review")[index-1]}.yml')
 ph=m.policy_hash(p)
 for document in f.docs.values():document['policy_sha256']=ph
 check(f,p,valid=True)
-for mutate in [lambda a:a.checks[-1].update(details_url='https://foreign/run/2'),lambda a:a.runs[-1].update(head_sha=head),lambda a:a.runs[-1].update(event='workflow_dispatch'),lambda a:a.runs[-1].update(workflow_id=999)]:
+for mutate in [lambda a:a.checks[-1].update(details_url='https://foreign/run/2'),lambda a:a.runs[-1].update(head_sha=base),lambda a:a.runs[-1].update(event='workflow_dispatch'),lambda a:a.runs[-1].update(workflow_id=999)]:
  bad=copy.deepcopy(f);bad.calls=[];mutate(bad);check(bad,p)
-print(f'passed: {len(mutations)+13}; failed: 0')
+# Old immutable candidate cannot be rescued by updated mutable PR associations.
+bad=copy.deepcopy(f);bad.calls=[];bad.runs[-1]['head_sha']='f'*40;bad.runs[-1]['pull_requests']=[{'number':42,'head':{'sha':head},'base':{'sha':base}}];check(bad,p)
+for mutate in [lambda a:a.pr['base'].update(sha='f'*40),lambda a:[doc.update(base_sha='f'*40) for doc in a.docs.values()],lambda a:a.runs[-1].pop('repository'),lambda a:a.runs[-1].update(repository={'full_name':'foreign/repo'}),lambda a:a.runs[-1].update(path='.github/workflows/foreign.yml')]:
+ bad=copy.deepcopy(f);bad.calls=[];mutate(bad);check(bad,p)
+print(f'passed: {len(mutations)+19}; failed: 0')
 PY

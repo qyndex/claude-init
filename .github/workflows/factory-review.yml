@@ -7,6 +7,8 @@ permissions:
   contents: read
   actions: read
   checks: write
+  id-token: write
+  attestations: write
 concurrency:
   group: factory-review-${{ github.event.pull_request.number }}
   cancel-in-progress: false
@@ -48,6 +50,21 @@ jobs:
           FACTORY_REVIEW_EXECUTABLE="$(npm root -g)/@anthropic-ai/claude-code/cli-wrapper.cjs" \
           python3 .claude/scripts/factory-producer.py --role review --policy factory/policy.json \
             --pr "$PR" --run-id "$GITHUB_RUN_ID" --check-state /tmp/producer-check.json --output producer-output
+      - name: Sign exact producer evidence with GitHub provenance
+        id: signature
+        if: steps.proof.outcome == 'success'
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: producer-output/evidence.json
+      - name: Preserve bounded signature bundle
+        id: signature_bundle
+        if: steps.signature.outcome == 'success'
+        env:
+          BUNDLE: ${{ steps.signature.outputs.bundle-path }}
+        run: |
+          test -f "$BUNDLE"
+          test "$(wc -c < "$BUNDLE")" -le 1000000
+          cp "$BUNDLE" producer-output/provenance.sigstore.json
       - name: Preserve authenticated proof bytes
         id: upload
         if: always() && steps.proof.outcome != 'skipped'
@@ -64,9 +81,11 @@ jobs:
           PR: ${{ github.event.pull_request.number }}
           PROOF: ${{ steps.proof.outcome }}
           UPLOAD: ${{ steps.upload.outcome }}
+          SIGNATURE: ${{ steps.signature.outcome }}
+          SIGNATURE_BUNDLE: ${{ steps.signature_bundle.outcome }}
         run: |
           verdict=failure
-          if [ "$PROOF" = success ] && [ "$UPLOAD" = success ]; then verdict=success; fi
+          if [ "$PROOF" = success ] && [ "$SIGNATURE" = success ] && [ "$SIGNATURE_BUNDLE" = success ] && [ "$UPLOAD" = success ]; then verdict=success; fi
           python3 .claude/scripts/factory-producer-check.py --role review \
             --repository "$GITHUB_REPOSITORY" --pr "$PR" --run-id "$GITHUB_RUN_ID" \
             --state /tmp/producer-check.json --finish "$verdict"
