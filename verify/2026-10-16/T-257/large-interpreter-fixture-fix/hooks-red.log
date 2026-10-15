@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "<stdin>", line 137, in <module>
+  File "assembled-hooks-fixture", line 197, in <module>
+  File "/private/tmp/spec050-merge-ramkcle3/.claude/scripts/factory-intake.py", line 567, in __init__
+    self.config = load_contract(self.path)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/spec050-merge-ramkcle3/.claude/scripts/factory-intake.py", line 129, in load_contract
+    require(digest(read_file(source, 8000000))==expected, 'intake trusted bytes changed')
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/spec050-merge-ramkcle3/.claude/scripts/factory-intake.py", line 67, in read_file
+    require(stat.S_ISREG(info.st_mode) and info.st_nlink==1 and info.st_size<=maximum,
+  File "/private/tmp/spec050-merge-ramkcle3/.claude/scripts/factory-intake.py", line 20, in require
+    raise ValueError(message)
+ValueError: intake file type/size invalid

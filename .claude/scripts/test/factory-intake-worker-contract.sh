@@ -80,6 +80,22 @@ with tempfile.TemporaryDirectory() as d:
  with native.open('wb') as stream:stream.truncate(512*1024*1024+1)
  reject(lambda:m.load_worker_contract(contract_path,'T-1'))
  native.write_bytes(original_native);proof.write_bytes(original_proof);profile.clear();profile.update(original_profile);guard['observation']['sha256']=sha(proof);save()
+ # Designated interpreters use the executable pin chain, not the 8 MB source bound.
+ original_interpreter=interpreter.read_bytes()
+ interpreter.write_bytes(original_interpreter+b'#'+b'x'*8000001+b'\n')
+ profile['runtimes']['primary']['probe']['trusted_files'][str(interpreter)]=sha(interpreter)
+ doc=json.loads(proof.read_text());doc['interpreter_sha256']=sha(interpreter);proof.write_text(json.dumps(doc));guard['observation']['sha256']=sha(proof);profile['runtimes']['primary']['probe']['trusted_files'][str(proof)]=sha(proof)
+ save();doc=json.loads(contract_path.read_text());doc['trusted_files'].pop(str(interpreter));contract_path.write_text(json.dumps(doc))
+ assert interpreter.stat().st_size>8000000
+ reject(lambda:m.read_artifact(str(interpreter)))
+ assert m.load_worker_contract(contract_path,'T-1')['interpreter']==str(interpreter)
+ with interpreter.open('ab') as stream:stream.write(b'# drift\n')
+ reject(lambda:m.load_worker_contract(contract_path,'T-1'))
+ interpreter.write_bytes(original_interpreter+b'#'+b'x'*8000001+b'\n')
+ bad=copy.deepcopy(profile);bad['runtimes']['primary']['probe']['trusted_files'][str(interpreter)]='0'*64
+ save(bad);doc=json.loads(contract_path.read_text());doc['trusted_files'].pop(str(interpreter));contract_path.write_text(json.dumps(doc));reject(lambda:m.load_worker_contract(contract_path,'T-1'))
+ interpreter.write_bytes(original_interpreter);proof.write_bytes(original_proof);profile.clear();profile.update(original_profile);guard['observation']['sha256']=sha(proof);save()
+ print('worker-contract: >8MB designated interpreter indirect closure accepted; byte and hash drift rejected; source bound unchanged')
  bundle=private/'bundle';bundle.mkdir(mode=0o700)
  for source in closure:(bundle/source.name).write_bytes(source.read_bytes())
  copied_worker=bundle/helper.name;copied_core=bundle/'factory-intake.py';marker=private/'attacker-imported'
