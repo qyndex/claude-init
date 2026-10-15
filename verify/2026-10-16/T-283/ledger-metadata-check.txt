@@ -1,0 +1,20 @@
+T-277
+red
+timestamp: 2026-10-16T10:10:15+11:00
+command: bash /tmp/factory-t277-historical-baseline/.claude/scripts/test/factory-receipt-equivalence.sh
+exit_code: 1
+red_reason: assertion-failure
+green
+timestamp: 2026-10-16T10:10:15+11:00
+command: bash .claude/scripts/test/factory-receipt-equivalence.sh
+exit_code: 0
+T-283
+red
+timestamp: 2026-10-16T10:45:37+11:00
+command: bash .claude/scripts/test/factory-receipt-retained-proof.sh
+exit_code: 1
+red_reason: assertion-failure
+green
+timestamp: 2026-10-16T10:47:06+11:00
+command: bash .claude/scripts/test/factory-receipt-retained-proof.sh
+exit_code: 0

@@ -245,7 +245,40 @@ def archive_stream(repository):
     return digest(canonical(['factory-receipt-archive-v1', repository]))
 
 
-def append_delivery(source_api, state_api, policy, run_id, trust_path, store, approval_path, stream):
+def fixed_reader(api, root):
+    """Bounded immutable fixed-path reads; origin must be authenticated separately."""
+    def item_at(tree_sha, path):
+        current = tree_sha; prefix = ''
+        for part in path.split('/'):
+            tree = api.request(root+'/git/trees/'+current)
+            require(tree.get('sha') == current and tree.get('truncated') is False and isinstance(tree.get('tree'), list), 'archive fixed-path tree incomplete')
+            found = [entry for entry in tree['tree'] if entry.get('path') == part]
+            require(len(found) <= 1, 'archive fixed path ambiguous')
+            if not found:
+                return None
+            item = dict(found[0], path=prefix+part); state_paths.validate_entry(item)
+            prefix += part+'/'
+            if prefix[:-1] == path:
+                return item
+            require(item['type'] == 'tree', 'archive fixed path crosses blob')
+            current = item['sha']
+        raise ValueError('archive fixed path invalid')
+
+    def blob_at(tree_sha, path):
+        item = item_at(tree_sha, path)
+        if item is None:
+            return None
+        require(item['type'] == 'blob' and 0 < item['size'] <= MAX_OBJECT, 'archive stored blob size/mode invalid')
+        value = api.request(root+'/git/blobs/'+item['sha'])
+        require(value.get('encoding') == 'base64' and value.get('sha') == item['sha'], 'archive stored blob identity differs')
+        raw = base64.b64decode(''.join(value['content'].split()), validate=True)
+        require(len(raw) == value['size'] == item['size'] and hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest() == item['sha'], 'archive stored blob bytes differ')
+        return raw
+
+    return item_at, blob_at
+
+
+def append_delivery(source_api, state_api, policy, run_id, trust_path, store, approval_path, stream, *, trust_mode='profile'):
     """Authenticate and atomically append; no runtime credit or legacy policy relaxation."""
     from urllib.parse import quote
     import uuid
@@ -273,7 +306,8 @@ def append_delivery(source_api, state_api, policy, run_id, trust_path, store, ap
             require(kwargs.get('method', 'GET') == 'GET', 'archive source API must be read-only')
             return charge(source_api.request(path, **kwargs))
 
-    record, materials = build_record(ObservedSource(), policy, run_id, trust_path, store)
+    require(trust_path is not None and trust_mode in ('profile', 'legacy'), 'explicit protected archive trust document/mode required')
+    record, materials = build_record(ObservedSource(), policy, run_id, trust_path, store, trust_mode=trust_mode)
     record_bytes = canonical(record); record_hash = digest(record_bytes)
     execution = {'repository': state_api.repo, 'stream': stream, 'run_id': record['run']['id'], 'attempt': record['run']['attempt']}
     identity = digest(canonical(execution))  # Artifact replacement cannot evade same-attempt identity.
@@ -304,33 +338,7 @@ def append_delivery(source_api, state_api, policy, run_id, trust_path, store, ap
 
     api = Bounded()
 
-    def item_at(tree_sha, path):
-        current = tree_sha; prefix = ''
-        for part in path.split('/'):
-            tree = api.request(root+'/git/trees/'+current)
-            require(tree.get('sha') == current and tree.get('truncated') is False and isinstance(tree.get('tree'), list), 'archive fixed-path tree incomplete')
-            found = [entry for entry in tree['tree'] if entry.get('path') == part]
-            require(len(found) <= 1, 'archive fixed path ambiguous')
-            if not found:
-                return None
-            item = dict(found[0], path=prefix+part); state_paths.validate_entry(item)
-            prefix += part+'/'
-            if prefix[:-1] == path:
-                return item
-            require(item['type'] == 'tree', 'archive fixed path crosses blob')
-            current = item['sha']
-        raise ValueError('archive fixed path invalid')
-
-    def blob_at(tree_sha, path):
-        item = item_at(tree_sha, path)
-        if item is None:
-            return None
-        require(item['type'] == 'blob' and 0 < item['size'] <= MAX_OBJECT, 'archive stored blob size/mode invalid')
-        value = api.request(root+'/git/blobs/'+item['sha'])
-        require(value.get('encoding') == 'base64' and value.get('sha') == item['sha'], 'archive stored blob identity differs')
-        raw = base64.b64decode(''.join(value['content'].split()), validate=True)
-        require(len(raw) == value['size'] == item['size'] and hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest() == item['sha'], 'archive stored blob bytes differ')
-        return raw
+    item_at, blob_at = fixed_reader(api, root)
 
     for attempt in range(3):
         anchor = verify_bootstrap(api, approval_path)
@@ -401,3 +409,94 @@ def append_delivery(source_api, state_api, policy, run_id, trust_path, store, ap
             continue  # Ref may have committed: re-read authoritative origin before any progress claim.
         return {'status': 'appended', 'head': commit['sha'], 'record_sha256': record_hash}
     raise ValueError('archive append uncertain after three CAS observations; reconcile before advancing')
+
+
+def project_retained(state_api, policy, db_path, trust_path, store, approval_path, stream):
+    """Reconstruct report facts only from the reviewed protected archive chain.
+
+    Never calls source Actions artifacts or task lifecycle APIs. Per-invocation
+    bounds fail explicitly; resumable discovery/anchors are a separate stage.
+    Caller-supplied records, hashes or cursor JSON cannot establish origin.
+    """
+    import sqlite3
+    require(state_api.repo == policy['repository'] == store['repository'] and stream == archive_stream(state_api.repo), 'foreign archive reporting repository/stream')
+    require(set(store) == {'repository', 'visibility'} and store['visibility'] in ('public', 'private'), 'archive reporting store differs')
+    consumed = 0; cache = {}; root = 'repos/'+state_api.repo
+
+    class ReadOnly:
+        repo = state_api.repo
+
+        def request(self, path, method='GET', payload=None):
+            nonlocal consumed
+            require(method == 'GET' and payload is None and (path == root or path.startswith(root+'/')), 'archive reporting API must be read-only and same repository')
+            immutable = '/git/trees/' in path or '/git/blobs/' in path
+            if immutable and path in cache:
+                return cache[path]
+            value = state_api.request(path)
+            size = len(canonical(value)); consumed += size
+            require(size <= 2097152 and consumed <= 33554432, 'archive reporting observation bound reached; explicit coverage gap')
+            if immutable:
+                cache[path] = value
+            return value
+
+    api = ReadOnly(); anchor = verify_bootstrap(api, approval_path)
+    require(store['visibility'] == ('private' if anchor['private'] else 'public'), 'archive actual store visibility differs')
+    _, blob_at = fixed_reader(api, root); tree = anchor['tree']
+    journal_raw = blob_at(tree, f'receipt-archive/discovery/{stream}.json')
+    require(journal_raw is not None, 'archive discovery missing; cannot claim retained coverage')
+    journal = document(journal_raw)
+    require(set(journal) == {'schema_version', 'repository', 'stream', 'coverage_from', 'next_segment', 'records_count'} and type(journal['schema_version']) is int and journal['schema_version'] == 1 and journal['repository'] == state_api.repo and journal['stream'] == stream and journal['coverage_from'] == anchor['coverage_from'] and type(journal['next_segment']) is int and 0 <= journal['next_segment'] < 10**12 and type(journal['records_count']) is int and journal['records_count'] == journal['next_segment'], 'archive discovery identity/progress differs')
+    require(journal['next_segment'] <= 128, 'archive reporting segment invocation bound reached; resumable continuation required')
+    proofs = []; seen = set()
+    for number in range(journal['next_segment']):
+        raw = blob_at(tree, state_paths.segment_path(stream, number))
+        require(raw is not None, 'archive retained segment missing')
+        segment = state_paths.validate_segment(document(raw), state_api.repo, stream, number)
+        require(len(segment['records']) == 1, 'archive discovery record count differs')
+        for reference in segment['records']:
+            identity = digest(canonical({'repository': state_api.repo, 'stream': stream, 'run_id': reference['run_id'], 'attempt': reference['attempt']}))
+            require(identity not in seen, 'archive conflicting duplicate execution')
+            seen.add(identity)
+            index_raw = blob_at(tree, f'receipt-archive/index/{stream}/identities/{identity[:2]}/{identity}.json')
+            expected_index = dict(reference, schema_version=1, repository=state_api.repo, stream=stream, segment=number)
+            require(index_raw is not None and document(index_raw) == expected_index, 'archive retained execution index differs')
+            key = reference['record_sha256']
+            raw = blob_at(tree, f'receipt-archive/objects/{key[:2]}/{key}.json')
+            require(raw is not None and digest(raw) == key, 'archive retained record missing or digest differs')
+            record = document(raw); links = record.get('materials')
+            require(isinstance(links, dict) and len(links) <= 9 and all(state_paths.valid_hash(k, 64) for k in links.values()), 'archive material links differ')
+            materials = {}
+            for key in set(links.values()):
+                raw = blob_at(tree, f'receipt-archive/materials/{key[:2]}/{key}.json')
+                require(raw is not None, 'archive retained material missing')
+                wrapper = document(raw)
+                require(set(wrapper) == {'schema_version', 'sha256', 'encoding', 'content'} and type(wrapper['schema_version']) is int and wrapper['schema_version'] == 1 and wrapper['sha256'] == key and wrapper['encoding'] == 'base64', 'archive material wrapper differs')
+                materials[key] = wrapper['content']
+            validate_record(record, materials, state_api.repo, store['visibility'])
+            require(record['run']['repository_id'] == anchor['repository_id'] and record['source_private'] == anchor['private'], 'archive retained repository identity/privacy differs')
+            require((record['run']['id'], record['run']['attempt'], record['artifact']['id']) == (reference['run_id'], reference['attempt'], reference['artifact_id']), 'archive retained index/record identity differs')
+            source = document(decode(materials[links['factory/policy.json']]))
+            require(record['run']['workflow_id'] == source['receipts']['workflow_id'], 'archive retained workflow differs')
+            proofs.append(receipts.annotate_reported_trust(record['proof'], trust_path, state_api.repo))
+    require(len(proofs) == journal['records_count'], 'archive retained count differs')
+    by_task = {}
+    for proof in proofs:
+        for task in proof['tasks']:
+            require(task not in by_task or by_task[task] == proof, 'conflicting reporting delivery proof')
+            by_task[task] = proof
+    # All origin, material and conflict checks finish before any SQLite mutation.
+    require(verify_bootstrap(api, approval_path) == anchor, 'archive reporting origin changed before projection')
+    with sqlite3.connect(db_path) as db:
+        db.execute('CREATE TABLE IF NOT EXISTS delivery_receipts(task TEXT PRIMARY KEY, revision TEXT NOT NULL, receipt TEXT NOT NULL)')
+        db.execute('CREATE TABLE IF NOT EXISTS delivery_provenance(task TEXT PRIMARY KEY, provenance TEXT NOT NULL)')
+        db.execute('CREATE TABLE IF NOT EXISTS delivery_trust(task TEXT PRIMARY KEY, status TEXT NOT NULL)')
+        require({row[0] for row in db.execute('SELECT task FROM delivery_receipts')} <= set(by_task), 'archive retained coverage missing existing reporting fact')
+        for task, proof in sorted(by_task.items()):
+            previous = db.execute('SELECT revision,receipt FROM delivery_receipts WHERE task=?', (task,)).fetchone()
+            provenance = db.execute('SELECT provenance FROM delivery_provenance WHERE task=?', (task,)).fetchone()
+            require(previous is None or (previous == (proof['revision'], proof['delivery']) and provenance == (proof['provenance'],)), 'conflicting reporting delivery proof')
+            require(provenance is None or previous is not None, 'conflicting orphan reporting provenance')
+            db.execute('INSERT OR IGNORE INTO delivery_receipts VALUES(?,?,?)', (task, proof['revision'], proof['delivery']))
+            db.execute('INSERT OR IGNORE INTO delivery_provenance VALUES(?,?)', (task, proof['provenance']))
+            db.execute('INSERT INTO delivery_trust VALUES(?,?) ON CONFLICT(task) DO UPDATE SET status=excluded.status', (task, proof['trust_status']))
+    return len(by_task)

@@ -1681,9 +1681,9 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-receipt-cas.sh
   owner: implementer
 
-- [ ] T-283  | spec:014  | phase:2  | priority: security  | created: 2026-10-16  | deps: T-282  | parallel: no  | est: 5m
+- [x] T-283  | spec:014  | phase:2  | priority: security  | created: 2026-10-16  | deps: T-282  | parallel: no  | est: 5m
   summary: Reconstruct reporting-only proof after artifact expiry with privacy isolation
-  files: .claude/scripts/factory-receipts.py, .claude/scripts/factory-receipt-archive.py, .claude/scripts/test/factory-receipt-retained-proof.sh
+  files: .claude/scripts/factory-receipts.py, .claude/scripts/factory-receipt-archive.py, .claude/scripts/test/factory-receipt-retained-proof.sh, plans/active/014-authenticated-receipt-recovery.md
   accept: bash .claude/scripts/test/factory-receipt-retained-proof.sh
   owner: implementer
 
