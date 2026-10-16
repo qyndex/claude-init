@@ -231,12 +231,13 @@ class Digest:
         with self.transaction() as db:
             current = db.execute('SELECT * FROM digest_batches WHERE key=? AND stream=?', (row['key'], self.stream)).fetchone()
             require(current is not None and current['payload'] == row['payload'], 'report changed')
+            require(current['cutoff'] == row['cutoff'], 'report cutoff changed')
             if current['status'] == 'confirmed':
                 require(current['receipt'] == encoded, 'conflicting remote delivery')
             else:
                 require(current['status'] == 'uncertain', 'report not dispatched')
                 db.execute("UPDATE digest_batches SET status='confirmed',receipt=? WHERE key=?", (encoded, row['key']))
-                db.execute('UPDATE digest_cursors SET cutoff=? WHERE stream=?', (row['cutoff'], self.stream))
+                db.execute('UPDATE digest_cursors SET cutoff=? WHERE stream=?', (current['cutoff'], self.stream))
         return receipt
 
 
