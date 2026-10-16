@@ -154,3 +154,60 @@ T318's acceptance command explicitly requires `--live`; missing live selectors o
 unverified observations remain blocked, never fall back to the offline self-test.
 Completion of T317 establishes local readiness only, not rollout, all-plan
 completion, a real stalled-worker incident, or full outage coverage.
+
+### T320 bounded administrative-checker decomposition — 2026-10-16
+
+The reviewed T320 design is split before runtime implementation to keep each
+contract atomic. T322 depends on T319; T323 on T322; T324 on T323. Parent T320
+now depends on T319 and T324. T321/T317 remain the later local readiness layer;
+T318 remains the actual live rollout, with explicit `--live` acceptance. T320 and
+all three children are pending. There is no new policy, attestation, credential
+or operator decision in this decomposition.
+
+- **T322, protected run/source/log observation:** use a small fixed GitHub.com
+  GET-only adapter with the existing authenticated `gh` session, not extracted
+  Slack or state-writer secrets. Bound calls and total bytes (128 calls/32 MiB),
+  individual JSON responses and selected job logs (2 MiB), timeout and parser
+  work. Inputs identify repository and three run IDs/attempts; they are selectors,
+  not trusted claims. Require actual completed-success queue workflow runs in the
+  same repository/default branch and exact attempts. The clean reviewed local
+  checkout SHA, actual current default-branch SHA and all selected run source SHAs
+  must match; recheck source at the end and reject drift. Match the unique successful
+  monitor job/step and select exact safe JSON results from actual bounded job logs:
+  drill [1,0], recovery [1], repeat [0]. Reject extra or duplicate matches. Never
+  save raw logs. Offline fixtures test this boundary without claiming live proof.
+- **T323, protected journal/publication proof:** authenticate the actual protected
+  role journal through existing QueueStore guards, then validate one isolated
+  pilot drill/recovery pair, both confirmed, with exact drill run/attempt and
+  recovery incident binding and no unresolved/extra effects. Freeze the actual
+  state revision, inspect bounded queue-path publication history and validate
+  each relevant single-parent transition. Compare each publication's parent/tree
+  leaf maps: all other blob paths, modes and hashes remain equal, without reading
+  worker/feedback plaintext. Unrelated worker commits between publications are
+  allowed. Check ordered nonoverlapping run windows and publication times, strict
+  journal transitions and final unchanged role bytes; unrelated state-ref advance
+  alone does not invalidate the role proof. Missing history, truncation or exhausted
+  capacity rejects. This is isolated-pilot evidence, not generic retained-history
+  completeness or Spec014 exclusive-writer provenance.
+- **T324, explicit live composition:** compose those two verified boundaries in
+  `--live`; default test execution remains offline-contract self-tests. Actual
+  GitHub reads are mandatory in live mode; copied capture JSON, `authenticated`
+  booleans, fixture results or unavailable data cannot supply completion. Emit
+  only safe selected IDs, revisions, hashes and counts, with an administrative
+  observation label and no raw logs/private messages. The normal CLI exposes no
+  arbitrary API host, endpoint, fixture transport or input capture authority.
+  A final source/role consistency read fails on relevant drift. T318 may consume
+  this live administrative result only after its separately reviewed rollout.
+
+The protected reviewed Actions job already performs exact Slack checks using its
+existing environment token. The checker attributes those checks to verified
+source plus actual successful job results; it does not independently reread Slack
+and does not retrieve or copy its token. The recovery journal schema has no
+producer run ID, so attribution is administrative correlation of protected
+source/logs, ordered publication transitions and nonoverlapping execution windows,
+not cryptographic provenance. The isolated one-pair/no-overlap restriction makes
+that limitation explicit; ambiguous observations fail rather than infer a match.
+If actual API authorization cannot read source, state protections/journal or job
+logs, live acceptance stays blocked without adding credentials or permissions.
+Any stronger source capture or protected verification-only mode requires its own
+concrete review before implementation. No generalized evidence framework is added.

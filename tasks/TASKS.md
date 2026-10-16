@@ -647,7 +647,7 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
   accept: bash .claude/scripts/test/factory-reporting-queue-actions.sh
   owner: implementer
 
-- [ ] T-320  | spec:029  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-319  | parallel: no  | est: 5m
+- [ ] T-320  | spec:029  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-319,T-324  | parallel: no  | est: 5m
   summary: Authenticate bounded live queue run journal and publication evidence with read-only GitHub observations
   files: .claude/scripts/factory-reporting-queue-evidence.py, .claude/scripts/test/factory-reporting-queue-live-evidence.sh
   accept: bash .claude/scripts/test/factory-reporting-queue-live-evidence.sh
@@ -657,6 +657,24 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
   summary: Verify local queue aggregate and document protected initialization and pending live rollout
   files: .claude/scripts/test/factory-reporting-queue.sh, docs/FACTORY-DIGEST.md, docs/FACTORY-ADOPTER-SETUP.md, plans/active/029-github-reporting-alerts.md
   accept: bash .claude/scripts/test/factory-reporting-queue.sh
+  owner: implementer
+
+- [ ] T-322  | spec:029  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-319  | parallel: no  | est: 5m
+  summary: Verify bounded protected queue run source and exact safe job-log results
+  files: .claude/scripts/factory-reporting-queue-evidence.py, .claude/scripts/test/factory-reporting-queue-evidence-source.sh
+  accept: bash .claude/scripts/test/factory-reporting-queue-evidence-source.sh
+  owner: implementer
+
+- [ ] T-323  | spec:029  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-322  | parallel: no  | est: 5m
+  summary: Verify isolated protected queue journal and per-publication opaque preservation
+  files: .claude/scripts/factory-reporting-queue-evidence.py, .claude/scripts/test/factory-reporting-queue-evidence-journal.sh
+  accept: bash .claude/scripts/test/factory-reporting-queue-evidence-journal.sh
+  owner: implementer
+
+- [ ] T-324  | spec:029  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-323  | parallel: no  | est: 5m
+  summary: Compose explicit read-only live queue checker without offline completion fallback
+  files: .claude/scripts/factory-reporting-queue-evidence.py, .claude/scripts/test/factory-reporting-queue-live-evidence.sh
+  accept: bash .claude/scripts/test/factory-reporting-queue-live-evidence.sh
   owner: implementer
 
 ## Spec 001 critical path
