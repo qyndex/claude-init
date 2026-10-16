@@ -37,3 +37,46 @@ Public pilot head45f3a9c3513855ea701778c5f2fe5c468f3c461e passed genuine signed 
 Select the latest run by immutable configured workflow ID from the existing paginated candidate-head run listing, before event/status filtering. Require unique positive integer run ID and attempt, re-fetch that exact run and reject stale/changed attempt or identity/status snapshots. Require exact workflow/event/path/repository/candidate head and successful conclusion; then retain every protected runtime, signed certificate/source/base and artifact check. Latest failure/cancelled/in-progress/wrong-event must block even with older successful evidence. Ignore display URL contents; never infer workflow identity from suite IDs. Keep unique App/head/success check guards intact.
 
 Scope is T-291 source/test/policy and approved spec/plan plus task evidence. Refresh only each producer's coordinator trusted-file hash to actual candidate source bytes; all other policy values and merge-disabled state stay identical. Existing signed provenance/source/artifact tamper regressions remain required. Tests include actual normalized URL/shared-suite metadata, URL independence, latest failure/older pass, wrong workflow/event/repository/head/path and run-attempt drift. No permission, live flag, ruleset or merge activation changes. Local proof is not a live fix until merged protected source and fresh pilot proof succeed. This repairs ADR-0006's immutable workflow-run authentication without changing the signing trust boundary.
+
+
+## Approved policy visibility repair — T-292 — 2026-10-16
+
+Protected shadow run38826696104 minted its App token but failed closed because
+GitHub omits bypass_actors for Administration-read callers. Operator GET exposed
+empty actors and the active twelve checks. The operator explicitly approved
+option A: exact protected operator observations, preserving Administration read.
+This authorizes source preparation, not flags, protection changes or a merge window.
+GitHub documents the omission at https://docs.github.com/en/rest/repos/rules.
+
+T-292 is an aggregate pending task. Execute sequential children T-296 → T-297 →
+T-298, with independent actual RED/GREEN evidence; do not mark the aggregate done
+until its combined acceptance passes. IDs293–295 remain reserved on the separate
+approved Spec014 receipt continuation branch. ADR-0008 records this decision.
+
+- T-296: stdlib-only factory-policy-observation.py and its behavioral tests.
+  Strict bounded input/schema, repository/ruleset identity, full stable metadata
+  projection/digest, settled timestamps and explicit actors. GET-only observation
+  command cannot manufacture approval when actors are omitted. Visible nonempty
+  or malformed actors always reject; visible empty can pass without observation.
+- T-297: coordinator consumes explicit protected input; factory-merge.yml writes
+  bounded JSON from a main-only factory-authority environment variable to a file.
+  No candidate/body input, canonical-policy field, credential or permission change.
+  Retain bounded audit observation/hash in a distinct artifact, leaving the
+  existing receipt ZIP exactly receipt.json. Never call administrative observation
+  a GitHub-native signature. Recheck all current effective pins/strict protection.
+- T-298: integrate the helper into complete producer runtime closures (7→8),
+  both roles' trusted-file hashes, preflight, native provenance materials/limits
+  and fixtures. Policy changes are restricted to necessary runtime pins;
+  merge_enabled stays false. Cross-runtime regressions must detect omitted helper.
+
+Scope: the helper, coordinator, producer, provenance, preflight, receipt runtime
+closure declarations, candidate-evidence validator, their scoped shell tests,
+factory/policy.json, factory-merge.yml, activation/setup/producer docs and this
+spec/plan/ADR/task evidence. New helper matches protected .claude/scripts/factory-*
+(the current policy already includes that authority-path pattern). No live edits.
+
+Spec014 integration remains pending on its separate branch: emitter closure6→7
+and shared retained material count9→10, with corresponding strict fixtures and
+profile hashes. There are no active content profiles. Do not claim durable receipt
+or live shadow readiness from this source repair. Later publication requires all
+nine normal checks and separately reviewed concrete maintenance before landing.
