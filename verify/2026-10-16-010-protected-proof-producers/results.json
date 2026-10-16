@@ -1,7 +1,7 @@
 {
   "runner": "fresh-shell-acceptance-recorder",
-  "source_sha": "1bc46b7fd3c25e50221f277ea36d0ebe1e63e269",
-  "recorded_at": "2026-10-16T00:28:46.830156+00:00",
+  "source_sha": "1f011c720586def19482c98af947968f601cb9e0",
+  "recorded_at": "2026-10-16T01:42:24.075885+00:00",
   "independent_attestation": false,
   "live_factory_signing": false,
   "native_docker_run": false,
@@ -47,6 +47,20 @@
       "exit_code": 0,
       "log": "verify/2026-10-16-010-protected-proof-producers/policy-observation.log",
       "log_sha256": "e0ce9eda7ed3b1665f065b57568face7552b16ee1b963dffca63c6eae2b730e5"
+    },
+    {
+      "name": "policy-diagnostic",
+      "command": "bash .claude/scripts/test/factory-policy-observation-diagnostic.sh",
+      "exit_code": 0,
+      "log": "verify/2026-10-16-010-protected-proof-producers/policy-diagnostic.log",
+      "log_sha256": "f9990263bb946fbf19dc9159d67ac8bf290a37f37ee99bd162f99144d454b7fa"
+    },
+    {
+      "name": "policy-time-equivalence",
+      "command": "bash .claude/scripts/test/factory-policy-observation-time-equivalence.sh",
+      "exit_code": 0,
+      "log": "verify/2026-10-16-010-protected-proof-producers/policy-time-equivalence.log",
+      "log_sha256": "0b9550517a74dabf725db3cfcc7d3c6d20382ff3d661efde6b4e68e545eb28fa"
     }
   ],
   "testResults": [
@@ -61,14 +75,14 @@
           ]
         },
         {
-          "fullName": "AC-2: actual sandbox argv/output boundary fixtures; native Docker run remains hosted",
+          "fullName": "AC-2: actual sandbox argv/output boundary fixtures; native Docker remains hosted",
           "status": "passed",
           "command_names": [
             "producer-contracts"
           ]
         },
         {
-          "fullName": "AC-3: actual bounded fake reviewer subprocess and exact-model results; no live provider",
+          "fullName": "AC-3: actual bounded fake reviewer subprocess and exact-model fixtures; no live provider",
           "status": "passed",
           "command_names": [
             "bounded-review-runtime",
@@ -76,7 +90,7 @@
           ]
         },
         {
-          "fullName": "AC-4: latest-run identity, source/digest and injected-certificate artifact binding fixtures",
+          "fullName": "AC-4: latest-run source/digest and injected-certificate artifact binding fixtures",
           "status": "passed",
           "command_names": [
             "coordinator-contracts",
@@ -85,12 +99,13 @@
           ]
         },
         {
-          "fullName": "AC-5: strict administrative observation, protected ingress, failure invalidation and final live-metadata drift fixtures",
+          "fullName": "AC-5: lossless equivalent-time observations and bounded rejected-metadata diagnostics; actual protected App proof pending deployment",
           "status": "passed",
           "command_names": [
             "policy-observation",
-            "coordinator-contracts",
-            "bounded-review-runtime"
+            "policy-diagnostic",
+            "policy-time-equivalence",
+            "coordinator-contracts"
           ]
         }
       ]

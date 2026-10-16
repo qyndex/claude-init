@@ -1,0 +1,11 @@
+
+    ○
+    │╲
+    │ ○
+    ○ ░
+    ░    gitleaks
+
+12:15PM INF Unknown SCM platform. Use --platform to include links in findings. host=
+12:15PM INF 149 commits scanned.
+12:15PM INF scanned ~10132595 bytes (10.13 MB) in 1.49s
+12:15PM INF no leaks found

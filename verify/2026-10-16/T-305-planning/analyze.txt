@@ -1,0 +1,8 @@
+PASS — planning consistency only,2026-10-16
+T305 pending,dep304done; ID previously unused in both branches.
+Unique task IDs; dependency targets exist; DAG acyclic.
+Actual captured GET replay: exactly2semantic time fields differ, same instants, current helper rejects.
+AC1–4 unchanged; AC5 clarifies lossless2timestamp semantic equality only.
+All other semantics/identities/actors/settle unchanged; no old-hash fallback, fresh fullGET capture required.
+Precision >microseconds rejects; 1microsecond drift/invalid offsets/settle tests pending.
+Actual App cause unknown; source implementation and hosted proof pending.

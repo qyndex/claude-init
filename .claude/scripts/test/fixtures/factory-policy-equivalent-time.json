@@ -1,0 +1,234 @@
+{
+  "source": "actual captured GET semantic fields only; replay fixture, not App evidence",
+  "actual_app_view": false,
+  "native_attestation": false,
+  "repository": {
+    "id": 1252326101,
+    "full_name": "qyndex/claude-init"
+  },
+  "now": "2026-10-16T01:30:00Z",
+  "operator_legacy_sha256": "1cb0d8322710a12a17a96262a529d00924a9f716ff891f713eb5a01d073d6359",
+  "raw_response_sha256": {
+    "operator": "c1eb16cd3395fbeb92009b709907aaf7f81967b58c53b172f8392540b4c802ad",
+    "anonymous": "a236c66bc61f3b00a4496a8e12da8b16280af5fd47bcac3c798bb4b5c33f7139"
+  },
+  "operator": {
+    "conditions": {
+      "ref_name": {
+        "exclude": [],
+        "include": [
+          "refs/heads/main",
+          "refs/heads/master"
+        ]
+      }
+    },
+    "created_at": "2026-07-24T12:14:58.274+10:00",
+    "enforcement": "active",
+    "id": 19653920,
+    "name": "main-protection",
+    "node_id": "RRS_lACqUmVwb3NpdG9yec5KpPrVzgEr5SA",
+    "rules": [
+      {
+        "type": "deletion"
+      },
+      {
+        "type": "non_fast_forward"
+      },
+      {
+        "type": "pull_request",
+        "parameters": {
+          "required_approving_review_count": 0,
+          "dismiss_stale_reviews_on_push": true,
+          "required_reviewers": [],
+          "require_code_owner_review": false,
+          "dismissal_restriction": {
+            "enabled": false,
+            "allowed_actors": []
+          },
+          "require_last_push_approval": false,
+          "required_review_thread_resolution": true,
+          "require_extra_approval_for_unattributed_changes": true,
+          "allowed_merge_methods": [
+            "merge",
+            "squash",
+            "rebase"
+          ]
+        }
+      },
+      {
+        "type": "required_linear_history"
+      },
+      {
+        "type": "required_status_checks",
+        "parameters": {
+          "strict_required_status_checks_policy": true,
+          "do_not_enforce_on_create": false,
+          "required_status_checks": [
+            {
+              "context": "lint-test",
+              "integration_id": 15368
+            },
+            {
+              "context": "harness-validate",
+              "integration_id": 15368
+            },
+            {
+              "context": "evidence-gate",
+              "integration_id": 15368
+            },
+            {
+              "context": "adr-gate",
+              "integration_id": 15368
+            },
+            {
+              "context": "commitlint",
+              "integration_id": 15368
+            },
+            {
+              "context": "lint-exception-audit",
+              "integration_id": 15368
+            },
+            {
+              "context": "check-daily-batch",
+              "integration_id": 15368
+            },
+            {
+              "context": "review",
+              "integration_id": 15368
+            },
+            {
+              "context": "security-review",
+              "integration_id": 15368
+            },
+            {
+              "context": "factory-verification",
+              "integration_id": 15368
+            },
+            {
+              "context": "factory-independent-review",
+              "integration_id": 15368
+            },
+            {
+              "context": "factory-eligibility",
+              "integration_id": 5251754
+            }
+          ]
+        }
+      }
+    ],
+    "source": "qyndex/claude-init",
+    "source_type": "Repository",
+    "target": "branch",
+    "updated_at": "2026-10-16T11:49:11.557+11:00",
+    "bypass_actors": []
+  },
+  "anonymous": {
+    "conditions": {
+      "ref_name": {
+        "exclude": [],
+        "include": [
+          "refs/heads/main",
+          "refs/heads/master"
+        ]
+      }
+    },
+    "created_at": "2026-07-24T02:14:58.274Z",
+    "enforcement": "active",
+    "id": 19653920,
+    "name": "main-protection",
+    "node_id": "RRS_lACqUmVwb3NpdG9yec5KpPrVzgEr5SA",
+    "rules": [
+      {
+        "type": "deletion"
+      },
+      {
+        "type": "non_fast_forward"
+      },
+      {
+        "type": "pull_request",
+        "parameters": {
+          "required_approving_review_count": 0,
+          "dismiss_stale_reviews_on_push": true,
+          "required_reviewers": [],
+          "require_code_owner_review": false,
+          "dismissal_restriction": {
+            "enabled": false,
+            "allowed_actors": []
+          },
+          "require_last_push_approval": false,
+          "required_review_thread_resolution": true,
+          "require_extra_approval_for_unattributed_changes": true,
+          "allowed_merge_methods": [
+            "merge",
+            "squash",
+            "rebase"
+          ]
+        }
+      },
+      {
+        "type": "required_linear_history"
+      },
+      {
+        "type": "required_status_checks",
+        "parameters": {
+          "strict_required_status_checks_policy": true,
+          "do_not_enforce_on_create": false,
+          "required_status_checks": [
+            {
+              "context": "lint-test",
+              "integration_id": 15368
+            },
+            {
+              "context": "harness-validate",
+              "integration_id": 15368
+            },
+            {
+              "context": "evidence-gate",
+              "integration_id": 15368
+            },
+            {
+              "context": "adr-gate",
+              "integration_id": 15368
+            },
+            {
+              "context": "commitlint",
+              "integration_id": 15368
+            },
+            {
+              "context": "lint-exception-audit",
+              "integration_id": 15368
+            },
+            {
+              "context": "check-daily-batch",
+              "integration_id": 15368
+            },
+            {
+              "context": "review",
+              "integration_id": 15368
+            },
+            {
+              "context": "security-review",
+              "integration_id": 15368
+            },
+            {
+              "context": "factory-verification",
+              "integration_id": 15368
+            },
+            {
+              "context": "factory-independent-review",
+              "integration_id": 15368
+            },
+            {
+              "context": "factory-eligibility",
+              "integration_id": 5251754
+            }
+          ]
+        }
+      }
+    ],
+    "source": "qyndex/claude-init",
+    "source_type": "Repository",
+    "target": "branch",
+    "updated_at": "2026-10-16T00:49:11.557Z"
+  }
+}

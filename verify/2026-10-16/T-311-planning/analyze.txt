@@ -1,0 +1,8 @@
+Analysis Spec010 — 2026-10-16
+PASS: T311 narrows existing AC-5 administrative audit accuracy, no new authority.
+Dependency T305 is complete. ID311 unused;306–310 reserved on receipt branch.
+Task scope matches plan; accept shell syntax valid; no dependency cycle added.
+Review source6229ceb and independent verdict identify actual marker overwrite.
+No implementation or acceptance PASS is claimed. Runtime pins require exact
+refresh without other policy drift; original validation/invalidation retained.
+Hosted App proof and normal release remain pending. No blockers for plan review.

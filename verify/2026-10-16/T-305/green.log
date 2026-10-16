@@ -1,0 +1,7 @@
+# TDD ledger — green — T-305
+ledger_format: 2
+timestamp: 2026-10-16T12:29:55+11:00
+command: bash .claude/scripts/test/factory-policy-observation-time-equivalence.sh
+exit_code: 0
+---
+33 actual snapshot/time-equivalence/precision/settle cases passed; actual App view pending
