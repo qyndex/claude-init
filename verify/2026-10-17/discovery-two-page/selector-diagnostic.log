@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "<stdin>", line 151, in <module>
+  File "discovery-review-real-git", line 176, in <module>
+  File "discovery-review-real-git", line 170, in observation
+AssertionError: head poll advanced unfetched older overlap

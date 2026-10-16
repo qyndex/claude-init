@@ -1,0 +1,24 @@
+{
+  "base": "3cd647ab25af05549ad5709c117c888549996978",
+  "source_sha256": "7d35812cc68950a59b73dcea3dee8f31edf9845994ed9ef062fc907011fc1f5e",
+  "test_sha256": "077f9350605aea9b3e5d184d8a7018af82608017fa56446337a8d7002f739783",
+  "baseline_final_test_byte_identical": true,
+  "canonical_red_exit": 1,
+  "green": {
+    "head_deep": 0,
+    "two_page_200_new": 0,
+    "existing_bounded_discovery": 0,
+    "compile": 0,
+    "shellcheck": 0,
+    "diff": 0,
+    "validate": 0
+  },
+  "existing_validation_warnings": 4,
+  "initial_cap_missing_origin_prerequisite_exit": 1,
+  "source_page_budget": 2,
+  "new_identity_budget": 200,
+  "prior_three_page_proof_plan_compliant": false,
+  "native_calls": false,
+  "model_calls": false,
+  "task_closed": false
+}

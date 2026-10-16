@@ -99,13 +99,53 @@ cases=r'''
     q=parse_qs(urlsplit(path).query);page=int(q['page'][0]);size=int(q['per_page'][0]);self.pages.append(page)
     rows=[dict(copy.deepcopy(self.run),id=n) for n in ([99] if self.extra else [])+list(range(20,50))]
     return {'workflow_runs':rows[(page-1)*size:page*size]}
-  source=DeepHead(policy,receipt)
-  for i in range(6):d.advance(source,State(),policy,approval,stream,page_size=2,tree_pages=10)
-  source.extra=True;before=len(source.pages);d.advance(source,State(),policy,approval,stream,page_size=2,tree_pages=10)
+  source=DeepHead(policy,receipt);cursor_checks=[]
+  def observation():
+   previous=progress()['pagination'] if git('cat-file','-e',ref+':receipt-archive/progress/'+stream+'.json',check=False).returncode==0 else None
+   before=len(source.pages);d.advance(source,State(),policy,approval,stream,page_size=2,tree_pages=10);fetched=source.pages[before:];after=progress()['pagination']
+   assert len(fetched)<=2 and len(fetched)==len(set(fetched)),'observation exceeds two distinct source pages'
+   if previous and previous['next_page']>1:
+    page=previous['next_page'];old=previous['overlap_page'];until=previous['overlap_until']
+    if page%2:
+     cursor_checks.append(fetched==[page,1] and (after['overlap_page'],after['overlap_until'])==(old,until))
+    else:
+     cursor_checks.append(fetched==[page,old])
+     expected=(1,max(1,page-1)) if old==until else (old+1,until)
+     cursor_checks.append((after['overlap_page'],after['overlap_until'])==expected)
+   return fetched
+  for i in range(7):observation()
+  source.extra=True
+  first=observation();second=observation()
   watched=[r['run_id'] for n in range(progress()['watch']['segments']) for r in json.loads(git('show',ref+':'+a.state_paths.pending_segment_path(stream,n)).stdout)['rows']]
-  assert 99 in watched,'new deep-listing head run missed next bounded invocation'
-  assert 1 in source.pages[before:] and len(source.pages[before:])<=3 and len(source.pages[before:])==len(set(source.pages[before:]))
-  print('real Git deep primary+head+distinct overlap observes new head next invocation PASS')
+  assert 99 in watched and 1 not in first and 1 in second,'new deep-listing head run missed two-observation bound'
+  assert all(cursor_checks),'unfetched older overlap moved or fetched older overlap failed to advance'
+  print('real Git two-page alternating head/older overlap observes new head within two observations PASS')
+ if selected_case in ('all','two-page-cap'):
+  reset()
+  class Wide(Source):
+   changed=False;pages=[]
+   def request(self,path,**kwargs):
+    if '/actions/workflows/' not in path:return super().request(path,**kwargs)
+    q=parse_qs(urlsplit(path).query);page=int(q['page'][0]);size=int(q['per_page'][0]);assert size==100;self.pages.append(page)
+    first=1001 if page==1 and self.changed else page*100
+    return {'workflow_runs':[dict(copy.deepcopy(self.run),id=n) for n in range(first,first+100)]}
+  source=Wide(policy,receipt);d.advance(source,State(),policy,approval,stream,page_size=100,tree_pages=10)
+  before_count=progress()['watch']['count'];assert before_count==100
+  # Authenticate the actual larger inert suffix before the next observation;
+  # do not relax bootstrap tree windows or seed completed-origin JSON.
+  class OriginState(State):
+   def request(self,path,method='GET',payload=None):
+    if method=='GET' and '/commits?' in path:
+     q=parse_qs(urlsplit(path).query);rows=out('log','-1','--format=%H',q['sha'][0],'--',q['path'][0]).splitlines();return [{'sha':v} for v in rows]
+    return super().request(path,method,payload)
+  for call in range(64):
+   checked=a.advance_origin(OriginState(),approval,commit_budget=16,tree_pages=8)
+   if checked['frozen_complete']:break
+  else:raise AssertionError('actual bounded origin did not cover100-watch suffix')
+  source.changed=True;before=len(source.pages);d.advance(source,OriginState(),policy,approval,stream,page_size=100,tree_pages=10)
+  assert source.pages[before:]==[2,1] and progress()['watch']['count']-before_count==200
+  assert progress()['coverage_complete'] is False
+  print('actual two100-row pages persist at most200 new identities with no completeness credit PASS')
  if selected_case in ('all','artifact-budget'):
   reset()
   class ArtifactBudget(Source):

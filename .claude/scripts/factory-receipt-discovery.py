@@ -491,14 +491,15 @@ def _checkpoint(source_api, state_api, policy, approval_path, stream, *, page_si
             pages = [response]
             if page > 1:
                 overlap = progress['pagination']['overlap_page']
-                # Poll the mutable head on every call while retaining older overlap.
-                pages.append(source_api.request(f'{root}/actions/workflows/{workflow}/runs?per_page={page_size}&page=1'))
-                if overlap not in (1, page):
+                # Alternate head and older overlap within the two-page budget.
+                if page % 2:
+                    pages.append(source_api.request(f'{root}/actions/workflows/{workflow}/runs?per_page={page_size}&page=1'))
+                elif overlap != page:
                     pages.append(source_api.request(f'{root}/actions/workflows/{workflow}/runs?per_page={page_size}&page={overlap}'))
-                if overlap == progress['pagination']['overlap_until']:
-                    progress['pagination'].update(overlap_page=1, overlap_until=max(1, page-1))
-                else:
-                    progress['pagination']['overlap_page'] = overlap+1
+                    if overlap == progress['pagination']['overlap_until']:
+                        progress['pagination'].update(overlap_page=1, overlap_until=max(1, page-1))
+                    else:
+                        progress['pagination']['overlap_page'] = overlap+1
             merged = {}
             for observed_page in pages:
                 require(isinstance(observed_page, dict) and isinstance(observed_page.get('workflow_runs'), list) and len(observed_page['workflow_runs']) <= page_size, 'discovery run page malformed')
