@@ -1655,6 +1655,30 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-producers.sh && bash .claude/scripts/test/factory-provenance.sh && bash .claude/scripts/test/factory-preflight.sh
   owner: implementer
 
+- [x] T-303  | spec:010  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-292  | parallel: no  | est: 5m
+  summary: Retain bounded failed operator-observation semantic diagnostics
+  files: .claude/scripts/factory-policy-observation.py, .claude/scripts/factory-coordinator.py, .claude/scripts/test/factory-policy-observation-diagnostic.sh, .claude/scripts/test/factory-policy-observation.sh, .claude/scripts/test/factory-coordinator.sh, .claude/scripts/test/factory-workflow-baseline.sh, factory/policy.json, plans/active/010-protected-proof-producers.md, docs/FACTORY-ACTIVATION.md
+  accept: bash .claude/scripts/test/factory-policy-observation-diagnostic.sh
+  owner: implementer
+
+- [x] T-304  | spec:010  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-303  | parallel: no  | est: 5m
+  summary: Complete bounded diagnostic mismatch facts and exception audit coverage
+  files: .claude/scripts/factory-policy-observation.py, .claude/scripts/factory-coordinator.py, .claude/scripts/test/factory-policy-observation-diagnostic.sh, factory/policy.json, plans/active/010-protected-proof-producers.md
+  accept: bash .claude/scripts/test/factory-policy-observation-diagnostic.sh
+  owner: implementer
+
+- [x] T-305  | spec:010  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-304  | parallel: no  | est: 5m
+  summary: Compare lossless ruleset timestamp instants across API representations
+  files: .claude/scripts/factory-policy-observation.py, .claude/scripts/test/factory-policy-observation.sh, .claude/scripts/test/factory-policy-observation-diagnostic.sh, .claude/scripts/test/factory-policy-observation-time-equivalence.sh, .claude/scripts/test/fixtures/factory-policy-equivalent-time.json, factory/policy.json, specs/active/010-protected-proof-producers.md, plans/active/010-protected-proof-producers.md, docs/FACTORY-ACTIVATION.md
+  accept: bash .claude/scripts/test/factory-policy-observation-time-equivalence.sh
+  owner: implementer
+
+- [x] T-311  | spec:010  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-305  | parallel: no  | est: 5m
+  summary: Preserve unavailable diagnostic marker separately from rejection category
+  files: .claude/scripts/factory-coordinator.py, .claude/scripts/test/factory-policy-observation-diagnostic.sh, factory/policy.json, plans/active/010-protected-proof-producers.md
+  accept: bash .claude/scripts/test/factory-policy-observation-diagnostic.sh
+  owner: implementer
+
 - [x] T-312  | spec:029  | phase:1  | priority: security  | created: 2026-10-16  | deps: T-203  | parallel: no  | est: 5m
   summary: Validate isolated queue journal role identity and strict data schema
   files: .claude/scripts/factory-reporting-queue.py, .claude/scripts/test/factory-reporting-queue-journal.sh

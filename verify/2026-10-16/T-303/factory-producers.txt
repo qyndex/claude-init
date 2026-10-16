@@ -1,0 +1,3 @@
+passed: 38; failed: 0
+
+exit_code: 0

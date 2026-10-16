@@ -1,0 +1,8 @@
+Actual separate pre-T304 RuntimeError audit regression. T304_ONLY=unexpected
+Traceback (most recent call last):
+  File "<stdin>", line 26, in <module>
+  File "<stdin>", line 22, in unexpected_case
+  File "<stdin>", line 10, in check
+AssertionError
+
+exit_code: 1

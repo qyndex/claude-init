@@ -1,0 +1,2 @@
+AC-5: protected hidden observations, visible actor rejection, final drift and bounded strict input PASS
+passed: 63; failed: 0
