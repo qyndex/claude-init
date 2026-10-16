@@ -37,8 +37,10 @@ def canonical(value):
 
 
 class Digest:
-    def __init__(self, path, repository, destination, start, branch='main'):
+    def __init__(self, path, repository, destination, start, branch='main', *, receipt_mode='legacy'):
         require(repository.count('/') == 1 and bool(destination) and bool(branch), 'report configuration required')
+        require(receipt_mode in ('legacy', 'durable'), 'explicit reporting receipt mode required')
+        self.receipt_mode = receipt_mode
         self.path = str(Path(path).resolve())
         self.repository = repository; self.destination = destination; self.branch = branch
         self.stream = hashlib.sha256(canonical([repository, destination, branch]).encode()).hexdigest()
@@ -118,11 +120,15 @@ class Digest:
                     merged[pr['number']] = pr
             tables = {r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
             proofs = []
-            if {'delivery_receipts', 'delivery_provenance'} <= tables:
+            durable = self.receipt_mode == 'durable'
+            if durable:
+                if {'delivery_receipts', 'delivery_provenance', 'delivery_trust', 'delivery_times', 'delivery_interval'} <= tables:
+                    proofs = db.execute('SELECT r.*,p.provenance,t.status AS trust_status,m.merged_at AS retained_time FROM delivery_receipts r JOIN delivery_provenance p ON r.task=p.task JOIN delivery_trust t ON r.task=t.task JOIN delivery_times m ON r.task=m.task JOIN delivery_interval i ON r.task=i.task').fetchall()
+            elif {'delivery_receipts', 'delivery_provenance'} <= tables:
                 proofs = db.execute('SELECT r.*,p.provenance FROM delivery_receipts r JOIN delivery_provenance p ON r.task=p.task').fetchall()
             entries = []
             for pr in sorted(merged.values(), key=lambda p: (instant(p['merged_at']), p['number'])):
-                matches = []
+                matches = []; withdrawn = False
                 for proof in proofs:
                     delivered = json.loads(proof['receipt']); provenance = json.loads(proof['provenance'])
                     receipt = provenance['receipt']
@@ -131,11 +137,16 @@ class Digest:
                         require(type(provenance['run_id']) is int and provenance['run_id'] > 0 and provenance['artifact_digest'].startswith('sha256:') and coordinator.contract.digest(provenance['artifact_digest'][7:], 64), 'invalid delivery provenance')
                         require(delivered['merge_sha'] == pr['merge_commit_sha'] == receipt['merge_sha'], 'delivery merge conflicts')
                         require(receipt['head_sha'] == pr['head']['sha'] and receipt['spec_sha256'] == proof['revision'] and proof['task'] in receipt['task_ids'], 'delivery provenance conflicts')
-                        matches.append({'task': proof['task'], 'spec': receipt['spec'], 'revision': proof['revision'],
-                                        'producer_run': provenance['run_id'], 'artifact_digest': provenance['artifact_digest']})
+                        if durable:
+                            require(proof['trust_status'] in ('active', 'withdrawn'), 'retained trust status invalid')
+                            withdrawn = withdrawn or proof['trust_status'] == 'withdrawn'
+                            require(instant(proof['retained_time']) == instant(pr['merged_at']), 'retained merge timestamp differs')
+                        match = {'task': proof['task'], 'spec': receipt['spec'], 'revision': proof['revision'],
+                                 'producer_run': provenance['run_id'], 'artifact_digest': provenance['artifact_digest']}
+                        matches.append(match)
                 entries.append({'pr': pr['number'], 'title': pr['title'], 'url': pr['html_url'], 'merge_sha': pr['merge_commit_sha'],
                                 'merged_at': stamp(instant(pr['merged_at'])), 'late_discovered': instant(pr['merged_at']) <= start, 'delivery_evidence': matches,
-                                'evidence_status': 'authenticated' if matches else 'missing', 'merge_time_checks': 'not independently recorded'})
+                                'evidence_status': ('withdrawn' if durable and withdrawn else 'authenticated') if matches else 'missing', 'merge_time_checks': 'not independently recorded'})
             payload = canonical({'schema_version': 1, 'repository': self.repository, 'destination': self.destination,
                                  'from': stamp(start), 'until': stamp(end), 'timezone': 'Australia/Sydney',
                                  'display_from': start.astimezone(SYDNEY).isoformat(), 'display_until': end.astimezone(SYDNEY).isoformat(),

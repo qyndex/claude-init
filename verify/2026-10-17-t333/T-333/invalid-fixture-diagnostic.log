@@ -1,0 +1,13 @@
+# TDD ledger — red — T-333
+ledger_format: 2
+timestamp: 2026-10-17T00:47:59+11:00
+command: bash .claude/scripts/test/factory-reporting-receipt-transfer.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 25, in <module>
+  File "retained-fixture-bootstrap", line 4
+    pipeline=Path('.claude/scripts/test/factory-receipt-projection-windows.sh').read_text().split("
+                                                                                                  ^
+SyntaxError: unterminated string literal (detected at line 4)

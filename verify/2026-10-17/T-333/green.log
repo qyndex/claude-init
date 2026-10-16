@@ -1,0 +1,11 @@
+# TDD ledger — green — T-333
+ledger_format: 2
+timestamp: 2026-10-17T00:55:02+11:00
+command: bash .claude/scripts/test/factory-reporting-receipt-transfer.sh
+exit_code: 0
+---
+PASS actual renderer explicitly labels withdrawn evidence while preserving proof attribution
+PASS actual retained withdrawn trust is visible and never authenticated
+PASS actual protected reconstruction+coverage transfer: expiry/read-only/restart/private/task preservation
+PASS durable missing/withdrawn/fractional-time/interval facts fail closed; legacy default rendering unchanged
+PASS actual active/withdrawn reevaluation preserves already-delivered immutable payload and fixture message

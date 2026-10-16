@@ -1,0 +1,19 @@
+# TDD ledger — green — T-333
+ledger_format: 2
+timestamp: 2026-10-17T00:50:38+11:00
+command: bash .claude/scripts/test/factory-reporting-receipt-transfer.sh
+exit_code: 1
+---
+PASS actual retained withdrawn trust is visible and never authenticated
+Traceback (most recent call last):
+  File "<stdin>", line 83, in <module>
+  File "retained-fixture-bootstrap", line 6, in <module>
+  File "real-retained-reporting-transfer", line 181, in <module>
+  File "/private/tmp/factory-t333-receipt-transfer-20261017/.claude/scripts/factory-reporting-receipts.py", line 63, in project_reporting
+    require(report.is_absolute() and report.resolve() == report and report.is_file() and not report.is_symlink(),
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            'existing canonical report database required')
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-t333-receipt-transfer-20261017/.claude/scripts/validate-candidate-evidence.py", line 19, in require
+    raise ValueError(message)
+ValueError: existing canonical report database required

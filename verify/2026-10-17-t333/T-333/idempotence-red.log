@@ -1,0 +1,13 @@
+# TDD ledger — red — T-333
+ledger_format: 2
+timestamp: 2026-10-17T00:51:34+11:00
+command: bash .claude/scripts/test/factory-reporting-receipt-transfer.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+PASS actual retained withdrawn trust is visible and never authenticated
+Traceback (most recent call last):
+  File "<stdin>", line 83, in <module>
+  File "retained-fixture-bootstrap", line 6, in <module>
+  File "real-retained-reporting-transfer", line 206, in <module>
+AssertionError
