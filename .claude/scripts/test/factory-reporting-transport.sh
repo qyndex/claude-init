@@ -33,6 +33,15 @@ sys.stdout.buffer.write(Path(os.environ['HOME'],'response').read_bytes())
   api=t.create_api(selected);assert api.repo=='org/repo';assert not any('fixture' in str(v) for v in t.build_config(selected).values());count+=1
   for endpoint,token in [('repos/org/repo/actions/runs/7','source-fixture'),('repos/org/repo/pulls/8','source-fixture'),('repos/org/repo/contents/.claude/a.py?ref='+'a'*40,'source-fixture'),('repos/org/repo','writer-fixture'),('repos/org/repo/git/trees/'+'b'*40,'writer-fixture'),('repos/org/repo/rulesets/1','writer-fixture'),('repos/org/repo/git/ref/heads/factory%2Freporting','writer-fixture'),('repos/org/repo/actions/runs?branch=release%2Fmain&per_page=100&page=1','source-fixture')]:
    assert api.request(endpoint)=={};row=json.loads(record.read_text().splitlines()[-1]);assert row['token']==token and row['unsafe']==[];assert row['argv'][:5]==['api','--hostname','github.com','--method','GET'];count+=1
+  # Digest.prepare uses the exact collection endpoint with query parameters.
+  response.write_text('[]');before=(api.budget.calls,api.budget.bytes)
+  assert api.get('repos/org/repo/pulls?state=closed&sort=updated&direction=desc&per_page=100')==[]
+  row=json.loads(record.read_text().splitlines()[-1]);assert row['token']=='source-fixture' and row['unsafe']==[]
+  assert row['argv'][-1]=='repos/org/repo/pulls?state=closed&sort=updated&direction=desc&per_page=100'
+  assert (api.budget.calls,api.budget.bytes)==(before[0]+1,before[1]+2);count+=1
+  for endpoint,method,payload,raw in [('repos/org/repo/pulls','POST',{},False),('repos/org/repo/pulls','PATCH',{},False),('repos/org/repo/pulls','GET',None,True),('repos/other/repo/pulls','GET',None,False),('repos/org/repo/pull','GET',None,False)]:
+   before=reject(lambda:api.request(endpoint,method,payload,raw=raw),'reporting');assert len(record.read_text().splitlines())==before
+  response.write_text('{}')
   api.request('repos/org/repo/git/refs/heads/factory%2Freporting','PATCH',{'sha':'c'*40,'force':False});count+=1
   for endpoint,method,payload in [('graphql','POST',{}),('repos/other/repo/actions/runs','GET',None),('repos/org/repo/actions/runs/7','POST',{}),('repos/org/repo/pulls/8','PATCH',{}),('repos/org/repo/rulesets/1','PATCH',{}),('repos/org/repo/git/refs/heads/main','PATCH',{'sha':'a'*40,'force':True}),('repos/org/repo/git/refs/heads/main','DELETE',None),('repos/org/repo/git/ref/heads/%2E%2E','GET',None),('repos/org/repo/git/ref/heads/%252F','GET',None),('repos/org/repo/actions/runs?x=%2f','GET',None),('repos/org/repo/actions/runs#x','GET',None),('repos/org/repo/contents/../a','GET',None)]:
    before=reject(lambda:api.request(endpoint,method,payload),'reporting');assert len(record.read_text().splitlines())==before

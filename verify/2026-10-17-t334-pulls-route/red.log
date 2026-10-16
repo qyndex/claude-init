@@ -1,0 +1,15 @@
+Traceback (most recent call last):
+  File "<stdin>", line 34, in <module>
+  File "/private/tmp/factory-reporting-pulls-route-20261017/.claude/scripts/factory-reporting-transport.py", line 169, in get
+    value = self.request(path,paginate=many)
+  File "/private/tmp/factory-reporting-pulls-route-20261017/.claude/scripts/factory-reporting-transport.py", line 142, in request
+    if not paginate:return self._once(path,method,payload,raw)
+                           ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-reporting-pulls-route-20261017/.claude/scripts/factory-reporting-transport.py", line 124, in _once
+    token = self._route(path, method, payload, raw)
+  File "/private/tmp/factory-reporting-pulls-route-20261017/.claude/scripts/factory-reporting-transport.py", line 112, in _route
+    require(payload is None and read, 'reporting state read endpoint invalid')
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-reporting-pulls-route-20261017/.claude/scripts/validate-candidate-evidence.py", line 19, in require
+    raise ValueError(message)
+ValueError: reporting state read endpoint invalid

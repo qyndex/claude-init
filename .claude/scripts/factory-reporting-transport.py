@@ -101,7 +101,7 @@ class RoutedAPI:
         require('%' not in pathname.replace('%2F','') and '..' not in pathname and '//' not in pathname
                 and '%' not in query.replace('%2F','').replace('%3A',''), 'reporting encoded endpoint invalid')
         tail = pathname[len(root):]
-        source = any(tail.startswith('/'+kind+'/') for kind in ('actions','pulls','contents'))
+        source = tail=='/pulls' or any(tail.startswith('/'+kind+'/') for kind in ('actions','pulls','contents'))
         if source:
             require(method=='GET' and payload is None, 'reporting source API is read only')
             require(not raw or re.fullmatch(r'/actions/artifacts/[1-9][0-9]*/zip',tail), 'reporting raw endpoint invalid')
