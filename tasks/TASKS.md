@@ -91,7 +91,7 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
   accept: bash .claude/scripts/test/pre-bash-guard-literals.sh
   owner: implementer
 
-- [x] T-130  | spec:003  | phase:9  | priority: normal  | created: 2026-06-12  | last_touched: 2026-10-16  | deps:  | parallel: yes  | est: 4m
+- [ ] T-130  | spec:003  | phase:9  | priority: normal  | created: 2026-06-12  | last_touched: 2026-10-16  | deps:  | parallel: yes  | est: 4m
   summary: Classify playwright/vitest config-load errors as tooling-error in tdd-ledger red phase (live-e2e FINDING-4 — config throw stamped assertion-failure)
   files: .claude/scripts/tdd-ledger.sh, .claude/scripts/test/tdd-ledger-suite.sh
   accept: bash .claude/scripts/test/tdd-ledger-suite.sh

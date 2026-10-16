@@ -17,10 +17,10 @@
   "tasks_for_spec": 12,
   "tasks_done": 11,
   "uncovered_note": "",
-  "generated": "2026-10-16T23:59:10+11:00",
+  "generated": "2026-10-17T00:09:41+11:00",
   "verdict": "PENDING_REVIEW",
   "blockers": [
-    "Confirmed independent review findings require correction and fresh review"
+    "Fresh independent review of integrated corrections pending"
   ],
-  "scope": "Structural AC/task counts only; historical acceptance is not recertified. Local repairs and independent review closeout pending."
+  "scope": "Structural coverage only; local repairs pass but review/publication closeout pending. Historical AC proof is not recertified."
 }
