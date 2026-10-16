@@ -1,0 +1,1 @@
+16 protected projection lineage cases passed; partial windows never grant coverage

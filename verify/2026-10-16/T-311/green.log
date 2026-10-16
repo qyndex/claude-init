@@ -1,0 +1,7 @@
+# TDD ledger — green — T-311
+ledger_format: 2
+timestamp: 2026-10-16T12:40:08+11:00
+command: bash .claude/scripts/test/factory-policy-observation-diagnostic.sh
+exit_code: 0
+---
+49 bounded failed-observation diagnostic cases passed; strict authority checks retained

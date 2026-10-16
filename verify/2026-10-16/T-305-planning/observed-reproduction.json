@@ -1,0 +1,33 @@
+{
+  "kind": "actual-captured-GET-current-helper-replay",
+  "source_commit": "685d68bb31d255542ee568b23595ce8d8afc4654",
+  "repository": {
+    "id": 1252326101,
+    "full_name": "qyndex/claude-init"
+  },
+  "ruleset_id": 19653920,
+  "different_semantic_fields": [
+    "created_at",
+    "updated_at"
+  ],
+  "same_instants": true,
+  "current_rejection": "observation metadata changed or foreign",
+  "operator_sha256": "1cb0d8322710a12a17a96262a529d00924a9f716ff891f713eb5a01d073d6359",
+  "anonymous_sha256": "9b92eff2bf5f15cba587e92ae659fb35ec4cd500961d6a41903b8157aa0230f1",
+  "timestamps": {
+    "created_at": {
+      "operator": "2026-07-24T12:14:58.274+10:00",
+      "anonymous": "2026-07-24T02:14:58.274Z"
+    },
+    "updated_at": {
+      "operator": "2026-10-16T11:49:11.557+11:00",
+      "anonymous": "2026-10-16T00:49:11.557Z"
+    }
+  },
+  "raw_sha256": {
+    "operator": "c1eb16cd3395fbeb92009b709907aaf7f81967b58c53b172f8392540b4c802ad",
+    "anonymous": "a236c66bc61f3b00a4496a8e12da8b16280af5fd47bcac3c798bb4b5c33f7139"
+  },
+  "actual_app_view": false,
+  "native_attestation": false
+}

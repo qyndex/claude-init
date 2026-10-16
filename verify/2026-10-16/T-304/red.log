@@ -1,0 +1,10 @@
+# TDD ledger — red — T-304
+ledger_format: 2
+timestamp: 2026-10-16T12:23:33+11:00
+command: bash .claude/scripts/test/factory-policy-observation-diagnostic.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 36, in <module>
+KeyError: 'expected_updated_at'

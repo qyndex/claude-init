@@ -1,0 +1,3 @@
+60 policy observation cases PASS (AC-5); transport fixture only, no live operator observation
+
+exit_code: 0
