@@ -42,6 +42,30 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
 
 **Hotfix tasks** (Round 12) carry extra fields: `fingerprint:` (Sentry dedup key), `sentry:` (permalink), `hotfix_issue:` (projected issue #). Inserted at the TOP of `## Active
 
+- [ ] T-336  | spec:029  | phase:5  | priority: security  | created: 2026-10-17  | deps:   | parallel: no  | est: 5m
+  summary: Validate distinct authenticated historical operational proof
+  progress: Supporting repair for original T318; approved amendment2026-10-17, not new original-goal scope
+  accept: bash .claude/scripts/test/factory-operational-proof.sh
+  owner: codex
+
+- [ ] T-337  | spec:029  | phase:5  | priority: security  | created: 2026-10-17  | deps: T-336  | parallel: no  | est: 5m
+  summary: Produce and retain protected signed historical operational proof
+  progress: Supporting repair for original T318; approved amendment2026-10-17, not new original-goal scope
+  accept: bash .claude/scripts/test/factory-operational-producer.sh
+  owner: codex
+
+- [ ] T-338  | spec:029  | phase:5  | priority: security  | created: 2026-10-17  | deps: T-337  | parallel: no  | est: 5m
+  summary: Replay historical operational acceptance with read-only PR authority
+  progress: Supporting repair for original T318; approved amendment2026-10-17, not new original-goal scope
+  accept: bash .claude/scripts/test/factory-operational-replay.sh
+  owner: codex
+
+- [ ] T-339  | spec:029  | phase:5  | priority: security  | created: 2026-10-17  | deps: T-338  | parallel: no  | est: 5m
+  summary: Bootstrap genuine historical queue proof and verify native read-only replay
+  progress: Supporting repair for original T318; approved amendment2026-10-17, not new original-goal scope
+  accept: python3 .claude/scripts/factory-operational-proof.py verify-live
+  owner: codex
+
 - [x] T-194  | spec:021  | phase:1  | priority: security  | created: 2026-10-10  | last_touched: 2026-10-10  | deps: T-193  | parallel: no  | est: 30m
   summary: Persist hosted digest state on a protected per-repository data branch with fenced atomic checkpoints
   files: .claude/scripts/factory-git-state.py, .github/workflows/factory-hosted-digest.yml

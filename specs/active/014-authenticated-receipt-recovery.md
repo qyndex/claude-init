@@ -35,3 +35,7 @@ The subsequent16October reporting-writer Option A approval is the explicit
 credential exception to the initial continuation: default-off source/setup for
 a separate reporting App and protected exact positive-actor observations. This
 does not approve live state-policy cutover, archive bootstrap or merge enabling.
+
+## Approved operational-proof boundary — 2026-10-17
+
+The operator approved the Spec029 historical operational-proof amendment. Compact authenticated operational records may use each repository's existing protected state branch, with a distinct purpose/schema/namespace and native attestation. They are not delivery receipts or coverage facts and cannot grant current-task credit, merge/production authority or current readiness. Existing delivery receipt semantics and private-feedback isolation remain unchanged. Detailed requirements and verification are in Spec029 AC-9 and its approved amendment.
