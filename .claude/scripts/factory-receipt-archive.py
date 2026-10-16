@@ -449,6 +449,7 @@ def project_retained(state_api, policy, db_path, trust_path, store, approval_pat
     api = ReadOnly(); anchor = verify_bootstrap(api, approval_path)
     require(store['visibility'] == ('private' if anchor['private'] else 'public'), 'archive actual store visibility differs')
     _, blob_at = fixed_reader(api, root); tree = anchor['tree']
+    require(blob_at(anchor['bootstrap_tree'], f'receipt-archive/discovery/{stream}.json') is None, 'archive pre-bootstrap proof requires explicit reviewed import')
     journal_raw = blob_at(tree, f'receipt-archive/discovery/{stream}.json')
     require(journal_raw is not None, 'archive discovery missing; cannot claim retained coverage')
     journal = document(journal_raw)
@@ -470,11 +471,13 @@ def project_retained(state_api, policy, db_path, trust_path, store, approval_pat
             key = reference['record_sha256']
             raw = blob_at(tree, f'receipt-archive/objects/{key[:2]}/{key}.json')
             require(raw is not None and digest(raw) == key, 'archive retained record missing or digest differs')
+            require(blob_at(anchor['bootstrap_tree'], f'receipt-archive/objects/{key[:2]}/{key}.json') is None, 'archive object pre-bootstrap requires explicit reviewed import')
             record = document(raw); links = record.get('materials')
             require(isinstance(links, dict) and len(links) <= 9 and all(state_paths.valid_hash(k, 64) for k in links.values()), 'archive material links differ')
             materials = {}
             for key in set(links.values()):
                 raw = blob_at(tree, f'receipt-archive/materials/{key[:2]}/{key}.json')
+                require(blob_at(anchor['bootstrap_tree'], f'receipt-archive/materials/{key[:2]}/{key}.json') is None, 'archive material pre-bootstrap requires explicit reviewed import')
                 require(raw is not None, 'archive retained material missing')
                 wrapper = document(raw)
                 require(set(wrapper) == {'schema_version', 'sha256', 'encoding', 'content'} and type(wrapper['schema_version']) is int and wrapper['schema_version'] == 1 and wrapper['sha256'] == key and wrapper['encoding'] == 'base64', 'archive material wrapper differs')
@@ -507,3 +510,47 @@ def project_retained(state_api, policy, db_path, trust_path, store, approval_pat
             db.execute('INSERT OR IGNORE INTO delivery_provenance VALUES(?,?)', (task, proof['provenance']))
             db.execute('INSERT INTO delivery_trust VALUES(?,?) ON CONFLICT(task) DO UPDATE SET status=excluded.status', (task, proof['trust_status']))
     return len(by_task)
+
+
+def retained_execution(api, anchor, store, stream, run_id, attempt):
+    """Read known proof first from an already authenticated protected archive view."""
+    require(api.repo == anchor['repository'] == store['repository'] and store['visibility'] == ('private' if anchor['private'] else 'public'), 'retained lookup store/privacy differs')
+    require(stream == archive_stream(api.repo) and all(type(x) is int and x > 0 for x in (run_id, attempt)), 'retained lookup identity invalid')
+    root = 'repos/'+api.repo; _, blob_at = fixed_reader(api, root)
+    identity = digest(canonical({'repository': api.repo, 'stream': stream, 'run_id': run_id, 'attempt': attempt}))
+    raw = blob_at(anchor['tree'], f'receipt-archive/index/{stream}/identities/{identity[:2]}/{identity}.json')
+    if raw is None:
+        return None  # Absence is never evidence of a non-delivery outcome.
+    require(blob_at(anchor['bootstrap_tree'], f'receipt-archive/index/{stream}/identities/{identity[:2]}/{identity}.json') is None, 'retained proof pre-bootstrap requires explicit reviewed import')
+    index = document(raw)
+    require(set(index) == {'schema_version', 'repository', 'stream', 'run_id', 'attempt', 'artifact_id', 'record_sha256', 'segment'} and type(index['schema_version']) is int and index['schema_version'] == 1 and index['repository'] == api.repo and index['stream'] == stream and type(index['run_id']) is int and index['run_id'] == run_id and type(index['attempt']) is int and index['attempt'] == attempt and type(index['artifact_id']) is int and index['artifact_id'] > 0 and type(index['segment']) is int and 0 <= index['segment'] < 10**12 and state_paths.valid_hash(index['record_sha256'], 64), 'retained lookup index differs')
+    require(blob_at(anchor['bootstrap_tree'], state_paths.segment_path(stream, index['segment'])) is None, 'retained segment pre-bootstrap requires explicit reviewed import')
+    journal_path = f'receipt-archive/discovery/{stream}.json'
+    require(blob_at(anchor['bootstrap_tree'], journal_path) is None, 'retained discovery pre-bootstrap requires explicit reviewed import')
+    journal_raw = blob_at(anchor['tree'], journal_path)
+    require(journal_raw is not None, 'retained discovery missing')
+    journal = document(journal_raw)
+    require(set(journal) == {'schema_version', 'repository', 'stream', 'coverage_from', 'next_segment', 'records_count'} and type(journal['schema_version']) is int and journal['schema_version'] == 1 and journal['repository'] == api.repo and journal['stream'] == stream and journal['coverage_from'] == anchor['coverage_from'] and type(journal['next_segment']) is int and index['segment'] < journal['next_segment'] < 10**12 and type(journal['records_count']) is int and journal['records_count'] == journal['next_segment'], 'retained discovery differs')
+    segment_raw = blob_at(anchor['tree'], state_paths.segment_path(stream, index['segment']))
+    require(segment_raw is not None, 'retained lookup segment missing')
+    segment = state_paths.validate_segment(document(segment_raw), api.repo, stream, index['segment'])
+    reference = {key: index[key] for key in ('run_id', 'attempt', 'artifact_id', 'record_sha256')}
+    require(sum(row == reference for row in segment['records']) == 1, 'retained lookup segment differs')
+    key = index['record_sha256']; raw = blob_at(anchor['tree'], f'receipt-archive/objects/{key[:2]}/{key}.json')
+    require(blob_at(anchor['bootstrap_tree'], f'receipt-archive/objects/{key[:2]}/{key}.json') is None, 'retained object pre-bootstrap requires explicit reviewed import')
+    require(raw is not None and digest(raw) == key, 'retained lookup object missing or altered')
+    record = document(raw); links = record.get('materials')
+    require(isinstance(links, dict) and len(links) <= 9 and all(state_paths.valid_hash(k, 64) for k in links.values()), 'retained lookup materials differ')
+    materials = {}
+    for material in set(links.values()):
+        raw = blob_at(anchor['tree'], f'receipt-archive/materials/{material[:2]}/{material}.json')
+        require(blob_at(anchor['bootstrap_tree'], f'receipt-archive/materials/{material[:2]}/{material}.json') is None, 'retained material pre-bootstrap requires explicit reviewed import')
+        require(raw is not None, 'retained lookup material missing')
+        wrapper = document(raw)
+        require(set(wrapper) == {'schema_version', 'sha256', 'encoding', 'content'} and type(wrapper['schema_version']) is int and wrapper['schema_version'] == 1 and wrapper['sha256'] == material and wrapper['encoding'] == 'base64', 'retained lookup material differs')
+        materials[material] = wrapper['content']
+    validate_record(record, materials, api.repo, store['visibility'])
+    require(record['run']['repository_id'] == anchor['repository_id'] and record['source_private'] == anchor['private'] and (record['run']['id'], record['run']['attempt'], record['artifact']['id']) == (run_id, attempt, index['artifact_id']), 'retained lookup record identity/privacy differs')
+    source = document(decode(materials[links['factory/policy.json']]))
+    require(record['run']['workflow_id'] == source['receipts']['workflow_id'], 'retained lookup workflow differs')
+    return {'record_sha256': key, 'record': record}

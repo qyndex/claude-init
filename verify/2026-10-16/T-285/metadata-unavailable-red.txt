@@ -1,0 +1,20 @@
+$ bash .claude/scripts/test/factory-receipt-reruns.sh
+Traceback (most recent call last):
+  File "<stdin>", line 128, in <module>
+  File "real-git-rerun-fixture", line 117, in <module>
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-discovery.py", line 402, in reconcile
+    return _checkpoint(source_api, state_api, policy, approval_path, stream, mode='review', trust_path=trust_path, trust_mode=trust_mode, store=store, review_rows=review_rows)
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-discovery.py", line 326, in _checkpoint
+    outcome, observed = assess(source_api, api, anchor, policy, trust_path, trust_mode, store, stream, row, epoch, blob_at, approval_path)
+                        ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-discovery.py", line 134, in assess
+    latest = run_identity(source_api.get(f'repos/{api.repo}/actions/runs/{row["run_id"]}'), anchor, policy)
+                          ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-discovery.py", line 246, in get
+    return source_read(original_source.get, target)
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-discovery.py", line 239, in source_read
+    return charge(fn(*args, **kwargs))
+                  ~~^^^^^^^^^^^^^^^^^
+  File "real-git-rerun-fixture", line 74, in get
+ValueError: GitHub API request failed: repos/org/repo/actions/runs/20
+exit: 1

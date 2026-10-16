@@ -1693,9 +1693,9 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-receipt-discovery.sh
   owner: implementer
 
-- [ ] T-285  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-284  | parallel: no  | est: 5m
+- [x] T-285  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-284  | parallel: no  | est: 5m
   summary: Reconcile reruns late visibility and non-delivery outcomes without omissions
-  files: .claude/scripts/factory-receipt-discovery.py, .claude/scripts/test/factory-receipt-reruns.sh
+  files: .claude/scripts/factory-receipt-discovery.py, .claude/scripts/test/factory-receipt-reruns.sh, .claude/scripts/factory-receipts.py, .claude/scripts/factory-receipt-archive.py, .claude/scripts/factory-state-paths.py, .claude/scripts/test/factory-receipt-state-paths.sh, plans/active/014-authenticated-receipt-recovery.md
   accept: bash .claude/scripts/test/factory-receipt-reruns.sh
   owner: implementer
 

@@ -19,13 +19,15 @@ def validate_entry(item):
     require(isinstance(path, str), 'state path invalid')
     checked_path = path.replace('receipt-archive/pending/', 'receipt-archive/index/', 1)
     if item.get('type') == 'tree':
-        allowed = path in {'reports', 'receipt-archive', 'receipt-archive/objects', 'receipt-archive/materials', 'receipt-archive/index', 'receipt-archive/discovery', 'receipt-archive/progress', 'receipt-archive/pending'} or re.fullmatch(r'receipt-archive/(objects|materials)/[0-9a-f]{2}', checked_path) or re.fullmatch(r'receipt-archive/index/[0-9a-f]{64}(/identities(/[0-9a-f]{2})?)?', checked_path) or re.fullmatch(r'receipt-archive/index/[0-9a-f]{64}(/[0-9]{3}){1,3}', checked_path)
+        allowed = path in {'reports', 'receipt-archive', 'receipt-archive/objects', 'receipt-archive/materials', 'receipt-archive/index', 'receipt-archive/discovery', 'receipt-archive/progress', 'receipt-archive/pending', 'receipt-archive/outcomes'} or re.fullmatch(r'receipt-archive/outcomes/[0-9a-f]{64}(/[0-9a-f]{2})?', checked_path) or re.fullmatch(r'receipt-archive/(objects|materials)/[0-9a-f]{2}', checked_path) or re.fullmatch(r'receipt-archive/index/[0-9a-f]{64}(/identities(/[0-9a-f]{2})?)?', checked_path) or re.fullmatch(r'receipt-archive/index/[0-9a-f]{64}(/[0-9]{3}){1,3}', checked_path)
         require(item.get('mode') == '040000' and bool(allowed), 'state tree path/mode invalid')
     else:
         allowed = path == 'README.md' or re.fullmatch(r'reports/[0-9a-f]{64}\.json', checked_path) or re.fullmatch(r'receipt-archive/(discovery|progress)/[0-9a-f]{64}\.json', checked_path)
         sharded = re.fullmatch(r'receipt-archive/(objects|materials)/([0-9a-f]{2})/([0-9a-f]{64})\.json', checked_path)
         identity = re.fullmatch(r'receipt-archive/index/[0-9a-f]{64}/identities/([0-9a-f]{2})/([0-9a-f]{64})\.json', checked_path)
         segment = re.fullmatch(r'receipt-archive/index/[0-9a-f]{64}/([0-9]{3})/([0-9]{3})/([0-9]{3})/([0-9]{12})\.json', checked_path)
+        outcome = re.fullmatch(r'receipt-archive/outcomes/[0-9a-f]{64}/([0-9a-f]{2})/([0-9a-f]{64})\.json', path)
+        allowed = allowed or (outcome and outcome[2].startswith(outcome[1]))
         allowed = allowed or (segment and segment[4].startswith(segment[1]+segment[2]+segment[3]))
         allowed = allowed or (sharded and sharded[3].startswith(sharded[2])) or (identity and identity[2].startswith(identity[1]))
         if path.startswith('receipt-archive/'):

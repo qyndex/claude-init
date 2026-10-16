@@ -91,17 +91,11 @@ def receipt_artifact(api, run, *, retain_blob=False):
         return (document, artifact, blob) if retain_blob else (document, artifact)
 
 
-def authenticate(api, policy, run_id, *, historical=False, trust_path=None, trust_mode='legacy'):
-    require(type(run_id) is int and run_id > 0 and api.repo == policy['repository'], 'invalid receipt source')
-    repo = policy['repository']; root = f'repos/{repo}'
-    require(type(policy['receipts']['workflow_id']) is int and policy['receipts']['workflow_id'] > 0, 'receipt workflow not configured')
-    run = api.get(f'{root}/actions/runs/{run_id}')
-    require(type(run['id']) is int and run['id'] == run_id and type(run['run_attempt']) is int and run['run_attempt'] > 0, 'wrong run identity')
-    require(run['repository']['full_name'] == repo and type(run['workflow_id']) is int and run['workflow_id'] == policy['receipts']['workflow_id'], 'foreign receipt producer')
-    require(run['event'] in {'workflow_run', 'workflow_dispatch'} and run['head_branch'] == policy['base_branch'], 'unprotected receipt event/branch')
-    require(run['status'] == 'completed' and run['conclusion'] == 'success', 'coordinator did not succeed')
-    require(run.get('path') == RUNTIME_PATHS[0], 'receipt workflow path differs')
-    require(coordinator.contract.digest(run.get('head_sha'), 40), 'receipt source SHA invalid')
+def authenticate_source(api, policy, run, *, trust_path, trust_mode):
+    """Authenticate exact emitter source, independently of outcome/artifact status."""
+    repo = policy['repository']
+    require(api.repo == repo and run['repository']['full_name'] == repo and type(run.get('id')) is int and run['id'] > 0 and type(run.get('run_attempt')) is int and run['run_attempt'] > 0 and type(run.get('workflow_id')) is int and run['workflow_id'] == policy['receipts']['workflow_id'], 'foreign receipt producer')
+    require(run.get('event') in ('workflow_run', 'workflow_dispatch') and run.get('head_branch') == policy['base_branch'] and run.get('path') == RUNTIME_PATHS[0] and coordinator.contract.digest(run.get('head_sha'), 40), 'unprotected receipt source identity')
     require(trust_mode in ('legacy', 'profile'), 'explicit receipt trust mode required')
     require(trust_path is not None or trust_mode == 'legacy', 'external receipt profile required')
     trust = load_receipt_trust(trust_path, repo, mode='report') if trust_path is not None else None
@@ -127,6 +121,22 @@ def authenticate(api, policy, run_id, *, historical=False, trust_path=None, trus
         require(set(pins) == set(RUNTIME_PATHS), 'receipt source revision not approved')
     for path in RUNTIME_PATHS:
         require(observed[path] == pins[path], 'receipt producer source changed')
+    require(source.get('repository') == repo and source.get('base_branch') == policy['base_branch'] and source.get('receipts', {}).get('workflow_id') == policy['receipts']['workflow_id'], 'receipt source policy identity differs')
+    return source, observed, trust, selected
+
+
+def authenticate(api, policy, run_id, *, historical=False, trust_path=None, trust_mode='legacy'):
+    require(type(run_id) is int and run_id > 0 and api.repo == policy['repository'], 'invalid receipt source')
+    repo = policy['repository']; root = f'repos/{repo}'
+    require(type(policy['receipts']['workflow_id']) is int and policy['receipts']['workflow_id'] > 0, 'receipt workflow not configured')
+    run = api.get(f'{root}/actions/runs/{run_id}')
+    require(type(run['id']) is int and run['id'] == run_id and type(run['run_attempt']) is int and run['run_attempt'] > 0, 'wrong run identity')
+    require(run['repository']['full_name'] == repo and type(run['workflow_id']) is int and run['workflow_id'] == policy['receipts']['workflow_id'], 'foreign receipt producer')
+    require(run['event'] in {'workflow_run', 'workflow_dispatch'} and run['head_branch'] == policy['base_branch'], 'unprotected receipt event/branch')
+    require(run['status'] == 'completed' and run['conclusion'] == 'success', 'coordinator did not succeed')
+    require(run.get('path') == RUNTIME_PATHS[0], 'receipt workflow path differs')
+    require(coordinator.contract.digest(run.get('head_sha'), 40), 'receipt source SHA invalid')
+    source, observed, trust, selected = authenticate_source(api, policy, run, trust_path=trust_path, trust_mode=trust_mode)
     document, artifact = receipt_artifact(api, run)
     expected = {'schema_version', 'repository', 'pull_request', 'head_sha', 'base_sha', 'spec', 'spec_sha256',
                 'policy_sha256', 'verifier_run', 'reviewer_run', 'eligible', 'merged', 'merge_sha', 'task_ids'}
