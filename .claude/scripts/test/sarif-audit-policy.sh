@@ -3,7 +3,7 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
 python3 - "$ROOT" <<'PY'
-import copy,hashlib,json,os,re,subprocess,sys,tempfile
+import ast,copy,hashlib,json,os,re,shutil,subprocess,sys,tempfile
 from pathlib import Path
 root=Path(sys.argv[1]);gate=root/'.claude/scripts/check-sarif.sh';passed=0;failures=[]
 rule='python.lang.security.audit.dangerous-subprocess-use-tainted-env-args.dangerous-subprocess-use-tainted-env-args'
@@ -26,6 +26,8 @@ with tempfile.TemporaryDirectory(prefix='sarif-audit-policy-') as directory:
         if completed.returncode==code and fragment in completed.stdout+completed.stderr: passed+=1
         else: failures.append((name,completed.returncode,completed.stdout,completed.stderr))
     check('authenticated exact source',code=0,fragment='accepted exact-source audit exceptions: 1')
+    doc=copy.deepcopy(document);doc['runs'][0]['results'][0]['locations'][0]['physicalLocation']['artifactLocation']['uriBaseId']='%SRCROOT%'
+    check('Semgrep SRCROOT shape',doc,code=0,fragment='accepted exact-source audit exceptions: 1')
     check('default off',options=False,fragment='high/critical')
     check('missing protected approval',approval='',fragment='Audit policy blocked')
     check('mismatched protected digest',approval='0'*64,fragment='Audit policy blocked')
@@ -70,6 +72,17 @@ with tempfile.TemporaryDirectory(prefix='sarif-audit-policy-') as directory:
     doc=copy.deepcopy(document);doc['runs'][0]['results'][0]['suppressions']=[{'kind':'external','status':'accepted'}];check('external policy alone grants approval',doc,code=0,fragment='accepted exact-source audit exceptions: 1')
     for args in [['--audit-policy',str(registry)],['--source-root',str(source)],['--bogus','x']]:
         p=subprocess.run(['bash',str(gate),str(report),*args],capture_output=True,text=True);assert p.returncode!=0,('partial policy CLI',args);passed+=1
+    # Execute the actual gate/helper from a candidate-shaped scripts directory.
+    # A stdlib-named source file must not execute or bypass an unapproved error.
+    checkout=base/'checkout';scripts=checkout/'.claude/scripts';scripts.mkdir(parents=True)
+    for name in ('check-sarif.sh','check-sarif-audit-policy.py'):shutil.copyfile(gate.parent/name,scripts/name)
+    marker=base/'SHADOW_EXECUTED'
+    (scripts/'json.py').write_text('from pathlib import Path\nPath('+repr(str(marker))+').write_text("shadowed")\nraise SystemExit(0)\n')
+    doc=copy.deepcopy(document);doc['runs'][0]['results'].append({'ruleId':'unapproved','level':'error'})
+    report.write_text(json.dumps(doc));registry.write_text(json.dumps(policy))
+    completed=subprocess.run(['bash',str(scripts/'check-sarif.sh'),str(report),'--audit-policy',str(registry),'--expected-registry-sha256',sha(registry.read_bytes()),'--source-root',str(source)],cwd=checkout,capture_output=True,text=True)
+    if completed.returncode!=1 or marker.exists():failures.append(('stdlib shadow isolation',completed.returncode,marker.exists(),completed.stdout,completed.stderr))
+    else:passed+=1
     initial=json.loads((root/'.claude/security-audit-exceptions.json').read_text());assert len(initial['exceptions'])==2
     assert {r['path'] for r in initial['exceptions']}=={'.claude/scripts/factory-worker-guard.py','.claude/scripts/foreground-watchdog.py'}
     for entry in initial['exceptions']:assert sha((root/entry['path']).read_bytes())==entry['sha256']
@@ -79,6 +92,34 @@ with tempfile.TemporaryDirectory(prefix='sarif-audit-policy-') as directory:
     assert 'environment:' not in default and "vars.FACTORY_SECURITY_AUDIT_ENABLED != 'true'" in default
     assert 'environment: factory-security' in protected and "vars.FACTORY_SECURITY_AUDIT_ENABLED == 'true'" in protected
     assert 'vars.FACTORY_SECURITY_AUDIT_POLICY_SHA256' in protected and 'secrets.' not in protected
+    # Evaluate actual job conditions over the four opt-in/ref modes, not
+    # expected expression strings. Only this small boolean grammar is accepted.
+    def selected(section,enabled,ref):
+        expression=next(line.strip()[4:] for line in section.splitlines() if line.strip().startswith('if: '))
+        expression=expression.replace('vars.FACTORY_SECURITY_AUDIT_ENABLED',repr(enabled)).replace('github.ref',repr(ref)).replace('||',' or ').replace('&&',' and ')
+        def value(node):
+            if isinstance(node,ast.Constant) and type(node.value) is str:return node.value
+            if isinstance(node,ast.BoolOp):
+                values=[value(n) for n in node.values]
+                return all(values) if isinstance(node.op,ast.And) else any(values) if isinstance(node.op,ast.Or) else None
+            if isinstance(node,ast.Compare) and len(node.ops)==len(node.comparators)==1:
+                left,right=value(node.left),value(node.comparators[0])
+                if isinstance(node.ops[0],ast.Eq):return left==right
+                if isinstance(node.ops[0],ast.NotEq):return left!=right
+            raise AssertionError('unsupported workflow condition grammar')
+        return value(ast.parse(expression,mode='eval').body)
+    for enabled,ref,expected in [('', 'refs/heads/main',(True,False)),('', 'refs/pull/7/merge',(True,False)),('true','refs/heads/main',(False,True)),('true','refs/pull/7/merge',(True,False))]:
+        actual=(selected(default,enabled,ref),selected(protected,enabled,ref))
+        if actual!=expected:failures.append(('actual job mode/ref routing',enabled,ref,actual,expected))
+        else:passed+=1
+    image=next(line.strip().split('image: ',1)[1] for line in protected.splitlines() if line.strip().startswith('image: '))
+    actions=[line.strip().split('uses: ',1)[1].split()[0] for line in protected.splitlines() if 'uses: ' in line]
+    if not re.fullmatch(r'returntocorp/semgrep@sha256:[0-9a-f]{64}',image) or not actions or any(not re.fullmatch(r'[^@]+@[0-9a-f]{40}',item) for item in actions):failures.append(('protected executable dependencies immutable',image,actions))
+    else:passed+=1
+    for option in ['--audit-policy','--expected-registry-sha256','--source-root']:
+        completed=subprocess.run(['bash',str(gate),str(report),option,'one',option,'two'],capture_output=True,text=True)
+        if completed.returncode!=1 or 'Duplicate audit policy option' not in completed.stderr:failures.append(('duplicate option diagnostic',option,completed.returncode,completed.stderr))
+        else:passed+=1
     step=protected.split('- name: Verify trusted audit source\n',1)[1].split('\n      - name:',1)[0]
     script=step.split('        run: |\n',1)[1];script='\n'.join(line[10:] for line in script.splitlines() if line.startswith('          '))
     bins=base/'bin';bins.mkdir();(bins/'git').write_text('#!/bin/sh\nprintf "%s\\n" "$FAKE_HEAD"\n');(bins/'git').chmod(0o755)

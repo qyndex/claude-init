@@ -1,0 +1,11 @@
+# TDD ledger — red — T-329
+ledger_format: 2
+timestamp: 2026-10-16T23:18:42+11:00
+command: bash .claude/scripts/test/sarif-audit-policy.sh && bash .claude/scripts/test/sarif-effective-severity.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+SARIF exact-source audit policy: 52 checks passed; 1 failed
+Traceback (most recent call last):
+  File "<stdin>", line 84, in <module>
+AssertionError: [('unsupported invocation working directory', 0, 'SARIF accepted exact-source audit exceptions: 1; unapproved high/critical findings: 0; NOT a clean security scan\n', '')]

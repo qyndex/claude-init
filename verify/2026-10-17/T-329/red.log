@@ -1,0 +1,11 @@
+# TDD ledger — red — T-329
+ledger_format: 2
+timestamp: 2026-10-17T00:00:09+11:00
+command: bash .claude/scripts/test/sarif-audit-policy.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+SARIF exact-source audit policy: 59 checks passed; 4 failed
+Traceback (most recent call last):
+  File "<stdin>", line 125, in <module>
+AssertionError: [('protected executable dependencies immutable', 'returntocorp/semgrep', ['actions/checkout@v7', 'actions/upload-artifact@v7', 'github/codeql-action/upload-sarif@v4']), ('duplicate option diagnostic', '--audit-policy', 1, ''), ('duplicate option diagnostic', '--expected-registry-sha256', 1, ''), ('duplicate option diagnostic', '--source-root', 1, '')]

@@ -1,0 +1,12 @@
+{
+  "base": "045f9c0f5de832e5d8c5d807c1a1804fb5b7d8d0",
+  "files": {
+    ".claude/scripts/check-sarif.sh": "dfc6229932c48baadfaefbb0a4b7894b4d2dc00324170f175facba9367ebb572",
+    ".claude/scripts/check-sarif-audit-policy.py": "a8546c8bd99c686e1229ce0b56c975e3a5a4be9f32bef2df9b9c9d3747c3a94b",
+    ".claude/scripts/test/sarif-audit-policy.sh": "5175eee418d893d1709754729294caaf7629acde55e1bc87004ad13351eecb3a",
+    ".github/workflows/semgrep.yml": "d1bc50cadd9f6df514acbdc8029e50b1007996a7b8d3338e6ff3e2fc92a4340c",
+    "docs/security/exact-source-audit-policy.md": "64c183329753f4ca925b2af21d67cf7cd775357452d461e0be15a09cd1bacde7",
+    ".claude/security-audit-exceptions.json": "707757b523be3bbc7fbf058d0f141262091b2a0b9626ec27f20779f9158116ab"
+  },
+  "raw_result_count": 147
+}

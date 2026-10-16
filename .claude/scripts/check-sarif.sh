@@ -7,9 +7,9 @@ policy=""; expected=""; source_root=""; policy_args=0
 while [ "$#" -gt 0 ]; do
   [ "$#" -ge 2 ] || { echo "Incomplete audit policy options" >&2; exit 1; }
   case "$1" in
-    --audit-policy) [ -z "$policy" ] || exit 1; policy="$2" ;;
-    --expected-registry-sha256) [ -z "$expected" ] || exit 1; expected="$2" ;;
-    --source-root) [ -z "$source_root" ] || exit 1; source_root="$2" ;;
+    --audit-policy) [ -z "$policy" ] || { echo "Duplicate audit policy option" >&2; exit 1; }; policy="$2" ;;
+    --expected-registry-sha256) [ -z "$expected" ] || { echo "Duplicate audit policy option" >&2; exit 1; }; expected="$2" ;;
+    --source-root) [ -z "$source_root" ] || { echo "Duplicate audit policy option" >&2; exit 1; }; source_root="$2" ;;
     *) echo "Unknown SARIF gate option" >&2; exit 1 ;;
   esac
   policy_args=$((policy_args+1)); shift 2
@@ -118,7 +118,7 @@ if ! findings=$(jq -s --argjson audit_mode "$audit_mode" '
   exit 1
 fi
 if [ "$policy_args" -ne 0 ]; then
-  printf '%s\n' "$findings" | python3 "$(dirname "$0")/check-sarif-audit-policy.py" \
+  printf '%s\n' "$findings" | python3 -I "$(dirname "$0")/check-sarif-audit-policy.py" \
     --policy "$policy" --expected-sha256 "$expected" --source-root "$source_root"
   exit "$?"
 fi
