@@ -1745,7 +1745,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-reporting-queue-actions.sh
   owner: implementer
 
-- [ ] T-317  | spec:029  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-316,T-321,T-325  | parallel: no  | est: 5m
+- [x] T-317  | spec:029  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-316,T-321,T-325  | parallel: no  | est: 5m
   summary: Verify queue aggregate and prepare exact initialization and rollout evidence
   files: .claude/scripts/test/factory-reporting-queue.sh, .claude/scripts/test/factory-reporting-queue-live-evidence.sh, docs/FACTORY-DIGEST.md, docs/FACTORY-ADOPTER-SETUP.md, plans/active/029-github-reporting-alerts.md
   accept: bash .claude/scripts/test/factory-reporting-queue.sh

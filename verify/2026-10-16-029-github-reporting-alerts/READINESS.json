@@ -1,0 +1,19 @@
+{
+  "source_sha": "d95c4339226e8789adf9ccf913160a305f20d86f",
+  "recorded_at": "2026-10-16T03:31:15.797469+00:00",
+  "local_contracts_passed": true,
+  "live_activation_verified": false,
+  "full_AC8_pending": true,
+  "full_spec_acceptance_complete": false,
+  "native_attestation": false,
+  "scope": "Collector AC-tag counts describe local test contributions, not full live acceptance. T318 remains pending.",
+  "aggregate_log_sha256": "78cf1405862258fa77c0cf0178fc9f82286f7cc9121b3f52b116c317c20bc1e2",
+  "coverage": "unmeasured; no coverage percentage is claimed",
+  "independent_review_verdict": "pass",
+  "independent_review_findings": 0,
+  "independent_review_model": "claude-sonnet-5-5",
+  "reviewed_source_sha": "d95c4339226e8789adf9ccf913160a305f20d86f",
+  "local_source_readiness_verified": true,
+  "source_ready_for_merge": false,
+  "merge_readiness_reason": "PR exact-head checks and separate operator authority-source cutover have not completed"
+}

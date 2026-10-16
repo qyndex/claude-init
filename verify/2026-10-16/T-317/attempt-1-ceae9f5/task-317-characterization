@@ -1,0 +1,4 @@
+Verification-only parent task characterizing committed T312–T324 local behavior.
+No runtime/test behavior changes and no new RED is claimed. Original fail-first
+child evidence remains retained. Local contributions do not complete live AC8.
+T317 remains pending until source-bound collector preparation is complete.

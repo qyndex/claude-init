@@ -1,0 +1,56 @@
+# TDD ledger — green — T-317
+ledger_format: 2
+timestamp: 2026-10-16T14:21:59+11:00
+command: bash .claude/scripts/test/factory-reporting-queue.sh
+exit_code: 0
+---
+60 queue journal identity/schema/state/budget cases passed; no IO or delivery
+Local contract: factory-reporting-queue-cas
+fresh process protected real Git read PASS
+20 real Git queue CAS/restart/lostack/opaque preservation cases passed
+Local contract: factory-reporting-queue-observation
+33 bounded protected queue observation cases passed; no Slack or state mutation
+Local contract: factory-reporting-queue-delivery
+Slack receipt comparison: {"text_is_string": true, "expected_length": 319, "actual_length": 80, "first_difference_line": 2, "first_difference_column": 53, "actual_character_category": "end", "url_wrappers": 0, "html_entities_match": false, "trimmed_match": false, "newline_match": false}
+39 queue intent/receipt/recovery/split/failure cases passed; no live Slack
+Local contract: factory-reporting-queue-actions
+64 protected queue workflow/config/credential boundary cases passed; no live calls
+Local contract: factory-reporting-queue-live-evidence
+11 explicit-live CLI composition cases passed via local gh stub; NOT live rollout evidence
+35 bounded reviewed-source/run/job/log observer cases passed; fixtures only, no live credit
+12 real Git protected journal/publication preservation cases passed; no live credit
+Offline queue evidence contract tests passed; live rollout remains unverified.
+Local contract: factory-workflow-baseline
+AC-5: shipped protected ingress defers malformed/foreign/duplicate/unknown JSON to coordinator without raw echo; read-only App and separate audit retained
+AC-5: protected separately serialized queue shell passes only fixed CLI drill flag without interpolation
+AC-1: actual full actionlint including ShellCheck passes all shipped workflows without warning waivers
+AC-2: shipped JSON validation accepts literal special filenames and rejects invalid JSON, missing roots and find exit 42
+AC-3: shipped bundle gate handles literal filenames, rejects missing/empty assets and over-budget gzip bytes, and propagates compressor failure
+AC-4: shipped project shell preserves all literal GraphQL variables; actual stale count returns numeric zero or one without remote effects
+Local contract: factory-reporting-alerts
+AC-1: real hosted state proves due alert, prolonged-incident suppression, digest preservation and one verified recovery
+AC-2: lost acknowledgement and fresh invocation reconcile durable intent; hidden history never resends and drill retry is idempotent
+AC-3: actual run provenance, default branch, disabled/foreign inputs and failure deduplication pass
+AC-4: typed journal rejects malformed receipts and duplicate rows; protected GitHub-only workflow needs no external monitor
+Local contract: factory-reporting-watchdog
+Slack receipt comparison: {"text_is_string": true, "expected_length": 319, "actual_length": 326, "first_difference_line": 6, "first_difference_column": 60, "actual_character_category": "Ll", "url_wrappers": 0, "html_entities_match": false, "trimmed_match": false, "newline_match": false}
+AC-1: external probe verifies protected checkpoints and text/file receipts without writes passed
+AC-2: precise due/grace boundary, outage detection and Sydney DST cutoffs passed
+AC-3: lost history, changed content, protection, clock/config and missing checkpoint negatives passed
+AC-4: non-sensitive status, current-only empty-body heartbeat and strict external endpoint passed
+Local contract: factory-hosted-digest
+Slack receipt comparison: {"text_is_string": true, "expected_length": 319, "actual_length": 80, "first_difference_line": 2, "first_difference_column": 53, "actual_character_category": "end", "url_wrappers": 0, "html_entities_match": false, "trimmed_match": false, "newline_match": false}
+Slack receipt comparison: {"text_is_string": true, "expected_length": 319, "actual_length": 239, "first_difference_line": 1, "first_difference_column": 1, "actual_character_category": "Nd", "url_wrappers": 0, "html_entities_match": false, "trimmed_match": false, "newline_match": false}
+Slack receipt comparison: {"text_is_string": true, "expected_length": 319, "actual_length": 80, "first_difference_line": 2, "first_difference_column": 53, "actual_character_category": "end", "url_wrappers": 0, "html_entities_match": false, "trimmed_match": false, "newline_match": false}
+AC-1: typed reporting state rejects foreign schema, unknown tables, broken blobs, missing protection and later missing streams; private source cannot publish public state
+AC-2: actual immutable Git object writes and unique commit nonces fence stale checkpoint writers before external sends
+AC-3: durable intent and receipt restore recover lost Slack/storage acknowledgements without duplicate sends or silent cursor reset
+AC-4: protected default-branch workflow, explicit hosted/self-hosted guards and fixed-host separated credential envelope pass actual fixtures
+Local contract: factory-slack-attachment
+AC-1: actual hosted oversized report, exact file bytes and unchanged repeat passed
+AC-2: uploader, destination, privacy, identity, byte tampering and ambiguous share negatives passed
+AC-3: completion loss, fresh-disk recovery, hidden history uncertainty and disabled default passed
+AC-4: HTTPS host/path, token separation, API envelope/methods and strict bounds passed
+Local contract: factory-policy-approval
+factory-policy-approval: hidden-field rejection, visible no-bypass approval, settled UTC fingerprint, changed policy/source/clock rejection and GET-only credential separation passed
+Local contract contributions for AC-1..AC-8 passed. Full AC-8 live acceptance: PENDING; no live credit.
