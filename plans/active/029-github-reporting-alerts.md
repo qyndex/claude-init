@@ -211,3 +211,39 @@ If actual API authorization cannot read source, state protections/journal or job
 logs, live acceptance stays blocked without adding credentials or permissions.
 Any stronger source capture or protected verification-only mode requires its own
 concrete review before implementation. No generalized evidence framework is added.
+
+### Disabled auxiliary workflows — 2026-10-16
+
+The operator manually disabled Issue lifecycle (284902557), Lighthouse CI
+(284902562), and E2E on Preview Deploy (284902548) because they kept executing.
+GitHub workflow metadata confirmed all three as `disabled_manually` on this date.
+This disables only these three workflows; the AI software factory improvement
+plan remains active and implementation continues. Keep their disabled state
+unless the operator authorizes reactivation. Their execution supplies no current lifecycle,
+Lighthouse, or preview E2E evidence. Diagnose triggers and applicability before
+proposing reactivation; do not interpret their disabled state as permission to weaken
+required checks or remove applicable verification obligations.
+
+### T321 local aggregate and operator readiness — 2026-10-16
+
+The aggregate runs the existing journal, real Git CAS, observer, delivery,
+protected Actions ingress, offline live-checker contract, workflow baseline,
+ordinary alerts, watchdog, hosted digest, attachments and policy regressions.
+Source/journal proof suites run once through the offline live-checker script.
+Documentation records exact variable names and separates repository/organization
+job-if gates from main-only environment configuration available after job start.
+Existing worker settings remain intact; queue enablement is still default off.
+
+Local AC1–8 contract results do not complete AC8's live rollout portion. T318 is
+PENDING: reviewed source/configuration, exact initialization, actual labelled drill,
+fresh-process duplicate suppression, recovery/repeat and per-publication opaque
+preservation remain required. No source settings, credentials, actual sends or
+API authorization have been changed by this task. Healthchecks stays disabled;
+the factory plan stays active despite the three disabled auxiliary workflows above.
+
+The final published collector bundle must bind the committed T321 source as an
+ancestor, so it is prepared after this implementation commit. Retain actual
+aggregate output and task GREEN, then rerun the existing AC-tagged commands and
+smoke at that committed source. Record local-contract scope and live PENDING;
+never turn offline fixture results into a live activation certificate. T317 is
+still the subsequent aggregate readiness checkpoint, and T318 remains separate.

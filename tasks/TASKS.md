@@ -653,7 +653,7 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
   accept: bash .claude/scripts/test/factory-reporting-queue-live-evidence.sh
   owner: implementer
 
-- [ ] T-321  | spec:029  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-320  | parallel: no  | est: 5m
+- [x] T-321  | spec:029  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-320  | parallel: no  | est: 5m
   summary: Verify local queue aggregate and document protected initialization and pending live rollout
   files: .claude/scripts/test/factory-reporting-queue.sh, docs/FACTORY-DIGEST.md, docs/FACTORY-ADOPTER-SETUP.md, plans/active/029-github-reporting-alerts.md
   accept: bash .claude/scripts/test/factory-reporting-queue.sh
