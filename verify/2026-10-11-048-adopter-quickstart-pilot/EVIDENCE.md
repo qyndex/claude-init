@@ -1,5 +1,5 @@
 ## Evidence Bundle — Spec 048 (048-adopter-quickstart-pilot)
-Spec: `specs/active/048-adopter-quickstart-pilot.md` · Commit: `bad9c78`
+Spec: `specs/active/048-adopter-quickstart-pilot.md` · Commit: `8e88a58`
 
 ### Acceptance criteria (3/3 proven)
 | AC | Proven by | Result |
@@ -10,7 +10,7 @@ Spec: `specs/active/048-adopter-quickstart-pilot.md` · Commit: `bad9c78`
 
 ### Smoke test (exit codes are load-bearing)
 ```
-# Smoke test — 2026-10-16T11:53:01+11:00
+# Smoke test — 2026-10-16T13:02:43+11:00
 $ bash .claude/scripts/verify.sh
 
 → Integration coverage gate
@@ -22,10 +22,10 @@ exit: 0
 ```
 
 ### Visual proof
-0 screenshot(s) captured under `verify/2026-10-11-048-adopter-quickstart-pilot/screenshots/` (named by AC).
+0 screenshot(s) captured under `verify/2026-10-16-048-adopter-quickstart-pilot/screenshots/` (named by AC).
 
 ### API traces
-0 API trace file(s) under `verify/2026-10-11-048-adopter-quickstart-pilot/traces/`; full HAR at `verify/2026-10-11-048-adopter-quickstart-pilot/network.har`.
+0 API trace file(s) under `verify/2026-10-16-048-adopter-quickstart-pilot/traces/`; full HAR at `verify/2026-10-16-048-adopter-quickstart-pilot/network.har`.
 
 ### Coverage
 line ?% · branch ?% (gate: line≥90 branch≥85)
@@ -33,9 +33,9 @@ line ?% · branch ?% (gate: line≥90 branch≥85)
 ### Verdict: **PASS**
 
 ## Artifact index
-- verify/2026-10-11-048-adopter-quickstart-pilot/evidence.json
-- verify/2026-10-11-048-adopter-quickstart-pilot/pr-body.md
-- verify/2026-10-11-048-adopter-quickstart-pilot/acceptance.log
-- verify/2026-10-11-048-adopter-quickstart-pilot/EVIDENCE.md
-- verify/2026-10-11-048-adopter-quickstart-pilot/results.json
-- verify/2026-10-11-048-adopter-quickstart-pilot/smoke.log
+- verify/2026-10-16-048-adopter-quickstart-pilot/evidence.json
+- verify/2026-10-16-048-adopter-quickstart-pilot/pr-body.md
+- verify/2026-10-16-048-adopter-quickstart-pilot/acceptance.log
+- verify/2026-10-16-048-adopter-quickstart-pilot/EVIDENCE.md
+- verify/2026-10-16-048-adopter-quickstart-pilot/results.json
+- verify/2026-10-16-048-adopter-quickstart-pilot/smoke.log
