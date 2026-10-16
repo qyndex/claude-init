@@ -103,10 +103,10 @@ fi
 if [ -f "$results_json" ]; then
   case "$results_json" in
     *.xml)
-      python3 -c 'import sys, xml.etree.ElementTree as ET; ET.parse(sys.argv[1])' "$results_json" || exit 1 ;;
+      python3 -I -c 'import sys, xml.etree.ElementTree as ET; ET.parse(sys.argv[1])' "$results_json" || exit 1 ;;
     *)
       # Parse the raw file: jq can accept a JSON prefix followed by NUL bytes.
-      python3 -c 'import json, sys; value=json.load(open(sys.argv[1], encoding="utf-8"), parse_constant=lambda value: sys.exit("Invalid JSON constant: " + value)); sys.exit(0 if isinstance(value, dict) else 1)' "$results_json" || exit 1 ;;
+      python3 -I -c 'import json, sys; value=json.load(open(sys.argv[1], encoding="utf-8"), parse_constant=lambda value: sys.exit("Invalid JSON constant: " + value)); sys.exit(0 if isinstance(value, dict) else 1)' "$results_json" || exit 1 ;;
   esac
 fi
 
@@ -114,7 +114,7 @@ fi
 proof_present=0
 proof_digest=""
 proof_hash() {
-  python3 -c 'import hashlib, sys; print(hashlib.sha256(open(sys.argv[1], "rb").read()).hexdigest())' "$1"
+  python3 -I -c 'import hashlib, sys; print(hashlib.sha256(open(sys.argv[1], "rb").read()).hexdigest())' "$1"
 }
 if [ -f "$results_json" ]; then
   proof_present=1

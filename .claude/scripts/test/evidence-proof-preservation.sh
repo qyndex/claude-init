@@ -100,6 +100,12 @@ def repeated(f):
  assert first_path.read_text()==PASS,'prior proof artifact was overwritten'
  assert f.consumer().returncode!=0
 case('repeated-attempts-do-not-reuse-proof',repeated)
+def isolated_integrity_imports(f,module):
+ marker=f.path/'shadow-imported'
+ (f.path/(module+'.py')).write_text('from pathlib import Path\nPath('+repr(str(marker))+').write_text("unexpected checkout import")\nraise RuntimeError("checkout module must not run in proof integrity path")\n')
+ valid(f,OTHER)
+ assert not marker.exists(),'checkout-controlled module entered proof integrity path'
+for module in ['json','hashlib']:case('isolated-integrity-'+module,lambda f,m=module:isolated_integrity_imports(f,m))
 template=(root/'.claude/templates/evidence/playwright.config.ts').read_text().split('import {',1)[0]
 try:
  assert 'Copy to repo root as playwright.evidence.config.ts.' in template

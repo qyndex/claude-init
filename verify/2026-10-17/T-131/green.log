@@ -1,0 +1,7 @@
+# TDD ledger — green — T-131
+ledger_format: 2
+timestamp: 2026-10-17T00:01:27+11:00
+command: bash .claude/scripts/test/evidence-proof-preservation.sh
+exit_code: 0
+---
+Evidence proof preservation: 21 passed; 0 failed
