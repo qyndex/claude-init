@@ -1,0 +1,5 @@
+# T335 selected CLI PR-mode forwarding regression
+
+Root found that App context selected durable receipts but omitted resumable PR discovery. This test-only followup adds an assertion on the actual context received by each of the four main-function downstream effect stubs. Before consuming the helper correction, the first selected CLI failed with "selected CLI did not forward resumable PR discovery"; that genuine RED is retained.
+
+Consumed immutable shared-helper followupf5eaf725a5c2772fdc736f697f95861d2924fd2d as local prerequisite4a35020. It selects pr_discovery_mode=resumable only through App-ON context and intentionally overrides a caller legacy value. No CLI production code changed. The frozen portable47-case suite now exits0, including forwarded mode on all four selected contexts. ShellCheck and diff checks pass. Existing four legacy regressions were not repeated because their production code is unchanged. No native calls, task status, source closure, rollout or authority claim; root combined review/integration remains pending.

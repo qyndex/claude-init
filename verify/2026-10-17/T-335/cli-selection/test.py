@@ -72,6 +72,7 @@ try:
    context=captured['reporting'] if filename=='factory-reporting-queue.py' else captured
    expected_view={'mode':'archive','approval_path':str(fixed/'receipt-archive-bootstrap.json')}
    assert context['state_view']==expected_view and context['receipt_mode']=='durable'
+   assert context.get('pr_discovery_mode')=='resumable','selected CLI did not forward resumable PR discovery'
    assert context['receipt_archive']['trust_mode']=='profile'
    if filename=='factory-reporting-queue.py':assert captured['storage']['state_view']==expected_view
    assert hasattr(api,'budget') and api.budget.calls==0
