@@ -1,0 +1,12 @@
+# TDD ledger — red — T-335/workflow-ingress
+ledger_format: 2
+timestamp: 2026-10-17T01:29:50+11:00
+command: python3 verify/2026-10-17/T-335/workflow-ingress/test.py
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "/private/tmp/factory-t335-workflow-ingress-20261017/verify/2026-10-17/T-335/workflow-ingress/test.py", line 48, in <module>
+    assert current['env']['FACTORY_REPORTING_STATE_REPOSITORY'] == '${{ vars.FACTORY_REPORTING_STATE_REPOSITORY || github.repository }}'
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError

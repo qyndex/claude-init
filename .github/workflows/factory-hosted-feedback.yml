@@ -15,6 +15,10 @@ jobs:
       vars.FACTORY_REPORTING_PROFILE == 'github-hosted' &&
       github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
     environment: factory-reporting
+    env:
+      FACTORY_REPORTING_APP_WRITER_ENABLED: ${{ vars.FACTORY_REPORTING_APP_WRITER_ENABLED || 'false' }}
+      FACTORY_REPORTING_APP_ID: ${{ vars.FACTORY_REPORTING_APP_ID }}
+      FACTORY_REPORTING_STATE_REPOSITORY: ${{ vars.FACTORY_REPORTING_STATE_REPOSITORY || github.repository }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -22,6 +26,28 @@ jobs:
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
+      - name: Mint repository-scoped reporting writer token
+        id: reporting_app
+        if: env.FACTORY_REPORTING_APP_WRITER_ENABLED == 'true'
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          app-id: ${{ vars.FACTORY_REPORTING_APP_ID }}
+          private-key: ${{ secrets.FACTORY_REPORTING_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+          permission-contents: write
+          permission-administration: read
+      - name: Validate selected reporting credentials
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FACTORY_REPORTING_APP_TOKEN: ${{ steps.reporting_app.outputs.token }}
+        run: |
+          python3 - <<'PYWRITER'
+          import importlib.util,os
+          spec=importlib.util.spec_from_file_location('reporting_transport','.claude/scripts/factory-reporting-transport.py')
+          transport=importlib.util.module_from_spec(spec);spec.loader.exec_module(transport)
+          transport.create_api(os.environ)
+          PYWRITER
       - name: Install pinned encryption dependencies
         run: python3 -m pip install -r factory/feedback-crypto-requirements.txt
       - name: Prepare protected feedback configuration
@@ -61,6 +87,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           FACTORY_REPORTING_STATE_TOKEN: ${{ secrets.FACTORY_REPORTING_STATE_TOKEN }}
+          FACTORY_REPORTING_APP_TOKEN: ${{ steps.reporting_app.outputs.token }}
           FACTORY_SLACK_BOT_TOKEN: ${{ secrets.FACTORY_SLACK_BOT_TOKEN }}
           FACTORY_FEEDBACK_STATE_KEY: ${{ secrets.FACTORY_FEEDBACK_STATE_KEY }}
         run: python3 .claude/scripts/factory-hosted-feedback.py --config "$RUNNER_TEMP/factory-private-feedback/config.json"
