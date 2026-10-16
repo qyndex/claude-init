@@ -1,0 +1,39 @@
+{
+  "head": "34f3f422c10cade29193787c4caf87a74b6cbf3a",
+  "source_scope": "Frozen uncommitted T289 snapshot; exact hashes bound, baseline commit is not current implementation commit",
+  "review_files": [
+    {
+      "path": ".claude/scripts/factory-preflight.py",
+      "full_sha256": "3894dd7b5de7acf2daf99599cdb1fa9630ec3c5f95ff799bc061c19dfe906f3f"
+    },
+    {
+      "path": ".claude/scripts/test/factory-receipt-readiness.sh",
+      "full_sha256": "aa8c00bfab9c7d3f3d047465dc2298f824a3e163a920cdff558c4168f13708bb"
+    },
+    {
+      "path": ".claude/scripts/factory-reporting-receipts.py",
+      "start": 30,
+      "end": 100,
+      "full_sha256": "53d882ffda39652eb06300aa77b99c3fe96acc23128e8578925cc6d76ba0fef9"
+    },
+    {
+      "path": ".claude/scripts/factory-receipts.py",
+      "start": 36,
+      "end": 78,
+      "full_sha256": "276573a80730be1fd246de4939e5fd8594d439724083f88037af96b8ce9e1255"
+    },
+    {
+      "path": ".claude/scripts/factory-receipt-discovery.py",
+      "start": 640,
+      "end": 715,
+      "full_sha256": "7d35812cc68950a59b73dcea3dee8f31edf9845994ed9ef062fc907011fc1f5e"
+    },
+    {
+      "path": ".claude/scripts/factory-receipt-discovery.py",
+      "start": 838,
+      "end": 855,
+      "full_sha256": "7d35812cc68950a59b73dcea3dee8f31edf9845994ed9ef062fc907011fc1f5e"
+    }
+  ],
+  "prompt_sha256": "9f6e91b46c15e4dd74e270cbb1d063d1796f4f600e690c3597d2568293008e39"
+}

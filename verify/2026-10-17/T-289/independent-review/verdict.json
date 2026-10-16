@@ -1,0 +1,27 @@
+{
+  "verdict": "changes_requested",
+  "findings": [
+    {
+      "severity": "medium",
+      "file": ".claude/scripts/factory-preflight.py",
+      "line": 57,
+      "title": "Readiness omits the coverage_from <= verified_until ordering check that the merge-path projection enforces",
+      "reason": "project_reporting (factory-reporting-receipts.py:87-90) requires `archive.instant(coverage['coverage_from']) <= archive.instant(coverage['verified_until'])` in addition to the repository and coverage_from equality checks. reporting_readiness copies the equality checks but not the ordering check. If the retained validators do not themselves reject an interval_end earlier than the anchor's coverage_from, readiness can report `retained_interval: passed` for an interval the emitter would refuse. That is a false-positive readiness signal. The merge path repeats this check, which suggests the validators do not guarantee it. I could not confirm that from the visible code, so please either add the same check here or show that the validators reject the case. No test covers an interval_end before coverage_from."
+    },
+    {
+      "severity": "low",
+      "file": ".claude/scripts/factory-preflight.py",
+      "line": 63,
+      "title": "Narrow exception set can turn a validation failure into an uncaught traceback instead of structured failed JSON",
+      "reason": "Both reporting_readiness (line 63) and reporting_main (line 80) catch only ValueError, OSError, KeyError and TypeError. factory-receipt-discovery.py:852 shows that the API and observation layer can raise RuntimeError, which coverage() handles itself. verify_bootstrap and reconstruct_interval run outside that handler, and sqlite3.Error from reconstruct_interval's temporary database is also not in this set. Any of these would escape as a traceback with no JSON result. The exit code is still nonzero, so this fails closed. The contract of reporting a `failed` check with a fixed reason string is broken, though, and the traceback prints unsanitized exception text. Consider catching RuntimeError and sqlite3.Error as well, or a broader handler that emits the fixed reason."
+    }
+  ],
+  "limitations": [
+    "Static review of the provided snapshot only. No tests or code were run, and I make no claim that any test passes.",
+    "I could not see the bodies of archive.reconstruct_interval, archive.verify_bootstrap, factory-reporting-transport.py (build_config, create_api, attach_reporting_context), or most of discovery.coverage. I could not confirm which exceptions they raise or whether they already reject an interval that ends before coverage_from.",
+    "I found no source or state mutation in the new readiness path. State access goes through helper.ReadOnly and helper.Source, and the new code writes only to a temporary directory. The result sets only protected_origin and retained_interval; installed_app, private_capability, native_cadence and operator_cutover stay not_checked, and no `ready` key is emitted.",
+    "The existing `--policy` path is functionally unchanged. The only visible differences are the mutually exclusive required group and a rejection of interval selectors when `--policy` is used.",
+    "With selectors supplied, a protected-input change detected by the final recheck at lines 60-62 marks `retained_interval` failed. `protected_origin` stays `passed` and the earlier anchor stays in the output. The overall exit is still nonzero, so I did not file this as a finding."
+  ],
+  "review_summary": "The reporting-only readiness mode is mostly sound. It uses read-only wrappers for the state and source APIs, requires profile trust mode with an active profile, checks the repository and store binding, and rechecks the bootstrap anchor and the approval and trust bytes at the end. It runs the real reconstruct_interval and coverage validators and reports only protected_origin and retained_interval. Everything else stays not_checked, there is no overall `ready` claim, and the `--policy` flow is unchanged. I found two issues. The medium one is that readiness drops the `coverage_from <= verified_until` ordering check that project_reporting applies, so it could report a pass the emitter would reject. The low one is that the narrow exception set can leak a traceback instead of the structured failed result."
+}
