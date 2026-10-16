@@ -777,3 +777,7 @@ independent deletion/rewrite protection remains no-bypass. The original merge
 policy empty-actor helper and all original runtime/task-credit guards remain.
 Actual App capability, source rollout, positive policy activation and morning
 delivery proof remain later reviewed T289/operator gates.
+
+## Approved operational-proof integration boundary — 2026-10-17
+
+Spec029 AC9 and its operator-approved amendment own T336–T339, supporting original T318's publication acceptance. Operational proof remains a distinct purpose/schema and opaque state role; it is never imported as delivery coverage or current-task/merge/production/readiness evidence. Reuse the existing native signing, bounded process and same-repository protected state mechanisms; no new root namespace or delivery receipt schema change is implied. Current live checker remains unchanged. The former native administrative observation is preserved with its actual source/time and cannot be relabelled a native attestation. Genuine protected-producer bootstrap and read-only consumer verification precede restoring publication closeout. This pointer does not close T180/T222 or any original remaining task.
