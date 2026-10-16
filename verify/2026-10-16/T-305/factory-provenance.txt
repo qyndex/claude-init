@@ -1,0 +1,3 @@
+provenance: PASS; assertions=42; injected verified-certificate positive fixtures; nonzero verifier rejection; no live signing/hosted verdict
+
+exit_code: 0

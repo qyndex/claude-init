@@ -1,0 +1,2 @@
+PASS: only two coordinator runtime pins changed; every other policy field exact.
+PASS: all16 runtime pins match actual source bytes; unchanged8/7 closure.
