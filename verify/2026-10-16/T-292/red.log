@@ -1,0 +1,13 @@
+# TDD ledger — red — T-292
+ledger_format: 2
+timestamp: 2026-10-16T11:29:02+11:00
+command: bash .claude/scripts/test/factory-policy-observation.sh && bash .claude/scripts/test/factory-coordinator.sh && bash .claude/scripts/test/factory-producers.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 5, in <module>
+  File "<frozen importlib._bootstrap_external>", line 755, in exec_module
+  File "<frozen importlib._bootstrap_external>", line 892, in get_code
+  File "<frozen importlib._bootstrap_external>", line 950, in get_data
+FileNotFoundError: [Errno 2] No such file or directory: '/private/tmp/factory-t292-historical-6606/.claude/scripts/factory-policy-observation.py'

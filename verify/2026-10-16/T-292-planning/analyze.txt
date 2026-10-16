@@ -1,0 +1,6 @@
+PASS: four pending task entries; dependencies exist, acyclic; accept commands shlex-valid; T291 complete.
+AC coverage: AC1 existing182/274 plus298 closure; AC2 existing182; AC3 existing182; AC4 existing183/274/291 plus297; AC5 new296/297/298 and aggregate292.
+Scope: strict helper/schema/GET-only observer296; protected workflow/coordinator/audit297; full producer closure/materials298. No open questions or install dependencies (stdlib).
+Compatibility: visible actors remain strict; existing pin/PR checks retained; separate single-member receipt ZIP preserved; no live activation. Planned new preflight acceptance script is explicitly a T298 deliverable.
+Reserved IDs:293–295 exist only on paused receipt branch;296–298 confirmed absent there and on main before append.
+Verdict: PASS for planning consistency, not implementation or live proof.

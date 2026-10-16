@@ -82,7 +82,8 @@
       "artifact_name": "factory-verification",
       "trusted_files": {
         ".claude/scripts/factory-bounded-process.py": "91d077e6badb7c606a31cf85d8fbb8315b91d9d211b4fe1ab8fb970693207f47",
-        ".claude/scripts/factory-coordinator.py": "d1d02dd51199cf6cc308b644c611fec3d4f007d0a291b9be289bc18824213784",
+        ".claude/scripts/factory-coordinator.py": "7d41dcadf9801fedd64071e302020a6b0d3b8f421d905ce64c9b03cb6f7f21f1",
+        ".claude/scripts/factory-policy-observation.py": "a556e7248ab99778a6ccce7fe9a920c274074bcdb3feaad7be7fe4bbc67b3276",
         ".claude/scripts/factory-producer-check.py": "848474c98c55c9281f47ce97a9bd3a7c302dd51033860cbebf154e478a0c6f07",
         ".claude/scripts/factory-producer.py": "c4f55db3a85d32c88e82432cb26d15ad183707d060e344300d14574bb75da417",
         ".claude/scripts/factory-provenance.py": "0b169e5fefa78ee683ecf3aaf13bfce975929b113ff3d1052a59a95cc3077b01",
@@ -97,7 +98,8 @@
       "artifact_name": "factory-review",
       "trusted_files": {
         ".claude/scripts/factory-bounded-process.py": "91d077e6badb7c606a31cf85d8fbb8315b91d9d211b4fe1ab8fb970693207f47",
-        ".claude/scripts/factory-coordinator.py": "d1d02dd51199cf6cc308b644c611fec3d4f007d0a291b9be289bc18824213784",
+        ".claude/scripts/factory-coordinator.py": "7d41dcadf9801fedd64071e302020a6b0d3b8f421d905ce64c9b03cb6f7f21f1",
+        ".claude/scripts/factory-policy-observation.py": "a556e7248ab99778a6ccce7fe9a920c274074bcdb3feaad7be7fe4bbc67b3276",
         ".claude/scripts/factory-producer-check.py": "848474c98c55c9281f47ce97a9bd3a7c302dd51033860cbebf154e478a0c6f07",
         ".claude/scripts/factory-producer.py": "c4f55db3a85d32c88e82432cb26d15ad183707d060e344300d14574bb75da417",
         ".claude/scripts/factory-provenance.py": "0b169e5fefa78ee683ecf3aaf13bfce975929b113ff3d1052a59a95cc3077b01",

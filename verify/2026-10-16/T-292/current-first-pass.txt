@@ -1,0 +1,4 @@
+60 policy observation cases PASS (AC-5); transport fixture only, no live operator observation
+AC-5: protected hidden observations, visible actor rejection, final drift and bounded strict input PASS
+passed: 63; failed: 0
+passed: 38; failed: 0
