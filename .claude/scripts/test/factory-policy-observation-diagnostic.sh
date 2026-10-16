@@ -38,7 +38,7 @@ check(diag['components']['name']['sha256']==hashlib.sha256(obs.canonical('change
 check(diag['expected_metadata_sha256']==observation['metadata_sha256'] and diag['ruleset_id']==1 and diag['repository_id']==42)
 check(diag['timestamps']['updated_at']['raw']==full_rules['updated_at'])
 check(diag['expected_updated_at']['raw']==observation['updated_at'])
-check(diag['matches']=={'repository':True,'repository_id':True,'ruleset_id':True,'metadata_sha256':False,'updated_at':True})
+check(diag['matches']=={'repository':True,'repository_id':True,'ruleset_id':True,'metadata_sha256':False,'updated_at_raw':True,'updated_at_instant':True})
 check(diag['reason']=='metadata-mismatch' and len(obs.canonical(diag))<=8192)
 for key in obs.SEMANTIC:
  changed=copy.deepcopy(full_rules);changed.pop('bypass_actors');changed.pop(key)
@@ -63,13 +63,11 @@ assert peak < 524288, ('oversized diagnostic frontier allocated',peak)
 count+=1
 nested=[];nested.append(nested)
 assert obs.failure_diagnostic(repository,dict(full_rules,rules=nested),observation)['reason']=='diagnostic-unavailable';count+=1
-# Timestamp strings are diagnostic facts only; equivalent spellings still reject.
+# Timestamp strings are diagnostic facts only; raw spelling is distinct from accepted semantic equality.
 alternative=copy.deepcopy(full_rules);alternative.pop('bypass_actors');alternative['updated_at']=obs.timestamp(full_rules['updated_at']).isoformat().replace('+00:00','Z')
 safe=obs.failure_diagnostic(repository,alternative,observation)
 assert safe['timestamps']['updated_at']['raw']==alternative['updated_at'];count+=1
-try:obs.validate(repository,alternative,observation)
-except ValueError:pass
-else:raise AssertionError('timestamp diagnostics relaxed exact enforcement')
+assert obs.validate(repository,alternative,observation);count+=1
 # Actual CLI failure path must still replace prior same-head eligible success.
 import tempfile
 with tempfile.TemporaryDirectory() as temp:
@@ -96,8 +94,8 @@ for message,category in [('complete observation required','observation-incomplet
 for expected in ('DO_NOT_ECHO_EXPECTED_SENTINEL','x'*41,None):
  malformed=dict(observation,updated_at=expected,repository_id=True)
  safe=obs.failure_diagnostic(repository,full_rules,malformed)
- check(safe['expected_updated_at']=={'status':'invalid'} and safe['matches']['repository_id'] is None and safe['matches']['updated_at'] is None)
+ check(safe['expected_updated_at']=={'status':'invalid'} and safe['matches']['repository_id'] is None and safe['matches']['updated_at_raw'] is None and safe['matches']['updated_at_instant'] is None)
  check('DO_NOT_ECHO_EXPECTED_SENTINEL' not in json.dumps(safe))
 # The allocation threshold above is a CPython resource regression, not a timing benchmark.
-print(f'{count} bounded failed-observation diagnostic cases passed; enforcement unchanged')
+print(f'{count} bounded failed-observation diagnostic cases passed; strict authority checks retained')
 PY

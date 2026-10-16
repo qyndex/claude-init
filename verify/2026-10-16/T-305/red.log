@@ -1,0 +1,19 @@
+# TDD ledger — red — T-305
+ledger_format: 2
+timestamp: 2026-10-16T12:28:46+11:00
+command: bash .claude/scripts/test/factory-policy-observation-time-equivalence.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 9, in <module>
+  File "/private/tmp/factory-observation-diagnostic-20261016/.claude/scripts/factory-policy-observation.py", line 216, in validate
+    require(observation['repository'] == repo['full_name'] and observation['repository_id'] == repo['id']
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            and observation['ruleset_id'] == rules['id'] and observation['metadata_sha256'] == digest
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            and observation['updated_at'] == rules['updated_at'], 'observation metadata changed or foreign')
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-observation-diagnostic-20261016/.claude/scripts/factory-policy-observation.py", line 23, in require
+    raise ValueError(message)
+ValueError: observation metadata changed or foreign

@@ -110,3 +110,14 @@ metadata/timestamp/identity and actor checks. It does not establish the mismatch
 cause or authorize normalization. A genuine protected App-view diagnostic after
 normal source rollout is required before any subsequent root-cause correction;
 authority remains disabled and no hosted shadow success is claimed here.
+
+A later actual public/full-operator GET replay demonstrated a separate concrete
+defect: only created_at and updated_at spellings differ while their instants are
+equal, causing the lexical metadata digest to reject. This factual two-field
+defect supersedes the earlier speculative App-audit-before-any-fix guard only
+for timestamp equivalence. The repair preserves all other semantics, strict
+precision/settle bounds and raw diagnostics; it does not prove the actual App
+cause. After reviewed source rollout, use the actual full-GET operator capture
+command again and replace the main-only observation input: old lexical hashes
+have no fallback. Genuine protected App-shadow verification remains required;
+this source preparation changes no live observations or authority settings.

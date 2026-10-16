@@ -233,3 +233,16 @@ Refresh exact16 runtime pins with the same8/7 closures; all other policy fields 
 merge_enabledfalse remain unchanged. No permissions, receipts trust, live
 observations, App setup or settings changes. T305 is pending, planning only;
 normal independent review, source rollout and actual App-shadow proof remain.
+
+T305 local implementation now canonicalizes exactly the two semantic timestamps
+to UTC microseconds and compares updated_at instants without epoch floats. Strict
+aware ISO parsing rejects unsupported fractional precision and invalid offset
+minutes before fromisoformat can truncate/normalize them. Actual captured public
+and operator snapshots pass only with a freshly canonical observation; the
+actual old1cb lexical hash rejects for both hidden forms. One-microsecond source
+or observation drift and fractional settle/future violations still reject.
+Diagnostics preserve raw timestamps/component fingerprints and explicitly label
+updated_at_raw versus updated_at_instant; raw spelling alone is not authority.
+Actual33snapshot cases and43diagnostic cases are local evidence, not App proof.
+No stored observation/configuration was changed. Normal reviewed rollout, actual
+full-GET recapture and genuine protected App shadow remain pending.

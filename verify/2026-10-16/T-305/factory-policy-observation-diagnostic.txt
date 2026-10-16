@@ -1,0 +1,3 @@
+43 bounded failed-observation diagnostic cases passed; strict authority checks retained
+
+exit_code: 0

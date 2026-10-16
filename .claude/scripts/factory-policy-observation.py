@@ -46,12 +46,16 @@ def decode(raw):
 
 def timestamp(value):
     require(type(value) is str and len(value) <= 40, 'invalid observation timestamp')
+    # GitHub timestamps are aware ISO dates with supported millisecond/microsecond
+    # precision. fromisoformat alone silently truncates longer fractions and can
+    # normalize invalid offset minutes; reject those representations first.
+    match = re.fullmatch(r'[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]{1,6})?(?:Z|[+-](?P<hour>[0-9]{2}):(?P<minute>[0-9]{2}))', value)
+    require(match is not None and (match['hour'] is None or (int(match['hour']) < 24 and int(match['minute']) < 60)), 'invalid observation timestamp')
     try:
         parsed = dt.datetime.fromisoformat(value.replace('Z', '+00:00'))
-    except ValueError as exc:
+        return parsed.astimezone(dt.timezone.utc)
+    except (ValueError, OverflowError) as exc:
         raise ValueError('invalid observation timestamp') from exc
-    require(parsed.tzinfo is not None and parsed.utcoffset() is not None, 'timezone required')
-    return parsed.astimezone(dt.timezone.utc)
 
 
 def identity(repo, rules):
@@ -70,6 +74,8 @@ def identity(repo, rules):
             and all(type(rule) is dict for rule in rules['rules']), 'malformed ruleset metadata')
     timestamp(rules['created_at']); timestamp(rules['updated_at'])
     projection = {key: rules[key] for key in SEMANTIC}
+    for key in ('created_at', 'updated_at'):
+        projection[key] = timestamp(rules[key]).isoformat(timespec='microseconds')
     try:
         raw = canonical(projection)
     except (ValueError, TypeError, RecursionError) as exc:
@@ -146,7 +152,8 @@ def failure_diagnostic(repo, rules, observation=None):
                    'repository_id': same(identifier(repository_id), identifier(observed.get('repository_id'))),
                    'ruleset_id': same(identifier(ruleset_id), identifier(observed.get('ruleset_id'))),
                    'metadata_sha256': same(actual, expected),
-                   'updated_at': same(timestamps['updated_at'].get('raw'), expected_updated.get('raw'))}
+                   'updated_at_raw': same(timestamps['updated_at'].get('raw'), expected_updated.get('raw')),
+                   'updated_at_instant': same(timestamps['updated_at'].get('utc'), expected_updated.get('utc'))}
         result = {'schema_version': 1, 'reason': 'validation-rejected',
                   'repository': name,
                   'repository_id': repository_id if type(repository_id) is int and 0 < repository_id < 2**63 else None,
@@ -215,7 +222,7 @@ def validate(repo, rules, observation=None, *, now=None):
             'observation schema invalid')
     require(observation['repository'] == repo['full_name'] and observation['repository_id'] == repo['id']
             and observation['ruleset_id'] == rules['id'] and observation['metadata_sha256'] == digest
-            and observation['updated_at'] == rules['updated_at'], 'observation metadata changed or foreign')
+            and timestamp(observation['updated_at']) == timestamp(rules['updated_at']), 'observation metadata changed or foreign')
     require(type(observation['bypass_actors']) is list and observation['bypass_actors'] == [],
             'observation must record empty actors')
     observed = timestamp(observation['observed_at'])
