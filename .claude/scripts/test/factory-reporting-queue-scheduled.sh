@@ -108,7 +108,9 @@ cases=r'''
   try:invoke('recovery-missing-remote-receipt')
   except ValueError:pass
   else:raise AssertionError('recovery without exact remote receipt accepted')
+  api.conflict=True  # Existing journal: concurrent opaque writer forces actual CAS/reload.
   client.hide_digest=False;assert invoke('scheduled-recovery')['notifications']==1
+  assert git('show',ref+':reports/'+'1'*64+'.json').stdout==b'concurrent encrypted checkpoint'
   assert invoke('scheduled-recovery-restart')['notifications']==0
  print(json.dumps({'outcomes':outcomes,'requests':calls},sort_keys=True))
  print('scheduled real Git + actual RoutedAPI queue incident/recovery PASS; synthetic gh/Slack only')

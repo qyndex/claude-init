@@ -159,14 +159,22 @@ class QueueStore:
         self.state.state_view_config(storage.get('state_view'))
         self.source = api; self.repo = api.repo; self.config = json.loads(canonical(config)); self.storage = json.loads(canonical(storage))
         self.identity = stream(config); self.calls = self.consumed = 0
+        self.immutable = {}; self.cached_bytes = 0
 
     def request(self, path, method='GET', payload=None):
         require(path == 'repos/'+self.repo or path.startswith('repos/'+self.repo+'/'), 'queue storage foreign API')
+        immutable = self.storage.get('state_view') is not None and method == 'GET' and payload is None and re.fullmatch(
+            re.escape('repos/'+self.repo+'/git/')+r'(?:commits|trees|blobs)/[0-9a-f]{40}', path) is not None
+        if immutable and path in self.immutable:return json.loads(self.immutable[path])
         require(self.calls < 128, 'queue storage API bound exceeded'); self.calls += 1
         # Production state.API bounds stdout before JSON parse; preserve that transport bound.
         value = self.source.request(path, method, payload)
-        size = len(canonical(value)); self.consumed += size
+        encoded = canonical(value); size = len(encoded); self.consumed += size
         require(size <= self.state.MAX_STATE*2 and self.consumed <= 33554432, 'queue storage observation bound exceeded')
+        if immutable:
+            require(len(self.immutable) < 128 and self.cached_bytes+size <= 33554432, 'queue immutable cache bound exceeded')
+            self.immutable[path] = encoded; self.cached_bytes += size
+            return json.loads(encoded)
         return value
 
     def _load(self):
@@ -391,12 +399,22 @@ def run_queue(api, client, config, storage, reporting, now, *, drill_run=None):
     class DeliveryAPI:
         repo = api.repo
         calls = consumed = 0
+        def __init__(self):
+            self.immutable = {}; self.cached_bytes = 0
+            self.archive = type(storage) is dict and type(storage.get('state_view')) is dict and storage['state_view'].get('mode') == 'archive'
         def request(self, path, method='GET', payload=None):
             require(path == 'repos/'+self.repo or path.startswith('repos/'+self.repo+'/'), 'queue delivery foreign API')
+            immutable = self.archive and method == 'GET' and payload is None and re.fullmatch(
+                re.escape('repos/'+self.repo+'/git/')+r'(?:commits|trees|blobs)/[0-9a-f]{40}', path) is not None
+            if immutable and path in self.immutable:return json.loads(self.immutable[path])
             require(self.calls < 512, 'queue delivery API bound exceeded'); self.calls += 1
             value = api.request(path, method, payload)
-            size = len(canonical(value)); self.consumed += size
+            encoded = canonical(value); size = len(encoded); self.consumed += size
             require(size <= 16000000 and self.consumed <= 67108864, 'queue delivery API byte bound exceeded')
+            if immutable:
+                require(len(self.immutable) < 512 and self.cached_bytes+size <= 67108864, 'queue immutable cache bound exceeded')
+                self.immutable[path] = encoded; self.cached_bytes += size
+                return json.loads(encoded)
             return value
     class DeliverySlack:
         calls = consumed = 0

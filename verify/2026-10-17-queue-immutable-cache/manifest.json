@@ -1,0 +1,16 @@
+{
+  "baseline": "ff673f91e968a1d38469a9d2b2588afe9abcf00b",
+  "source_sha256": {
+    ".claude/scripts/factory-reporting-queue.py": "b175c5fda0cc6309475cf9a800ca9c3e9c9f366979df2caf3f51c479f697e3a7",
+    ".claude/scripts/test/factory-reporting-queue-immutable.sh": "3c7ef5d3b41991c0bbd6bbee12801966b7d59cc19ce697c9ecd14c09f16ca2ff",
+    ".claude/scripts/test/factory-reporting-queue-scheduled.sh": "f78acf4499fbbe7c7ce711aec5f5b14d3b22775efe14b0d6205339b725775a7f"
+  },
+  "delivery_only_intermediate_sha256": "a3e9204c30df3a2ede1658cd193e26df3b9e84dbbb5ec339b3ae0598aca3ca98",
+  "caps_unchanged": {
+    "queue_store_calls": 128,
+    "delivery_calls": 512,
+    "shared_calls": 2048,
+    "shared_bytes": 33554432
+  },
+  "native_calls": false
+}
