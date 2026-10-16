@@ -1,0 +1,20 @@
+{
+  "timestamp": "2026-10-16T13:03:38.030440+00:00",
+  "source_sha256": "240489868535b7b8da34673d37c92d15f0b75efe385a8cd835aca2b931470334",
+  "scope": "Guard JSON input only. Timing observation on this macOS runtime, not a Claude hook timeout or fail-open guarantee.",
+  "observations": [
+    {
+      "lines": 1000,
+      "bytes": 31015,
+      "elapsed_seconds": 0.204,
+      "exit": 0,
+      "timed_out": false
+    },
+    {
+      "lines": 10000,
+      "bytes": 310015,
+      "elapsed_seconds": 5.004,
+      "timed_out": true
+    }
+  ]
+}

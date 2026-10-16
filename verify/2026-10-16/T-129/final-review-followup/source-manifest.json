@@ -1,0 +1,9 @@
+{
+  "base": "045f9c0f5de832e5d8c5d807c1a1804fb5b7d8d0",
+  "timestamp": "2026-10-16T13:05:30.901005+00:00",
+  "files": {
+    ".claude/hooks/pre-bash-guard.sh": "240489868535b7b8da34673d37c92d15f0b75efe385a8cd835aca2b931470334",
+    ".claude/scripts/test/pre-bash-guard-literals.sh": "e4177c9e5f600a87ddf07468d43c21414c67332655b278794103e8f921e4180a"
+  },
+  "execution_scope": "Only hook JSON input; no supplied command executed"
+}

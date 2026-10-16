@@ -1,0 +1,19 @@
+{
+  "timestamp": "2026-10-16T13:00:25.654612+00:00",
+  "scope": "Guard consumes synthetic JSON data only; supplied command never executes. Five-second external observation bound is not proof of a Claude hook timeout or fail-open behavior.",
+  "observations": [
+    {
+      "lines": 1000,
+      "bytes": 31015,
+      "elapsed_seconds": 0.213,
+      "exit": 0,
+      "timed_out": false
+    },
+    {
+      "lines": 10000,
+      "bytes": 310015,
+      "elapsed_seconds": 5.004,
+      "timed_out": true
+    }
+  ]
+}

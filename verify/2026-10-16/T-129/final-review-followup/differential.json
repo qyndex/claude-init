@@ -1,0 +1,37 @@
+{
+  "scope": "Guard-only JSON input, no supplied command execution. Two parser-failure injections excluded here but pass in actual full suite. prior96 keeps88 original denied controls/six approved literal examples. final145 keeps133 original denied controls/ten safe frontend/prose examples.",
+  "observations": [
+    {
+      "scope": "prior96",
+      "guard": "original-main91839087",
+      "sha256": "0a79ac5987851fa8ad4aee8c9ad15e26f393ea72d1e9d0603585125e800ae2fa",
+      "exit": 1,
+      "stdout": "FAIL frontend-heredoc: expected=pass got=deny exit=2\nFAIL frontend-backtick-function: expected=pass got=deny exit=2\nFAIL prose: expected=pass got=deny exit=2\nFAIL template-fetch-function: expected=pass got=deny exit=2\nFAIL frontend-fetching-items: expected=pass got=deny exit=2\nFAIL frontend-fetching-one-record: expected=pass got=deny exit=2\nmatrix passed=88 failed=6\n",
+      "stderr": ""
+    },
+    {
+      "scope": "prior96",
+      "guard": "final-repair",
+      "sha256": "240489868535b7b8da34673d37c92d15f0b75efe385a8cd835aca2b931470334",
+      "exit": 0,
+      "stdout": "matrix passed=94 failed=0\n",
+      "stderr": ""
+    },
+    {
+      "scope": "final145",
+      "guard": "original-main91839087",
+      "sha256": "0a79ac5987851fa8ad4aee8c9ad15e26f393ea72d1e9d0603585125e800ae2fa",
+      "exit": 1,
+      "stdout": "FAIL frontend-heredoc: expected=pass got=deny exit=2\nFAIL frontend-backtick-function: expected=pass got=deny exit=2\nFAIL prose: expected=pass got=deny exit=2\nFAIL template-fetch-function: expected=pass got=deny exit=2\nFAIL frontend-fetching-items: expected=pass got=deny exit=2\nFAIL frontend-fetching-one-record: expected=pass got=deny exit=2\nFAIL frontend-await: expected=pass got=deny exit=2\nFAIL frontend-return: expected=pass got=deny exit=2\nFAIL frontend-export: expected=pass got=deny exit=2\nFAIL frontend-async-function: expected=pass got=deny exit=2\nmatrix passed=133 failed=10\n",
+      "stderr": ""
+    },
+    {
+      "scope": "final145",
+      "guard": "final-repair",
+      "sha256": "240489868535b7b8da34673d37c92d15f0b75efe385a8cd835aca2b931470334",
+      "exit": 0,
+      "stdout": "matrix passed=143 failed=0\n",
+      "stderr": ""
+    }
+  ]
+}

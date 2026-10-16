@@ -54,6 +54,35 @@ const text = `fetching one record`;
 EOF
 PAYLOAD
 )"
+# Common frontend statement variants stay data in quoted heredocs.
+check pass frontend-await "$(cat <<'PAYLOAD'
+cat <<'EOF'
+const url = `/api/${id}`;
+await fetch(url);
+EOF
+PAYLOAD
+)"
+check pass frontend-return "$(cat <<'PAYLOAD'
+cat <<'EOF'
+const url = `/api/${id}`;
+return fetch(`/api/${id}`);
+EOF
+PAYLOAD
+)"
+check pass frontend-export "$(cat <<'PAYLOAD'
+cat <<'EOF'
+const url = `/api/${id}`;
+export const load = () => fetch(url);
+EOF
+PAYLOAD
+)"
+check pass frontend-async-function "$(cat <<'PAYLOAD'
+cat <<'EOF'
+const url = `/api/${id}`;
+async function load() { return fetch(url); }
+EOF
+PAYLOAD
+)"
 # Actual Sonnet5.5 review: quoted/data ticks must not change shell tick parity.
 check_stdin() {
   local command
@@ -250,6 +279,56 @@ T129_CASE
 for name in wget2 curl-impersonate curlie customcurl prefetch fetch2; do
   check deny "network-name-$name" "echo \`$name https://example.invalid/p\`"
 done
+# Final independent review: escaped literal separators cannot start comments.
+for separator in ' ' ';' '|' '&' '(' ')' $'\t'; do
+  check deny "escaped-separator-comment-$separator" ": a\\${separator}#x; \`curl https://example.invalid/p\`"
+done
+for wrapper in 'nohup bash' 'timeout 5 sh' 'env -i FLAG=1 bash' 'nice -n 5 zsh' 'command bash' 'xargs bash' 'unknown-wrapper /bin/bash'; do
+  for verb in curl wget fetch; do
+    check deny "wrapped-code-$wrapper-$verb" "$wrapper -c 'echo \`$verb https://example.invalid/p\`'"
+  done
+done
+check deny wrapped-shell-option-cluster "nohup bash -lc 'echo \`curl https://example.invalid/p\`'"
+check deny wrapped-shell-long-options "nohup bash --noprofile -c 'echo \`curl https://example.invalid/p\`'"
+check deny wrapped-quoted-shell-option "nohup 'bash' '-c' 'echo \`curl https://example.invalid/p\`'"
+check deny wrapped-mixed-quoted-shell "nohup b\"a\"sh -c 'echo \`curl https://example.invalid/p\`'"
+check deny wrapped-dash-shell "nohup dash -c 'echo \`curl https://example.invalid/p\`'"
+check_stdin frontend-await-adjacent-network <<'T129_CASE'
+cat <<'EOF'
+const url = `/api/${id}`;
+await fetch(url); x=`curl https://example.invalid/p`
+EOF
+T129_CASE
+check_stdin frontend-return-adjacent-network <<'T129_CASE'
+cat <<'EOF'
+const url = `/api/${id}`;
+return fetch(url); x=`fetch https://example.invalid/p`
+EOF
+T129_CASE
+check_stdin frontend-export-adjacent-network <<'T129_CASE'
+cat <<'EOF'
+export const load = () => fetch(url); x=`wget https://example.invalid/p`
+EOF
+T129_CASE
+check_stdin frontend-async-function-adjacent-network <<'T129_CASE'
+cat <<'EOF'
+async function load() { return fetch(url); }; x=`curl https://example.invalid/p`
+EOF
+T129_CASE
+# Literal backtick pairs can become code after a later command, without -c.
+check deny literal-network-pipe-shell "printf 'echo \`curl https://example.invalid/p\`' | bash"
+check deny literal-network-write-shell "printf 'echo \`curl https://example.invalid/p\`' > /tmp/f; bash /tmp/f"
+check deny literal-network-write-variable-runner "printf 'echo \`curl https://example.invalid/p\`' > /tmp/f; \$runner /tmp/f"
+check deny literal-network-data-only "printf '%s\\n' '\`curl https://example.invalid/p\`'"
+check deny literal-escaped-network-ticks "printf '%s\\n' 'echo \\\`curl https://example.invalid/p\\\`'"
+# Oversized syntax uses the original conservative raw profile, not an unbounded body buffer.
+large_frontend=$(printf "cat <<'EOF'\n"; i=0; while [ "$i" -lt 1100 ]; do printf 'const text = `fetching records`;\n'; i=$((i+1)); done; printf 'EOF')
+check deny oversized-frontend-conservative-fallback "$large_frontend"
+large_line=$(printf "cat <<'EOF'\nconst text = \`fetching items "; printf '%035000d' 0; printf '`;\nEOF')
+check deny oversized-single-line-conservative-fallback "$large_line"
+large_tail=$(printf "cat <<'EOF'\n"; printf '%035000d\n' 0; printf 'x=`curl https://example.invalid/p`\nEOF')
+check deny oversized-body-network-tail "$large_tail"
+
 for verb in curl wget fetch; do
   check deny "direct-$verb" "echo \`$verb https://example.invalid/payload\`"
   check deny "space-$verb" "echo \`  $verb https://example.invalid/payload\`"

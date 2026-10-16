@@ -1,0 +1,14 @@
+# TDD ledger — red — T-129
+ledger_format: 2
+timestamp: 2026-10-17T00:02:30+11:00
+command: bash .claude/scripts/test/pre-bash-guard-literals.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+FAIL literal-network-write-shell: expected=deny got=pass exit=0
+FAIL literal-network-write-variable-runner: expected=deny got=pass exit=0
+FAIL literal-network-data-only: expected=deny got=pass exit=0
+FAIL literal-escaped-network-ticks: expected=deny got=pass exit=0
+FAIL oversized-frontend-conservative-fallback: expected=deny got=pass exit=0
+FAIL oversized-single-line-conservative-fallback: expected=deny got=pass exit=0
+guard literal cases: 139 passed, 6 failed

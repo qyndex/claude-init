@@ -1,0 +1,15 @@
+{
+  "scope": "Actual original/previous guard JSON-only input,310015bytes,10000 literal body lines; external5sec measurement bound, no supplied command execution or hook fail-open claim.",
+  "observations": [
+    {
+      "revision": "91839087",
+      "elapsed_seconds": 5.003,
+      "timed_out": true
+    },
+    {
+      "revision": "045f9c0",
+      "elapsed_seconds": 5.004,
+      "timed_out": true
+    }
+  ]
+}

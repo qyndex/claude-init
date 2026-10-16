@@ -141,12 +141,16 @@ deny() {
 # backtick pairing. Heredoc bodies receive their own conservative raw scan;
 # even cat can write a script that a later command executes. Unhandled syntax
 # falls back to the original conservative raw check; guessing about quote state could hide a real substitution.
-if ! backtick_payloads=$(printf '%s\n' "$cmd" | awk -v sq="'" '
+# Bound the supported quote/body profile before any per-character or body work.
+# Larger submissions retain the original raw matcher; no bytes are truncated.
+if [ "${#cmd}" -gt 32768 ]; then
+  backtick_payloads="fallback"
+elif ! backtick_payloads=$(printf '%s\n' "$cmd" | awk -v sq="'" '
   # Only mask frontend fetch calls and a literal fetching word, never lines.
   # Retain every other byte, including adjacent network commands and ticks.
   function body_line(line, cleaned, prefix, literal, ending, chunk, suffix) {
     cleaned = line
-    if (line ~ /^[[:space:]]*(const|let|var)[[:space:]]+[A-Za-z_$][A-Za-z0-9_$]*[[:space:]]*=/) {
+    if (line ~ /^[[:space:]]*((export[[:space:]]+)?(const|let|var)[[:space:]]+[A-Za-z_$][A-Za-z0-9_$]*[[:space:]]*=|await[[:space:]]+|return[[:space:]]+|async[[:space:]]+function[[:space:]]+)/) {
       while (match(cleaned, /(^|[^[:alnum:]_$])fetch\(/)) {
         chunk = substr(cleaned, RSTART, RLENGTH)
         sub(/fetch\(/, "frontend_call(", chunk)
@@ -209,7 +213,24 @@ if ! backtick_payloads=$(printf '%s\n' "$cmd" | awk -v sq="'" '
     for (i = 1; i <= length(line); i++) {
       ch = substr(line, i, 1)
       if (quote == "single") {
-        if (ch == sq) quote = ""
+        # Quoted text may later feed a shell through a file, pipe or wrapper.
+        # Inspect its own tick pairs without changing outer shell tick state.
+        if (ch == sq) {
+          if (literal_inside || (literal_escape && literal_tick)) ambiguous = 1
+          quote = ""
+          literal_inside = 0
+          literal_payload = ""
+        } else if (ch == "`") {
+          literal_tick = 1
+          if (literal_inside) {
+            payloads = payloads literal_payload "\n"
+            literal_inside = 0
+            literal_payload = ""
+          } else { literal_inside = 1; literal_payload = "" }
+        } else {
+          if (ch == "\\") literal_escape = 1
+          if (literal_inside) literal_payload = literal_payload ch
+        }
         continue
       }
       if (inside) {
@@ -224,13 +245,18 @@ if ! backtick_payloads=$(printf '%s\n' "$cmd" | awk -v sq="'" '
         continue
       }
       if (escaped) { escaped = 0; continue }
-      if (ch == "\\") { escaped = 1; continue }
+      if (ch == "\\") { ambiguous = 1; escaped = 1; continue }
       if (i == here_start && quote == "") {
         next_here = delimiter
         next_strip = index(redirection, "<<-") == 1
         has_here = 0
       }
-      if (ch == sq && quote == "") { quote = "single"; continue }
+      if (ch == sq && quote == "") {
+        quote = "single"
+        literal_escape = 0
+        literal_tick = 0
+        continue
+      }
       if (ch == "\"") {
         if (quote == "double") quote = ""
         else quote = "double"
@@ -243,6 +269,7 @@ if ! backtick_payloads=$(printf '%s\n' "$cmd" | awk -v sq="'" '
     if (has_here) ambiguous = 1
     if (next_here != "") { here = next_here; strip_tabs = next_strip; next_here = "" }
     if (inside) payload = payload " "
+    if (literal_inside) literal_payload = literal_payload " "
     escaped = 0
   }
   END {
