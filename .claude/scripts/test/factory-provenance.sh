@@ -43,7 +43,10 @@ reject(lambda:m.verify(evidence,b'x'*1_000_001,policy,'verification',run,base,ru
 reject(lambda:m.verify(evidence,bundle,policy,'verification',run,base,runner=lambda *args,**kwargs:subprocess.CompletedProcess(args,1,b'[]',b'bad signature')))
 with tempfile.TemporaryDirectory() as folder:
  p=pathlib.Path(folder);(p/'source.py').write_bytes(b'protected')
- for args in [['init','-q'],['config','user.name','Provenance fixture'],['config','user.email','fixture@example.invalid'],['add','source.py'],['commit','-qm','test: protected source fixture']]:subprocess.run(['git','-C',str(p),*args],check=True,capture_output=True)
+ helper='.claude/scripts/factory-policy-observation.py'
+ material=p/helper;material.parent.mkdir(parents=True);material.write_bytes(b'protected-helper')
+ policy['producers']['verification']['trusted_files'][helper]=hashlib.sha256(b'protected-helper').hexdigest()
+ for args in [['init','-q'],['config','user.name','Provenance fixture'],['config','user.email','fixture@example.invalid'],['add','.'],['commit','-qm','test: protected source fixture']]:subprocess.run(['git','-C',str(p),*args],check=True,capture_output=True)
  execution=subprocess.check_output(['git','-C',str(p),'rev-parse','HEAD'],text=True).strip()
  event=p/'event.json';event.write_text(json.dumps({'number':42,'repository':{'full_name':repo}}))
  env={'GITHUB_ACTIONS':'true','GITHUB_EVENT_NAME':'pull_request_target','GITHUB_REPOSITORY':repo,'GITHUB_REF':'refs/heads/main','GITHUB_SHA':execution,'GITHUB_WORKFLOW_SHA':execution,'GITHUB_WORKFLOW_REF':uri.removeprefix('https://github.com/'),'GITHUB_RUN_ID':'123','GITHUB_RUN_ATTEMPT':'2','GITHUB_EVENT_PATH':str(event)}
@@ -52,6 +55,7 @@ with tempfile.TemporaryDirectory() as folder:
   altered={**env,key:'forged'}
   reject(lambda:m.execution_base(policy,'verification',run,42,environ=altered,root=p))
  (p/'source.py').write_bytes(b'tampered');reject(lambda:m.execution_base(policy,'verification',run,42,environ=env,root=p));(p/'source.py').write_bytes(b'protected')
+ material.write_bytes(b'forged-helper');reject(lambda:m.execution_base(policy,'verification',run,42,environ=env,root=p));material.write_bytes(b'protected-helper')
  subprocess.run(['git','-C',str(p),'commit','--allow-empty','-qm','test: changed protected HEAD'],check=True,capture_output=True)
  reject(lambda:m.execution_base(policy,'verification',run,42,environ=env,root=p))
 # Actual bounded ZIP extraction requires metadata and signed evidence root; no unsigned target fallback.
@@ -84,5 +88,6 @@ for role in ['verification','review']:
  assert "if: steps.proof.outcome == 'success'" in workflow and 'producer-output/evidence.json' in workflow
  assert '[ "$SIGNATURE" = success ]' in workflow and '[ "$SIGNATURE_BUNDLE" = success ]' in workflow
  assert '.claude/scripts/factory-provenance.py' in c.runtime_paths(role)
+ assert len(c.runtime_paths(role))==8 and '.claude/scripts/factory-policy-observation.py' in c.runtime_paths(role)
 print('provenance: PASS; assertions='+str(checks)+'; injected verified-certificate positive fixtures; nonzero verifier rejection; no live signing/hosted verdict')
 PY

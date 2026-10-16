@@ -1742,8 +1742,38 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-receipt-backfill.sh
   owner: implementer
 
-- [ ] T-295  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-294  | parallel: no  | est: 5m
+- [ ] T-295  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-294,T-299  | parallel: no  | est: 5m
   summary: Resume protected retained-proof windows across fresh hosted SQLite projections
   files: .claude/scripts/factory-receipt-archive.py, .claude/scripts/factory-receipt-discovery.py, .claude/scripts/factory-receipts.py, .claude/scripts/factory-state-paths.py, .claude/scripts/test/factory-receipt-projection-windows.sh, plans/active/014-authenticated-receipt-recovery.md
   accept: bash .claude/scripts/test/factory-receipt-projection-windows.sh
+  owner: implementer
+
+- [x] T-292  | spec:010  | phase:1  | priority: security  | created: 2026-10-16  | deps: T-291,T-296,T-297,T-298  | parallel: no  | est: 5m
+  summary: Verify complete protected policy observation repair
+  files: specs/active/010-protected-proof-producers.md, plans/active/010-protected-proof-producers.md
+  accept: bash .claude/scripts/test/factory-policy-observation.sh && bash .claude/scripts/test/factory-coordinator.sh && bash .claude/scripts/test/factory-producers.sh
+  owner: implementer
+
+- [x] T-296  | spec:010  | phase:1  | priority: security  | created: 2026-10-16  | deps: T-291  | parallel: no  | est: 5m
+  summary: Validate exact bounded operator observations and GET-only capture
+  files: .claude/scripts/factory-policy-observation.py, .claude/scripts/test/factory-policy-observation.sh
+  accept: bash .claude/scripts/test/factory-policy-observation.sh
+  owner: implementer
+
+- [x] T-297  | spec:010  | phase:1  | priority: security  | created: 2026-10-16  | deps: T-296  | parallel: no  | est: 5m
+  summary: Bind protected coordinator observation input and separate audit artifact
+  files: .claude/scripts/factory-coordinator.py, .github/workflows/factory-merge.yml, .claude/scripts/test/factory-coordinator.sh, .claude/scripts/test/factory-workflow-baseline.sh, docs/FACTORY-ACTIVATION.md
+  accept: bash .claude/scripts/test/factory-coordinator.sh && bash .claude/scripts/test/factory-workflow-baseline.sh
+  owner: implementer
+
+- [x] T-298  | spec:010  | phase:1  | priority: security  | created: 2026-10-16  | deps: T-297  | parallel: no  | est: 5m
+  summary: Pin complete observation-dependent producer runtime and proof materials
+  files: .claude/scripts/factory-coordinator.py, .claude/scripts/test/factory-receipt-projection.sh, .claude/scripts/test/factory-receipts-recovery.sh, .claude/scripts/factory-producer.py, .claude/scripts/factory-provenance.py, .claude/scripts/factory-preflight.py, .claude/scripts/factory-receipts.py, .claude/scripts/validate-candidate-evidence.py, factory/policy.json, .claude/scripts/test/factory-producers.sh, .claude/scripts/test/factory-provenance.sh, .claude/scripts/test/factory-preflight.sh, .claude/scripts/test/factory-review-runtime.sh, docs/FACTORY-PRODUCERS.md, docs/FACTORY-ADOPTER-SETUP.md
+  accept: bash .claude/scripts/test/factory-producers.sh && bash .claude/scripts/test/factory-provenance.sh && bash .claude/scripts/test/factory-preflight.sh
+  owner: implementer
+
+- [ ] T-299  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-294,T-292  | parallel: no  | est: 5m
+  summary: Integrate current seven-file runtime while preserving authenticated historical six-file facts
+  files: .claude/scripts/factory-receipts.py, .claude/scripts/factory-receipt-archive.py, .claude/scripts/factory-receipt-discovery.py, .claude/scripts/factory-preflight.py, .claude/scripts/test/factory-receipt-runtime-compatibility.sh, .claude/scripts/test/factory-receipt-profiles.sh, .claude/scripts/test/factory-receipt-source.sh, .claude/scripts/test/factory-receipt-archive.sh, .claude/scripts/test/factory-receipt-retained-proof.sh, .claude/scripts/test/factory-receipt-revocation.sh, plans/active/014-authenticated-receipt-recovery.md
+  accept: bash .claude/scripts/test/factory-receipt-runtime-compatibility.sh
   owner: implementer

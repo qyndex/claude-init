@@ -21,6 +21,37 @@ _provenance_spec = importlib.util.spec_from_file_location('provenance', Path(__f
 provenance = importlib.util.module_from_spec(_provenance_spec)
 _provenance_spec.loader.exec_module(provenance)
 
+_observation_spec = importlib.util.spec_from_file_location('policy_observation', Path(__file__).with_name('factory-policy-observation.py'))
+policy_observation = importlib.util.module_from_spec(_observation_spec)
+_observation_spec.loader.exec_module(policy_observation)
+
+
+def load_observations(path, repository):
+    if path is None:
+        return []
+    with path.open('rb') as stream:
+        document = policy_observation.decode(stream.read(policy_observation.MAX_BYTES + 1))
+    require(document.keys() == {'schema_version', 'repository', 'observations'}
+            and type(document['schema_version']) is int and document['schema_version'] == 1
+            and document['repository'] == repository, 'protected observation document identity invalid')
+    items = document['observations']
+    require(type(items) is list and len(items) <= 32, 'protected observation list bound invalid')
+    ids = set()
+    for item in items:
+        require(type(item) is dict and item.keys() == policy_observation.FIELDS
+                and type(item['schema_version']) is int and item['schema_version'] == 1
+                and item['repository'] == repository
+                and type(item['repository_id']) is int and item['repository_id'] > 0
+                and type(item['ruleset_id']) is int and item['ruleset_id'] > 0
+                and item['ruleset_id'] not in ids
+                and contract.digest(item['metadata_sha256'], 64)
+                and type(item['bypass_actors']) is list and item['bypass_actors'] == [],
+                'protected observation entry invalid or duplicate')
+        policy_observation.timestamp(item['updated_at'])
+        policy_observation.timestamp(item['observed_at'])
+        ids.add(item['ruleset_id'])
+    return items
+
 
 def policy_hash(policy):
     return hashlib.sha256(json.dumps(policy, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
@@ -35,10 +66,11 @@ def runtime_paths(role):
     require(role in ('verification', 'review'), 'unknown producer role')
     return {f'.github/workflows/factory-{role}.yml', '.claude/scripts/factory-producer.py',
             '.claude/scripts/factory-producer-check.py', '.claude/scripts/factory-provenance.py', '.claude/scripts/factory-coordinator.py',
-            '.claude/scripts/validate-candidate-evidence.py', '.claude/scripts/factory-bounded-process.py'}
+            '.claude/scripts/validate-candidate-evidence.py', '.claude/scripts/factory-bounded-process.py',
+                 '.claude/scripts/factory-policy-observation.py'}
 
 
-def protection(api, root, branch, required, app_id):
+def protection(api, root, branch, required, app_id, observations=None, audit=None):
     rules = api.get(f'{root}/rules/branches/{quote(branch, safe="")}')
     require(isinstance(rules, list) and any(rule['type'] == 'pull_request' for rule in rules), 'active target PR protection missing')
     checks = {}
@@ -57,10 +89,25 @@ def protection(api, root, branch, required, app_id):
     require(bool(ids), 'ruleset provenance missing')
     for ruleset_id in ids:
         ruleset = api.get(f'{root}/rulesets/{ruleset_id}')
-        require(ruleset['enforcement'] == 'active' and ruleset.get('bypass_actors') == [], 'active protection has bypass actors or drift')
+        require(ruleset['enforcement'] == 'active', 'active protection has bypass actors or drift')
+        if 'bypass_actors' in ruleset:
+            require(type(ruleset['bypass_actors']) is list and ruleset['bypass_actors'] == [],
+                    'active protection has bypass actors or drift')
+            entry = {'ruleset_id': ruleset_id, 'mode': 'direct'}
+        else:
+            require(type(ruleset_id) is int and ruleset.get('id') == ruleset_id, 'ruleset identity differs')
+            selected = [item for item in (observations or []) if item.get('ruleset_id') == ruleset_id]
+            require(len(selected) == 1, 'exact protected operator observation missing')
+            repository = api.get(root)
+            require(repository.get('full_name') == root.removeprefix('repos/'), 'repository identity differs')
+            result = policy_observation.validate(repository, ruleset, selected[0])
+            entry = dict(result, ruleset_id=ruleset_id, observation=selected[0])
+        if audit is not None:
+            require(len(audit) < 64, 'policy observation audit bound exceeded')
+            audit.append(entry)
 
 
-def coordinate(api, policy, number, merge=False):
+def coordinate(api, policy, number, merge=False, *, observations=None, audit=None):
     require(policy.get('schema_version') == 1 and policy.get('enabled') is True, 'factory policy not activated')
     require(not merge or policy.get('merge_enabled') is True, 'factory merge mode not activated after shadow proof')
     repo = policy['repository']
@@ -87,7 +134,7 @@ def coordinate(api, policy, number, merge=False):
             require(not matches(path, policy['protected_paths']), f'operator authority decision required: {path}')
             require(matches(path, approved['allowed_paths']), f'path outside approved scope: {path}')
     require(len(files) == pr.get('changed_files', len(files)) and len(files) < 3000, 'incomplete diff pagination')
-    protection(api, root, pr['base']['ref'], policy['required_checks'], policy['app_id'])
+    protection(api, root, pr['base']['ref'], policy['required_checks'], policy['app_id'], observations, audit)
     observed_checks = api.get(f'{root}/commits/{head}/check-runs?filter=latest')
     receipts = []
     for name, producer in policy['required_checks'].items():
@@ -161,7 +208,7 @@ def coordinate(api, policy, number, merge=False):
         require(digest in attachments and hashlib.sha256(attachments[digest]).hexdigest() == digest, 'observation artifact missing or altered')
     fresh = api.get(f'{root}/pulls/{number}')
     require(fresh['state'] == 'open' and not fresh['draft'] and not fresh['merged'] and fresh['head']['sha'] == head and fresh['base']['sha'] == base, 'candidate changed during evaluation')
-    protection(api, root, pr['base']['ref'], policy['required_checks'], policy['app_id'])
+    protection(api, root, pr['base']['ref'], policy['required_checks'], policy['app_id'], observations, audit)
     # A newer run must not be hidden behind a formerly successful snapshot.
     if any(producer.get('event') == 'pull_request_target' for producer in policy['producers'].values()):
         fresh_runs = api.get(f'{root}/actions/runs?head_sha={head}')
@@ -254,13 +301,17 @@ def main():
     parser.add_argument('--policy', type=Path, required=True)
     parser.add_argument('--pr', type=int, required=True)
     parser.add_argument('--merge', action='store_true')
+    parser.add_argument('--policy-observations', type=Path)
+    parser.add_argument('--policy-audit', type=Path)
     parser.add_argument('--output', type=Path, required=True)
     args = parser.parse_args()
     require(args.pr > 0, 'invalid pull request number')
     policy = contract.load(args.policy)
     api = GitHub(policy['repository'])
+    audit = []
     try:
-        result = coordinate(api, policy, args.pr, merge=args.merge)
+        observations = load_observations(args.policy_observations, policy['repository'])
+        result = coordinate(api, policy, args.pr, merge=args.merge, observations=observations, audit=audit)
     except (ValueError, KeyError, TypeError, OSError, subprocess.TimeoutExpired, zipfile.BadZipFile):
         # A new failed evaluation must not leave an older success as the latest
         # App check for this head. API failure still fails the coordinator.
@@ -271,6 +322,13 @@ def main():
                 'status': 'completed', 'conclusion': 'failure',
                 'output': {'title': 'Factory eligibility blocked', 'summary': 'Candidate verification or live policy did not satisfy factory authority. See the coordinator run.'}})
         raise
+    finally:
+        if args.policy_audit is not None:
+            document = {'schema_version': 1, 'repository': policy['repository'],
+                        'kind': 'administrative-observation-not-native-attestation', 'checks': audit}
+            raw = policy_observation.canonical(document)
+            require(len(raw) <= policy_observation.MAX_BYTES, 'policy observation audit bound exceeded')
+            args.policy_audit.write_bytes(raw + b'\n')
     args.output.write_text(json.dumps(result, indent=2) + '\n')
     print(json.dumps(result))
 

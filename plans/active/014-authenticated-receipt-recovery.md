@@ -210,3 +210,39 @@ while current ingest rejects omission of a current helper and revocation annotat
 old facts. Arbitrary self-asserted runtime sets or implicit legacy fallback are not
 acceptable cross-version proof. These integration acceptances are pending, not
 implemented by T294. Actual main PR110 source is intentionally not imported midtask.
+
+### Actual protected-main integration and T-299 — 2026-10-16
+
+Merge actual protected main6a004bc6d926e16f9b09efe949fbb8b50a843eac after PR110
+landed and twelve checks were restored; do not rebase or replace the original
+receipt commits/ledgers. The merge imports the approved seven-file current receipt
+closure and eight-file producer closure unchanged. Conflict resolution preserves
+the task union, T180blocked/T222pending, completed T275–285/T291–294/T296–298 and
+pending T286–290/T295. ADR0007 and0008 each retain their original index bytes once.
+No profile, archive or compatibility implementation is added during this merge.
+
+T299 depends on T294 and completed T292; T295 now depends on T294 and T299. T299
+must adapt current seven-file closure/material count10 while retaining strict
+report-only support for authenticated historical six-file facts. Use known reviewed
+closure families/schema/profile snapshots; arbitrary runtime sets and self-asserted
+versions cannot establish origin. Current ingest must reject omitted current helper
+bytes, selected-profile mismatch never falls back to legacy, and current revocation
+annotates old merge-time facts without erasing them or granting runtime task credit.
+The dedicated runtime-compatibility acceptance must demonstrate old retained six
+through current seven readers, strict new-source omission rejection and revocation.
+
+The source import is not a claim that all receipt tests are green: existing bounds
+and fixture assumptions may fail until T299's separate implementation. Structural
+and DAG planning checks establish consistency only. T295 projection, T286 aggregate,
+T288 campaign/loader integration and live archive App-writer hidden-metadata/
+credential cutover remain pending. This checkpoint changes no active profiles,
+secrets, flags, live protections, state stores or deployment authority.
+
+T299 must allow reviewed historical six-file profile entries (including revoked
+entries) alongside current seven-file entries in the protected trust document; an
+old entry must not invalidate the whole document. Actual current source
+authentication/build_record must still require all seven current dependencies and
+exact selected pins, with a positive ten-material case. Retained integrity uses
+its authenticated original known closure/material family, not a global current
+tuple. Report-only historical compatibility is required; new six-file legacy
+imports need not be broadened if unsupported and that limit must be explicit.

@@ -1,0 +1,13 @@
+# TDD ledger — green — T-297
+ledger_format: 2
+timestamp: 2026-10-16T11:25:01+11:00
+command: bash .claude/scripts/test/factory-coordinator.sh && bash .claude/scripts/test/factory-workflow-baseline.sh
+exit_code: 0
+---
+AC-5: protected hidden observations, visible actor rejection, final drift and bounded strict input PASS
+passed: 63; failed: 0
+AC-5: shipped protected ingress defers malformed/foreign/duplicate/unknown JSON to coordinator without raw echo; read-only App and separate audit retained
+AC-1: actual full actionlint including ShellCheck passes all shipped workflows without warning waivers
+AC-2: shipped JSON validation accepts literal special filenames and rejects invalid JSON, missing roots and find exit 42
+AC-3: shipped bundle gate handles literal filenames, rejects missing/empty assets and over-budget gzip bytes, and propagates compressor failure
+AC-4: shipped project shell preserves all literal GraphQL variables; actual stale count returns numeric zero or one without remote effects

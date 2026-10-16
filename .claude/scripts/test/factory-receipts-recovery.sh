@@ -71,6 +71,10 @@ with tempfile.TemporaryDirectory() as tmp:
     bad=copy.deepcopy(api);bad.pr['merged']=False;rejects(lambda:r.ingest(bad,policy,db,20))
     bad=copy.deepcopy(api);bad.pr['merge_commit_sha']='e'*40;rejects(lambda:r.ingest(bad,policy,db,20))
     bad=copy.deepcopy(api);bad.sources[r.RUNTIME_PATHS[0]]=b'changed';rejects(lambda:r.ingest(bad,policy,db,20))
+    helper='.claude/scripts/factory-policy-observation.py'
+    bad=copy.deepcopy(api);bad.sources[helper]=b'forged-helper';rejects(lambda:r.ingest(bad,policy,db,20))
+    missing=copy.deepcopy(policy);missing['receipts']['trusted_revisions']['a'*40].pop(helper)
+    rejects(lambda:r.ingest(api,missing,db,20))
     bad=copy.deepcopy(api);bad.pr['head']['sha']='e'*40;rejects(lambda:r.ingest(bad,policy,db,20))
     bad=copy.deepcopy(policy);bad['receipts']['trusted_revisions']={};rejects(lambda:r.ingest(api,bad,db,20))
     bad=copy.deepcopy(policy);bad['receipts']['workflow_id']=None;rejects(lambda:r.ingest(api,bad,db,20))

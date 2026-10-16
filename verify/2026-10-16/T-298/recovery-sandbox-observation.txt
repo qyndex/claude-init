@@ -1,0 +1,14 @@
+Initial command: bash .claude/scripts/test/factory-receipts-recovery.sh
+Context: sandboxed execution; stdout redirected to /tmp/t298-receipts-recovery.txt.
+Stdout was empty. Stderr below is transcribed from the actual tool result, not
+presented as an independently captured stderr file:
+
+Traceback (most recent call last):
+  File "<stdin>", line 97, in <module>
+  File "<stdin>", line 30, in wait_for
+AssertionError: recovery condition not reached
+
+The same unchanged fixture was rerun with approved process-inspection access;
+receipts-recovery-escalated.txt contains its actual passing stdout. No production
+change was made to hide the initial failure. This is separate from canonical
+T298 producer/provenance/preflight RED/GREEN, which require no live API/provider.

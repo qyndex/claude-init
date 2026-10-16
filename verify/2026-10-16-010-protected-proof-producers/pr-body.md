@@ -1,17 +1,18 @@
 ## Evidence Bundle — Spec 010 (010-protected-proof-producers)
-Spec: `specs/active/010-protected-proof-producers.md` · Commit: `8f4e1a3`
+Spec: `specs/active/010-protected-proof-producers.md` · Commit: `1bc46b7`
 
-### Acceptance criteria (4/4 proven)
+### Acceptance criteria (5/5 proven)
 | AC | Proven by | Result |
 |----|-----------|--------|
 | AC-1 | tagged test | ✓ PASS |
 | AC-2 | tagged test | ✓ PASS |
 | AC-3 | tagged test | ✓ PASS |
 | AC-4 | tagged test | ✓ PASS |
+| AC-5 | tagged test | ✓ PASS |
 
 ### Smoke test (exit codes are load-bearing)
 ```
-# Smoke test — 2026-10-16T10:23:12+11:00
+# Smoke test — 2026-10-16T11:29:32+11:00
 $ bash .claude/scripts/verify.sh
 
 → Integration coverage gate

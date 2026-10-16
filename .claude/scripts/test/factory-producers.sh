@@ -49,6 +49,15 @@ if hasattr(m,'provenance'):
  m.provenance.execution_base=lambda *args:base
 bad=copy.deepcopy(p);bad['enabled']=False;rejects(lambda:m.candidate(API(),bad,42,1,'verification'))
 bad=copy.deepcopy(p);bad['specs']['010']['ac_ids']=['AC-1','AC-2'];rejects(lambda:m.candidate(API(),bad,42,1,'verification'))
+# AC-1: omitting the helper pin cannot authorize a producer candidate.
+helper='.claude/scripts/factory-policy-observation.py'
+bad=copy.deepcopy(p);bad['producers']['verification']['trusted_files'].pop(helper,None)
+rejects(lambda:m.candidate(API(),bad,42,1,'verification'))
+class ChangedHelper(API):
+ def source(self,path,sha):
+  if path==helper and sha==head:return b'candidate-forged-helper'
+  return super().source(path,sha)
+rejects(lambda:m.candidate(ChangedHelper(),p,42,1,'verification'))
 approved=p['specs']['010'];binding=m.candidate(API(),p,42,1,'verification')[4];actor='workflow:10/run:1'
 with tempfile.TemporaryDirectory() as folder:
  out=Path(folder);(out/'artifacts').mkdir()

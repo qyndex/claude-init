@@ -1,0 +1,7 @@
+Historical verification replay AFTER implementation, not original feature TDD.
+Baseline CWD: /private/tmp/factory-t292-historical-6606
+Baseline source: 6606a1b3392bc8f867b46e5b1e81bbf86be34d6e
+Current source: 1bc46b7fd3c25e50221f277ea36d0ebe1e63e269
+.claude/scripts/test/factory-policy-observation.sh 4457ea5ce8c77996a3d3b13b8b90e455e8ee83cba1a190523dbc631b03371799
+.claude/scripts/test/factory-coordinator.sh 8ee46f2e1685ed0224381db0c0356ea9d0e0ffb2f2c33d270d19b3f6c85f454c
+.claude/scripts/test/factory-producers.sh 9f49e7346177b6655505de8e34f21c18c378b19df4b6162f2edbe9aa5b750a9d

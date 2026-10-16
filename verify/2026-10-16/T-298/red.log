@@ -1,0 +1,11 @@
+# TDD ledger — red — T-298
+ledger_format: 2
+timestamp: 2026-10-16T11:26:05+11:00
+command: bash .claude/scripts/test/factory-producers.sh && bash .claude/scripts/test/factory-provenance.sh && bash .claude/scripts/test/factory-preflight.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 51, in <module>
+  File "<stdin>", line 33, in rejects
+AssertionError: invalid producer input accepted
