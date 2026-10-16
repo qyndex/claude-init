@@ -1,7 +1,7 @@
 {
   "runner": "fresh-shell-acceptance-recorder",
-  "source_sha": "2f3defe500687d62b1db9b50ad118c6380c06c5f",
-  "recorded_at": "2026-10-16T01:15:02.598513+00:00",
+  "source_sha": "3f1b6aa648fbe552383759bde8300f4b938abb49",
+  "recorded_at": "2026-10-16T01:32:49.522727+00:00",
   "independent_attestation": false,
   "live_factory_signing": false,
   "native_docker_run": false,
@@ -53,7 +53,14 @@
       "command": "bash .claude/scripts/test/factory-policy-observation-diagnostic.sh",
       "exit_code": 0,
       "log": "verify/2026-10-16-010-protected-proof-producers/policy-diagnostic.log",
-      "log_sha256": "f73e0d00852c280bb3d0f908274a58a601df2562f515b13055c9e00e4366ebaf"
+      "log_sha256": "a42c188b4c28f9b81b8d9f685a2dcbd7fef402bfcc88376a2e8af1613c21f821"
+    },
+    {
+      "name": "policy-time-equivalence",
+      "command": "bash .claude/scripts/test/factory-policy-observation-time-equivalence.sh",
+      "exit_code": 0,
+      "log": "verify/2026-10-16-010-protected-proof-producers/policy-time-equivalence.log",
+      "log_sha256": "0b9550517a74dabf725db3cfcc7d3c6d20382ff3d661efde6b4e68e545eb28fa"
     }
   ],
   "testResults": [
@@ -92,11 +99,12 @@
           ]
         },
         {
-          "fullName": "AC-5: strict operator observations and bounded rejected-metadata diagnostics; real App-view diagnosis pending deployment",
+          "fullName": "AC-5: lossless equivalent-time observations and bounded rejected-metadata diagnostics; actual protected App proof pending deployment",
           "status": "passed",
           "command_names": [
             "policy-observation",
             "policy-diagnostic",
+            "policy-time-equivalence",
             "coordinator-contracts"
           ]
         }
