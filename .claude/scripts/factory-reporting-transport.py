@@ -252,5 +252,5 @@ def attach_reporting_context(config, *, checkout=None):
     if 'receipt_policy' in config:require(config['receipt_policy']==policy, 'reporting context policy redirect forbidden')
     archive={'approval_path':str(fixed/'receipt-archive-bootstrap.json'),'trust_path':str(fixed/'receipt-trust.json'),
              'store':store,'trust_mode':'profile'}
-    return dict(config,receipt_mode='durable',receipt_policy=policy,receipt_archive=archive,
+    return dict(config,receipt_mode='durable',pr_discovery_mode='resumable',receipt_policy=policy,receipt_archive=archive,
                 state_view={'mode':'archive','approval_path':archive['approval_path']})

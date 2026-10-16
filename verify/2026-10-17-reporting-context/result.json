@@ -4,12 +4,15 @@
   "context_green_exit": 0,
   "transport_green_exit": 0,
   "sha256": {
-    ".claude/scripts/factory-reporting-transport.py": "efeff155084283e37dfbdc847cb5868a21d4bd8a7d68b72027373fc4ea98a28c",
-    ".claude/scripts/test/factory-reporting-context.sh": "1855177ccab814441c9e6d53502cc3cacae7e14ff8d51ab3af2027f5fb244764"
+    ".claude/scripts/factory-reporting-transport.py": "3c4794b2fea7784f9f7c2d642377c75d72e3e054bc4555a4a2c5d28c83e485cb",
+    ".claude/scripts/test/factory-reporting-context.sh": "379bb4cf3565eb7b63577c3a7c54462231a58fcb4e29bf8ba39d4cca4c6bb47b"
   },
   "live_calls": false,
   "task_closed": false,
   "context_green_log": "green-final.log",
   "original_green_log": "diagnostic canonical /var alias rejection, not PASS",
-  "fifo_red_exit": 1
+  "fifo_red_exit": 1,
+  "pr_mode_red_exit": 1,
+  "pr_mode_green_exit": 0,
+  "pr_mode_conflict_policy": "fixed ON context overrides caller legacy"
 }

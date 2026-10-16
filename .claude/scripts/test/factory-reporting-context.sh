@@ -16,6 +16,8 @@ with tempfile.TemporaryDirectory() as directory:
  before=copy.deepcopy(config)
  result=t.attach_reporting_context(config,checkout=root)
  assert config==before and result['receipt_mode']=='durable'
+ assert result['pr_discovery_mode']=='resumable'
+ assert t.attach_reporting_context(dict(config,pr_discovery_mode='legacy'),checkout=root)['pr_discovery_mode']=='resumable'
  assert result['receipt_archive']=={'approval_path':str((fixed/'receipt-archive-bootstrap.json').resolve()),'trust_path':str((fixed/'receipt-trust.json').resolve()),'store':values['receipt-store.json'],'trust_mode':'profile'}
  assert result['state_view']=={'mode':'archive','approval_path':result['receipt_archive']['approval_path']}
  def reject(fn):
