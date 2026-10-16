@@ -14,6 +14,10 @@ checks=(
   factory-reporting-queue-immutable.sh
   factory-reporting-queue-scheduled.sh
   factory-receipt-discovery-review.sh
+  factory-receipt-stage-anchor.sh
+  factory-reporting-compare-cache.sh
+  factory-reporting-maintenance-liveness.sh
+  factory-digest-confirm.sh
 )
 for check in "${checks[@]}"; do
   bash ".claude/scripts/test/$check"
