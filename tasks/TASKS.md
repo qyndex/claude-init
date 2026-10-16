@@ -1784,9 +1784,9 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-receipt-projection-window.sh
   owner: implementer
 
-- [ ] T-301  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-300  | parallel: no  | est: 5m
+- [x] T-301  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-300  | parallel: no  | est: 5m
   summary: Publish authenticated retained projection checkpoints atomically
-  files: .claude/scripts/factory-receipt-archive.py, .claude/scripts/factory-state-paths.py, .claude/scripts/test/factory-receipt-projection-checkpoint.sh, plans/active/014-authenticated-receipt-recovery.md
+  files: .claude/scripts/factory-receipt-archive.py, .claude/scripts/factory-state-paths.py, .claude/scripts/test/factory-receipt-projection-checkpoint.sh, .claude/scripts/test/factory-receipt-projection-window.sh, plans/active/014-authenticated-receipt-recovery.md
   accept: bash .claude/scripts/test/factory-receipt-projection-checkpoint.sh
   owner: implementer
 

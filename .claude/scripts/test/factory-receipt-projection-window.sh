@@ -28,7 +28,13 @@ cases=r'''
  reject(lambda:window(start=0,limit=129),'window bounds')
  reject(lambda:window(start=True,limit=1),'window bounds')
  reject(lambda:window(start=4,limit=1),'window range')
- reject(lambda:window(start=0,limit=1,frozen_head='f'*40),'frozen view')
+ class ForeignFrozen(State):
+  def request(self,path,**kwargs):
+   if '/compare/' in path:
+    base=path.rsplit('/',1)[1].split('...')[0]
+    return {'base_commit':{'sha':base},'merge_base_commit':{'sha':'e'*40},'status':'diverged','behind_by':1,'ahead_by':1,'total_commits':1}
+   return super().request(path,**kwargs)
+ reject(lambda:a.projection_window(ForeignFrozen(),policy,trust,store,approval,stream,interval_end=end,start=0,limit=1,frozen_head='f'*40),'ancestry')
  reject(lambda:window(start=0,limit=3),'conflicting reporting delivery proof')
  reject(lambda:a.projection_window(State(),policy,trust,store,approval,stream,interval_end='2020-01-01T00:00:00Z'),'interval')
  class NoOrigin(State):

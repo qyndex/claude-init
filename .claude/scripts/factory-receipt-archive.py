@@ -465,13 +465,20 @@ def projection_window(state_api, policy, trust_path, store, approval_path, strea
             return value
 
     api = ReadOnly(); anchor = verify_bootstrap(api, approval_path)
-    require(frozen_head is None or frozen_head == anchor['head'], 'archive projection frozen view differs')
+    view_head = anchor['head']; view_tree = anchor['tree']
+    if frozen_head is not None and frozen_head != view_head:
+        require(state_paths.valid_hash(frozen_head, 40), 'archive projection frozen view differs')
+        _origin_ancestor(api.request, root, anchor['bootstrap_sha'], frozen_head)
+        _origin_ancestor(api.request, root, frozen_head, anchor['head'])
+        frozen = api.request(root+'/git/commits/'+frozen_head)
+        require(frozen['sha'] == frozen_head and state_paths.valid_hash(frozen['tree']['sha'], 40), 'archive projection frozen tree differs')
+        view_head = frozen_head; view_tree = frozen['tree']['sha']
     require(instant(anchor['coverage_from']) <= instant(interval_end) <= datetime.datetime.now(datetime.timezone.utc), 'archive projection interval differs')
     receipts.load_receipt_trust(trust_path, state_api.repo, mode='report')
     trust_sha256 = digest(Path(trust_path).read_bytes())
     approval_sha256 = digest(Path(approval_path).read_bytes())
     require(store['visibility'] == ('private' if anchor['private'] else 'public'), 'archive actual store visibility differs')
-    _, blob_at = fixed_reader(api, root); tree = anchor['tree']
+    _, blob_at = fixed_reader(api, root); tree = view_tree
     require(blob_at(anchor['bootstrap_tree'], f'receipt-archive/discovery/{stream}.json') is None, 'archive pre-bootstrap proof requires explicit reviewed import')
     journal_raw = blob_at(tree, f'receipt-archive/discovery/{stream}.json')
     require(journal_raw is not None, 'archive discovery missing; cannot claim retained coverage')
@@ -525,7 +532,7 @@ def projection_window(state_api, policy, trust_path, store, approval_path, strea
     require(digest(Path(trust_path).read_bytes()) == trust_sha256, 'archive projection trust changed during validation')
     return {'schema_version': 1, 'repository': state_api.repo, 'stream': stream,
             'repository_id': anchor['repository_id'], 'private': anchor['private'],
-            'frozen_head': anchor['head'], 'tree': anchor['tree'],
+            'frozen_head': view_head, 'tree': view_tree, 'observed_head': anchor['head'],
             'bootstrap_sha': anchor['bootstrap_sha'], 'bootstrap_tree': anchor['bootstrap_tree'],
             'coverage_from': anchor['coverage_from'], 'interval_end': interval_end,
             'start': start, 'next_segment': stop, 'records_count': journal['records_count'],
@@ -777,3 +784,118 @@ def advance_origin(state_api, approval_path, *, commit_budget=16, tree_pages=4, 
                 'checked_commits': progress['checked_commits'], 'coverage_complete': False,
                 'suffix_pending': publication['sha'] != progress['frozen_head'], 'uncertain_write_reconciled': uncertain}
     raise ValueError('origin checkpoint three CAS attempts exhausted; progress incomplete')
+
+
+def _projection_checkpoint(value, binding):
+    """Shape/continuity checks only; actual protected publication grants origin."""
+    require(type(value) is dict and set(value) == {'schema_version', 'binding', 'frozen_head', 'frozen_tree', 'records_count', 'next_segment', 'window', 'previous_blob', 'publication_parent'}, 'projection checkpoint schema differs')
+    require(type(value['schema_version']) is int and value['schema_version'] == 1 and value['binding'] == binding, 'projection checkpoint binding differs')
+    require(all(state_paths.valid_hash(value[k], 40) for k in ('frozen_head', 'frozen_tree', 'publication_parent')) and (value['previous_blob'] is None or state_paths.valid_hash(value['previous_blob'], 40)), 'projection checkpoint revision differs')
+    require(type(value['records_count']) is int and type(value['next_segment']) is int and 0 <= value['next_segment'] <= value['records_count'] < 10**12, 'projection checkpoint progress differs')
+    window = value['window']
+    require(type(window) is dict and set(window) == {'start', 'stop', 'references', 'trust_sha256'} and type(window['start']) is int and type(window['stop']) is int and 0 <= window['start'] <= window['stop'] == value['next_segment'] and window['stop']-window['start'] <= 128 and state_paths.valid_hash(window['trust_sha256'], 64), 'projection checkpoint window differs')
+    require((window['start'] == 0) == (value['previous_blob'] is None) and type(window['references']) is list and len(window['references']) == window['stop']-window['start'], 'projection checkpoint reference count differs')
+    seen = set()
+    for number, item in enumerate(window['references'], window['start']):
+        require(type(item) is dict and set(item) == {'run_id', 'attempt', 'artifact_id', 'record_sha256', 'segment'} and all(type(item[k]) is int and item[k] > 0 for k in ('run_id', 'attempt', 'artifact_id')) and type(item['segment']) is int and item['segment'] == number and state_paths.valid_hash(item['record_sha256'], 64), 'projection checkpoint reference differs')
+        identity = (item['run_id'], item['attempt'])
+        require(identity not in seen, 'projection checkpoint duplicate execution')
+        seen.add(identity)
+    return value
+
+
+def checkpoint_projection(state_api, policy, trust_path, store, approval_path, stream, *, interval_end, limit=32):
+    """Publish one checked window; no caller cursor or facts are accepted.
+
+    A fixed bounded file links previous immutable Git blobs. Each publication
+    changes only that inert file; historical windows are retained in Git history.
+    T302 must authenticate/read that chain in bounded work before reconstruction.
+    Full bootstrap's 256-commit integration gap remains explicit.
+    """
+    from urllib.parse import quote
+    import uuid
+    require(type(limit) is int and 0 < limit <= 128, 'projection checkpoint bounds differ')
+    require(state_api.repo == policy['repository'] == store['repository'] and stream == archive_stream(state_api.repo), 'projection checkpoint repository differs')
+    receipts.load_receipt_trust(trust_path, state_api.repo, mode='report')
+    calls = consumed = 0; root = 'repos/'+state_api.repo
+
+    class Bounded:
+        repo = state_api.repo
+
+        def request(self, path, method='GET', payload=None):
+            nonlocal calls, consumed
+            require(path == root or path.startswith(root+'/'), 'projection checkpoint foreign API')
+            require(calls < 2048, 'projection checkpoint API capacity gap')
+            calls += 1
+            value = state_api.request(path, method, payload)
+            size = len(canonical(value)); consumed += size
+            require(size <= 2097152 and consumed <= 33554432, 'projection checkpoint observation capacity gap')
+            return value
+
+    api = Bounded(); path = 'receipt-archive/projection/'+stream+'.json'; uncertain = False
+    for attempt in range(3):
+        anchor = verify_bootstrap(api, approval_path)
+        require(store == {'repository': api.repo, 'visibility': 'private' if anchor['private'] else 'public'}, 'projection checkpoint visibility differs')
+        approval = document(Path(approval_path).read_bytes())
+        binding = {key: approval[key] for key in ('repository', 'repository_id', 'private', 'branch', 'bootstrap_sha', 'bootstrap_tree', 'coverage_from', 'writer_app_id', 'policies')}
+        binding.update(stream=stream, approval_sha256=digest(canonical(approval)), policy_sha256=receipts.coordinator.policy_hash(policy), interval_end=interval_end)
+        require(instant(anchor['coverage_from']) <= instant(interval_end) <= datetime.datetime.now(datetime.timezone.utc), 'projection checkpoint interval differs')
+        item_at, blob_at = fixed_reader(api, root)
+        require(item_at(anchor['bootstrap_tree'], path) is None, 'projection checkpoint pre-bootstrap requires explicit reviewed import')
+        old = blob_at(anchor['tree'], path); previous_blob = None; start = 0; frozen = anchor['head']
+        if old is not None:
+            progress = _projection_checkpoint(document(old), binding)
+            history = api.request(root+'/commits?sha='+anchor['head']+'&path='+quote(path, safe='')+'&per_page=1')
+            require(type(history) is list and len(history) == 1 and state_paths.valid_hash(history[0].get('sha'), 40), 'projection checkpoint publication missing')
+            publication = api.request(root+'/git/commits/'+history[0]['sha'])
+            require(publication['sha'] == history[0]['sha'] and type(publication['parents']) is list and len(publication['parents']) == 1 and publication['parents'][0]['sha'] == progress['publication_parent'], 'projection checkpoint publication parent differs')
+            _origin_ancestor(api.request, root, anchor['bootstrap_sha'], publication['sha'])
+            _origin_ancestor(api.request, root, publication['sha'], anchor['head'])
+            parent = api.request(root+'/git/commits/'+progress['publication_parent'])
+            require(parent['sha'] == progress['publication_parent'] and blob_at(publication['tree']['sha'], path) == old, 'projection checkpoint publication bytes differ')
+            _origin_delta(api.request, root, parent['tree']['sha'], publication['tree']['sha'], path)
+            before_item = item_at(parent['tree']['sha'], path)
+            require((before_item['sha'] if before_item else None) == progress['previous_blob'], 'projection checkpoint previous blob differs')
+            if before_item is not None:
+                prior = _projection_checkpoint(document(blob_at(parent['tree']['sha'], path)), binding)
+                require(prior['next_segment'] == progress['window']['start'] and all(prior[key] == progress[key] for key in ('frozen_head', 'frozen_tree', 'records_count')), 'projection checkpoint previous continuity differs')
+            _origin_ancestor(api.request, root, anchor['bootstrap_sha'], progress['frozen_head'])
+            _origin_ancestor(api.request, root, progress['frozen_head'], progress['publication_parent'])
+            frozen_commit = api.request(root+'/git/commits/'+progress['frozen_head'])
+            require(frozen_commit['sha'] == progress['frozen_head'] and frozen_commit['tree']['sha'] == progress['frozen_tree'], 'projection checkpoint frozen tree differs')
+            if progress['next_segment'] == progress['records_count']:
+                require(verify_bootstrap(api, approval_path) == anchor, 'projection checkpoint origin changed')
+                return {'status': 'already-checkpointed', 'head': anchor['head'], 'next_segment': progress['next_segment'], 'frozen_complete': True, 'coverage_complete': False, 'suffix_pending': anchor['head'] != progress['frozen_head']}
+            start = progress['next_segment']; frozen = progress['frozen_head']; previous_blob = item_at(anchor['tree'], path)['sha']
+        window = projection_window(api, policy, trust_path, store, approval_path, stream, interval_end=interval_end, start=start, limit=limit, frozen_head=frozen)
+        if window['observed_head'] != anchor['head']:
+            continue
+        progress = {'schema_version': 1, 'binding': binding, 'frozen_head': window['frozen_head'], 'frozen_tree': window['tree'], 'records_count': window['records_count'], 'next_segment': window['next_segment'], 'window': {'start': start, 'stop': window['next_segment'], 'references': window['references'], 'trust_sha256': window['trust_sha256']}, 'previous_blob': previous_blob, 'publication_parent': anchor['head']}
+        _projection_checkpoint(progress, binding)
+        encoded = canonical(progress); require(len(encoded) <= MAX_OBJECT, 'projection checkpoint object capacity gap')
+        blob = api.request(root+'/git/blobs', 'POST', {'encoding': 'base64', 'content': base64.b64encode(encoded).decode()})
+        require(blob.get('sha') == hashlib.sha1(b'blob '+str(len(encoded)).encode()+b'\0'+encoded).hexdigest(), 'projection checkpoint uploaded blob differs')
+        tree = api.request(root+'/git/trees', 'POST', {'base_tree': anchor['tree'], 'tree': [{'path': path, 'type': 'blob', 'mode': '100644', 'sha': blob['sha']}]})
+        require(state_paths.valid_hash(tree.get('sha'), 40), 'projection checkpoint created tree differs')
+        _origin_delta(api.request, root, anchor['tree'], tree['sha'], path)
+        commit = api.request(root+'/git/commits', 'POST', {'message': 'factory: checked projection window '+uuid.uuid4().hex, 'tree': tree['sha'], 'parents': [anchor['head']]})
+        require(state_paths.valid_hash(commit.get('sha'), 40) and commit['tree']['sha'] == tree['sha'] and [p['sha'] for p in commit['parents']] == [anchor['head']], 'projection checkpoint created commit differs')
+        for identity, expected in approval['policies'].items():
+            require(digest(canonical(api.request(root+'/rulesets/'+identity))) == expected, 'projection checkpoint protection changed')
+        require(digest(Path(trust_path).read_bytes()) == window['trust_sha256'] and digest(Path(approval_path).read_bytes()) == window['approval_sha256'], 'projection checkpoint protected input changed')
+        refpath = root+'/git/ref/heads/'+quote(anchor['branch'], safe='')
+        if api.request(refpath)['object']['sha'] != anchor['head']:
+            continue
+        try:
+            api.request(root+'/git/refs/heads/'+quote(anchor['branch'], safe=''), 'PATCH', {'sha': commit['sha'], 'force': False})
+        except (ValueError, RuntimeError):
+            uncertain = True
+            try:
+                observed = api.request(refpath)
+            except (ValueError, RuntimeError) as error:
+                raise ValueError('projection checkpoint acknowledgement uncertain; restart required') from error
+            if observed['object']['sha'] != commit['sha']:
+                continue
+        require(api.request(refpath)['object']['sha'] == commit['sha'], 'projection checkpoint acknowledgement uncertain')
+        return {'status': 'checkpointed', 'head': commit['sha'], 'next_segment': progress['next_segment'], 'frozen_complete': progress['next_segment'] == progress['records_count'], 'coverage_complete': False, 'suffix_pending': True, 'uncertain_write_reconciled': uncertain}
+    raise ValueError('projection checkpoint three CAS attempts exhausted; progress incomplete')

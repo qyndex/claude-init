@@ -323,3 +323,36 @@ entire snapshot only when starting at0 and ending atcount; coverage_complete is
 always false. The legacy256-commit bootstrap bound, protected window publication
 (T301), fresh-process progress beyond128segments(T302), and T295/T286 aggregate
 remain pending. No caller JSON is a reusable trusted checkpoint.
+
+### T301 protected window publication — 2026-10-16
+
+One strict inert path `receipt-archive/projection/<stream64>.json` stores one
+bounded checked window and its previous immutable Git blob SHA. Original windows
+remain reachable in protected branch history; no unbounded window list or pruning
+is introduced. A current capsule must bind exact reviewed repository/privacy,
+branch/bootstrap/approval/policies, current policy, frozen head/tree and campaign
+interval. Actual path-history identifies the publication: require its single
+observed parent, descent from reviewed bootstrap, exact checkpoint-only tree
+delta and previous file blob/contiguous range at that parent. Ordinary reporter
+commits between checkpoint publications remain allowed and preserved. A hash or
+caller JSON never establishes this origin.
+
+The window reader can now constrain an older frozen view only after independently
+authenticating the full current protected chain, exact ancestor comparisons and
+actual immutable commit/tree binding. It rechecks current origin before returning
+references. Checkpoint publication validates those references internally, uses
+base-tree non-force CAS with three bounded observations/reconciliation and shares
+2048APIcalls/32MiB across attempts. Per-invocation record limits may change within
+1–128 without resetting a retained prefix; they are not a lifetime campaign lock.
+The capsule retains references only, never provider output/private feedback or
+runtime task authority. Current trust is rebound per checked window and must be
+reapplied by the later reporting reader. A completed frozen prefix does not cover
+a newer unscanned suffix or grant delivery coverage.
+
+T302 must authenticate/read every prior window through actual publication history
+and previous-blob continuity in bounded work, validate all retained materials and
+apply current revocation/global conflict/interval semantics before reconstruction.
+No fresh SQLite reconstruction, >128segment completeness, T293 replacement of the
+256commit bootstrap reader or report-loader integration is implemented here.
+T295/T286/T288 remain pending; actual App hidden-metadata/writer cutover is still
+unsupported. No live bootstrap, profile, credential, flags or protection changes.

@@ -1,0 +1,3 @@
+bash: .claude/scripts/test/factory-state-paths.sh: No such file or directory
+
+exit_code: 127
