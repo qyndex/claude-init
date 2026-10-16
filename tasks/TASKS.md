@@ -1742,7 +1742,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-receipt-backfill.sh
   owner: implementer
 
-- [ ] T-295  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-294,T-299  | parallel: no  | est: 5m
+- [ ] T-295  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-294,T-299,T-302  | parallel: no  | est: 5m
   summary: Resume protected retained-proof windows across fresh hosted SQLite projections
   files: .claude/scripts/factory-receipt-archive.py, .claude/scripts/factory-receipt-discovery.py, .claude/scripts/factory-receipts.py, .claude/scripts/factory-state-paths.py, .claude/scripts/test/factory-receipt-projection-windows.sh, plans/active/014-authenticated-receipt-recovery.md
   accept: bash .claude/scripts/test/factory-receipt-projection-windows.sh
@@ -1776,4 +1776,22 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   summary: Integrate current seven-file runtime while preserving authenticated historical six-file facts
   files: .claude/scripts/factory-receipts.py, .claude/scripts/factory-receipt-archive.py, .claude/scripts/factory-receipt-discovery.py, .claude/scripts/factory-preflight.py, .claude/scripts/test/factory-receipt-runtime-compatibility.sh, .claude/scripts/test/factory-receipt-profiles.sh, .claude/scripts/test/factory-receipt-source.sh, .claude/scripts/test/factory-receipt-archive.sh, .claude/scripts/test/factory-receipt-retained-proof.sh, .claude/scripts/test/factory-receipt-revocation.sh, plans/active/014-authenticated-receipt-recovery.md
   accept: bash .claude/scripts/test/factory-receipt-runtime-compatibility.sh
+  owner: implementer
+
+- [ ] T-300  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-294,T-299  | parallel: no  | est: 5m
+  summary: Validate bounded frozen-view retained projection windows
+  files: .claude/scripts/factory-receipt-archive.py, .claude/scripts/test/factory-receipt-projection-window.sh, plans/active/014-authenticated-receipt-recovery.md
+  accept: bash .claude/scripts/test/factory-receipt-projection-window.sh
+  owner: implementer
+
+- [ ] T-301  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-300  | parallel: no  | est: 5m
+  summary: Publish authenticated retained projection checkpoints atomically
+  files: .claude/scripts/factory-receipt-archive.py, .claude/scripts/factory-state-paths.py, .claude/scripts/test/factory-receipt-projection-checkpoint.sh, plans/active/014-authenticated-receipt-recovery.md
+  accept: bash .claude/scripts/test/factory-receipt-projection-checkpoint.sh
+  owner: implementer
+
+- [ ] T-302  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-301  | parallel: no  | est: 5m
+  summary: Resume bounded retained reporting reconstruction across fresh hosted processes
+  files: .claude/scripts/factory-receipt-archive.py, .claude/scripts/test/factory-receipt-projection-resume.sh, .claude/scripts/test/factory-receipt-retained-proof.sh, plans/active/014-authenticated-receipt-recovery.md
+  accept: bash .claude/scripts/test/factory-receipt-projection-resume.sh
   owner: implementer

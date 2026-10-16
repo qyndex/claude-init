@@ -261,3 +261,43 @@ withdrawal without task credit, encrypted byte preservation and missing-origin
 rejection. Fixture-only historical emitter modeling is not live issuance proof.
 T295, T286 aggregate and remaining loader/readiness/live archive cutover remain
 pending; no active trust or runtime settings changed.
+
+### T295 routine atomic decomposition — 2026-10-16
+
+T295 remains pending as an aggregate retained-projection acceptance. Its existing
+approved scope is decomposed into sequential children; no source implementation
+is included in this planning checkpoint:
+
+1. **T300 (after294,299): bounded frozen-view validation.** Validate one strictly
+bounded record/material/index window against an independently authenticated
+protected archive view. Bind exact repository/privacy/stream/bootstrap/head/tree,
+coverage interval and window range/count. No arbitrary caller reference, hash,
+cursor or partial scan establishes origin. Preserve all current material, known
+closure-family, conflict and copied-bootstrap protections. Return checked facts
+and explicit continuation only; a partial result never claims complete coverage
+or grants runtime task credit. Acceptance: factory-receipt-projection-window.sh.
+2. **T301 (after300): protected checkpoint publication.** Define exact inert
+manifest/window paths and complete bounded schemas. Persist only checked frozen
+window references/results through protected writer/bootstrap origin, publication
+identity and checkpoint-only delta checks. Use bounded base-tree CAS/reconcile,
+preserve reports/encrypted feedback, reject copied checkpoints and concurrent
+conflicts, and never treat content hashes as origin. Acceptance:
+factory-receipt-projection-checkpoint.sh.
+3. **T302 (after301): fresh-process reconstruction.** Resume authenticated protected
+window progress and reporting reconstruction across fresh hosted SQLite processes
+instead of resetting at segment0. Demonstrate more than128 retained segments
+with per-invocation bounds and real Git/restart/CAS tests. Reapply current trust
+revocation while preserving immutable historical reporting facts, including known
+six-file receipts; no task lifecycle credit. Freeze the requested interval/view;
+newer unscanned suffix remains pending. Missing/conflicting proof rejects atomically,
+partial reports remain explicitly incomplete, and no retained history is pruned.
+Acceptance: factory-receipt-projection-resume.sh.
+
+T295 now depends on294,299,302 and remains pending until its aggregate acceptance
+passes. T286 remains pending after all original children; T288 must integrate
+T293 ancestry windows and these projection windows. These tasks cannot silently
+claim that the existing256-commit full-bootstrap reader has been replaced, nor
+use it as an unbounded retry loop. Its remaining origin-budget gap is explicit
+until integration. Exact current hidden-App metadata/capability cutover remains
+pending. No new authority, credentials, retention policy, active profile, state
+write or live configuration is approved by this decomposition.

@@ -1,0 +1,8 @@
+PASS — planning consistency only; 2026-10-16
+IDs300–302 previously unused; unique task IDs; all dependency targets exist; DAG acyclic.
+T300deps294,299; T301dep300; T302dep301; T295deps294,299,302.
+T299 done; T295/T286/300/301/302 pending.
+AC1/2 report-only historical/current facts: existing299 plus planned300–302.
+AC3/4 guardian unchanged. AC5–8 origin/bounded resume/completeness: planned300–302 and existing286/288 integration, not implemented.
+Current256bootstrap and unscanned suffix remain explicit gaps.
+No implementation or live readiness inferred.
