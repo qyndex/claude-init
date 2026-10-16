@@ -1241,7 +1241,9 @@ def stage_projection(state_api, policy, trust_path, store, approval_path, stream
             run_id, attempt = reference['run_id'], reference['attempt']
             retained = retained_execution(api, anchor, store, stream, run_id, attempt)
             require(retained is not None and retained['record_sha256'] == reference['record_sha256'] and retained['record']['artifact']['id'] == reference['artifact_id'], 'projection stage retained reference differs')
-            timed = retained_merge_time(api, policy, store, approval_path, stream, run_id, attempt)
+            # This slice already owns a verified anchor and rechecks mutable
+            # origin/approval/trust below before any publication.
+            timed = _retained_time_from_anchor(api, anchor, store, stream, run_id, attempt)
             if timed['status'] != 'observed':
                 return {'status': 'gap', 'reason': timed['reason'], 'coverage_complete': False}
             fact = timed['fact']; tasks = retained['record']['proof']['tasks']

@@ -1,0 +1,5 @@
+{"bootstrap_verifications": 20, "calls": 369, "bytes": 170461, "roles": {"source": 8, "writer": 361}, "methods": {"GET": 333, "POST": 35, "PATCH": 1}, "facts": 8}
+Traceback (most recent call last):
+  File "<stdin>", line 77, in <module>
+  File "real-git-stage-anchor", line 145, in <module>
+AssertionError: per-fact public wrappers repeat whole bootstrap verification
