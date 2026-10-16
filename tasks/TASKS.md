@@ -201,10 +201,10 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
   accept: bash .claude/scripts/test/autonomous-ship.sh
   owner: codex
 
-- [~] T-179  | spec:009  | phase:2  | priority: security  | created: 2026-10-09  | last_touched: 2026-10-09  | deps: T-177, T-178  | parallel: no  | est: 5m
+- [x] T-179  | spec:009  | phase:2  | priority: security  | created: 2026-10-09  | last_touched: 2026-10-17  | deps: T-177, T-178  | parallel: no  | est: 5m
   summary: Publish isolated activation draft PR and account bootstrap package
-  progress: PR #50 merged at 148238ad; account setup and authenticated shadow activation remain pending
-  accept: gh pr view "${FACTORY_ACTIVATION_PR:?}" --json state,isDraft | jq -e '.state == "OPEN" and .isDraft == true'
+  progress: Bootstrap publication verified at148238ad; protected account metadata retained. T180 capability, signed shadow and authority activation remain pending
+  accept: gh pr view "${FACTORY_ACTIVATION_PR:?}" --json state,isDraft,mergeCommit | jq -e '.state == "MERGED" and .mergeCommit.oid == "148238ad8950681d352985cdb9c48ad0301e97d3"'
   owner: codex
 
 - [b] T-180  | spec:009  | phase:3  | priority: security  | created: 2026-10-09  | last_touched: 2026-10-09  | deps: T-179  | parallel: no  | est: 5m
