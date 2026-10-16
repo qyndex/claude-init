@@ -139,3 +139,47 @@ before canonical hashing; emitted values are fixed digests/identities/valid
 timestamps, never raw actors/rules/unknown payload. Original success audit and
 all enforcement remain unchanged. Local acceptance27 and existing scoped
 regressions do not establish the real hosted mismatch or diagnose its cause.
+
+### T304 independent-review diagnostic completion — 2026-10-16
+
+Independent local Sonnet review of T303 requested two low-severity corrections:
+the generic diagnostic reason and missing expected updated_at/identity-match
+facts cannot distinguish non-hash rejection causes, and the inner audit catch
+skips unexpected validation exceptions outside ValueError/KeyError/TypeError.
+The review was static; it did not execute tests or establish hosted behavior.
+Root independently reran the27-case acceptance. PR111 remains draft at this
+planning checkpoint; no actual App-view mismatch cause has been established.
+
+T304 remains within approved AC5 bounded observation diagnostics:
+
+- Retain expected updated_at only through the same bounded valid timestamp
+  representation as actual timestamps. Add fixed-schema mismatch/match flags for
+  safely typed repository/ruleset identity, metadata digest and exact updated_at
+  facts; malformed/missing values have explicit unknown/invalid status. Never
+  dump the observation object, actors, arbitrary error text or unknown fields.
+- Classify fixed known authoritative validation failures into a small bounded
+  rejection-category enum. Derive it from the original failure, not a second
+  validator deciding authority. Unknown exceptions receive a fixed unexpected
+  category; diagnostic flags cannot relax exact enforcement or reorder validate.
+- Broaden ONLY the inner audit-and-reraise handler to Exception. Inject a
+  RuntimeError in validation and prove the prebuilt bounded diagnostic survives
+  while the exact same exception propagates unchanged. Preserve the main CLI's
+  existing handled exception tuple and its demonstrated ValueError same-head
+  failed-check invalidation. Do not claim unexpected exceptions now acquire CLI
+  failure-check invalidation when that outer handler does not catch them.
+- Remove unused contextlib and replace the unexplained initial test count with
+  explicit case accounting where local. Preserve the repository's shared fixture
+  extraction pattern; do not rewrite unrelated test infrastructure. Retain the
+  meaningful tracemalloc queued-frontier regression and describe its CPython
+  allocation-threshold assumption, already exercised on the actual local runtime.
+
+Strict actual RED/GREEN must first demonstrate missing expected/mismatch facts
+and skipped unexpected-exception audit; preserve existing diagnostic resource
+bounds, sentinel safety, ordinary success audit and all exact validation tests.
+Refresh all16 actual producer runtime pins with unchanged8/7 dependency closures;
+all other policy fields, merge_enabledfalse and permissions remain unchanged.
+No timestamp normalization, SEMANTIC/exclusion changes, private receipt trust
+extension, new credentials, workflow events or live configuration is authorized.
+After implementation, normal source/independent review and separately approved
+rollout are still required before genuine protected App-view diagnosis. This is
+planning only; T304 remains pending and receipt T302 is untouched.
