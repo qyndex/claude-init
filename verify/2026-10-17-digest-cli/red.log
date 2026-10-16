@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "<stdin>", line 61, in <module>
+  File "<stdin>", line 53, in invoke
+  File "/private/tmp/factory-digest-cli-20261017/.claude/scripts/factory-git-state.py", line 590, in main
+    result = run(config, digest.coordinator.GitHub(config['repository']), state_api, slack.http_client(config), Path(tmp)/'reporting.sqlite', datetime.now(timezone.utc))
+  File "<stdin>", line 41, in run
+AssertionError: App CLI did not share the routed role API

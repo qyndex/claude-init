@@ -585,9 +585,20 @@ def main():
     require(os.environ.get('GITHUB_SERVER_URL') == 'https://github.com', 'hosted state supports github.com only')
     require(os.environ.get('GITHUB_REPOSITORY') == config['repository'] and os.environ.get('GITHUB_REF') == 'refs/heads/' + config['branch'], 'hosted reporting requires target default branch')
     os.umask(0o077)
-    state_api = API(config['state_repository'], os.environ.get('FACTORY_REPORTING_STATE_TOKEN') or os.environ.get('GH_TOKEN'))
+    selected = os.environ.get('FACTORY_REPORTING_APP_WRITER_ENABLED', 'false')
+    require(selected in ('true', 'false'), 'reporting writer flag invalid')
+    if selected == 'true':
+        transport_spec = importlib.util.spec_from_file_location('hosted_reporting_transport', Path(__file__).with_name('factory-reporting-transport.py'))
+        transport = importlib.util.module_from_spec(transport_spec); transport_spec.loader.exec_module(transport)
+        require(config['state_repository'] == config['repository'], 'selected reporting state repository differs')
+        report_api = state_api = transport.create_api(os.environ)
+        require(state_api.repo == config['repository'], 'selected reporting repository differs')
+        config = transport.attach_reporting_context(config)
+    else:
+        state_api = API(config['state_repository'], os.environ.get('FACTORY_REPORTING_STATE_TOKEN') or os.environ.get('GH_TOKEN'))
+        report_api = digest.coordinator.GitHub(config['repository'])
     with tempfile.TemporaryDirectory(prefix='factory-reporting-') as tmp:
-        result = run(config, digest.coordinator.GitHub(config['repository']), state_api, slack.http_client(config), Path(tmp)/'reporting.sqlite', datetime.now(timezone.utc))
+        result = run(config, report_api, state_api, slack.http_client(config), Path(tmp)/'reporting.sqlite', datetime.now(timezone.utc))
     print(json.dumps(result))
 
 
