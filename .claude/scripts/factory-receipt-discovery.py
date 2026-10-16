@@ -126,6 +126,15 @@ class ArchiveAdvanced(Exception):
     pass
 
 
+def _source_fetch_unavailable(error):
+    """Known transport/source absence only; identity, parse and budget errors escape."""
+    message = str(error)
+    return message.startswith('GitHub API request failed:') or message in {
+        'reporting API failed; reconcile authoritative state before retry',
+        'reporting source unavailable', 'trusted source unavailable',
+        'receipt source size exceeds bound'}
+
+
 def assess(source_api, api, anchor, policy, trust_path, trust_mode, store, stream, row, epoch, blob_at, approval_path):
     # This lookup precedes all source artifact accesses, including on expired runs.
     retained = archive.retained_execution(api, anchor, store, stream, row['run_id'], row['attempt'])
@@ -153,7 +162,7 @@ def assess(source_api, api, anchor, policy, trust_path, trust_mode, store, strea
         if value['classification'] == 'watch':value['reason'] = 'unavailable'
         return value, None
     except ValueError as error:
-        if not str(error).startswith('GitHub API request failed:'):raise
+        if not _source_fetch_unavailable(error):raise
         if value['classification'] == 'watch':value['reason'] = 'unavailable'
         return value, None
     require(latest['id'] == row['run_id'] and latest['head_sha'] == row['source_sha'] and latest['run_attempt'] >= row['attempt'], 'watched run immutable identity changed')
@@ -166,6 +175,8 @@ def assess(source_api, api, anchor, policy, trust_path, trust_mode, store, strea
     except (RuntimeError, OSError):
         value['reason'] = 'unavailable'; return value, latest
     except ValueError as error:
+        if _source_fetch_unavailable(error):
+            value['reason'] = 'unavailable'; return value, latest
         if any(token in str(error) for token in ('not approved', 'not approved or ambiguous', 'source changed', 'revoked')):
             value.update(classification='unapproved', reason='source-unapproved'); return value, latest
         raise
@@ -319,12 +330,12 @@ def backfill_page(source_api, anchor, policy, stream, interval_end, page_size, b
                 node.update(phase='gap', reason='confirmation-changed')
             else:
                 node['phase'] = 'observed'
-        elif count >= 1000:
-            # Filtered API counts at or above the ceiling are never exact coverage.
-            node.update(expected_count=count, facts=[fact], page=2, seen=facts)
-            node.update(phase='gap' if lo == hi else 'split', reason='dense-second' if lo == hi else None)
         elif node['expected_count'] is not None and node['expected_count'] != count:
             node.update(phase='gap', reason='count-drift')
+        elif count >= 1000:
+            # Only a first-page observation can begin a saturated partition.
+            node.update(expected_count=count, facts=[fact], page=2, seen=facts)
+            node.update(phase='gap' if lo == hi else 'split', reason='dense-second' if lo == hi else None)
         elif len(facts) != min(page_size, max(0, count-(query_page-1)*page_size)):
             node.update(phase='gap', reason='row-count')
         elif duplicate or {row['run_id'] for row in facts} & {row['run_id'] for row in node['seen']}:
@@ -485,6 +496,7 @@ def _checkpoint(source_api, state_api, policy, approval_path, stream, *, page_si
                     require(key not in seen, 'discovery duplicate page identity'); seen.add(key)
                     require(key not in merged or merged[key]['head_sha'] == run['head_sha'], 'discovery overlap immutable identity changed')
                     merged[key] = run
+            primary_short = len(pages[0]['workflow_runs']) < page_size
             response = {'workflow_runs': list(merged.values())}
         else:
             if progress['watch']['segments'] == 0:
@@ -522,7 +534,7 @@ def _checkpoint(source_api, state_api, policy, approval_path, stream, *, page_si
                                 except (RuntimeError, OSError):
                                     previous = None
                                 except ValueError as error:
-                                    if not str(error).startswith('GitHub API request failed:'):raise
+                                    if not _source_fetch_unavailable(error):raise
                                     previous = None
                                 if previous is not None:
                                     require((previous['id'], previous['run_attempt'], previous['head_sha']) == (row['run_id'], prior, row['source_sha']), 'prior attempt immutable identity changed')
@@ -559,7 +571,11 @@ def _checkpoint(source_api, state_api, policy, approval_path, stream, *, page_si
             changes[segment_path] = archive.canonical(segment)
             progress['watch']['segments'] += 1
             progress['watch']['count'] += len(rows)
-        if mode == 'discover':progress['pagination']['next_page'] = page+1
+        if mode == 'discover':
+            if primary_short:
+                progress['pagination'].update(next_page=1, overlap_page=1, overlap_until=1)
+            else:
+                progress['pagination']['next_page'] = page+1
         progress['anchor'] = {'head': anchor['head'], 'tree': anchor['tree']}
         validate_checkpoint(progress, anchor, workflow, page_size)
         # Even a short/empty API page is NOT complete history (filtered queries cap

@@ -1,0 +1,90 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(dirname "$0")/../../.."
+python3 - "$@" <<'PY'
+"""Actual public discovery checkpoints remain loadable and reviewable after failures."""
+from pathlib import Path
+import sys
+selected_case=sys.argv[1] if len(sys.argv)>1 else 'all'
+fixture=Path('.claude/scripts/test/factory-receipt-cas.sh').read_text().split("<<'PY'\n",1)[1].split(" store={'repository'",1)[0]
+cases=r'''
+ from urllib.parse import parse_qs,urlsplit
+ spec=importlib.util.spec_from_file_location('discovery_review',scripts/'factory-receipt-discovery.py');d=importlib.util.module_from_spec(spec);spec.loader.exec_module(d)
+ stream=a.archive_stream('org/repo');store={'repository':'org/repo','visibility':'public'};start='2026-10-15T00:00:00Z'
+ def reset():git('update-ref',ref,initial,out('rev-parse',ref))
+ def progress():return json.loads(git('show',ref+':receipt-archive/progress/'+stream+'.json').stdout)
+ def outcomes():return [json.loads(git('show',ref+':'+p).stdout) for p in out('ls-tree','-r','--name-only',ref).splitlines() if p.startswith('receipt-archive/outcomes/')]
+ if selected_case in ('all','backfill'):
+  for end in ('2026-10-15T00:00:03Z',start):
+   reset()
+   class Drift(Source):
+    calls=0
+    def request(self,path,**kwargs):
+     if '/actions/workflows/' not in path:return super().request(path,**kwargs)
+     self.calls+=1;q=parse_qs(urlsplit(path).query);page=int(q['page'][0]);row=copy.deepcopy(self.run);row.update(id=page+20,created_at=start)
+     if q['created'][0]!=start+'..'+end:return {'total_count':0,'workflow_runs':[]}
+     return {'total_count':1000 if self.calls==2 else 2,'workflow_runs':[row]}
+   source=Drift(policy,receipt)
+   for i in range(9):
+    # A fresh API/module load resumes actual persisted Git bytes each invocation.
+    module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+    module.backfill(source,State(),policy,approval,stream,interval_end=end,page_size=1,tree_pages=10)
+   nodes=[json.loads(git('show',ref+':'+p).stdout) for p in out('ls-tree','-r','--name-only',ref).splitlines() if p.startswith('receipt-archive/backfill/'+stream+'/')]
+   assert nodes and all([f['page'] for f in n['facts']]==list(range(1,len(n['facts'])+1)) for n in nodes)
+   assert progress()['watch']['count']>=2 and progress()['coverage_complete'] is False
+  print('real Git page2 count rise persists valid gap; range/dense restart recovers PASS')
+ if selected_case in ('all','review'):
+  class Review(Source):
+   error=None;kind='attempt';observed=[]
+   def request(self,path,**kwargs):
+    if '/actions/workflows/' in path:
+     rows=[]
+     for n in (20,21):
+      row=copy.deepcopy(self.run);row.update(id=n,conclusion='failure');rows.append(row)
+     return {'workflow_runs':rows}
+    return super().request(path,**kwargs)
+   def get(self,path):
+    if '/actions/runs/' in path:
+     n=int(path.split('/actions/runs/')[1].split('/')[0]);self.active=n;self.observed.append(n)
+     if '/attempts/' in path and n==20 and self.kind=='attempt':raise ValueError(self.error)
+     row=copy.deepcopy(self.run);row.update(id=n,conclusion='failure',run_attempt=2 if n==20 and self.kind=='attempt' else 1);return row
+    return super().get(path)
+   def source(self,path,sha):
+    if self.kind=='source' and getattr(self,'active',None)==20:raise ValueError(self.error)
+    return super().source(path,sha)
+  for kind,error in [('attempt','GitHub API request failed: fixture'),('attempt','reporting API failed; reconcile authoritative state before retry'),('source','GitHub API request failed: fixture'),('source','reporting source unavailable'),('source','trusted source unavailable'),('source','receipt source size exceeds bound')]:
+   reset();source=Review(policy,receipt);source.kind=kind;source.error=error;source.observed=[]
+   d.advance(source,State(),policy,approval,stream,page_size=2,tree_pages=10)
+   for repeat in range(2):d.reconcile(source,State(),policy,trust,store,approval,stream,review_rows=2)
+   rows=outcomes();assert any(r['run_id']==20 and r['classification']=='watch' and r['reason']=='unavailable' for r in rows)
+   assert any(r['run_id']==21 and r['classification']=='watch' for r in rows) and source.observed.count(21)>=2
+  for error in ('discovery run identity differs','reporting invocation capacity gap','malformed source JSON'):
+   reset();source=Review(policy,receipt);source.kind='source';source.error=error;d.advance(source,State(),policy,approval,stream,page_size=2,tree_pages=10);before=out('rev-parse',ref)
+   try:d.reconcile(source,State(),policy,trust,store,approval,stream,review_rows=2)
+   except ValueError as observed:assert str(observed)==error
+   else:raise AssertionError('malformed identity/JSON/budget failure became unavailable')
+   assert out('rev-parse',ref)==before
+  print('real Git known attempt/source failures do not starve following watched row; malformed/budget remain strict PASS')
+ if selected_case in ('all','head'):
+  class Head(Source):
+   extra=False;pages=[];count=4
+   def request(self,path,**kwargs):
+    if '/actions/workflows/' not in path:return super().request(path,**kwargs)
+    q=parse_qs(urlsplit(path).query);page=int(q['page'][0]);size=int(q['per_page'][0]);self.pages.append(page);rows=[]
+    for n in ([99] if self.extra else [])+list(range(20,20+self.count)):
+     row=copy.deepcopy(self.run);row['id']=n;rows.append(row)
+    return {'workflow_runs':rows[(page-1)*size:page*size]}
+  for count in (3,4):
+   reset();source=Head(policy,receipt);source.count=count;source.pages=[]
+   for i in range(2 if count==3 else 3):d.advance(source,State(),policy,approval,stream,page_size=2,tree_pages=10)
+   assert progress()['pagination']['next_page']==1,'short/empty source tail did not wrap to head'
+   source.extra=True;d.advance(source,State(),policy,approval,stream,page_size=2,tree_pages=10)
+   watched=[r['run_id'] for n in range(progress()['watch']['segments']) for r in json.loads(git('show',ref+':'+a.state_paths.pending_segment_path(stream,n)).stdout)['rows']]
+   assert 99 in watched and progress()['coverage_complete'] is False
+   for i in range(8):d.advance(source,State(),policy,approval,stream,page_size=2,tree_pages=10)
+   assert max(source.pages)<=3
+  print('real Git short/empty pages wrap bounded head polling and retain new head run PASS')
+ assert git('show',ref+':'+oldpath).stdout==b'opaque existing encrypted feedback envelope'
+'''
+exec(compile(fixture+cases,'discovery-review-real-git','exec'))
+PY
