@@ -1,0 +1,12 @@
+{
+  "base": "3e51458b89bb8ea26a2b3aeee55d28a8c78020f9",
+  "red_exit": 1,
+  "context_green_exit": 0,
+  "transport_green_exit": 0,
+  "sha256": {
+    ".claude/scripts/factory-reporting-transport.py": "a1981accc83f73c3849a2bca2fb2b10c463f6d2734babfaf7e74bcb17bba1507",
+    ".claude/scripts/test/factory-reporting-context.sh": "cfc9474427fa236b4128bf3e943c76f26f2af19aac2b4ec2428a5aea515482c6"
+  },
+  "live_calls": false,
+  "task_closed": false
+}

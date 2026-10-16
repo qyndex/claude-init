@@ -206,3 +206,51 @@ class RoutedAPI:
 
     def read_pull_requests(self, repository_id, numbers):
         return self._batch('source','read_pull_requests',repository_id,numbers)
+
+
+def attach_reporting_context(config, *, checkout=None):
+    """Select fixed nonsecret checkout inputs; runtime validators remain authority."""
+    import stat
+    require(type(config) is dict, 'reporting context configuration invalid')
+    repository=config.get('repository')
+    require(type(repository) is str and re.fullmatch(r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+',repository)
+            and all(part not in ('.','..') for part in repository.split('/'))
+            and config.get('state_repository')==repository, 'reporting context repository differs')
+    require(not any(key in config for key in ('receipt_archive','state_view')), 'reporting context cannot redirect fixed inputs')
+    root=Path(__file__).resolve().parents[2] if checkout is None else Path(checkout)
+    require(root.is_absolute() and root.resolve()==root and root.is_dir() and not root.is_symlink(), 'reporting context checkout invalid')
+    fixed=root/'factory'
+    require(fixed.is_dir() and fixed.resolve()==fixed and not fixed.is_symlink(), 'reporting context fixed directory invalid')
+    def read(name):
+        path=fixed/name
+        try:
+            descriptor=os.open(path,os.O_RDONLY|os.O_NOFOLLOW)
+            with os.fdopen(descriptor,'rb') as stream:
+                require(stat.S_ISREG(os.fstat(stream.fileno()).st_mode), 'reporting context input must be regular')
+                raw=stream.read(1048577)
+            require(0<len(raw)<=1048576, 'reporting context input size invalid')
+            value=json.loads(raw,object_pairs_hook=state.digest.coordinator.contract.no_duplicate_keys)
+        except (OSError,UnicodeError,RecursionError) as error:
+            raise ValueError('reporting context fixed input unavailable') from error
+        require(type(value) is dict and value.get('repository')==repository, 'reporting context fixed repository differs')
+        return value
+    policy=read('policy.json');trust=read('receipt-trust.json');approval=read('receipt-archive-bootstrap.json');store=read('receipt-store.json')
+    require(trust.get('repository')==policy.get('repository')==approval.get('repository')==store.get('repository'), 'reporting context repository differs')
+    require(set(store)=={'repository','visibility'} and store['visibility'] in ('public','private'), 'reporting context store differs')
+    require(type(config.get('state_branch')) is str and config['state_branch']==approval.get('branch'), 'reporting context state branch differs')
+    identity=os.environ.get('FACTORY_REPORTING_APP_ID')
+    require(type(identity) is str and re.fullmatch(r'[1-9][0-9]{0,18}',identity)
+            and type(approval.get('writer_app_id')) is int and 0<approval['writer_app_id']<2**63
+            and int(identity)==approval['writer_app_id'], 'reporting context selected App differs')
+    if config.get('branch') is not None:require(config['branch']==policy.get('base_branch'), 'reporting context source branch differs')
+    if config.get('bootstrap_sha') is not None:require(config['bootstrap_sha']==approval.get('bootstrap_sha'), 'reporting context bootstrap differs')
+    if approval.get('private') is True:require(store['visibility']=='private', 'reporting context private store required')
+    if approval.get('schema_version')==2:
+        observations=read('receipt-policy-observations.json')
+        for key in ('repository_id','branch','writer_app_id'):
+            if key in observations:require(type(observations[key]) is type(approval.get(key)) and observations[key]==approval[key], 'reporting context observation binding differs')
+    if 'receipt_policy' in config:require(config['receipt_policy']==policy, 'reporting context policy redirect forbidden')
+    archive={'approval_path':str(fixed/'receipt-archive-bootstrap.json'),'trust_path':str(fixed/'receipt-trust.json'),
+             'store':store,'trust_mode':'profile'}
+    return dict(config,receipt_mode='durable',receipt_policy=policy,receipt_archive=archive,
+                state_view={'mode':'archive','approval_path':archive['approval_path']})
