@@ -172,8 +172,8 @@ class QueueStore:
         encoded = canonical(value); size = len(encoded); self.consumed += size
         require(size <= self.state.MAX_STATE*2 and self.consumed <= 33554432, 'queue storage observation bound exceeded')
         if immutable:
-            require(len(self.immutable) < 128 and self.cached_bytes+size <= 33554432, 'queue immutable cache bound exceeded')
-            self.immutable[path] = encoded; self.cached_bytes += size
+            if len(self.immutable) < 128 and self.cached_bytes+size <= 33554432:
+                self.immutable[path] = encoded; self.cached_bytes += size
             return json.loads(encoded)
         return value
 

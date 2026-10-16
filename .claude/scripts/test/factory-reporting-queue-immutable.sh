@@ -36,10 +36,12 @@ except ValueError as error:assert 'API bound exceeded' in str(error)
 else:raise AssertionError('unique request capacity enlarged')
 assert len(api.calls)==512
 assert bounded.request('repos/org/repo/git/trees/'+'0'*40)['nested']['value']==1
+foreign_api,fresh=adapter()
 for target in ('repos/foreign/repo/git/blobs/'+'a'*40,'repos/org/repository/git/blobs/'+'a'*40):
- try:bounded.request(target)
- except ValueError:pass
+ try:fresh.request(target)
+ except ValueError as error:assert str(error)=='queue delivery foreign API'
  else:raise AssertionError('foreign API accepted')
+assert foreign_api.calls==[]
 api,large=adapter();api.value='x'*16000001
 try:large.request(path)
 except ValueError as error:assert 'byte bound exceeded' in str(error)
@@ -60,5 +62,33 @@ try:store.request('repos/org/repo/git/trees/'+'f'*40)
 except ValueError as error:assert 'API bound exceeded' in str(error)
 else:raise AssertionError('QueueStore unique request bound enlarged')
 assert len(api.calls)==128 and store.request('repos/org/repo/git/trees/'+'0'*40)['nested']['value']==1
+from types import SimpleNamespace
+class SequentialReads(q.QueueStore):
+ offset=0
+ def _load(self):
+  for number in range(self.offset,self.offset+128):self.request('repos/org/repo/git/trees/'+f'{number:040x}')
+  self.offset+=128
+  return SimpleNamespace(head='a'*40),None
+api=API();store=SequentialReads(api,config,storage)
+assert store.read()['journal'] is None and store.calls==128
+assert store.read()['journal'] is None and store.calls==128 and len(api.calls)==256
+assert len(store.immutable)==128 and store.cached_bytes<=33554432
+# Full cache admission falls back; an old cached proof remains useful.
+store.calls=store.consumed=0
+before=len(api.calls);store.request('repos/org/repo/git/trees/'+'0'*40);assert len(api.calls)==before and store.calls==0 and store.consumed==0
+uncached='repos/org/repo/git/trees/'+f'{200:040x}'
+store.request(uncached);store.request(uncached);assert len(api.calls)==before+2
+fresh_api=API();fresh_store=q.QueueStore(fresh_api,config,storage)
+for target in ('repos/foreign/repo/git/blobs/'+'a'*40,'repos/org/repository/git/blobs/'+'a'*40):
+ try:fresh_store.request(target)
+ except ValueError as error:assert str(error)=='queue storage foreign API'
+ else:raise AssertionError('foreign QueueStore API accepted')
+assert fresh_api.calls==[]
+try:q.QueueStore(API(),config,dict(storage,state_view={'mode':'other','approval_path':'/private/tmp/queue-immutable-bootstrap.json'}))
+except ValueError as error:assert str(error)=='protected state view configuration invalid'
+else:raise AssertionError('non-archive present view accepted')
+for suffix in ('git/blobs/'+'A'*40,'git/blobs/'+'a'*39,'git/blobs/'+'a'*41,'git/blobs/'+'a'*40+'/','git/blobs/'+'a'*40+'/extra','git/tags/'+'a'*40,'git/refs/'+'a'*40):
+ for selected_api,selected in (adapter(),(fresh_api,fresh_store)):
+  target='repos/org/repo/'+suffix;before=len(selected_api.calls);selected.request(target);selected.request(target);assert len(selected_api.calls)==before+2
 print('actual queue adapter immutable isolation, mutable freshness, legacy mode, same-repo and unchanged unique-call/byte limits PASS')
 PY

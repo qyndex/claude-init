@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "<stdin>", line 70, in <module>
+  File "/private/tmp/factory-queue-scheduled-acceptance-20261017/.claude/scripts/factory-reporting-queue.py", line 201, in read
+    current, journal = self._load()
+                       ~~~~~~~~~~^^
+  File "<stdin>", line 65, in _load
+  File "/private/tmp/factory-queue-scheduled-acceptance-20261017/.claude/scripts/factory-reporting-queue.py", line 175, in request
+    require(len(self.immutable) < 128 and self.cached_bytes+size <= 33554432, 'queue immutable cache bound exceeded')
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-queue-scheduled-acceptance-20261017/.claude/scripts/factory-reporting-queue.py", line 17, in require
+    raise ValueError(message)
+ValueError: queue immutable cache bound exceeded
