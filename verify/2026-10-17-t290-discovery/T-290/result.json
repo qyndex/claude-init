@@ -1,0 +1,17 @@
+{
+  "command": "bash .claude/scripts/test/factory-receipt-discovery.sh",
+  "baseline_exit": 1,
+  "frozen_final_exit": 0,
+  "actual_origin_windows": 121,
+  "scanner_transitions_verified": 121,
+  "per_invocation_commit_budget": 16,
+  "per_invocation_tree_pages": 4,
+  "fixture_repeat_ceiling_per_publication": 32,
+  "production_changed": false,
+  "task_closed": false,
+  "time": {
+    "real": 78.81,
+    "user": 36.31,
+    "sys": 37.12
+  }
+}

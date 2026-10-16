@@ -1,0 +1,21 @@
+Traceback (most recent call last):
+  File "real-git-discovery-fixture", line 178, in <module>
+  File "/private/tmp/factory-t290-discovery-fixture-20261017/.claude/scripts/factory-receipt-discovery.py", line 597, in advance
+    return _checkpoint(source_api, state_api, policy, approval_path, stream, page_size=page_size, tree_pages=tree_pages)
+  File "/private/tmp/factory-t290-discovery-fixture-20261017/.claude/scripts/factory-receipt-discovery.py", line 427, in _checkpoint
+    anchor = archive.verify_bootstrap(api, approval_path)
+  File "/private/tmp/factory-t290-discovery-fixture-20261017/.claude/scripts/factory-receipt-archive.py", line 299, in verify_bootstrap
+    verified_prefix = _completed_origin(api, context)
+  File "/private/tmp/factory-t290-discovery-fixture-20261017/.claude/scripts/factory-receipt-archive.py", line 262, in _completed_origin
+    require(item_at(approval['bootstrap_tree'], path) is None, 'origin checkpoint pre-bootstrap requires explicit reviewed import')
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-t290-discovery-fixture-20261017/.claude/scripts/validate-candidate-evidence.py", line 19, in require
+    raise ValueError(message)
+ValueError: origin checkpoint pre-bootstrap requires explicit reviewed import
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "<stdin>", line 118, in <module>
+  File "real-git-discovery-fixture", line 179, in <module>
+AssertionError

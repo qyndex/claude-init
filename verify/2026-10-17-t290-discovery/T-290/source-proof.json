@@ -1,0 +1,11 @@
+{
+  "base": "fd19fef182186642d42e9083692128c369bee460",
+  "production_changed": false,
+  "unchanged_dependencies": {
+    ".claude/scripts/factory-receipt-discovery.py": "081386f3a6665ba15b31aa6d4cd67ed1de9cac0acd97970fce87bfc48e10a91a",
+    ".claude/scripts/factory-receipt-archive.py": "985e4ad2685ec39fd5c7e9616b61106a6bb163cd346767b47c97b36e05bea0e4",
+    ".claude/scripts/factory-state-paths.py": "0648487106251e765e7f0a4504d510606970c6bab1f2b4024dc21c4e6bc487dd",
+    ".claude/scripts/test/factory-receipt-cas.sh": "0f9f6d0a575a4aeaef192a6a9440bb710248512fa440be2404951e43e9e3b9be"
+  },
+  "fixture_sha256": "2a603a881b23b7cd2ec540beff3abc16b60572e7c23062578eafc3b051ab23ea"
+}
