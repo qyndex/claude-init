@@ -18,6 +18,9 @@ require = receipts.require
 paths_spec = importlib.util.spec_from_file_location('state_paths', Path(__file__).with_name('factory-state-paths.py'))
 state_paths = importlib.util.module_from_spec(paths_spec); paths_spec.loader.exec_module(state_paths)
 
+reporting_spec = importlib.util.spec_from_file_location('reporting_policy', Path(__file__).with_name('factory-reporting-policy.py'))
+reporting_policy = importlib.util.module_from_spec(reporting_spec); reporting_spec.loader.exec_module(reporting_policy)
+
 MAX_OBJECT = 1048576
 
 
@@ -147,6 +150,20 @@ def instant(value):
     return parsed
 
 
+def _approved_policy_digest(policy, approval, approval_path, *, now=None):
+    """Explicit v2 protected observations; retain the exact v1 raw contract."""
+    require(type(approval.get('schema_version')) is int and approval['schema_version'] in (1, 2), 'archive bootstrap schema differs')
+    if approval['schema_version'] == 1:
+        return digest(canonical(policy))
+    observations = reporting_policy.load(Path(approval_path).with_name(reporting_policy.SIDECAR),
+        approval['repository'], approval['repository_id'], approval['branch'], approval['writer_app_id'])
+    require(set(observations) == set(approval['policies']), 'archive reporting observation identities differ')
+    repo = {'id': approval['repository_id'], 'full_name': approval['repository']}
+    result = reporting_policy.validate(repo, policy, approval['branch'], approval['writer_app_id'],
+        observations.get(str(policy.get('id'))), now=now)
+    return result['metadata_sha256']
+
+
 def _bootstrap_context(api, approval_path, *, now=None):
     """Read-only proof under an explicitly reviewed protected approval input.
 
@@ -162,7 +179,7 @@ def _bootstrap_context(api, approval_path, *, now=None):
     require(0 < len(raw) <= 65536, 'archive bootstrap approval size invalid')
     approval = document(raw)
     expected = {'schema_version', 'repository', 'repository_id', 'private', 'branch', 'bootstrap_sha', 'bootstrap_tree', 'coverage_from', 'observed_at', 'writer_app_id', 'policies'}
-    require(isinstance(approval, dict) and set(approval) == expected and type(approval['schema_version']) is int and approval['schema_version'] == 1, 'archive bootstrap schema differs')
+    require(isinstance(approval, dict) and set(approval) == expected and type(approval['schema_version']) is int and approval['schema_version'] in (1, 2), 'archive bootstrap schema differs')
     require(approval['repository'] == api.repo, 'archive bootstrap repository differs')
     require(all(type(approval[k]) is int and approval[k] > 0 for k in ('repository_id', 'writer_app_id')) and type(approval['private']) is bool, 'archive bootstrap repository/writer invalid')
     branch = approval['branch']
@@ -199,16 +216,19 @@ def _bootstrap_context(api, approval_path, *, now=None):
     for identity in sorted(ids):
         require(identity.isdecimal() and int(identity) > 0, 'archive protection identity invalid')
         policy = read(root + '/rulesets/' + identity)
-        require(digest(canonical(policy)) == approval['policies'][identity], 'archive protection policy changed')
+        require(_approved_policy_digest(policy, approval, approval_path, now=now) == approval['policies'][identity], 'archive protection policy changed')
         require(type(policy['id']) is int and policy['id'] == int(identity) and policy['source'] == api.repo and policy['source_type'] == 'Repository' and policy['target'] == 'branch' and policy['enforcement'] == 'active' and policy['conditions'] == conditions, 'archive protection scope differs')
         require((observed - instant(policy['updated_at'])).total_seconds() >= 60, 'archive protection must settle before approval')
         kinds = [rule['type'] for rule in policy['rules']]
         if 'update' in kinds:
             require(policy['rules'] == [{'type': 'update'}], 'archive exclusive writer policy must be update-only')
-            require(policy['bypass_actors'] == [{'actor_id': approval['writer_app_id'], 'actor_type': 'Integration', 'bypass_mode': 'always'}], 'archive exclusive App writer differs')
+            if approval['schema_version'] == 1:
+                require(policy['bypass_actors'] == [{'actor_id': approval['writer_app_id'], 'actor_type': 'Integration', 'bypass_mode': 'always'}], 'archive exclusive App writer differs')
             exclusive += 1
         else:
-            require(policy['bypass_actors'] == [] and set(kinds) <= {'non_fast_forward', 'deletion'}, 'archive rewrite/deletion protection must be no-bypass')
+            require(set(kinds) <= {'non_fast_forward', 'deletion'}, 'archive rewrite/deletion protection must be no-bypass')
+            if approval['schema_version'] == 1:
+                require(policy['bypass_actors'] == [], 'archive rewrite/deletion protection must be no-bypass')
             covered.update(kinds)
     require(exclusive == 1 and covered == {'non_fast_forward', 'deletion'}, 'archive exclusive writer or immutable protection missing')
     ref = read(root + '/git/ref/heads/' + quote(branch, safe=''))
@@ -318,7 +338,7 @@ def verify_bootstrap(api, approval_path, *, now=None):
     else:
         raise ValueError('archive bootstrap ancestry bound reached; explicit coverage gap')
     for identity in sorted(ids):
-        require(digest(canonical(read(root + '/rulesets/' + identity))) == approval['policies'][identity], 'archive protection changed during verification')
+        require(_approved_policy_digest(read(root + '/rulesets/' + identity), approval, approval_path, now=now) == approval['policies'][identity], 'archive protection changed during verification')
     require(read(root + '/git/ref/heads/' + quote(branch, safe='')) == ref, 'archive state changed during bootstrap verification')
     return {'repository': api.repo, 'repository_id': repo['id'], 'private': repo['private'], 'branch': branch, 'head': head, 'tree': head_tree,
             'bootstrap_sha': approval['bootstrap_sha'], 'bootstrap_tree': approval['bootstrap_tree'], 'coverage_from': approval['coverage_from'],
@@ -852,7 +872,7 @@ def advance_origin(state_api, approval_path, *, commit_budget=16, tree_pages=4, 
         require(state_paths.valid_hash(publication.get('sha'), 40) and publication['tree']['sha'] == newtree['sha']
                 and [parent['sha'] for parent in publication['parents']] == [head], 'origin created publication differs')
         for identity, expected in approval['policies'].items():
-            require(digest(canonical(read(root+'/rulesets/'+identity))) == expected, 'origin protection changed before publication')
+            require(_approved_policy_digest(read(root+'/rulesets/'+identity), approval, approval_path, now=now) == expected, 'origin protection changed before publication')
         if read(root+'/git/ref/heads/'+quote(approval['branch'], safe='')) != ref:
             continue
         try:
@@ -974,7 +994,7 @@ def checkpoint_projection(state_api, policy, trust_path, store, approval_path, s
         commit = api.request(root+'/git/commits', 'POST', {'message': 'factory: checked projection window '+uuid.uuid4().hex, 'tree': tree['sha'], 'parents': [anchor['head']]})
         require(state_paths.valid_hash(commit.get('sha'), 40) and commit['tree']['sha'] == tree['sha'] and [p['sha'] for p in commit['parents']] == [anchor['head']], 'projection checkpoint created commit differs')
         for identity, expected in approval['policies'].items():
-            require(digest(canonical(api.request(root+'/rulesets/'+identity))) == expected, 'projection checkpoint protection changed')
+            require(_approved_policy_digest(api.request(root+'/rulesets/'+identity), approval, approval_path) == expected, 'projection checkpoint protection changed')
         require(digest(Path(trust_path).read_bytes()) == window['trust_sha256'] and digest(Path(approval_path).read_bytes()) == window['approval_sha256'], 'projection checkpoint protected input changed')
         refpath = root+'/git/ref/heads/'+quote(anchor['branch'], safe='')
         if api.request(refpath)['object']['sha'] != anchor['head']:
@@ -1206,7 +1226,7 @@ def stage_projection(state_api, policy, trust_path, store, approval_path, stream
         require(state_paths.valid_hash(commit.get('sha'), 40) and commit['tree']['sha'] == tree_sha and [p['sha'] for p in commit['parents']] == [anchor['head']], 'projection stage created commit differs')
         approval = document(approval_raw)
         for identity, expected in approval['policies'].items():
-            require(digest(canonical(api.request(root+'/rulesets/'+identity))) == expected, 'projection stage protection changed')
+            require(_approved_policy_digest(api.request(root+'/rulesets/'+identity), approval, approval_path) == expected, 'projection stage protection changed')
         require(Path(approval_path).read_bytes() == approval_raw and digest(Path(trust_path).read_bytes()) == trust_hash, 'projection stage protected input changed')
         refpath = root+'/git/ref/heads/'+quote(anchor['branch'], safe='')
         if api.request(refpath)['object']['sha'] != anchor['head']:

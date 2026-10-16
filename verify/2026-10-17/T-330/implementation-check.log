@@ -1,0 +1,16 @@
+existing exact full-metadata real-Git bootstrap passes before new feature
+Traceback (most recent call last):
+  File "<stdin>", line 88, in <module>
+  File "reporting-positive-policy-fixture", line 93, in <module>
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 295, in verify_bootstrap
+    context = _bootstrap_context(api, approval_path, now=now)
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 219, in _bootstrap_context
+    require(_approved_policy_digest(policy, approval, approval_path, now=now) == approval['policies'][identity], 'archive protection policy changed')
+            ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 158, in _approved_policy_digest
+    observations = reporting_policy.load(Path(approval_path).with_name(reporting_policy.SIDECAR),
+        approval['repository'], approval['repository_id'], approval['branch'], approval['writer_app_id'])
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-reporting-policy.py", line 153, in load
+    require(observed <= metadata.clock(), 'reporting observation future timestamp')
+                        ~~~~~~~~~~~~~~^^
+TypeError: clock() missing 1 required positional argument: 'now'
