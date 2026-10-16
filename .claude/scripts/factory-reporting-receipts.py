@@ -24,6 +24,10 @@ DEFINITIONS = {
     'delivery_times': ('task TEXT PRIMARY KEY, merged_at TEXT NOT NULL', ('task', 'merged_at')),
     'delivery_interval': ('task TEXT PRIMARY KEY', ('task',)),
 }
+class ProjectionPending(ValueError):
+    pass
+
+
 COVERAGE_SQL = 'CREATE TABLE reporting_receipt_coverage(repository TEXT PRIMARY KEY, coverage_from TEXT NOT NULL, verified_until TEXT NOT NULL)'
 
 
@@ -72,14 +76,14 @@ def project_reporting(source_api, state_api, policy, report_path, trust_path, st
         receipt_db = Path(temporary)/'receipts.sqlite'
         projection = archive.reconstruct_interval(state, policy, receipt_db, trust_path, store,
                     approval_path, stream, interval_end=interval_end, history_head=history_head, campaign=campaign, interval_scoped=interval_scoped)
-        require(projection.get('projection_complete') is True, 'retained reporting projection incomplete')
+        if projection.get('projection_complete') is not True:raise ProjectionPending('retained reporting projection incomplete')
         coverage = discovery.coverage(source, state, policy, trust_path, store, approval_path, stream,
                     interval_end=interval_end, projection_end=interval_end, history_head=history_head,
                     campaign=campaign, page_size=page_size, interval_scoped=interval_scoped)
-        require(all(coverage.get(key) is True for key in ('coverage_complete', 'source_partition_complete', 'frozen_projection_complete')) and
+        if not (all(coverage.get(key) is True for key in ('coverage_complete', 'source_partition_complete', 'frozen_projection_complete')) and
                 coverage.get('verified_until') == interval_end and coverage.get('gaps') == [] and
-                coverage.get('task_credit') is False and coverage.get('all_history_complete') is False,
-                'retained reporting coverage incomplete')
+                coverage.get('task_credit') is False and coverage.get('all_history_complete') is False):
+            raise ProjectionPending('retained reporting coverage incomplete')
         require(coverage.get('repository') == policy['repository'] and
                 coverage.get('coverage_from') == before['coverage_from'] and
                 archive.instant(coverage['coverage_from']) <= archive.instant(coverage['verified_until']),

@@ -460,9 +460,10 @@ def run(config, report_api, state_api, slack_client, path, now):
             validate(prior, state_api.repo, stream)
             pending_snapshot = any(row['status']!='confirmed' for row in prior['tables']['digest_batches'])
         if not pending_snapshot:
-            progress = maintenance.maintain(report_api, state_api, config['receipt_policy'], durable['trust_path'],
+            progress = maintenance.prepare_reporting(report_api, state_api, config['receipt_policy'], durable['trust_path'],
                         durable['store'], durable['approval_path'], interval_end=target, trust_mode=durable['trust_mode'])
-            if progress['status'] != 'ready':return progress
+            if progress['status'] != 'projection-ready':return progress
+            target = progress['interval_end']
     stream = hashlib.sha256(canonical([config['repository'], config['destination'], config['branch']]).encode()).hexdigest()
     bootstrap = config.get('bootstrap_sha')
     if mode == 'durable':
@@ -482,15 +483,27 @@ def run(config, report_api, state_api, slack_client, path, now):
                      state_view=config.get('state_view'), bootstrap_existing=mode=='durable')
     require(not source['private'] or state.private, 'private repository cannot publish public checkpoints')
     store = HostedDigest(path, config, state)
-    target = slack.due(now)
     if not pending_snapshot and digest.instant(store.cursor()) >= digest.instant(target):
         return {'status': 'not-due'}
     if not pending_snapshot and config.get('receipt_policy') is not None:
         receipts_spec = importlib.util.spec_from_file_location('report_receipts', Path(__file__).with_name('factory-receipts.py'))
         receipts = importlib.util.module_from_spec(receipts_spec); receipts_spec.loader.exec_module(receipts)
-        receipts.project(report_api, config['receipt_policy'], path, receipt_mode=mode, state_api=state_api,
+        projection = receipts.project(report_api, config['receipt_policy'], path, receipt_mode=mode, state_api=state_api,
                          archive_config=config.get('receipt_archive'), selection=None if mode=='legacy' else
                          {'interval_end':target,'history_head':progress['history_head'],'campaign':progress['campaign']})
+        if mode=='durable':
+            if projection.get('coverage_complete') is not True:
+                return dict(projection,status='incomplete',phase='projection-pending')
+            acknowledgement=maintenance.acknowledge_reporting(report_api,state_api,config['receipt_policy'],
+                        durable['trust_path'],durable['store'],durable['approval_path'],interval_end=target,
+                        trust_mode=durable['trust_mode'],history_head=progress['history_head'],campaign=progress['campaign'])
+            if acknowledgement['status']!='projection-acknowledged':return acknowledgement
+            # Journal acknowledgement advanced the shared branch. Reload the exact
+            # report role before any prepare/send; typed local receipt tables stay.
+            state=GitState(state_api,config['state_branch'],stream,config.get('bootstrap_sha'),
+                           config.get('policy_approvals'),state_view=config.get('state_view'))
+            require(state.bytes==store.state.bytes,'reporting checkpoint changed during projection acknowledgement')
+            store.state=state
     batch = store.prepare(report_api, target)
     adapter = slack.transport(slack_client, config, batch)
     receipt = store.deliver(batch['key'], adapter)

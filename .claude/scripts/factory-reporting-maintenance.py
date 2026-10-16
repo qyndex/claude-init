@@ -17,7 +17,9 @@ require=archive.require
 FIELDS={'schema_version','repository','stream','binding','interval_end','previous_blob','previous_interval_end',
         'phase','remaining','review_blob','review_cursor','history_head','campaign','page','offset',
         'records_count','trust_sha256','policy_sha256','review_watch_count','review_watch_segments','source_epoch'}
-PHASES=('backfill','review','checkpoint','stage','ready')
+PHASES=('backfill','review','checkpoint','stage','ready','verify')
+_REPORTING=object()
+_ACKNOWLEDGE=object()
 
 
 def _journal(value, expected):
@@ -44,19 +46,23 @@ def _journal(value, expected):
             and value['review_watch_segments']>0 and value['review_cursor']['segment']<value['review_watch_segments']),
             'maintenance review cursor outside watch')
     require(value['phase']!='review' or value['remaining']<=value['review_watch_count'], 'maintenance review remaining exceeds watch')
-    require(all((value[key] is not None)==(value['phase'] in ('stage','ready')) for key in ('history_head','campaign')),
+    require(all((value[key] is not None)==(value['phase'] in ('stage','ready','verify')) for key in ('history_head','campaign')),
             'maintenance phase selectors differ')
     require(len(archive.canonical(value))<=16384, 'maintenance journal capacity gap')
     return value
 
 
-def maintain(source_api, state_api, policy, trust_path, store, approval_path, *, interval_end, trust_mode='profile'):
+def maintain(source_api, state_api, policy, trust_path, store, approval_path, *, interval_end, trust_mode='profile', _operation=None):
     """One origin advancement and at most one dependent bounded phase action.
 
     Every invocation reloads actual protected progress. Caller interval/returned
     selectors choose requested work only; fresh coverage and typed reconstruction
     remain mandatory before reporting. No persistent local database is accepted.
     """
+    acknowledge=type(_operation) is tuple and len(_operation)==3 and _operation[0] is _ACKNOWLEDGE
+    require(_operation is None or _operation is _REPORTING or (acknowledge and
+            archive.state_paths.valid_hash(_operation[1],40) and archive.state_paths.valid_hash(_operation[2],64)),
+            'maintenance internal operation invalid')
     require(source_api.repo==state_api.repo==policy['repository']==store['repository'] and trust_mode in ('profile','legacy'),
             'maintenance repository/trust mode differs')
     require(type(interval_end) is str and len(interval_end)<=40 and archive.instant(interval_end).microsecond==0,
@@ -152,6 +158,16 @@ def maintain(source_api, state_api, policy, trust_path, store, approval_path, *,
                             history_head=None,campaign=None,page=1,offset=0,remaining=0,review_blob=None,review_cursor=None))
     if journal['trust_sha256']!=trust_hash:
         return persist(dict(journal,phase='backfill',trust_sha256=trust_hash,remaining=0,review_blob=None,review_cursor=None,history_head=None,campaign=None,page=1,offset=0))
+    if acknowledge:
+        require(journal['phase']=='verify' and end==interval_end and
+                (journal['history_head'],journal['campaign'])==_operation[1:],
+                'maintenance projection acknowledgement selector changed')
+        return dict(persist(dict(journal,phase='ready')),status='projection-acknowledged')
+    if journal['phase']=='verify':
+        # Verification intent is durable before returning selectors. An interrupted
+        # or unsuccessful consumer must observe a newer source epoch on restart.
+        return persist(dict(journal,phase='backfill',remaining=0,review_blob=None,review_cursor=None,
+                            history_head=None,campaign=None,page=1,offset=0))
     scope=archive.interval_scope(anchor,stream,end,True)
     manifest_raw=blob_at(anchor['tree'],'receipt-archive/backfill/'+scope+'.json')
     watch_path='receipt-archive/progress/'+stream+'.json';watch_raw=blob_at(anchor['tree'],watch_path)
@@ -210,6 +226,10 @@ def maintain(source_api, state_api, policy, trust_path, store, approval_path, *,
                     history_head=journal['history_head'],page=journal['page'],offset=journal['offset'],limit=8,interval_scoped=True)
         if staged['status']=='already-staged':return persist(dict(journal,offset=journal['offset']+staged['facts_count']))
         return result
+    if _operation is _REPORTING:
+        prepared=persist(dict(journal,phase='verify'))
+        return dict(prepared,status='projection-ready',history_head=journal['history_head'],
+                    campaign=journal['campaign'],interval_scoped=True)
     coverage=discovery.coverage(source,api,policy,trust_path,store,approval_path,stream,interval_end=end,
                 projection_end=end,history_head=journal['history_head'],campaign=journal['campaign'],interval_scoped=True)
     if not coverage['coverage_complete']:
@@ -219,3 +239,15 @@ def maintain(source_api, state_api, policy, trust_path, store, approval_path, *,
                             history_head=None,campaign=None,page=1,offset=0,records_count=0))
     return dict(result,status='ready',phase='ready',coverage_complete=True,history_head=journal['history_head'],
                 campaign=journal['campaign'],interval_scoped=True)
+
+
+def prepare_reporting(*args, **kwargs):
+    """Private pipeline scheduling only; this never certifies delivery coverage."""
+    require('_operation' not in kwargs, 'maintenance internal operation invalid')
+    return maintain(*args, **kwargs, _operation=_REPORTING)
+
+
+def acknowledge_reporting(*args, history_head, campaign, **kwargs):
+    """Acknowledge a successful private validator, with exact protected selectors."""
+    require('_operation' not in kwargs, 'maintenance internal operation invalid')
+    return maintain(*args, **kwargs, _operation=(_ACKNOWLEDGE,history_head,campaign))

@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "<stdin>", line 95, in <module>
+  File "hosted-maintenance-fixture", line 126, in <module>
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-git-state.py", line 491, in run
+    receipts.project(report_api, config['receipt_policy'], path, receipt_mode=mode, state_api=state_api,
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipts.py", line 234, in project
+    return retained.project_reporting(api, state_api, policy, db_path, archive_config['trust_path'],
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-reporting-receipts.py", line 79, in project_reporting
+    require(all(coverage.get(key) is True for key in ('coverage_complete', 'source_partition_complete', 'frozen_projection_complete')) and
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/validate-candidate-evidence.py", line 19, in require
+    raise ValueError(message)
+ValueError: retained reporting coverage incomplete

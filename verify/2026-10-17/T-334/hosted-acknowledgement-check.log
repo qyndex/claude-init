@@ -1,0 +1,24 @@
+Traceback (most recent call last):
+  File "<stdin>", line 118, in <module>
+  File "hosted-maintenance-fixture", line 143, in <module>
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-git-state.py", line 497, in run
+    acknowledgement=maintenance.acknowledge_reporting(report_api,state_api,config['receipt_policy'],
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-reporting-maintenance.py", line 253, in acknowledge_reporting
+    return maintain(*args, **kwargs, _operation=(_ACKNOWLEDGE,history_head,campaign))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-reporting-maintenance.py", line 165, in maintain
+    return dict(persist(dict(journal,phase='ready')),status='projection-acknowledged')
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-reporting-maintenance.py", line 152, in persist
+    checkpoint.checkpoint(archive.canonical(changed))
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-git-state.py", line 316, in checkpoint
+    result = self.api.request(self.root + '/git/refs/heads/' + quote(self.branch, safe=''), 'PATCH', {'sha': commit['sha'], 'force': False})
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-reporting-maintenance.py", line 89, in request
+    begin();return observe(state_api.request(path,method,payload))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "hosted-maintenance-fixture", line 107, in request
+  File "hosted-maintenance-fixture", line 82, in request
+  File "hosted-maintenance-fixture", line 62, in request
+ValueError: real Git non-fast-forward CAS conflict

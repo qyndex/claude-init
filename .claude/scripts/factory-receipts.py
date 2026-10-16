@@ -231,10 +231,14 @@ def project(api, policy, db_path, *, receipt_mode='legacy', state_api=None, arch
                 'protected durable reporting selection required')
         spec = importlib.util.spec_from_file_location('durable_reporting_receipts', Path(__file__).with_name('factory-reporting-receipts.py'))
         retained = importlib.util.module_from_spec(spec); spec.loader.exec_module(retained)
-        return retained.project_reporting(api, state_api, policy, db_path, archive_config['trust_path'],
-                    archive_config['store'], archive_config['approval_path'], retained.archive.archive_stream(api.repo),
-                    interval_end=selection['interval_end'], history_head=selection['history_head'],
-                    campaign=selection['campaign'], interval_scoped=True)
+        try:
+            return retained.project_reporting(api, state_api, policy, db_path, archive_config['trust_path'],
+                        archive_config['store'], archive_config['approval_path'], retained.archive.archive_stream(api.repo),
+                        interval_end=selection['interval_end'], history_head=selection['history_head'],
+                        campaign=selection['campaign'], interval_scoped=True)
+        except retained.ProjectionPending:
+            return {'coverage_complete':False,'all_history_complete':False,'task_credit':False,
+                    'gaps':['retained-reporting-projection-pending']}
     require(api.repo == policy['repository'], 'foreign reporting receipt policy')
     configured = policy['receipts']
     workflow = configured['workflow_id']
