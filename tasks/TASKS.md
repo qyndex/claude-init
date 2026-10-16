@@ -85,7 +85,7 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
   accept: bash .claude/scripts/test/factory-coordinator.sh
   owner: codex
 
-- [x] T-129  | spec:003  | phase:9  | priority: normal  | created: 2026-06-12  | last_touched: 2026-10-16  | deps:  | parallel: yes  | est: 5m
+- [ ] T-129  | spec:003  | phase:9  | priority: normal  | created: 2026-06-12  | last_touched: 2026-10-16  | deps:  | parallel: yes  | est: 5m
   summary: Scope pre-bash-guard backtick-network-verb pattern to command position (live-e2e FINDING-3 — false-positives on heredoc bodies carrying frontend fetch code or prose)
   files: .claude/hooks/pre-bash-guard.sh, .claude/scripts/test/pre-bash-guard-literals.sh, specs/active/003-audit-round2-remediation.md, plans/active/003-audit-round2-remediation.md
   accept: bash .claude/scripts/test/pre-bash-guard-literals.sh
@@ -97,7 +97,7 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
   accept: bash .claude/scripts/test/tdd-ledger-suite.sh
   owner: implementer
 
-- [x] T-131  | spec:003  | phase:9  | priority: normal  | created: 2026-06-12  | last_touched: 2026-10-16  | deps:  | parallel: yes  | est: 5m
+- [ ] T-131  | spec:003  | phase:9  | priority: normal  | created: 2026-06-12  | last_touched: 2026-10-16  | deps:  | parallel: yes  | est: 5m
   summary: Fix collect-evidence results.json clobber (smoke accept re-runs overwrite the AC proof) + reconcile rig template filename guidance with the playwright.evidence.config.ts + e2e/<spec-id>/ contract (live-e2e FINDING-6)
   files: .claude/scripts/collect-evidence.sh, .claude/templates/evidence/playwright.config.ts, .claude/scripts/test/evidence-proof-preservation.sh, plans/active/003-audit-round2-remediation.md
   accept: bash .claude/scripts/test/evidence-proof-preservation.sh
@@ -137,7 +137,7 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
 
 ## Active
 
-- [x] T-329  | spec:006  | phase:6  | priority: security  | created: 2026-10-16  | last_touched: 2026-10-16  | deps:  | parallel: yes  | est: 5m
+- [~] T-329  | spec:006  | phase:6  | priority: security  | created: 2026-10-16  | last_touched: 2026-10-16  | deps:  | parallel: yes  | est: 5m
   summary: Authenticate default-off exact-source audit policy without weakening unapproved or numeric-high errors (AC-11)
   files: .claude/scripts/check-sarif.sh, .claude/scripts/check-sarif-audit-policy.py, .claude/security-audit-exceptions.json, .claude/scripts/test/sarif-audit-policy.sh, .github/workflows/semgrep.yml, docs/security/exact-source-audit-policy.md
   accept: bash .claude/scripts/test/sarif-audit-policy.sh && bash .claude/scripts/test/sarif-effective-severity.sh
