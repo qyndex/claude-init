@@ -1,0 +1,28 @@
+{
+  "purpose": "planning consistency only; no implementation acceptance claimed",
+  "verdict": "PASS",
+  "spec_criteria_mapped": 8,
+  "spec014_tasks_with_accept": 20,
+  "new_ids": [
+    293,
+    294,
+    295
+  ],
+  "reserved_id": 292,
+  "parent_pending": 286,
+  "child_states": "all pending",
+  "critical_path": [
+    285,
+    293,
+    294,
+    295,
+    286,
+    287,
+    288,
+    289,
+    290
+  ],
+  "dependency_cycles": [],
+  "accept_syntax": "all selected accept commands parsed with shlex",
+  "scope": "existing approved source modules and explicit future test scripts; no production file edited"
+}

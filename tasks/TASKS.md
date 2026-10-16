@@ -1699,7 +1699,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-receipt-reruns.sh
   owner: implementer
 
-- [ ] T-286  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-285  | parallel: no  | est: 5m
+- [ ] T-286  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-285,T-293,T-294,T-295  | parallel: no  | est: 5m
   summary: Resume cold-start backfill and expose pagination or required-history gaps
   files: .claude/scripts/factory-receipt-discovery.py, .claude/scripts/test/factory-receipt-coverage.sh
   accept: bash .claude/scripts/test/factory-receipt-coverage.sh
@@ -1727,4 +1727,23 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   summary: Verify complete receipt continuation and unchanged guardian recovery contracts
   files: .claude/scripts/test/factory-receipt-continuation.sh, docs/FACTORY-DIGEST.md
   accept: bash .claude/scripts/test/factory-receipt-continuation.sh
+  owner: implementer
+
+
+- [ ] T-293  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-285  | parallel: no  | est: 5m
+  summary: Authenticate bounded archive ancestry and persist checked inert-tree scan windows
+  files: .claude/scripts/factory-receipt-archive.py, .claude/scripts/factory-receipt-discovery.py, .claude/scripts/factory-state-paths.py, .claude/scripts/test/factory-receipt-origin-windows.sh, plans/active/014-authenticated-receipt-recovery.md
+  accept: bash .claude/scripts/test/factory-receipt-origin-windows.sh
+  owner: implementer
+
+- [ ] T-294  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-293  | parallel: no  | est: 5m
+  summary: Persist partitioned source backfill with capped-query and required-history gaps
+  files: .claude/scripts/factory-receipt-discovery.py, .claude/scripts/factory-state-paths.py, .claude/scripts/test/factory-receipt-backfill.sh, plans/active/014-authenticated-receipt-recovery.md
+  accept: bash .claude/scripts/test/factory-receipt-backfill.sh
+  owner: implementer
+
+- [ ] T-295  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-294  | parallel: no  | est: 5m
+  summary: Resume protected retained-proof windows across fresh hosted SQLite projections
+  files: .claude/scripts/factory-receipt-archive.py, .claude/scripts/factory-receipt-discovery.py, .claude/scripts/factory-receipts.py, .claude/scripts/factory-state-paths.py, .claude/scripts/test/factory-receipt-projection-windows.sh, plans/active/014-authenticated-receipt-recovery.md
+  accept: bash .claude/scripts/test/factory-receipt-projection-windows.sh
   owner: implementer
