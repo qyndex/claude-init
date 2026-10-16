@@ -641,6 +641,24 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
   owner: operator
   skipped: downstream of T-057; unblocks automatically once T-057 produces verify/2026-05-29-phase7-regression/.
 
+- [ ] T-319  | spec:029  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-316  | parallel: no  | est: 5m
+  summary: Prove labelled drill deduplication with a second fresh CLI process in the same run
+  files: .github/workflows/factory-reporting-queue.yml, .claude/scripts/test/factory-reporting-queue-actions.sh
+  accept: bash .claude/scripts/test/factory-reporting-queue-actions.sh
+  owner: implementer
+
+- [ ] T-320  | spec:029  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-319  | parallel: no  | est: 5m
+  summary: Authenticate bounded live queue run journal and publication evidence with read-only GitHub observations
+  files: .claude/scripts/factory-reporting-queue-evidence.py, .claude/scripts/test/factory-reporting-queue-live-evidence.sh
+  accept: bash .claude/scripts/test/factory-reporting-queue-live-evidence.sh
+  owner: implementer
+
+- [ ] T-321  | spec:029  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-320  | parallel: no  | est: 5m
+  summary: Verify local queue aggregate and document protected initialization and pending live rollout
+  files: .claude/scripts/test/factory-reporting-queue.sh, docs/FACTORY-DIGEST.md, docs/FACTORY-ADOPTER-SETUP.md, plans/active/029-github-reporting-alerts.md
+  accept: bash .claude/scripts/test/factory-reporting-queue.sh
+  owner: implementer
+
 ## Spec 001 critical path
 
 Phase 1: T-001 → T-002 → T-005 → T-007 → T-010 (security blockers; rewrites pre-bash-guard, registers constitution-guard hook, wires evidence-gate into ruleset, exits Phase 1)
@@ -1709,7 +1727,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-reporting-queue-actions.sh
   owner: implementer
 
-- [ ] T-317  | spec:029  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-316  | parallel: no  | est: 5m
+- [ ] T-317  | spec:029  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-316,T-321  | parallel: no  | est: 5m
   summary: Verify queue aggregate and prepare exact initialization and rollout evidence
   files: .claude/scripts/test/factory-reporting-queue.sh, .claude/scripts/test/factory-reporting-queue-live-evidence.sh, docs/FACTORY-DIGEST.md, docs/FACTORY-ADOPTER-SETUP.md, plans/active/029-github-reporting-alerts.md
   accept: bash .claude/scripts/test/factory-reporting-queue.sh
@@ -1718,6 +1736,6 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
 - [ ] T-318  | spec:029  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-317  | parallel: no  | est: 5m
   summary: Verify labelled live queue drill recovery and unchanged worker state
   files: docs/activation/2026-10-16-queue-probe/README.md, plans/active/029-github-reporting-alerts.md
-  accept: bash .claude/scripts/test/factory-reporting-queue-live-evidence.sh
+  accept: bash .claude/scripts/test/factory-reporting-queue-live-evidence.sh --live
   owner: implementer
   blocked_by: Reviewed source rollout and exact protected role-journal initialization; live drill not run

@@ -100,3 +100,57 @@ The labelled live drill proves independently scheduled probe execution plus actu
 Slack deduplication/recovery, not an actual concurrent stalled production worker.
 The observed old waiting-run detection is metadata/configuration fixture coverage;
 no injected drill may be labelled proof of a real queue incident.
+
+### T317 verification decomposition — 2026-10-16
+
+This checkpoint follows actual protected main `2fd54dbc6912af3f2ddfe445793152ba2b8b533e`
+integration in `9c329e5`, preserving the queue task/evidence history. Earlier source-base
+statements above describe the original planning checkpoint, not an unmerged import.
+
+Routine decomposition within the approved AC8 scope keeps implementation atomic:
+T319 depends on T316; T320 depends on T319; T321 depends on T320. Parent T317
+now depends on T316 and T321. T318 still depends on T317 and remains blocked on
+reviewed rollout and exact initialization. All new tasks are pending; this
+checkpoint implements no runtime or workflow changes. No additional operator
+permission or credential decision is required.
+
+- **T319:** only an explicitly selected verification drill launches a second
+  fresh CLI process with `--drill` under the same protected run/attempt/source.
+  The first invocation must succeed before the second starts. First notification
+  count one and second count zero establish the local contract. Use the existing
+  bounded safe JSON `notifications`/`reconciled` result, not a new proof schema;
+  execute the actual workflow shell with a process stub to prove sequencing and
+  no second invocation after first failure. The second
+  invocation uses the existing exact receipt reconciliation; uncertain history
+  blocks rather than authorizing a retry. Normal monitoring still invokes once.
+  No caller-selected run identity, cursor or initialization authority is added.
+- **T320:** default execution tests the evidence-checker contract offline and
+  cannot complete T318. Explicit `--live` uses bounded read-only same-repository
+  GitHub run/workflow/source/journal observations. Run IDs and revision inputs are
+  selectors to independently read, never authenticated claims. Require reviewed
+  protected source/run/attempt and actual journal/effect bindings; inaccessible,
+  ambiguous, foreign, truncated or over-budget inputs reject. Pure JSON claims
+  cannot establish live authentication. Exact Slack receipt verification remains
+  inside the existing reviewed protected Actions queue execution using its
+  existing environment token: no locally retrieving that secret, copying it,
+  adding a secret path, or pretending the checker independently rereads Slack.
+  Any stronger proof needing source changes requires a concrete protected
+  verification-only design review before coding it, without arbitrary inputs.
+- **T321:** run the actual local aggregate and prepare source-bound AC1–8 evidence
+  with the live portion explicitly pending. Document exact current configuration
+  names, reviewed queue initialization SHA/flag, initialization-race failure,
+  uncertainty/no-resend recovery and existing backend bounds. Document GitHub-wide,
+  Slack-wide and common-environment limitations; Healthchecks stays disabled.
+
+Live administrative evidence must separately show the labelled drill, a second
+fresh invocation with no duplicate, verified recovery and unchanged repeat. Do
+not persist private Slack history or feedback content. Safe selected IDs,
+statuses and hashes are administrative observations, not native attestations.
+Opaque worker preservation is proved from each actual queue-path publication's
+parent/tree delta; unrelated reporting commits may occur between publications,
+so equality over the whole observation interval is neither required nor proof.
+The live checker must not grant credit from copied fixture/capture booleans.
+T318's acceptance command explicitly requires `--live`; missing live selectors or
+unverified observations remain blocked, never fall back to the offline self-test.
+Completion of T317 establishes local readiness only, not rollout, all-plan
+completion, a real stalled-worker incident, or full outage coverage.
