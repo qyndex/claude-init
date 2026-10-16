@@ -1,0 +1,9 @@
+# T334 supplemental maintenance review throughput
+
+Frozen baseline b4c70bcdc5da25a6434d44806a47463a1837391a. Existing discovery.reconcile admits at most16rows, default4; maintenance previously always selected4 and assumed4 when acknowledging interrupted work. No discovery/default/global2048call/32MiB/response budget change is made.
+
+Actual real-Git fixture produces a protected20-row watch and actual maintenance review journal through production backfill and maintenance. It then invokes the existing actual reconciler with4rows, modeling pending prior-version work. Maintenance must credit exactly4 and retain16remaining. Baseline subsequently dispatches4 and fails the specific expected16-cursor assertion: genuine RED. New maintenance selects16, observes exactly16 actual upstream run lookups, wraps the protected cursor, then credits the actual16 and reaches checkpoint with0remaining. Every result still has coverage_complete=false and task_credit=false; opaque encrypted bytes survive. Final coverage remains independent authority, not this scheduling progress.
+
+Acknowledgement derives only validated savedcursor→currentwatch cursor movement within the same segment or exact next-segment row0wrap. Unique distance1..16 is credited; backward/unrelated/too-large movement resets remaining to full watch count. Interrupted4, short final segment and one-row wrap remain compatible. Additional unit controls execute the actual production review block via AST, explicitly not a second cursor algorithm or authentication proof; they cover old4/new16/shortwrap/onewrap/backward/>16/unrelated cases.
+
+Focused actual RED/GREEN commands exit1/0; ShellCheck/bash syntax/Python compile/diff checks pass. No core/task/spec/config edits, no full staged-history rebuild or native capability claim. The retained1001 continuation on final combined source remains the owner's measurement of actual invocation resource costs and usable completion.

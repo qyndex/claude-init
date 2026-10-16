@@ -200,17 +200,21 @@ def maintain(source_api, state_api, policy, trust_path, store, approval_path, *,
             cursor=journal['review_cursor'];raw=blob_at(anchor['tree'],archive.state_paths.pending_segment_path(stream,cursor['segment']))
             require(raw is not None,'maintenance review segment missing')
             segment=discovery.validate_watch(archive.document(raw),api.repo,stream,cursor['segment'])
-            visited=min(4,len(segment['rows'])-cursor['row']);require(visited>0,'maintenance review row missing')
-            position=cursor['row']+visited
-            next_cursor={'segment':cursor['segment'],'row':position} if position<len(segment['rows']) else {'segment':(cursor['segment']+1)%journal['review_watch_segments'],'row':0}
-            # This is scheduling progress only. Every actual outcome is rechecked
-            # by coverage before ready, including a wrapped one-row watch.
-            remaining=max(0,remaining-visited) if watch['review']==next_cursor else watch['watch']['count']
+            size=len(segment['rows']);require(cursor['row']<size,'maintenance review row missing')
+            current=watch['review'];visited=0
+            if current['segment']==cursor['segment'] and cursor['row']<current['row']<size:
+                visited=current['row']-cursor['row']
+            elif current=={'segment':(cursor['segment']+1)%journal['review_watch_segments'],'row':0}:
+                visited=size-cursor['row']
+            # Credit actual protected cursor movement, including interrupted old
+            # four-row work and a wrapped one-row watch. This schedules only;
+            # coverage still independently checks every actual outcome.
+            remaining=max(0,remaining-visited) if 1<=visited<=16 else watch['watch']['count']
         if watch['watch']['count']==0 or remaining==0:
             return persist(dict(journal,phase='checkpoint',remaining=0,review_blob=None,review_cursor=None))
         if journal['review_blob'] is None or state.git_hash(watch_raw)!=journal['review_blob']:
             return persist(dict(journal,remaining=remaining,review_blob=state.git_hash(watch_raw),review_cursor=watch['review']))
-        discovery.reconcile(source,api,policy,trust_path,store,approval_path,stream,trust_mode=trust_mode,review_rows=4)
+        discovery.reconcile(source,api,policy,trust_path,store,approval_path,stream,trust_mode=trust_mode,review_rows=16)
         return result
     if journal['phase']=='checkpoint':
         scoped='receipt-archive/projection/'+archive.projection_scope(api,anchor,policy,stream,end,True)+'.json'
