@@ -1745,7 +1745,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-reporting-queue-actions.sh
   owner: implementer
 
-- [ ] T-317  | spec:029  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-316,T-321  | parallel: no  | est: 5m
+- [ ] T-317  | spec:029  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-316,T-321,T-325  | parallel: no  | est: 5m
   summary: Verify queue aggregate and prepare exact initialization and rollout evidence
   files: .claude/scripts/test/factory-reporting-queue.sh, .claude/scripts/test/factory-reporting-queue-live-evidence.sh, docs/FACTORY-DIGEST.md, docs/FACTORY-ADOPTER-SETUP.md, plans/active/029-github-reporting-alerts.md
   accept: bash .claude/scripts/test/factory-reporting-queue.sh
@@ -1757,3 +1757,9 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-reporting-queue-live-evidence.sh --live
   owner: implementer
   blocked_by: Reviewed source rollout and exact protected role-journal initialization; live drill not run
+
+- [x] T-325  | spec:029  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-324  | parallel: no  | est: 5m
+  summary: Recognize actual timestamped Actions command markers without relaxing result parsing
+  files: .claude/scripts/factory-reporting-queue-evidence.py, .claude/scripts/test/factory-reporting-queue-evidence-source.sh, plans/active/029-github-reporting-alerts.md
+  accept: bash .claude/scripts/test/factory-reporting-queue-evidence-source.sh
+  owner: implementer

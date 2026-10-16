@@ -92,6 +92,8 @@ def results(raw):
     for line in lines:
         prefix = re.match(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?Z ', line)
         line = line[prefix.end():] if prefix else line
+        if prefix is not None and line.startswith('[command]'):
+            continue  # Known Actions runner command marker, not a result JSON array.
         if not line.startswith(('{','[')):
             continue
         require(prefix is not None, 'queue evidence result lacks server log prefix')

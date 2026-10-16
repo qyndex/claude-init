@@ -1,0 +1,10 @@
+{
+  "exit_code": 0,
+  "model": "claude-sonnet-5-5",
+  "num_turns": 2,
+  "permission_denials": [],
+  "tools": [],
+  "auth_method": "local existing Claude Max OAuth",
+  "completed_at": "2026-10-16T03:23:39.604299+00:00",
+  "native_attestation": false
+}

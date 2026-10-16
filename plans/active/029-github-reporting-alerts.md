@@ -247,3 +247,13 @@ aggregate output and task GREEN, then rerun the existing AC-tagged commands and
 smoke at that committed source. Record local-contract scope and live PENDING;
 never turn offline fixture results into a live activation certificate. T317 is
 still the subsequent aggregate readiness checkpoint, and T318 remains separate.
+
+### T325 actual Actions log-format correction — 2026-10-16
+
+Independent review of ceae9f5 and an actual public Actions job showed that the
+strict JSON selector rejects timestamped `[command]` runner lines before reaching
+valid safe CLI results. T325 recognizes only that known timestamped control
+marker; malformed/extra/duplicate result JSON, arrays, unprefixed JSON and unknown
+bracket lines still reject. The first T317 collector attempt is retained as
+local contributions with changes requested, not source ready for merge. T317 now
+depends on this repair and fresh review/evidence; live T318 remains pending.

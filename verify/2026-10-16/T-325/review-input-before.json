@@ -1,0 +1,95 @@
+{
+  "head": "ceae9f5e50e78baf34dd4e3674ab497796a4f0a5",
+  "base": "2fd54dbc6912af3f2ddfe445793152ba2b8b533e",
+  "input_sha256": "ac893096eb87a991f90396ea18631e1454d2162b3941fcc1bb26ac86613f9e84",
+  "files": [
+    {
+      "path": ".claude/scripts/factory-reporting-alerts.py",
+      "sha256": "bc29dbc3997f839837a81b39f2eae205c25d0b5980bb48298a6486aa27115550"
+    },
+    {
+      "path": ".claude/scripts/factory-reporting-queue-evidence.py",
+      "sha256": "e37605e2a47b58422983ba13da9a0d930f8f2e2e08b19f56900f0bd68867b140"
+    },
+    {
+      "path": ".claude/scripts/factory-reporting-queue.py",
+      "sha256": "a423dee01336e9d014734f5b73ab8affd6a333da6acf4b48583aec185b9005e7"
+    },
+    {
+      "path": ".claude/scripts/test/factory-reporting-queue-actions.sh",
+      "sha256": "e5de6538dabae4d8bfb478e409eba054fe123d3817cadf345741f8d076119bc5"
+    },
+    {
+      "path": ".claude/scripts/test/factory-reporting-queue-cas.sh",
+      "sha256": "63eb5b1e28bdc378193291b290dac0f19904e9b5a133ea2ded533e7aa6fe0579"
+    },
+    {
+      "path": ".claude/scripts/test/factory-reporting-queue-delivery.sh",
+      "sha256": "5bf6a56bf081c4eb665efe18c55a63de66a9a706b6b1d0ae38795ee97a8f7776"
+    },
+    {
+      "path": ".claude/scripts/test/factory-reporting-queue-evidence-journal.sh",
+      "sha256": "44ba284e5817731c2b5781dd7698e126e410879ee44043058f20fe0158ea95b4"
+    },
+    {
+      "path": ".claude/scripts/test/factory-reporting-queue-evidence-source.sh",
+      "sha256": "b0d69d9203e42bd0776f2f76c9c563650e86ee13fa143e2187f37e7cd453f4a5"
+    },
+    {
+      "path": ".claude/scripts/test/factory-reporting-queue-journal.sh",
+      "sha256": "bd10e3af470a17478bf7f0807ec9aac8f921338fe8900a209b0e5befa9294740"
+    },
+    {
+      "path": ".claude/scripts/test/factory-reporting-queue-live-evidence.sh",
+      "sha256": "b4e095d60e903d842eb08c58b53af9157a15e65fb1790d3b4a1db14a89a7a04c"
+    },
+    {
+      "path": ".claude/scripts/test/factory-reporting-queue-observation.sh",
+      "sha256": "513bfe596c55ec6e77574af48379f70cbfe6d7f6d113c04b16a4284be8459ae1"
+    },
+    {
+      "path": ".claude/scripts/test/factory-reporting-queue.sh",
+      "sha256": "befb2e8ae7edf511d7b48452fff6e21fca0f47c7273ce345e6ca2c4e9c02306f"
+    },
+    {
+      "path": ".claude/scripts/test/factory-workflow-baseline.sh",
+      "sha256": "b950634178ef4acabd3211573ea9871edc3f5a38a83730648476c48a9c8c54fa"
+    },
+    {
+      "path": ".github/workflows/factory-reporting-queue.yml",
+      "sha256": "16d1f79b8438f0e13c7729a13f5ccc5107a30c721a8058f280cd6bd55226e257"
+    },
+    {
+      "path": "docs/FACTORY-ADOPTER-SETUP.md",
+      "sha256": "bcd0fbe38585ea35b2c7280979795ba67e12b571e736f170ec92e6f0ac80c81f"
+    },
+    {
+      "path": "docs/FACTORY-DIGEST.md",
+      "sha256": "8f9d7f03b80af3b6402649b8ff83055bd4bf2b6ceb66cdfd3b68a9b989fac15a"
+    },
+    {
+      "path": "plans/active/029-github-reporting-alerts.md",
+      "sha256": "fa49dfd21c6fb0edb8868a07bb15810d917bf31e2b44b882089491501deecc07"
+    },
+    {
+      "path": "specs/active/029-github-reporting-alerts.md",
+      "sha256": "0eb03234a3a6d1974056743551ca34d521175ed6b3bd6e4db96690314be72c16"
+    },
+    {
+      "path": ".claude/scripts/factory-git-state.py",
+      "sha256": "b57b20255b9e3e817d445e25fbb7737a370776b6b57fdb17eb60e7050f699a7a"
+    },
+    {
+      "path": ".claude/scripts/factory-reporting-watchdog.py",
+      "sha256": "69554f3fe0479436109bcae2e93fd5ce4e5092a6d426cc032ebf22f200eb5105"
+    },
+    {
+      "path": ".claude/scripts/factory-slack-digest.py",
+      "sha256": "8f6d2f7770d3225727a8dc3d30192510b206b1f3382b83ea1ef7ceedec8048a4"
+    },
+    {
+      "path": ".claude/scripts/factory-bounded-process.py",
+      "sha256": "91d077e6badb7c606a31cf85d8fbb8315b91d9d211b4fe1ab8fb970693207f47"
+    }
+  ]
+}

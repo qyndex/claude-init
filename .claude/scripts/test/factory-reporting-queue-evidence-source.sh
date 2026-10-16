@@ -10,6 +10,14 @@ module=Path('.claude/scripts/factory-reporting-queue-evidence.py')
 assert module.exists(),'protected run/source/log evidence observer is absent'
 spec=importlib.util.spec_from_file_location('evidence',module);e=importlib.util.module_from_spec(spec);spec.loader.exec_module(e)
 count=0
+# Actual public Actions format observed in job116777712471; selected safe fixture,
+# not raw job logs or actual rollout proof. Runner setup precedes CLI JSON.
+framed=(b'2026-10-16T00:00:00.1234567Z [command]/usr/bin/git version\n'
+        b'2026-10-16T00:00:00.1234567Z shell setup\n'
+        b'2026-10-16T00:00:00.1234567Z {"notifications":1,"reconciled":0}\n'
+        b'2026-10-16T00:00:00.1234567Z {"notifications":0,"reconciled":0}\n')
+assert e.results(framed)==[{'notifications':1,'reconciled':0},{'notifications':0,'reconciled':0}]
+count+=1
 selections={'drill':{'run_id':900,'attempt':2},'recovery':{'run_id':901,'attempt':1},'repeat':{'run_id':902,'attempt':1}}
 with tempfile.TemporaryDirectory() as directory:
  root=Path(directory);(root/'.github/workflows').mkdir(parents=True);(root/'.claude/scripts').mkdir(parents=True)
@@ -30,7 +38,7 @@ with tempfile.TemporaryDirectory() as directory:
     run=int(path.split('/runs/')[1].split('/')[0]);v={'total_count':1,'jobs':[{'id':run+100,'run_id':run,'run_attempt':selections[('drill','recovery','repeat')[run-900]]['attempt'],'head_sha':sha,'name':'monitor','status':'completed','conclusion':'success','steps':[{'number':2,'name':'Observe and reconcile protected queue notifications','status':'completed','conclusion':'success'}]}]}
    elif path.endswith('/logs'):
     run=int(path.split('/jobs/')[1].split('/')[0])-100;values=[1,0] if run==900 else [1] if run==901 else [0]
-    return b'2026-10-16T00:00:00.1234567Z shell setup\n'+b''.join(b'2026-10-16T00:00:00.1234567Z '+json.dumps({'notifications':n,'reconciled':0}).encode()+b'\n' for n in values)+self.extra
+    return b'2026-10-16T00:00:00.1234567Z [command]/usr/bin/git version\n2026-10-16T00:00:00.1234567Z shell setup\n'+b''.join(b'2026-10-16T00:00:00.1234567Z '+json.dumps({'notifications':n,'reconciled':0}).encode()+b'\n' for n in values)+self.extra
    else:
     run=int(path.rsplit('/',1)[1]);role=('drill','recovery','repeat')[run-900];hour=run-900
     v={'id':run,'run_attempt':selections[role]['attempt'],'workflow_id':12,'path':'.github/workflows/factory-reporting-queue.yml','repository':{'id':101,'full_name':self.repo},'head_repository':{'id':101,'full_name':self.repo},'head_branch':'main','head_sha':sha,'event':'workflow_dispatch','status':'completed','conclusion':'success','created_at':f'2026-10-15T{20+hour}:00:00Z','run_started_at':f'2026-10-15T{20+hour}:00:01Z','updated_at':f'2026-10-15T{20+hour}:01:00Z'}
@@ -57,6 +65,8 @@ with tempfile.TemporaryDirectory() as directory:
  # Raw result lines need server timestamp provenance, not echoed JSON/caller text.
  rejects(lambda:e.results(b'{"notifications":1,"reconciled":0}\n'))
  rejects(lambda:e.results('not bytes'))
+ for bad in (b'[command]/usr/bin/git version\n',b'2026-10-16T00:00:00Z [unknown]runner\n',b'2026-10-16T00:00:00Z []\n',b'2026-10-16T00:00:00Z {bad}\n',b'2026-10-16T00:00:00Z {"notifications":0,"notifications":0,"reconciled":0}\n'):
+  rejects(lambda bad=bad:e.results(bad))
  # Actual bounded gh subprocess, no network: fixed-host command and stream limits.
  tools=root/'tools';tools.mkdir();stub=tools/'gh';stub.write_text('#!'+__import__('sys').executable+'\nimport json,os,sys\nprint(json.dumps({"ok":True,"args":sys.argv[1:],"slack":"FACTORY_SLACK_BOT_TOKEN" in os.environ,"writer":"FACTORY_REPORTING_STATE_TOKEN" in os.environ}))\n');stub.chmod(0o755)
  saved=dict(os.environ)
