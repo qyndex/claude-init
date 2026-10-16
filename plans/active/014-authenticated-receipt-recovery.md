@@ -432,3 +432,14 @@ No new signature boundary, App permission, credential, store, retention policy,
 live profile, rules or authority is authorized by this routine decomposition.
 Any shared parser/helper adaptation must use actual merged protected source, not
 unmerged diagnostic candidates. This checkpoint adds no source implementation.
+
+T306 local implementation reads bounded GET-only publication pages after actual
+protected origin verification. Exact history SHA is independently authenticated,
+so concurrent reporter commits cannot shift that requested view. Each returned
+publication checks single parent, checkpoint-only delta, previous actual Git
+blob/continuity and frozen commit/tree bindings. Empty late-page is explicitly
+partial with unknown/pending suffix; coverage remains false. Actual16 real-Git
+lineage cases and checkpoint20/window17 regressions pass locally. No timestamp,
+retained-proof reconstruction or protected staging is implemented here. Global
+cross-page reconciliation and the256-origin integration remain pending; no live
+configuration, archive credential/capability, settings or push changes.

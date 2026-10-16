@@ -1796,7 +1796,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-receipt-projection-resume.sh
   owner: implementer
 
-- [ ] T-306  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-301  | parallel: no  | est: 5m
+- [x] T-306  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-301  | parallel: no  | est: 5m
   summary: Read bounded projection window lineage from authenticated publications
   files: .claude/scripts/factory-receipt-archive.py, .claude/scripts/test/factory-receipt-projection-lineage.sh, plans/active/014-authenticated-receipt-recovery.md
   accept: bash .claude/scripts/test/factory-receipt-projection-lineage.sh

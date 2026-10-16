@@ -1,0 +1,7 @@
+# TDD ledger — green — T-306
+ledger_format: 2
+timestamp: 2026-10-16T12:45:04+11:00
+command: bash .claude/scripts/test/factory-receipt-projection-lineage.sh
+exit_code: 0
+---
+16 protected projection lineage cases passed; partial windows never grant coverage

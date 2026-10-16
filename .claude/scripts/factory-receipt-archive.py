@@ -899,3 +899,83 @@ def checkpoint_projection(state_api, policy, trust_path, store, approval_path, s
         require(api.request(refpath)['object']['sha'] == commit['sha'], 'projection checkpoint acknowledgement uncertain')
         return {'status': 'checkpointed', 'head': commit['sha'], 'next_segment': progress['next_segment'], 'frozen_complete': progress['next_segment'] == progress['records_count'], 'coverage_complete': False, 'suffix_pending': True, 'uncertain_write_reconciled': uncertain}
     raise ValueError('projection checkpoint three CAS attempts exhausted; progress incomplete')
+
+
+def projection_lineage(state_api, policy, trust_path, store, approval_path, stream, *, interval_end, page=1, limit=32, history_head=None):
+    """Read a bounded page of actual protected checkpoint publications.
+
+    A caller page/SHA identifies requested work, never origin. Current protected
+    bootstrap and exact ancestry establish every requested view independently.
+    This reader grants neither retained-proof validity nor delivery coverage.
+    The legacy full-bootstrap 256-commit integration limit remains explicit.
+    """
+    from urllib.parse import quote
+    require(type(page) is int and 1 <= page <= 10**12 and type(limit) is int and 1 <= limit <= 32, 'projection lineage bounds differ')
+    require(state_api.repo == policy['repository'] == store['repository'] and stream == archive_stream(state_api.repo), 'projection lineage repository differs')
+    receipts.load_receipt_trust(trust_path, state_api.repo, mode='report')
+    calls = consumed = 0; root = 'repos/'+state_api.repo
+
+    class Bounded:
+        repo = state_api.repo
+
+        def request(self, path, method='GET', payload=None):
+            nonlocal calls, consumed
+            require(method == 'GET' and payload is None and (path == root or path.startswith(root+'/')), 'projection lineage foreign API or write')
+            require(calls < 2048, 'projection lineage API capacity gap')
+            calls += 1
+            value = state_api.request(path, method, payload)
+            size = len(canonical(value)); consumed += size
+            require(size <= 2097152 and consumed <= 33554432, 'projection lineage observation capacity gap')
+            return value
+
+    api = Bounded(); anchor = verify_bootstrap(api, approval_path)
+    require(store == {'repository': api.repo, 'visibility': 'private' if anchor['private'] else 'public'}, 'projection lineage visibility differs')
+    approval_raw = Path(approval_path).read_bytes(); approval = document(approval_raw)
+    trust_hash = digest(Path(trust_path).read_bytes())
+    binding = {key: approval[key] for key in ('repository', 'repository_id', 'private', 'branch', 'bootstrap_sha', 'bootstrap_tree', 'coverage_from', 'writer_app_id', 'policies')}
+    binding.update(stream=stream, approval_sha256=digest(canonical(approval)), policy_sha256=receipts.coordinator.policy_hash(policy), interval_end=interval_end)
+    require(instant(anchor['coverage_from']) <= instant(interval_end) <= datetime.datetime.now(datetime.timezone.utc), 'projection lineage interval differs')
+    selected = anchor['head'] if history_head is None else history_head
+    require(state_paths.valid_hash(selected, 40), 'projection lineage history revision differs')
+    _origin_ancestor(api.request, root, anchor['bootstrap_sha'], selected)
+    _origin_ancestor(api.request, root, selected, anchor['head'])
+    selected_commit = api.request(root+'/git/commits/'+selected)
+    require(selected_commit['sha'] == selected, 'projection lineage history identity differs')
+    path = 'receipt-archive/projection/'+stream+'.json'; item_at, blob_at = fixed_reader(api, root)
+    require(item_at(anchor['bootstrap_tree'], path) is None, 'projection lineage pre-bootstrap requires explicit reviewed import')
+    rows = api.request(root+'/commits?sha='+selected+'&path='+quote(path, safe='')+'&per_page='+str(limit)+'&page='+str(page))
+    require(type(rows) is list and len(rows) <= limit, 'projection lineage publication list differs')
+    windows = []; seen = set(); expected_blob = None
+    for index, row in enumerate(rows):
+        require(type(row) is dict and state_paths.valid_hash(row.get('sha'), 40) and row['sha'] not in seen, 'projection lineage duplicate or invalid publication')
+        seen.add(row['sha'])
+        publication = api.request(root+'/git/commits/'+row['sha'])
+        require(publication['sha'] == row['sha'] and type(publication['parents']) is list and len(publication['parents']) == 1, 'projection lineage publication identity differs')
+        _origin_ancestor(api.request, root, anchor['bootstrap_sha'], row['sha'])
+        _origin_ancestor(api.request, root, row['sha'], selected)
+        raw = blob_at(publication['tree']['sha'], path)
+        require(raw is not None, 'projection lineage publication checkpoint missing')
+        progress = _projection_checkpoint(document(raw), binding)
+        require(publication['parents'][0]['sha'] == progress['publication_parent'], 'projection lineage publication parent differs')
+        parent = api.request(root+'/git/commits/'+progress['publication_parent'])
+        require(parent['sha'] == progress['publication_parent'], 'projection lineage parent identity differs')
+        _origin_delta(api.request, root, parent['tree']['sha'], publication['tree']['sha'], path)
+        blob = item_at(publication['tree']['sha'], path)['sha']
+        if index == 0 and page == 1:
+            require(item_at(selected_commit['tree']['sha'], path)['sha'] == blob, 'projection lineage latest publication differs')
+        if expected_blob is not None:
+            require(blob == expected_blob, 'projection lineage publication order differs')
+        previous_item = item_at(parent['tree']['sha'], path)
+        require((previous_item['sha'] if previous_item else None) == progress['previous_blob'], 'projection lineage previous blob differs')
+        if previous_item is not None:
+            prior = _projection_checkpoint(document(blob_at(parent['tree']['sha'], path)), binding)
+            require(prior['next_segment'] == progress['window']['start'] and all(prior[k] == progress[k] for k in ('frozen_head', 'frozen_tree', 'records_count')), 'projection lineage previous continuity differs')
+        _origin_ancestor(api.request, root, anchor['bootstrap_sha'], progress['frozen_head'])
+        _origin_ancestor(api.request, root, progress['frozen_head'], progress['publication_parent'])
+        frozen = api.request(root+'/git/commits/'+progress['frozen_head'])
+        require(frozen['sha'] == progress['frozen_head'] and frozen['tree']['sha'] == progress['frozen_tree'], 'projection lineage frozen tree differs')
+        windows.append({'publication_sha': row['sha'], 'blob_sha': blob, 'checkpoint': progress})
+        expected_blob = progress['previous_blob']
+    require(verify_bootstrap(api, approval_path) == anchor and Path(approval_path).read_bytes() == approval_raw and digest(Path(trust_path).read_bytes()) == trust_hash, 'projection lineage protected origin changed')
+    reaches_start = bool(windows) and expected_blob is None
+    return {'history_head': selected, 'observed_head': anchor['head'], 'windows': windows, 'page': page, 'next_page': page+1 if rows and not reaches_start else None, 'reaches_start': reaches_start, 'partial': page != 1 or not reaches_start, 'suffix_pending': not windows or any(w['checkpoint']['frozen_head'] != anchor['head'] for w in windows), 'coverage_complete': False}
