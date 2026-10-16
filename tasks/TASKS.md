@@ -1661,7 +1661,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-policy-observation-diagnostic.sh
   owner: implementer
 
-- [ ] T-304  | spec:010  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-303  | parallel: no  | est: 5m
+- [x] T-304  | spec:010  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-303  | parallel: no  | est: 5m
   summary: Complete bounded diagnostic mismatch facts and exception audit coverage
   files: .claude/scripts/factory-policy-observation.py, .claude/scripts/factory-coordinator.py, .claude/scripts/test/factory-policy-observation-diagnostic.sh, factory/policy.json, plans/active/010-protected-proof-producers.md
   accept: bash .claude/scripts/test/factory-policy-observation-diagnostic.sh

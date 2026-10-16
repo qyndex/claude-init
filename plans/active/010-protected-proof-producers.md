@@ -183,3 +183,13 @@ extension, new credentials, workflow events or live configuration is authorized.
 After implementation, normal source/independent review and separately approved
 rollout are still required before genuine protected App-view diagnosis. This is
 planning only; T304 remains pending and receipt T302 is untouched.
+
+T304 local implementation adds bounded valid expected_updated_at and nullable
+fixed identity/hash/exact-timestamp match facts. Fixed known original validation
+messages map to rejection enums; unknown failures use a fixed unexpected category
+without error text. The inner Exception audit-and-reraise preserves the exact
+RuntimeError instance; the authoritative validate() and main CLI body remain
+byte-identical to pre-T304. Existing ValueError CLI invalidation still passes.
+Actual separate REDs exposed missing expected facts and skipped unexpected audit;
+GREEN42 cases include resource/sentinel safety and explicit local case accounting.
+No time normalization or hosted App diagnosis is implemented by this review fix.

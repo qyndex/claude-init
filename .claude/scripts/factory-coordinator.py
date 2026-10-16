@@ -108,11 +108,11 @@ def protection(api, root, branch, required, app_id, observations=None, audit=Non
                     pass  # Diagnostics must never mask authority rejection/invalidation.
             try:
                 result = policy_observation.validate(repository, ruleset, selected[0])
-            except (ValueError, KeyError, TypeError):
+            except Exception as error:
                 try:
                     if diagnostic is not None and len(audit) < 64:
                         audit.append({'mode': 'rejected-observation', 'ruleset_id': ruleset_id,
-                                      'diagnostic': diagnostic})
+                                      'diagnostic': dict(diagnostic, reason=policy_observation.rejection_category(error))})
                 except Exception:
                     pass
                 raise

@@ -130,16 +130,59 @@ def failure_diagnostic(repo, rules, observation=None):
             name = None
         repository_id = repo.get('id') if type(repo) is dict else None
         ruleset_id = rules.get('id')
+        observed = observation if type(observation) is dict else {}
+        try:
+            expected_updated = {'raw': observed.get('updated_at'), 'utc': timestamp(observed.get('updated_at')).isoformat()}
+        except (ValueError, TypeError):
+            expected_updated = {'status': 'invalid'}
+        def identifier(value):
+            return value if type(value) is int and 0 < value < 2**63 else None
+        def same(left, right):
+            return left == right if left is not None and right is not None else None
+        expected_name = observed.get('repository')
+        if type(expected_name) is not str or len(expected_name) > 256 or re.fullmatch(r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+', expected_name) is None:
+            expected_name = None
+        matches = {'repository': same(name, expected_name),
+                   'repository_id': same(identifier(repository_id), identifier(observed.get('repository_id'))),
+                   'ruleset_id': same(identifier(ruleset_id), identifier(observed.get('ruleset_id'))),
+                   'metadata_sha256': same(actual, expected),
+                   'updated_at': same(timestamps['updated_at'].get('raw'), expected_updated.get('raw'))}
         result = {'schema_version': 1, 'reason': 'validation-rejected',
                   'repository': name,
                   'repository_id': repository_id if type(repository_id) is int and 0 < repository_id < 2**63 else None,
                   'ruleset_id': ruleset_id if type(ruleset_id) is int and 0 < ruleset_id < 2**63 else None,
                   'metadata_sha256': actual, 'expected_metadata_sha256': expected,
-                  'components': components, 'timestamps': timestamps}
+                  'components': components, 'timestamps': timestamps,
+                  'expected_updated_at': expected_updated, 'matches': matches}
         require(len(canonical(result)) <= 8192, 'diagnostic output bound')
         return result
     except Exception:
         return unavailable
+
+
+def rejection_category(error):
+    """Describe the original authoritative failure; never decide acceptance."""
+    categories = {
+        'complete observation required': 'observation-incomplete',
+        'observation bound exceeded': 'observation-oversize',
+        'observation schema invalid': 'observation-schema',
+        'observation metadata changed or foreign': 'metadata-mismatch',
+        'observation must record empty actors': 'observation-actors',
+        'observation unsettled or future': 'observation-clock',
+        'invalid observation timestamp': 'timestamp-invalid',
+        'timezone required': 'timestamp-invalid',
+        'repository ID required': 'repository-invalid',
+        'repository identity invalid': 'repository-invalid',
+        'complete known ruleset metadata required': 'ruleset-invalid',
+        'foreign or inactive ruleset': 'ruleset-invalid',
+        'malformed ruleset metadata': 'ruleset-invalid',
+        'invalid ruleset projection': 'ruleset-invalid',
+        'ruleset metadata bound exceeded': 'ruleset-invalid',
+        'visible bypass actors nonempty or malformed': 'visible-actors-invalid',
+    }
+    if type(error) is ValueError and len(error.args) == 1 and type(error.args[0]) is str and len(error.args[0]) <= 128:
+        return categories.get(error.args[0], 'unexpected-validation-error')
+    return 'unexpected-validation-error'
 
 
 def clock(now):

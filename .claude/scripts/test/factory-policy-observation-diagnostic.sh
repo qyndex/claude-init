@@ -3,22 +3,43 @@ set -euo pipefail
 cd "$(dirname "$0")/../../.."
 python3 - <<'PY'
 """AC-5: actual observed metadata diagnosis never changes failed enforcement."""
-import sys
+import sys,os
 from pathlib import Path
 sys.argv=['test',str(Path.cwd())]
 fixture=Path('.claude/scripts/test/factory-coordinator.sh').read_text().split("<<'PY'\n",1)[1].split('def hidden_check',1)[0]
 exec(compile(fixture,'coordinator-observation-fixture','exec'))
+count=0
+def check(condition):
+ global count
+ assert condition
+ count+=1
+def unexpected_case():
+ fake=Hidden();audit=[];original=m.policy_observation.validate
+ failure=RuntimeError('DO_NOT_ECHO_UNEXPECTED_SENTINEL')
+ def raises(*args,**kwargs):raise failure
+ try:
+  m.policy_observation.validate=raises
+  try:m.coordinate(fake,policy,42,observations=[observation],audit=audit)
+  except RuntimeError as error:assert error is failure
+  else:raise AssertionError('unexpected validation failure accepted')
+ finally:m.policy_observation.validate=original
+ check(len(audit)==1 and audit[0]['mode']=='rejected-observation')
+ check(audit[0]['diagnostic']['reason']=='unexpected-validation-error')
+ check('DO_NOT_ECHO_UNEXPECTED_SENTINEL' not in json.dumps(audit))
+if os.environ.get('T304_ONLY')=='unexpected':
+ unexpected_case();print('unexpected exception audit cases passed');raise SystemExit(0)
 f=Hidden();f.metadata['name']='changed';audit=[]
 try:m.coordinate(f,policy,42,observations=[observation],audit=audit)
 except ValueError as error:assert str(error)=='observation metadata changed or foreign'
 else:raise AssertionError('changed App metadata accepted')
-assert len(audit)==1 and audit[0]['mode']=='rejected-observation', 'failed App view lost before audit append'
-diag=audit[0]['diagnostic'];assert diag['metadata_sha256']!=observation['metadata_sha256']
-assert diag['components']['name']['sha256']==hashlib.sha256(obs.canonical('changed')).hexdigest()
-assert diag['expected_metadata_sha256']==observation['metadata_sha256'] and diag['ruleset_id']==1 and diag['repository_id']==42
-assert diag['timestamps']['updated_at']['raw']==full_rules['updated_at']
-assert diag['reason']=='validation-rejected' and len(obs.canonical(diag))<=8192
-count=6
+check(len(audit)==1 and audit[0]['mode']=='rejected-observation')
+diag=audit[0]['diagnostic'];check(diag['metadata_sha256']!=observation['metadata_sha256'])
+check(diag['components']['name']['sha256']==hashlib.sha256(obs.canonical('changed')).hexdigest())
+check(diag['expected_metadata_sha256']==observation['metadata_sha256'] and diag['ruleset_id']==1 and diag['repository_id']==42)
+check(diag['timestamps']['updated_at']['raw']==full_rules['updated_at'])
+check(diag['expected_updated_at']['raw']==observation['updated_at'])
+check(diag['matches']=={'repository':True,'repository_id':True,'ruleset_id':True,'metadata_sha256':False,'updated_at':True})
+check(diag['reason']=='metadata-mismatch' and len(obs.canonical(diag))<=8192)
 for key in obs.SEMANTIC:
  changed=copy.deepcopy(full_rules);changed.pop('bypass_actors');changed.pop(key)
  safe=obs.failure_diagnostic(repository,changed,observation)
@@ -50,7 +71,7 @@ try:obs.validate(repository,alternative,observation)
 except ValueError:pass
 else:raise AssertionError('timestamp diagnostics relaxed exact enforcement')
 # Actual CLI failure path must still replace prior same-head eligible success.
-import tempfile,contextlib
+import tempfile
 with tempfile.TemporaryDirectory() as temp:
  directory=Path(temp);pp=directory/'policy.json';pp.write_text(json.dumps(policy));ip=directory/'observations.json';ip.write_text(json.dumps({'schema_version':1,'repository':policy['repository'],'observations':[observation]}))
  output=directory/'receipt.json';ap=directory/'audit.json';fake=Hidden();fake.metadata['name']='changed'
@@ -69,5 +90,14 @@ with tempfile.TemporaryDirectory() as temp:
    assert failed[-1]['conclusion']=='failure' and failed[-1]['head_sha']==head and not output.exists();count+=1
    assert len(ap.read_bytes())<=obs.MAX_BYTES and sentinel not in ap.read_text()
  finally:m.GitHub=original_api;sys.argv=original_args
+unexpected_case()
+for message,category in [('complete observation required','observation-incomplete'),('observation schema invalid','observation-schema'),('observation unsettled or future','observation-clock'),('DO_NOT_ECHO_CATEGORY_SENTINEL','unexpected-validation-error')]:
+ check(obs.rejection_category(ValueError(message))==category)
+for expected in ('DO_NOT_ECHO_EXPECTED_SENTINEL','x'*41,None):
+ malformed=dict(observation,updated_at=expected,repository_id=True)
+ safe=obs.failure_diagnostic(repository,full_rules,malformed)
+ check(safe['expected_updated_at']=={'status':'invalid'} and safe['matches']['repository_id'] is None and safe['matches']['updated_at'] is None)
+ check('DO_NOT_ECHO_EXPECTED_SENTINEL' not in json.dumps(safe))
+# The allocation threshold above is a CPython resource regression, not a timing benchmark.
 print(f'{count} bounded failed-observation diagnostic cases passed; enforcement unchanged')
 PY
