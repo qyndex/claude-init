@@ -193,3 +193,43 @@ byte-identical to pre-T304. Existing ValueError CLI invalidation still passes.
 Actual separate REDs exposed missing expected facts and skipped unexpected audit;
 GREEN42 cases include resource/sentinel safety and explicit local case accounting.
 No time normalization or hosted App diagnosis is implemented by this review fix.
+
+### T305 observed cross-caller timestamp defect — 2026-10-16
+
+Actual anonymous public GET and actual full-operator GET differ in exactly two
+semantic fields, created_at and updated_at. Operator created_at
+2026-07-24T12:14:58.274+10:00 equals public2026-07-24T02:14:58.274Z; operator
+updated_at2026-10-16T11:49:11.557+11:00 equals public2026-10-16T00:49:11.557Z.
+All other semantic fields are equal. Current helper hashes differ and actual
+current validation rejects `observation metadata changed or foreign`. The bounded
+observed reproduction is retained under T305-planning, with actual raw response
+digests and an explicit actual_app_view=false label. This demonstrates a real
+cross-caller equivalent-instant defect independently of the unproven App cause.
+
+This new evidence supersedes the earlier speculative no-normalization/App-audit-
+before-any-fix guard ONLY for these two observed timestamp fields. It does not
+prove anonymous metadata equals the actual App view, remove the need for genuine
+protected App-shadow verification, or authorize other semantic changes. T303/T304
+timestamp-spelling rejection evidence remains honest pre-T305 behavior.
+
+T305 canonicalizes only created_at and updated_at in the semantic projection to
+a deterministic UTC representation preserving every supported microsecond.
+Compare observation/server updated_at by that same exact instant, while retaining
+raw diagnostic strings and clearly distinguishing raw spelling flags from
+authoritative semantic equality. No other field, identity, condition, rule, actor
+handling, field allowlist, settle60seconds or future bound changes. Support actual
+GitHub milliseconds and full microseconds; reject unsupported submicrosecond
+precision or invalid offsets rather than truncate, round or silently coerce.
+Avoid floating-point epoch conversion. One-microsecond drift must still reject.
+
+Actual fail-first acceptance must replay complete safe semantic snapshots from
+the captured real GETs, show current failure then equivalent-instant success, and
+reject changed non-time fields, one-microsecond created/updated drift, invalid
+offsets, unsupported precision, and observation before fractional settle expiry.
+Fresh full-GET operator capture is mandatory after rollout: do not accept old
+lexical metadata hashes as fallback or silently rewrite saved approvals. Existing
+old-hash observations must fail until explicitly recaptured into main-only input.
+Refresh exact16 runtime pins with the same8/7 closures; all other policy fields and
+merge_enabledfalse remain unchanged. No permissions, receipts trust, live
+observations, App setup or settings changes. T305 is pending, planning only;
+normal independent review, source rollout and actual App-shadow proof remain.
