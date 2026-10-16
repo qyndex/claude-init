@@ -865,6 +865,22 @@ def advance_origin(state_api, approval_path, *, commit_budget=16, tree_pages=4, 
             if progress['prior_verified'] is not None:
                 _origin_ancestor(read, root, approval['bootstrap_sha'], progress['prior_verified'])
                 _origin_ancestor(read, root, progress['prior_verified'], progress['frozen_head'])
+            if progress['complete'] and publication['sha'] == head:
+                # Reuse only the actual unchanged protected publication. The
+                # existing verifier checks every suffix edge plus fresh mutable
+                # policy/ref observations; a persisted complete flag is not proof.
+                approval_raw = Path(approval_path).read_bytes()
+                require(0 < len(approval_raw) <= 65536 and digest(canonical(document(approval_raw))) == binding['approval_sha256'],
+                        'origin changed during completed-head verification')
+                verified = verify_bootstrap(api, approval_path, now=now)
+                require(verified['head'] == head and verified['tree'] == tree
+                        and verified['approval_sha256'] == binding['approval_sha256']
+                        and Path(approval_path).read_bytes() == approval_raw,
+                        'origin changed during completed-head verification')
+                return {'status': 'checkpointed', 'head': head, 'tree': tree,
+                        'frozen_head': progress['frozen_head'], 'frozen_complete': True,
+                        'checked_commits': progress['checked_commits'], 'coverage_complete': False,
+                        'suffix_pending': head != progress['frozen_head'], 'uncertain_write_reconciled': uncertain}
             if progress['complete']:
                 progress = dict(progress, frozen_head=head, frozen_tree=tree, prior_verified=progress['frozen_head'],
                                 next_sha=head, tree_cursor=None, checked_commits=0, complete=False)

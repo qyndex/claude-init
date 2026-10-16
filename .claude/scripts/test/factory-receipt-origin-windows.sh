@@ -62,6 +62,9 @@ cases=r'''
  original=json.loads(approval.read_text());modified=dict(original,bootstrap_sha=current,bootstrap_tree=out('rev-parse',current+'^{tree}'));approval.write_text(json.dumps(modified))
  rejects(lambda:fresh.advance_origin(OriginState(),approval),'pre-bootstrap')
  approval.write_text(json.dumps(original))
+ # An unchanged completed publication is now GET-only. A genuine intervening
+ # inert commit ensures this test still exercises publication CAS/lost-ack.
+ parent=out('rev-parse',ref);suffix=git('commit-tree',out('rev-parse',ref+'^{tree}'),'-p',parent,input=b'new inert suffix before CAS').stdout.decode().strip();git('update-ref',ref,suffix,parent)
  # Concurrent reporter and lost acknowledgement: CAS retry preserves every byte.
  race=OriginState();race.conflict=True;race.lost=True
  raced=fresh.advance_origin(race,approval,commit_budget=16,tree_pages=4)
@@ -85,6 +88,8 @@ cases=r'''
  bad=git('commit-tree',evil_tree,'-p',initial,input=b'bad intermediate tree').stdout.decode().strip();safe=git('commit-tree',tree,'-p',bad,input=b'deleted executable').stdout.decode().strip();git('update-ref',ref,safe,merge)
  rejects(lambda:fresh.advance_origin(OriginState(),approval),'state blob path/mode')
  git('update-ref',ref,stable,safe)
+ # Force a real suffix so policy drift during publication remains exercised.
+ parent=out('rev-parse',ref);suffix=git('commit-tree',out('rev-parse',ref+'^{tree}'),'-p',parent,input=b'new inert suffix before policy publication').stdout.decode().strip();git('update-ref',ref,suffix,parent)
  # Policy drift and perpetual competing writers never yield a completed origin.
  drift=OriginState();drift.policy_drift=True
  rejects(lambda:fresh.advance_origin(drift,approval),'protection changed')
