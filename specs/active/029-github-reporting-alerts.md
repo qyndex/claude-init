@@ -66,5 +66,3 @@ Authorize a narrowly typed authenticated historical operational-proof receipt fo
 - Existing live checker retains all current-main, source, configuration, state and fail-closed checks unchanged.
 - Durable reconstruction and restart preserve original evidence and unrelated encrypted feedback bytes; no fresh1001-history production needed for this repair.
 - Full applicable publication gates run with no skip flag or substituted base. Keep a draft on failure.
-
-
