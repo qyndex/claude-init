@@ -246,3 +246,28 @@ updated_at_raw versus updated_at_instant; raw spelling alone is not authority.
 Actual33snapshot cases and43diagnostic cases are local evidence, not App proof.
 No stored observation/configuration was changed. Normal reviewed rollout, actual
 full-GET recapture and genuine protected App shadow remain pending.
+
+### T311 independent review: diagnostic availability — 2026-10-16
+
+Independent Sonnet review of source6229ceb identified one concrete low-severity
+AC-5 audit defect. The helper returns reason=diagnostic-unavailable when bounded
+construction cannot complete, but protection replaces reason with a validation
+category. Authority still rejects; administrative audit loses the availability
+marker. Review evidence is /private/tmp/t305-local-sonnet-review/verdict.json.
+
+T311 will preserve the diagnostic object, including its reason, and place the
+fixed rejection category alongside it as audit-entry rejection. No helper schema,
+bounds, validation order, metadata semantics, CLI handled exception tuple, App
+permission or merge authority changes. Refresh exact runtime hashes for the
+changed coordinator in both existing complete producer closures; preserve all
+other canonical policy fields and merge_enabled=false.
+
+Actual fail-first tests must exercise protection with oversized/cyclic metadata
+whose diagnostics are unavailable and whose original validation rejects. Assert
+the availability marker survives, the separate category is fixed, and the same
+original exception propagates. Normal complete diagnostics retain their generic
+reason with a separate known category. Preserve unexpected-exception auditing,
+sentinel/resource safety, and existing ValueError CLI eligibility invalidation.
+Do not claim unexpected exceptions gain CLI invalidation or App proof. T311 is
+pending and planning only; root review is required before implementation. No
+configuration, live observation, settings, credentials or push is authorized here.
