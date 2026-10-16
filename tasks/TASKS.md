@@ -641,9 +641,9 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
   owner: operator
   skipped: downstream of T-057; unblocks automatically once T-057 produces verify/2026-05-29-phase7-regression/.
 
-- [ ] T-319  | spec:029  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-316  | parallel: no  | est: 5m
+- [x] T-319  | spec:029  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-316  | parallel: no  | est: 5m
   summary: Prove labelled drill deduplication with a second fresh CLI process in the same run
-  files: .github/workflows/factory-reporting-queue.yml, .claude/scripts/test/factory-reporting-queue-actions.sh
+  files: .github/workflows/factory-reporting-queue.yml, .claude/scripts/test/factory-reporting-queue-actions.sh, .claude/scripts/test/factory-workflow-baseline.sh
   accept: bash .claude/scripts/test/factory-reporting-queue-actions.sh
   owner: implementer
 

@@ -96,5 +96,36 @@ for name in ('factory-hosted-digest.yml','factory-hosted-feedback.yml','factory-
 # Actual CLI rejects before any external command and does not echo the input sentinel.
 result=subprocess.run(['python3','.claude/scripts/factory-reporting-queue.py'],env=dict(os.environ,GITHUB_SERVER_URL='DO_NOT_ECHO_SENTINEL'),capture_output=True,text=True)
 assert result.returncode==2 and 'DO_NOT_ECHO_SENTINEL' not in result.stdout+result.stderr;count+=1
+# AC-8: execute the actual shipped shell; each CLI call is a fresh process.
+import re,textwrap
+shell=textwrap.dedent(workflow.split('        run: |\n',1)[1])
+with tempfile.TemporaryDirectory() as directory:
+ base=Path(directory);tools=base/'tools';tools.mkdir();capture=base/'calls.json'
+ shim=tools/'python3'
+ shim.write_text('#!'+sys.executable+'\n'+r'''import json,os,sys
+from pathlib import Path
+if sys.argv[1:] and sys.argv[1]=='.claude/scripts/factory-reporting-queue.py':
+ path=Path(os.environ['CAPTURE']);calls=json.loads(path.read_text()) if path.exists() else []
+ calls.append({'args':sys.argv[1:],'pid':os.getpid(),'run':os.environ['GITHUB_RUN_ID'],'attempt':os.environ['GITHUB_RUN_ATTEMPT'],'sha':os.environ['GITHUB_SHA']})
+ path.write_text(json.dumps(calls));index=len(calls)
+ if os.environ.get('FAIL_CALL')==str(index):sys.exit(23)
+ print(os.environ['FIRST_RESULT' if index==1 else 'SECOND_RESULT']);sys.exit(0)
+os.execv(sys.executable,[sys.executable]+sys.argv[1:])
+''');shim.chmod(0o755)
+ def shell_run(drill='true',first='{"notifications":1,"reconciled":0}',second='{"notifications":0,"reconciled":0}',fail=''):
+  if capture.exists():capture.unlink()
+  runenv=dict(os.environ,PATH=str(tools)+':'+os.environ['PATH'],CAPTURE=str(capture),RUNNER_TEMP=directory,VERIFICATION_DRILL=drill,FIRST_RESULT=first,SECOND_RESULT=second,FAIL_CALL=fail,GITHUB_RUN_ID='900',GITHUB_RUN_ATTEMPT='2',GITHUB_SHA='a'*40)
+  result=subprocess.run(['/bin/bash','-e','-o','pipefail','-c',shell],cwd=base,env=runenv,capture_output=True,text=True)
+  return result,json.loads(capture.read_text())
+ result,calls=shell_run();assert result.returncode==0,result.stderr
+ assert len(calls)==2 and calls[0]['pid']!=calls[1]['pid'] and all(row['args']==['.claude/scripts/factory-reporting-queue.py','--drill'] and row['run']=='900' and row['attempt']=='2' and row['sha']=='a'*40 for row in calls);count+=1
+ for drill in ('false','$(touch SHOULD_NOT_EXIST)'):
+  result,calls=shell_run(drill,first='{"notifications":0,"reconciled":0}');assert result.returncode==0 and len(calls)==1 and calls[0]['args']==['.claude/scripts/factory-reporting-queue.py'] and not (base/'SHOULD_NOT_EXIST').exists();count+=1
+ result,calls=shell_run(fail='1');assert result.returncode!=0 and len(calls)==1;count+=1
+ for raw in ('{"notifications":0,"reconciled":0}','not-json','{"notifications":true,"reconciled":0}','{"notifications":1,"notifications":1,"reconciled":0}','{"notifications":1,"reconciled":-1}','{"notifications":1,"reconciled":0,"extra":"DO_NOT_ECHO_SENTINEL"}',' '*4097):
+  result,calls=shell_run(first=raw);assert result.returncode!=0 and len(calls)==1 and 'DO_NOT_ECHO_SENTINEL' not in result.stdout+result.stderr;count+=1
+ for raw in ('{"notifications":1,"reconciled":0}','not-json','{"notifications":0,"reconciled":true}','{"notifications":0,"reconciled":1001}'):
+  result,calls=shell_run(second=raw);assert result.returncode!=0 and len(calls)==2;count+=1
+ result,calls=shell_run(fail='2');assert result.returncode!=0 and len(calls)==2;count+=1
 print(f'{count} protected queue workflow/config/credential boundary cases passed; no live calls')
 PY

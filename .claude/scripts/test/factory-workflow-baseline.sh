@@ -35,12 +35,20 @@ with tempfile.TemporaryDirectory() as directory:
 # AC-5: the queue shell accepts only its labelled boolean drill switch.
 with tempfile.TemporaryDirectory() as directory:
  base=Path(directory);tools=base/'tools';tools.mkdir();capture=base/'args.json'
- shim=tools/'python3';shim.write_text('#!/bin/sh\nexec '+sys.executable+' -c '+"'import json,os,sys;open(os.environ[\"CAPTURE\"],\"w\").write(json.dumps(sys.argv[1:]))'"+' \"$@\"\n');shim.chmod(0o755)
+ shim=tools/'python3';shim.write_text('#!'+sys.executable+'\n'+r'''import json,os,sys
+from pathlib import Path
+if sys.argv[1:2]==['.claude/scripts/factory-reporting-queue.py']:
+ path=Path(os.environ['CAPTURE']);calls=json.loads(path.read_text()) if path.exists() else []
+ calls.append(sys.argv[1:]);path.write_text(json.dumps(calls))
+ print(json.dumps({'notifications':int('--drill' in sys.argv and len(calls)==1),'reconciled':0}));sys.exit(0)
+os.execv(sys.executable,[sys.executable]+sys.argv[1:])
+''');shim.chmod(0o755)
  script=body('factory-reporting-queue.yml','Observe and reconcile protected queue notifications')
  for value,expected in [('false',[]),('true',['--drill']),('$(touch SHOULD_NOT_EXIST)',[])]:
-  result=run(script,base,{'PATH':str(tools)+':'+os.environ['PATH'],'CAPTURE':str(capture),'VERIFICATION_DRILL':value})
+  if capture.exists():capture.unlink()
+  result=run(script,base,{'PATH':str(tools)+':'+os.environ['PATH'],'CAPTURE':str(capture),'VERIFICATION_DRILL':value,'RUNNER_TEMP':directory})
   assert result.returncode==0,result.stderr
-  assert json.loads(capture.read_text())==['.claude/scripts/factory-reporting-queue.py']+expected
+  assert json.loads(capture.read_text())==[['.claude/scripts/factory-reporting-queue.py']+expected]*(2 if value=='true' else 1)
   assert not (base/'SHOULD_NOT_EXIST').exists()
  queue=(root/'.github/workflows/factory-reporting-queue.yml').read_text()
  assert 'group: factory-reporting-queue-${{ github.repository }}' in queue and 'cancel-in-progress: false' in queue

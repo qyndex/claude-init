@@ -51,6 +51,31 @@ jobs:
           FACTORY_SLACK_BOT_TOKEN: ${{ secrets.FACTORY_SLACK_BOT_TOKEN }}
           VERIFICATION_DRILL: ${{ github.event_name == 'workflow_dispatch' && inputs.verification_drill && 'true' || 'false' }}
         run: |
-          args=()
-          if [ "$VERIFICATION_DRILL" = "true" ]; then args+=(--drill); fi
-          python3 .claude/scripts/factory-reporting-queue.py "${args[@]}"
+          check_drill_result() {
+            python3 - "$1" "$2" <<'PYRESULT'
+          import json,sys
+          def pairs(items):
+              result={}
+              for key,value in items:
+                  if key in result: raise ValueError('Duplicate queue drill result field')
+                  result[key]=value
+              return result
+          with open(sys.argv[1],'rb') as source: raw=source.read(4097)
+          if len(raw)>4096: raise ValueError('Queue drill result exceeds bound')
+          result=json.loads(raw,object_pairs_hook=pairs)
+          if (type(result) is not dict or set(result)!={'notifications','reconciled'} or
+              any(type(result[key]) is not int or not 0<=result[key]<=1000 for key in result) or
+              result['notifications']!=int(sys.argv[2])):
+              raise ValueError('Queue drill result differs; preserve intent before retry')
+          print(json.dumps(result,sort_keys=True))
+          PYRESULT
+          }
+          if [ "$VERIFICATION_DRILL" = "true" ]; then
+            umask 077
+            python3 .claude/scripts/factory-reporting-queue.py --drill > "$RUNNER_TEMP/factory-queue-first.json"
+            check_drill_result "$RUNNER_TEMP/factory-queue-first.json" 1
+            python3 .claude/scripts/factory-reporting-queue.py --drill > "$RUNNER_TEMP/factory-queue-second.json"
+            check_drill_result "$RUNNER_TEMP/factory-queue-second.json" 0
+          else
+            python3 .claude/scripts/factory-reporting-queue.py
+          fi
