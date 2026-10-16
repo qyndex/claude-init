@@ -126,6 +126,10 @@ class ArchiveAdvanced(Exception):
     pass
 
 
+class DiscoveryBudgetError(ValueError):
+    """Own discovery capacity failure must never become a soft proof outcome."""
+
+
 def _source_fetch_unavailable(error):
     """Known transport/source absence only; identity, parse and budget errors escape."""
     message = str(error)
@@ -201,6 +205,8 @@ def assess(source_api, api, anchor, policy, trust_path, trust_mode, store, strea
         archive.append_delivery(AttemptView(), api, policy, row['run_id'], trust_path, store, approval_path, stream, trust_mode=trust_mode)
     except (RuntimeError, OSError):
         value['reason'] = 'unavailable'; return value, latest
+    except DiscoveryBudgetError:
+        raise
     except ValueError:
         value['reason'] = 'proof-unavailable'; return value, latest
     raise ArchiveAdvanced()  # Re-read the actual archive head, then use its retained index first.
@@ -391,7 +397,8 @@ def _checkpoint(source_api, state_api, policy, approval_path, stream, *, page_si
     def charge(value):
         nonlocal consumed
         size = len(value) if isinstance(value, bytes) else len(archive.canonical(value)); consumed += size
-        require(size <= 2097152 and consumed <= 33554432, 'discovery observation budget exceeded; explicit coverage gap')
+        if not (size <= 2097152 and consumed <= 33554432):
+            raise DiscoveryBudgetError('discovery observation budget exceeded; explicit coverage gap')
         return value
 
     class State:
@@ -404,7 +411,8 @@ def _checkpoint(source_api, state_api, policy, approval_path, stream, *, page_si
             immutable = method == 'GET' and any(part in target for part in ('/git/trees/', '/git/blobs/', '/git/commits/'))
             if immutable and target in cache:
                 return cache[target]
-            require(calls < 4096, 'discovery invocation API call budget reached; explicit coverage gap')
+            if calls >= 4096:
+                raise DiscoveryBudgetError('discovery invocation API call budget reached; explicit coverage gap')
             calls += 1
             try:
                 result = charge(state_api.request(target, method=method, payload=payload))
@@ -418,7 +426,8 @@ def _checkpoint(source_api, state_api, policy, approval_path, stream, *, page_si
 
     def source_read(fn, *args, **kwargs):
         nonlocal calls
-        require(calls < 4096, 'reconciliation API call budget reached; explicit coverage gap')
+        if calls >= 4096:
+            raise DiscoveryBudgetError('reconciliation API call budget reached; explicit coverage gap')
         calls += 1
         return charge(fn(*args, **kwargs))
 
@@ -482,7 +491,10 @@ def _checkpoint(source_api, state_api, policy, approval_path, stream, *, page_si
             pages = [response]
             if page > 1:
                 overlap = progress['pagination']['overlap_page']
-                pages.append(source_api.request(f'{root}/actions/workflows/{workflow}/runs?per_page={page_size}&page={overlap}'))
+                # Poll the mutable head on every call while retaining older overlap.
+                pages.append(source_api.request(f'{root}/actions/workflows/{workflow}/runs?per_page={page_size}&page=1'))
+                if overlap not in (1, page):
+                    pages.append(source_api.request(f'{root}/actions/workflows/{workflow}/runs?per_page={page_size}&page={overlap}'))
                 if overlap == progress['pagination']['overlap_until']:
                     progress['pagination'].update(overlap_page=1, overlap_until=max(1, page-1))
                 else:

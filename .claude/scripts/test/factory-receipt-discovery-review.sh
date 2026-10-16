@@ -29,6 +29,12 @@ cases=r'''
     # A fresh API/module load resumes actual persisted Git bytes each invocation.
     module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
     module.backfill(source,State(),policy,approval,stream,interval_end=end,page_size=1,tree_pages=10)
+    if i==1:
+     nodes=[json.loads(git('show',ref+':'+p).stdout) for p in out('ls-tree','-r','--name-only',ref).splitlines() if p.startswith('receipt-archive/backfill/'+stream+'/')]
+     assert len(nodes)==1 and nodes[0]['phase']=='gap' and nodes[0]['reason']=='count-drift'
+     assert nodes[0]['expected_count']==2 and nodes[0]['facts'][0]['page']==1
+     manifest=json.loads(git('show',ref+':receipt-archive/backfill/'+stream+'.json').stdout)
+     assert manifest['epoch']==1 and manifest['last_round_gaps']==1 and len(manifest['stack'])==1
    nodes=[json.loads(git('show',ref+':'+p).stdout) for p in out('ls-tree','-r','--name-only',ref).splitlines() if p.startswith('receipt-archive/backfill/'+stream+'/')]
    assert nodes and all([f['page'] for f in n['facts']]==list(range(1,len(n['facts'])+1)) for n in nodes)
    assert progress()['watch']['count']>=2 and progress()['coverage_complete'] is False
@@ -84,6 +90,38 @@ cases=r'''
    for i in range(8):d.advance(source,State(),policy,approval,stream,page_size=2,tree_pages=10)
    assert max(source.pages)<=3
   print('real Git short/empty pages wrap bounded head polling and retain new head run PASS')
+ if selected_case in ('all','head-deep'):
+  reset()
+  class DeepHead(Source):
+   extra=False;pages=[]
+   def request(self,path,**kwargs):
+    if '/actions/workflows/' not in path:return super().request(path,**kwargs)
+    q=parse_qs(urlsplit(path).query);page=int(q['page'][0]);size=int(q['per_page'][0]);self.pages.append(page)
+    rows=[dict(copy.deepcopy(self.run),id=n) for n in ([99] if self.extra else [])+list(range(20,50))]
+    return {'workflow_runs':rows[(page-1)*size:page*size]}
+  source=DeepHead(policy,receipt)
+  for i in range(6):d.advance(source,State(),policy,approval,stream,page_size=2,tree_pages=10)
+  source.extra=True;before=len(source.pages);d.advance(source,State(),policy,approval,stream,page_size=2,tree_pages=10)
+  watched=[r['run_id'] for n in range(progress()['watch']['segments']) for r in json.loads(git('show',ref+':'+a.state_paths.pending_segment_path(stream,n)).stdout)['rows']]
+  assert 99 in watched,'new deep-listing head run missed next bounded invocation'
+  assert 1 in source.pages[before:] and len(source.pages[before:])<=3 and len(source.pages[before:])==len(set(source.pages[before:]))
+  print('real Git deep primary+head+distinct overlap observes new head next invocation PASS')
+ if selected_case in ('all','artifact-budget'):
+  reset()
+  class ArtifactBudget(Source):
+   def request(self,path,**kwargs):
+    if '/actions/workflows/' in path:return {'workflow_runs':[copy.deepcopy(self.run)]}
+    value=super().request(path,**kwargs)
+    if path.endswith('/artifacts'):value[0]['padding']='x'*2097152
+    return value
+  source=ArtifactBudget(policy,receipt);d.advance(source,State(),policy,approval,stream,page_size=1,tree_pages=10);before=out('rev-parse',ref)
+  try:d.reconcile(source,State(),policy,trust,store,approval,stream)
+  except ValueError as error:
+   assert str(error)=='discovery observation budget exceeded; explicit coverage gap'
+   assert type(error).__name__=='DiscoveryBudgetError'
+  else:raise AssertionError('artifact-path discovery budget failure persisted as soft proof outcome')
+  assert out('rev-parse',ref)==before and outcomes()==[]
+  print('actual source artifact response exceeds own budget: typed failure/ref unchanged PASS')
  assert git('show',ref+':'+oldpath).stdout==b'opaque existing encrypted feedback envelope'
 '''
 exec(compile(fixture+cases,'discovery-review-real-git','exec'))

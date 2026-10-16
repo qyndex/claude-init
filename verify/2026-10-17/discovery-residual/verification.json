@@ -1,0 +1,23 @@
+{
+  "base": "4ae9ee214d41734a8f58fbeca237203c4627ce58",
+  "source_sha256": "c3d21c5bfb629045c6f4440e8d2280d67175461e224d44ccdd2116a2b82401e0",
+  "red": {
+    "head_deep": 1,
+    "artifact_budget": 1
+  },
+  "green": {
+    "focused_all": 0,
+    "backfill": 0,
+    "reruns": 0,
+    "prior_attempts": 0,
+    "compile": 0,
+    "shellcheck": 0,
+    "diff": 0,
+    "validate": 0
+  },
+  "existing_validation_warnings": 4,
+  "native_calls": false,
+  "model_calls": false,
+  "task_closed": false,
+  "lower_layer_exception_taxonomy_changed": false
+}
