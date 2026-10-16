@@ -26,7 +26,7 @@ def inspect(config, api, client, now):
     require(type(grace) is int and 0 <= grace <= 1440, 'invalid watchdog grace')
     require(api.repo == config['state_repository'], 'foreign watchdog state source')
     stream = hashlib.sha256(state.canonical([config['repository'], config['destination'], config['branch']]).encode()).hexdigest()
-    checkpoint = state.GitState(api, config['state_branch'], stream, config.get('bootstrap_sha'), config.get('policy_approvals'))
+    checkpoint = state.GitState(api, config['state_branch'], stream, config.get('bootstrap_sha'), config.get('policy_approvals'),state_view=config.get('state_view'))
     require(checkpoint.bytes is not None, 'reporting checkpoint uninitialized')
     document = json.loads(checkpoint.bytes, object_pairs_hook=state.digest.coordinator.contract.no_duplicate_keys)
     state.validate(document, config['repository'], stream)

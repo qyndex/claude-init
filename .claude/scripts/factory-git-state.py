@@ -197,12 +197,62 @@ def verify_policy(policy, repository, identity, approvals=None, now=None):
             'state policy approval clock invalid')
 
 
+def state_view_config(value):
+    """Select an origin protocol, never accept caller checkpoint/coverage claims."""
+    if value is None:return None
+    require(type(value) is dict and set(value)=={'mode','approval_path'} and value['mode']=='archive'
+            and type(value['approval_path']) is str and 0<len(value['approval_path'])<=4096,
+            'protected state view configuration invalid')
+    path=Path(value['approval_path'])
+    require(path.is_absolute() and path.resolve()==path and not path.is_symlink(), 'protected state view path invalid')
+    return dict(value)
+
+
+class _ProtectedStateReader:
+    """One invocation, exact immutable cache only; mutable origin always reread."""
+    def __init__(self, api):
+        self.source=api;self.repo=api.repo;self.calls=self.consumed=0;self.cache={}
+    def request(self, path, method='GET', payload=None):
+        root='repos/'+self.repo
+        require(method=='GET' and payload is None and type(path) is str
+                and (path==root or path.startswith(root+'/')), 'protected state view must be read-only')
+        immutable=any(path.startswith(root+'/git/'+kind+'/') and state_paths.valid_hash(path.rsplit('/',1)[1],40)
+                      for kind in ('commits','trees','blobs'))
+        if immutable and path in self.cache:return json.loads(self.cache[path])
+        require(self.calls<2048,'protected state view capacity gap');self.calls+=1
+        value=self.source.request(path);raw=canonical(value).encode();self.consumed+=len(raw)
+        require(len(raw)<=2097152 and self.consumed<=33554432,'protected state view capacity gap')
+        if immutable:self.cache[path]=raw
+        return value
+
+
 class GitState:
-    def __init__(self, api, branch, stream, bootstrap_sha=None, policy_approvals=None, *, bootstrap_existing=False):
+    def __init__(self, api, branch, stream, bootstrap_sha=None, policy_approvals=None, *, bootstrap_existing=False, state_view=None):
         require(type(bootstrap_existing) is bool, "invalid checkpoint bootstrap mode")
         require(re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._/-]*', branch or '') and '..' not in branch and not branch.endswith('/'), 'state branch invalid')
         require(digest.coordinator.contract.digest(stream, 64), 'state stream invalid')
         self.api = api; self.root = f'repos/{api.repo}'; self.branch = branch
+        self.state_view = state_view_config(state_view)
+        if self.state_view is not None:
+            archive_spec=importlib.util.spec_from_file_location('reporting_archive_view',Path(__file__).with_name('factory-receipt-archive.py'))
+            self.archive=importlib.util.module_from_spec(archive_spec);archive_spec.loader.exec_module(self.archive)
+            self.reader=_ProtectedStateReader(api)
+            anchor=self._archive_anchor()
+            self.view_binding={key:value for key,value in anchor.items() if key not in ('head','tree')}
+            self.private=anchor['private'];self.head=anchor['head'];self.tree=anchor['tree']
+            self.path='reports/'+stream+'.json';item_at,_=self.archive.fixed_reader(self.reader,self.root)
+            item=item_at(self.tree,self.path);self.bytes=None
+            if item is not None:
+                require(item['type']=='blob' and 0<item['size']<=MAX_STATE,'checkpoint size invalid')
+                blob=self.reader.request(self.root+'/git/blobs/'+item['sha'])
+                require(blob['encoding']=='base64' and blob['sha']==item['sha'],'checkpoint encoding/identity differs')
+                self.bytes=base64.b64decode(''.join(blob['content'].split()),validate=True)
+                require(len(self.bytes)==blob['size']==item['size'] and git_hash(self.bytes)==item['sha'],'checkpoint bytes differ')
+            else:
+                require(bootstrap_sha==self.head and (bootstrap_existing or item_at(self.tree,'reports') is None),
+                        'missing checkpoint requires exact protected bootstrap revision; never reset silently')
+            require(self._archive_anchor()==anchor,'protected state view changed during load')
+            return
         repo = api.request(self.root)
         require(repo['full_name'] == api.repo and repo['archived'] is False and branch != repo['default_branch'], 'state cannot use default branch or archived repo')
         self.private = repo['private']
@@ -237,10 +287,24 @@ class GitState:
         else:
             require(bootstrap_sha == self.head and (bootstrap_existing or not any(item['path'].startswith('reports/') for item in tree['tree'])), 'missing checkpoint requires exact protected bootstrap revision; never reset silently')
 
+    def _archive_anchor(self):
+        try:anchor=self.archive.verify_bootstrap(self.reader,self.state_view['approval_path'])
+        except OSError as error:raise ValueError('protected state view approval unavailable') from error
+        require(anchor['branch']==self.branch,'protected state view branch differs')
+        require(not hasattr(self,'view_binding') or self.view_binding=={key:value for key,value in anchor.items() if key not in ('head','tree')},
+                'protected state view input changed; reload authoritative snapshot')
+        return anchor
+
+    def _unchanged_archive_view(self):
+        if self.state_view is not None:
+            anchor=self._archive_anchor()
+            require(anchor['head']==self.head and anchor['tree']==self.tree,'protected state view changed before checkpoint')
+
     def checkpoint(self, data):
         require(isinstance(data, bytes) and 0 < len(data) <= MAX_STATE, 'checkpoint too large')
         if data == self.bytes:
             return
+        self._unchanged_archive_view()
         blob = self.api.request(self.root + '/git/blobs', 'POST', {'encoding': 'base64', 'content': base64.b64encode(data).decode()})
         require(blob['sha'] == git_hash(data), 'uploaded checkpoint differs')
         tree = self.api.request(self.root + '/git/trees', 'POST', {'base_tree': self.tree, 'tree': [{'path': self.path, 'mode': '100644', 'type': 'blob', 'sha': blob['sha']}]})
@@ -248,6 +312,7 @@ class GitState:
         commit = self.api.request(self.root + '/git/commits', 'POST', {'message': 'factory: reporting checkpoint ' + uuid.uuid4().hex, 'tree': tree['sha'], 'parents': [self.head]})
         require(commit['tree']['sha'] == tree['sha'] and [p['sha'] for p in commit['parents']] == [self.head], 'checkpoint ancestry differs')
         require(digest.coordinator.contract.digest(commit['sha'], 40), 'checkpoint commit invalid')
+        self._unchanged_archive_view()
         result = self.api.request(self.root + '/git/refs/heads/' + quote(self.branch, safe=''), 'PATCH', {'sha': commit['sha'], 'force': False})
         require(result['ref'] == 'refs/heads/' + self.branch and result['object']['sha'] == commit['sha'], 'checkpoint reference differs')
         self.head = commit['sha']; self.tree = tree['sha']; self.bytes = data
@@ -367,7 +432,7 @@ def run(config, report_api, state_api, slack_client, path, now):
     source = report_api.get(f'repos/{report_api.repo}')
     require(source['full_name'] == report_api.repo and source['default_branch'] == config['branch'], 'report repository/default branch differs')
     stream = hashlib.sha256(canonical([config['repository'], config['destination'], config['branch']]).encode()).hexdigest()
-    state = GitState(state_api, config['state_branch'], stream, config.get('bootstrap_sha'), config.get('policy_approvals'))
+    state = GitState(state_api, config['state_branch'], stream, config.get('bootstrap_sha'), config.get('policy_approvals'), state_view=config.get('state_view'))
     require(not source['private'] or state.private, 'private repository cannot publish public checkpoints')
     store = HostedDigest(path, config, state)
     target = slack.due(now)

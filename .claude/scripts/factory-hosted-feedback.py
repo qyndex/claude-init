@@ -42,12 +42,12 @@ def run(config, api, client, secret, now):
     require(config['repository']==config['state_repository']==api.repo,'foreign hosted feedback repository')
     binding=crypto.context(config['repository'],config['destination'],config['branch'],config['feedback_key_id'])
     report_stream=state.hashlib.sha256(state.canonical([config['repository'],config['destination'],config['branch']]).encode()).hexdigest()
-    report=state.GitState(api,config['state_branch'],report_stream,config.get('bootstrap_sha'),config.get('policy_approvals'))
+    report=state.GitState(api,config['state_branch'],report_stream,config.get('bootstrap_sha'),config.get('policy_approvals'),state_view=config.get('state_view'))
     require(report.bytes is not None,'confirmed reporting store required before feedback bootstrap')
     snapshot=json.loads(report.bytes,object_pairs_hook=crypto.pairs)
     state.validate(snapshot,config['repository'],report_stream)
     require(any(batch['status']=='confirmed' for batch in snapshot['tables']['digest_batches']),'confirmed digest required before feedback bootstrap')
-    checkpoint=state.GitState(api,config['state_branch'],binding['stream'],config.get('feedback_bootstrap_sha'),config.get('policy_approvals'),bootstrap_existing=True)
+    checkpoint=state.GitState(api,config['state_branch'],binding['stream'],config.get('feedback_bootstrap_sha'),config.get('policy_approvals'),bootstrap_existing=True,state_view=config.get('state_view'))
     source_root=Path(__file__).resolve().parents[2];roots=[str(source_root)]
     if config.get('intake_config') is not None:
         declared=config.get('implementation_roots',[])

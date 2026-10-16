@@ -1947,7 +1947,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-reporting-transport.sh
   owner: implementer
 
-- [ ] T-332  | spec:014  | phase:4  | priority: security  | created: 2026-10-17  | deps: T-331  | parallel: no  | est: 5m
+- [x] T-332  | spec:014  | phase:4  | priority: security  | created: 2026-10-17  | deps: T-331  | parallel: no  | est: 5m
   summary: Load bounded authenticated report views across shared state consumers
   files: .claude/scripts/factory-git-state.py, .claude/scripts/factory-reporting-queue.py, .claude/scripts/factory-hosted-feedback.py, .claude/scripts/factory-reporting-watchdog.py, .claude/scripts/test/factory-reporting-state-view.sh
   accept: bash .claude/scripts/test/factory-reporting-state-view.sh

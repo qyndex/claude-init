@@ -1,0 +1,4 @@
+AC-1: actual authenticated intake commits exact private feedback only as ciphertext while preserving the existing public reporting stream and separate approval gates
+AC-2: lost Git acknowledgement replays from actual authoritative encrypted checkpoint without duplicate feedback, Slack sends or checkpoint churn
+AC-3: disabled intake, wrong keys, missing exact remote receipt and invalid allowlist fail without checkpointing partial or unauthenticated observations
+AC-4: actual Git compare-and-swap rejects stale encrypted writers; exact bootstrap is required and removed state never silently resets; public reporting state is preserved

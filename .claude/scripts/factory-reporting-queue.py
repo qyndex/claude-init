@@ -143,7 +143,7 @@ class QueueStore:
         import importlib.util
         from pathlib import Path
         validate_config(config, repository=api.repo, default_branch=config.get('branch') if type(config) is dict else None)
-        require(type(storage) is dict and len(storage) == 4 and set(storage) == {'state_branch', 'bootstrap_sha', 'initialize', 'policy_approvals'}, 'queue storage fields differ')
+        require(type(storage) is dict and set(storage) in ({'state_branch', 'bootstrap_sha', 'initialize', 'policy_approvals'}, {'state_branch', 'bootstrap_sha', 'initialize', 'policy_approvals', 'state_view'}), 'queue storage fields differ')
         branch = storage['state_branch']
         require(string(branch, r'[A-Za-z0-9][A-Za-z0-9._/-]*', 255) and '..' not in branch and not branch.endswith('/'), 'queue state branch invalid')
         require(string(storage['bootstrap_sha'], r'[0-9a-f]{40}', 40) and type(storage['initialize']) is bool, 'queue bootstrap configuration invalid')
@@ -156,6 +156,7 @@ class QueueStore:
             require(all(type(value[k]) is str and len(value[k]) <= 40 for k in ('policy_updated_at', 'observed_at')) and type(value['bypass_actors']) is list and not value['bypass_actors'], 'queue policy approval shape invalid')
         module = importlib.util.spec_from_file_location('queue_git_state', Path(__file__).with_name('factory-git-state.py'))
         self.state = importlib.util.module_from_spec(module); module.loader.exec_module(self.state)
+        self.state.state_view_config(storage.get('state_view'))
         self.source = api; self.repo = api.repo; self.config = json.loads(canonical(config)); self.storage = json.loads(canonical(storage))
         self.identity = stream(config); self.calls = self.consumed = 0
 
@@ -175,7 +176,7 @@ class QueueStore:
         try:
             current = self.state.GitState(self, self.storage['state_branch'], self.identity,
                                           self.storage['bootstrap_sha'], self.storage['policy_approvals'],
-                                          bootstrap_existing=self.storage['initialize'])
+                                          bootstrap_existing=self.storage['initialize'], state_view=self.storage.get('state_view'))
         except ValueError as error:
             if str(error) == 'missing checkpoint requires exact protected bootstrap revision; never reset silently':
                 raise ValueError('queue initialization drift; exact reviewed bootstrap required') from error
@@ -266,7 +267,7 @@ class _QueueReader:
     def worker_health(self):
         identity = hashlib.sha256(canonical([self.repo, self.config['destination'], self.config['branch']])).hexdigest()
         state = self.store.state
-        view = state.GitState(self, self.storage['state_branch'], identity, self.storage['bootstrap_sha'], self.storage['policy_approvals'])
+        view = state.GitState(self, self.storage['state_branch'], identity, self.storage['bootstrap_sha'], self.storage['policy_approvals'], state_view=self.storage.get('state_view'))
         _observed(view.bytes is not None, 'protected-health-missing')
         item = json.loads(view.bytes, object_pairs_hook=state.digest.coordinator.contract.no_duplicate_keys)
         state.validate(item, self.repo, identity)
@@ -416,7 +417,7 @@ def run_queue(api, client, config, storage, reporting, now, *, drill_run=None):
     source = DeliveryAPI(); remote = DeliverySlack(); store = QueueStore(source, config, storage)
     spec = importlib.util.spec_from_file_location('queue_alert_runtime', Path(__file__).with_name('factory-reporting-alerts.py'))
     runtime = importlib.util.module_from_spec(spec); spec.loader.exec_module(runtime)
-    watch = dict(reporting, state_branch=storage['state_branch'], bootstrap_sha=storage['bootstrap_sha'], policy_approvals=storage['policy_approvals'], watchdog_grace_minutes=config['grace_minutes'])
+    watch = dict(reporting, state_branch=storage['state_branch'], bootstrap_sha=storage['bootstrap_sha'], policy_approvals=storage['policy_approvals'], watchdog_grace_minutes=config['grace_minutes'], state_view=storage.get('state_view'))
     identity = stream(config)
     class Notice(runtime.Alert):
         event_type = 'factory_reporting_queue_v1'
@@ -436,7 +437,7 @@ def run_queue(api, client, config, storage, reporting, now, *, drill_run=None):
     def worker():
         state = runtime.state
         key = hashlib.sha256(canonical([source.repo, config['destination'], config['branch']])).hexdigest()
-        current = state.GitState(source, storage['state_branch'], key, storage['bootstrap_sha'], storage['policy_approvals'])
+        current = state.GitState(source, storage['state_branch'], key, storage['bootstrap_sha'], storage['policy_approvals'], state_view=storage.get('state_view'))
         require(current.bytes is not None, 'queue worker checkpoint missing')
         body = json.loads(current.bytes, object_pairs_hook=state.digest.coordinator.contract.no_duplicate_keys)
         state.validate(body, source.repo, key)
