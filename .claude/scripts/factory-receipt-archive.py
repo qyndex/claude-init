@@ -345,6 +345,41 @@ def verify_bootstrap(api, approval_path, *, now=None):
             'writer_app_id': approval['writer_app_id'], 'policies': approval['policies'], 'approval_sha256': digest(canonical(approval))}
 
 
+def interval_scope(anchor, stream, interval_end, interval_scoped):
+    """Namespace selector only; the caller must independently authenticate anchor."""
+    require(type(interval_scoped) is bool and stream==archive_stream(anchor['repository'])
+            and state_paths.valid_hash(anchor['approval_sha256'],64), 'interval scope binding invalid')
+    if not interval_scoped:return stream
+    require(type(interval_end) is str and len(interval_end)<=40, 'interval scope cutoff invalid')
+    cutoff=instant(interval_end)
+    require(cutoff.microsecond==0, 'interval scope requires exact seconds')
+    return digest(canonical(['reporting-receipt-interval-v1',anchor['repository'],stream,
+                             anchor['approval_sha256'],cutoff.isoformat()]))
+
+
+def projection_scope(api, anchor, policy, stream, interval_end, interval_scoped, *, tree_sha=None):
+    """Derive a revision from authenticated snapshot contents, never a caller count."""
+    base=interval_scope(anchor,stream,interval_end,interval_scoped)
+    if not interval_scoped:return base
+    tree=anchor['tree'] if tree_sha is None else tree_sha
+    require(state_paths.valid_hash(tree,40), 'projection interval tree identity invalid')
+    _,blob_at=fixed_reader(api,'repos/'+api.repo)
+    raw=blob_at(tree,'receipt-archive/discovery/'+stream+'.json')
+    count=0
+    if raw is not None:
+        journal=document(raw)
+        require(type(journal) is dict and set(journal)=={'schema_version','repository','stream','coverage_from','next_segment','records_count'}
+                and type(journal['schema_version']) is int and journal['schema_version']==1
+                and journal['repository']==api.repo and journal['stream']==stream and journal['coverage_from']==anchor['coverage_from']
+                and type(journal['next_segment']) is int and 0<=journal['next_segment']<10**12
+                and type(journal['records_count']) is int and journal['records_count']==journal['next_segment'],
+                'projection interval retained counter differs')
+        count=journal['records_count']
+    # Missing journal is only a namespace hint. The window still independently
+    # proves empty archive namespaces before it can publish an empty snapshot.
+    return digest(canonical([base,count,receipts.coordinator.policy_hash(policy)]))
+
+
 def coverage_status(bootstrap, timestamp, *, available):
     """Classify proof availability without resetting origin or authorizing delivery."""
     require(type(available) is bool, 'archive availability must be explicit')
@@ -914,7 +949,7 @@ def _projection_checkpoint(value, binding):
     return value
 
 
-def checkpoint_projection(state_api, policy, trust_path, store, approval_path, stream, *, interval_end, limit=32):
+def checkpoint_projection(state_api, policy, trust_path, store, approval_path, stream, *, interval_end, limit=32, interval_scoped=False):
     """Publish one checked window; no caller cursor or facts are accepted.
 
     A fixed bounded file links previous immutable Git blobs. Each publication
@@ -947,10 +982,11 @@ def checkpoint_projection(state_api, policy, trust_path, store, approval_path, s
                 immutable[path] = encoded; cached_bytes += size
             return value
 
-    api = Bounded(); path = 'receipt-archive/projection/'+stream+'.json'; uncertain = False
+    api = Bounded(); uncertain = False
     for attempt in range(3):
         anchor = verify_bootstrap(api, approval_path)
         require(store == {'repository': api.repo, 'visibility': 'private' if anchor['private'] else 'public'}, 'projection checkpoint visibility differs')
+        path = 'receipt-archive/projection/'+projection_scope(api,anchor,policy,stream,interval_end,interval_scoped)+'.json'
         approval = document(Path(approval_path).read_bytes())
         binding = {key: approval[key] for key in ('repository', 'repository_id', 'private', 'branch', 'bootstrap_sha', 'bootstrap_tree', 'coverage_from', 'writer_app_id', 'policies')}
         binding.update(stream=stream, approval_sha256=digest(canonical(approval)), policy_sha256=receipts.coordinator.policy_hash(policy), interval_end=interval_end)
@@ -1016,7 +1052,7 @@ def checkpoint_projection(state_api, policy, trust_path, store, approval_path, s
     raise ValueError('projection checkpoint three CAS attempts exhausted; progress incomplete')
 
 
-def projection_lineage(state_api, policy, trust_path, store, approval_path, stream, *, interval_end, page=1, limit=32, history_head=None):
+def projection_lineage(state_api, policy, trust_path, store, approval_path, stream, *, interval_end, page=1, limit=32, history_head=None, interval_scoped=False):
     """Read a bounded page of actual protected checkpoint publications.
 
     A caller page/SHA identifies requested work, never origin. Current protected
@@ -1062,7 +1098,7 @@ def projection_lineage(state_api, policy, trust_path, store, approval_path, stre
     _origin_ancestor(api.request, root, selected, anchor['head'])
     selected_commit = api.request(root+'/git/commits/'+selected)
     require(selected_commit['sha'] == selected, 'projection lineage history identity differs')
-    path = 'receipt-archive/projection/'+stream+'.json'; item_at, blob_at = fixed_reader(api, root)
+    path = 'receipt-archive/projection/'+projection_scope(api,anchor,policy,stream,interval_end,interval_scoped,tree_sha=selected_commit['tree']['sha'])+'.json'; item_at, blob_at = fixed_reader(api, root)
     require(item_at(anchor['bootstrap_tree'], path) is None, 'projection lineage pre-bootstrap requires explicit reviewed import')
     rows = api.request(root+'/commits?sha='+selected+'&path='+quote(path, safe='')+'&per_page='+str(limit)+'&page='+str(page))
     require(type(rows) is list and len(rows) <= limit, 'projection lineage publication list differs')
@@ -1139,7 +1175,7 @@ def retained_merge_time(state_api, policy, store, approval_path, stream, run_id,
     return result
 
 
-def stage_projection(state_api, policy, trust_path, store, approval_path, stream, *, interval_end, page=1, offset=0, limit=8, history_head=None):
+def stage_projection(state_api, policy, trust_path, store, approval_path, stream, *, interval_end, page=1, offset=0, limit=8, history_head=None, interval_scoped=False):
     """Derive one protected bounded slice; no supplied facts/cursors are authority.
 
     Conflict indices cover this frozen interval/trust campaign, not all history.
@@ -1169,7 +1205,7 @@ def stage_projection(state_api, policy, trust_path, store, approval_path, stream
     for retry in range(3):
         anchor = verify_bootstrap(api, approval_path)
         approval_raw = Path(approval_path).read_bytes(); trust_hash = digest(Path(trust_path).read_bytes())
-        lineage = projection_lineage(api, policy, trust_path, store, approval_path, stream, interval_end=interval_end, page=page, limit=1, history_head=selected)
+        lineage = projection_lineage(api, policy, trust_path, store, approval_path, stream, interval_end=interval_end, page=page, limit=1, history_head=selected, interval_scoped=interval_scoped)
         selected = lineage['history_head']
         require(len(lineage['windows']) == 1, 'projection stage required window missing')
         window = lineage['windows'][0]; checkpoint = window['checkpoint']
@@ -1288,7 +1324,7 @@ def _retained_time_from_anchor(api, anchor, store, stream, run_id, attempt):
     return result
 
 
-def reconstruct_interval(state_api, policy, db_path, trust_path, store, approval_path, stream, *, interval_end, history_head, campaign):
+def reconstruct_interval(state_api, policy, db_path, trust_path, store, approval_path, stream, *, interval_end, history_head, campaign, interval_scoped=False):
     """Rebuild a bounded frozen interval from protected stages, never SQLite cursors.
 
     Every retained proof and current trust annotation is checked before SQL writes.
@@ -1382,7 +1418,7 @@ def reconstruct_interval(state_api, policy, db_path, trust_path, store, approval
     approval_raw = Path(approval_path).read_bytes(); trust_hash = digest(Path(trust_path).read_bytes())
     windows = {}; page = 1; previous_blob = None
     while True:
-        lineage = projection_lineage(api, policy, trust_path, store, approval_path, stream, interval_end=interval_end, history_head=history_head, page=page, limit=32)
+        lineage = projection_lineage(api, policy, trust_path, store, approval_path, stream, interval_end=interval_end, history_head=history_head, page=page, limit=32, interval_scoped=interval_scoped)
         for window in lineage['windows']:
             require(window['publication_sha'] not in windows, 'reconstruction duplicate publication')
             if windows:

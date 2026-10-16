@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "<stdin>", line 39, in <module>
+  File "actual-additive-intervals", line 114, in <module>
+AssertionError: late append reused stale complete projection namespace

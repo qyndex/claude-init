@@ -1961,7 +1961,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
 
 - [ ] T-334  | spec:014  | phase:4  | priority: security  | created: 2026-10-17  | deps: T-333  | parallel: no  | est: 5m
   summary: Resume protected maintenance before fresh reporting snapshots
-  files: .claude/scripts/factory-reporting-maintenance.py, .claude/scripts/factory-git-state.py, .claude/scripts/factory-reporting-alerts.py, .claude/scripts/factory-receipts.py, .claude/scripts/test/factory-reporting-maintenance.sh
+  files: .claude/scripts/factory-reporting-maintenance.py, .claude/scripts/factory-git-state.py, .claude/scripts/factory-reporting-alerts.py, .claude/scripts/factory-receipts.py, .claude/scripts/factory-receipt-archive.py, .claude/scripts/factory-receipt-discovery.py, .claude/scripts/test/factory-reporting-intervals.sh, .claude/scripts/test/factory-reporting-maintenance.sh
   accept: bash .claude/scripts/test/factory-reporting-maintenance.sh
   owner: implementer
 

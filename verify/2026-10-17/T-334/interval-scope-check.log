@@ -1,0 +1,5 @@
+actual disposable Git origin and opaque feedback baseline verified
+Traceback (most recent call last):
+  File "<stdin>", line 31, in <module>
+  File "reporting-maintenance-fixture", line 89, in <module>
+AssertionError: missing bounded protected reporting maintenance

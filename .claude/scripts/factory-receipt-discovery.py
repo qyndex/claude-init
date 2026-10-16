@@ -195,7 +195,7 @@ def assess(source_api, api, anchor, policy, trust_path, trust_mode, store, strea
     raise ArchiveAdvanced()  # Re-read the actual archive head, then use its retained index first.
 
 
-def backfill_page(source_api, anchor, policy, stream, interval_end, page_size, blob_at):
+def backfill_page(source_api, anchor, policy, stream, interval_end, page_size, blob_at, *, interval_scoped=False):
     """Pure bounded partition step; caller must authenticate protected blob origin.
 
     Only _checkpoint publishes changes. Listing facts alone never prove delivery
@@ -214,7 +214,8 @@ def backfill_page(source_api, anchor, policy, stream, interval_end, page_size, b
     workflow = policy['receipts']['workflow_id']; root = 'repos/'+anchor['repository']
     require(source_api.repo == anchor['repository'] == policy['repository']
             and stream == archive.archive_stream(anchor['repository']), 'backfill repository/stream differs')
-    path = 'receipt-archive/backfill/'+stream+'.json'
+    scope=archive.interval_scope(anchor,stream,interval_end,interval_scoped)
+    path = 'receipt-archive/backfill/'+scope+'.json'
     require(blob_at(anchor['bootstrap_tree'], path) is None, 'backfill pre-bootstrap manifest requires explicit reviewed import')
     raw = blob_at(anchor['tree'], path)
     expected = {'schema_version': 1, 'repository': anchor['repository'], 'stream': stream,
@@ -234,7 +235,7 @@ def backfill_page(source_api, anchor, policy, stream, interval_end, page_size, b
                         and low <= part[0] <= part[1] <= high for part in manifest['stack']), 'backfill frontier malformed')
     lo, hi = manifest['stack'][-1]
     identity = archive.digest(archive.canonical([expected, lo, hi]))
-    part_path = f'receipt-archive/backfill/{stream}/{identity[:2]}/{identity}.json'
+    part_path = f'receipt-archive/backfill/{scope}/{identity[:2]}/{identity}.json'
     require(blob_at(anchor['bootstrap_tree'], part_path) is None, 'backfill pre-bootstrap partition requires explicit reviewed import')
     raw = blob_at(anchor['tree'], part_path)
     part_binding = {'schema_version': 1, 'campaign_sha256': archive.digest(archive.canonical(expected)), 'lo': lo, 'hi': hi}
@@ -354,7 +355,7 @@ def backfill_page(source_api, anchor, policy, stream, interval_end, page_size, b
                            'last_round_gaps': manifest['last_round_gaps'], 'partition_phase': node['phase'], 'coverage_complete': False}
 
 
-def _checkpoint(source_api, state_api, policy, approval_path, stream, *, page_size=10, tree_pages=1, review_rows=4, mode='discover', trust_path=None, trust_mode='profile', store=None, backfill_end=None):
+def _checkpoint(source_api, state_api, policy, approval_path, stream, *, page_size=10, tree_pages=1, review_rows=4, mode='discover', trust_path=None, trust_mode='profile', store=None, backfill_end=None, interval_scoped=False):
     """Read actual protected progress, advance one bounded page/scan and CAS atomically.
 
     Only checked scanner output is persisted. No caller checkpoint/cursor input is
@@ -461,7 +462,7 @@ def _checkpoint(source_api, state_api, policy, approval_path, stream, *, page_si
             progress['scan'].update(cursor=scan['cursor'], complete=scan['complete'])
         page = progress['pagination']['next_page']; changes = {}
         if mode == 'backfill':
-            rows, observations, _ = backfill_page(source_api, anchor, policy, stream, backfill_end, source_page_size, blob_at)
+            rows, observations, _ = backfill_page(source_api, anchor, policy, stream, backfill_end, source_page_size, blob_at, interval_scoped=interval_scoped)
             changes.update(observations)
             response = {'workflow_runs': rows}
         elif mode == 'discover':
@@ -603,11 +604,11 @@ def reconcile(source_api, state_api, policy, trust_path, store, approval_path, s
     return _checkpoint(source_api, state_api, policy, approval_path, stream, mode='review', trust_path=trust_path, trust_mode=trust_mode, store=store, review_rows=review_rows)
 
 
-def backfill(source_api, state_api, policy, approval_path, stream, *, interval_end, page_size=100, tree_pages=1):
-    return _checkpoint(source_api, state_api, policy, approval_path, stream, mode='backfill', backfill_end=interval_end, page_size=page_size, tree_pages=tree_pages)
+def backfill(source_api, state_api, policy, approval_path, stream, *, interval_end, page_size=100, tree_pages=1, interval_scoped=False):
+    return _checkpoint(source_api, state_api, policy, approval_path, stream, mode='backfill', backfill_end=interval_end, page_size=page_size, tree_pages=tree_pages, interval_scoped=interval_scoped)
 
 
-def coverage(source_api, state_api, policy, trust_path, store, approval_path, stream, *, interval_end, projection_end, history_head, campaign, page_size=100):
+def coverage(source_api, state_api, policy, trust_path, store, approval_path, stream, *, interval_end, projection_end, history_head, campaign, page_size=100, interval_scoped=False):
     """Bounded as-observed requested coverage, never future/all-history authority.
 
     Durable partition/watch progress is the resume authority. This read-only
@@ -691,7 +692,8 @@ def coverage(source_api, state_api, policy, trust_path, store, approval_path, st
         low, high = second(anchor['coverage_from']), second(interval_end)
         require(low <= high <= int(datetime.datetime.now(datetime.timezone.utc).timestamp()), 'coverage interval clock invalid')
         expected = {'schema_version':1,'repository':api.repo,'stream':stream,'binding':binding(anchor),'workflow_id':policy['receipts']['workflow_id'],'source_branch':policy['base_branch'],'page_size':page_size,'interval_start':stamp(low),'interval_end':stamp(high)}
-        manifest = protected('receipt-archive/backfill/'+stream+'.json')
+        scope=archive.interval_scope(anchor,stream,interval_end,interval_scoped)
+        manifest = protected('receipt-archive/backfill/'+scope+'.json')
         if manifest is None:return gap('required-source-history-missing')
         require(type(manifest) is dict and set(manifest) == set(expected)|{'stack','epoch','rounds_observed','round_gaps','last_round_gaps','coverage_complete'} and all(archive.canonical(manifest[key]) == archive.canonical(value) for key,value in expected.items()) and manifest['coverage_complete'] is False, 'coverage source campaign differs')
         require(all(type(manifest[key]) is int and 0 <= manifest[key] < 10**12 for key in ('epoch','rounds_observed','round_gaps','last_round_gaps')), 'coverage source round malformed')
@@ -702,7 +704,7 @@ def coverage(source_api, state_api, policy, trust_path, store, approval_path, st
             nodes += 1
             if nodes > 128:return gap('source-partition-capacity')
             lo,hi = frontier.pop(); identity = archive.digest(archive.canonical([expected,lo,hi]))
-            node = protected(f'receipt-archive/backfill/{stream}/{identity[:2]}/{identity}.json')
+            node = protected(f'receipt-archive/backfill/{scope}/{identity[:2]}/{identity}.json')
             if node is None:return gap('required-partition-missing')
             keys = {'schema_version','campaign_sha256','lo','hi','epoch','phase','page','expected_count','seen','facts','reason','observation'}
             require(type(node) is dict and set(node) == keys and type(node['schema_version']) is int and node['schema_version'] == 1 and node['campaign_sha256'] == archive.digest(archive.canonical(expected)) and type(node['lo']) is int and type(node['hi']) is int and (node['lo'],node['hi']) == (lo,hi) and type(node['epoch']) is int, 'coverage partition binding differs')
@@ -764,7 +766,7 @@ def coverage(source_api, state_api, policy, trust_path, store, approval_path, st
                 return gap('required-prior-attempt-history-missing')
         with tempfile.TemporaryDirectory() as tmp:
             db=Path(tmp)/'projection.sqlite'
-            projection=archive.reconstruct_interval(api,policy,db,trust_path,store,approval_path,stream,interval_end=projection_end,history_head=history_head,campaign=campaign)
+            projection=archive.reconstruct_interval(api,policy,db,trust_path,store,approval_path,stream,interval_end=projection_end,history_head=history_head,campaign=campaign,interval_scoped=interval_scoped)
             result['frozen_projection_complete']=projection['projection_complete']
             if not projection['projection_complete']:return gap('required-projection-gap')
             with sqlite3.connect(db) as sql:
