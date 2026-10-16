@@ -1,0 +1,113 @@
+{
+  "head": "90cafd0511d9df7e32f3d214f67e6b530d3d3f9b",
+  "base": "045f9c0f5de832e5d8c5d807c1a1804fb5b7d8d0",
+  "prompt_sha256": "4a2b9515f1cac671314bc304ccf6c95e0f8200ed2225708cd3a7b3836062b3f6",
+  "prompt_bytes": 190120,
+  "files": [
+    {
+      "path": ".claude/scripts/check-sarif.sh",
+      "sha256": "dfc6229932c48baadfaefbb0a4b7894b4d2dc00324170f175facba9367ebb572"
+    },
+    {
+      "path": ".claude/scripts/check-sarif-audit-policy.py",
+      "sha256": "a8546c8bd99c686e1229ce0b56c975e3a5a4be9f32bef2df9b9c9d3747c3a94b"
+    },
+    {
+      "path": ".claude/scripts/test/sarif-effective-severity.sh",
+      "sha256": "94743fbfa59e077012c98719d35e913d4a0cf479232a8e4d4aed48dc7c765067"
+    },
+    {
+      "path": ".claude/scripts/test/sarif-audit-policy.sh",
+      "sha256": "5175eee418d893d1709754729294caaf7629acde55e1bc87004ad13351eecb3a"
+    },
+    {
+      "path": ".claude/security-audit-exceptions.json",
+      "sha256": "707757b523be3bbc7fbf058d0f141262091b2a0b9626ec27f20779f9158116ab"
+    },
+    {
+      "path": ".github/workflows/semgrep.yml",
+      "sha256": "d1bc50cadd9f6df514acbdc8029e50b1007996a7b8d3338e6ff3e2fc92a4340c"
+    },
+    {
+      "path": ".github/workflows/memory-rollup-weekly.yml",
+      "sha256": "a163934247505492caa09cf2d034520014c7b61aafe2aea852992ddb526e6be9"
+    },
+    {
+      "path": "verify/2026-06-12-gap-fixes/staged/.github/workflows/adr-gate.yml",
+      "sha256": "291f34ecd54508d07ef53b954fedcd6b2a00dd44a616e30497313fb921217ea6"
+    },
+    {
+      "path": ".claude/scripts/test/weekly-rollup-input.sh",
+      "sha256": "f1b72835f78ee4f40a48664d5eb2b402c3da122432bbdfd0f91de290693f0533"
+    },
+    {
+      "path": ".claude/scripts/test/staged-adr-input.sh",
+      "sha256": "1c6eb3f094b032cc8376ce0cd7a62d4444bb6e1e434359e31f8457fee98b9300"
+    },
+    {
+      "path": ".claude/scripts/collect-evidence.sh",
+      "sha256": "31bba750eb3086f8b59452e8b6066927e3e0c6cb3cbd68a20f843036e054b002"
+    },
+    {
+      "path": ".claude/scripts/test/evidence-proof-preservation.sh",
+      "sha256": "e0a287c0efedc3aeed45093e12536bedff3788fe7594f5befe3067baccf8f9a3"
+    },
+    {
+      "path": ".claude/templates/evidence/playwright.config.ts",
+      "sha256": "74c5d1170145ce5ab9aa2060f6b2a884e6c826fd838d419a6cf9685cadf2dc70"
+    },
+    {
+      "path": ".claude/scripts/spec-match.sh",
+      "sha256": "9f7eb23f2e75e68c07b2540d2fbb5d8d5d700680496106b2d4789d88e0e23904"
+    },
+    {
+      "path": ".claude/scripts/check-local-evidence.py",
+      "sha256": "39ee5a666f28def9704051ad299e20ad2ea853f67f96f91363a1f679af7e9a16"
+    },
+    {
+      "path": ".claude/scripts/validate-candidate-evidence.py",
+      "sha256": "ad0be5042d8dce5e0372159bbcbdbb84bc39b96e57435865eb62e7e5d4d0b52c"
+    },
+    {
+      "path": ".claude/scripts/lib/atomic-write.sh",
+      "sha256": "7b9522d8baeaa3662a9cfdd7c4fd6db120cf82e738b5f0d8cc0b3034968a26ed"
+    },
+    {
+      "path": ".claude/scripts/factory-worker-guard.py",
+      "sha256": "adc3bf10d5c6172f844e7748d9cfdae4be1b7b9cf40777ae59c2bdf896d8844c"
+    },
+    {
+      "path": ".claude/scripts/foreground-watchdog.py",
+      "sha256": "789a370d83f81a8aebde27bcfa5599f38afda8e9b8c328eda22e9e918b0c83ea"
+    },
+    {
+      "path": "docs/security/exact-source-audit-policy.md",
+      "sha256": "64c183329753f4ca925b2af21d67cf7cd775357452d461e0be15a09cd1bacde7"
+    },
+    {
+      "path": ".claude/memory/decisions/0010-authenticated-exact-source-scanner-audit-policy.md",
+      "sha256": "78c6b304aa34dfe0ca2f7892041fe9588aa3bc58e519b676d3b67fba7b250a23"
+    },
+    {
+      "path": "specs/active/006-trustworthy-candidate-verification.md",
+      "sha256": "f4a083fa085142d410d64ed27296bcb4ae0ee65cfc5a857c3d32739036737cab"
+    },
+    {
+      "path": "plans/active/006-trustworthy-candidate-verification.md",
+      "sha256": "02696bd48bec1382b8c39a5641591d1a9590fcae23e2cdf94c84fcaa828ef86f"
+    },
+    {
+      "path": ".claude/state/analyze-006.json",
+      "sha256": "18e11f90beb651e8dbbe793aeb6c6457d8aa3d6366ff078861f4d7894cd713b0"
+    },
+    {
+      "path": "verify/2026-10-16-t329-review/T-329/REPORT.md",
+      "sha256": "4dae9b6138522227cf7d2828dd8462e36fdb824e34fe7296ef58248bfe58c983"
+    },
+    {
+      "path": "verify/2026-10-16-t131-review/REPORT.md",
+      "sha256": "48b2845764fa2bda1d60401f6d59b81ead4b7d40d2fd12eb6f75bf21a8136413"
+    }
+  ],
+  "scope": "security-evidence"
+}
