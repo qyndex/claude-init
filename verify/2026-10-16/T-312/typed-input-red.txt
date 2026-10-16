@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "<stdin>", line 63, in <module>
+  File "<stdin>", line 18, in rejects
+  File "<stdin>", line 63, in <lambda>
+  File "/private/tmp/factory-queue-monitor-20261016/.claude/scripts/factory-reporting-queue.py", line 32, in validate_config
+    require(string(repository, r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+', 201) and config['repository'] == config['state_repository'] == repository, 'queue repository differs')
+                                                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<stdin>", line 60, in __eq__
+AssertionError: unsafe equality invoked
+
+exit_code: 1

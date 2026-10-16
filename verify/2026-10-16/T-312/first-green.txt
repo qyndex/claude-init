@@ -1,0 +1,7 @@
+# TDD ledger — green — T-312
+ledger_format: 2
+timestamp: 2026-10-16T12:56:23+11:00
+command: bash .claude/scripts/test/factory-reporting-queue-journal.sh
+exit_code: 0
+---
+46 queue journal identity/schema/state/budget cases passed; no IO or delivery

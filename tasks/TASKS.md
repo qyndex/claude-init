@@ -1655,7 +1655,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-producers.sh && bash .claude/scripts/test/factory-provenance.sh && bash .claude/scripts/test/factory-preflight.sh
   owner: implementer
 
-- [ ] T-312  | spec:029  | phase:1  | priority: security  | created: 2026-10-16  | deps: T-203  | parallel: no  | est: 5m
+- [x] T-312  | spec:029  | phase:1  | priority: security  | created: 2026-10-16  | deps: T-203  | parallel: no  | est: 5m
   summary: Validate isolated queue journal role identity and strict data schema
   files: .claude/scripts/factory-reporting-queue.py, .claude/scripts/test/factory-reporting-queue-journal.sh
   accept: bash .claude/scripts/test/factory-reporting-queue-journal.sh
