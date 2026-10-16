@@ -1813,7 +1813,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-receipt-projection-checkpoint.sh
   owner: implementer
 
-- [ ] T-302  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-301,T-309  | parallel: no  | est: 5m
+- [x] T-302  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-301,T-309  | parallel: no  | est: 5m
   summary: Resume bounded retained reporting reconstruction across fresh hosted processes
   files: .claude/scripts/factory-receipt-archive.py, .claude/scripts/test/factory-receipt-projection-resume.sh, .claude/scripts/test/factory-receipt-retained-proof.sh, plans/active/014-authenticated-receipt-recovery.md
   accept: bash .claude/scripts/test/factory-receipt-projection-resume.sh

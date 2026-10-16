@@ -1247,7 +1247,6 @@ def reconstruct_interval(state_api, policy, db_path, trust_path, store, approval
         actual = []
         for reference in references[start:stop]:
             number = reference['segment']; execution = (reference['run_id'], reference['attempt'])
-            require(number not in covered and execution not in facts, 'reconstruction conflicting duplicate stage reference')
             timed = _retained_time_from_anchor(api, anchor, store, stream, *execution)
             if timed['status'] != 'observed':
                 return {'projection_complete': False, 'coverage_complete': False, 'reason': timed['reason']}
@@ -1255,7 +1254,11 @@ def reconstruct_interval(state_api, policy, db_path, trust_path, store, approval
             require(retained['record_sha256'] == reference['record_sha256'] and retained['record']['artifact']['id'] == reference['artifact_id'], 'reconstruction retained reference differs')
             proof = receipts.annotate_reported_trust(retained['record']['proof'], trust_path, api.repo)
             fact = dict(timed['fact'], artifact_id=reference['artifact_id'], tasks=proof['tasks'], segment=number)
-            actual.append(fact); facts[execution] = fact; covered.add(number)
+            actual.append(fact)
+            if number in covered or execution in facts:
+                require(execution in facts and canonical(facts[execution]) == canonical(fact), 'reconstruction conflicting duplicate stage reference')
+                continue
+            facts[execution] = fact; covered.add(number)
             for task in proof['tasks']:
                 require(task not in by_task, 'reconstruction conflicting task')
                 by_task[task] = (proof, fact['merged_at'])

@@ -126,8 +126,23 @@ cases=r'''
  # Arbitrary SQL/triggers are never accepted as a reconstruction cache schema.
  with sqlite3.connect(dbpath) as db:db.execute('CREATE TRIGGER untrusted AFTER INSERT ON delivery_receipts BEGIN DELETE FROM delivery_receipts; END')
  snapshot=dbpath.read_bytes();rejected('foreign SQLite schema')
+ # Normal producer re-entry with a different allowed work limit is idempotent.
+ # The last checkpoint has one ref: limit8 and limit1 produce equivalent hints.
+ overlap=a.stage_projection(CachedState(),policy,trust,store,approval,stream,interval_end=end,history_head=history,page=1,limit=1)
+ assert overlap['status']=='staged' and overlap['campaign']==campaign
+ repeated=child_result('overlap.sqlite')
+ assert repeated.returncode==0,repeated.stderr
+ repeated=json.loads(repeated.stdout)
+ assert repeated['projection_complete'] and repeated['facts_count']==129 and repeated['interval_facts_count']==128 and repeated['coverage_complete'] is False
+ # Even duplicate hints are rederived and compared, never skipped as trusted JSON.
+ overlap_path=overlap['stage_path'];bad=json.loads(git('show',ref+':'+overlap_path).stdout)
+ bad['facts'][0]['merged_at']='2026-10-15T00:00:00Z'
+ publish({overlap_path:a.canonical(bad)})
+ overlap_snapshot=(root/'overlap.sqlite').read_bytes();conflict=child_result('overlap.sqlite')
+ assert conflict.returncode!=0 and 'staged facts differ' in conflict.stderr,conflict.stderr
+ assert (root/'overlap.sqlite').read_bytes()==overlap_snapshot
  assert git('show',ref+':'+oldpath).stdout==b'opaque existing encrypted feedback envelope'
- print('9 real Git fresh-process/fresh-SQLite129-reference interval/revocation/gap/material/privacy/SQL cases passed; no global coverage or task credit')
+ print('11 real Git fresh-process/fresh-SQLite129-reference interval/revocation/gap/material/privacy/SQL/idempotent-overlap cases passed; no global coverage or task credit')
 '''
 exec(compile(base+cases,'real-git-projection-resume','exec'))
 PY

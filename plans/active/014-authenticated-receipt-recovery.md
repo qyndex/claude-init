@@ -480,7 +480,8 @@ The consumer reconstructs the selected frozen interval from all protected stage
 chunks, independently authenticating checkpoint lineage/continuity, exact retained
 materials/PR merge times, campaign-global references/indices and current trust.
 SQLite rows/cursors never establish progress or origin. All required reference
-segments must be present exactly once before a single fixed-schema SQL transaction;
+segments must be present with one exact derived fact per execution before a single
+fixed-schema SQL transaction;
 gaps and API/byte capacity failures leave the prior database unchanged.
 
 Historical receipt/provenance rows remain immutable; current trust annotations are
@@ -507,3 +508,15 @@ The output is an isolated five-table reporting cache, not the mixed runtime or
 private-feedback database. T288 must integrate it deliberately. Existing cache
 row counts/keys are bounded by the independently authenticated fact set before
 allocation or mutation; no leftover annotation may impersonate a delivered task.
+
+### T302 aggregate review — 2026-10-16
+
+Aggregate inspection found that legitimate T308 re-entry with a different allowed
+work limit can publish identical overlapping stage hints. Reconstruction now
+reauthenticates every overlap against retained materials and exact PR merge time,
+and accepts only a canonically identical derived fact. Stored staged facts are
+still compared in full; contradictory overlaps reject before SQLite mutation.
+The real129-reference fixture exercises actual producer re-entry and a tampered
+overlap, retaining current revocation, fixed-schema and encrypted-data checks.
+This remains bounded frozen-interval reconstruction, not global coverage or
+current task credit; T310 still owns the unchanged256-ancestor integration gap.

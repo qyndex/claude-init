@@ -1,0 +1,19 @@
+# TDD ledger — red — T-302
+ledger_format: 2
+timestamp: 2026-10-16T15:23:10+11:00
+command: bash .claude/scripts/test/factory-receipt-projection-resume.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 136, in <module>
+  File "real-git-projection-resume", line 193, in <module>
+AssertionError: Traceback (most recent call last):
+  File "/var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmp3zyz8xxi/child.py", line 75, in <module>
+    result=a.reconstruct_interval(CachedState(),policy,pathlib.Path(child_arguments[1]),trust,store,approval,stream,interval_end=end,history_head=history,campaign=campaign)
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 1250, in reconstruct_interval
+    require(number not in covered and execution not in facts, 'reconstruction conflicting duplicate stage reference')
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/validate-candidate-evidence.py", line 19, in require
+    raise ValueError(message)
+ValueError: reconstruction conflicting duplicate stage reference
