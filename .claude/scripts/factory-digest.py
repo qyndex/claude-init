@@ -37,9 +37,13 @@ def canonical(value):
 
 
 class Digest:
-    def __init__(self, path, repository, destination, start, branch='main', *, receipt_mode='legacy'):
+    def __init__(self, path, repository, destination, start, branch='main', *, receipt_mode='legacy', pr_discovery_mode='legacy'):
         require(repository.count('/') == 1 and bool(destination) and bool(branch), 'report configuration required')
         require(receipt_mode in ('legacy', 'durable'), 'explicit reporting receipt mode required')
+        require(pr_discovery_mode in ('legacy', 'resumable'), 'explicit PR discovery mode required')
+        self.pr_discovery_mode = pr_discovery_mode
+        self._pr_token = object()
+        self._pr_observation = None
         self.receipt_mode = receipt_mode
         self.path = str(Path(path).resolve())
         self.repository = repository; self.destination = destination; self.branch = branch
@@ -77,8 +81,27 @@ class Digest:
             require(row is not None, 'unknown report')
             return dict(row)
 
+    def discover(self, api, until):
+        """Run bounded source work before expensive receipts; no caller rows accepted."""
+        self._pr_observation = None
+        require(self.pr_discovery_mode == 'resumable' and api.repo == self.repository, 'resumable PR source required')
+        end = instant(until)
+        require(end <= datetime.now(timezone.utc), 'future cutoff cannot be delivered')
+        with self.transaction() as db:
+            origin = db.execute('SELECT origin FROM digest_origins WHERE stream=?', (self.stream,)).fetchone()[0]
+            source = importlib.util.spec_from_file_location('reporting_pr_discovery', Path(__file__).with_name('factory-reporting-pr-discovery.py'))
+            discovery = importlib.util.module_from_spec(source); source.loader.exec_module(discovery)
+            result = discovery.scan(db, api, self.stream, self.repository, self.branch, origin, stamp(end))
+            if result['status'] == 'incomplete':
+                return result
+            binding = (self.stream, self.repository, self.branch, origin, stamp(end))
+            self._pr_observation = (self._pr_token, api, binding, result['rows'])
+            return {'status': 'complete', 'phase': 'pull-requests'}
+
     def prepare(self, api, until):
         require(api.repo == self.repository, 'foreign report source')
+        observation = self._pr_observation
+        self._pr_observation = None  # Every prepare consumes or invalidates the private handoff.
         end = instant(until)
         require(end <= datetime.now(timezone.utc), 'future cutoff cannot be delivered')
         with self.transaction() as db:
@@ -100,7 +123,19 @@ class Digest:
                     require(item['pr'] not in reported or reported[item['pr']] == item['merge_sha'], 'contradictory report history')
                     reported[item['pr']] = item['merge_sha']
             # REST pagination is completed before any cursor/report state is committed.
-            pages = api.request(f'repos/{self.repository}/pulls?state=closed&per_page=100', paginate=True)
+            if self.pr_discovery_mode == 'resumable':
+                binding = (self.stream, self.repository, self.branch, stamp(origin), stamp(end))
+                if observation is not None and observation[0] is self._pr_token and observation[1] is api and observation[2] == binding:
+                    pages = [observation[3]]
+                else:
+                    source = importlib.util.spec_from_file_location('reporting_pr_discovery', Path(__file__).with_name('factory-reporting-pr-discovery.py'))
+                    discovery = importlib.util.module_from_spec(source); source.loader.exec_module(discovery)
+                    observed = discovery.scan(db, api, self.stream, self.repository, self.branch, stamp(origin), stamp(end))
+                    if observed['status'] == 'incomplete':
+                        return observed
+                    pages = [observed['rows']]
+            else:
+                pages = api.request(f'repos/{self.repository}/pulls?state=closed&per_page=100', paginate=True)
             merged = {}
             for page in pages:
                 require(isinstance(page, list), 'invalid merge page')

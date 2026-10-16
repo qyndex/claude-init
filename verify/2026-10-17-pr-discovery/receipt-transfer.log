@@ -1,0 +1,11 @@
+PASS actual renderer explicitly labels withdrawn evidence while preserving proof attribution
+PASS invalid/default receipt modes, fixed byte-exact legacy payload and pending mode-switch immutability
+PASS raw receipt tables without validated coverage cannot authorize durable reporting
+PASS actual helper marker+withdrawn proof retains attribution through durable digest
+PASS actual earlier protected projection rejects without changing reporting bytes
+PASS actual projection coverage bounds new digest cutoff
+PASS destination triggers/schema/conflicting/disappearing facts and final-insert rollback preserve bytes
+PASS missing/foreign/origin coverage gaps reject new batch without state change
+PASS actual protected reconstruction+coverage transfer: expiry/read-only/restart/private/task preservation
+PASS durable missing/withdrawn/fractional-time/interval facts fail closed; legacy default rendering unchanged
+PASS actual active/withdrawn reevaluation preserves already-delivered immutable payload and fixture message

@@ -1,0 +1,13 @@
+{
+  "source_sha256": {
+    ".claude/scripts/factory-reporting-pr-discovery.py": "d466799a18434b45958a99686caccc2504d0074339273252ab36bac91e290ccc",
+    ".claude/scripts/factory-digest.py": "5dc5641c8326f6774667539f27667bc2f408854c6cf2df4328d0ccd5ebf57289",
+    ".claude/scripts/test/factory-reporting-pr-discovery.sh": "128865f8c4bbb6e2ff9ff6603efa7d2c0ea49186bb78fcd2eea5baaf0d018b89"
+  },
+  "focused_final_exit": 0,
+  "legacy_digest_final_exit": 0,
+  "legacy_coverage_final_exit": 0,
+  "receipt_transfer_pre_followup_exit": 0,
+  "task_closed": false,
+  "hosted_checkpoint_integration": "owner pending"
+}
