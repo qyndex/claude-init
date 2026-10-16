@@ -1759,7 +1759,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-receipt-readiness.sh
   owner: implementer
 
-- [ ] T-290  | spec:014  | phase:4  | priority: security  | created: 2026-10-16  | deps: T-289  | parallel: no  | est: 5m
+- [x] T-290  | spec:014  | phase:4  | priority: security  | created: 2026-10-16  | deps: T-289  | parallel: no  | est: 5m
   summary: Verify complete receipt continuation and unchanged guardian recovery contracts
   files: .claude/scripts/test/factory-receipt-continuation.sh, docs/FACTORY-DIGEST.md
   accept: bash .claude/scripts/test/factory-receipt-continuation.sh

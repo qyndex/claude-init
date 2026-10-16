@@ -1,0 +1,233 @@
+{
+  "all_recorded_inputs_match": true,
+  "checked_files": [
+    {
+      "path": ".claude/scripts/factory-routing.py",
+      "sha256": "cb00763032265edc0bda37b085f614037aee2ce3d481c859f53ef2795a34e696"
+    },
+    {
+      "path": ".claude/scripts/factory-encrypted-feedback.py",
+      "sha256": "b1dae2487e03b513220e9a8c1952b45a38f3c8654f1b992d761c15ce1dab1879"
+    },
+    {
+      "path": ".claude/scripts/factory-intake-scout.py",
+      "sha256": "2e32398c986f0659198bcc2bd1dd465ac68f3e3988e811af1cba373c6834ba2c"
+    },
+    {
+      "path": ".claude/scripts/factory-intake-worker.py",
+      "sha256": "f462c62b5ff3a4cd99d43f12de29d676f61c12dd9f453f001bed8bdd2d0ba866"
+    },
+    {
+      "path": ".claude/scripts/factory-worker-guard.py",
+      "sha256": "adc3bf10d5c6172f844e7748d9cfdae4be1b7b9cf40777ae59c2bdf896d8844c"
+    },
+    {
+      "path": ".claude/scripts/factory-reporting-receipts.py",
+      "sha256": "53d882ffda39652eb06300aa77b99c3fe96acc23128e8578925cc6d76ba0fef9"
+    },
+    {
+      "path": ".claude/scripts/state-lock.py",
+      "sha256": "5721742e2aa47d56e66d1e89f7cee41ef5917335d3d3cecf5150e730abf34b30"
+    },
+    {
+      "path": ".claude/scripts/factory-adopt.py",
+      "sha256": "6c5aa2862cbd9599a8c7226012e0a38e6584060097d80f044bc8b5b57c1bac81"
+    },
+    {
+      "path": ".claude/scripts/factory-ruleset-plan.py",
+      "sha256": "f4e2257667779d2567cba2f89f929504a1337011e8a697f1ba9420e1d9e2cecf"
+    },
+    {
+      "path": ".claude/scripts/factory-reporting-watchdog.py",
+      "sha256": "094dbda41ae27224553a3034e456643530a7caae14c6d6b285103b150481cb99"
+    },
+    {
+      "path": ".claude/scripts/factory-supervisor.py",
+      "sha256": "b9e80cc594e1b14a133d6850dd7b11eb52e4e39e1113b4cddd65c230d13b1c2f"
+    },
+    {
+      "path": ".claude/scripts/factory-container.py",
+      "sha256": "2d2e7b9f27e562f55be4a21c916e5086bab358cdd7aa163a8d694719b43963d7"
+    },
+    {
+      "path": ".claude/scripts/factory-coordinator.py",
+      "sha256": "2598e434b9058ff56ae8781b8337653655c8e99de43a71b346fff86cea36fa00"
+    },
+    {
+      "path": ".claude/scripts/factory-preflight.py",
+      "sha256": "c3997120ee8d7064738b26fa1c30e318db02ebf411c46baa3aa67d521d1dad56"
+    },
+    {
+      "path": ".claude/scripts/factory-receipt-archive.py",
+      "sha256": "bc024a261c4eb8a2dc709f5725fd26ca778d79781d0260ba16faf0045fff369c"
+    },
+    {
+      "path": ".claude/scripts/factory-slack-file-canary.py",
+      "sha256": "a5f5b0987e27d1247919f44b91880b1760d2d0bb11670ae1e6692e0cbd163cc1"
+    },
+    {
+      "path": ".claude/scripts/factory-reporting-transport.py",
+      "sha256": "b91ec6d7f55477605812f80f415e6df8b1a02a1be1c92d1f02e85748cca61b7b"
+    },
+    {
+      "path": ".claude/scripts/factory-slack-digest.py",
+      "sha256": "e0a88a41c59e95245e5a05d85daca8cc4fdc99822f0e388fe2ff6ac681a9ddd0"
+    },
+    {
+      "path": ".claude/scripts/foreground-watchdog.py",
+      "sha256": "789a370d83f81a8aebde27bcfa5599f38afda8e9b8c328eda22e9e918b0c83ea"
+    },
+    {
+      "path": ".claude/scripts/factory-hosted-feedback.py",
+      "sha256": "0b0dccb49d7cecd2dc6b518e4510aa62197da11d25f1ececc1acf2c7484bfbf6"
+    },
+    {
+      "path": ".claude/scripts/factory-bounded-process.py",
+      "sha256": "91d077e6badb7c606a31cf85d8fbb8315b91d9d211b4fe1ab8fb970693207f47"
+    },
+    {
+      "path": ".claude/scripts/factory-intake-console.py",
+      "sha256": "8e0b26ec4183048d1b6b4d8ab195b0e61a5a430e0bff3c64fc862db33cd26644"
+    },
+    {
+      "path": ".claude/scripts/factory-reporting-driver.py",
+      "sha256": "17b2cc988c24c07ada552b7ed76bd404c4243d71686ef744910821a47c03a609"
+    },
+    {
+      "path": ".claude/scripts/factory-policy-observation.py",
+      "sha256": "2fce0d7b6fda425dce97ee77cdccede155a16d93a2c2d4e588c7816e976a8dee"
+    },
+    {
+      "path": ".claude/scripts/factory-intake-hooks.py",
+      "sha256": "16785b416524f087b5d5bcc9f699d0cc227546453167180fb9da691298ce8ca0"
+    },
+    {
+      "path": ".claude/scripts/factory-release.py",
+      "sha256": "97d04c6064dcef9aa99ac7cad470610e02f5fb9a5e9d3bef0e4ada4c1bebffed"
+    },
+    {
+      "path": ".claude/scripts/factory-receipt-discovery.py",
+      "sha256": "7d35812cc68950a59b73dcea3dee8f31edf9845994ed9ef062fc907011fc1f5e"
+    },
+    {
+      "path": ".claude/scripts/factory-slack-feedback.py",
+      "sha256": "af939c96e7d6fe78ba538335751281213002bff9627e38fa246510971eab0770"
+    },
+    {
+      "path": ".claude/scripts/rerun-acceptance.py",
+      "sha256": "bd8cf12fcdbb254712fbbd187c1be5d6cf827bcbc061b72e55ffa9662b309da6"
+    },
+    {
+      "path": ".claude/scripts/factory-reporting-preflight.py",
+      "sha256": "f8d90411fc5ec9402faa4bc3620b2248b9ed9b5e84197b97edf1146d0b379943"
+    },
+    {
+      "path": ".claude/scripts/factory-digest.py",
+      "sha256": "bafeb74adf1a58965aa74fec6066c899f2308cbf701fa218ae6e074d694df59f"
+    },
+    {
+      "path": ".claude/scripts/factory-producer-check.py",
+      "sha256": "848474c98c55c9281f47ce97a9bd3a7c302dd51033860cbebf154e478a0c6f07"
+    },
+    {
+      "path": ".claude/scripts/factory-intake.py",
+      "sha256": "9bf25e55d23f88e70e2cdda4a7ed9147ef5f8d238f35ac97393ba7b31cc6f48e"
+    },
+    {
+      "path": ".claude/scripts/factory-receipts.py",
+      "sha256": "276573a80730be1fd246de4939e5fd8594d439724083f88037af96b8ce9e1255"
+    },
+    {
+      "path": ".claude/scripts/factory-reporting-queue-evidence.py",
+      "sha256": "e49cf34478d74b904c5cbcc210485f462550a756270a2cf75ac313bb076e6c9d"
+    },
+    {
+      "path": ".claude/scripts/factory-attest-state-policy.py",
+      "sha256": "ebfb2a1f3e3a1bd7ca3e2b0e9c30d7315b36d89abd0b13be40e2d20ff4c56a6b"
+    },
+    {
+      "path": ".claude/scripts/factory-git-state.py",
+      "sha256": "0324019d96a8e7a956621f5865b442bc12d194e0ad828e76162cbd658058cf80"
+    },
+    {
+      "path": ".claude/scripts/factory-reporting-alerts.py",
+      "sha256": "81dcef20524207e7677931e5b75726f5188909dd306434dfd3ef0f8ec2be6b43"
+    },
+    {
+      "path": ".claude/scripts/factory-legacy-feedback.py",
+      "sha256": "e0e520524365e4f0c5cdb6bd141e6a1a72e5de456cad153abe02d9e8999eb9c0"
+    },
+    {
+      "path": ".claude/scripts/factory-provenance.py",
+      "sha256": "0b169e5fefa78ee683ecf3aaf13bfce975929b113ff3d1052a59a95cc3077b01"
+    },
+    {
+      "path": ".claude/scripts/factory-reporting-queue.py",
+      "sha256": "048a681426ec707e7a2f49c433dab55de41c703fac04cf90fba0baa1f8d6ffea"
+    },
+    {
+      "path": ".claude/scripts/factory-producer.py",
+      "sha256": "c4f55db3a85d32c88e82432cb26d15ad183707d060e344300d14574bb75da417"
+    },
+    {
+      "path": ".claude/scripts/factory-reporting-maintenance.py",
+      "sha256": "0ecc83555eedaf2fec08d82debdfb17aadb33cc85d73ce5216c4e5f29e39f800"
+    },
+    {
+      "path": ".claude/scripts/factory-claude-probe.py",
+      "sha256": "4b279cb798edec95d2099af360786c6e05ec255186786cf983728ffad26bfbc7"
+    },
+    {
+      "path": ".claude/scripts/factory-reporting-policy.py",
+      "sha256": "a8d05f5225674462d990686c60ca96ca7fcf35c2007eed1ef2e22b3df9f79672"
+    },
+    {
+      "path": ".claude/scripts/check-local-evidence.py",
+      "sha256": "39ee5a666f28def9704051ad299e20ad2ea853f67f96f91363a1f679af7e9a16"
+    },
+    {
+      "path": ".claude/scripts/validate-candidate-evidence.py",
+      "sha256": "ad0be5042d8dce5e0372159bbcbdbb84bc39b96e57435865eb62e7e5d4d0b52c"
+    },
+    {
+      "path": ".claude/scripts/factory-runtime.py",
+      "sha256": "a69ec22bbd6fd9403cc70f93b3e2c38554603d97d99cdaf06df27f4470983f45"
+    },
+    {
+      "path": ".claude/scripts/factory-state-paths.py",
+      "sha256": "0648487106251e765e7f0a4504d510606970c6bab1f2b4024dc21c4e6bc487dd"
+    },
+    {
+      "path": ".claude/scripts/factory-slack-attachment.py",
+      "sha256": "28633c0673f39d56cb6f44a8327581eb352ba9a1216e5b8e6ae516641b07659b"
+    },
+    {
+      "path": ".claude/scripts/factory-reporting-pr-discovery.py",
+      "sha256": "d688a392d87d8d391251a6b49e09bd5356ac3798fcfd119c301765c79951fbaa"
+    },
+    {
+      "path": ".claude/scripts/factory-feedback-control.py",
+      "sha256": "5933a7e1a9ba03e2ba4be49545345d94e0e63abfccdb7747a45ed05f5664bd71"
+    },
+    {
+      "path": ".claude/scripts/factory-feedback.py",
+      "sha256": "3bf2e67ac4036a01e14c0c8bddee11bc9cfea97f67e182cd491206a9212400fa"
+    },
+    {
+      "path": ".claude/scripts/factory-private-artifacts.py",
+      "sha256": "c2b2bb414ade6a8676f161aeb0e5b3ee4ec45fafb349c7c780b486ba26e553ca"
+    },
+    {
+      "path": ".claude/scripts/factory-ledger.py",
+      "sha256": "d403fb95cd87e31bc009c9ac3b055b23ba18a4accf2c7ab08d4f8d41b40c22ef"
+    },
+    {
+      "path": ".claude/scripts/test/factory-receipt-profiles.sh",
+      "sha256": "f05cb0fbac9fe3ea871c00706139e563f8b027f1652c9c2d05b99fc7553209da"
+    },
+    {
+      "path": ".claude/scripts/test/factory-receipt-runtime-compatibility.sh",
+      "sha256": "bcdb8df7443f3bd7a9f8f5b3007fce6a1c1d9953834739e68d31f0c0d785c7ab"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "original_sandbox_acceptance_exit": 1,
+  "diagnostic_exit": 1,
+  "reason": "Actual PermissionError executing /bin/ps; guardian refused uncertain cleanup",
+  "focused_unchanged_recovery_pinned_escalated_exit": 0,
+  "interpreter": "/Users/shravanjha/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+  "source_changes": false
+}

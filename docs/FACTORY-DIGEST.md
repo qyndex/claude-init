@@ -196,3 +196,40 @@ and operator cutover remain explicitly not_checked. Read-only access alone does
 not prove Contents-write permission. Existing local capacity and quiet-repeat
 fixtures are not a native quota or scheduled morning-delivery certificate.
 GitHub-hosted reporting, GitHub-only alerts and disabled Healthchecks are unchanged.
+
+## Finite continuation acceptance
+
+Run `bash .claude/scripts/test/factory-receipt-continuation.sh` from the reviewed
+integration checkout. This is local acceptance with a shared 300-second ceiling,
+not a live activation command. It executes five existing checks once: real Git
+two-interval rollover; retained readiness; typed retained receipt transfer;
+receipt ingestion and real supervisor-death recovery; and supervisor lifecycle.
+Its final JSON records the actual commands, exit codes, test hashes and elapsed
+time. A changed runtime-regression input or failed check blocks the aggregate; it does not skip ahead.
+
+The rollover uses fresh local reporting databases across bounded invocations,
+finishes an older partial interval before the next, includes a newly visible old
+manual merge, preserves the first payload/receipt and opaque encrypted-feedback
+bytes, and proves the same cutoff does not resend. Retained readiness and transfer
+exercise expired detailed artifacts, actual protected origin/coverage, withdrawn
+historical proof, revised-task isolation, exact typed imports and immutable
+pending/confirmed payloads. These are complementary assertions on real disposable
+Git state, not one synthetic caller-provided completion flag.
+
+Recovery executes real local processes: killing the supervisor must clean up its
+worker group/descendants, retain uncertain external effects, reject duplicate or
+stale recovery, increase the fence and permit the bounded retry. The supervisor
+suite separately checks cancellation, lease/heartbeat/timeout and descriptor
+ownership. Runtime state regression reuse requires the exact recorded source/test
+SHA256 and original successful output digest; a mismatch fails rather than claiming
+an unchanged result. Current profile/legacy-family regressions are recorded
+separately against exact final inputs, outside this finite aggregate deadline.
+
+The historical regression-baseline RED for this aggregate is labelled explicitly:
+the new test is applied to actual pre-readiness source to reproduce the missing
+behavior. It does not claim that the final integration was originally developed
+in that order. Local continuation acceptance cannot certify simultaneous guardian
+death, native Docker isolation, installed App/private capability, scheduled quota
+or morning delivery. No default Docker SKIP is counted as a native PASS. Existing
+retained long-history evidence is retained without repeating producer history or
+claiming all-history completeness. Merge authority and live cutover stay separate.

@@ -1,0 +1,3 @@
+33 strict receipt profile cases passed; no runtime integration or activation
+11 runtime compatibility cases passed; integrity only, writer origin remains mandatory
+6 historical-six/current-seven real-Git expiry/restart/withdrawal/origin/privacy cases passed

@@ -1,0 +1,10 @@
+{
+  "command": "bash .claude/scripts/test/factory-runtime.sh",
+  "exit_code": 0,
+  "finished_at_utc": "2026-10-16T15:15:45.925063+00:00",
+  "source_files_unchanged": true,
+  "core_files_match": true,
+  "log_sha256": "8515fabf8c2cd1f651b3cdec47c2c404380227e60944a00bd92d1aa096be68d7",
+  "reuse_condition": "Final integration must retain exact two input hashes; otherwise rerun",
+  "original_task_290_complete": false
+}
