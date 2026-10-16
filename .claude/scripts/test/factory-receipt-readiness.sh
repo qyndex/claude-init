@@ -38,6 +38,19 @@ cases=r'''
  def check(source=runs,state=None):
   return pre.reporting_readiness(config,source,state or ReadState(),interval_end=end,history_head=context['history'],campaign=campaign,page_size=1)
  def passed(value,key):return value['checks'][key]['status']=='passed'
+ class Unavailable(ReadState):
+  def request(self,path,method='GET',payload=None):
+   raise RuntimeError('private provider diagnostic must not reach JSON')
+ unavailable=check(state=Unavailable())
+ assert unavailable['checks']['protected_origin']['status']=='failed',unavailable
+ assert 'private provider diagnostic' not in json.dumps(unavailable)
+ # Synthetic local SQLite failure at the actual reconstruction boundary.
+ import sqlite3
+ from unittest.mock import patch
+ with patch('sqlite3.connect',side_effect=sqlite3.OperationalError('private database diagnostic')):
+  database_failure=check()
+ assert database_failure['checks']['retained_interval']['status']=='failed',database_failure
+ assert 'private database diagnostic' not in json.dumps(database_failure)
  for item in sources:item.expired=True
  result=check();assert passed(result,'protected_origin') and passed(result,'retained_interval'),result
  assert all(result['checks'][name]['status']=='not_checked' for name in ('installed_app','private_capability','native_cadence','operator_cutover')),result

@@ -14,6 +14,7 @@ def reporting_readiness(config, source_api, state_api, *, interval_end=None,
     """Observe existing protected proof without creating progress or authority."""
     # Reporting-only imports leave the merge emitter's execution closure unchanged.
     import importlib.util
+    import sqlite3
     import tempfile
     spec = importlib.util.spec_from_file_location('preflight_reporting', Path(__file__).with_name('factory-reporting-receipts.py'))
     helper = importlib.util.module_from_spec(spec); spec.loader.exec_module(helper)
@@ -60,13 +61,14 @@ def reporting_readiness(config, source_api, state_api, *, interval_end=None,
         archive.require(archive.verify_bootstrap(state, approval) == anchor and
                         approval.read_bytes() == approval_bytes and trust.read_bytes() == trust_bytes,
                         'readiness protected origin or trust changed')
-    except (ValueError, OSError, KeyError, TypeError):
+    except (ValueError, OSError, KeyError, TypeError, RuntimeError, sqlite3.Error):
         checks[current] = {'status': 'failed', 'reason': 'protected reporting validation failed'}
     return result
 
 
 def reporting_main(args):
     import importlib.util
+    import sqlite3
     spec = importlib.util.spec_from_file_location('preflight_transport', Path(__file__).with_name('factory-reporting-transport.py'))
     transport = importlib.util.module_from_spec(spec); spec.loader.exec_module(transport)
     try:
@@ -77,7 +79,7 @@ def reporting_main(args):
         api = transport.create_api(os.environ)
         result = reporting_readiness(config, api, api, interval_end=args.interval_end,
             history_head=args.history_head, campaign=args.campaign, interval_scoped=True)
-    except (ValueError, OSError, KeyError, TypeError):
+    except (ValueError, OSError, KeyError, TypeError, RuntimeError, sqlite3.Error):
         result = {'scope': 'reporting-readiness', 'checks': {'configuration': {
             'status': 'failed', 'reason': 'selected reporting configuration unavailable or invalid'}}}
     print(json.dumps(result, indent=2))

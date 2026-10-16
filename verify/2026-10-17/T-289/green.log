@@ -1,6 +1,6 @@
 # TDD ledger — green — T-289
 ledger_format: 2
-timestamp: 2026-10-17T04:27:19+11:00
+timestamp: 2026-10-17T04:30:30+11:00
 command: bash .claude/scripts/test/factory-receipt-readiness.sh
 exit_code: 0
 ---
