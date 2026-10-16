@@ -1661,7 +1661,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-reporting-queue-journal.sh
   owner: implementer
 
-- [ ] T-313  | spec:029  | phase:1  | priority: security  | created: 2026-10-16  | deps: T-312  | parallel: no  | est: 5m
+- [x] T-313  | spec:029  | phase:1  | priority: security  | created: 2026-10-16  | deps: T-312  | parallel: no  | est: 5m
   summary: Persist queue intents with protected real Git CAS and opaque worker preservation
   files: .claude/scripts/factory-reporting-queue.py, .claude/scripts/factory-git-state.py, .claude/scripts/test/factory-reporting-queue-cas.sh
   accept: bash .claude/scripts/test/factory-reporting-queue-cas.sh

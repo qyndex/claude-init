@@ -113,3 +113,106 @@ def load_journal(raw, config):
     except (ValueError, UnicodeError, RecursionError) as error:
         raise ValueError('queue journal JSON invalid') from error
     return validate_journal(value, config)
+
+
+def validate_transition(expected, desired, config):
+    """One immutable intent append or one monotonic receipt-state transition."""
+    validate_journal(desired, config)
+    before = [] if expected is None else validate_journal(expected, config)['events']
+    after = desired['events']
+    require(len(before) <= len(after) <= len(before)+1, 'queue transition drops or replaces intent')
+    changes = 0
+    for old, new in zip(before, after):
+        require(all(old[k] == new[k] for k in EVENT-{'status', 'message_id'}), 'queue transition changes immutable intent')
+        if old != new:
+            require((old['status'], new['status']) in {('pending', 'uncertain'), ('pending', 'confirmed'), ('uncertain', 'confirmed')}, 'queue transition regresses receipt state')
+            changes += 1
+    if len(after) > len(before):
+        require(changes == 0 and after[-1]['status'] == 'pending' and after[-1]['message_id'] is None, 'queue transition must durably append pending intent')
+    else:
+        require(changes <= 1, 'queue transition changes multiple effects')
+
+
+class QueueStore:
+    """Existing protected GitState origin, isolated path and bounded real CAS.
+
+    A caller snapshot is a precondition, never origin. This does not provide the
+    separate Spec014 exclusive-writer/archive-origin guarantees or activate them.
+    """
+    def __init__(self, api, config, storage):
+        import importlib.util
+        from pathlib import Path
+        validate_config(config, repository=api.repo, default_branch=config.get('branch') if type(config) is dict else None)
+        require(type(storage) is dict and len(storage) == 4 and set(storage) == {'state_branch', 'bootstrap_sha', 'initialize', 'policy_approvals'}, 'queue storage fields differ')
+        branch = storage['state_branch']
+        require(string(branch, r'[A-Za-z0-9][A-Za-z0-9._/-]*', 255) and '..' not in branch and not branch.endswith('/'), 'queue state branch invalid')
+        require(string(storage['bootstrap_sha'], r'[0-9a-f]{40}', 40) and type(storage['initialize']) is bool, 'queue bootstrap configuration invalid')
+        approvals = storage['policy_approvals']; require(type(approvals) is dict and len(approvals) <= 16, 'queue policy approvals bound exceeded')
+        fields = {'schema_version', 'repository', 'ruleset_id', 'policy_sha256', 'policy_updated_at', 'observed_at', 'bypass_actors'}
+        for key, value in approvals.items():
+            require(string(key, r'[0-9]{1,20}', 20) and type(value) is dict and len(value) == len(fields) and set(value) == fields, 'queue policy approval fields differ')
+            require(type(value['schema_version']) is int and value['schema_version'] == 1 and type(value['ruleset_id']) is int and 0 < value['ruleset_id'] < 2**63 and str(value['ruleset_id']) == key, 'queue policy approval identity invalid')
+            require(string(value['repository'], r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+', 201) and string(value['policy_sha256'], r'[0-9a-f]{64}', 64), 'queue policy approval binding invalid')
+            require(all(type(value[k]) is str and len(value[k]) <= 40 for k in ('policy_updated_at', 'observed_at')) and type(value['bypass_actors']) is list and not value['bypass_actors'], 'queue policy approval shape invalid')
+        module = importlib.util.spec_from_file_location('queue_git_state', Path(__file__).with_name('factory-git-state.py'))
+        self.state = importlib.util.module_from_spec(module); module.loader.exec_module(self.state)
+        self.source = api; self.repo = api.repo; self.config = json.loads(canonical(config)); self.storage = json.loads(canonical(storage))
+        self.identity = stream(config); self.calls = self.consumed = 0
+
+    def request(self, path, method='GET', payload=None):
+        require(path == 'repos/'+self.repo or path.startswith('repos/'+self.repo+'/'), 'queue storage foreign API')
+        require(self.calls < 128, 'queue storage API bound exceeded'); self.calls += 1
+        # Production state.API bounds stdout before JSON parse; preserve that transport bound.
+        value = self.source.request(path, method, payload)
+        size = len(canonical(value)); self.consumed += size
+        require(size <= self.state.MAX_STATE*2 and self.consumed <= 33554432, 'queue storage observation bound exceeded')
+        return value
+
+    def _load(self):
+        repository = self.request('repos/'+self.repo)
+        require(type(repository) is dict and repository.get('full_name') == self.repo, 'queue storage repository differs')
+        validate_config(self.config, repository=self.repo, default_branch=repository.get('default_branch'))
+        try:
+            current = self.state.GitState(self, self.storage['state_branch'], self.identity,
+                                          self.storage['bootstrap_sha'], self.storage['policy_approvals'],
+                                          bootstrap_existing=self.storage['initialize'])
+        except ValueError as error:
+            if str(error) == 'missing checkpoint requires exact protected bootstrap revision; never reset silently':
+                raise ValueError('queue initialization drift; exact reviewed bootstrap required') from error
+            raise
+        if current.bytes is None:
+            require(self.storage['initialize'], 'queue journal missing; reviewed initialization required')
+            journal = None
+        else:
+            journal = load_journal(current.bytes, self.config)
+        return current, journal
+
+    def read(self):
+        self.calls = self.consumed = 0
+        current, journal = self._load()
+        return {'head': current.head, 'journal': journal}
+
+    def checkpoint(self, expected, desired):
+        import subprocess
+        validate_transition(expected, desired, self.config)
+        expected = None if expected is None else json.loads(canonical(expected))
+        desired = json.loads(canonical(desired)); self.calls = self.consumed = 0; uncertain = False
+        for attempt in range(3):
+            current, journal = self._load()
+            if journal == desired:
+                return {'status': 'already-applied', 'head': current.head, 'uncertain_write_reconciled': uncertain}
+            require(journal == expected, 'queue journal conflict; reconcile immutable intent')
+            try:
+                current.checkpoint(canonical(desired))
+            except (ValueError, RuntimeError, OSError, subprocess.TimeoutExpired):
+                uncertain = True
+            try:
+                observed, actual = self._load()
+            except (ValueError, RuntimeError, OSError, subprocess.TimeoutExpired) as error:
+                if isinstance(error, ValueError) and str(error).startswith('queue initialization drift;'):
+                    raise
+                raise ValueError('queue write uncertain; protected ref/journal reconciliation required') from error
+            if actual == desired:
+                return {'status': 'applied', 'head': observed.head, 'uncertain_write_reconciled': uncertain}
+            require(actual == expected, 'queue journal conflict; reconcile immutable intent')
+        raise ValueError('queue three CAS attempts exhausted; no assumed success')
