@@ -237,7 +237,13 @@ def maintain(source_api, state_api, policy, trust_path, store, approval_path, *,
             return persist(dict(journal,phase='ready' if lineage['reaches_start'] else 'stage',page=journal['page']+1,offset=0))
         staged=archive.stage_projection(api,policy,trust_path,store,approval_path,stream,interval_end=end,
                     history_head=journal['history_head'],page=journal['page'],offset=journal['offset'],limit=8,interval_scoped=True)
-        if staged['status']=='already-staged':return persist(dict(journal,offset=journal['offset']+staged['facts_count']))
+        if staged['status'] in ('staged','already-staged'):
+            # The stage writer independently reconciles its actual ref before
+            # returning. Reload after that publication; never use the stale
+            # pre-stage base tree or overwrite another maintenance writer.
+            checkpoint=state.GitState(api,anchor['branch'],role,anchor['head'],bootstrap_existing=True,state_view=view)
+            require(checkpoint.bytes==old,'maintenance journal changed during stage publication')
+            return persist(dict(journal,offset=journal['offset']+staged['facts_count']))
         return result
     # A delivered report cursor selects scheduling only. Existing coverage below
     # must still authenticate the old interval before an additive rollover.
