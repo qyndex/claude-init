@@ -54,7 +54,7 @@ for name in FILES:
     assert all('FACTORY_APP_PRIVATE_KEY' not in str(step) for step in job['steps'])
     if name == 'factory-reporting-alerts.yml':
         assert "vars.FACTORY_REPORTING_MONITOR_ENABLED == 'true'" in mint['if']
-        assert validator['if'] == "vars.FACTORY_REPORTING_MONITOR_ENABLED == 'true'"
+        assert validator['if'] == "env.FACTORY_REPORTING_APP_WRITER_ENABLED == 'true' && vars.FACTORY_REPORTING_MONITOR_ENABLED == 'true'"
     script = validator['run'].split("<<'PYWRITER'\n",1)[1].rsplit('\nPYWRITER',1)[0]
     with tempfile.TemporaryDirectory() as tmp:
         marker=Path(tmp)/'unexpected-api'
@@ -70,4 +70,19 @@ for name in FILES:
             assert (result.returncode==0)==success,(name,updates,result.stderr)
             assert 'source-fixture' not in result.stdout+result.stderr and 'writer-fixture' not in result.stdout+result.stderr
             assert not marker.exists(), 'credential validation called a remote transport'
-print('PASS four workflow boundaries and 24 actual no-network credential selection scenarios')
+        # Evaluate only the fixed supported GitHub if clauses (string equality ignores case).
+        def scheduled(actual):
+            clauses=validator.get('if','').split(' && ') if validator.get('if') else []
+            values={"env.FACTORY_REPORTING_APP_WRITER_ENABLED == 'true'":actual.get('FACTORY_REPORTING_APP_WRITER_ENABLED','false').lower()=='true',
+                    "vars.FACTORY_REPORTING_MONITOR_ENABLED == 'true'":True}
+            assert all(clause in values for clause in clauses),clauses
+            return all(values[clause] for clause in clauses)
+        for state_repo in ('state-owner/report-state','Org/Repo'):
+            actual=dict(env,FACTORY_REPORTING_APP_WRITER_ENABLED='false',FACTORY_REPORTING_STATE_REPOSITORY=state_repo)
+            invoked=scheduled(actual)
+            if invoked:
+                result=subprocess.run(['python3','-'],input=script,text=True,capture_output=True,env=actual,cwd=ROOT,timeout=10)
+            assert not invoked, (name,'default-off legacy validator executed',state_repo,result.stderr)
+            assert not marker.exists()
+        assert scheduled(dict(env,FACTORY_REPORTING_APP_WRITER_ENABLED='true'))
+print('PASS four workflow boundaries, 24 actual no-network credential scenarios and eight default-off legacy gate cases')

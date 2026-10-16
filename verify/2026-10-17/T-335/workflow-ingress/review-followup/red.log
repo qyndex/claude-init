@@ -1,0 +1,12 @@
+# TDD ledger — red — T-335/workflow-ingress/review-followup
+ledger_format: 2
+timestamp: 2026-10-17T01:33:52+11:00
+command: python3 verify/2026-10-17/T-335/workflow-ingress/test.py
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "/private/tmp/factory-t335-workflow-ingress-20261017/verify/2026-10-17/T-335/workflow-ingress/test.py", line 85, in <module>
+    assert not invoked, (name,'default-off legacy validator executed',state_repo,result.stderr)
+           ^^^^^^^^^^^
+AssertionError: ('factory-hosted-digest.yml', 'default-off legacy validator executed', 'state-owner/report-state', 'Traceback (most recent call last):\n  File "<stdin>", line 4, in <module>\n  File "/private/tmp/factory-t335-workflow-ingress-20261017/.claude/scripts/factory-reporting-transport.py", line 82, in create_api\n    config = build_config(env)\n  File "/private/tmp/factory-t335-workflow-ingress-20261017/.claude/scripts/factory-reporting-transport.py", line 69, in build_config\n    require(env.get(\'FACTORY_REPORTING_STATE_REPOSITORY\') == repo, \'reporting state repository differs\')\n    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/private/tmp/factory-t335-workflow-ingress-20261017/.claude/scripts/validate-candidate-evidence.py", line 19, in require\n    raise ValueError(message)\nValueError: reporting state repository differs\n')

@@ -47,7 +47,7 @@ jobs:
           permission-contents: write
           permission-administration: read
       - name: Validate selected reporting credentials
-        if: vars.FACTORY_REPORTING_MONITOR_ENABLED == 'true'
+        if: env.FACTORY_REPORTING_APP_WRITER_ENABLED == 'true' && vars.FACTORY_REPORTING_MONITOR_ENABLED == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           FACTORY_REPORTING_APP_TOKEN: ${{ steps.reporting_app.outputs.token }}
