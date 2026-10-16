@@ -66,7 +66,8 @@ def runtime_paths(role):
     require(role in ('verification', 'review'), 'unknown producer role')
     return {f'.github/workflows/factory-{role}.yml', '.claude/scripts/factory-producer.py',
             '.claude/scripts/factory-producer-check.py', '.claude/scripts/factory-provenance.py', '.claude/scripts/factory-coordinator.py',
-            '.claude/scripts/validate-candidate-evidence.py', '.claude/scripts/factory-bounded-process.py'}
+            '.claude/scripts/validate-candidate-evidence.py', '.claude/scripts/factory-bounded-process.py',
+                 '.claude/scripts/factory-policy-observation.py'}
 
 
 def protection(api, root, branch, required, app_id, observations=None, audit=None):

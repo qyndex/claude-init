@@ -1649,8 +1649,8 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-coordinator.sh && bash .claude/scripts/test/factory-workflow-baseline.sh
   owner: implementer
 
-- [ ] T-298  | spec:010  | phase:1  | priority: security  | created: 2026-10-16  | deps: T-297  | parallel: no  | est: 5m
+- [x] T-298  | spec:010  | phase:1  | priority: security  | created: 2026-10-16  | deps: T-297  | parallel: no  | est: 5m
   summary: Pin complete observation-dependent producer runtime and proof materials
-  files: .claude/scripts/factory-producer.py, .claude/scripts/factory-provenance.py, .claude/scripts/factory-preflight.py, .claude/scripts/factory-receipts.py, .claude/scripts/validate-candidate-evidence.py, factory/policy.json, .claude/scripts/test/factory-producers.sh, .claude/scripts/test/factory-provenance.sh, .claude/scripts/test/factory-preflight.sh, .claude/scripts/test/factory-review-runtime.sh, docs/FACTORY-PRODUCERS.md, docs/FACTORY-ADOPTER-SETUP.md
+  files: .claude/scripts/factory-coordinator.py, .claude/scripts/test/factory-receipt-projection.sh, .claude/scripts/test/factory-receipts-recovery.sh, .claude/scripts/factory-producer.py, .claude/scripts/factory-provenance.py, .claude/scripts/factory-preflight.py, .claude/scripts/factory-receipts.py, .claude/scripts/validate-candidate-evidence.py, factory/policy.json, .claude/scripts/test/factory-producers.sh, .claude/scripts/test/factory-provenance.sh, .claude/scripts/test/factory-preflight.sh, .claude/scripts/test/factory-review-runtime.sh, docs/FACTORY-PRODUCERS.md, docs/FACTORY-ADOPTER-SETUP.md
   accept: bash .claude/scripts/test/factory-producers.sh && bash .claude/scripts/test/factory-provenance.sh && bash .claude/scripts/test/factory-preflight.sh
   owner: implementer

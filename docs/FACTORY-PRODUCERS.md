@@ -42,3 +42,35 @@ Each successful producer signs the exact `evidence.json` with the pinned officia
 Signing requires explicit `id-token: write` and `attestations: write` permissions in the two producer workflows. This source preparation does not enable either job, merge mode, production delivery or the factory App. Refresh complete producer and receipt runtime pins from the reviewed merged revision before any fresh pilot run. Public repositories support GitHub artifact attestations; private/internal adopters require GitHub Enterprise Cloud capability. Unsupported adopters remain blocked rather than silently losing provenance guarantees. A separate reviewed private-compatible mechanism would be required to remove that prerequisite.
 
 Offline acceptance uses injected verified-certificate results to test policy enforcement and actual bounded ZIP/context handling. A genuine official GitHub CLI public signed fixture and tampered-subject pair establish CLI/cryptographic compatibility only; they are not a factory producer attestation, authenticated review or live shadow eligibility proof. The public pilot remains a separate required gate, and the user decision about attestation portability is recorded in the activation review package.
+
+## Complete policy-observation runtime coverage
+
+The protected runtime closure is eight files per producer role: its workflow,
+producer, producer-check helper, coordinator, provenance helper, bounded-process
+helper, candidate-evidence validator and policy-observation helper. Every byte is
+pinned in protected policy and checked against both execution source and candidate
+source. Omitting or changing the observation helper rejects the candidate. The
+helper reuses the already included bounded-process module; it adds one dependency.
+Metadata preflight requires all eight paths. It does not authenticate key material
+or establish hosted proof simply because declared configuration is complete.
+
+The receipt emitter closure is seven files, adding the observation helper to its
+existing six. There are no configured trusted receipt revisions; this source repair
+registers no historical runtime and migrates no active profile. The separate
+Spec014 continuation must expand retained shared material bounds9→10 and its
+six-path profile fixtures to seven when it integrates this source. Existing native
+producer proof ZIP limits remain unchanged: the helper is pinned source runtime,
+not a new arbitrary ZIP member or a candidate-supplied signature claim.
+
+The main-only factory-authority environment supplies FACTORY_POLICY_OBSERVATIONS
+as described in [activation setup](FACTORY-ACTIVATION.md#exact-administrative-observations-for-omitted-bypass-metadata).
+Administrative observations are retained in a separate bounded audit artifact for
+90days; receipt.json remains the only receipt ZIP member. This retention is distinct
+from the approved future indefinite compact receipt archive, which is not active.
+No source pin or fixture PASS proves a genuine current-source hosted shadow run.
+
+The future archive bootstrap's App-only writer policy is not covered by this
+explicit-empty observation format. Its protected bootstrap metadata model and
+caller-field projection require separate reviewed integration and activation;
+never inject an actor list into a live API response. Existing reporting/feedback
+operation is not migrated by this source change.

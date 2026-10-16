@@ -75,6 +75,10 @@ with tempfile.TemporaryDirectory() as tmp:
     for target,field,value in [('receipt','task_ids',['T-2']),('receipt','policy_sha256','0'*64),('receipt','reviewer_run',21),('pr','merged',False),('pr','merge_commit_sha','e'*40),('pr','head',{'sha':'e'*40,'repo':{'full_name':'org/repo'}})]:
         bad=copy.deepcopy(api);getattr(bad,target)[field]=value;rejects(lambda:r.project(bad,policy,db))
     bad=copy.deepcopy(api);bad.sources[r.RUNTIME_PATHS[0]]=b'changed';rejects(lambda:r.project(bad,policy,db))
+    helper='.claude/scripts/factory-policy-observation.py'
+    bad=copy.deepcopy(api);bad.sources[helper]=b'forged-helper';rejects(lambda:r.project(bad,policy,db))
+    missing=copy.deepcopy(policy);missing['receipts']['trusted_revisions']['a'*40].pop(helper)
+    rejects(lambda:r.project(api,missing,db))
     with sqlite3.connect(db) as conn:assert conn.execute('SELECT * FROM delivery_provenance').fetchall()==before
     print('AC-2: authentication negatives and atomic failure preservation passed')
     # AC-3: paginate all runs, reject ambiguity/bounds; skipped sources never earn proof.
