@@ -1,0 +1,55 @@
+{
+  "runner": "actual-shell-command-observations",
+  "source_commit": "802d921259c74ff21b4d26d45ccc242dc51ea756",
+  "independent_attestation": false,
+  "scope": "Local implementation compatibility plus actual historical bootstrap publication; no current live activation claim",
+  "testResults": [
+    {
+      "assertionResults": [
+        {
+          "fullName": "AC-1 authenticated coordinator exact-source proof and missing-provenance rejection",
+          "status": "passed",
+          "observed_commands": [
+            "factory-coordinator.sh"
+          ],
+          "proof": "stdout.log"
+        },
+        {
+          "fullName": "AC-2 exact head/base/spec/policy bindings and conditional merge fixture",
+          "status": "passed",
+          "observed_commands": [
+            "factory-coordinator.sh",
+            "local-evidence-gate.sh"
+          ],
+          "proof": "stdout.log"
+        },
+        {
+          "fullName": "AC-3 request-only routes and rejected local authority bypasses",
+          "status": "passed",
+          "observed_commands": [
+            "autonomous-ship.sh"
+          ],
+          "proof": "stdout.log"
+        },
+        {
+          "fullName": "AC-4 private least-privilege registration and historical disabled bootstrap; current shadow-only preflight remains blocked",
+          "status": "passed",
+          "observed_commands": [
+            "historical bootstrap PR50 metadata",
+            "current disabled-merge preflight",
+            "private App registration manifest"
+          ],
+          "proof": "AC-4.json"
+        },
+        {
+          "fullName": "AC-5 injected stale, foreign, malformed, drift and failure cases; pinned-head receipt fixture",
+          "status": "passed",
+          "observed_commands": [
+            "factory-coordinator.sh"
+          ],
+          "proof": "stdout.log"
+        }
+      ]
+    }
+  ]
+}

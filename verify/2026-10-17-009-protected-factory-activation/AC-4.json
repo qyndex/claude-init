@@ -1,0 +1,27 @@
+{
+  "registration_manifest_private": true,
+  "administration": "read",
+  "contents": "write",
+  "historical_bootstrap_disabled": true,
+  "historical_bootstrap_commit": "148238ad8950681d352985cdb9c48ad0301e97d3",
+  "current_policy_enabled": true,
+  "current_merge_enabled": false,
+  "current_preflight_exit": 1,
+  "current_preflight_result": {
+    "ready": false,
+    "missing": [
+      "matching dedicated GitHub App ID",
+      "private key in protected factory-authority environment"
+    ]
+  },
+  "bootstrap_publication": {
+    "isDraft": false,
+    "mergeCommit": {
+      "oid": "148238ad8950681d352985cdb9c48ad0301e97d3"
+    },
+    "mergedAt": "2026-10-09T10:44:26Z",
+    "state": "MERGED"
+  },
+  "source_scope": "Historical disabled bootstrap merged; later source policy allows shadow only. No current live authority activation claimed.",
+  "initial_check_correction": "Initial assertion incorrectly assumed current enabled=false; source policy is unchanged from protected base and merge_enabled remainsfalse. No code changed to satisfy assertion."
+}

@@ -1,0 +1,17 @@
+AC-5: protected hidden observations, visible actor rejection, final drift and bounded strict input PASS
+passed: 63; failed: 0
+# Spec-match: 001
+  ✓ AC-1 — proven by a passing tagged test
+
+✓ spec-match PASS: all acceptance criteria proven
+# Spec-match: 002
+  ✓ AC-1 — proven by a passing tagged test
+
+✓ spec-match PASS: all acceptance criteria proven
+# Spec-match: 001
+  ✓ AC-1 — proven by a passing tagged test
+
+✓ spec-match PASS: all acceptance criteria proven
+Local evidence complete for: 001, 002
+passed: 6; failed: 0
+passed: 10; failed: 0
