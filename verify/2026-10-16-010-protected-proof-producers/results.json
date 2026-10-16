@@ -1,7 +1,7 @@
 {
   "runner": "fresh-shell-acceptance-recorder",
-  "source_sha": "3f1b6aa648fbe552383759bde8300f4b938abb49",
-  "recorded_at": "2026-10-16T01:32:49.522727+00:00",
+  "source_sha": "1f011c720586def19482c98af947968f601cb9e0",
+  "recorded_at": "2026-10-16T01:42:24.075885+00:00",
   "independent_attestation": false,
   "live_factory_signing": false,
   "native_docker_run": false,
@@ -53,7 +53,7 @@
       "command": "bash .claude/scripts/test/factory-policy-observation-diagnostic.sh",
       "exit_code": 0,
       "log": "verify/2026-10-16-010-protected-proof-producers/policy-diagnostic.log",
-      "log_sha256": "a42c188b4c28f9b81b8d9f685a2dcbd7fef402bfcc88376a2e8af1613c21f821"
+      "log_sha256": "f9990263bb946fbf19dc9159d67ac8bf290a37f37ee99bd162f99144d454b7fa"
     },
     {
       "name": "policy-time-equivalence",
