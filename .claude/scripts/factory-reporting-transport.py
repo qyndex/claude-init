@@ -124,8 +124,9 @@ class RoutedAPI:
 
     def _once(self, path, method, payload, raw):
         token = self._route(path, method, payload, raw)
-        immutable = method=='GET' and payload is None and not raw and re.fullmatch(
-            re.escape('repos/'+self.repo+'/git/')+r'(?:commits|trees|blobs)/[0-9a-f]{40}',path) is not None
+        immutable = method=='GET' and payload is None and not raw and (
+            re.fullmatch(re.escape('repos/'+self.repo+'/git/')+r'(?:commits|trees|blobs)/[0-9a-f]{40}',path) is not None
+            or re.fullmatch(re.escape('repos/'+self.repo+'/compare/')+r'[0-9a-f]{40}\.\.\.[0-9a-f]{40}\?per_page=1&page=2',path) is not None)
         if immutable and path in self._immutable:return json.loads(self._immutable[path])
         encoded = encode(payload) if payload is not None else None
         self.budget.begin()

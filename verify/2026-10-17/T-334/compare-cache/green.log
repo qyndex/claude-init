@@ -1,0 +1,2 @@
+PASS exact immutable comparison single physical fetch/deep-copy/raw-byte accounting
+PASS unique selectors/unrecognized query/mutable freshness/foreign/raw/mutation/invalid JSON/cache byte controls
