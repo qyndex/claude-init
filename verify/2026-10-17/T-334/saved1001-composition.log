@@ -1,0 +1,2 @@
+{"phase": "ready-coverage", "calls": 1309, "bytes": 10990309, "actual_provider_calls": {"rest": 1115, "graphql": 194}}
+{"phase": "ready-plus-typed-transfer", "result": {"facts_count": 1001, "coverage_complete": true, "all_history_complete": false, "task_credit": false}, "calls": 1983, "bytes": 28353493, "cache_bytes": 1657110, "actual_provider_calls": {"rest": 1401, "graphql": 582}, "actual_retained_facts": 1001, "read_only": true, "global_coverage": false, "task_credit": false}

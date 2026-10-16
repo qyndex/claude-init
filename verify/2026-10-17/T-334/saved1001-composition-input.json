@@ -1,0 +1,19 @@
+{
+  "recorded_at": "2026-10-16T14:49:44.604816+00:00",
+  "source_base": "cb8db2ff1847ff9e981cd6c92b7914485e094578",
+  "snapshot": "/Volumes/M/sourcecode/qyndex/factory-validation-tmp-20261016/t287-full-staged-2ze828q4",
+  "snapshot_head": "20cf7d7ef5211eec40fbd9f3d8f2215a5db6c504",
+  "context_sha256": "46d600053c1470046e115a0151c72e63572348a388b03dd649526b566c8b3239",
+  "command": "python3 .claude/scripts/test/factory-reporting-composition-probe.py --snapshot /Volumes/M/sourcecode/qyndex/factory-validation-tmp-20261016/t287-full-staged-2ze828q4",
+  "files": {
+    ".claude/scripts/factory-reporting-transport.py": "36e8afb5f33453e7c7b622dbaaa9732af9bc96c8b859d2633bc98e6a11a4b324",
+    ".claude/scripts/factory-reporting-receipts.py": "ea1efae9d22dfc095c019a65503e404acf5506da1a306994b02a714b7c04e279",
+    ".claude/scripts/factory-receipt-archive.py": "bf766ae8a920bbb03e3e188718ff22f5ca449e3d2a1a439aad414fcc83e35906",
+    ".claude/scripts/factory-receipt-discovery.py": "ab174f17cba018cd518d017af8ab34a6c9ce5dd271c27382d4d744887329d1b8",
+    ".claude/scripts/factory-git-state.py": "28fcf49db55466dd3a71421330b6f6825605f1e80506f20dd22f0163687bea81",
+    ".claude/scripts/test/factory-reporting-composition-probe.py": "1a8dc5202a917171fff58824f1a9c795004d9e35e41660098c5680aaa70ea595",
+    ".claude/scripts/test/factory-receipt-history.sh": "f155844588f8891e1d8d6eee9981fc442dc7f93e3bf73f7782b30a365184856f",
+    ".claude/scripts/test/factory-receipt-blob-provider.py": "8b227664d228a2d86c48abc137e2282346ac2bf5afefd27a19253487dcc990ed"
+  },
+  "claims": "offline real saved history; actual provider and shared transport budget; not fresh producer execution or live App proof"
+}

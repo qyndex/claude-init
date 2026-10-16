@@ -93,12 +93,14 @@ class RoutedAPI:
                 and all(part not in ('.','..') for part in repository.split('/')), 'reporting repository invalid')
         require(all(type(token) is str and 0<len(token)<=16384 for token in (source_token,state_token)), 'reporting credentials required')
         self.repo = repository; self._source = source_token; self._state = state_token; self.budget = Budget()
+        self._immutable = {}; self._immutable_bytes = 0
 
     def _route(self, path, method, payload, raw):
         require(type(path) is str and len(path)<=4096 and re.fullmatch(r'[A-Za-z0-9._~/?=&%:+-]+',path), 'reporting endpoint invalid')
         pathname, _, query = path.partition('?'); root = 'repos/'+self.repo
         require(pathname==root or pathname.startswith(root+'/'), 'reporting foreign endpoint')
-        require('%' not in pathname.replace('%2F','') and '..' not in pathname and '//' not in pathname
+        compare = re.fullmatch(re.escape(root+'/compare/')+r'[0-9a-f]{40}\.\.\.[0-9a-f]{40}',pathname) is not None
+        require('%' not in pathname.replace('%2F','') and ('..' not in pathname or compare) and '//' not in pathname
                 and '%' not in query.replace('%2F','').replace('%3A',''), 'reporting encoded endpoint invalid')
         tail = pathname[len(root):]
         source = tail=='/pulls' or any(tail.startswith('/'+kind+'/') for kind in ('actions','pulls','contents'))
@@ -122,6 +124,9 @@ class RoutedAPI:
 
     def _once(self, path, method, payload, raw):
         token = self._route(path, method, payload, raw)
+        immutable = method=='GET' and payload is None and not raw and re.fullmatch(
+            re.escape('repos/'+self.repo+'/git/')+r'(?:commits|trees|blobs)/[0-9a-f]{40}',path) is not None
+        if immutable and path in self._immutable:return json.loads(self._immutable[path])
         encoded = encode(payload) if payload is not None else None
         self.budget.begin()
         env = {key:os.environ[key] for key in ('PATH','HOME') if key in os.environ}
@@ -134,8 +139,14 @@ class RoutedAPI:
         self.budget.observe(len(result.stdout))
         require(result.returncode==0, 'reporting API failed; reconcile authoritative state before retry')
         if raw:return result.stdout
-        try:return json.loads(result.stdout,object_pairs_hook=state.digest.coordinator.contract.no_duplicate_keys)
+        try:value = json.loads(result.stdout,object_pairs_hook=state.digest.coordinator.contract.no_duplicate_keys)
         except (ValueError,UnicodeError,RecursionError) as error:raise ValueError('reporting response JSON invalid') from error
+        if immutable:
+            serialized = encode(value)
+            require(self._immutable_bytes+len(serialized)<=MAX_BYTES, 'reporting immutable cache capacity gap')
+            self._immutable[path] = serialized; self._immutable_bytes += len(serialized)
+            return json.loads(serialized)
+        return value
 
     def request(self, path, method='GET', payload=None, *, raw=False, paginate=False):
         require(type(raw) is bool and type(paginate) is bool, 'reporting response options invalid')
