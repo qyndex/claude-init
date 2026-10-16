@@ -1654,3 +1654,46 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   files: .claude/scripts/factory-coordinator.py, .claude/scripts/test/factory-receipt-projection.sh, .claude/scripts/test/factory-receipts-recovery.sh, .claude/scripts/factory-producer.py, .claude/scripts/factory-provenance.py, .claude/scripts/factory-preflight.py, .claude/scripts/factory-receipts.py, .claude/scripts/validate-candidate-evidence.py, factory/policy.json, .claude/scripts/test/factory-producers.sh, .claude/scripts/test/factory-provenance.sh, .claude/scripts/test/factory-preflight.sh, .claude/scripts/test/factory-review-runtime.sh, docs/FACTORY-PRODUCERS.md, docs/FACTORY-ADOPTER-SETUP.md
   accept: bash .claude/scripts/test/factory-producers.sh && bash .claude/scripts/test/factory-provenance.sh && bash .claude/scripts/test/factory-preflight.sh
   owner: implementer
+
+- [ ] T-312  | spec:029  | phase:1  | priority: security  | created: 2026-10-16  | deps: T-203  | parallel: no  | est: 5m
+  summary: Validate isolated queue journal role identity and strict data schema
+  files: .claude/scripts/factory-reporting-queue.py, .claude/scripts/test/factory-reporting-queue-journal.sh
+  accept: bash .claude/scripts/test/factory-reporting-queue-journal.sh
+  owner: implementer
+
+- [ ] T-313  | spec:029  | phase:1  | priority: security  | created: 2026-10-16  | deps: T-312  | parallel: no  | est: 5m
+  summary: Persist queue intents with protected real Git CAS and opaque worker preservation
+  files: .claude/scripts/factory-reporting-queue.py, .claude/scripts/factory-git-state.py, .claude/scripts/test/factory-reporting-queue-cas.sh
+  accept: bash .claude/scripts/test/factory-reporting-queue-cas.sh
+  owner: implementer
+
+- [ ] T-314  | spec:029  | phase:2  | priority: security  | created: 2026-10-16  | deps: T-313  | parallel: no  | est: 5m
+  summary: Observe bounded eligible reporting stalls without guessed queue ownership
+  files: .claude/scripts/factory-reporting-queue.py, .claude/scripts/test/factory-reporting-queue-observation.sh
+  accept: bash .claude/scripts/test/factory-reporting-queue-observation.sh
+  owner: implementer
+
+- [ ] T-315  | spec:029  | phase:2  | priority: security  | created: 2026-10-16  | deps: T-314  | parallel: no  | est: 5m
+  summary: Reconcile durable queue alert and recovery Slack effects before retry
+  files: .claude/scripts/factory-reporting-queue.py, .claude/scripts/factory-reporting-alerts.py, .claude/scripts/test/factory-reporting-queue-delivery.sh
+  accept: bash .claude/scripts/test/factory-reporting-queue-delivery.sh
+  owner: implementer
+
+- [ ] T-316  | spec:029  | phase:2  | priority: security  | created: 2026-10-16  | deps: T-315  | parallel: no  | est: 5m
+  summary: Wire separately serialized protected queue probe with existing credentials
+  files: .github/workflows/factory-reporting-queue.yml, .claude/scripts/factory-reporting-queue.py, .claude/scripts/test/factory-reporting-queue-actions.sh, .claude/scripts/test/factory-workflow-baseline.sh
+  accept: bash .claude/scripts/test/factory-reporting-queue-actions.sh
+  owner: implementer
+
+- [ ] T-317  | spec:029  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-316  | parallel: no  | est: 5m
+  summary: Verify queue aggregate and prepare exact initialization and rollout evidence
+  files: .claude/scripts/test/factory-reporting-queue.sh, .claude/scripts/test/factory-reporting-queue-live-evidence.sh, docs/FACTORY-DIGEST.md, docs/FACTORY-ADOPTER-SETUP.md, plans/active/029-github-reporting-alerts.md
+  accept: bash .claude/scripts/test/factory-reporting-queue.sh
+  owner: implementer
+
+- [ ] T-318  | spec:029  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-317  | parallel: no  | est: 5m
+  summary: Verify labelled live queue drill recovery and unchanged worker state
+  files: docs/activation/2026-10-16-queue-probe/README.md, plans/active/029-github-reporting-alerts.md
+  accept: bash .claude/scripts/test/factory-reporting-queue-live-evidence.sh
+  owner: implementer
+  blocked_by: Reviewed source rollout and exact protected role-journal initialization; live drill not run
