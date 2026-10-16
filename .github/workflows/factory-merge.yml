@@ -91,6 +91,25 @@ jobs:
           permission-contents: write
           permission-pull-requests: write
           permission-administration: read
+      - name: Prepare protected policy observations
+        env:
+          FACTORY_POLICY_OBSERVATIONS: ${{ vars.FACTORY_POLICY_OBSERVATIONS }}
+        run: |
+          python3 - <<'PYOBS'
+          import importlib.util, os
+          from pathlib import Path
+          spec = importlib.util.spec_from_file_location('coordinator', '.claude/scripts/factory-coordinator.py')
+          module = importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(module)
+          raw = os.environ['FACTORY_POLICY_OBSERVATIONS'].encode()
+          path = Path(os.environ['RUNNER_TEMP']) / 'factory-policy-observations.json'
+          if raw:
+              module.policy_observation.decode(raw)
+          else:
+              raw = module.policy_observation.canonical({'schema_version': 1, 'repository': os.environ['GITHUB_REPOSITORY'], 'observations': []})
+          path.write_bytes(raw)
+          module.load_observations(path, os.environ['GITHUB_REPOSITORY'])
+          PYOBS
       - name: Evaluate authenticated candidate and optionally merge
         env:
           GH_TOKEN: ${{ steps.app.outputs.token }}
@@ -98,8 +117,10 @@ jobs:
           MODE: ${{ steps.request.outputs.mode }}
         run: |
           set -euo pipefail
-          mkdir -p factory-receipt
-          args=(--policy factory/policy.json --pr "$PR" --output factory-receipt/receipt.json)
+          mkdir -p factory-receipt "$RUNNER_TEMP/factory-policy-audit"
+          args=(--policy factory/policy.json --pr "$PR" --output factory-receipt/receipt.json
+            --policy-observations "$RUNNER_TEMP/factory-policy-observations.json"
+            --policy-audit "$RUNNER_TEMP/factory-policy-audit/observation.json")
           if [ "$MODE" = merge ]; then args+=(--merge); fi
           python3 .claude/scripts/factory-coordinator.py "${args[@]}"
       - name: Preserve coordinator receipt
@@ -108,5 +129,13 @@ jobs:
         with:
           name: factory-receipt-${{ github.run_id }}-${{ github.run_attempt }}
           path: factory-receipt/
+          if-no-files-found: warn
+          retention-days: 90
+      - name: Preserve bounded administrative observation audit
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: factory-policy-observation-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/factory-policy-audit/observation.json
           if-no-files-found: warn
           retention-days: 90

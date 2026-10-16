@@ -149,6 +149,63 @@ for race in ({'run_attempt':2},{'conclusion':'failure'},{'status':'in_progress',
  bad=FreshRace();bad.__dict__.update(copy.deepcopy(f.__dict__));bad.calls=[];check(bad,p)
 # A current successful rerun attempt is eligible only with matching metadata.
 bad=copy.deepcopy(f);bad.calls=[];bad.runs[-1]['run_attempt']=2;check(bad,p,valid=True)
+# AC-5: hidden live bypass metadata needs exact protected administrative input.
+import datetime
+ob_now=datetime.datetime.now(datetime.timezone.utc)
+full_rules={'id':1,'node_id':'R_1','name':'main','source':policy['repository'],'source_type':'Repository','target':'branch','enforcement':'active','created_at':'2026-10-15T00:00:00Z','updated_at':(ob_now-datetime.timedelta(minutes=2)).isoformat(),'conditions':{'ref_name':{'include':['refs/heads/main'],'exclude':[]}},'rules':[{'type':'pull_request'}],'bypass_actors':[]}
+repository={'id':42,'full_name':policy['repository']}
+obs_spec=importlib.util.spec_from_file_location('obs','.claude/scripts/factory-policy-observation.py');obs=importlib.util.module_from_spec(obs_spec);obs_spec.loader.exec_module(obs)
+observation=obs.capture(repository,full_rules,now=ob_now)
+class Hidden(Fake):
+ def __init__(self):super().__init__();self.metadata=copy.deepcopy(full_rules);self.metadata.pop('bypass_actors');self.reads=0;self.change=False
+ def get(self,path):
+  if path=='repos/'+policy['repository']:return repository
+  if '/rulesets/' in path:
+   self.reads+=1
+   result=copy.deepcopy(self.metadata)
+   if self.change and self.reads>1:result['name']='changed'
+   return result
+  return super().get(path)
+def hidden_check(fake,observations,valid=False):
+ audit=[]
+ try:result=m.coordinate(fake,policy,42,merge=False,observations=observations,audit=audit)
+ except ValueError:assert not valid
+ else:assert valid and result['eligible'] and audit and audit[-1]['mode']=='operator-observation'
+ assert not any(isinstance(call,tuple) for call in fake.calls)
+hidden_check(Hidden(),[observation],True)
+hidden_check(Hidden(),[])
+for field,value in [('repository','foreign/repo'),('ruleset_id',2),('metadata_sha256','0'*64),('observed_at',(ob_now+datetime.timedelta(days=1)).isoformat())]:
+ bad=dict(observation);bad[field]=value;hidden_check(Hidden(),[bad])
+for actors in (None,{},[{'actor_id':99}]):
+ f=Hidden();f.metadata['bypass_actors']=actors;hidden_check(f,[observation])
+f=Hidden();f.change=True;hidden_check(f,[observation])
+with tempfile.TemporaryDirectory() as temp:
+ path=Path(temp)/'observations.json'
+ doc={'schema_version':1,'repository':policy['repository'],'observations':[observation]}
+ path.write_text(json.dumps(doc));assert m.load_observations(path,policy['repository'])==[observation]
+ for raw in ('{"schema_version":1,"schema_version":1}',json.dumps(dict(doc,repository='foreign/repo')),json.dumps(dict(doc,observations=[observation,observation])),json.dumps(dict(doc,extra='x')),'x'*262145):
+  path.write_text(raw)
+  try:m.load_observations(path,policy['repository'])
+  except ValueError:pass
+  else:raise AssertionError('protected input invalid schema accepted')
+# Exercise actual CLI packaging: audit is bounded, separate from receipt.json.
+import contextlib
+with tempfile.TemporaryDirectory() as temp:
+ directory=Path(temp);policy_path=directory/'policy.json';policy_path.write_text(json.dumps(policy))
+ input_path=directory/'observations.json';input_path.write_text(json.dumps({'schema_version':1,'repository':policy['repository'],'observations':[observation]}))
+ receipt=directory/'receipt.json';audit_path=directory/'administrative.json'
+ previous_api=m.GitHub;previous_args=sys.argv[:]
+ try:
+  m.GitHub=lambda repository:Hidden()
+  sys.argv=['coordinator','--policy',str(policy_path),'--pr','42','--output',str(receipt),'--policy-observations',str(input_path),'--policy-audit',str(audit_path)]
+  with contextlib.redirect_stdout(io.StringIO()):m.main()
+ finally:m.GitHub=previous_api;sys.argv=previous_args
+ audit=json.loads(audit_path.read_text());assert audit['kind']=='administrative-observation-not-native-attestation'
+ assert len(audit['checks'])==2 and all(item['observation']==observation for item in audit['checks'])
+ assert len(audit_path.read_bytes())<=m.policy_observation.MAX_BYTES
+ assert json.loads(receipt.read_text())['eligible'] and 'observation' not in receipt.read_text()
+ assert not any(word in audit_path.read_text() for word in ('GH_TOKEN','PRIVATE_KEY','provider_output'))
+print('AC-5: protected hidden observations, visible actor rejection, final drift and bounded strict input PASS')
 print(f'passed: {len(mutations)+43}; failed: 0')
 
 PY

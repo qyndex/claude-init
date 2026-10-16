@@ -1643,7 +1643,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-policy-observation.sh
   owner: implementer
 
-- [ ] T-297  | spec:010  | phase:1  | priority: security  | created: 2026-10-16  | deps: T-296  | parallel: no  | est: 5m
+- [x] T-297  | spec:010  | phase:1  | priority: security  | created: 2026-10-16  | deps: T-296  | parallel: no  | est: 5m
   summary: Bind protected coordinator observation input and separate audit artifact
   files: .claude/scripts/factory-coordinator.py, .github/workflows/factory-merge.yml, .claude/scripts/test/factory-coordinator.sh, .claude/scripts/test/factory-workflow-baseline.sh, docs/FACTORY-ACTIVATION.md
   accept: bash .claude/scripts/test/factory-coordinator.sh && bash .claude/scripts/test/factory-workflow-baseline.sh
