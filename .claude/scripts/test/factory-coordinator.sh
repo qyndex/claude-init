@@ -205,6 +205,25 @@ with tempfile.TemporaryDirectory() as temp:
  assert len(audit_path.read_bytes())<=m.policy_observation.MAX_BYTES
  assert json.loads(receipt.read_text())['eligible'] and 'observation' not in receipt.read_text()
  assert not any(word in audit_path.read_text() for word in ('GH_TOKEN','PRIVATE_KEY','provider_output'))
+# AC-5: malformed protected input must invalidate an existing same-head success.
+with tempfile.TemporaryDirectory() as temp:
+ directory=Path(temp);policy_path=directory/'policy.json';policy_path.write_text(json.dumps(policy))
+ path=directory/'input.json';receipt=directory/'receipt.json';fake=Fake()
+ # Prior successful eligibility exists; failure must actively replace it.
+ fake.calls.append(('existing-success',{'head_sha':head}))
+ original_api=m.GitHub;original_args=sys.argv[:]
+ try:
+  m.GitHub=lambda repository:fake
+  sys.argv=['coordinator','--policy',str(policy_path),'--pr','42','--merge','--output',str(receipt),'--policy-observations',str(path)]
+  for raw in ('{"schema_version":1,"schema_version":1}','x'*262145,'{"secret":"DO_NOT_ECHO_SENTINEL"}'):
+   path.write_text(raw);before=len(fake.calls)
+   try:m.main()
+   except ValueError:pass
+   else:raise AssertionError('invalid protected input accepted')
+   failed=[call[1] for call in fake.calls[before:] if isinstance(call,tuple) and call[0].endswith('/check-runs')]
+   assert len(failed)==1 and failed[0]['conclusion']=='failure' and failed[0]['head_sha']==head
+   assert not receipt.exists() and 'DO_NOT_ECHO_SENTINEL' not in json.dumps(failed)
+ finally:m.GitHub=original_api;sys.argv=original_args
 print('AC-5: protected hidden observations, visible actor rejection, final drift and bounded strict input PASS')
 print(f'passed: {len(mutations)+43}; failed: 0')
 

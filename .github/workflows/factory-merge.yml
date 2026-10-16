@@ -103,12 +103,10 @@ jobs:
           spec.loader.exec_module(module)
           raw = os.environ['FACTORY_POLICY_OBSERVATIONS'].encode()
           path = Path(os.environ['RUNNER_TEMP']) / 'factory-policy-observations.json'
-          if raw:
-              module.policy_observation.decode(raw)
-          else:
+          if not raw:
               raw = module.policy_observation.canonical({'schema_version': 1, 'repository': os.environ['GITHUB_REPOSITORY'], 'observations': []})
-          path.write_bytes(raw)
-          module.load_observations(path, os.environ['GITHUB_REPOSITORY'])
+          # Semantic rejection belongs to the coordinator's eligibility invalidation handler.
+          path.write_bytes(raw[:module.policy_observation.MAX_BYTES + 1])
           PYOBS
       - name: Evaluate authenticated candidate and optionally merge
         env:

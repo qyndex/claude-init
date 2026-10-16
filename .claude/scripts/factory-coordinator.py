@@ -306,10 +306,10 @@ def main():
     args = parser.parse_args()
     require(args.pr > 0, 'invalid pull request number')
     policy = contract.load(args.policy)
-    observations = load_observations(args.policy_observations, policy['repository'])
     api = GitHub(policy['repository'])
     audit = []
     try:
+        observations = load_observations(args.policy_observations, policy['repository'])
         result = coordinate(api, policy, args.pr, merge=args.merge, observations=observations, audit=audit)
     except (ValueError, KeyError, TypeError, OSError, subprocess.TimeoutExpired, zipfile.BadZipFile):
         # A new failed evaluation must not leave an older success as the latest

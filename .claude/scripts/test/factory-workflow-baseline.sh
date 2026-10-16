@@ -20,13 +20,10 @@ with tempfile.TemporaryDirectory() as directory:
  env={'PATH':os.environ['PATH'],'RUNNER_TEMP':directory,'GITHUB_REPOSITORY':'qyndex/claude-init','FACTORY_POLICY_OBSERVATIONS':''}
  result=run(script,base,env);assert result.returncode==0,result.stderr
  assert json.loads((base/'factory-policy-observations.json').read_text())=={'schema_version':1,'repository':'qyndex/claude-init','observations':[]}
- for raw in ('x'*262145,'{"schema_version":1,"schema_version":1}',json.dumps({'schema_version':1,'repository':'foreign/repo','observations':[]}),json.dumps({'schema_version':1,'repository':'qyndex/claude-init','observations':[],'secret':'DO_NOT_ECHO_SENTINEL'})):
+ for raw in ('{"schema_version":1,"schema_version":1}',json.dumps({'schema_version':1,'repository':'foreign/repo','observations':[]}),json.dumps({'schema_version':1,'repository':'qyndex/claude-init','observations':[],'secret':'DO_NOT_ECHO_SENTINEL'})):
   env['FACTORY_POLICY_OBSERVATIONS']=raw
-  # Environment strings cannot exceed OS exec limits; invoke large fixture via shell export.
-  if len(raw)>100000:
-   (base/'oversized').write_text(raw);env['FACTORY_POLICY_OBSERVATIONS']='';invocation='export FACTORY_POLICY_OBSERVATIONS="$(cat oversized)"\n'+script
-  else:invocation=script
-  result=run(invocation,base,env);assert result.returncode!=0
+  result=run(script,base,env);assert result.returncode==0,result.stderr
+  assert (base/'factory-policy-observations.json').read_text()==raw
   assert 'DO_NOT_ECHO_SENTINEL' not in result.stdout+result.stderr
  text=(root/'.github/workflows/factory-merge.yml').read_text()
  assert 'environment: factory-authority' in text and 'github.ref_name == github.event.repository.default_branch' in text
@@ -34,7 +31,7 @@ with tempfile.TemporaryDirectory() as directory:
  assert 'FACTORY_POLICY_OBSERVATIONS: ${{ vars.FACTORY_POLICY_OBSERVATIONS }}' in text
  assert 'name: factory-policy-observation-' in text and 'path: factory-receipt/' in text
  assert 'path: ${{ runner.temp }}/factory-policy-audit/observation.json' in text
- print('AC-5: shipped protected ingress rejects foreign/duplicate/oversize/unknown JSON without raw echo; read-only App and separate audit retained')
+ print('AC-5: shipped protected ingress defers malformed/foreign/duplicate/unknown JSON to coordinator without raw echo; read-only App and separate audit retained')
 print('AC-1: actual full actionlint including ShellCheck passes all shipped workflows without warning waivers')
 with tempfile.TemporaryDirectory() as temporary:
  base=Path(temporary);(base/'.claude').mkdir();(base/'.github').mkdir();(base/'.mcp.json').write_text('{}')
