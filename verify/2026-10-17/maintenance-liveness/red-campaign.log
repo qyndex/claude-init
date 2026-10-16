@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "<stdin>", line 50, in <module>
+  File "maintenance-actual-campaign-rotation", line 111, in <module>
+AssertionError: wrong actual stage campaign credited to maintenance offset

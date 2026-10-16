@@ -238,6 +238,7 @@ def maintain(source_api, state_api, policy, trust_path, store, approval_path, *,
         staged=archive.stage_projection(api,policy,trust_path,store,approval_path,stream,interval_end=end,
                     history_head=journal['history_head'],page=journal['page'],offset=journal['offset'],limit=8,interval_scoped=True)
         if staged['status'] in ('staged','already-staged'):
+            require(type(staged.get('campaign')) is str and staged['campaign']==journal['campaign'], 'maintenance staged campaign differs')
             # The stage writer independently reconciles its actual ref before
             # returning. Reload after that publication; never use the stale
             # pre-stage base tree or overwrite another maintenance writer.
@@ -250,7 +251,8 @@ def maintain(source_api, state_api, policy, trust_path, store, approval_path, *,
     rollover=(reporting_cursor is not None and archive.instant(reporting_cursor)>=archive.instant(end)
               and archive.instant(interval_end)>archive.instant(end))
     if (reporting or selecting) and not rollover:
-        prepared=persist(dict(journal,phase='verify')) if reporting else result
+        needs_verification=reporting and (reporting_cursor is None or archive.instant(reporting_cursor)<archive.instant(end))
+        prepared=persist(dict(journal,phase='verify')) if needs_verification else result
         return dict(prepared,status='projection-ready',history_head=journal['history_head'],
                     campaign=journal['campaign'],interval_scoped=True)
     coverage=discovery.coverage(source,api,policy,trust_path,store,approval_path,stream,interval_end=end,
