@@ -122,6 +122,11 @@ class Digest:
             proofs = []
             durable = self.receipt_mode == 'durable'
             if durable:
+                require('reporting_receipt_coverage' in tables, 'retained reporting coverage marker missing')
+                markers = db.execute('SELECT repository,coverage_from,verified_until FROM reporting_receipt_coverage').fetchall()
+                require(len(markers) == 1 and markers[0]['repository'] == self.repository and
+                        instant(markers[0]['coverage_from']) <= origin <= start < end <= instant(markers[0]['verified_until']),
+                        'retained reporting coverage does not cover report interval')
                 if {'delivery_receipts', 'delivery_provenance', 'delivery_trust', 'delivery_times', 'delivery_interval'} <= tables:
                     proofs = db.execute('SELECT r.*,p.provenance,t.status AS trust_status,m.merged_at AS retained_time FROM delivery_receipts r JOIN delivery_provenance p ON r.task=p.task JOIN delivery_trust t ON r.task=t.task JOIN delivery_times m ON r.task=m.task JOIN delivery_interval i ON r.task=i.task').fetchall()
             elif {'delivery_receipts', 'delivery_provenance'} <= tables:

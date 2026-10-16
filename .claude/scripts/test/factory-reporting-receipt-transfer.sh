@@ -13,7 +13,39 @@ render_fixture['merges'][0]['evidence_status']='withdrawn'
 withdrawn_text=render_module.render(json.dumps(render_fixture))
 assert 'WITHDRAWN' in withdrawn_text and 'T-1/spec 001' in withdrawn_text and '/actions/runs/20' in withdrawn_text,withdrawn_text
 print('PASS actual renderer explicitly labels withdrawn evidence while preserving proof attribution')
-source=Path('.claude/scripts/test/factory-receipt-coverage-batch.sh').read_text().split("<<'PY'\n",1)[1]
+fixture_source=Path('.claude/scripts/test/factory-receipt-coverage-batch.sh').read_text()
+for marker in ("<<'PY'\n", "\ncases=r'''\n", ' assert batch_calls,'):
+ assert fixture_source.count(marker)==1, 'coverage fixture splice marker changed: '+repr(marker)
+# AC-2: fixed legacy bytes and pending immutability do not depend on durable mode.
+import tempfile,sqlite3
+unit_spec=importlib.util.spec_from_file_location('digest_unit',Path('.claude/scripts/factory-digest.py'));unit=importlib.util.module_from_spec(unit_spec);unit_spec.loader.exec_module(unit)
+with tempfile.TemporaryDirectory() as temporary:
+ path=Path(temporary)/'legacy.sqlite'
+ for mode in ('',None,'DURABLE',True,[]):
+  try:unit.Digest(path,'org/repo','C1','2026-10-15T00:00:00Z',receipt_mode=mode)
+  except ValueError:pass
+  else:raise AssertionError('invalid receipt mode accepted: '+repr(mode))
+ view=unit.Digest(path,'org/repo','C1','2026-10-15T00:00:00Z')
+ assert view.receipt_mode=='legacy'
+ with sqlite3.connect(path) as db:
+  db.execute('CREATE TABLE delivery_receipts(task TEXT PRIMARY KEY, revision TEXT NOT NULL, receipt TEXT NOT NULL)')
+  db.execute('CREATE TABLE delivery_provenance(task TEXT PRIMARY KEY, provenance TEXT NOT NULL)')
+  receipt={'repository':'org/repo','pr':7,'merge_sha':'b'*40}
+  proof={'run_id':20,'artifact_digest':'sha256:'+'d'*64,'receipt':{'repository':'org/repo','pull_request':7,'merged':True,'eligible':True,'merge_sha':'b'*40,'head_sha':'c'*40,'spec_sha256':'a'*64,'task_ids':['T-9'],'spec':'014'}}
+  db.execute('INSERT INTO delivery_receipts VALUES(?,?,?)',('T-9','a'*64,json.dumps(receipt)))
+  db.execute('INSERT INTO delivery_provenance VALUES(?,?)',('T-9',json.dumps(proof)))
+ class UnitAPI:
+  repo='org/repo'
+  def request(self,*args,**kw):return [[{'merged_at':'2026-10-15T01:00:00Z','number':7,'base':{'ref':'main','repo':{'full_name':'org/repo'}},'merge_commit_sha':'b'*40,'head':{'sha':'c'*40},'title':'Feature','html_url':'https://github.com/org/repo/pull/7'}]]
+ expected={'schema_version':1,'repository':'org/repo','destination':'C1','from':'2026-10-15T00:00:00+00:00','until':'2026-10-15T23:00:00+00:00','timezone':'Australia/Sydney','display_from':'2026-10-15T11:00:00+11:00','display_until':'2026-10-16T10:00:00+11:00','product_acceptance':'not inferred from merge','merges':[{'pr':7,'title':'Feature','url':'https://github.com/org/repo/pull/7','merge_sha':'b'*40,'merged_at':'2026-10-15T01:00:00+00:00','late_discovered':False,'delivery_evidence':[{'task':'T-9','spec':'014','revision':'a'*64,'producer_run':20,'artifact_digest':'sha256:'+'d'*64}],'evidence_status':'authenticated','merge_time_checks':'not independently recorded'}]}
+ row=view.prepare(UnitAPI(),'2026-10-15T23:00:00Z')
+ assert row['payload'].encode()==json.dumps(expected,sort_keys=True,separators=(',',':'),allow_nan=False).encode()
+ prior=path.read_bytes();durable=unit.Digest(path,'org/repo','C1','2026-10-15T00:00:00Z',receipt_mode='durable')
+ assert durable.prepare(UnitAPI(),'2026-10-16T00:00:00Z')==row
+ assert path.read_bytes()==prior,'pending batch changed during receipt mode switch'
+print('PASS invalid/default receipt modes, fixed byte-exact legacy payload and pending mode-switch immutability')
+
+source=fixture_source.split("<<'PY'\n",1)[1]
 prefix=source.split("\ncases=r'''",1)[0]
 setup=source.split("\ncases=r'''\n",1)[1].split(' assert batch_calls,',1)[0]
 cases=r'''
@@ -32,9 +64,10 @@ cases=r'''
   for name,sql in src.execute("SELECT name,sql FROM sqlite_master WHERE type='table'"):
    dst.execute(sql)
    for row in src.execute('SELECT * FROM '+name):dst.execute('INSERT INTO '+name+' VALUES('+','.join('?' for _ in row)+')',row)
- entries=json.loads(view.prepare(Report(),end)['payload'])['merges']
- assert len(entries)==2 and all(row['evidence_status']=='withdrawn' for row in entries),entries
- print('PASS actual retained withdrawn trust is visible and never authenticated')
+ try:view.prepare(Report(),end)
+ except ValueError as error:assert 'coverage marker missing' in str(error)
+ else:raise AssertionError('unbound receipt tables authorized durable report')
+ print('PASS raw receipt tables without validated coverage cannot authorize durable reporting')
 
  helper_spec=importlib.util.spec_from_file_location('report_receipts',scripts/'factory-reporting-receipts.py');helper=importlib.util.module_from_spec(helper_spec);helper_spec.loader.exec_module(helper)
  # Actual artifacts expire; only retained origin/materials/source observations remain.
@@ -58,6 +91,72 @@ cases=r'''
   assert db.execute('SELECT status FROM delivery_trust').fetchall()==[('withdrawn',),('withdrawn',)]
   assert db.execute('SELECT merged_at FROM delivery_times').fetchall()==[('2026-10-15T01:00:00.123456Z',)]*2
  snapshot=target.read_bytes()
+ # AC-7: an actual complete projection cannot authorize an unverified later cutoff.
+ wider=root/'unverified-cutoff.sqlite'
+ import shutil
+ shutil.copyfile(target,wider)
+ future_view=digest.Digest(wider,'org/repo','C1','2026-10-15T00:00:00Z',receipt_mode='durable')
+ before_wider=wider.read_bytes()
+ try:future_view.prepare(Report(),'2026-10-16T00:00:00Z')
+ except ValueError as error:assert 'coverage' in str(error),str(error)
+ else:raise AssertionError('actual narrower projection authorized later report cutoff')
+ assert wider.read_bytes()==before_wider
+ print('PASS actual projection coverage bounds new digest cutoff')
+ # AC-8: actual protected reads must not partially update hostile destinations.
+ mutations={
+  'trigger':"CREATE TRIGGER hostile AFTER INSERT ON delivery_receipts BEGIN SELECT 1; END",
+  'schema':"ALTER TABLE delivery_receipts ADD COLUMN extra TEXT",
+  'coverage-schema':"ALTER TABLE reporting_receipt_coverage ADD COLUMN extra TEXT",
+  'foreign-coverage':"UPDATE reporting_receipt_coverage SET repository='other/repo'",
+  'receipt-conflict':"UPDATE delivery_receipts SET revision='conflict'",
+  'provenance-conflict':"UPDATE delivery_provenance SET provenance='conflict'",
+  'time-conflict':"UPDATE delivery_times SET merged_at='conflict'",
+  'disappearing':"INSERT INTO delivery_times VALUES('not-retained','2026-10-15T01:00:00Z')",
+ }
+ for label,statement in mutations.items():
+  hostile=root/('hostile-'+label+'.sqlite');shutil.copyfile(target,hostile)
+  with sqlite3.connect(hostile) as db:db.execute(statement)
+  unchanged=hostile.read_bytes()
+  try:helper.project_reporting(runs,ReadState(),policy,hostile,trust,store,approval,stream,**kwargs)
+  except ValueError:pass
+  else:raise AssertionError('hostile destination accepted: '+label)
+  assert hostile.read_bytes()==unchanged,'destination partially changed: '+label
+ # A real SQLite authorizer fails the last insert after receipt writes execute.
+ rollback=(root/'rollback.sqlite').resolve();digest.Digest(rollback,'org/repo','C1','2026-10-15T00:00:00Z')
+ rollback_bytes=rollback.read_bytes();real_connect=helper.sqlite3.connect;writes=[]
+ def failing_connect(path,*args,**kw):
+  db=real_connect(path,*args,**kw)
+  if Path(path)==rollback:
+   def authorize(action,table,*rest):
+    if action==sqlite3.SQLITE_INSERT:
+     writes.append(table)
+     if table=='reporting_receipt_coverage':return sqlite3.SQLITE_DENY
+    return sqlite3.SQLITE_OK
+   db.set_authorizer(authorize)
+  return db
+ helper.sqlite3.connect=failing_connect
+ try:
+  try:helper.project_reporting(runs,ReadState(),policy,rollback,trust,store,approval,stream,**kwargs)
+  except sqlite3.DatabaseError as error:assert 'authorized' in str(error),str(error)
+  else:raise AssertionError('mid-transfer SQLite failure swallowed')
+ finally:helper.sqlite3.connect=real_connect
+ assert 'delivery_receipts' in writes and 'reporting_receipt_coverage' in writes,writes
+ assert rollback.read_bytes()==rollback_bytes,'failed transaction left partial projection or marker'
+ print('PASS destination triggers/schema/conflicting/disappearing facts and final-insert rollback preserve bytes')
+ # AC-7: missing, foreign or too-new origins cannot authorize a new batch.
+ for label,statement in {
+  'missing':"DELETE FROM reporting_receipt_coverage",
+  'foreign':"UPDATE reporting_receipt_coverage SET repository='other/repo'",
+  'origin':"UPDATE reporting_receipt_coverage SET coverage_from='2026-10-15T00:30:00Z'",
+ }.items():
+  invalid=root/('invalid-marker-'+label+'.sqlite');shutil.copyfile(target,invalid)
+  with sqlite3.connect(invalid) as db:db.execute(statement)
+  current=digest.Digest(invalid,'org/repo','C1','2026-10-15T00:00:00Z',receipt_mode='durable');unchanged=invalid.read_bytes()
+  try:current.prepare(Report(),end)
+  except ValueError as error:assert 'coverage' in str(error)
+  else:raise AssertionError('unbound coverage accepted: '+label)
+  assert invalid.read_bytes()==unchanged
+ print('PASS missing/foreign/origin coverage gaps reject new batch without state change')
  # Actual changed source observations reject before any destination transaction.
  class MissingRuns(Runs):
   def request(self,path,**kwargs):

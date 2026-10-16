@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Reconstruct protected retained proof before a fixed typed reporting transfer."""
+from contextlib import closing
 import importlib.util
 import json
 from pathlib import Path
@@ -23,6 +24,7 @@ DEFINITIONS = {
     'delivery_times': ('task TEXT PRIMARY KEY, merged_at TEXT NOT NULL', ('task', 'merged_at')),
     'delivery_interval': ('task TEXT PRIMARY KEY', ('task',)),
 }
+COVERAGE_SQL = 'CREATE TABLE reporting_receipt_coverage(repository TEXT PRIMARY KEY, coverage_from TEXT NOT NULL, verified_until TEXT NOT NULL)'
 
 
 class ReadOnly:
@@ -77,8 +79,12 @@ def project_reporting(source_api, state_api, policy, report_path, trust_path, st
                 coverage.get('verified_until') == interval_end and coverage.get('gaps') == [] and
                 coverage.get('task_credit') is False and coverage.get('all_history_complete') is False,
                 'retained reporting coverage incomplete')
+        require(coverage.get('repository') == policy['repository'] and
+                coverage.get('coverage_from') == before['coverage_from'] and
+                archive.instant(coverage['coverage_from']) <= archive.instant(coverage['verified_until']),
+                'retained reporting coverage binding differs')
         rows = {}
-        with sqlite3.connect(receipt_db) as db:
+        with closing(sqlite3.connect(receipt_db)) as db:
             objects = db.execute('SELECT type,name,sql FROM sqlite_master').fetchall()
             expected = {(name, 'CREATE TABLE '+name+'('+definition+')') for name,(definition,_) in DEFINITIONS.items()}
             require({(name,sql) for kind,name,sql in objects if kind == 'table'} == expected and
@@ -93,9 +99,14 @@ def project_reporting(source_api, state_api, policy, report_path, trust_path, st
                 {row[0] for row in rows['delivery_interval']} <= tasks, 'retained reporting task sets differ')
         require(archive.verify_bootstrap(state, approval_path) == before and Path(approval_path).read_bytes() == approval_raw and
                 Path(trust_path).read_bytes() == trust_raw, 'retained reporting origin or trust changed')
-        with sqlite3.connect(report) as db:
+        with closing(sqlite3.connect(report)) as db, db:
             db.execute('BEGIN IMMEDIATE')
             require(not db.execute("SELECT name FROM sqlite_master WHERE type='trigger'").fetchone(), 'reporting database triggers unsupported')
+            existing = db.execute("SELECT type,sql FROM sqlite_master WHERE name='reporting_receipt_coverage'").fetchall()
+            require(not existing or existing == [('table', COVERAGE_SQL)], 'reporting coverage destination schema differs')
+            if not existing:db.execute(COVERAGE_SQL)
+            require(all(row[0] == policy['repository'] for row in db.execute('SELECT repository FROM reporting_receipt_coverage')),
+                    'reporting coverage repository differs')
             for name,(definition,columns) in DEFINITIONS.items():
                 existing = db.execute('SELECT type,sql FROM sqlite_master WHERE name=?', (name,)).fetchall()
                 require(not existing or existing == [('table','CREATE TABLE '+name+'('+definition+')')], 'reporting receipt destination schema differs')
@@ -108,4 +119,8 @@ def project_reporting(source_api, state_api, policy, report_path, trust_path, st
                     continue
                 db.execute('DELETE FROM '+name)
                 db.executemany('INSERT INTO '+name+' VALUES('+','.join('?' for _ in columns)+')', rows[name])
+            marker = (coverage['repository'], coverage['coverage_from'], coverage['verified_until'])
+            if db.execute('SELECT * FROM reporting_receipt_coverage').fetchall() != [marker]:
+                db.execute('DELETE FROM reporting_receipt_coverage')
+                db.execute('INSERT INTO reporting_receipt_coverage VALUES(?,?,?)', marker)
     return {'facts_count':len(tasks), 'coverage_complete':True, 'all_history_complete':False, 'task_credit':False}
