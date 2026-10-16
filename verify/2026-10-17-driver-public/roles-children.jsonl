@@ -1,0 +1,2 @@
+{"pid": 97793, "calls": 734, "bytes": 951362, "provider": {"rest": 734, "graphql": 0}, "provider_response_bytes": 951362, "roles": {"source": {"calls": 8, "bytes": 1504, "rest": 8, "graphql": 0}, "writer": {"calls": 726, "bytes": 949858, "rest": 726, "graphql": 0}}}
+{"pid": 137, "calls": 46, "bytes": 39478, "provider": {"rest": 46, "graphql": 0}, "provider_response_bytes": 39478, "roles": {"source": {"calls": 0, "bytes": 0, "rest": 0, "graphql": 0}, "writer": {"calls": 46, "bytes": 39478, "rest": 46, "graphql": 0}}}
