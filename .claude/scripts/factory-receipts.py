@@ -24,6 +24,12 @@ RUNTIME_PATHS = ('.github/workflows/factory-merge.yml', '.claude/scripts/factory
                  '.claude/scripts/factory-preflight.py', '.claude/scripts/validate-candidate-evidence.py',
                  '.claude/scripts/factory-provenance.py', '.claude/scripts/factory-bounded-process.py',
                  '.claude/scripts/factory-policy-observation.py')
+# Schema1 report-only history has exactly these reviewed dependency families.
+# Parsing a historical family never authorizes current source authentication.
+HISTORICAL_RUNTIME_PATHS = ('.github/workflows/factory-merge.yml', '.claude/scripts/factory-coordinator.py',
+                            '.claude/scripts/factory-preflight.py', '.claude/scripts/validate-candidate-evidence.py',
+                            '.claude/scripts/factory-provenance.py', '.claude/scripts/factory-bounded-process.py')
+RUNTIME_FAMILIES = (frozenset(HISTORICAL_RUNTIME_PATHS), frozenset(RUNTIME_PATHS))
 require = coordinator.require
 
 
@@ -42,7 +48,7 @@ def load_receipt_trust(path, repository, *, mode):
     require(isinstance(repository, str) and re.fullmatch(r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+', repository) is not None and trust['repository'] == repository, 'receipt trust repository differs')
 
     def runtime(pins):
-        require(isinstance(pins, dict) and set(pins) == set(RUNTIME_PATHS), 'receipt trust runtime closure differs')
+        require(isinstance(pins, dict) and frozenset(pins) in RUNTIME_FAMILIES, 'receipt trust runtime closure differs')
         require(all(coordinator.contract.digest(value, 64) for value in pins.values()), 'receipt trust runtime digest invalid')
 
     profiles = trust['profiles']
@@ -116,6 +122,7 @@ def authenticate_source(api, policy, run, *, trust_path, trust_mode):
         require(len(matches) == 1, 'receipt source policy not approved or ambiguous')
         selected = matches[0]
         pins = selected['runtime']
+        require(set(pins) == set(RUNTIME_PATHS), 'receipt current runtime closure differs')
     else:
         revisions = trust['legacy_revisions'] if trust is not None else policy['receipts']['trusted_revisions']
         pins = revisions.get(run['head_sha'], {})

@@ -246,3 +246,18 @@ exact selected pins, with a positive ten-material case. Retained integrity uses
 its authenticated original known closure/material family, not a global current
 tuple. Report-only historical compatibility is required; new six-file legacy
 imports need not be broadened if unsupported and that limit must be explicit.
+
+### T299 local implementation — 2026-10-16
+
+The strict schema1 parser accepts exactly the reviewed historical six-file and
+current seven-file families in one trust document. Current source/build paths
+still require all seven and never fall back from selected-profile mismatch.
+Retained readers validate their authenticated capsule's exact family, with a
+ten-material bound for current distinct source objects. No archive-origin gate
+was relaxed. Actual compatibility acceptance includes a real disposable Git
+protected-writer fixture: six-file fixture issuance, seven-file reader after API
+artifact expiry, fresh SQLite restart, revoked historical/current profile mix,
+withdrawal without task credit, encrypted byte preservation and missing-origin
+rejection. Fixture-only historical emitter modeling is not live issuance proof.
+T295, T286 aggregate and remaining loader/readiness/live archive cutover remain
+pending; no active trust or runtime settings changed.

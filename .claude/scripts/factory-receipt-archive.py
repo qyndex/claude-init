@@ -73,20 +73,21 @@ def validate_record(record, materials, repository, visibility):
         require(document(archive.read('receipt.json')) == receipt, 'archive receipt differs')
     links = record['materials']
     require(isinstance(links, dict) and isinstance(materials, dict) and set(materials) == set(links.values()), 'archive material set differs')
-    require(len(materials) <= 9, 'archive material count exceeds bound')
+    require(len(materials) <= 10, 'archive material count exceeds bound')
     decoded = {}
     for key, value in materials.items():
         raw = decode(value)
         require(digest(raw) == key, 'archive material digest differs')
         decoded[key] = raw
-    require(set(links) == {'factory/policy.json', 'factory/receipt-trust.json', *receipts.RUNTIME_PATHS, 'spec'}, 'archive material paths differ')
+    runtime_paths = set(links) - {'factory/policy.json', 'factory/receipt-trust.json', 'spec'}
+    require(frozenset(runtime_paths) in receipts.RUNTIME_FAMILIES and set(links) == {'factory/policy.json', 'factory/receipt-trust.json', *runtime_paths, 'spec'}, 'archive material paths differ')
     source = document(decoded[links['factory/policy.json']]); trust = document(decoded[links['factory/receipt-trust.json']])
     require(source['base_branch'] == execution['branch'] and source['repository'] == repository == receipt['repository'] and receipts.coordinator.policy_hash(source) == receipt['policy_sha256'] == facts['policy_sha256'], 'archive policy differs')
     require(receipts.coordinator.policy_hash(trust) == facts['document_sha256'], 'archive trust differs')
     with tempfile.TemporaryDirectory() as tmp:
         path = Path(tmp) / 'trust.json'; path.write_bytes(canonical(trust))
         receipts.load_receipt_trust(path, repository, mode='report')
-    require({p: digest(decoded[links[p]]) for p in receipts.RUNTIME_PATHS} == facts['runtime'], 'archive runtime differs')
+    require({p: digest(decoded[links[p]]) for p in runtime_paths} == facts['runtime'], 'archive runtime differs')
     expected_receipt = {'schema_version', 'repository', 'pull_request', 'head_sha', 'base_sha', 'spec', 'spec_sha256', 'policy_sha256', 'verifier_run', 'reviewer_run', 'eligible', 'merged', 'merge_sha', 'task_ids'}
     require(set(receipt) == expected_receipt and type(receipt['schema_version']) is int and receipt['schema_version'] == 1 and receipt['eligible'] is True and receipt['merged'] is True and source.get('enabled') is True and source.get('merge_enabled') is True, 'archive delivery semantics differ')
     require(all(receipts.coordinator.contract.digest(receipt[k], 40) for k in ('head_sha', 'base_sha', 'merge_sha')) and all(type(receipt[k]) is int and receipt[k] > 0 for k in ('pull_request', 'verifier_run', 'reviewer_run')) and receipt['verifier_run'] != receipt['reviewer_run'], 'archive delivery identity differs')
@@ -482,7 +483,7 @@ def project_retained(state_api, policy, db_path, trust_path, store, approval_pat
             require(raw is not None and digest(raw) == key, 'archive retained record missing or digest differs')
             require(blob_at(anchor['bootstrap_tree'], f'receipt-archive/objects/{key[:2]}/{key}.json') is None, 'archive object pre-bootstrap requires explicit reviewed import')
             record = document(raw); links = record.get('materials')
-            require(isinstance(links, dict) and len(links) <= 9 and all(state_paths.valid_hash(k, 64) for k in links.values()), 'archive material links differ')
+            require(isinstance(links, dict) and len(links) <= 10 and all(state_paths.valid_hash(k, 64) for k in links.values()), 'archive material links differ')
             materials = {}
             for key in set(links.values()):
                 raw = blob_at(tree, f'receipt-archive/materials/{key[:2]}/{key}.json')
@@ -549,7 +550,7 @@ def retained_execution(api, anchor, store, stream, run_id, attempt):
     require(blob_at(anchor['bootstrap_tree'], f'receipt-archive/objects/{key[:2]}/{key}.json') is None, 'retained object pre-bootstrap requires explicit reviewed import')
     require(raw is not None and digest(raw) == key, 'retained lookup object missing or altered')
     record = document(raw); links = record.get('materials')
-    require(isinstance(links, dict) and len(links) <= 9 and all(state_paths.valid_hash(k, 64) for k in links.values()), 'retained lookup materials differ')
+    require(isinstance(links, dict) and len(links) <= 10 and all(state_paths.valid_hash(k, 64) for k in links.values()), 'retained lookup materials differ')
     materials = {}
     for material in set(links.values()):
         raw = blob_at(anchor['tree'], f'receipt-archive/materials/{material[:2]}/{material}.json')

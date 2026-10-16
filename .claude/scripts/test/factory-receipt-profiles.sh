@@ -32,6 +32,7 @@ with tempfile.TemporaryDirectory() as d:
  bad=copy.deepcopy(good);bad['profiles'][0]['extra']=True;reject(bad,'profile schema')
  for pathkey in list(pins)+['factory/receipt-trust.json']:
   bad=copy.deepcopy(good)
+  if pathkey == '.claude/scripts/factory-policy-observation.py':continue  # reviewed historical six-file parser family
   if pathkey in pins:del bad['profiles'][0]['runtime'][pathkey]
   else:bad['profiles'][0]['runtime'][pathkey]='a'*64
   reject(bad,'runtime closure')

@@ -1772,7 +1772,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-producers.sh && bash .claude/scripts/test/factory-provenance.sh && bash .claude/scripts/test/factory-preflight.sh
   owner: implementer
 
-- [ ] T-299  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-294,T-292  | parallel: no  | est: 5m
+- [x] T-299  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-294,T-292  | parallel: no  | est: 5m
   summary: Integrate current seven-file runtime while preserving authenticated historical six-file facts
   files: .claude/scripts/factory-receipts.py, .claude/scripts/factory-receipt-archive.py, .claude/scripts/factory-receipt-discovery.py, .claude/scripts/factory-preflight.py, .claude/scripts/test/factory-receipt-runtime-compatibility.sh, .claude/scripts/test/factory-receipt-profiles.sh, .claude/scripts/test/factory-receipt-source.sh, .claude/scripts/test/factory-receipt-archive.sh, .claude/scripts/test/factory-receipt-retained-proof.sh, .claude/scripts/test/factory-receipt-revocation.sh, plans/active/014-authenticated-receipt-recovery.md
   accept: bash .claude/scripts/test/factory-receipt-runtime-compatibility.sh

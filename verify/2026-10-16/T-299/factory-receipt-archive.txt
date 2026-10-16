@@ -1,0 +1,3 @@
+31 compact receipt archive cases passed; bootstrap/CAS origin not implemented
+
+exit_code: 0
