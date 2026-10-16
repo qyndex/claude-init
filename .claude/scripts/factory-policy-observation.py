@@ -78,6 +78,70 @@ def identity(repo, rules):
     return hashlib.sha256(raw).hexdigest()
 
 
+def failure_diagnostic(repo, rules, observation=None):
+    """Bounded component fingerprints, never approval or raw policy/actor output.
+
+    Any diagnostic error returns a fixed inert category. Callers must preserve
+    the original validation rejection even if diagnostic construction fails.
+    """
+    unavailable = {'schema_version': 1, 'reason': 'diagnostic-unavailable'}
+    try:
+        require(type(rules) is dict, 'rules object required')
+        projection = {key: rules[key] for key in SEMANTIC if key in rules}
+        # Bound traversal before canonical serialization or per-field hashing.
+        stack = [(projection, 0)]; nodes = 0; string_bytes = 0
+        while stack:
+            value, depth = stack.pop(); nodes += 1
+            require(nodes <= 8192 and depth <= 32, 'diagnostic structure bound')
+            if type(value) is str:
+                require(len(value) <= MAX_BYTES, 'diagnostic string bound')
+                string_bytes += len(value.encode('utf-8'))
+                require(string_bytes <= MAX_BYTES, 'diagnostic byte bound')
+            elif type(value) is dict:
+                require(len(value) <= 8192 and all(type(k) is str for k in value), 'diagnostic object bound')
+                require(nodes + len(stack) + 2*len(value) <= 8192, 'diagnostic queued node bound')
+                stack.extend((child, depth+1) for pair in value.items() for child in pair)
+            elif type(value) is list:
+                require(len(value) <= 8192, 'diagnostic list bound')
+                require(nodes + len(stack) + len(value) <= 8192, 'diagnostic queued node bound')
+                stack.extend((child, depth+1) for child in value)
+            else:
+                require(value is None or type(value) in (int, float, bool), 'diagnostic value type')
+                if type(value) is int:
+                    require(value.bit_length() <= 256, 'diagnostic number bound')
+        require(len(canonical(projection)) <= MAX_BYTES, 'diagnostic serialization bound')
+        components = {key: ({'status': 'present', 'sha256': hashlib.sha256(canonical(rules[key])).hexdigest()}
+                            if key in rules else {'status': 'missing'}) for key in sorted(SEMANTIC)}
+        timestamps = {}
+        for key in ('created_at', 'updated_at'):
+            try:
+                timestamps[key] = {'raw': rules[key], 'utc': timestamp(rules[key]).isoformat()}
+            except (KeyError, ValueError, TypeError):
+                timestamps[key] = {'status': 'invalid'}
+        try:
+            actual = identity(repo, rules)
+        except (ValueError, KeyError, TypeError):
+            actual = None
+        expected = observation.get('metadata_sha256') if type(observation) is dict else None
+        if type(expected) is not str or re.fullmatch(r'[0-9a-f]{64}', expected) is None:
+            expected = None
+        name = repo.get('full_name') if type(repo) is dict else None
+        if type(name) is not str or re.fullmatch(r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+', name) is None:
+            name = None
+        repository_id = repo.get('id') if type(repo) is dict else None
+        ruleset_id = rules.get('id')
+        result = {'schema_version': 1, 'reason': 'validation-rejected',
+                  'repository': name,
+                  'repository_id': repository_id if type(repository_id) is int and 0 < repository_id < 2**63 else None,
+                  'ruleset_id': ruleset_id if type(ruleset_id) is int and 0 < ruleset_id < 2**63 else None,
+                  'metadata_sha256': actual, 'expected_metadata_sha256': expected,
+                  'components': components, 'timestamps': timestamps}
+        require(len(canonical(result)) <= 8192, 'diagnostic output bound')
+        return result
+    except Exception:
+        return unavailable
+
+
 def clock(now):
     value = now if now is not None else dt.datetime.now(dt.timezone.utc)
     require(isinstance(value, dt.datetime) and value.tzinfo is not None, 'aware current time required')

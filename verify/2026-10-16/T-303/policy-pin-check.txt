@@ -1,0 +1,2 @@
+PASS: all16exactruntimepinsmatchactualsource; unchanged8perrole closures.
+All other policy fields exactly unchanged; merge_enabledfalse.

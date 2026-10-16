@@ -101,3 +101,12 @@ The `factory-receipt-<run>-<attempt>` artifact still contains only `receipt.json
 No App permission increase, authority flag, ruleset change or merge activation is
 authorized by configuring an observation. Landing source changes still needs the
 separately reviewed maintenance procedure; public/adopter live proof remains due.
+
+The protected shadow run38833564091 subsequently rejected operator-observation
+metadata before the success audit entry was appended. The diagnostic repair
+prepares bounded actual App-view component hashes and valid raw timestamps in
+the existing separate90-day administrative audit, while preserving exact
+metadata/timestamp/identity and actor checks. It does not establish the mismatch's
+cause or authorize normalization. A genuine protected App-view diagnostic after
+normal source rollout is required before any subsequent root-cause correction;
+authority remains disabled and no hosted shadow success is claimed here.

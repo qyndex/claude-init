@@ -130,3 +130,12 @@ bounded valid raw created_at/updated_at strings. SEMANTIC/exclusion sets and exa
 timestamp enforcement remain byte-for-byte unchanged. Changed source requires
 updated exact pins for both producer roles with existing8/7 closures intact; no
 receipt trust extension or timestamp normalization is authorized.
+
+T303 local implementation captures actual hidden-response component fingerprints
+before validation and appends a rejected-observation audit entry only on failure,
+then rethrows the original rejection. Bounded diagnostic errors cannot prevent
+eligibility failure invalidation. A prewalk bounds both visited and queued nodes
+before canonical hashing; emitted values are fixed digests/identities/valid
+timestamps, never raw actors/rules/unknown payload. Original success audit and
+all enforcement remain unchanged. Local acceptance27 and existing scoped
+regressions do not establish the real hosted mismatch or diagnose its cause.

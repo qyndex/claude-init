@@ -100,7 +100,22 @@ def protection(api, root, branch, required, app_id, observations=None, audit=Non
             require(len(selected) == 1, 'exact protected operator observation missing')
             repository = api.get(root)
             require(repository.get('full_name') == root.removeprefix('repos/'), 'repository identity differs')
-            result = policy_observation.validate(repository, ruleset, selected[0])
+            diagnostic = None
+            if audit is not None:
+                try:
+                    diagnostic = policy_observation.failure_diagnostic(repository, ruleset, selected[0])
+                except Exception:
+                    pass  # Diagnostics must never mask authority rejection/invalidation.
+            try:
+                result = policy_observation.validate(repository, ruleset, selected[0])
+            except (ValueError, KeyError, TypeError):
+                try:
+                    if diagnostic is not None and len(audit) < 64:
+                        audit.append({'mode': 'rejected-observation', 'ruleset_id': ruleset_id,
+                                      'diagnostic': diagnostic})
+                except Exception:
+                    pass
+                raise
             entry = dict(result, ruleset_id=ruleset_id, observation=selected[0])
         if audit is not None:
             require(len(audit) < 64, 'policy observation audit bound exceeded')
