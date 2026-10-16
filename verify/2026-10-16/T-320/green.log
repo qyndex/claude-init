@@ -1,0 +1,10 @@
+# TDD ledger — green — T-320
+ledger_format: 2
+timestamp: 2026-10-16T14:11:39+11:00
+command: bash .claude/scripts/test/factory-reporting-queue-live-evidence.sh
+exit_code: 0
+---
+11 explicit-live CLI composition cases passed via local gh stub; NOT live rollout evidence
+35 bounded reviewed-source/run/job/log observer cases passed; fixtures only, no live credit
+12 real Git protected journal/publication preservation cases passed; no live credit
+Offline queue evidence contract tests passed; live rollout remains unverified.

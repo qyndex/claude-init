@@ -1,0 +1,5 @@
+Verification-only parent task characterizing existing committed T322–T324 behavior.
+No new runtime or test behavior is introduced and no new RED is claimed.
+Use repository-supported green-only characterization handling in check-tdd-ledger.sh.
+Original genuine fail-first child evidence remains under T-322, T-323 and T-324.
+Offline contract success gives no T318 live rollout credit.

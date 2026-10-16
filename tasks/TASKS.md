@@ -647,7 +647,7 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
   accept: bash .claude/scripts/test/factory-reporting-queue-actions.sh
   owner: implementer
 
-- [ ] T-320  | spec:029  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-319,T-324  | parallel: no  | est: 5m
+- [x] T-320  | spec:029  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-319,T-324  | parallel: no  | est: 5m
   summary: Authenticate bounded live queue run journal and publication evidence with read-only GitHub observations
   files: .claude/scripts/factory-reporting-queue-evidence.py, .claude/scripts/test/factory-reporting-queue-live-evidence.sh
   accept: bash .claude/scripts/test/factory-reporting-queue-live-evidence.sh
