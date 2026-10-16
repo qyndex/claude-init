@@ -565,6 +565,15 @@ def build_config(env):
         raise ValueError('queue protected start invalid') from error
     reporting = {key:config[key] for key in ('enabled', 'repository', 'state_repository', 'branch', 'destination', 'team_id')}
     reporting.update(start=start, attachments_enabled=flag('FACTORY_REPORTING_ATTACHMENTS_ENABLED'))
+    writer_flag=env.get('FACTORY_REPORTING_APP_WRITER_ENABLED','false')
+    require(writer_flag in ('true','false'),'reporting writer flag invalid')
+    if writer_flag=='true':
+        import importlib.util
+        from pathlib import Path
+        spec=importlib.util.spec_from_file_location('queue_config_transport',Path(__file__).with_name('factory-reporting-transport.py'))
+        transport=importlib.util.module_from_spec(spec);spec.loader.exec_module(transport)
+        reporting=transport.attach_reporting_context(dict(reporting,state_branch=storage['state_branch'],bootstrap_sha=storage['bootstrap_sha']))
+        storage['state_view']=reporting['state_view']
     return {'config':config, 'storage':storage, 'reporting':reporting}
 
 
@@ -617,14 +626,22 @@ def main():
     import argparse, importlib.util, os, subprocess
     from pathlib import Path
     parser = argparse.ArgumentParser(); parser.add_argument('--drill', action='store_true'); args = parser.parse_args()
+    writer_flag=os.environ.get('FACTORY_REPORTING_APP_WRITER_ENABLED','false')
+    require(writer_flag in ('true','false'),'reporting writer flag invalid')
+    api=None
+    if writer_flag=='true':
+        spec=importlib.util.spec_from_file_location('queue_transport',Path(__file__).with_name('factory-reporting-transport.py'))
+        transport=importlib.util.module_from_spec(spec);spec.loader.exec_module(transport)
+        api=transport.create_api(os.environ)
     built = build_config(os.environ)
     checkout = subprocess.run(['git', 'rev-parse', '--verify', 'HEAD'], check=True, capture_output=True, text=True, timeout=10).stdout.strip()
     execution_context(os.environ, built['config'], checkout, args.drill)
     module = importlib.util.spec_from_file_location('queue_entry_state', Path(__file__).with_name('factory-git-state.py'))
     state = importlib.util.module_from_spec(module); module.loader.exec_module(state)
-    actions = state.API(built['config']['repository'], os.environ.get('GH_TOKEN'))
-    writer = state.API(built['config']['repository'], os.environ.get('FACTORY_REPORTING_STATE_TOKEN') or os.environ.get('GH_TOKEN'))
-    api = RoutedAPI(built['config']['repository'], actions, writer)
+    if writer_flag=='false':
+        actions = state.API(built['config']['repository'], os.environ.get('GH_TOKEN'))
+        writer = state.API(built['config']['repository'], os.environ.get('FACTORY_REPORTING_STATE_TOKEN') or os.environ.get('GH_TOKEN'))
+        api = RoutedAPI(built['config']['repository'], actions, writer)
     result = protected_entry(os.environ, api, state.slack.http_client(built['reporting']), checkout, datetime.now(timezone.utc), drill=args.drill)
     print(json.dumps(result, sort_keys=True)); return 0
 

@@ -75,7 +75,15 @@ def main():
     require(Path(__file__).resolve().parents[2] not in path.parents,'feedback configuration cannot live in candidate checkout')
     config=json.loads(path.read_text(),object_pairs_hook=crypto.pairs)
     secret=crypto.key(os.environ['FACTORY_FEEDBACK_STATE_KEY'])
-    api=state.API(config['state_repository'],os.environ.get('FACTORY_REPORTING_STATE_TOKEN') or os.environ.get('GH_TOKEN'))
+    flag=os.environ.get('FACTORY_REPORTING_APP_WRITER_ENABLED','false')
+    require(flag in ('true','false'),'reporting writer flag invalid')
+    if flag=='true':
+        transport=load('feedback_transport','factory-reporting-transport.py')
+        api=transport.create_api(os.environ)
+        require(api.repo==config['repository']==config['state_repository'],'reporting selected API repository differs')
+        config=transport.attach_reporting_context(config)
+    else:
+        api=state.API(config['state_repository'],os.environ.get('FACTORY_REPORTING_STATE_TOKEN') or os.environ.get('GH_TOKEN'))
     result=run(config,api,state.slack.http_client(config),secret,datetime.now(timezone.utc))
     print(json.dumps(result,sort_keys=True))
 
