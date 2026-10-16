@@ -80,3 +80,53 @@ and shared retained material count9→10, with corresponding strict fixtures and
 profile hashes. There are no active content profiles. Do not claim durable receipt
 or live shadow readiness from this source repair. Later publication requires all
 nine normal checks and separately reviewed concrete maintenance before landing.
+
+### T303 bounded failed-observation diagnosis — 2026-10-16
+
+Actual protected shadow run38833564091 failed closed with `observation metadata
+changed or foreign`; its existing administrative audit has checks[] because the
+exception occurs before the success-only append. The operator's later full-admin
+GET still matches the saved observation; that does not establish the App's actual
+view or identify the mismatching component. Authority is off. No timestamp or
+metadata normalization/acceptance relaxation is justified by this evidence.
+
+T303 adds bounded safe failure diagnostics within approved AC5 operator-observation
+scope. Before rethrowing the original validation failure, retain fixed-schema
+semantic-component SHA256 digests, full semantic projection digest if valid,
+repository/ruleset identity, and bounded canonical/raw created/updated timestamps
+when valid. Record missing/malformed component status without echoing arbitrary
+values. Compare expected observation metadata hash/timestamp only through fixed
+validated fields. Diagnostics must describe the actual App-fetched response, never
+a candidate-provided substitute or an administrator's later GET.
+
+Use the existing separate bounded90-day administrative audit artifact, outside
+the single-member receipt directory. No raw actor arrays, rule values, unknown
+fields, authorization headers, credentials, protected observation JSON or provider
+output may be logged. A diagnostic is not native attestation, exact-policy approval
+or portable archive origin. Preserve original exceptions and failure check
+invalidation; failure to construct a diagnostic must never authorize eligibility.
+
+Strict real fail-first acceptance will demonstrate that a metadata mismatch
+preserves a bounded component diagnosis while the same mismatch still rejects.
+Test changed/missing/foreign/malformed/oversize/sentinel cases, timestamp spelling
+and precision only as diagnostic evidence, and unchanged valid direct/observed
+validation. Preserve all settled timestamps, exact hash/identity, visible actor
+rejection, live pins, fresh protection rechecks, Administration-read permissions
+and merge_enabled=false. Refresh only necessary runtime hashes for changed
+protected source, with existing complete closures unchanged. No workflow event,
+permission, secret or live configuration change is part of this task.
+
+After normal source review and separately approved deployment/maintenance, obtain
+a genuine protected App-view failure audit before proposing any root-cause fix.
+This planning checkpoint implements nothing, does not claim the diagnosis is known
+and does not certify hosted shadow readiness. Receipt tasks300–302 remain on their
+separate branch; T303 does not reuse their reserved IDs or modify that branch.
+
+Implementation boundary: capture the actual semantic component digests before
+validation can fail; preserve ordinary success audit entries. Use fixed failure
+category enums, never arbitrary exception text. Emit expected and actual overall
+metadata hashes when strictly valid, per-SEMANTIC-field canonical hashes and only
+bounded valid raw created_at/updated_at strings. SEMANTIC/exclusion sets and exact
+timestamp enforcement remain byte-for-byte unchanged. Changed source requires
+updated exact pins for both producer roles with existing8/7 closures intact; no
+receipt trust extension or timestamp normalization is authorized.
