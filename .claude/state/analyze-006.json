@@ -15,12 +15,12 @@
     "AC-11"
   ],
   "tasks_for_spec": 12,
-  "tasks_done": 11,
+  "tasks_done": 12,
   "uncovered_note": "",
-  "generated": "2026-10-17T00:09:41+11:00",
-  "verdict": "PENDING_REVIEW",
+  "generated": "2026-10-16T13:26:29.374803+00:00",
+  "verdict": "PENDING_PUBLICATION",
   "blockers": [
-    "Fresh independent review of integrated corrections pending"
+    "Corrected-head hosted checks, merge and delivery closeout pending"
   ],
-  "scope": "Structural coverage only; local repairs pass but review/publication closeout pending. Historical AC proof is not recertified."
+  "scope": "Structural task coverage and scoped local review closure only. Historical AC proof is not recertified; merged/live completion is not claimed."
 }
