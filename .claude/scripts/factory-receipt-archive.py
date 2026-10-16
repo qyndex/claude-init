@@ -1040,3 +1040,108 @@ def retained_merge_time(state_api, policy, store, approval_path, stream, run_id,
                 result = {'status': 'observed', 'fact': fact, 'coverage_complete': False}
     require(verify_bootstrap(api, approval_path) == anchor and Path(approval_path).read_bytes() == approval_raw, 'retained time protected origin changed')
     return result
+
+
+def stage_projection(state_api, policy, trust_path, store, approval_path, stream, *, interval_end, page=1, offset=0, limit=8, history_head=None):
+    """Derive one protected bounded slice; no supplied facts/cursors are authority.
+
+    Conflict indices cover this frozen interval/trust campaign, not all history.
+    Consumers must reauthenticate retained materials/current trust (T309). Existing
+    256-ancestor origin limit remains until T310; coverage is always false here.
+    """
+    from urllib.parse import quote
+    import uuid
+    require(type(offset) is int and offset >= 0 and type(limit) is int and 1 <= limit <= 8, 'projection stage bounds differ')
+    root = 'repos/'+state_api.repo; calls = consumed = 0; immutable = {}
+    class Bounded:
+        repo = state_api.repo
+        def request(self, path, method='GET', payload=None):
+            nonlocal calls, consumed
+            require(path == root or path.startswith(root+'/'), 'projection stage foreign API')
+            cacheable = method == 'GET' and payload is None and any(path.startswith(root+'/git/'+kind+'/') and state_paths.valid_hash(path.rsplit('/', 1)[1], 40) for kind in ('commits', 'trees', 'blobs'))
+            if cacheable and path in immutable:
+                return document(immutable[path])
+            require(calls < 2048, 'projection stage API capacity gap'); calls += 1
+            value = state_api.request(path, method, payload)
+            size = len(canonical(value)); consumed += size
+            require(size <= 2097152 and consumed <= 33554432, 'projection stage observation capacity gap')
+            if cacheable:
+                immutable[path] = canonical(value)
+            return value
+    api = Bounded(); uncertain = False; selected = history_head
+    for retry in range(3):
+        anchor = verify_bootstrap(api, approval_path)
+        approval_raw = Path(approval_path).read_bytes(); trust_hash = digest(Path(trust_path).read_bytes())
+        lineage = projection_lineage(api, policy, trust_path, store, approval_path, stream, interval_end=interval_end, page=page, limit=1, history_head=selected)
+        selected = lineage['history_head']
+        require(len(lineage['windows']) == 1, 'projection stage required window missing')
+        window = lineage['windows'][0]; checkpoint = window['checkpoint']
+        references = checkpoint['window']['references']
+        require(offset < len(references), 'projection stage slice missing')
+        chosen = references[offset:offset+limit]
+        binding = dict(checkpoint['binding'], frozen_head=checkpoint['frozen_head'], frozen_tree=checkpoint['frozen_tree'], trust_sha256=trust_hash)
+        campaign = digest(canonical(binding)); prefix = 'receipt-archive/stages/'+campaign+'/'
+        def path_for(kind, identity):
+            key = digest(canonical([kind, identity])); return prefix+key[:2]+'/'+key+'.json'
+        facts = []; indexes = {}
+        for reference in chosen:
+            run_id, attempt = reference['run_id'], reference['attempt']
+            retained = retained_execution(api, anchor, store, stream, run_id, attempt)
+            require(retained is not None and retained['record_sha256'] == reference['record_sha256'] and retained['record']['artifact']['id'] == reference['artifact_id'], 'projection stage retained reference differs')
+            timed = retained_merge_time(api, policy, store, approval_path, stream, run_id, attempt)
+            if timed['status'] != 'observed':
+                return {'status': 'gap', 'reason': timed['reason'], 'coverage_complete': False}
+            fact = timed['fact']; tasks = retained['record']['proof']['tasks']
+            fact = dict(fact, artifact_id=reference['artifact_id'], tasks=tasks, segment=reference['segment'])
+            facts.append(fact)
+            for kind, identities in (('execution', [[run_id, attempt]]), ('task', tasks)):
+                for identity in identities:
+                    index = {'schema_version': 1, 'campaign': campaign, 'kind': kind, 'identity': identity, 'run_id': run_id, 'attempt': attempt, 'record_sha256': reference['record_sha256']}
+                    path = path_for(kind, identity)
+                    require(path not in indexes or indexes[path] == index, 'projection stage conflicting '+kind)
+                    indexes[path] = index
+        stage = {'schema_version': 1, 'binding': binding, 'publication_sha': window['publication_sha'], 'checkpoint_blob': window['blob_sha'], 'offset': offset, 'stop': offset+len(chosen), 'facts': facts}
+        stage_path = path_for('window', [window['publication_sha'], offset, limit])
+        desired = {stage_path: stage, **indexes}; item_at, blob_at = fixed_reader(api, root)
+        missing = {}
+        for path, value in desired.items():
+            require(item_at(anchor['bootstrap_tree'], path) is None, 'projection stage copied pre-bootstrap capsule')
+            encoded = canonical(value); require(len(encoded) <= MAX_OBJECT, 'projection stage object capacity gap')
+            old = blob_at(anchor['tree'], path)
+            if old is not None:
+                require(canonical(document(old)) == encoded, 'projection stage conflicting '+value.get('kind', 'window'))
+            else:
+                missing[path] = encoded
+        require(verify_bootstrap(api, approval_path) == anchor and Path(approval_path).read_bytes() == approval_raw and digest(Path(trust_path).read_bytes()) == trust_hash, 'projection stage protected origin changed')
+        if not missing:
+            return {'status': 'already-staged', 'campaign': campaign, 'stage_path': stage_path, 'facts_count': len(facts), 'coverage_complete': False}
+        require(stage_path in missing, 'projection stage incomplete index publication')
+        tree_sha = anchor['tree']
+        for path, encoded in missing.items():
+            blob = api.request(root+'/git/blobs', 'POST', {'encoding': 'base64', 'content': base64.b64encode(encoded).decode()})
+            require(blob.get('sha') == hashlib.sha1(b'blob '+str(len(encoded)).encode()+b'\0'+encoded).hexdigest(), 'projection stage uploaded blob differs')
+            tree = api.request(root+'/git/trees', 'POST', {'base_tree': tree_sha, 'tree': [{'path': path, 'type': 'blob', 'mode': '100644', 'sha': blob['sha']}]})
+            require(state_paths.valid_hash(tree.get('sha'), 40), 'projection stage created tree differs')
+            _origin_delta(api.request, root, tree_sha, tree['sha'], path); tree_sha = tree['sha']
+        commit = api.request(root+'/git/commits', 'POST', {'message': 'factory: checked derived stage '+uuid.uuid4().hex, 'tree': tree_sha, 'parents': [anchor['head']]})
+        require(state_paths.valid_hash(commit.get('sha'), 40) and commit['tree']['sha'] == tree_sha and [p['sha'] for p in commit['parents']] == [anchor['head']], 'projection stage created commit differs')
+        approval = document(approval_raw)
+        for identity, expected in approval['policies'].items():
+            require(digest(canonical(api.request(root+'/rulesets/'+identity))) == expected, 'projection stage protection changed')
+        require(Path(approval_path).read_bytes() == approval_raw and digest(Path(trust_path).read_bytes()) == trust_hash, 'projection stage protected input changed')
+        refpath = root+'/git/ref/heads/'+quote(anchor['branch'], safe='')
+        if api.request(refpath)['object']['sha'] != anchor['head']:
+            continue
+        try:
+            api.request(root+'/git/refs/heads/'+quote(anchor['branch'], safe=''), 'PATCH', {'sha': commit['sha'], 'force': False})
+        except (ValueError, RuntimeError):
+            uncertain = True
+            try:
+                observed = api.request(refpath)
+            except (ValueError, RuntimeError) as error:
+                raise ValueError('projection stage acknowledgement uncertain; restart required') from error
+            if observed['object']['sha'] != commit['sha']:
+                continue
+        require(api.request(refpath)['object']['sha'] == commit['sha'], 'projection stage acknowledgement uncertain')
+        return {'status': 'staged', 'campaign': campaign, 'stage_path': stage_path, 'facts_count': len(facts), 'coverage_complete': False, 'uncertain_write_reconciled': uncertain}
+    raise ValueError('projection stage three CAS attempts exhausted; progress incomplete')

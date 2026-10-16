@@ -1831,7 +1831,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-receipt-projection-time.sh
   owner: implementer
 
-- [ ] T-308  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-307  | parallel: no  | est: 5m
+- [x] T-308  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-307  | parallel: no  | est: 5m
   summary: Persist bounded report reconstruction stages with global conflict guards
   files: .claude/scripts/factory-receipt-archive.py, .claude/scripts/factory-state-paths.py, .claude/scripts/test/factory-receipt-projection-stage.sh, plans/active/014-authenticated-receipt-recovery.md
   accept: bash .claude/scripts/test/factory-receipt-projection-stage.sh

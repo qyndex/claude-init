@@ -452,3 +452,24 @@ explicit gap, while malformed identity/time rejects. Actual20 real-Git cases
 include adapter-prefix distinction and one-microsecond noncollapse. No schema1
 rewrite, staged state, SQLite reconstruction or task credit; current revocation
 and completed-origin integration remain later work. No live or queue changes.
+
+### T308 protected staging contract — 2026-10-16
+
+Staging independently reads one T306 publication and at most eight references
+selected by offset, deriving exact T307 time facts and retained record/task links.
+Missing time/proof is a gap without publishing a permanent incomplete stage.
+Fixed sharded receipt-archive/stages/<campaign>/<two-hex>/<hash>.json paths hold
+strictly recomputed window facts and task/execution indices; conflicting existing
+bytes reject. Campaign scope is one frozen requested interval/bootstrap/policy/
+current-trust binding, not global all-time coverage. Shared indices prevent
+conflicting task/execution assignments across windows in that campaign.
+
+A single observed-base commit publishes all facts and indices, preserving other
+report/encrypted blobs. Three nonforce CAS attempts reread/reconcile; uncertain
+acknowledgements require actual ref confirmation. Exact immutable Git object
+responses may be cached within the same invocation's 32MiB/2048-call budget;
+refs, rules, PR metadata and protected input are always reread. The initial real
+capacity failure is retained rather than raising limits. T309 must reauthenticate
+materials, current revocation and completeness when consuming stages. No SQLite,
+SQL, caller facts, task credit or complete coverage is granted; T310's existing
+256-ancestor origin integration limitation remains explicit.
