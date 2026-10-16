@@ -108,7 +108,11 @@ jobs:
           FACTORY_SLACK_BOT_TOKEN: ${{ secrets.FACTORY_SLACK_BOT_TOKEN }}
         run: |
           umask 077
-          python3 .claude/scripts/factory-git-state.py --config "$RUNNER_TEMP/factory-hosted-digest.json"
+          case "${FACTORY_REPORTING_APP_WRITER_ENABLED:-false}" in
+            true) python3 .claude/scripts/factory-reporting-driver.py --config "$RUNNER_TEMP/factory-hosted-digest.json" ;;
+            false) python3 .claude/scripts/factory-git-state.py --config "$RUNNER_TEMP/factory-hosted-digest.json" ;;
+            *) exit 1 ;;
+          esac
 
       - name: Verify delivery and signal independent watchdog
         if: vars.FACTORY_REPORTING_WATCHDOG_ENABLED == 'true'
