@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "<stdin>", line 116, in <module>
+  File "real-Git-queue-journal-evidence-fixture", line 117, in <module>
+  File "/private/tmp/factory-queue-evidence-tree-fix-20261017/.claude/scripts/factory-reporting-queue-evidence.py", line 207, in observe_journal
+    parent = parents[0].get('sha'); old_tree = tree(parent); new_tree = tree(cursor)
+                                               ~~~~^^^^^^^^
+  File "/private/tmp/factory-queue-evidence-tree-fix-20261017/.claude/scripts/factory-reporting-queue-evidence.py", line 175, in tree
+    require(type(value) is dict and value.get('sha') == identity and value.get('truncated') is False and type(value.get('tree')) is list and len(value['tree']) <= 1024, 'queue evidence state tree incomplete or capacity exceeded')
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-queue-evidence-tree-fix-20261017/.claude/scripts/factory-reporting-queue-evidence.py", line 21, in require
+    raise ValueError(message)
+ValueError: queue evidence state tree incomplete or capacity exceeded

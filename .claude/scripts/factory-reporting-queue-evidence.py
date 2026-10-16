@@ -170,17 +170,31 @@ def observe_journal(api, root, config, storage, selections, now):
         return commits[sha]
     def tree(sha):
         identity = commit(sha)['tree']['sha']
-        if identity not in trees:
-            value = api.request(prefix+'/git/trees/'+identity+'?recursive=1')
-            require(type(value) is dict and value.get('sha') == identity and value.get('truncated') is False and type(value.get('tree')) is list and len(value['tree']) <= 1024, 'queue evidence state tree incomplete or capacity exceeded')
-            result = {}; seen = set()
+        def entries(tree_sha):
+            value = api.request(prefix+'/git/trees/'+tree_sha)
+            require(type(value) is dict and value.get('sha') == tree_sha and value.get('truncated') is False and type(value.get('tree')) is list and len(value['tree']) <= 1024, 'queue evidence state tree incomplete or capacity exceeded')
+            seen = set()
             for item in value['tree']:
                 require(type(item) is dict and type(item.get('path')) is str and item['path'] not in seen, 'queue evidence state tree path invalid or duplicate'); seen.add(item['path'])
                 require(type(item.get('sha')) is str and re.fullmatch(r'[0-9a-f]{40}',item['sha']) is not None, 'queue evidence tree object invalid')
-                if item.get('type') == 'tree':
-                    require(item['path'] == 'reports' and item.get('mode') == '040000', 'queue evidence unexpected state directory'); continue
-                require(item.get('type') == 'blob' and item.get('mode') == '100644' and (item['path'] == 'README.md' or re.fullmatch(r'reports/[0-9a-f]{64}\.json',item['path']) is not None), 'queue evidence unexpected state leaf')
-                result[item['path']] = (item['mode'],item['sha'])
+            return value['tree']
+        if identity not in trees:
+            result = {}
+            for item in entries(identity):
+                path = item['path']
+                if path in {'reports','receipt-archive'}:
+                    require(item.get('type') == 'tree' and item.get('mode') == '040000', 'queue evidence unexpected state directory')
+                    if path == 'receipt-archive':
+                        # Preserve the entire authenticated archive as one opaque identity;
+                        # queue evidence neither traverses it nor grants receipt authority.
+                        result[path] = (item['mode'],item['sha'])
+                    else:
+                        for leaf in entries(item['sha']):
+                            require(leaf.get('type') == 'blob' and leaf.get('mode') == '100644' and re.fullmatch(r'[0-9a-f]{64}\.json',leaf['path']) is not None, 'queue evidence unexpected report leaf')
+                            result['reports/'+leaf['path']] = (leaf['mode'],leaf['sha'])
+                else:
+                    require(path == 'README.md' and item.get('type') == 'blob' and item.get('mode') == '100644', 'queue evidence unexpected state leaf')
+                    result[path] = (item['mode'],item['sha'])
             trees[identity] = result
         return trees[identity]
     def role(sha):
