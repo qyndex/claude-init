@@ -4,9 +4,12 @@
   "context_green_exit": 0,
   "transport_green_exit": 0,
   "sha256": {
-    ".claude/scripts/factory-reporting-transport.py": "a1981accc83f73c3849a2bca2fb2b10c463f6d2734babfaf7e74bcb17bba1507",
-    ".claude/scripts/test/factory-reporting-context.sh": "cfc9474427fa236b4128bf3e943c76f26f2af19aac2b4ec2428a5aea515482c6"
+    ".claude/scripts/factory-reporting-transport.py": "efeff155084283e37dfbdc847cb5868a21d4bd8a7d68b72027373fc4ea98a28c",
+    ".claude/scripts/test/factory-reporting-context.sh": "1855177ccab814441c9e6d53502cc3cacae7e14ff8d51ab3af2027f5fb244764"
   },
   "live_calls": false,
-  "task_closed": false
+  "task_closed": false,
+  "context_green_log": "green-final.log",
+  "original_green_log": "diagnostic canonical /var alias rejection, not PASS",
+  "fifo_red_exit": 1
 }

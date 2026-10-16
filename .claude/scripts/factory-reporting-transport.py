@@ -224,7 +224,7 @@ def attach_reporting_context(config, *, checkout=None):
     def read(name):
         path=fixed/name
         try:
-            descriptor=os.open(path,os.O_RDONLY|os.O_NOFOLLOW)
+            descriptor=os.open(path,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK)
             with os.fdopen(descriptor,'rb') as stream:
                 require(stat.S_ISREG(os.fstat(stream.fileno()).st_mode), 'reporting context input must be regular')
                 raw=stream.read(1048577)
