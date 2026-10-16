@@ -1,0 +1,7 @@
+# TDD ledger — green — T-310
+ledger_format: 2
+timestamp: 2026-10-16T15:42:17+11:00
+command: bash .claude/scripts/test/factory-receipt-completed-origin.sh
+exit_code: 0
+---
+completed origin actual300-history protected scanner and core append passed

@@ -353,8 +353,8 @@ def _checkpoint(source_api, state_api, policy, approval_path, stream, *, page_si
     """Read actual protected progress, advance one bounded page/scan and CAS atomically.
 
     Only checked scanner output is persisted. No caller checkpoint/cursor input is
-    accepted. Full bootstrap verification remains mandatory until later anchor
-    integration; a checkpoint's mere hash is never an origin grant.
+    accepted. Shared bootstrap verification authenticates completed scanner
+    publications plus every fresh suffix; a checkpoint hash alone grants nothing.
     """
     require(source_api.repo == state_api.repo == policy['repository'] and stream == archive.archive_stream(state_api.repo), 'foreign discovery repository/stream')
     require(type(page_size) is int and 0 < page_size <= 100 and type(tree_pages) is int and 0 < tree_pages <= 10, 'discovery invocation budget invalid')

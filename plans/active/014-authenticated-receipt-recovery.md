@@ -520,3 +520,32 @@ The real129-reference fixture exercises actual producer re-entry and a tampered
 overlap, retaining current revocation, fixed-schema and encrypted-data checks.
 This remains bounded frozen-interval reconstruction, not global coverage or
 current task credit; T310 still owns the unchanged256-ancestor integration gap.
+
+### T310 completed protected-origin integration — 2026-10-16
+
+The existing shared verify_bootstrap entry now authenticates the scanner's strict
+completed capsule before crediting its checked frozen prefix. It requires exact
+reviewed repository/privacy/bootstrap/approval/policy/App-writer binding, absence
+at bootstrap, actual latest path publication with its one observed parent,
+checkpoint-only tree delta, exact immutable blob/frozen commit/tree and reviewed
+bootstrap→frozen→publication→current ancestry. The existing exclusive App writer
+and settled no-rewrite/no-deletion policy establish publication origin; a caller
+blob, complete flag, hash or comparison response alone does not certify content.
+This is not a portable signed proof or a new authority grant.
+
+Every fresh suffix commit, including intermediate trees, still undergoes original
+single-parent/inert-path validation under the unchanged256 per-invocation ancestry,
+2048-call and32MiB limits. Incomplete capsules never skip history. Current rules
+and state reference are freshly rechecked before returning the ordinary anchor.
+Append, discovery, projection checkpoints/windows and retained reporting already
+call this shared boundary; no alternate unsigned fallback or caller resume API
+was added. Longer unscanned suffixes remain an explicit gap until bounded scanner
+progress completes another protected prefix. Other discovery/projection operation
+budgets and final T288 loader/configuration integration remain separate work.
+
+The real300-commit fixture completes protected scanner windows across fresh Python
+processes, then exercises actual append/re-entry, discovery, projection and
+retained/current-revocation consumers plus another fresh origin reader. Copy/re-add,
+partial/schema/delta/bootstrap, merged/executable suffix and mutable protection/
+App-writer negatives remain enforced. This does not constitute live App capability,
+large-delivery coverage, source pagination completeness or T286/T287 acceptance.

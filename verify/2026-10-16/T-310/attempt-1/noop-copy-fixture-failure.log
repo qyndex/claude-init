@@ -1,0 +1,11 @@
+# TDD ledger — green — T-310
+ledger_format: 2
+timestamp: 2026-10-16T15:43:15+11:00
+command: bash .claude/scripts/test/factory-receipt-completed-origin.sh
+exit_code: 1
+---
+Traceback (most recent call last):
+  File "<stdin>", line 88, in <module>
+  File "completed-origin-real-git-fixture", line 144, in <module>
+  File "completed-origin-real-git-fixture", line 135, in reject
+AssertionError: untrusted completed origin accepted publication parent

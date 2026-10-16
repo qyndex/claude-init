@@ -1879,7 +1879,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-receipt-projection-resume.sh
   owner: implementer
 
-- [ ] T-310  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-293,T-302  | parallel: no  | est: 5m
+- [x] T-310  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-293,T-302  | parallel: no  | est: 5m
   summary: Integrate completed protected origin before large-history acceptance
   files: .claude/scripts/factory-receipt-archive.py, .claude/scripts/factory-receipt-discovery.py, .claude/scripts/test/factory-receipt-completed-origin.sh, .claude/scripts/test/factory-receipt-origin-windows.sh, plans/active/014-authenticated-receipt-recovery.md
   accept: bash .claude/scripts/test/factory-receipt-completed-origin.sh

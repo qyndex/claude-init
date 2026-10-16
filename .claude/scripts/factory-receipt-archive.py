@@ -216,12 +216,67 @@ def _bootstrap_context(api, approval_path, *, now=None):
     return {'approval': approval, 'root': root, 'repo': repo, 'read': read, 'ref': ref}
 
 
+def _completed_origin(api, context):
+    """Authenticate protected scanner publication; a blob/hash alone is not proof.
+
+    The exclusive reviewed App writer is the existing origin authority. Its
+    checkpoint-only publication certifies checked content of a frozen prefix;
+    comparison metadata only binds ancestry, never intermediate content.
+    """
+    from urllib.parse import quote
+    approval, root, read, ref = (context[key] for key in ('approval', 'root', 'read', 'ref'))
+    class Reader:
+        repo = api.repo
+        request = staticmethod(read)
+    item_at, blob_at = fixed_reader(Reader(), root)
+    head = ref['object']['sha']
+    require(state_paths.valid_hash(head, 40), 'archive bootstrap ancestry invalid')
+    current = read(root+'/git/commits/'+head)
+    require(current['sha'] == head and state_paths.valid_hash(current['tree']['sha'], 40), 'origin current commit differs')
+    path = 'receipt-archive/origin/'+archive_stream(api.repo)+'.json'
+    raw = blob_at(current['tree']['sha'], path)
+    if raw is None:
+        return None
+    bootstrap = read(root+'/git/commits/'+approval['bootstrap_sha'])
+    require(bootstrap['sha'] == approval['bootstrap_sha'] and bootstrap['tree']['sha'] == approval['bootstrap_tree'], 'origin bootstrap commit differs')
+    require(item_at(approval['bootstrap_tree'], path) is None, 'origin checkpoint pre-bootstrap requires explicit reviewed import')
+    binding = {key: approval[key] for key in ('repository', 'repository_id', 'private', 'branch', 'bootstrap_sha', 'bootstrap_tree', 'coverage_from', 'writer_app_id', 'policies')}
+    binding['approval_sha256'] = digest(canonical(approval))
+    progress = document(raw)
+    require(type(progress) is dict and set(progress) == {'schema_version', 'binding', 'frozen_head', 'frozen_tree', 'prior_verified', 'next_sha', 'tree_cursor', 'checked_commits', 'complete', 'publication_parent'}
+            and type(progress['schema_version']) is int and progress['schema_version'] == 1
+            and canonical(progress['binding']) == canonical(binding) and type(progress['complete']) is bool
+            and type(progress['checked_commits']) is int and 0 <= progress['checked_commits'] < 10**12
+            and all(state_paths.valid_hash(progress[key], 40) for key in ('frozen_head', 'frozen_tree', 'publication_parent'))
+            and (progress['prior_verified'] is None or state_paths.valid_hash(progress['prior_verified'], 40))
+            and ((progress['complete'] and progress['next_sha'] is None and progress['tree_cursor'] is None and progress['checked_commits'] > 0)
+                 or (not progress['complete'] and state_paths.valid_hash(progress['next_sha'], 40))), 'origin protected checkpoint schema/binding differs')
+    history = read(root+'/commits?sha='+head+'&path='+quote(path, safe='')+'&per_page=1')
+    require(type(history) is list and len(history) == 1 and state_paths.valid_hash(history[0].get('sha'), 40), 'origin checkpoint publication missing')
+    publication = read(root+'/git/commits/'+history[0]['sha'])
+    require(publication['sha'] == history[0]['sha'] and type(publication['parents']) is list and len(publication['parents']) == 1
+            and publication['parents'][0]['sha'] == progress['publication_parent'], 'origin checkpoint publication parent differs')
+    parent = read(root+'/git/commits/'+progress['publication_parent'])
+    require(parent['sha'] == progress['publication_parent'] and blob_at(publication['tree']['sha'], path) == raw, 'origin checkpoint publication bytes differ')
+    _origin_delta(read, root, parent['tree']['sha'], publication['tree']['sha'], path)
+    frozen = read(root+'/git/commits/'+progress['frozen_head'])
+    require(frozen['sha'] == progress['frozen_head'] and frozen['tree']['sha'] == progress['frozen_tree'], 'origin frozen tree differs')
+    _origin_ancestor(read, root, approval['bootstrap_sha'], progress['frozen_head'])
+    _origin_ancestor(read, root, progress['frozen_head'], parent['sha'])
+    _origin_ancestor(read, root, publication['sha'], head)
+    if progress['prior_verified'] is not None:
+        _origin_ancestor(read, root, approval['bootstrap_sha'], progress['prior_verified'])
+        _origin_ancestor(read, root, progress['prior_verified'], progress['frozen_head'])
+    return progress['frozen_head'] if progress['complete'] else None
+
+
 def verify_bootstrap(api, approval_path, *, now=None):
     from urllib.parse import quote
     context = _bootstrap_context(api, approval_path, now=now)
     approval, root, repo, read, ref = (context[key] for key in ('approval', 'root', 'repo', 'read', 'ref'))
     ids = set(approval['policies'])
     branch = approval['branch']
+    verified_prefix = _completed_origin(api, context)
     head = ref['object']['sha']; sha = head; seen = set(); head_tree = None
     for _ in range(256):
         require(receipts.coordinator.contract.digest(sha, 40) and sha not in seen, 'archive bootstrap ancestry invalid')
@@ -244,6 +299,8 @@ def verify_bootstrap(api, approval_path, *, now=None):
         if sha == approval['bootstrap_sha']:
             require(tree_sha == approval['bootstrap_tree'], 'archive bootstrap tree differs')
             break
+        if sha == verified_prefix:
+            break  # Completed protected scanner proof covers the older checked prefix.
         require(isinstance(commit['parents'], list) and len(commit['parents']) == 1, 'archive bootstrap ancestry missing or merged')
         sha = commit['parents'][0]['sha']
     else:
@@ -663,8 +720,8 @@ def _origin_delta(read, root, before, after, path):
 def advance_origin(state_api, approval_path, *, commit_budget=16, tree_pages=4, now=None):
     """Persist bounded checked windows using protected App-writer origin, not signatures.
 
-    This scanner does not replace verify_bootstrap or grant delivery/projection
-    authority. complete covers only its frozen snapshot; newer suffixes remain
+    verify_bootstrap authenticates this protected publication before using its
+    completed prefix. complete covers only its frozen snapshot; newer suffixes remain
     explicitly pending. No caller-provided resume JSON is accepted.
     """
     from urllib.parse import quote
@@ -1022,7 +1079,7 @@ def stage_projection(state_api, policy, trust_path, store, approval_path, stream
 
     Conflict indices cover this frozen interval/trust campaign, not all history.
     Consumers must reauthenticate retained materials/current trust (T309). Existing
-    256-ancestor origin limit remains until T310; coverage is always false here.
+    Unscanned suffixes retain the256-ancestor bound; coverage is always false here.
     """
     from urllib.parse import quote
     import uuid
@@ -1170,7 +1227,7 @@ def reconstruct_interval(state_api, policy, db_path, trust_path, store, approval
     Every retained proof and current trust annotation is checked before SQL writes.
     projection_complete is not discovery/global coverage or current-task credit.
     Larger intervals fail explicitly at unchanged per-invocation budgets; T310's
-    256-ancestor integration remains pending. No database-dump or SQL payload is accepted.
+    Unscanned suffixes remain bounded. No database-dump or SQL payload is accepted.
     """
     import sqlite3
     require(state_paths.valid_hash(campaign, 64) and state_paths.valid_hash(history_head, 40), 'reconstruction selector differs')
