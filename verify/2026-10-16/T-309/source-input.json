@@ -1,0 +1,13 @@
+{
+  "base_commit": "ffe0ca387cb42cc8cd2de9be7522cbc0fd32cf54",
+  "recorded_after_tests_at": "2026-10-16T04:14:36.072938+00:00",
+  "scope": "local frozen-projection reconstruction only",
+  "projection_complete_fixture_verified": true,
+  "global_coverage_verified": false,
+  "live_activation_verified": false,
+  "files_sha256": {
+    ".claude/scripts/factory-receipt-archive.py": "e77fe71bb073a8b98f2dc9c12917a65b567a0c266435f8c1df2fcb1a51208e08",
+    ".claude/scripts/test/factory-receipt-projection-resume.sh": "a650fadf38027b50e961c3c77d3235ad7aa8ca067266c715b13784c4628e080a",
+    ".claude/scripts/test/factory-receipt-origin-windows.sh": "3ba66fec837b23a36e3dd38684659ea4435e576bf6c0da515b25d3d927f9476a"
+  }
+}

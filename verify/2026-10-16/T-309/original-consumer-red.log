@@ -1,0 +1,15 @@
+# TDD ledger — red — T-309
+ledger_format: 2
+timestamp: 2026-10-16T14:59:25+11:00
+command: bash .claude/scripts/test/factory-receipt-projection-resume.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 86, in <module>
+  File "real-git-projection-resume", line 142, in <module>
+AssertionError: Traceback (most recent call last):
+  File "/var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmpxea9hfir/child.py", line 75, in <module>
+    result=a.reconstruct_interval(CachedState(),policy,pathlib.Path(child_arguments[1]),trust,store,approval,stream,interval_end=end,history_head=history,campaign=campaign)
+           ^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'archive' has no attribute 'reconstruct_interval'

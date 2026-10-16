@@ -1837,9 +1837,9 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-receipt-projection-stage.sh
   owner: implementer
 
-- [ ] T-309  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-308  | parallel: no  | est: 5m
+- [x] T-309  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-308  | parallel: no  | est: 5m
   summary: Reconstruct requested interval facts across fresh SQLite processes
-  files: .claude/scripts/factory-receipt-archive.py, .claude/scripts/test/factory-receipt-projection-resume.sh, .claude/scripts/test/factory-receipt-retained-proof.sh, plans/active/014-authenticated-receipt-recovery.md
+  files: .claude/scripts/factory-receipt-archive.py, .claude/scripts/test/factory-receipt-projection-resume.sh, .claude/scripts/test/factory-receipt-retained-proof.sh, .claude/scripts/test/factory-receipt-origin-windows.sh, plans/active/014-authenticated-receipt-recovery.md
   accept: bash .claude/scripts/test/factory-receipt-projection-resume.sh
   owner: implementer
 

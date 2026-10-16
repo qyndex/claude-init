@@ -473,3 +473,37 @@ capacity failure is retained rather than raising limits. T309 must reauthenticat
 materials, current revocation and completeness when consuming stages. No SQLite,
 SQL, caller facts, task credit or complete coverage is granted; T310's existing
 256-ancestor origin integration limitation remains explicit.
+
+### T309 bounded fresh-SQLite reconstruction — 2026-10-16
+
+The consumer reconstructs the selected frozen interval from all protected stage
+chunks, independently authenticating checkpoint lineage/continuity, exact retained
+materials/PR merge times, campaign-global references/indices and current trust.
+SQLite rows/cursors never establish progress or origin. All required reference
+segments must be present exactly once before a single fixed-schema SQL transaction;
+gaps and API/byte capacity failures leave the prior database unchanged.
+
+Historical receipt/provenance rows remain immutable; current trust annotations are
+reapplied, and a separate delivery_interval selection uses actual merged_at against
+coverage_from/interval_end. projection_complete means only that requested frozen
+projection, while coverage_complete remains false and no runtime task credit is
+created. The real fixture authenticates129 synthetic source records, uses actual
+Git checkpoint/stage publication history, and runs separate Python interpreters
+with separate fresh SQLite files, then reopens a database under revoked trust.
+One outside-interval fact remains historical but is excluded from the128 selected.
+
+To make that bounded fixture possible, bootstrap now caches only exact40SHA Git
+objects within its existing invocation: all ancestor/single-parent/inert-tree
+checks still run, and actual fetched response/cache bytes share the unchanged
+32MiB/2048-call bounds. The unchanged256-ancestor gap remains T310. The original
+setup capacity failure, stopped slow producer-loop fixture and corrected child
+syntax attempt are retained as non-consumer attempts; only the later valid
+missing-consumer RED precedes reconstruction implementation. The origin byte-
+budget regression now uses distinct commit and tree payloads, rather than charging
+repeat cache hits as network reads. Larger intervals may explicitly exceed the
+per-invocation budgets;129 is not a1000-delivery or unbounded-scaling claim.
+
+The output is an isolated five-table reporting cache, not the mixed runtime or
+private-feedback database. T288 must integrate it deliberately. Existing cache
+row counts/keys are bounded by the independently authenticated fact set before
+allocation or mutation; no leftover annotation may impersonate a delivered task.

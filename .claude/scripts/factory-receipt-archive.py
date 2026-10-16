@@ -170,15 +170,20 @@ def _bootstrap_context(api, approval_path, *, now=None):
     require(all(receipts.coordinator.contract.digest(approval[k], 40) for k in ('bootstrap_sha', 'bootstrap_tree')), 'archive bootstrap revision invalid')
     observed = instant(approval['observed_at']); origin = instant(approval['coverage_from'])
     require(origin <= observed <= now, 'archive coverage/approval clock invalid')
-    consumed = 0; calls = 0
+    consumed = 0; calls = 0; immutable = {}
 
     def read(path):
         nonlocal consumed, calls
+        cacheable = any(path.startswith(f'repos/{api.repo}/git/'+kind+'/') and state_paths.valid_hash(path.rsplit('/', 1)[1], 40) for kind in ('commits', 'trees', 'blobs'))
+        if cacheable and path in immutable:
+            return document(immutable[path])
         require(calls < 2048, 'archive bootstrap API call bound reached; explicit coverage gap')
         calls += 1
         value = api.request(path)
         size = len(canonical(value)); consumed += size
         require(size <= MAX_OBJECT and consumed <= 33554432, 'archive bootstrap API response bound reached; explicit coverage gap')
+        if cacheable:
+            immutable[path] = canonical(value)
         return value
 
     root = f'repos/{api.repo}'
@@ -1007,37 +1012,7 @@ def retained_merge_time(state_api, policy, store, approval_path, stream, run_id,
 
     api = Bounded(); approval_raw = Path(approval_path).read_bytes()
     anchor = verify_bootstrap(api, approval_path)
-    retained = retained_execution(api, anchor, store, stream, run_id, attempt)
-    result = {'status': 'gap', 'reason': 'retained-proof-missing', 'coverage_complete': False}
-    if retained is not None:
-        record = retained['record']; receipt = document(record['proof']['provenance'])['receipt']
-        result = {'status': 'gap', 'reason': 'merge-time-unavailable', 'record_sha256': retained['record_sha256'], 'coverage_complete': False}
-        try:
-            repository = api.request(root)
-            pr = api.request(root+'/pulls/'+str(receipt['pull_request']))
-        except (RuntimeError, OSError, subprocess.TimeoutExpired):
-            pass
-        except ValueError as error:
-            if not str(error).startswith('GitHub API request failed:'):
-                raise
-        else:
-            require(type(repository) is dict and type(repository.get('id')) is int and repository['id'] == anchor['repository_id'] and repository.get('full_name') == api.repo, 'retained time repository identity differs')
-            require(type(pr) is dict and type(pr.get('number')) is int and pr['number'] == receipt['pull_request'] and pr.get('merged') is True and pr.get('merge_commit_sha') == receipt['merge_sha'], 'retained time PR identity differs')
-            base = pr.get('base'); base_repo = base.get('repo') if type(base) is dict else None
-            require(type(base_repo) is dict and type(base_repo.get('id')) is int and base_repo['id'] == anchor['repository_id'] and base_repo.get('full_name') == api.repo, 'retained time base repository differs')
-            value = pr.get('merged_at')
-            if value is None:
-                result['reason'] = 'merge-time-missing'
-            else:
-                require(type(value) is str and re.fullmatch(r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})', value) is not None, 'retained merge timestamp precision/format invalid')
-                require(value.endswith('Z') or (int(value[-5:-3]) < 24 and int(value[-2:]) < 60), 'retained merge timestamp offset invalid')
-                try:
-                    merged_at = instant(value).astimezone(datetime.timezone.utc)
-                except (ValueError, OverflowError) as error:
-                    raise ValueError('retained merge timestamp invalid') from error
-                require(merged_at <= datetime.datetime.now(datetime.timezone.utc), 'retained merge timestamp future')
-                fact = {'repository': api.repo, 'repository_id': anchor['repository_id'], 'run_id': run_id, 'attempt': attempt, 'record_sha256': retained['record_sha256'], 'pr': receipt['pull_request'], 'merge_sha': receipt['merge_sha'], 'merged_at': merged_at.isoformat(timespec='microseconds').replace('+00:00', 'Z')}
-                result = {'status': 'observed', 'fact': fact, 'coverage_complete': False}
+    result = _retained_time_from_anchor(api, anchor, store, stream, run_id, attempt)
     require(verify_bootstrap(api, approval_path) == anchor and Path(approval_path).read_bytes() == approval_raw, 'retained time protected origin changed')
     return result
 
@@ -1145,3 +1120,184 @@ def stage_projection(state_api, policy, trust_path, store, approval_path, stream
         require(api.request(refpath)['object']['sha'] == commit['sha'], 'projection stage acknowledgement uncertain')
         return {'status': 'staged', 'campaign': campaign, 'stage_path': stage_path, 'facts_count': len(facts), 'coverage_complete': False, 'uncertain_write_reconciled': uncertain}
     raise ValueError('projection stage three CAS attempts exhausted; progress incomplete')
+
+
+def _retained_time_from_anchor(api, anchor, store, stream, run_id, attempt):
+    """Internal derivation under a separately authenticated/finally rechecked anchor.
+
+    Returns data only; this helper never grants origin, coverage or SQL authority.
+    """
+    import re
+    import subprocess
+    root = "repos/"+api.repo
+    retained = retained_execution(api, anchor, store, stream, run_id, attempt)
+    result = {'status': 'gap', 'reason': 'retained-proof-missing', 'coverage_complete': False}
+    if retained is not None:
+        record = retained['record']; receipt = document(record['proof']['provenance'])['receipt']
+        result = {'status': 'gap', 'reason': 'merge-time-unavailable', 'record_sha256': retained['record_sha256'], 'coverage_complete': False}
+        try:
+            repository = api.request(root)
+            pr = api.request(root+'/pulls/'+str(receipt['pull_request']))
+        except (RuntimeError, OSError, subprocess.TimeoutExpired):
+            pass
+        except ValueError as error:
+            if not str(error).startswith('GitHub API request failed:'):
+                raise
+        else:
+            require(type(repository) is dict and type(repository.get('id')) is int and repository['id'] == anchor['repository_id'] and repository.get('full_name') == api.repo, 'retained time repository identity differs')
+            require(type(pr) is dict and type(pr.get('number')) is int and pr['number'] == receipt['pull_request'] and pr.get('merged') is True and pr.get('merge_commit_sha') == receipt['merge_sha'], 'retained time PR identity differs')
+            base = pr.get('base'); base_repo = base.get('repo') if type(base) is dict else None
+            require(type(base_repo) is dict and type(base_repo.get('id')) is int and base_repo['id'] == anchor['repository_id'] and base_repo.get('full_name') == api.repo, 'retained time base repository differs')
+            value = pr.get('merged_at')
+            if value is None:
+                result['reason'] = 'merge-time-missing'
+            else:
+                require(type(value) is str and re.fullmatch(r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})', value) is not None, 'retained merge timestamp precision/format invalid')
+                require(value.endswith('Z') or (int(value[-5:-3]) < 24 and int(value[-2:]) < 60), 'retained merge timestamp offset invalid')
+                try:
+                    merged_at = instant(value).astimezone(datetime.timezone.utc)
+                except (ValueError, OverflowError) as error:
+                    raise ValueError('retained merge timestamp invalid') from error
+                require(merged_at <= datetime.datetime.now(datetime.timezone.utc), 'retained merge timestamp future')
+                fact = {'repository': api.repo, 'repository_id': anchor['repository_id'], 'run_id': run_id, 'attempt': attempt, 'record_sha256': retained['record_sha256'], 'pr': receipt['pull_request'], 'merge_sha': receipt['merge_sha'], 'merged_at': merged_at.isoformat(timespec='microseconds').replace('+00:00', 'Z')}
+                result = {'status': 'observed', 'fact': fact, 'coverage_complete': False}
+    return result
+
+
+def reconstruct_interval(state_api, policy, db_path, trust_path, store, approval_path, stream, *, interval_end, history_head, campaign):
+    """Rebuild a bounded frozen interval from protected stages, never SQLite cursors.
+
+    Every retained proof and current trust annotation is checked before SQL writes.
+    projection_complete is not discovery/global coverage or current-task credit.
+    Larger intervals fail explicitly at unchanged per-invocation budgets; T310's
+    256-ancestor integration remains pending. No database-dump or SQL payload is accepted.
+    """
+    import sqlite3
+    require(state_paths.valid_hash(campaign, 64) and state_paths.valid_hash(history_head, 40), 'reconstruction selector differs')
+    root = 'repos/'+state_api.repo; calls = consumed = 0; cache = {}
+    class ReadOnly:
+        repo = state_api.repo
+        def request(self, path, method='GET', payload=None):
+            nonlocal calls, consumed
+            require(method == 'GET' and payload is None and (path == root or path.startswith(root+'/')), 'reconstruction foreign API or write')
+            immutable = any(path.startswith(root+'/git/'+kind+'/') and state_paths.valid_hash(path.rsplit('/', 1)[1], 40) for kind in ('commits', 'trees', 'blobs'))
+            if immutable and path in cache:
+                return document(cache[path])
+            require(calls < 2048, 'reconstruction API capacity gap'); calls += 1
+            value = state_api.request(path, method, payload); encoded = canonical(value); consumed += len(encoded)
+            require(len(encoded) <= 2097152 and consumed <= 33554432, 'reconstruction observation capacity gap')
+            if immutable:
+                cache[path] = encoded
+            return value
+    api = ReadOnly(); anchor = verify_bootstrap(api, approval_path)
+    approval_raw = Path(approval_path).read_bytes(); trust_hash = digest(Path(trust_path).read_bytes())
+    windows = {}; page = 1; previous_blob = None
+    while True:
+        lineage = projection_lineage(api, policy, trust_path, store, approval_path, stream, interval_end=interval_end, history_head=history_head, page=page, limit=32)
+        for window in lineage['windows']:
+            require(window['publication_sha'] not in windows, 'reconstruction duplicate publication')
+            if windows:
+                require(window['blob_sha'] == previous_blob, 'reconstruction cross-page publication continuity differs')
+            previous_blob = window['checkpoint']['previous_blob']
+            windows[window['publication_sha']] = window
+        if lineage['reaches_start']:
+            break
+        if not lineage['windows']:
+            return {'projection_complete': False, 'coverage_complete': False, 'reason': 'required-lineage-gap'}
+        page += 1
+    require(bool(windows), 'reconstruction lineage missing')
+    first = next(iter(windows.values()))['checkpoint']; count = first['records_count']
+    if first['next_segment'] != count:
+        return {'projection_complete': False, 'coverage_complete': False, 'reason': 'checkpoint-incomplete'}
+    require(all(w['checkpoint'][key] == first[key] for w in windows.values() for key in ('frozen_head', 'frozen_tree', 'records_count')), 'reconstruction frozen campaign differs')
+    prefix = 'receipt-archive/stages/'+campaign; item_at, blob_at = fixed_reader(api, root)
+    require(item_at(anchor['bootstrap_tree'], prefix) is None, 'reconstruction copied pre-bootstrap stages')
+    directory = item_at(anchor['tree'], prefix)
+    if directory is None:
+        return {'projection_complete': False, 'coverage_complete': False, 'reason': 'required-stages-gap'}
+    documents = {}
+    def entries(tree, path):
+        value = api.request(root+'/git/trees/'+tree)
+        require(value.get('sha') == tree and value.get('truncated') is False and type(value.get('tree')) is list, 'reconstruction stage directory incomplete')
+        rows = [dict(item, path=path+'/'+item['path']) for item in value['tree']]
+        state_paths.validate_tree(rows)
+        return rows
+    require(directory['type'] == 'tree', 'reconstruction stage directory differs')
+    for shard in entries(directory['sha'], prefix):
+        require(shard['type'] == 'tree', 'reconstruction stage shard differs')
+        for item in entries(shard['sha'], shard['path']):
+            require(item['type'] == 'blob' and item['path'] not in documents, 'reconstruction duplicate or nested stage')
+            documents[item['path']] = document(blob_at(anchor['tree'], item['path']))
+    facts = {}; by_task = {}; expected_indices = {}; covered = set()
+    for path, stage in documents.items():
+        require(type(stage) is dict, 'reconstruction stage JSON differs')
+        if 'kind' in stage:
+            continue
+        require(set(stage) == {'schema_version','binding','publication_sha','checkpoint_blob','offset','stop','facts'} and type(stage['schema_version']) is int and stage['schema_version'] == 1, 'reconstruction stage schema differs')
+        require(stage['publication_sha'] in windows, 'reconstruction foreign publication')
+        window = windows[stage['publication_sha']]; checkpoint = window['checkpoint']; binding = stage['binding']
+        require(type(binding) is dict and state_paths.valid_hash(binding.get('trust_sha256'), 64), 'reconstruction trust binding differs')
+        expected_binding = dict(checkpoint['binding'], frozen_head=checkpoint['frozen_head'], frozen_tree=checkpoint['frozen_tree'], trust_sha256=binding['trust_sha256'])
+        require(canonical(binding) == canonical(expected_binding) and digest(canonical(binding)) == campaign and stage['checkpoint_blob'] == window['blob_sha'], 'reconstruction protected campaign differs')
+        start, stop = stage['offset'], stage['stop']; references = checkpoint['window']['references']
+        require(type(start) is int and type(stop) is int and 0 <= start < stop <= len(references) and stop-start <= 8 and type(stage['facts']) is list and len(stage['facts']) == stop-start, 'reconstruction stage slice differs')
+        def path_for(kind, identity):
+            key = digest(canonical([kind, identity])); return prefix+'/'+key[:2]+'/'+key+'.json'
+        require(path in {path_for('window', [stage['publication_sha'], start, limit]) for limit in range(stop-start, 9) if min(start+limit,len(references)) == stop}, 'reconstruction window path differs')
+        actual = []
+        for reference in references[start:stop]:
+            number = reference['segment']; execution = (reference['run_id'], reference['attempt'])
+            require(number not in covered and execution not in facts, 'reconstruction conflicting duplicate stage reference')
+            timed = _retained_time_from_anchor(api, anchor, store, stream, *execution)
+            if timed['status'] != 'observed':
+                return {'projection_complete': False, 'coverage_complete': False, 'reason': timed['reason']}
+            retained = retained_execution(api, anchor, store, stream, *execution)
+            require(retained['record_sha256'] == reference['record_sha256'] and retained['record']['artifact']['id'] == reference['artifact_id'], 'reconstruction retained reference differs')
+            proof = receipts.annotate_reported_trust(retained['record']['proof'], trust_path, api.repo)
+            fact = dict(timed['fact'], artifact_id=reference['artifact_id'], tasks=proof['tasks'], segment=number)
+            actual.append(fact); facts[execution] = fact; covered.add(number)
+            for task in proof['tasks']:
+                require(task not in by_task, 'reconstruction conflicting task')
+                by_task[task] = (proof, fact['merged_at'])
+            for kind, identities in (('execution',[list(execution)]),('task',proof['tasks'])):
+                for identity in identities:
+                    index = {'schema_version':1,'campaign':campaign,'kind':kind,'identity':identity,'run_id':execution[0],'attempt':execution[1],'record_sha256':reference['record_sha256']}
+                    key = path_for(kind,identity)
+                    require(key not in expected_indices, 'reconstruction conflicting index')
+                    expected_indices[key] = index
+        require(canonical(stage['facts']) == canonical(actual), 'reconstruction staged facts differ')
+    if len(covered) != count or (covered and (min(covered) != 0 or max(covered) != count-1)):
+        return {'projection_complete': False, 'coverage_complete': False, 'reason': 'required-reference-gap'}
+    indices = {path:value for path,value in documents.items() if 'kind' in value}
+    require(set(indices) == set(expected_indices) and all(canonical(indices[key]) == canonical(value) for key,value in expected_indices.items()), 'reconstruction global indices differ')
+    require(verify_bootstrap(api, approval_path) == anchor and Path(approval_path).read_bytes() == approval_raw and digest(Path(trust_path).read_bytes()) == trust_hash, 'reconstruction protected origin changed')
+    definitions = {'delivery_receipts':'task TEXT PRIMARY KEY, revision TEXT NOT NULL, receipt TEXT NOT NULL','delivery_provenance':'task TEXT PRIMARY KEY, provenance TEXT NOT NULL','delivery_trust':'task TEXT PRIMARY KEY, status TEXT NOT NULL','delivery_times':'task TEXT PRIMARY KEY, merged_at TEXT NOT NULL','delivery_interval':'task TEXT PRIMARY KEY'}
+    lower, upper = instant(anchor['coverage_from']), instant(interval_end)
+    interval_tasks = {task for task,(_,time) in by_task.items() if lower <= instant(time) <= upper}
+    with sqlite3.connect(db_path) as db:
+        for kind,name,sql in db.execute('SELECT type,name,sql FROM sqlite_master'):
+            if kind == 'index' and sql is None and any(name == 'sqlite_autoindex_'+table+'_1' for table in definitions):
+                continue
+            require(kind == 'table' and name in definitions and sql == 'CREATE TABLE '+name+'('+definitions[name]+')', 'reconstruction foreign SQLite schema')
+        db.execute('BEGIN IMMEDIATE')
+        for table,columns in definitions.items():
+            db.execute('CREATE TABLE IF NOT EXISTS '+table+'('+columns+')')
+        for table in definitions:
+            rows = db.execute('SELECT count(*) FROM '+table).fetchone()[0]
+            require(rows <= len(by_task), 'reconstruction SQLite row bound')
+            require({row[0] for row in db.execute('SELECT task FROM '+table)} <= set(by_task), 'reconstruction SQLite rows lack required proof')
+        require({row[0] for row in db.execute('SELECT task FROM delivery_receipts')} <= set(by_task), 'reconstruction existing fact lacks required proof')
+        require({row[0] for row in db.execute('SELECT task FROM delivery_provenance')} == {row[0] for row in db.execute('SELECT task FROM delivery_receipts')}, 'reconstruction orphan provenance')
+        for task,(proof,time) in by_task.items():
+            previous = db.execute('SELECT revision,receipt FROM delivery_receipts WHERE task=?',(task,)).fetchone()
+            provenance = db.execute('SELECT provenance FROM delivery_provenance WHERE task=?',(task,)).fetchone()
+            previous_time = db.execute('SELECT merged_at FROM delivery_times WHERE task=?',(task,)).fetchone()
+            require(previous is None or (previous == (proof['revision'],proof['delivery']) and provenance == (proof['provenance'],)), 'reconstruction conflicting SQLite fact')
+            require(previous_time is None or previous_time == (time,), 'reconstruction conflicting SQLite time')
+            db.execute('INSERT OR IGNORE INTO delivery_receipts VALUES(?,?,?)',(task,proof['revision'],proof['delivery']))
+            db.execute('INSERT OR IGNORE INTO delivery_provenance VALUES(?,?)',(task,proof['provenance']))
+            db.execute('INSERT OR IGNORE INTO delivery_times VALUES(?,?)',(task,time))
+            db.execute('INSERT INTO delivery_trust VALUES(?,?) ON CONFLICT(task) DO UPDATE SET status=excluded.status',(task,proof['trust_status']))
+        db.execute('DELETE FROM delivery_interval')
+        db.executemany('INSERT INTO delivery_interval VALUES(?)',[(task,) for task in sorted(interval_tasks)])
+    return {'projection_complete':True,'coverage_complete':False,'facts_count':len(by_task),'interval_facts_count':len(interval_tasks),'frozen_head':first['frozen_head'],'suffix_pending':True}

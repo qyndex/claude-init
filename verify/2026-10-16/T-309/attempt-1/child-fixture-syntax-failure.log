@@ -1,0 +1,14 @@
+# TDD ledger — red — T-309
+ledger_format: 2
+timestamp: 2026-10-16T14:58:44+11:00
+command: bash .claude/scripts/test/factory-receipt-projection-resume.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 86, in <module>
+  File "real-git-projection-resume", line 138, in <module>
+  File "fresh-projection-child", line 5
+    text=pathlib.Path('.claude/scripts/test/factory-receipt-projection.sh').read_text().split("<<'PYTEST'\n",1)[1].split('
+                                                                                                                         ^
+SyntaxError: unterminated string literal (detected at line 5)

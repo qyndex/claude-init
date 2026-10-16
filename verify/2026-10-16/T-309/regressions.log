@@ -1,0 +1,8 @@
+Suite: factory-receipt-bootstrap
+15 bootstrap/coverage cases passed with real disposable Git ancestry; no live bootstrap
+Suite: factory-receipt-origin-windows
+Traceback (most recent call last):
+  File "<stdin>", line 108, in <module>
+  File "origin-window-real-git-fixture", line 167, in <module>
+  File "origin-window-real-git-fixture", line 108, in rejects
+AssertionError: untrusted origin accepted response capacity gap

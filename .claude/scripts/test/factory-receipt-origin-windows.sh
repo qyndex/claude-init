@@ -98,12 +98,14 @@ cases=r'''
  assert first['frozen_complete'] is False and first['checked_commits']==0
  second=fresh.advance_origin(OriginState(),approval,commit_budget=1,tree_pages=1)
  assert second['frozen_complete'] is True and second['checked_commits']==1
- # Global byte budget spans every observed response in one invocation.
+ # Global byte budget spans actual distinct fetched responses, not cache hits.
+ # Thirty-two distinct commit payloads plus distinct root/reports tree payloads
+ # exceed32MiB while every individual payload remains below1MiB.
  latest=out('rev-parse',ref);git('update-ref',ref,frozen,latest)
  class LargeCommit(OriginState):
   def request(self,path,method='GET',payload=None):
    value=super().request(path,method,payload)
-   if method=='GET' and '/git/commits/' in path:value=dict(value,padding='x'*1000000)
+   if method=='GET' and any('/git/'+kind+'/' in path for kind in ('commits','trees')):value=dict(value,padding='x'*1000000)
    return value
  rejects(lambda:fresh.advance_origin(LargeCommit(),approval,commit_budget=32),'response capacity gap')
  for kwargs in ({'commit_budget':0},{'tree_pages':9},{'commit_budget':True}):rejects(lambda kwargs=kwargs:fresh.advance_origin(OriginState(),approval,**kwargs),'bounds invalid')

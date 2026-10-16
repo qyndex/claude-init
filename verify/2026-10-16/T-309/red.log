@@ -1,0 +1,11 @@
+# TDD ledger — red — T-309
+ledger_format: 2
+timestamp: 2026-10-16T15:08:36+11:00
+command: bash .claude/scripts/test/factory-receipt-projection-resume.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 128, in <module>
+  File "real-git-projection-resume", line 183, in <module>
+AssertionError: unproved SQLite annotation survived source reconstruction
