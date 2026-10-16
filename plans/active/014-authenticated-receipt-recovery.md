@@ -130,3 +130,44 @@ The coordinator approved routine decomposition within the existing operator-appr
 T-286's original `factory-receipt-coverage.sh` remains the final aggregate gate after all three children. Its result must cover source partitions, required-history gaps, actual protected ancestry/scan progress, fresh-process retained projections, unresolved attempts and current revocation together. T-287 then verifies beyond1,000 histories; T-288–290 integration/readiness/guardian contracts remain unchanged. No new vendor, credential, signing permission, policy-visibility approval model, source-profile fallback or live cutover is authorized by decomposition. If an individual child still exceeds its atomic scope, decompose again before accumulating unrelated source changes.
 
 Primary API contracts inspected: [GitHub compare commits](https://docs.github.com/en/rest/commits/commits#compare-two-commits) and [workflow runs](https://docs.github.com/en/rest/actions/workflow-runs). Compare metadata and exact request identity are distinct from paginated commit/file completeness; filtered run discovery has a documented cap and requires partition reconciliation.
+
+### T-293 local origin-window foundation — 2026-10-16
+
+`advance_origin` is a separate bounded scanner, not a replacement for the existing
+strict bootstrap gate. It reestablishes exact repository/privacy/default-branch,
+settled exclusive App writer/no-rewrite protection and reviewed bootstrap on every
+invocation. Immutable compare metadata establishes ancestry only; every intervening
+single-parent edge and inert tree still must be checked before a frozen snapshot
+is complete. Neither files nor a truncated commit list establishes completeness.
+
+The fixed `receipt-archive/origin/<repository-stream>.json` checkpoint is inert
+100644 data. Resume is loaded only from the actual protected branch, absent at the
+reviewed bootstrap, bound to the exact approval/repository/branch/frozen head/tree.
+The actual path-history publication must have one parent equal to its recorded
+observed parent; immutable tree comparisons prove that publication changed only
+the checkpoint path. Its persisted checked-window facts derive from the approved
+exclusive App writer, not a JSON hash or caller-supplied cursor. Writer credential
+compromise remains the existing explicit protected-writer risk, not new portable
+signature trust. The scanner accepts no external resume object.
+
+Per invocation, at most32commit windows with up to8tree pages each share2048API
+observations/32MiB across up to3CAS retries. Partial tree cursors resume only under
+that protected publication origin. Nonforce base_tree updates preserve concurrent
+reports and encrypted feedback; uncertain acknowledgements require reconciliation.
+A complete frozen view still exposes newer suffixes as pending. A later invocation
+can scan that suffix using the previously authenticated complete prefix; no256
+ancestor lifetime bound is introduced. coverage_complete remains false throughout.
+
+Actual local acceptance uses300commits and fresh Python processes, concurrent
+reporter/lost-ack retry, checkpoint-only publication, copied bootstrap/tampering,
+merged ancestry, a temporary executable later deleted, partial trees and byte
+budget negatives. Existing append/project continue to use strict verify_bootstrap;
+T294/T295/T286–288 must integrate complete origin windows and retained projections
+before claiming unattended capacity. Shared tree frontier/object bounds still
+raise explicit capacity gaps rather than claim complete coverage. No pruning.
+
+The current archive writer's Administration-read omitted actors remain unsupported.
+The main-policy observation repair approves explicit-empty actors only and cannot
+be injected into the archive App-only-actor model. Separate reviewed bootstrap/
+credential/capability integration remains required; no active archive or live state
+was provisioned by this local task.

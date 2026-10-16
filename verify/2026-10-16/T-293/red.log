@@ -1,0 +1,11 @@
+# TDD ledger — red — T-293
+ledger_format: 2
+timestamp: 2026-10-16T11:34:35+11:00
+command: bash .claude/scripts/test/factory-receipt-origin-windows.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 51, in <module>
+  File "origin-window-real-git-fixture", line 84, in <module>
+AttributeError: module 'fresh0' has no attribute 'advance_origin'

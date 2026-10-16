@@ -145,7 +145,7 @@ def instant(value):
     return parsed
 
 
-def verify_bootstrap(api, approval_path, *, now=None):
+def _bootstrap_context(api, approval_path, *, now=None):
     """Read-only proof under an explicitly reviewed protected approval input.
 
     GitHub API reads are the external trust boundary. A caller must load approval
@@ -206,6 +206,15 @@ def verify_bootstrap(api, approval_path, *, now=None):
     require(exclusive == 1 and covered == {'non_fast_forward', 'deletion'}, 'archive exclusive writer or immutable protection missing')
     ref = read(root + '/git/ref/heads/' + quote(branch, safe=''))
     require(ref['ref'] == 'refs/heads/' + branch and ref['object']['type'] == 'commit', 'archive state reference differs')
+    return {'approval': approval, 'root': root, 'repo': repo, 'read': read, 'ref': ref}
+
+
+def verify_bootstrap(api, approval_path, *, now=None):
+    from urllib.parse import quote
+    context = _bootstrap_context(api, approval_path, now=now)
+    approval, root, repo, read, ref = (context[key] for key in ('approval', 'root', 'repo', 'read', 'ref'))
+    ids = set(approval['policies'])
+    branch = approval['branch']
     head = ref['object']['sha']; sha = head; seen = set(); head_tree = None
     for _ in range(256):
         require(receipts.coordinator.contract.digest(sha, 40) and sha not in seen, 'archive bootstrap ancestry invalid')
@@ -554,3 +563,175 @@ def retained_execution(api, anchor, store, stream, run_id, attempt):
     source = document(decode(materials[links['factory/policy.json']]))
     require(record['run']['workflow_id'] == source['receipts']['workflow_id'], 'retained lookup workflow differs')
     return {'record_sha256': key, 'record': record}
+
+
+def _origin_ancestor(read, root, base, head):
+    """Compare metadata assists ancestry; it never proves intermediate content."""
+    require(all(state_paths.valid_hash(value, 40) for value in (base, head)), 'origin comparison identity invalid')
+    value = read(root+'/compare/'+base+'...'+head)
+    require(value['base_commit']['sha'] == base and value['merge_base_commit']['sha'] == base
+            and value['status'] == ('identical' if base == head else 'ahead')
+            and type(value['behind_by']) is int and value['behind_by'] == 0
+            and all(type(value[key]) is int and value[key] >= 0 for key in ('ahead_by', 'total_commits')),
+            'origin comparison does not prove ancestry')
+
+
+def _origin_delta(read, root, before, after, path):
+    """Authenticate a publication that changes exactly one strict inert path."""
+    prefix = ''
+    for component in path.split('/'):
+        values = []
+        for sha in (before, after):
+            if sha is None:
+                values.append({}); continue
+            tree = read(root+'/git/trees/'+sha)
+            require(tree.get('sha') == sha and tree.get('truncated') is False and type(tree.get('tree')) is list,
+                    'origin checkpoint-only tree incomplete')
+            items = {}
+            for item in tree['tree']:
+                require(type(item) is dict and type(item.get('path')) is str and '/' not in item['path']
+                        and item['path'] not in items, 'origin checkpoint-only entries malformed')
+                state_paths.validate_entry(dict(item, path=prefix+item['path']))
+                items[item['path']] = {key: item[key] for key in ('path', 'type', 'mode', 'sha')}
+            values.append(items)
+        old, new = values
+        require({key: value for key, value in old.items() if key != component}
+                == {key: value for key, value in new.items() if key != component}
+                and component in new, 'origin publication is not checkpoint-only')
+        if prefix+component == path:
+            require(new[component]['type'] == 'blob' and new[component]['mode'] == '100644', 'origin publication is not checkpoint-only')
+            return
+        require(new[component]['type'] == 'tree' and (component not in old or old[component]['type'] == 'tree'),
+                'origin publication is not checkpoint-only')
+        before = old.get(component, {}).get('sha'); after = new[component]['sha']; prefix += component+'/'
+
+
+def advance_origin(state_api, approval_path, *, commit_budget=16, tree_pages=4, now=None):
+    """Persist bounded checked windows using protected App-writer origin, not signatures.
+
+    This scanner does not replace verify_bootstrap or grant delivery/projection
+    authority. complete covers only its frozen snapshot; newer suffixes remain
+    explicitly pending. No caller-provided resume JSON is accepted.
+    """
+    from urllib.parse import quote
+    import uuid
+    require(type(commit_budget) is int and 0 < commit_budget <= 32
+            and type(tree_pages) is int and 0 < tree_pages <= 8, 'origin window bounds invalid')
+    consumed = calls = 0
+
+    class Bounded:
+        repo = state_api.repo
+
+        def request(self, path, method='GET', payload=None):
+            nonlocal consumed, calls
+            require(calls < 2048, 'origin invocation API call capacity gap')
+            calls += 1
+            result = state_api.request(path, method, payload)
+            size = len(canonical(result)); consumed += size
+            require(size <= MAX_OBJECT and consumed <= 33554432, 'origin invocation response capacity gap')
+            return result
+
+    api = Bounded(); stream = archive_stream(api.repo); path = 'receipt-archive/origin/'+stream+'.json'
+    uncertain = False
+    for attempt in range(3):
+        context = _bootstrap_context(api, approval_path, now=now)
+        approval, root, repo, read, ref = (context[key] for key in ('approval', 'root', 'repo', 'read', 'ref'))
+        head = ref['object']['sha']; current = read(root+'/git/commits/'+head)
+        require(current['sha'] == head and state_paths.valid_hash(current['tree']['sha'], 40), 'origin current commit differs')
+        tree = current['tree']['sha']; bootstrap = read(root+'/git/commits/'+approval['bootstrap_sha'])
+        require(bootstrap['sha'] == approval['bootstrap_sha'] and bootstrap['tree']['sha'] == approval['bootstrap_tree'], 'origin bootstrap commit differs')
+        _origin_ancestor(read, root, approval['bootstrap_sha'], head)
+        item_at, blob_at = fixed_reader(api, root)
+        require(item_at(approval['bootstrap_tree'], path) is None, 'origin checkpoint pre-bootstrap requires explicit reviewed import')
+        binding = {key: approval[key] for key in ('repository', 'repository_id', 'private', 'branch', 'bootstrap_sha', 'bootstrap_tree', 'coverage_from', 'writer_app_id', 'policies')}
+        binding['approval_sha256'] = digest(canonical(approval))
+        raw = blob_at(tree, path)
+        if raw is None:
+            progress = {'schema_version': 1, 'binding': binding, 'frozen_head': head, 'frozen_tree': tree,
+                        'prior_verified': None, 'next_sha': head, 'tree_cursor': None,
+                        'checked_commits': 0, 'complete': False, 'publication_parent': head}
+        else:
+            progress = document(raw)
+            require(type(progress) is dict and set(progress) == {'schema_version', 'binding', 'frozen_head', 'frozen_tree', 'prior_verified', 'next_sha', 'tree_cursor', 'checked_commits', 'complete', 'publication_parent'}
+                    and type(progress['schema_version']) is int and progress['schema_version'] == 1
+                    and progress['binding'] == binding and type(progress['complete']) is bool
+                    and type(progress['checked_commits']) is int and 0 <= progress['checked_commits'] < 10**12
+                    and all(state_paths.valid_hash(progress[key], 40) for key in ('frozen_head', 'frozen_tree', 'publication_parent'))
+                    and (progress['prior_verified'] is None or state_paths.valid_hash(progress['prior_verified'], 40))
+                    and ((progress['complete'] and progress['next_sha'] is None and progress['tree_cursor'] is None)
+                         or (not progress['complete'] and state_paths.valid_hash(progress['next_sha'], 40))), 'origin protected checkpoint schema/binding differs')
+            # Actual API path history establishes publication origin. Hashes alone do not.
+            history = read(root+'/commits?sha='+head+'&path='+quote(path, safe='')+'&per_page=1')
+            require(type(history) is list and len(history) == 1 and state_paths.valid_hash(history[0].get('sha'), 40), 'origin checkpoint publication missing')
+            publication = read(root+'/git/commits/'+history[0]['sha'])
+            require(publication['sha'] == history[0]['sha'] and len(publication['parents']) == 1
+                    and publication['parents'][0]['sha'] == progress['publication_parent'], 'origin checkpoint publication parent differs')
+            _origin_ancestor(read, root, approval['bootstrap_sha'], publication['sha'])
+            _origin_ancestor(read, root, publication['sha'], head)
+            parent = read(root+'/git/commits/'+progress['publication_parent'])
+            require(parent['sha'] == progress['publication_parent'], 'origin publication parent identity differs')
+            require(blob_at(publication['tree']['sha'], path) == raw, 'origin checkpoint publication bytes differ')
+            _origin_delta(read, root, parent['tree']['sha'], publication['tree']['sha'], path)
+            frozen = read(root+'/git/commits/'+progress['frozen_head'])
+            require(frozen['sha'] == progress['frozen_head'] and frozen['tree']['sha'] == progress['frozen_tree'], 'origin frozen tree differs')
+            if not progress['complete']:
+                _origin_ancestor(read, root, approval['bootstrap_sha'], progress['next_sha'])
+                _origin_ancestor(read, root, progress['next_sha'], progress['frozen_head'])
+            _origin_ancestor(read, root, approval['bootstrap_sha'], progress['frozen_head'])
+            if progress['prior_verified'] is not None:
+                _origin_ancestor(read, root, approval['bootstrap_sha'], progress['prior_verified'])
+                _origin_ancestor(read, root, progress['prior_verified'], progress['frozen_head'])
+            if progress['complete']:
+                progress = dict(progress, frozen_head=head, frozen_tree=tree, prior_verified=progress['frozen_head'],
+                                next_sha=head, tree_cursor=None, checked_commits=0, complete=False)
+        for window in range(commit_budget):
+            sha = progress['next_sha']; commit = read(root+'/git/commits/'+sha)
+            require(commit['sha'] == sha and state_paths.valid_hash(commit['tree']['sha'], 40), 'origin scanned commit differs')
+            if sha != approval['bootstrap_sha']:
+                require(type(commit['parents']) is list and len(commit['parents']) == 1
+                        and state_paths.valid_hash(commit['parents'][0]['sha'], 40), 'origin ancestry missing or merged')
+            class Reader:
+                repo = api.repo
+                request = staticmethod(read)
+            checked = state_paths.scan_tree(Reader(), root, commit['tree']['sha'],
+                                            cursor=progress['tree_cursor'], page_budget=tree_pages)
+            progress['tree_cursor'] = checked['cursor']
+            if not checked['complete']:
+                break
+            progress['checked_commits'] += 1
+            if sha == approval['bootstrap_sha'] or commit['parents'][0]['sha'] == progress['prior_verified']:
+                progress.update(complete=True, next_sha=None)
+                break
+            require(commit['parents'][0]['sha'] != sha, 'origin ancestry cycle')
+            progress['next_sha'] = commit['parents'][0]['sha']
+        progress['publication_parent'] = head
+        encoded = canonical(progress); require(len(encoded) <= MAX_OBJECT, 'origin checkpoint object capacity gap')
+        blob = api.request(root+'/git/blobs', 'POST', {'encoding': 'base64', 'content': base64.b64encode(encoded).decode()})
+        require(blob.get('sha') == hashlib.sha1(b'blob '+str(len(encoded)).encode()+b'\0'+encoded).hexdigest(), 'origin uploaded checkpoint differs')
+        newtree = api.request(root+'/git/trees', 'POST', {'base_tree': tree, 'tree': [{'path': path, 'type': 'blob', 'mode': '100644', 'sha': blob['sha']}]})
+        require(state_paths.valid_hash(newtree.get('sha'), 40), 'origin created tree invalid')
+        _origin_delta(read, root, tree, newtree['sha'], path)
+        publication = api.request(root+'/git/commits', 'POST', {'message': 'factory: checked origin window '+uuid.uuid4().hex, 'tree': newtree['sha'], 'parents': [head]})
+        require(state_paths.valid_hash(publication.get('sha'), 40) and publication['tree']['sha'] == newtree['sha']
+                and [parent['sha'] for parent in publication['parents']] == [head], 'origin created publication differs')
+        for identity, expected in approval['policies'].items():
+            require(digest(canonical(read(root+'/rulesets/'+identity))) == expected, 'origin protection changed before publication')
+        if read(root+'/git/ref/heads/'+quote(approval['branch'], safe='')) != ref:
+            continue
+        try:
+            api.request(root+'/git/refs/heads/'+quote(approval['branch'], safe=''), 'PATCH', {'sha': publication['sha'], 'force': False})
+        except (ValueError, RuntimeError):
+            uncertain = True
+            try:
+                observed = read(root+'/git/ref/heads/'+quote(approval['branch'], safe=''))
+            except (ValueError, RuntimeError) as error:
+                raise ValueError('origin publication acknowledgement uncertain; restart required') from error
+            if observed['object']['sha'] != publication['sha']:
+                continue
+        observed = read(root+'/git/ref/heads/'+quote(approval['branch'], safe=''))
+        require(observed['object']['sha'] == publication['sha'], 'origin publication acknowledgement uncertain')
+        return {'status': 'checkpointed', 'head': publication['sha'], 'tree': newtree['sha'],
+                'frozen_head': progress['frozen_head'], 'frozen_complete': progress['complete'],
+                'checked_commits': progress['checked_commits'], 'coverage_complete': False,
+                'suffix_pending': publication['sha'] != progress['frozen_head'], 'uncertain_write_reconciled': uncertain}
+    raise ValueError('origin checkpoint three CAS attempts exhausted; progress incomplete')

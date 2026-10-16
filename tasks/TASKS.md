@@ -1730,7 +1730,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   owner: implementer
 
 
-- [ ] T-293  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-285  | parallel: no  | est: 5m
+- [x] T-293  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-285  | parallel: no  | est: 5m
   summary: Authenticate bounded archive ancestry and persist checked inert-tree scan windows
   files: .claude/scripts/factory-receipt-archive.py, .claude/scripts/factory-receipt-discovery.py, .claude/scripts/factory-state-paths.py, .claude/scripts/test/factory-receipt-origin-windows.sh, plans/active/014-authenticated-receipt-recovery.md
   accept: bash .claude/scripts/test/factory-receipt-origin-windows.sh

@@ -1,0 +1,7 @@
+# TDD ledger — green — T-293
+ledger_format: 2
+timestamp: 2026-10-16T11:37:34+11:00
+command: bash .claude/scripts/test/factory-receipt-origin-windows.sh
+exit_code: 0
+---
+origin windows: PASS; real300-commit history, fresh Python process restarts, strict frozen coverage, concurrency/tamper/merge/intermediate executable negatives, encrypted bytes, checkpoint-only publication, copied bootstrap, partial tree and global byte-budget negatives
