@@ -1,1 +1,25 @@
-{"spec":"006","ac_total":8,"acs":["AC-1","AC-2","AC-3","AC-4","AC-5","AC-6","AC-7","AC-8"],"tasks_for_spec":8,"tasks_done":7,"uncovered_note":"","generated":"2026-10-09T17:25:51+11:00"}
+{
+  "spec": "006",
+  "ac_total": 11,
+  "acs": [
+    "AC-1",
+    "AC-2",
+    "AC-3",
+    "AC-4",
+    "AC-5",
+    "AC-6",
+    "AC-7",
+    "AC-8",
+    "AC-9",
+    "AC-10",
+    "AC-11"
+  ],
+  "tasks_for_spec": 12,
+  "tasks_done": 12,
+  "uncovered_note": "",
+  "generated": "2026-10-16T23:33:11+11:00",
+  "verdict": "PASS",
+  "blockers": [],
+  "date": "2026-10-16",
+  "scope": "Current counts regenerated after sequential integration; all scoped local repairs verified, final combined tests and actual independent Sonnet review pending. Historical AC proof not recertified; no live activation claim."
+}

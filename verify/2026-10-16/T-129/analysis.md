@@ -1,0 +1,20 @@
+# T-129 consistency analysis — 2026-10-16
+
+Reviewed Spec003/Plan003 after shared planning prerequisite2c77fac (local cherry-picks668bc4d/f817b98). AC1..18 retain their existing task mappings T111..128; their historical evidence is not recertified here. The shared prerequisite reopens Spec003 approved and maps already-approved followups T129/130/131 to AC19/20/21 and phase9. Current model routing supersedes the historical AC11 Opus pin.
+
+AC19 maps to current-production `.claude/scripts/test/pre-bash-guard-literals.sh`: frontend fetch() heredocs/prose must pass while direct, whitespace, env-assignment, chained, pipeline, double-quoted, path, command/env wrapper, quoted/escaped executable and no-argument backtick network commands remain denied. The original production behavioral matrix and all15 bypass cases remain regression gates. No new service/package setup requirement or cyclic dependency; T129 deps empty, parallel yes, explicitly authorized. No open requirement questions.
+
+The T129 accept/files amendment was serialized via with_tasks_lock; it replaces a legacy acceptance defaulting to historical staged source. T130/T131 remain separate pending tasks. The first command-prefix regex candidate failed wrapper/conditional/subshell preservation, so final code pairs backtick spans with escape parity and conservatively detects whole network executable tokens inside each span. This also handles unknown wrappers; JavaScript fetch(...) and network prose outside actual paired spans no longer match. Missing/failed awk inspection fails closed. This is not full shell interpretation or a sandbox. No permission/secret/override changes. Followup e268c35 only narrowed AC20 to existing configuration-error scope; AC19 unchanged. Verdict PASS for this implementation task; not a whole-spec completion claim.
+
+
+## Independent HIGH repair continuation
+
+Actual Sonnet5.5 review confirms quoted-data parity regression against initial T129 commitdefe238. Reopening the same AC19 task and correcting quote/heredoc handling is within its existing dangerous-substitution preservation requirement. Original plan/spec unchanged. T129 date mutation serialized with with_tasks_lock. The new supported literal profile is deliberately narrow; ambiguous constructs use exact old raw checking and actual tokenizer errors deny. Final 70-case RED/GREEN and original 68-case differential cover scope; no sandbox or whole-security-clean claim.
+
+## Repeat independent review continuation
+
+Actual Sonnet5.5 review on d735e07 and parent guard-only reproductions confirm here-string/heredoc-body/alias denials regressed against main91839087. Reopen AC19 only; no new scope, dependency, authority or live change. Here-string ambiguity must fall back to legacy matching. Quoted-heredoc bodies must be independently inspected without perturbing outer backtick parity, including shell consumers and cat-write-then-execute chains. Active shell backtick executable aliases retain conservative substring matching. Narrow frontend template-data exceptions must preserve existing four safe cases without whole-command allowlists. All payloads remain JSON data to the guard; no command is executed. Analysis PASS before repair; independent review required again.
+
+The reviewer-requested generalization is the whole prose word fetching inside the initial frontend declaration template, not a fixed fixture phrase. Actual RED variants fetching items/one record precede the small token generalization; suffix/prefix executable names and adjacent real network code stay visible. This remains the AC19 literal false-positive class, not new routing or authority scope.
+
+Two further genuine RED body cases (prefetch/customfetch call spellings) tighten frontend fetch( token boundaries while preserving all prefix bytes. Their passing transition is the final canonical RED/GREEN pair; earlier independent regression and prose-word transitions remain retained separately. No whole-line exception or new approved scope.

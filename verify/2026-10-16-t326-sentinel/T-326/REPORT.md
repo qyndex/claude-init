@@ -1,0 +1,7 @@
+# T326 SARIF unknown-index compatibility
+
+SARIF2.1.0 result.ruleIndex and reportingDescriptorReference.index accept integer -1 as their unknown/absent sentinel. The prior gate rejected valid warning results carrying it. Exact task acceptance first fails on those valid documents, then passes after normalizing only integral -1 to absent before resolving a rule ID or default severity. Both concrete indexes must still agree; an unknown sentinel can defer to the other concrete index. Explicit result levels, rule-ID agreement, inherited error and numeric high severity retain their prior semantics. Strings, booleans, other negative and fractional indexes reject. No external-resolution or scanner-exemption policy changed.
+
+Canonical post-review RED/GREEN now exercises88 cases. Prior T326 RED/GREEN remains under prior-diagnostic. Primary schema evidence is copied from the independently recorded OASIS schema inspection; no live schema/network fetch was performed in this followup. Focused original workflow/SARIF regression8PASS; ShellCheck and diffcheckPASS; structural validationPASS with four existing warnings; full ledger0fail/0warn,70pre-enforcement incomplete records. The same actual frozen integrated Semgrep report still produces gate exit1 and3high/critical findings, so this compatibility repair does not certify a clean scan. No source scanner suppression or policy cutover occurred.
+
+Ledger warned timeout/gtimeout is unavailable on this Mac; acceptance completed normally. No timeout behavior changed. Integration and independent review remain pending.

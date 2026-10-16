@@ -137,9 +137,142 @@ deny() {
 # `bash -c "$(curl …)"`, `echo $(curl …|bash)`, `echo \`curl …\`` and
 # `<(curl …)` all smuggle a network-fetch-then-execute past the per-segment
 # split. Checked on the RAW normalized command (the payload hides in quotes).
+# Shell-literal quotes, comments and quoted heredoc bodies cannot change active
+# backtick pairing. Heredoc bodies receive their own conservative raw scan;
+# even cat can write a script that a later command executes. Unhandled syntax
+# falls back to the original conservative raw check; guessing about quote state could hide a real substitution.
+if ! backtick_payloads=$(printf '%s\n' "$cmd" | awk -v sq="'" '
+  # Only mask frontend fetch calls and a literal fetching word, never lines.
+  # Retain every other byte, including adjacent network commands and ticks.
+  function body_line(line, cleaned, prefix, literal, ending, chunk, suffix) {
+    cleaned = line
+    if (line ~ /^[[:space:]]*(const|let|var)[[:space:]]+[A-Za-z_$][A-Za-z0-9_$]*[[:space:]]*=/) {
+      while (match(cleaned, /(^|[^[:alnum:]_$])fetch\(/)) {
+        chunk = substr(cleaned, RSTART, RLENGTH)
+        sub(/fetch\(/, "frontend_call(", chunk)
+        cleaned = substr(cleaned, 1, RSTART - 1) chunk substr(cleaned, RSTART + RLENGTH)
+      }
+      # Restrict the prose word to the initial template value, not shell code
+      # later on the same declaration line. Keep prefix/suffix names visible.
+      if (match(cleaned, /^[[:space:]]*(const|let|var)[[:space:]]+[A-Za-z_$][A-Za-z0-9_$]*[[:space:]]*=[[:space:]]*`/)) {
+        prefix = substr(cleaned, 1, RLENGTH)
+        literal = substr(cleaned, RLENGTH + 1)
+        ending = index(literal, "`")
+        if (ending) {
+          suffix = substr(literal, ending)
+          literal = substr(literal, 1, ending - 1)
+          while (match(literal, /(^|[^[:alnum:]_])fetching([^[:alnum:]_]|$)/)) {
+            chunk = substr(literal, RSTART, RLENGTH)
+            sub(/fetching/, "frontend_text", chunk)
+            literal = substr(literal, 1, RSTART - 1) chunk substr(literal, RSTART + RLENGTH)
+          }
+          cleaned = prefix literal suffix
+        }
+      }
+    }
+    return cleaned
+  }
+  function inspect_body() {
+    if (body ~ /`[^`]*(curl|wget|fetch)/) body_network = 1
+    body = ""
+  }
+  BEGIN {
+    heredoc_pattern = "<<-?[[:space:]]*(" sq "[A-Za-z_][A-Za-z0-9_]*" sq "|\"[A-Za-z_][A-Za-z0-9_]*\")"
+  }
+  {
+    if (here != "") {
+      ending = $0
+      if (strip_tabs) sub(/^\t+/, "", ending)
+      if (ending == here) { inspect_body(); here = "" }
+      else body = body body_line($0) "\n"
+      next
+    }
+    line = $0
+    has_here = index(line, "<<") > 0
+    here_start = 0
+    # A here-string must never start a body, even if its suffix resembles <<.
+    if (index(line, "<<<")) ambiguous = 1
+    if (has_here && !index(line, "<<<") && match(line, heredoc_pattern)) {
+      here_start = RSTART
+      redirection = substr(line, RSTART, RLENGTH)
+      rest = substr(line, RSTART + RLENGTH)
+      if (index(substr(line, 1, RSTART - 1), "<<") || index(rest, "<<") ||
+          (rest != "" && substr(rest, 1, 1) !~ /[[:space:]]/)) here_start = 0
+      delimiter = redirection
+      sub(/^<<-?[[:space:]]*/, "", delimiter)
+      delimiter = substr(delimiter, 2, length(delimiter) - 2)
+    }
+    if (index(line, "$(") || index(line, "<(") || index(line, "${") || index(line, "$[") ||
+        index(line, "((") || index(line, "[[") ||
+        index(line, "$" sq) || index(line, "$\"")) ambiguous = 1
+    if (line ~ /\\$/) ambiguous = 1
+    for (i = 1; i <= length(line); i++) {
+      ch = substr(line, i, 1)
+      if (quote == "single") {
+        if (ch == sq) quote = ""
+        continue
+      }
+      if (inside) {
+        if (ch == sq || ch == "\"") ambiguous = 1
+        if (ch == "`" && !escaped) {
+          payloads = payloads payload "\n"
+          inside = 0
+          payload = ""
+        } else payload = payload ch
+        if (ch == "\\") escaped = !escaped
+        else escaped = 0
+        continue
+      }
+      if (escaped) { escaped = 0; continue }
+      if (ch == "\\") { escaped = 1; continue }
+      if (i == here_start && quote == "") {
+        next_here = delimiter
+        next_strip = index(redirection, "<<-") == 1
+        has_here = 0
+      }
+      if (ch == sq && quote == "") { quote = "single"; continue }
+      if (ch == "\"") {
+        if (quote == "double") quote = ""
+        else quote = "double"
+        continue
+      }
+      if (ch == "#" && quote == "" &&
+          (i == 1 || substr(line, i - 1, 1) ~ /[[:space:];|&()]/)) break
+      if (ch == "`") { inside = 1; payload = "" }
+    }
+    if (has_here) ambiguous = 1
+    if (next_here != "") { here = next_here; strip_tabs = next_strip; next_here = "" }
+    if (inside) payload = payload " "
+    escaped = 0
+  }
+  END {
+    if (inside || quote != "" || here != "") ambiguous = 1
+    print body_network ? "body-network" : (ambiguous ? "fallback" : "parsed")
+    printf "%s", payloads
+  }
+'); then
+  deny "cannot inspect backtick substitutions; failing closed"
+fi
+backtick_mode="${backtick_payloads%%$'\n'*}"
+case "$backtick_mode" in
+  parsed) ;;
+  body-network) deny "quoted heredoc contains a backtick network payload" ;;
+  fallback)
+    backtick_fallback='`[^`]*(curl|wget|fetch)'
+    if [[ "$cmd_normalized" =~ $backtick_fallback ]]; then
+      deny "ambiguous shell quoting contains a backtick network payload"
+    fi
+    ;;
+  *) deny "invalid backtick inspection result; failing closed" ;;
+esac
+# Preserve legacy substring denials for active shell payloads and aliases.
+# Frontend fetch exceptions are scoped to body data above, never active code.
+backtick_network='(curl|wget|fetch)'
+if [[ "$backtick_payloads" =~ $backtick_network ]]; then
+  deny "backtick substitution contains a network executable token"
+fi
 subst_sink_patterns=(
   '\$\([^)]*(curl|wget|fetch)'
-  '`[^`]*(curl|wget|fetch)'
   '<\([^)]*(curl|wget|fetch)'
   '\$\([^)]*(curl|wget)[^)]*\|[^)]*(sh|bash|zsh)'
 )

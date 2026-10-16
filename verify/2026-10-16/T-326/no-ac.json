@@ -1,0 +1,1 @@
+{"kind":"harness-maintenance","reason":"Deterministic scanner gate contract repair with production-script behavioral evidence; no application/browser feature.","maintains":[".claude/scripts/check-sarif.sh",".claude/scripts/test/sarif-effective-severity.sh"],"date":"2026-10-16"}

@@ -1,0 +1,16 @@
+# TDD ledger — red — T-326
+ledger_format: 2
+timestamp: 2026-10-16T22:47:25+11:00
+command: bash .claude/scripts/test/sarif-effective-severity.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+SARIF effective severity: 62 passed; 3 failed
+FAIL empty-rule-reference: expected exit1/'Invalid SARIF'; got0/'SARIF clean of high/critical findings\n'
+FAIL external-rule-file: expected exit1/'Invalid SARIF'; got0/'SARIF clean of high/critical findings\n'
+FAIL inline-external-results: expected exit1/'Invalid SARIF'; got0/'SARIF clean of high/critical findings\n'
+Traceback (most recent call last):
+  File "<stdin>", line 66, in <module>
+AssertionError: empty-rule-reference: expected exit1/'Invalid SARIF'; got0/'SARIF clean of high/critical findings\n'
+external-rule-file: expected exit1/'Invalid SARIF'; got0/'SARIF clean of high/critical findings\n'
+inline-external-results: expected exit1/'Invalid SARIF'; got0/'SARIF clean of high/critical findings\n'

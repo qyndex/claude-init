@@ -1,0 +1,20 @@
+# TDD ledger — red — T-326
+ledger_format: 2
+timestamp: 2026-10-16T22:47:49+11:00
+command: bash .claude/scripts/test/sarif-effective-severity.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+SARIF effective severity: 65 passed; 5 failed
+FAIL invalid-tool-None: expected exit1/'Invalid SARIF'; got0/'SARIF clean of high/critical findings\n'
+FAIL invalid-tool-False: expected exit1/'Invalid SARIF'; got0/'SARIF clean of high/critical findings\n'
+FAIL invalid-tool-{'driver': None}: expected exit1/'Invalid SARIF'; got0/'SARIF clean of high/critical findings\n'
+FAIL invalid-tool-{'driver': False}: expected exit1/'Invalid SARIF'; got0/'SARIF clean of high/critical findings\n'
+FAIL unresolved-extension-only-id: expected exit1/'Invalid SARIF'; got0/'SARIF clean of high/critical findings\n'
+Traceback (most recent call last):
+  File "<stdin>", line 71, in <module>
+AssertionError: invalid-tool-None: expected exit1/'Invalid SARIF'; got0/'SARIF clean of high/critical findings\n'
+invalid-tool-False: expected exit1/'Invalid SARIF'; got0/'SARIF clean of high/critical findings\n'
+invalid-tool-{'driver': None}: expected exit1/'Invalid SARIF'; got0/'SARIF clean of high/critical findings\n'
+invalid-tool-{'driver': False}: expected exit1/'Invalid SARIF'; got0/'SARIF clean of high/critical findings\n'
+unresolved-extension-only-id: expected exit1/'Invalid SARIF'; got0/'SARIF clean of high/critical findings\n'

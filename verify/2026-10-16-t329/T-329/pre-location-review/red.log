@@ -1,0 +1,11 @@
+# TDD ledger — red — T-329
+ledger_format: 2
+timestamp: 2026-10-16T23:08:26+11:00
+command: bash .claude/scripts/test/sarif-audit-policy.sh && bash .claude/scripts/test/sarif-effective-severity.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 23, in <module>
+  File "<stdin>", line 21, in check
+AssertionError: ('authenticated exact source', 1, '', '1 high/critical findings\n')

@@ -1,0 +1,8 @@
+{
+  "scope": "Local final native/transcript classification tests; not installed framework or hosted proof",
+  "base": "66697a8c297e15c92d324f51b925037e0d5f74a9",
+  "sha256": {
+    ".claude/scripts/tdd-ledger.sh": "72c90edcd49352f10c9acc22615222ec3f7bf929dbdbc3fd61aa7016abb68801",
+    ".claude/scripts/test/tdd-ledger-suite.sh": "dc0f02e799eb40aeb14917ae80e4cec019676f4f7010422d9a8e86beebbd7d89"
+  }
+}

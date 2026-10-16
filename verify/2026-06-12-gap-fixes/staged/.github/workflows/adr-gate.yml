@@ -21,10 +21,12 @@ jobs:
           fetch-depth: 0
 
       - name: Check architectural surfaces vs ADR presence
+        env:
+          BASE_REF: ${{ github.base_ref }}
         run: |
           set -uo pipefail
-          base="origin/${{ github.base_ref }}"
-          git fetch origin "${{ github.base_ref }}" --depth=50 >/dev/null 2>&1 || true
+          base="origin/${BASE_REF}"
+          git fetch origin "${BASE_REF}" --depth=50 >/dev/null 2>&1 || true
           changed=$(git diff --name-only "$base"...HEAD)
           [ -z "$changed" ] && { echo "no changes"; exit 0; }
 

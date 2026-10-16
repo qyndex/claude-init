@@ -55,6 +55,14 @@ ac_count=$(printf '%s\n' "$ac_ids" | awk 'NF {n++} END {print n+0}')
 # ─── 2. Run the journey via the playwright rig (unless check-only) ──────
 results_json="$date_dir/results.json"
 runner_exit=0
+if [ "$CHECK_ONLY" = "1" ]; then
+  # Retain the submitted proof before smoke can overwrite date-root results.
+  attempt_dir=$(mktemp -d "$date_dir/attempt-XXXXXXXX") || exit 1
+  if [ -f "$results_json" ]; then
+    cp "$results_json" "$attempt_dir/results.json" || exit 1
+  fi
+  results_json="$attempt_dir/results.json"
+fi
 if [ "$CHECK_ONLY" = "0" ]; then
   # Never consume a preceding invocation's result or publish its PASS as current.
   attempt_dir=$(mktemp -d "$date_dir/attempt-XXXXXXXX") || exit 1
@@ -97,8 +105,20 @@ if [ -f "$results_json" ]; then
     *.xml)
       python3 -c 'import sys, xml.etree.ElementTree as ET; ET.parse(sys.argv[1])' "$results_json" || exit 1 ;;
     *)
-      jq -es 'length == 1 and (.[0] | type == "object")' "$results_json" >/dev/null || exit 1 ;;
+      # Parse the raw file: jq can accept a JSON prefix followed by NUL bytes.
+      python3 -c 'import json, sys; value=json.load(open(sys.argv[1], encoding="utf-8"), parse_constant=lambda value: sys.exit("Invalid JSON constant: " + value)); sys.exit(0 if isinstance(value, dict) else 1)' "$results_json" || exit 1 ;;
   esac
+fi
+
+# Hash raw bytes, never shell-capture proof text (which can strip NUL/newlines).
+proof_present=0
+proof_digest=""
+proof_hash() {
+  python3 -c 'import hashlib, sys; print(hashlib.sha256(open(sys.argv[1], "rb").read()).hexdigest())' "$1"
+}
+if [ -f "$results_json" ]; then
+  proof_present=1
+  proof_digest=$(proof_hash "$results_json") || exit 1
 fi
 
 # ─── 3. Smoke commands ──────────────────────────────────────────────────
@@ -115,6 +135,22 @@ smoke_max_exit=0
     [ "$ec" -gt "$smoke_max_exit" ] && smoke_max_exit=$ec
   done
 } > "$smoke_log"
+
+# Smoke may rewrite canonical results, but cannot replace the retained proof.
+if [ "$proof_present" = "1" ]; then
+  current_digest=$(proof_hash "$results_json") || exit 1
+  [ "$current_digest" = "$proof_digest" ] || { echo "Retained proof changed during smoke" >&2; exit 1; }
+  case "$results_json" in
+    *.json)
+      # Preserve the canonical path consumed by check-local-evidence.py.
+      replace_atomic "$date_dir/results.json" < "$results_json" || exit 1
+      canonical_digest=$(proof_hash "$date_dir/results.json") || exit 1
+      [ "$canonical_digest" = "$proof_digest" ] || exit 1 ;;
+  esac
+elif [ -e "$results_json" ]; then
+  echo "Smoke created proof that was absent at validation" >&2
+  exit 1
+fi
 
 # ─── 4. spec-match (AC → passing test) ──────────────────────────────────
 ac_proven=0
@@ -171,6 +207,8 @@ ev_commit=$(git rev-parse HEAD 2>/dev/null || echo unknown)
 jq -nc \
   --arg spec "$spec_id" \
   --arg commit "$ev_commit" \
+  --arg results_file "$results_json" \
+  --arg results_sha256 "$proof_digest" \
   --arg generated_at "$(date -Iseconds)" \
   --argjson ac_total "${ac_count:-0}" \
   --argjson ac_proven "$ac_proven" \
@@ -180,7 +218,7 @@ jq -nc \
   --arg cov_line "$cov_line" \
   --arg cov_branch "$cov_branch" \
   --arg verdict "$verdict" \
-  '{spec: $spec, commit: $commit, generated_at: $generated_at,
+  '{spec: $spec, commit: $commit, generated_at: $generated_at, results_file: $results_file, results_sha256: $results_sha256,
     ac_total: $ac_total, ac_proven: $ac_proven, ac_unproven: $ac_unproven,
     smoke_exit_max: $smoke_exit, runner_exit: $runner_exit, coverage: {line: $cov_line, branch: $cov_branch}, verdict: $verdict}' \
   | replace_atomic "$date_dir/evidence.json" || { echo "Evidence emission failed" >&2; exit 1; }
@@ -199,6 +237,8 @@ jq -e --argjson total "$ac_count" '.ac_total == $total and (.ac_unproven | type 
     echo
     echo "Closes #${gh_issue}"
   fi
+  echo
+  echo "Retained results: [$results_json]($results_json)"
   echo
   echo "### Acceptance criteria ($ac_proven/$ac_count proven)"
   echo "| AC | Proven by | Result |"

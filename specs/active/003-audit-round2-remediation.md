@@ -1,11 +1,11 @@
 ---
 id: 003
 slug: audit-round2-remediation
-status: shipped
+status: approved
 owner: "@claude"
 human_owner: "@shravan"
 created: 2026-05-29
-updated: 2026-05-29
+updated: 2026-10-16
 supersedes:
 superseded_by:
 complexity: L
@@ -104,6 +104,16 @@ In scope:
 ### Phase 6 — Verification + exit
 
 18. **AC-18 (full clean)**: `bash .claude/scripts/validate.sh` exits 0 and `/harness-doctor` reports no errors after all phases. Every task in this spec has paired `verify/2026-05-29-003/T-<id>/red.log` + `green.log`. A `verify/2026-05-29-003/REPORT.md` summarizes each AC with PASS evidence.
+
+### Phase 9 — Previously approved live-E2E followups
+
+These criteria record the existing T-129, T-130 and T-131 requirements already in the approved task ledger; they add no new feature scope. Historical AC-1 through AC-18 evidence remains historical and is not re-certified by these repairs.
+
+19. **AC-19 (literal guard text)**: T-129's current production pre-bash guard accepts the quoted-heredoc frontend `fetch()` and ordinary backtick-prose cases from FINDING-3. Actual dangerous network command substitutions, including previously blocked command-position variants, remain blocked. Portable behavioral tests exercise the production guard, not a historical staged copy; existing bypass coverage remains passing. This is a scoped false-positive repair, not a claim that a regex guard is a shell sandbox.
+
+20. **AC-20 (configuration failures are tooling)**: T-130's current production TDD ledger classifies Playwright/Vitest configuration-load failures as `tooling-error`, and both the red writer and ledger gate reject them as valid assertion RED evidence. Genuine test assertion failures remain eligible, and existing missing-tool detection remains intact. This repair does not redefine classification of arbitrary unknown output. Deterministic runner transcripts must be labeled as such rather than presented as installed-runner execution.
+
+21. **AC-21 (evidence result preservation)**: T-131 preserves the validated AC result used by a collection attempt when a smoke accept overwrites a shared `results.json`, including supported check-only collection. Missing, malformed or failing AC results still block. The rig template documents `playwright.evidence.config.ts` and `e2e/<spec-id>/`, matching the collector contract. A portable isolated regression exercises the current collector without touching the original dirty checkout.
 
 ## Constraints
 

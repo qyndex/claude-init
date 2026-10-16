@@ -1,0 +1,84 @@
+{
+  "at": "2026-10-16T22:57:00.562299+11:00",
+  "head": "30a5a354038009420eaf0e76f7be68830a3b3f86",
+  "scope": "Read-only security triage; no production edits or scanner suppression",
+  "sha256": {
+    ".claude/scripts/factory-worker-guard.py": "adc3bf10d5c6172f844e7748d9cfdae4be1b7b9cf40777ae59c2bdf896d8844c",
+    ".claude/scripts/foreground-watchdog.py": "789a370d83f81a8aebde27bcfa5599f38afda8e9b8c328eda22e9e918b0c83ea",
+    ".claude/scripts/factory-supervisor.py": "b9e80cc594e1b14a133d6850dd7b11eb52e4e39e1113b4cddd65c230d13b1c2f",
+    ".claude/scripts/factory-routing.py": "cb00763032265edc0bda37b085f614037aee2ce3d481c859f53ef2795a34e696",
+    ".claude/scripts/factory-container.py": "2d2e7b9f27e562f55be4a21c916e5086bab358cdd7aa163a8d694719b43963d7",
+    ".claude/scripts/factory-intake-worker.py": "f462c62b5ff3a4cd99d43f12de29d676f61c12dd9f453f001bed8bdd2d0ba866",
+    "verify/2026-06-12-gap-fixes/staged/.github/workflows/adr-gate.yml": "fa9df9186986ceb3d9659157de9129a1a23936389f0c832f8c96131640e06973",
+    "verify/2026-06-12-gap-fixes/staged/install.sh": "01787616e290eb2c338b10cbafde582119a9b31f2da4b58ae83afe6da3c6270a",
+    ".github/workflows/semgrep.yml": "327b95f453ba6d81a215b4a3b1ce92d6ddf48c3433b8eb51db62b9f1273d6025"
+  },
+  "tests": {
+    "worker_environment": {
+      "exit": 0,
+      "log": "worker-environment-unsandboxed.log",
+      "scope": "actual native guardian; explicit fixture credentials; filtered environment; timeout and lease fencing"
+    },
+    "supervisor_watchdog": {
+      "exit": 0,
+      "log": "supervisor-unsandboxed.log",
+      "scope": "actual supervised temporary workers, descendant cleanup, cancellation, lease loss, watchdog timeout and fake overnight launcher"
+    },
+    "container": {
+      "exit": 0,
+      "log": "container.log",
+      "scope": "fake daemon contract; actual Linux Docker isolation explicitly skipped"
+    },
+    "literal_argv": {
+      "exit": 0,
+      "log": "literal-argv.log",
+      "scope": "actual watchdog plus actual guardian via supervisor; four shell-looking argv strings, no requested shell executable, no command injection"
+    }
+  },
+  "environment_limitations": [
+    "Initial worker/supervisor runs failed because sandbox forbids /bin/ps; those logs preserved and not claimed as production defects. Isolated reruns with process-table access passed.",
+    "Native same-user filesystem and actual Docker isolation not established.",
+    "Mandatory-intake guardian descriptor tests inspected, not rerun in this triage."
+  ],
+  "findings": [
+    {
+      "rule": "dangerous-subprocess-use-tainted-env-args",
+      "path": ".claude/scripts/factory-worker-guard.py",
+      "line": 155,
+      "disposition": "Intentional caller-selected argv executor, no shell parsing at this sink; no command-injection bypass demonstrated. Must not treat direct legacy CLI as untrusted-code sandbox.",
+      "boundaries": [
+        "supervisor registered_boundary refuses required-intake DB/installation",
+        "routing pins selected runtime and renders separate argv",
+        "supervisor worker_environment drops coordinator authority",
+        "optional container replaces argv with pinned Docker attach command; fixed offline constraints",
+        "required intake branches early to protected descriptor/native assembly instead of this legacy sink"
+      ]
+    },
+    {
+      "rule": "dangerous-subprocess-use-tainted-env-args",
+      "path": ".claude/scripts/foreground-watchdog.py",
+      "line": 30,
+      "disposition": "Intentional operator command wrapper; only lifetime/process-group control, inherits environment and makes no separate authority/sandbox claim. Actual quoted shell-looking arguments remain literal.",
+      "caller": ".claude/scripts/local-overnight-build.sh:107-111"
+    },
+    {
+      "rule": "run-shell-injection",
+      "path": "verify/2026-06-12-gap-fixes/staged/.github/workflows/adr-gate.yml",
+      "line": 24,
+      "disposition": "Installable supported historical payload, not safe to remove from scanning as inert archival data. Current PR branch filter fixes base_ref to main, reducing present exploitability, but shell-template interpolation should be repaired consistently with current installed workflow.",
+      "unsafe_lines": [
+        27,
+        28
+      ],
+      "installer": "verify/2026-06-12-gap-fixes/staged/install.sh:25-34",
+      "test_gap": "G40 test-gap-fixes.sh270-273 checks existence/surfaces/decisions only; no behavioral input injection regression."
+    }
+  ],
+  "recommended_next_actions": [
+    "Keep full scanner scope over both current runtime and supported installable staged workflow assets. Do not blanket-ignore verify or staged paths.",
+    "Repair the two supported staged ADR interpolations using env transfer and quoted variable, plus isolated actual-step behavioral RED/GREEN and installer identity proof; no trigger/permission changes.",
+    "Explicit shell=False may clarify existing behavior but must not be claimed to resolve this rule: current primary rule inspected by root has no shell=False exemption. Do not use shlex.quote on argv or refactor only to hide taint; retain tests of true list-argv behavior and executable/intake authority.",
+    "If exact audit rule still flags intentional arbitrary-command execution, require a narrowly reviewed rule/path/source-bound audit disposition with negative tests, retaining raw SARIF and all other error gates; do not silently waive or globally lower rule severity. Until such reviewed policy is approved, keep gate failure visible."
+  ],
+  "rule_source_limit": "Frozen registry rule configuration was not retained. Root inspected current primary Semgrep rule and reports broad sys.argv/os.environ-to-subprocess taint sink with literal-list exception, no shell=False exemption. This is not exact-version equivalence proof. Original SARIF rule metadata retained separately."
+}

@@ -1,0 +1,15 @@
+# INVALID RED: test fixture had a Bash heredoc parser error; retained for diagnosis only.
+# TDD ledger — red — T-129
+ledger_format: 2
+timestamp: 2026-10-16T22:59:30+11:00
+command: bash .claude/scripts/test/pre-bash-guard-literals.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+FAIL odd-literal-before: expected=deny got=pass exit=0
+FAIL odd-literals-before-after: expected=deny got=pass exit=0
+FAIL comment-odd-tick: expected=deny got=pass exit=0
+.claude/scripts/test/pre-bash-guard-literals.sh: command substitution: line 56: syntax error near unexpected token `)'
+.claude/scripts/test/pre-bash-guard-literals.sh: command substitution: line 56: `)"'
+FAIL odd-quoted-heredoc: expected=deny got=pass exit=0
+guard literal cases: 48 passed, 4 failed

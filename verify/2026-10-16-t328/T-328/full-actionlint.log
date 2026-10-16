@@ -1,0 +1,4 @@
+verify/2026-06-12-gap-fixes/staged/.github/workflows/adr-gate.yml:26:9: shellcheck reported issue in this script: SC2254:warning:16:7: Quote expansions in case patterns to match literally rather than as a glob [shellcheck]
+   |
+26 |         run: |
+   |         ^~~~

@@ -1,0 +1,55 @@
+{
+  "official_schema": "https://docs.oasis-open.org/sarif/sarif/v2.1.0/os/schemas/sarif-schema-2.1.0.json",
+  "inspected_fields": {
+    "definitions.result.properties.ruleIndex": {
+      "type": "integer",
+      "default": -1,
+      "minimum": -1
+    },
+    "definitions.reportingDescriptorReference.properties.index": {
+      "type": "integer",
+      "default": -1,
+      "minimum": -1
+    }
+  },
+  "primary_semantics": "OASIS SARIF2.1.0 section3.7.4: missing array index defaults to unknown -1",
+  "controlled_input": {
+    "version": "2.1.0",
+    "runs": [
+      {
+        "tool": {
+          "driver": {
+            "name": "Scanner",
+            "rules": [
+              {
+                "id": "x",
+                "defaultConfiguration": {
+                  "level": "warning"
+                }
+              }
+            ]
+          }
+        },
+        "results": [
+          {
+            "ruleId": "x",
+            "ruleIndex": -1,
+            "level": "warning",
+            "message": {
+              "text": "Controlled compatibility fixture"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "actual_exit": 1,
+  "stdout": "",
+  "stderr": "jq: error (at /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmptls3f0a3.sarif:0): invalid severity metadata\nInvalid SARIF scan output or unsupported severity metadata\n",
+  "low_compatibility_finding_confirmed": true,
+  "scope": "Read-only repro; no unsupported external-resolution expansion proposed",
+  "last_touched_observations": [
+    "- [x] T-129  | spec:003  | phase:9  | priority: normal  | created: 2026-06-12  | last_touched: 2026-06-12  | deps:  | parallel: yes  | est: 5m",
+    "- [x] T-130  | spec:003  | phase:9  | priority: normal  | created: 2026-06-12  | last_touched: 2026-06-12  | deps:  | parallel: yes  | est: 4m"
+  ]
+}

@@ -1,0 +1,107 @@
+[
+  {
+    "command": [
+      "bash",
+      "/private/tmp/factory-harness-release-20261016/.claude/scripts/test/pre-bash-guard-literals.sh"
+    ],
+    "exit_code": 0,
+    "log": "verify/2026-10-16-harness-final/pre-bash-guard-literals.txt"
+  },
+  {
+    "command": [
+      "bash",
+      "/private/tmp/factory-harness-release-20261016/.claude/scripts/test/pre-bash-guard-bypass.sh"
+    ],
+    "exit_code": 0,
+    "log": "verify/2026-10-16-harness-final/pre-bash-guard-bypass.txt"
+  },
+  {
+    "command": [
+      "bash",
+      "/private/tmp/factory-harness-release-20261016/.claude/scripts/test/tdd-ledger-suite.sh"
+    ],
+    "exit_code": 0,
+    "log": "verify/2026-10-16-harness-final/tdd-ledger-suite.txt"
+  },
+  {
+    "command": [
+      "bash",
+      "/private/tmp/factory-harness-release-20261016/.claude/scripts/test/evidence-proof-preservation.sh"
+    ],
+    "exit_code": 0,
+    "log": "verify/2026-10-16-harness-final/evidence-proof-preservation.txt"
+  },
+  {
+    "command": [
+      "bash",
+      "/private/tmp/factory-harness-release-20261016/.claude/scripts/test/evidence-finalization.sh"
+    ],
+    "exit_code": 0,
+    "log": "verify/2026-10-16-harness-final/evidence-finalization.txt"
+  },
+  {
+    "command": [
+      "bash",
+      "/private/tmp/factory-harness-release-20261016/.claude/scripts/test/local-evidence-gate.sh"
+    ],
+    "exit_code": 0,
+    "log": "verify/2026-10-16-harness-final/local-evidence-gate.txt"
+  },
+  {
+    "command": [
+      "bash",
+      "/private/tmp/factory-harness-release-20261016/.claude/scripts/test/sarif-effective-severity.sh"
+    ],
+    "exit_code": 0,
+    "log": "verify/2026-10-16-harness-final/sarif-effective-severity.txt"
+  },
+  {
+    "command": [
+      "bash",
+      "/private/tmp/factory-harness-release-20261016/.claude/scripts/test/sarif-audit-policy.sh"
+    ],
+    "exit_code": 0,
+    "log": "verify/2026-10-16-harness-final/sarif-audit-policy.txt"
+  },
+  {
+    "command": [
+      "bash",
+      "/private/tmp/factory-harness-release-20261016/.claude/scripts/test/weekly-rollup-input.sh"
+    ],
+    "exit_code": 0,
+    "log": "verify/2026-10-16-harness-final/weekly-rollup-input.txt"
+  },
+  {
+    "command": [
+      "bash",
+      "/private/tmp/factory-harness-release-20261016/.claude/scripts/test/staged-adr-input.sh"
+    ],
+    "exit_code": 0,
+    "log": "verify/2026-10-16-harness-final/staged-adr-input.txt"
+  },
+  {
+    "command": [
+      "bash",
+      ".claude/scripts/check-tdd-ledger.sh"
+    ],
+    "exit_code": 0,
+    "log": "verify/2026-10-16-harness-final/check-tdd-ledger.txt"
+  },
+  {
+    "command": [
+      "bash",
+      ".claude/scripts/validate.sh"
+    ],
+    "exit_code": 0,
+    "log": "verify/2026-10-16-harness-final/validate.txt"
+  },
+  {
+    "command": [
+      "git",
+      "diff",
+      "--check"
+    ],
+    "exit_code": 0,
+    "log": "verify/2026-10-16-harness-final/diff.txt"
+  }
+]

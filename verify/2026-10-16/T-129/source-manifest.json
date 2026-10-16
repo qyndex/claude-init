@@ -1,0 +1,12 @@
+{
+  "task": "T-129",
+  "reviewed_bug_commit": "defe238ad1c8a67c71c7fa3baa789de9ccbd63ee",
+  "original_guard_commit": "925b2d24dd5dbf16c3f7b49b43a9defac06f597e",
+  "sha256": {
+    ".claude/hooks/pre-bash-guard.sh": "1ca96efc5e320e496a8f2de33b13353c16fd2913d2d65cb054745323e05cda45",
+    ".claude/scripts/test/pre-bash-guard-literals.sh": "638776f658a8d7e9812df0fd65f31d6422a5914a21fc25218d281c73fa401ec8",
+    "specs/active/003-audit-round2-remediation.md": "609b475d51c475cf468baab58676f3b405f09dad9c6d4499034ccd5372ff6678",
+    "plans/active/003-audit-round2-remediation.md": "9293f31ad13098379ab3fbcc09c3f72aa92f04f4f21b9515abed552cf533c5fa"
+  },
+  "scope": "local corrected production behavior; independent rereview pending"
+}

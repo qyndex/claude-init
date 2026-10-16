@@ -1,0 +1,37 @@
+{
+  "scope": "Guard-only JSON input; no payload execution. Original68 retains64 denied controls/four safe literal exceptions. Expanded94 adds repeat regressions plus two equivalent fetching-prose variants; six safe literal examples total. Two parser-error injections pass separately.",
+  "observations": [
+    {
+      "scope": "original68",
+      "guard": "original-main91839087",
+      "sha256": "0a79ac5987851fa8ad4aee8c9ad15e26f393ea72d1e9d0603585125e800ae2fa",
+      "exit": 1,
+      "stdout": "FAIL frontend-heredoc: expected=pass got=deny exit=2\nFAIL frontend-backtick-function: expected=pass got=deny exit=2\nFAIL prose: expected=pass got=deny exit=2\nFAIL template-fetch-function: expected=pass got=deny exit=2\nmatrix passed=64 failed=4\n",
+      "stderr": ""
+    },
+    {
+      "scope": "original68",
+      "guard": "repeat-repair",
+      "sha256": "55c02d5bd77730bff10b500f1ac8dc618d1585d4a16004b412dad808fefcf623",
+      "exit": 0,
+      "stdout": "matrix passed=68 failed=0\n",
+      "stderr": ""
+    },
+    {
+      "scope": "expanded94",
+      "guard": "original-main91839087",
+      "sha256": "0a79ac5987851fa8ad4aee8c9ad15e26f393ea72d1e9d0603585125e800ae2fa",
+      "exit": 1,
+      "stdout": "FAIL frontend-heredoc: expected=pass got=deny exit=2\nFAIL frontend-backtick-function: expected=pass got=deny exit=2\nFAIL prose: expected=pass got=deny exit=2\nFAIL template-fetch-function: expected=pass got=deny exit=2\nFAIL frontend-fetching-items: expected=pass got=deny exit=2\nFAIL frontend-fetching-one-record: expected=pass got=deny exit=2\nmatrix passed=88 failed=6\n",
+      "stderr": ""
+    },
+    {
+      "scope": "expanded94",
+      "guard": "repeat-repair",
+      "sha256": "55c02d5bd77730bff10b500f1ac8dc618d1585d4a16004b412dad808fefcf623",
+      "exit": 0,
+      "stdout": "matrix passed=94 failed=0\n",
+      "stderr": ""
+    }
+  ]
+}

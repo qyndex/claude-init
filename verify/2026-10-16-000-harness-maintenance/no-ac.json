@@ -1,0 +1,39 @@
+{
+  "kind": "harness-maintenance",
+  "date": "2026-10-16",
+  "reason": "The entire candidate changes only harness internals, supported harness workflow assets, tests and documentation/proof. Specs003 and006 contain script-level acceptance criteria; per-task behavioral RED/GREEN proof and actual independent review are supplied. This maintenance profile does not claim browser journeys or re-certify historical acceptance criteria.",
+  "specs": [
+    "003",
+    "006"
+  ],
+  "task_ids": [
+    "T-129",
+    "T-130",
+    "T-131",
+    "T-326",
+    "T-327",
+    "T-328",
+    "T-329"
+  ],
+  "maintains": [
+    ".claude/hooks/pre-bash-guard.sh",
+    ".claude/scripts/check-sarif-audit-policy.py",
+    ".claude/scripts/check-sarif.sh",
+    ".claude/scripts/collect-evidence.sh",
+    ".claude/scripts/tdd-ledger.sh",
+    ".claude/scripts/test/evidence-proof-preservation.sh",
+    ".claude/scripts/test/pre-bash-guard-literals.sh",
+    ".claude/scripts/test/sarif-audit-policy.sh",
+    ".claude/scripts/test/sarif-effective-severity.sh",
+    ".claude/scripts/test/staged-adr-input.sh",
+    ".claude/scripts/test/tdd-ledger-suite.sh",
+    ".claude/scripts/test/weekly-rollup-input.sh",
+    ".claude/security-audit-exceptions.json",
+    ".claude/state/analyze-003.json",
+    ".claude/state/analyze-006.json",
+    ".claude/templates/evidence/playwright.config.ts",
+    ".github/workflows/memory-rollup-weekly.yml",
+    ".github/workflows/semgrep.yml"
+  ],
+  "authority_limit": "Local proof is not authenticated factory merge authority; exact-source audit activation remains off pending concrete independent review and operator approval."
+}
