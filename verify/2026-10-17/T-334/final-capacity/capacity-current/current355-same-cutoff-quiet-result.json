@@ -1,0 +1,19 @@
+{
+  "exit": 0,
+  "source_sha": "355bac1c81977397aa7b13fcd2f724781c806efa",
+  "actual_public_calls": 1,
+  "result": {
+    "status": "not-due"
+  },
+  "api_calls": 143,
+  "api_bytes": 1282596,
+  "role_counts": {
+    "writer": 143
+  },
+  "report_bytes_unchanged": true,
+  "maintenance_bytes_unchanged": true,
+  "source_epoch_unchanged": true,
+  "no_send": true,
+  "log_sha256": "68969850127eb4db64fe1118fac26f8b1c4435339aa55562e94acc19ae4327e1",
+  "scope": "offline current-source samecutoff actualpublicrun; originauthenticationpublication allowed; no native/timeliness claim"
+}

@@ -1,0 +1,44 @@
+{
+  "invocation": 5,
+  "calls": 2048,
+  "bytes": 20116537,
+  "role_counts": {
+    "writer": 1935,
+    "source": 113
+  },
+  "method_counts": {
+    "GET": 1636,
+    "POST": 406,
+    "PATCH": 6
+  },
+  "path_counts": {
+    "repos/org/repo": 41,
+    "repos/org/repo/rules/branches/factory-reporting-state": 40,
+    "repos/org/repo/rulesets/1": 78,
+    "repos/org/repo/rulesets/2": 78,
+    "repos/org/repo/git/ref": 81,
+    "repos/org/repo/git/commits": 35,
+    "compare": 276,
+    "repos/org/repo/git/trees": 879,
+    "repos/org/repo/git/blobs": 52,
+    "repos/org/repo/commits": 45,
+    "repos/org/repo/git/refs": 6,
+    "pulls": 1,
+    "graphql": 388,
+    "actions": 48
+  },
+  "actual_sql_counts_after_return_or_error": {
+    "delivery_receipts": 1001,
+    "delivery_provenance": 1001,
+    "delivery_times": 1001,
+    "delivery_trust": 1001,
+    "delivery_interval": 1001
+  },
+  "compare_requests": 276,
+  "unique_compares": 53,
+  "repeat_compare_requests": 223,
+  "saved": {
+    "preserved_actual_result": "/Volumes/M/sourcecode/qyndex/factory-validation-tmp-20261016/t334-public-tail-result-1mjtebwe",
+    "head": "55c46590b398184a5ec05d0ccca25a779dfcf718"
+  }
+}

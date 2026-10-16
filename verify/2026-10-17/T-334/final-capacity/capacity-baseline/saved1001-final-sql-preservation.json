@@ -1,0 +1,12 @@
+{
+  "scope": "offline synthetic fixture SQL only; no real private feedback/Slack data",
+  "bytes": 2813952,
+  "sha256": "6f71b4e32d9df7e0fe3f3d8215a6e443bc995baf071db65591c02b8bb8529741",
+  "counts": {
+    "delivery_receipts": 1001,
+    "delivery_provenance": 1001,
+    "delivery_times": 1001,
+    "delivery_trust": 1001,
+    "delivery_interval": 1001
+  }
+}

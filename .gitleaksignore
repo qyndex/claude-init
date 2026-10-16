@@ -12,3 +12,11 @@ f2e14119001141748a410f86d2ffb7cb50f7be19:verify/2026-10-16-050-request-intake-ro
 80ec79611dbb8b010c7de74877a3d888054402c9:docs/activation/2026-10-16-queue-probe/live-proof.json:generic-api-key:2
 80ec79611dbb8b010c7de74877a3d888054402c9:docs/activation/2026-10-16-queue-probe/live-proof.json:generic-api-key:7
 80ec79611dbb8b010c7de74877a3d888054402c9:verify/2026-10-16/T-318/green.log:generic-api-key:7
+
+# Retained offline reporting proof: deterministic SHA-256 batch idempotency keys,
+# computed by factory-digest.py from stream/start/end; synthetic C1 destination, no credentials.
+verify/2026-10-17/T-334/final-capacity/capacity-current/saved1001-compare-cache-delivery-preservation.json:generic-api-key:12
+verify/2026-10-17/T-334/final-capacity/capacity-current/current355-single-final-tail.log:generic-api-key:1
+verify/2026-10-17/T-334/final-capacity/capacity-current/saved1001-compare-cache-metadata-corrected-result.json:generic-api-key:16
+verify/2026-10-17/T-334/final-capacity/capacity-current/current355-single-final-tail-result.json:generic-api-key:17
+verify/2026-10-17/T-334/final-capacity/capacity-current/saved1001-compare-cache-metadata-corrected.log:generic-api-key:12

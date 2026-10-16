@@ -1,0 +1,8 @@
+{
+  "source": "/private/tmp/factory-parent288-baseline-20261017/verify/2026-10-17/T-288/red.log",
+  "sha256": "3c6a9bec080039b1bd63f56be48424af9e1266568cae0a7695bd5818db683ff0",
+  "baseline_source": "1d5648d4ba3abc8621a393c34af35d622d2561c7",
+  "current_tests_source": "34f3f422c10cade29193787c4caf87a74b6cbf3a",
+  "scope": "Parent historical aggregate baseline reproduction; component test-first logs retained separately. Actual capture time preserved; not original implementation chronology.",
+  "header_fabricated": false
+}

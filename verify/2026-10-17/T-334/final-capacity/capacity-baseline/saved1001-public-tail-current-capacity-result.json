@@ -1,0 +1,25 @@
+{
+  "source_sha": "600e9ff36e4309a213c067f0d02ae31e6b1d2cc9",
+  "terminal_exit": 1,
+  "snapshot": "/Volumes/M/sourcecode/qyndex/factory-validation-tmp-20261016/t334-public-tail-result-5v9q03e8",
+  "snapshot_head": "69773e0739d1c9b15cca957a21328e5715c8772c",
+  "total_calls": 121233,
+  "total_bytes": 183241006,
+  "invocations": 658,
+  "final": {
+    "invocation": 657,
+    "error": "ValueError",
+    "message": "reporting invocation capacity gap",
+    "calls": 2048,
+    "bytes": 20124483,
+    "provider": {
+      "rest": 1660,
+      "graphql": 388
+    },
+    "traceback": "Traceback (most recent call last):\n  File \"/private/tmp/factory-receipt-planning-20261016/verify/2026-10-17/T-334/saved1001-public-tail-current-capacity-frozen.py\", line 184, in child\n    result=hosted.run(config,current,current,object(),root/('report-'+str(index)+'.sqlite'),datetime.datetime(2026,10,16,12,tzinfo=datetime.timezone.utc))\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-git-state.py\", line 570, in run\n    state=GitState(state_api,config['state_branch'],stream,config.get('bootstrap_sha'),\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-git-state.py\", line 262, in __init__\n    require(self._archive_anchor()==anchor,'protected state view changed during load')\n            ^^^^^^^^^^^^^^^^^^^^^^\n  File \"/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-git-state.py\", line 299, in _archive_anchor\n    try:anchor=self.archive.verify_bootstrap(self.reader,self.state_view['approval_path'])\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py\", line 299, in verify_bootstrap\n    verified_prefix = _completed_origin(api, context)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py\", line 285, in _completed_origin\n    _origin_ancestor(read, root, progress['frozen_head'], parent['sha'])\n  File \"/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py\", line 755, in _origin_ancestor\n    value = read(root+'/compare/'+base+'...'+head+'?per_page=1&page=2')\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py\", line 199, in read\n    value = api.request(path)\n            ^^^^^^^^^^^^^^^^^\n  File \"/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-git-state.py\", line 231, in request\n    value=self.source.request(path);raw=canonical(value).encode();self.consumed+=len(raw)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-reporting-transport.py\", line 153, in request\n    if not paginate:return self._once(path,method,payload,raw)\n                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-reporting-transport.py\", line 131, in _once\n    self.budget.begin()\n  File \"/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-reporting-transport.py\", line 56, in begin\n    require(self.calls < MAX_CALLS and self.bytes < MAX_BYTES, 'reporting invocation capacity gap')\n  File \"/private/tmp/factory-receipt-planning-20261016/.claude/scripts/validate-candidate-evidence.py\", line 19, in require\n    raise ValueError(message)\nValueError: reporting invocation capacity gap\n"
+  },
+  "log_sha256": "e64997bc5ee4c85670b49a6c95fb2961817262474215421f2896ac17dffeb266",
+  "delivered": false,
+  "sqlite_preserved": false,
+  "sql_observation": "Local report SQLite was not retained by original finally; SQL counts emitted only on delivery, which was not reached. No five-table success claim."
+}
