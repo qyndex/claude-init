@@ -97,7 +97,7 @@ def run(config, api, client, now, *, failed_run=None, drill_run=None):
     if drill_run is not None: require(type(drill_run) is int and drill_run > 0, 'drill identity invalid')
     health = w.inspect(config, api, client, now)
     stream = state.hashlib.sha256(state.canonical([config['repository'],config['destination'],config['branch']]).encode()).hexdigest()
-    checkpoint = state.GitState(api,config['state_branch'],stream,config.get('bootstrap_sha'),config.get('policy_approvals'))
+    checkpoint = state.GitState(api,config['state_branch'],stream,config.get('bootstrap_sha'),config.get('policy_approvals'),state_view=config.get('state_view'))
     require(checkpoint.head == health['checkpoint_sha'], 'health checkpoint changed; recheck before alert')
     document = json.loads(checkpoint.bytes, object_pairs_hook=state.digest.coordinator.contract.no_duplicate_keys)
     state.validate(document,config['repository'],stream)

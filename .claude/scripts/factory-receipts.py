@@ -221,8 +221,20 @@ def ingest(api, policy, db_path, run_id, *, trust_path=None, trust_mode='legacy'
     return {'completed_tasks': tasks, 'run_id': run_id, 'merge_sha': proof['merge_sha']}
 
 
-def project(api, policy, db_path):
+def project(api, policy, db_path, *, receipt_mode='legacy', state_api=None, archive_config=None, selection=None):
     """Rebuild reporting-only proof tables; never create or transition runtime tasks."""
+    require(type(receipt_mode) is str and receipt_mode in ('legacy', 'durable'), 'explicit reporting receipt mode required')
+    if receipt_mode == 'durable':
+        require(state_api is not None and type(archive_config) is dict and
+                set(archive_config)=={'approval_path','trust_path','store','trust_mode'} and
+                type(selection) is dict and set(selection)=={'interval_end','history_head','campaign'},
+                'protected durable reporting selection required')
+        spec = importlib.util.spec_from_file_location('durable_reporting_receipts', Path(__file__).with_name('factory-reporting-receipts.py'))
+        retained = importlib.util.module_from_spec(spec); spec.loader.exec_module(retained)
+        return retained.project_reporting(api, state_api, policy, db_path, archive_config['trust_path'],
+                    archive_config['store'], archive_config['approval_path'], retained.archive.archive_stream(api.repo),
+                    interval_end=selection['interval_end'], history_head=selection['history_head'],
+                    campaign=selection['campaign'], interval_scoped=True)
     require(api.repo == policy['repository'], 'foreign reporting receipt policy')
     configured = policy['receipts']
     workflow = configured['workflow_id']

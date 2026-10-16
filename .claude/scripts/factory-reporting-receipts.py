@@ -54,12 +54,13 @@ class Source:
 
 
 def project_reporting(source_api, state_api, policy, report_path, trust_path, store,
-                      approval_path, stream, *, interval_end, history_head, campaign, page_size=100):
+                      approval_path, stream, *, interval_end, history_head, campaign, page_size=100, interval_scoped=False):
     """No caller SQLite/projection result is accepted as authentication evidence.
 
     Both validators perform actual protected reads. The only destination writes
     are fixed typed receipt rows, in one transaction, after complete coverage.
     """
+    require(type(interval_scoped) is bool, 'reporting interval scope mode invalid')
     require(source_api.repo == state_api.repo == policy['repository'], 'reporting receipt repository differs')
     report = Path(report_path)
     require(report.is_absolute() and report.resolve() == report and report.is_file() and not report.is_symlink(),
@@ -70,11 +71,11 @@ def project_reporting(source_api, state_api, policy, report_path, trust_path, st
     with tempfile.TemporaryDirectory(prefix='factory-report-receipts-') as temporary:
         receipt_db = Path(temporary)/'receipts.sqlite'
         projection = archive.reconstruct_interval(state, policy, receipt_db, trust_path, store,
-                    approval_path, stream, interval_end=interval_end, history_head=history_head, campaign=campaign)
+                    approval_path, stream, interval_end=interval_end, history_head=history_head, campaign=campaign, interval_scoped=interval_scoped)
         require(projection.get('projection_complete') is True, 'retained reporting projection incomplete')
         coverage = discovery.coverage(source, state, policy, trust_path, store, approval_path, stream,
                     interval_end=interval_end, projection_end=interval_end, history_head=history_head,
-                    campaign=campaign, page_size=page_size)
+                    campaign=campaign, page_size=page_size, interval_scoped=interval_scoped)
         require(all(coverage.get(key) is True for key in ('coverage_complete', 'source_partition_complete', 'frozen_projection_complete')) and
                 coverage.get('verified_until') == interval_end and coverage.get('gaps') == [] and
                 coverage.get('task_credit') is False and coverage.get('all_history_complete') is False,

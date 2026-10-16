@@ -412,7 +412,7 @@ class HostedDigest(digest.Digest):
                     db.execute(f'DELETE FROM {table}')
                     for row in document['tables'][table]:
                         db.execute(f'INSERT INTO {table}({",".join(columns)}) VALUES({",".join("?" for _ in columns)})', [row[c] for c in columns])
-        super().__init__(path, config['repository'], config['destination'], config['start'], config['branch'])
+        super().__init__(path, config['repository'], config['destination'], config['start'], config['branch'], receipt_mode=config.get('receipt_mode','legacy'))
 
     @contextmanager
     def transaction(self):
@@ -431,17 +431,66 @@ def run(config, report_api, state_api, slack_client, path, now):
     require(config.get('enabled') is True and report_api.repo == config['repository'], 'hosted reporting disabled/foreign')
     source = report_api.get(f'repos/{report_api.repo}')
     require(source['full_name'] == report_api.repo and source['default_branch'] == config['branch'], 'report repository/default branch differs')
+    target = slack.due(now)
     stream = hashlib.sha256(canonical([config['repository'], config['destination'], config['branch']]).encode()).hexdigest()
-    state = GitState(state_api, config['state_branch'], stream, config.get('bootstrap_sha'), config.get('policy_approvals'), state_view=config.get('state_view'))
+    pending_snapshot = False
+    mode = config.get('receipt_mode', 'legacy')
+    require(type(mode) is str and mode in ('legacy', 'durable'), 'explicit reporting receipt mode required')
+    if mode == 'durable':
+        require(not Path(path).is_symlink(), 'reporting database symlink forbidden')
+        path = Path(path).resolve()
+        durable = config.get('receipt_archive')
+        require(type(durable) is dict and set(durable)=={'approval_path','trust_path','store','trust_mode'}
+                and config.get('receipt_policy') is not None, 'protected durable reporting configuration required')
+        maintenance_spec = importlib.util.spec_from_file_location('report_maintenance', Path(__file__).with_name('factory-reporting-maintenance.py'))
+        maintenance = importlib.util.module_from_spec(maintenance_spec); maintenance_spec.loader.exec_module(maintenance)
+        require(config.get('state_view')=={'mode':'archive','approval_path':str(Path(durable['approval_path']).resolve())},
+                'durable report requires protected archive state view')
+        origin = maintenance.archive.advance_origin(state_api, durable['approval_path'], commit_budget=16, tree_pages=4)
+        if not origin['frozen_complete']:
+            return {'status':'incomplete','phase':'origin','coverage_complete':False,'all_history_complete':False,'task_credit':False}
+        reader = _ProtectedStateReader(state_api)
+        prior_anchor = maintenance.archive.verify_bootstrap(reader, durable['approval_path'])
+        require(config['state_branch']==prior_anchor['branch'] and config['state_repository']==state_api.repo,
+                'durable reporting state binding differs')
+        _, prior_blob = maintenance.archive.fixed_reader(reader, 'repos/'+state_api.repo)
+        prior_raw = prior_blob(prior_anchor['tree'], 'reports/'+stream+'.json')
+        if prior_raw is not None:
+            prior = json.loads(prior_raw, object_pairs_hook=digest.coordinator.contract.no_duplicate_keys)
+            validate(prior, state_api.repo, stream)
+            pending_snapshot = any(row['status']!='confirmed' for row in prior['tables']['digest_batches'])
+        if not pending_snapshot:
+            progress = maintenance.maintain(report_api, state_api, config['receipt_policy'], durable['trust_path'],
+                        durable['store'], durable['approval_path'], interval_end=target, trust_mode=durable['trust_mode'])
+            if progress['status'] != 'ready':return progress
+    stream = hashlib.sha256(canonical([config['repository'], config['destination'], config['branch']]).encode()).hexdigest()
+    bootstrap = config.get('bootstrap_sha')
+    if mode == 'durable':
+        view = {'mode':'archive','approval_path':str(Path(durable['approval_path']).resolve())}
+        require(config.get('state_view') == view, 'durable report requires protected archive state view')
+        anchor = maintenance.archive.verify_bootstrap(state_api, durable['approval_path'])
+        require(config['state_branch']==anchor['branch'] and config['state_repository']==state_api.repo,
+                'durable reporting state binding differs')
+        item_at, _ = maintenance.archive.fixed_reader(state_api, 'repos/'+state_api.repo)
+        report_leaf = 'reports/'+stream+'.json'
+        if item_at(anchor['tree'], report_leaf) is None:
+            require(item_at(anchor['bootstrap_tree'], report_leaf) is None and
+                    state_api.request('repos/'+state_api.repo+'/commits?sha='+anchor['head']+'&path='+quote(report_leaf,safe='')+'&per_page=1') == [],
+                    'missing durable reporting checkpoint cannot reset historical state')
+            bootstrap = anchor['head']
+    state = GitState(state_api, config['state_branch'], stream, bootstrap, config.get('policy_approvals'),
+                     state_view=config.get('state_view'), bootstrap_existing=mode=='durable')
     require(not source['private'] or state.private, 'private repository cannot publish public checkpoints')
     store = HostedDigest(path, config, state)
     target = slack.due(now)
-    if digest.instant(store.cursor()) >= digest.instant(target):
+    if not pending_snapshot and digest.instant(store.cursor()) >= digest.instant(target):
         return {'status': 'not-due'}
-    if config.get('receipt_policy') is not None:
+    if not pending_snapshot and config.get('receipt_policy') is not None:
         receipts_spec = importlib.util.spec_from_file_location('report_receipts', Path(__file__).with_name('factory-receipts.py'))
         receipts = importlib.util.module_from_spec(receipts_spec); receipts_spec.loader.exec_module(receipts)
-        receipts.project(report_api, config['receipt_policy'], path)
+        receipts.project(report_api, config['receipt_policy'], path, receipt_mode=mode, state_api=state_api,
+                         archive_config=config.get('receipt_archive'), selection=None if mode=='legacy' else
+                         {'interval_end':target,'history_head':progress['history_head'],'campaign':progress['campaign']})
     batch = store.prepare(report_api, target)
     adapter = slack.transport(slack_client, config, batch)
     receipt = store.deliver(batch['key'], adapter)
