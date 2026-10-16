@@ -1,0 +1,18 @@
+public step 1 incomplete backfill
+Traceback (most recent call last):
+  File "<stdin>", line 62, in <module>
+  File "actual-public-rollover", line 120, in <module>
+  File "actual-public-rollover", line 113, in step
+  File "/private/tmp/factory-reporting-rollover-20261017/.claude/scripts/factory-git-state.py", line 517, in run
+    progress = scheduling(report_api, state_api, config['receipt_policy'], durable['trust_path'],
+                durable['store'], durable['approval_path'], interval_end=target, trust_mode=durable['trust_mode'])
+  File "/private/tmp/factory-reporting-rollover-20261017/.claude/scripts/factory-reporting-maintenance.py", line 248, in select_reporting
+    return maintain(*args, **kwargs, _operation=_SELECT_REPORTING)
+  File "/private/tmp/factory-reporting-rollover-20261017/.claude/scripts/factory-reporting-maintenance.py", line 71, in maintain
+    require(archive.instant(interval_end)<=archive.datetime.datetime.now(archive.datetime.timezone.utc),
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            'maintenance cutoff is in future')
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-reporting-rollover-20261017/.claude/scripts/validate-candidate-evidence.py", line 19, in require
+    raise ValueError(message)
+ValueError: maintenance cutoff is in future

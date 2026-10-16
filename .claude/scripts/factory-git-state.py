@@ -487,6 +487,7 @@ def run(config, report_api, state_api, slack_client, path, now):
     target = slack.due(now)
     stream = hashlib.sha256(canonical([config['repository'], config['destination'], config['branch']]).encode()).hexdigest()
     pending_snapshot = False
+    reporting_cursor = None
     mode = config.get('receipt_mode', 'legacy')
     require(type(mode) is str and mode in ('legacy', 'durable'), 'explicit reporting receipt mode required')
     if mode == 'durable':
@@ -512,10 +513,11 @@ def run(config, report_api, state_api, slack_client, path, now):
             prior = json.loads(prior_raw, object_pairs_hook=digest.coordinator.contract.no_duplicate_keys)
             validate(prior, state_api.repo, stream)
             pending_snapshot = any(row['status']!='confirmed' for row in prior['tables']['digest_batches'])
+            reporting_cursor = prior['tables']['digest_cursors'][0]['cutoff']
         if not pending_snapshot:
             scheduling=maintenance.select_reporting if config.get('pr_discovery_mode','legacy')=='resumable' else maintenance.prepare_reporting
             progress = scheduling(report_api, state_api, config['receipt_policy'], durable['trust_path'],
-                        durable['store'], durable['approval_path'], interval_end=target, trust_mode=durable['trust_mode'])
+                        durable['store'], durable['approval_path'], interval_end=target, trust_mode=durable['trust_mode'], reporting_cursor=reporting_cursor)
             if progress['status'] != 'projection-ready':return progress
             target = progress['interval_end']
     stream = hashlib.sha256(canonical([config['repository'], config['destination'], config['branch']]).encode()).hexdigest()
@@ -544,7 +546,7 @@ def run(config, report_api, state_api, slack_client, path, now):
         if discovered['status']!='complete':return discovered
         if mode=='durable':
             progress=maintenance.prepare_reporting(report_api,state_api,config['receipt_policy'],durable['trust_path'],
-                        durable['store'],durable['approval_path'],interval_end=target,trust_mode=durable['trust_mode'])
+                        durable['store'],durable['approval_path'],interval_end=target,trust_mode=durable['trust_mode'],reporting_cursor=reporting_cursor)
             if progress['status']!='projection-ready':return progress
             require(progress['interval_end']==target,'PR observation interval changed during maintenance')
             # Maintenance changes only its own role. Retain the private current

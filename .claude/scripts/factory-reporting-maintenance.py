@@ -61,9 +61,17 @@ def maintain(source_api, state_api, policy, trust_path, store, approval_path, *,
     remain mandatory before reporting. No persistent local database is accepted.
     """
     acknowledge=type(_operation) is tuple and len(_operation)==3 and _operation[0] is _ACKNOWLEDGE
-    require(_operation is None or _operation is _REPORTING or _operation is _SELECT_REPORTING or (acknowledge and
+    scheduled=type(_operation) is tuple and len(_operation)==2 and (_operation[0] is _REPORTING or _operation[0] is _SELECT_REPORTING)
+    require(_operation is None or _operation is _REPORTING or _operation is _SELECT_REPORTING or scheduled or (acknowledge and
             archive.state_paths.valid_hash(_operation[1],40) and archive.state_paths.valid_hash(_operation[2],64)),
             'maintenance internal operation invalid')
+    reporting=_operation is _REPORTING or (scheduled and _operation[0] is _REPORTING)
+    selecting=_operation is _SELECT_REPORTING or (scheduled and _operation[0] is _SELECT_REPORTING)
+    reporting_cursor=_operation[1] if scheduled else None
+    if scheduled:
+        require(type(reporting_cursor) is str and len(reporting_cursor)<=40
+                and archive.instant(reporting_cursor).microsecond==0
+                and archive.instant(reporting_cursor)<=archive.instant(interval_end), 'maintenance report cursor invalid')
     require(source_api.repo==state_api.repo==policy['repository']==store['repository'] and trust_mode in ('profile','legacy'),
             'maintenance repository/trust mode differs')
     require(type(interval_end) is str and len(interval_end)<=40 and archive.instant(interval_end).microsecond==0,
@@ -227,8 +235,12 @@ def maintain(source_api, state_api, policy, trust_path, store, approval_path, *,
                     history_head=journal['history_head'],page=journal['page'],offset=journal['offset'],limit=8,interval_scoped=True)
         if staged['status']=='already-staged':return persist(dict(journal,offset=journal['offset']+staged['facts_count']))
         return result
-    if _operation is _REPORTING or _operation is _SELECT_REPORTING:
-        prepared=persist(dict(journal,phase='verify')) if _operation is _REPORTING else result
+    # A delivered report cursor selects scheduling only. Existing coverage below
+    # must still authenticate the old interval before an additive rollover.
+    rollover=(reporting_cursor is not None and archive.instant(reporting_cursor)>=archive.instant(end)
+              and archive.instant(interval_end)>archive.instant(end))
+    if (reporting or selecting) and not rollover:
+        prepared=persist(dict(journal,phase='verify')) if reporting else result
         return dict(prepared,status='projection-ready',history_head=journal['history_head'],
                     campaign=journal['campaign'],interval_scoped=True)
     coverage=discovery.coverage(source,api,policy,trust_path,store,approval_path,stream,interval_end=end,
@@ -242,16 +254,16 @@ def maintain(source_api, state_api, policy, trust_path, store, approval_path, *,
                 campaign=journal['campaign'],interval_scoped=True)
 
 
-def select_reporting(*args, **kwargs):
+def select_reporting(*args, reporting_cursor=None, **kwargs):
     """Validated scheduling selectors only; no verification intent or coverage."""
     require('_operation' not in kwargs, 'maintenance internal operation invalid')
-    return maintain(*args, **kwargs, _operation=_SELECT_REPORTING)
+    return maintain(*args, **kwargs, _operation=_SELECT_REPORTING if reporting_cursor is None else (_SELECT_REPORTING,reporting_cursor))
 
 
-def prepare_reporting(*args, **kwargs):
+def prepare_reporting(*args, reporting_cursor=None, **kwargs):
     """Private pipeline scheduling only; this never certifies delivery coverage."""
     require('_operation' not in kwargs, 'maintenance internal operation invalid')
-    return maintain(*args, **kwargs, _operation=_REPORTING)
+    return maintain(*args, **kwargs, _operation=_REPORTING if reporting_cursor is None else (_REPORTING,reporting_cursor))
 
 
 def acknowledge_reporting(*args, history_head, campaign, **kwargs):
