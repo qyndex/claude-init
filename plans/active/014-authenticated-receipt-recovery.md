@@ -5,7 +5,7 @@ spec: specs/active/014-authenticated-receipt-recovery.md
 status: approved
 owner: "@codex"
 created: 2026-10-10
-updated: 2026-10-16
+updated: 2026-10-17
 ---
 
 # Authenticated receipt and worker recovery
@@ -751,3 +751,29 @@ failures remain retained, including the Git write128 whose stderr was unavailabl
 (and therefore is not asserted to be confirmed ENOSPC). T288 loader, campaign,
 reporting-App and exact positive-actor integration remain unimplemented here;
 there was no live activation, key copy, permission change or archive pruning.
+
+### T288 sequential integration execution — 17October
+
+The ten production fingerprints in the concrete read-only preflight were checked
+against committed T287 source and match. Its independent security boundaries are
+implemented one at a time as T330→T335; T288 remains the aggregate integration
+gate and T289 still depends on it. This is decomposition of the already-approved
+reporting-writer/receipt integration, not extra product scope or live activation.
+
+| Child | Boundary and fail-first proof |
+|---|---|
+| T330 | Separate exact positive-writer observations and explicit bootstrap binding; hidden/wrong actors fail without raw-response fabrication; existing empty merge observations unchanged. |
+| T331 | Fixed same-repository source/state/PR/Blob role routing and explicit default-off config; invalid paths, wrong credentials and dropped batch accounting fail. |
+| T332 | Authenticated bounded report-state view and shared-reader compatibility; completed origin precedes fixed report-path reads, real CAS preserves all opaque worker/archive bytes. |
+| T333 | Fresh receipt-only SQLite reconstruction and typed report import/rendering; foreign tables/rows, withdrawn trust, revised-task credit and wrong merge-time/interval fail. |
+| T334 | Restartable production maintenance/campaign cadence and final fresh reporting snapshot; partial origin and stale writer snapshots cannot send or advance coverage. |
+| T335 | Default-off App workflow ingress, complete protected consumer closure and actual integration acceptance; no credential/permission/cutover fallback or fabricated private/live proof. |
+
+T330 uses a reporting-only policy contract. Explicit legacy full-metadata
+bootstrap remains strict; a separately versioned observation-enabled bootstrap
+selects protected exact observations, never falls back and never inserts actors
+into API JSON. The positive actor is allowed only on an update-only restriction;
+independent deletion/rewrite protection remains no-bypass. The original merge
+policy empty-actor helper and all original runtime/task-credit guards remain.
+Actual App capability, source rollout, positive policy activation and morning
+delivery proof remain later reviewed T289/operator gates.

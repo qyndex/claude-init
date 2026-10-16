@@ -1747,7 +1747,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-state-scan-cost.sh && bash .claude/scripts/test/factory-receipt-history.sh
   owner: implementer
 
-- [ ] T-288  | spec:014  | phase:4  | priority: security  | created: 2026-10-16  | deps: T-287  | parallel: no  | est: 5m
+- [ ] T-288  | spec:014  | phase:4  | priority: security  | created: 2026-10-16  | deps: T-287,T-335  | parallel: no  | est: 5m
   summary: Integrate profiles archive and discovery into digest and alert loaders
   files: .github/workflows/factory-hosted-digest.yml, .github/workflows/factory-reporting-alerts.yml, .claude/scripts/factory-receipts.py, .claude/scripts/test/factory-receipt-reporting.sh
   accept: bash .claude/scripts/test/factory-receipt-reporting.sh
@@ -1931,4 +1931,42 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   summary: Recognize actual timestamped Actions command markers without relaxing result parsing
   files: .claude/scripts/factory-reporting-queue-evidence.py, .claude/scripts/test/factory-reporting-queue-evidence-source.sh, plans/active/029-github-reporting-alerts.md
   accept: bash .claude/scripts/test/factory-reporting-queue-evidence-source.sh
+  owner: implementer
+
+## Approved Spec014 sequential reporting integration children
+
+- [ ] T-330  | spec:014  | phase:4  | priority: security  | created: 2026-10-17  | deps: T-287  | parallel: no  | est: 5m
+  summary: Authenticate separately protected reporting-writer policy observations
+  files: .claude/scripts/factory-reporting-policy.py, .claude/scripts/factory-receipt-archive.py, .claude/scripts/test/factory-reporting-policy.sh
+  accept: bash .claude/scripts/test/factory-reporting-policy.sh
+  owner: implementer
+
+- [ ] T-331  | spec:014  | phase:4  | priority: security  | created: 2026-10-17  | deps: T-330  | parallel: no  | est: 5m
+  summary: Route reporting source and state reads through explicit bounded roles
+  files: .claude/scripts/factory-reporting-transport.py, .claude/scripts/test/factory-reporting-transport.sh
+  accept: bash .claude/scripts/test/factory-reporting-transport.sh
+  owner: implementer
+
+- [ ] T-332  | spec:014  | phase:4  | priority: security  | created: 2026-10-17  | deps: T-331  | parallel: no  | est: 5m
+  summary: Load bounded authenticated report views across shared state consumers
+  files: .claude/scripts/factory-git-state.py, .claude/scripts/factory-reporting-queue.py, .claude/scripts/factory-hosted-feedback.py, .claude/scripts/factory-reporting-watchdog.py, .claude/scripts/test/factory-reporting-state-view.sh
+  accept: bash .claude/scripts/test/factory-reporting-state-view.sh
+  owner: implementer
+
+- [ ] T-333  | spec:014  | phase:4  | priority: security  | created: 2026-10-17  | deps: T-332  | parallel: no  | est: 5m
+  summary: Transfer authenticated interval receipts into reporting with typed trust semantics
+  files: .claude/scripts/factory-receipts.py, .claude/scripts/factory-digest.py, .claude/scripts/test/factory-reporting-receipt-transfer.sh
+  accept: bash .claude/scripts/test/factory-reporting-receipt-transfer.sh
+  owner: implementer
+
+- [ ] T-334  | spec:014  | phase:4  | priority: security  | created: 2026-10-17  | deps: T-333  | parallel: no  | est: 5m
+  summary: Resume protected maintenance before fresh reporting snapshots
+  files: .claude/scripts/factory-reporting-maintenance.py, .claude/scripts/factory-git-state.py, .claude/scripts/factory-reporting-alerts.py, .claude/scripts/factory-receipts.py, .claude/scripts/test/factory-reporting-maintenance.sh
+  accept: bash .claude/scripts/test/factory-reporting-maintenance.sh
+  owner: implementer
+
+- [ ] T-335  | spec:014  | phase:4  | priority: security  | created: 2026-10-17  | deps: T-334  | parallel: no  | est: 5m
+  summary: Wire default-off reporting App workflows and complete consumer source closure
+  files: .github/workflows/factory-hosted-digest.yml, .github/workflows/factory-reporting-alerts.yml, .github/workflows/factory-reporting-queue.yml, .github/workflows/factory-hosted-feedback.yml, .claude/scripts/factory-git-state.py, .claude/scripts/factory-reporting-alerts.py, .claude/scripts/factory-reporting-queue.py, .claude/scripts/factory-hosted-feedback.py, .claude/scripts/test/factory-receipt-reporting.sh
+  accept: bash .claude/scripts/test/factory-receipt-reporting.sh
   owner: implementer

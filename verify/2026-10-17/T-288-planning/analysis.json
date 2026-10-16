@@ -1,0 +1,91 @@
+{
+  "verdict": "PASS",
+  "blockers": [],
+  "date": "2026-10-16T13:41:47.498082+00:00",
+  "scope": "planning consistency only; no implementation/live credit",
+  "dag": "T287\u2192T330\u2192T331\u2192T332\u2192T333\u2192T334\u2192T335\u2192T288\u2192T289\u2192T290",
+  "reserved_elsewhere": [
+    326,
+    327,
+    328,
+    329
+  ],
+  "all_tasks_acyclic": true,
+  "criteria_tasks": {
+    "AC-1": [
+      275,
+      276,
+      278,
+      299,
+      330,
+      334
+    ],
+    "AC-2": [
+      278,
+      279,
+      283,
+      307,
+      308,
+      309,
+      333
+    ],
+    "AC-3": [
+      187,
+      290
+    ],
+    "AC-4": [
+      187,
+      290
+    ],
+    "AC-5": [
+      275,
+      276,
+      277,
+      278,
+      299,
+      334
+    ],
+    "AC-6": [
+      279,
+      280,
+      281,
+      282,
+      283,
+      293,
+      299,
+      310,
+      332,
+      334
+    ],
+    "AC-7": [
+      284,
+      285,
+      286,
+      287,
+      294,
+      295,
+      302,
+      330,
+      334,
+      335
+    ],
+    "AC-8": [
+      282,
+      283,
+      288,
+      289,
+      290,
+      331,
+      332,
+      333,
+      334,
+      335
+    ]
+  },
+  "untracked_original_analyze_marker_preserved": true,
+  "artifact_sha256": {
+    "specs/active/014-authenticated-receipt-recovery.md": "c738226551455502a91cfb9bb000f6c139ef1b91e3543d00fdde079e3ffbf8f6",
+    "plans/active/014-authenticated-receipt-recovery.md": "bfa971562b9275d86eb19ec81055423dc48c43ff73f207f3a0b45b6f29f918b5",
+    "tasks/TASKS.md": "0e5b20ec168fd9ed3455440ea33f12f8b7f99ca2097e6b2d7d458808864b5d12"
+  }
+}

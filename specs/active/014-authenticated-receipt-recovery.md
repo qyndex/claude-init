@@ -5,7 +5,7 @@ status: approved
 owner: "@codex"
 human_owner: "@operator"
 created: 2026-10-10
-updated: 2026-10-16
+updated: 2026-10-17
 complexity: L
 objective: KR-PLATFORM
 service_tier: T2
@@ -25,8 +25,13 @@ Authorized continuation of F-04. Protected receipt ingestion is read-only agains
 5. **AC-5**: A protected profile outside the canonical policy authorizes exact policy digest and complete emitter closure without pinning itself or its enclosing commit. Two ordinary source commits with identical approved authority bytes authenticate without per-SHA registration. Changed policy/workflow/runtime fails until a new reviewed profile is approved; legacy imports remain explicit and constrained.
 6. **AC-6**: Append compact authenticated receipt/provenance and deduplicated source-policy/spec/runtime proof indefinitely on the existing approved per-repository data branch. Retain sufficient original receipt/artifact bytes and immutable origin/digest facts to reconstruct proof after 90-day detailed Actions artifacts expire. Reject tampered, foreign, conflicting or untrusted-bootstrap archives; links alone are insufficient.
 7. **AC-7**: Bounded resumable discovery covers reruns, late visibility, pagination completeness and restartable backfill without a lifetime-run cliff or silent omission. Establish explicit audited coverage origin before the first unattended merge. Missing required history, exhausted budgets, pending attempts or incomplete pagination produce a visible coverage gap and block complete-coverage claims; no cursor advances past unresolved work.
-8. **AC-8**: Atomic non-forced CAS append/restart drills preserve reporting and encrypted feedback bytes. Public archives contain only approved public delivery facts; private repository/source/spec/message data never enters public state. Projection cannot create/complete tasks or grant merge authority. No new vendor, credentials or signing permissions; no automatic proof pruning.
+8. **AC-8**: Atomic non-forced CAS append/restart drills preserve reporting and encrypted feedback bytes. Public archives contain only approved public delivery facts; private repository/source/spec/message data never enters public state. Projection cannot create/complete tasks or grant merge authority. No new vendor or signing permissions; the separately approved reporting App credential stays main-only with Contents write, Administration read and Metadata read, without merge-key reuse. No automatic proof pruning.
 
 ## Approved continuation — 2026-10-16
 
 The operator approved option A from the reviewed durable receipt trust proposal and retention A: compact authenticated receipt/provenance indefinitely; detailed producer Actions artifacts 90 days. This records actual approval, not implementation or live verification. AC-3 and AC-4 are unchanged. Existing exact-revision imports remain supported explicitly. Previously reported revoked facts remain auditable with withdrawn-trust annotations; newly revoked proof cannot complete tasks. GitHub API provenance plus the reviewed protected archive writer remains the trust boundary; retained JSON is not independently signed proof. A private adopter requires an approved private state store. Coverage origin must be explicitly initialized and audited per adopter before unattended merging; unavailable earlier history stays labelled, never fabricated or silently reset.
+
+The subsequent16October reporting-writer Option A approval is the explicit
+credential exception to the initial continuation: default-off source/setup for
+a separate reporting App and protected exact positive-actor observations. This
+does not approve live state-policy cutover, archive bootstrap or merge enabling.
