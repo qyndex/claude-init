@@ -1778,7 +1778,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-receipt-runtime-compatibility.sh
   owner: implementer
 
-- [ ] T-300  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-294,T-299  | parallel: no  | est: 5m
+- [x] T-300  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-294,T-299  | parallel: no  | est: 5m
   summary: Validate bounded frozen-view retained projection windows
   files: .claude/scripts/factory-receipt-archive.py, .claude/scripts/test/factory-receipt-projection-window.sh, plans/active/014-authenticated-receipt-recovery.md
   accept: bash .claude/scripts/test/factory-receipt-projection-window.sh

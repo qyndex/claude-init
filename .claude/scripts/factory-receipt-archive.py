@@ -2,6 +2,7 @@
 """Bounded compact proof data. Integrity validation alone does not establish origin."""
 import base64
 import binascii
+import datetime
 import hashlib
 import io
 import json
@@ -428,27 +429,34 @@ def append_delivery(source_api, state_api, policy, run_id, trust_path, store, ap
     raise ValueError('archive append uncertain after three CAS observations; reconcile before advancing')
 
 
-def project_retained(state_api, policy, db_path, trust_path, store, approval_path, stream):
-    """Reconstruct report facts only from the reviewed protected archive chain.
+def projection_window(state_api, policy, trust_path, store, approval_path, stream, *, interval_end, start=0, limit=128, frozen_head=None):
+    """Validate one bounded frozen retained window, granting no cursor/origin authority.
 
-    Never calls source Actions artifacts or task lifecycle APIs. Per-invocation
-    bounds fail explicitly; resumable discovery/anchors are a separate stage.
-    Caller-supplied records, hashes or cursor JSON cannot establish origin.
+    Authenticate the protected view internally and recheck before returning facts.
+    T301 publication and T302 reconstruction must independently authenticate this
+    result's stored origin; a caller JSON/hash is never proof. Full bootstrap's
+    existing 256-commit bound remains explicit until T288 integration.
+    interval_end labels the requested campaign, not a timestamp filter: this
+    validates the entire frozen snapshot range. T302/T288 must apply authenticated
+    report-time semantics and reconcile cross-window duplicates/conflicts before
+    claiming any requested interval complete.
     """
-    import sqlite3
+    require(type(start) is int and start >= 0 and type(limit) is int and 1 <= limit <= 128, 'archive projection window bounds differ')
     require(state_api.repo == policy['repository'] == store['repository'] and stream == archive_stream(state_api.repo), 'foreign archive reporting repository/stream')
     require(set(store) == {'repository', 'visibility'} and store['visibility'] in ('public', 'private'), 'archive reporting store differs')
-    consumed = 0; cache = {}; root = 'repos/'+state_api.repo
+    consumed = 0; calls = 0; cache = {}; root = 'repos/'+state_api.repo
 
     class ReadOnly:
         repo = state_api.repo
 
         def request(self, path, method='GET', payload=None):
-            nonlocal consumed
+            nonlocal consumed, calls
             require(method == 'GET' and payload is None and (path == root or path.startswith(root+'/')), 'archive reporting API must be read-only and same repository')
             immutable = '/git/trees/' in path or '/git/blobs/' in path
             if immutable and path in cache:
                 return cache[path]
+            calls += 1
+            require(calls <= 2048, 'archive reporting API observation bound reached')
             value = state_api.request(path)
             size = len(canonical(value)); consumed += size
             require(size <= 2097152 and consumed <= 33554432, 'archive reporting observation bound reached; explicit coverage gap')
@@ -457,6 +465,11 @@ def project_retained(state_api, policy, db_path, trust_path, store, approval_pat
             return value
 
     api = ReadOnly(); anchor = verify_bootstrap(api, approval_path)
+    require(frozen_head is None or frozen_head == anchor['head'], 'archive projection frozen view differs')
+    require(instant(anchor['coverage_from']) <= instant(interval_end) <= datetime.datetime.now(datetime.timezone.utc), 'archive projection interval differs')
+    receipts.load_receipt_trust(trust_path, state_api.repo, mode='report')
+    trust_sha256 = digest(Path(trust_path).read_bytes())
+    approval_sha256 = digest(Path(approval_path).read_bytes())
     require(store['visibility'] == ('private' if anchor['private'] else 'public'), 'archive actual store visibility differs')
     _, blob_at = fixed_reader(api, root); tree = anchor['tree']
     require(blob_at(anchor['bootstrap_tree'], f'receipt-archive/discovery/{stream}.json') is None, 'archive pre-bootstrap proof requires explicit reviewed import')
@@ -464,9 +477,10 @@ def project_retained(state_api, policy, db_path, trust_path, store, approval_pat
     require(journal_raw is not None, 'archive discovery missing; cannot claim retained coverage')
     journal = document(journal_raw)
     require(set(journal) == {'schema_version', 'repository', 'stream', 'coverage_from', 'next_segment', 'records_count'} and type(journal['schema_version']) is int and journal['schema_version'] == 1 and journal['repository'] == state_api.repo and journal['stream'] == stream and journal['coverage_from'] == anchor['coverage_from'] and type(journal['next_segment']) is int and 0 <= journal['next_segment'] < 10**12 and type(journal['records_count']) is int and journal['records_count'] == journal['next_segment'], 'archive discovery identity/progress differs')
-    require(journal['next_segment'] <= 128, 'archive reporting segment invocation bound reached; resumable continuation required')
-    proofs = []; seen = set()
-    for number in range(journal['next_segment']):
+    require(start <= journal['next_segment'], 'archive projection window range differs')
+    stop = min(start + limit, journal['next_segment'])
+    proofs = []; references = []; seen = set()
+    for number in range(start, stop):
         raw = blob_at(tree, state_paths.segment_path(stream, number))
         require(raw is not None, 'archive retained segment missing')
         segment = state_paths.validate_segment(document(raw), state_api.repo, stream, number)
@@ -498,7 +512,8 @@ def project_retained(state_api, policy, db_path, trust_path, store, approval_pat
             source = document(decode(materials[links['factory/policy.json']]))
             require(record['run']['workflow_id'] == source['receipts']['workflow_id'], 'archive retained workflow differs')
             proofs.append(receipts.annotate_reported_trust(record['proof'], trust_path, state_api.repo))
-    require(len(proofs) == journal['records_count'], 'archive retained count differs')
+            references.append(dict(reference, segment=number))
+    require(len(proofs) == stop-start, 'archive retained window count differs')
     by_task = {}
     for proof in proofs:
         for task in proof['tasks']:
@@ -506,6 +521,32 @@ def project_retained(state_api, policy, db_path, trust_path, store, approval_pat
             by_task[task] = proof
     # All origin, material and conflict checks finish before any SQLite mutation.
     require(verify_bootstrap(api, approval_path) == anchor, 'archive reporting origin changed before projection')
+    require(digest(Path(approval_path).read_bytes()) == approval_sha256, 'archive projection approval changed during validation')
+    require(digest(Path(trust_path).read_bytes()) == trust_sha256, 'archive projection trust changed during validation')
+    return {'schema_version': 1, 'repository': state_api.repo, 'stream': stream,
+            'repository_id': anchor['repository_id'], 'private': anchor['private'],
+            'frozen_head': anchor['head'], 'tree': anchor['tree'],
+            'bootstrap_sha': anchor['bootstrap_sha'], 'bootstrap_tree': anchor['bootstrap_tree'],
+            'coverage_from': anchor['coverage_from'], 'interval_end': interval_end,
+            'start': start, 'next_segment': stop, 'records_count': journal['records_count'],
+            'trust_sha256': trust_sha256, 'approval_sha256': approval_sha256,
+            'policy_sha256': receipts.coordinator.policy_hash(policy),
+            'proofs': proofs, 'references': references,
+            'all_segments_checked': start == 0 and stop == journal['next_segment'],
+            'coverage_complete': False}
+
+
+def project_retained(state_api, policy, db_path, trust_path, store, approval_path, stream):
+    """Legacy all-at-once reporting projection; resumable publication remains pending."""
+    import sqlite3
+    window = projection_window(state_api, policy, trust_path, store, approval_path, stream,
+                               interval_end=datetime.datetime.now(datetime.timezone.utc).isoformat())
+    require(window['all_segments_checked'], 'archive reporting segment invocation bound reached; resumable continuation required')
+    by_task = {}
+    for proof in window['proofs']:
+        for task in proof['tasks']:
+            require(task not in by_task or by_task[task] == proof, 'conflicting reporting delivery proof')
+            by_task[task] = proof
     with sqlite3.connect(db_path) as db:
         db.execute('CREATE TABLE IF NOT EXISTS delivery_receipts(task TEXT PRIMARY KEY, revision TEXT NOT NULL, receipt TEXT NOT NULL)')
         db.execute('CREATE TABLE IF NOT EXISTS delivery_provenance(task TEXT PRIMARY KEY, provenance TEXT NOT NULL)')

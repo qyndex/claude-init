@@ -301,3 +301,25 @@ use it as an unbounded retry loop. Its remaining origin-budget gap is explicit
 until integration. Exact current hidden-App metadata/capability cutover remains
 pending. No new authority, credentials, retention policy, active profile, state
 write or live configuration is approved by this decomposition.
+
+### T300 bounded retained window — 2026-10-16
+
+`projection_window` authenticates the protected view itself before reading a
+requested bounded segment range. It shares a2048-call/32MiB observation budget,
+validates all index/record/material/source/trust bindings, preserves known6/7
+historical families, and rechecks actual origin plus protected trust/approval
+bytes before returning checked references/facts. Caller requested SHA/range are
+constraints, never cursor-origin proof. Result binds exact frozen head/tree,
+bootstrap, repository/privacy, source policy, approval and current trust hashes.
+It performs only GETs and never writes SQLite or archive state. The legacy
+all-at-once project_retained reuses this validation before its existing atomic
+SQLite mutation, and explicitly rejects incomplete windows.
+
+The requested interval_end is validated and bound as a campaign label, NOT used
+to filter facts by authenticated delivery time. T302/T288 must apply correct
+report/merge-time interval semantics and cross-window duplicate/conflict checks
+before any interval-complete claim. all_segments_checked means traversal of this
+entire snapshot only when starting at0 and ending atcount; coverage_complete is
+always false. The legacy256-commit bootstrap bound, protected window publication
+(T301), fresh-process progress beyond128segments(T302), and T295/T286 aggregate
+remain pending. No caller JSON is a reusable trusted checkpoint.
