@@ -24,10 +24,28 @@ def unexpected_case():
   else:raise AssertionError('unexpected validation failure accepted')
  finally:m.policy_observation.validate=original
  check(len(audit)==1 and audit[0]['mode']=='rejected-observation')
- check(audit[0]['diagnostic']['reason']=='unexpected-validation-error')
+ check(audit[0]['diagnostic']['reason']=='validation-rejected' and audit[0]['rejection']=='unexpected-validation-error')
  check('DO_NOT_ECHO_UNEXPECTED_SENTINEL' not in json.dumps(audit))
 if os.environ.get('T304_ONLY')=='unexpected':
  unexpected_case();print('unexpected exception audit cases passed');raise SystemExit(0)
+# AC-5: coordinator must preserve bounded diagnostic unavailability separately.
+for hostile in ('oversized','cyclic'):
+ fake=Hidden();audit=[]
+ if hostile=='oversized':fake.metadata['rules']=[{'large':'x'*(obs.MAX_BYTES+1)}]
+ else:
+  cycle=[];cycle.append(cycle);fake.metadata['rules']=cycle
+ original=m.policy_observation.validate;failures=[]
+ def retain_error(*args,**kwargs):
+  try:return original(*args,**kwargs)
+  except Exception as error:failures.append(error);raise
+ try:
+  m.policy_observation.validate=retain_error
+  try:m.coordinate(fake,policy,42,observations=[observation],audit=audit)
+  except Exception as error:check(len(failures)==1 and error is failures[0])
+  else:raise AssertionError('hostile metadata accepted')
+ finally:m.policy_observation.validate=original
+ check(len(audit)==1 and audit[0]['diagnostic']=={'schema_version':1,'reason':'diagnostic-unavailable'})
+ check(audit[0]['rejection']==obs.rejection_category(failures[0]))
 f=Hidden();f.metadata['name']='changed';audit=[]
 try:m.coordinate(f,policy,42,observations=[observation],audit=audit)
 except ValueError as error:assert str(error)=='observation metadata changed or foreign'
@@ -39,7 +57,7 @@ check(diag['expected_metadata_sha256']==observation['metadata_sha256'] and diag[
 check(diag['timestamps']['updated_at']['raw']==full_rules['updated_at'])
 check(diag['expected_updated_at']['raw']==observation['updated_at'])
 check(diag['matches']=={'repository':True,'repository_id':True,'ruleset_id':True,'metadata_sha256':False,'updated_at_raw':True,'updated_at_instant':True})
-check(diag['reason']=='metadata-mismatch' and len(obs.canonical(diag))<=8192)
+check(diag['reason']=='validation-rejected' and audit[0]['rejection']=='metadata-mismatch' and len(obs.canonical(diag))<=8192)
 for key in obs.SEMANTIC:
  changed=copy.deepcopy(full_rules);changed.pop('bypass_actors');changed.pop(key)
  safe=obs.failure_diagnostic(repository,changed,observation)

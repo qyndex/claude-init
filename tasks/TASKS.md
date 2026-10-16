@@ -1673,7 +1673,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-policy-observation-time-equivalence.sh
   owner: implementer
 
-- [ ] T-311  | spec:010  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-305  | parallel: no  | est: 5m
+- [x] T-311  | spec:010  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-305  | parallel: no  | est: 5m
   summary: Preserve unavailable diagnostic marker separately from rejection category
   files: .claude/scripts/factory-coordinator.py, .claude/scripts/test/factory-policy-observation-diagnostic.sh, factory/policy.json, plans/active/010-protected-proof-producers.md
   accept: bash .claude/scripts/test/factory-policy-observation-diagnostic.sh

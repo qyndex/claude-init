@@ -112,7 +112,7 @@ def protection(api, root, branch, required, app_id, observations=None, audit=Non
                 try:
                     if diagnostic is not None and len(audit) < 64:
                         audit.append({'mode': 'rejected-observation', 'ruleset_id': ruleset_id,
-                                      'diagnostic': dict(diagnostic, reason=policy_observation.rejection_category(error))})
+                                      'diagnostic': diagnostic, 'rejection': policy_observation.rejection_category(error)})
                 except Exception:
                     pass
                 raise

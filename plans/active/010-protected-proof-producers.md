@@ -271,3 +271,11 @@ sentinel/resource safety, and existing ValueError CLI eligibility invalidation.
 Do not claim unexpected exceptions gain CLI invalidation or App proof. T311 is
 pending and planning only; root review is required before implementation. No
 configuration, live observation, settings, credentials or push is authorized here.
+
+T311 local repair preserves the bounded diagnostic object and its availability
+reason; the audit entry carries the separate fixed rejection category. Actual
+coordinator-path RED lost the unavailable marker; GREEN49 cases covers oversized
+and cyclic inputs, original exception identity, normal and unexpected categories,
+and existing ValueError CLI invalidation. Observation60 and coordinator63 cases
+also pass locally. Only the two coordinator runtime pins changed. This is local
+implementation evidence, not hosted App proof or rollout authorization.
