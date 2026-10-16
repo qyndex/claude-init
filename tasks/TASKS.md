@@ -1753,7 +1753,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-receipt-reporting.sh
   owner: implementer
 
-- [ ] T-289  | spec:014  | phase:4  | priority: security  | created: 2026-10-16  | deps: T-288  | parallel: no  | est: 5m
+- [x] T-289  | spec:014  | phase:4  | priority: security  | created: 2026-10-16  | deps: T-288  | parallel: no  | est: 5m
   summary: Gate readiness on audited bootstrap private-store capability and retained proof
   files: .claude/scripts/factory-preflight.py, docs/FACTORY-DIGEST.md, docs/FACTORY-ADOPTER-SETUP.md, .claude/scripts/test/factory-receipt-readiness.sh
   accept: bash .claude/scripts/test/factory-receipt-readiness.sh

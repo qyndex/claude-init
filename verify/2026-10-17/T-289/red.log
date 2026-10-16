@@ -1,0 +1,10 @@
+# TDD ledger — red — T-289
+ledger_format: 2
+timestamp: 2026-10-17T04:23:07+11:00
+command: bash .claude/scripts/test/factory-receipt-readiness.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 10, in <module>
+AssertionError: preflight has no read-only reporting readiness composition

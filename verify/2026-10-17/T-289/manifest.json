@@ -1,0 +1,24 @@
+{
+  "baseline": "34f3f422c10cade29193787c4caf87a74b6cbf3a",
+  "source_sha256": {
+    ".claude/scripts/factory-preflight.py": "3894dd7b5de7acf2daf99599cdb1fa9630ec3c5f95ff799bc061c19dfe906f3f",
+    ".claude/scripts/test/factory-receipt-readiness.sh": "aa8c00bfab9c7d3f3d047465dc2298f824a3e163a920cdff558c4168f13708bb",
+    "docs/FACTORY-DIGEST.md": "caa6779a88403db1fee1021d6a2678c11b61a6414ca1da73ab2ed8306a108d65",
+    "docs/FACTORY-ADOPTER-SETUP.md": "868a2f06beb189d1f87162948165e78b959eea1fc405d74e86ead52b28e2bcda"
+  },
+  "tests": {
+    "canonical_red": 1,
+    "canonical_green": 0,
+    "selectors_red": 1,
+    "profile_red": 1,
+    "structural_validation": 0,
+    "shellcheck": 0,
+    "py_compile": 0,
+    "diff_check": 0,
+    "source_gitleaks": 0,
+    "silent_failure_lint": 0
+  },
+  "native_app_private_cadence_cutover": "not_checked",
+  "settings_changed": false,
+  "manual_analysis_recorded_at": "2026-10-16T17:28:42.110319+00:00"
+}

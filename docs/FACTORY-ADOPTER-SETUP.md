@@ -153,3 +153,37 @@ cron runs and Slack outages remain limitations. Healthchecks is disabled and
 independent monitoring remains optional. The operator-disabled Issue lifecycle,
 Lighthouse CI and E2E on Preview Deploy workflows stay disabled; the factory plan
 continues, and those workflows supply no current verification credit.
+
+## Audited receipt readiness before cutover
+
+Use the read-only reporting preflight described in FACTORY-DIGEST.md after the
+existing protected bootstrap/profile/store contracts are provisioned and reviewed.
+Keep App writer selection and merge authority OFF until their separate concrete
+cutover is approved. A local fixture PASS, stored App ID, key-present declaration
+or copied profile cannot certify an installed App or a private repository.
+
+The protected-origin check binds actual repository ID/name/privacy, nondefault
+state branch, bootstrap commit/tree, audited coverage origin, dedicated reporting
+writer and current protections. Positive hidden-actor observations use the
+existing exact protected schema2 sidecar; missing observations never become
+empty actors or a permissive fallback. Private source requires the actual approved
+private store; the public pilot proves no private-adopter access. Public state
+may contain only approved public delivery facts and opaque encrypted feedback;
+ciphertext size/update timing remain visible.
+
+Before live activation, retain a separately reviewed main-only probe of installed
+repository access and observed App permissions, actual protected-origin and
+requested retained interval results, plus actual hosted cadence/quota evidence.
+If installation metadata is unavailable, report it unverified rather than adding
+a privileged token or writing policy/source as a probe. The existing reporting App
+uses Contents write, Administration read and Metadata read; do not reuse the merge
+key. Missing source history remains an explicit coverage gap. Do not reset an
+origin or prune proof to obtain a passing readiness report.
+
+`factory-preflight.py` is part of the current emitter runtime profile closure.
+After changing it, review and approve the final exact runtime fingerprints and
+policy digest before using that source for new receipt authentication. The
+profile does not pin itself or its enclosing commit. Reporting-only dependencies
+load only in the explicit reporting mode; the legacy merge preflight execution
+imports remain unchanged. Readiness inspection grants neither merge authority
+nor production release or product acceptance.

@@ -158,3 +158,41 @@ Healthchecks remains disabled (FACTORY_REPORTING_WATCHDOG_ENABLED=false), and
 independent monitoring stays optional. The three operator-disabled auxiliary
 workflows do not pause the factory plan and supply no current verification
 credit; keep their disabled state until separately authorized.
+
+## Read-only retained-proof readiness
+
+The merge activation preflight remains `factory-preflight.py --policy PATH`.
+Reporting inspection is separate and does not require enabling merge authority:
+
+```sh
+python3 .claude/scripts/factory-preflight.py --reporting-config /protected/reporting.json
+python3 .claude/scripts/factory-preflight.py --reporting-config /protected/reporting.json \
+  --interval-end UTC_CUTOFF --history-head AUTHENTICATED_HISTORY_SHA \
+  --campaign AUTHENTICATED_CAMPAIGN_DIGEST
+```
+
+Use the reviewed default-branch checkout and the same protected App selection as
+the hosted consumers. Reporting inspection requires explicit App mode and its
+selected source/reporting tokens; there is no fallback to legacy credentials.
+It selects the existing fixed `factory/policy.json`, `receipt-trust.json`,
+`receipt-store.json`, `receipt-archive-bootstrap.json` and, for schema2,
+`receipt-policy-observations.json`. These are the existing protected contracts,
+not new authority files. Interval arguments select existing interval-scoped
+maintenance work; they do not assert that the work is complete.
+
+Output separates passed, failed and not_checked checks. Without interval
+selectors it checks the audited protected origin only. With all three it rebuilds
+retained proof into disposable local SQLite and checks actual requested source
+coverage, current trust and final mutable origin again. Expired detailed Actions
+artifacts can be reconstructed from retained authenticated bytes. Withdrawn facts
+stay historical evidence with withdrawn trust, never newly authenticated task
+completion. Incomplete scans, unavailable required history and exhausted budgets
+block the requested proof check. The command cannot advance discovery, bootstrap,
+stage, publish state, import into the report database, complete tasks or merge.
+
+Exit zero means the requested read-only checks passed; it is not activation
+approval. Installed App permissions, private-adopter capability, native cadence
+and operator cutover remain explicitly not_checked. Read-only access alone does
+not prove Contents-write permission. Existing local capacity and quiet-repeat
+fixtures are not a native quota or scheduled morning-delivery certificate.
+GitHub-hosted reporting, GitHub-only alerts and disabled Healthchecks are unchanged.
