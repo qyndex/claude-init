@@ -1941,7 +1941,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-reporting-policy.sh
   owner: implementer
 
-- [ ] T-331  | spec:014  | phase:4  | priority: security  | created: 2026-10-17  | deps: T-330  | parallel: no  | est: 5m
+- [x] T-331  | spec:014  | phase:4  | priority: security  | created: 2026-10-17  | deps: T-330  | parallel: no  | est: 5m
   summary: Route reporting source and state reads through explicit bounded roles
   files: .claude/scripts/factory-reporting-transport.py, .claude/scripts/test/factory-reporting-transport.sh
   accept: bash .claude/scripts/test/factory-reporting-transport.sh
@@ -1955,7 +1955,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
 
 - [ ] T-333  | spec:014  | phase:4  | priority: security  | created: 2026-10-17  | deps: T-332  | parallel: no  | est: 5m
   summary: Transfer authenticated interval receipts into reporting with typed trust semantics
-  files: .claude/scripts/factory-receipts.py, .claude/scripts/factory-digest.py, .claude/scripts/factory-reporting-receipts.py, .claude/scripts/test/factory-reporting-receipt-transfer.sh
+  files: .claude/scripts/factory-receipts.py, .claude/scripts/factory-digest.py, .claude/scripts/factory-reporting-receipts.py, .claude/scripts/factory-slack-digest.py, .claude/scripts/test/factory-reporting-receipt-transfer.sh
   accept: bash .claude/scripts/test/factory-reporting-receipt-transfer.sh
   owner: implementer
 
