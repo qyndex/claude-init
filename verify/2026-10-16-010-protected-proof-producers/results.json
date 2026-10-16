@@ -1,7 +1,7 @@
 {
   "runner": "fresh-shell-acceptance-recorder",
-  "source_sha": "1bc46b7fd3c25e50221f277ea36d0ebe1e63e269",
-  "recorded_at": "2026-10-16T00:28:46.830156+00:00",
+  "source_sha": "2f3defe500687d62b1db9b50ad118c6380c06c5f",
+  "recorded_at": "2026-10-16T01:15:02.598513+00:00",
   "independent_attestation": false,
   "live_factory_signing": false,
   "native_docker_run": false,
@@ -47,6 +47,13 @@
       "exit_code": 0,
       "log": "verify/2026-10-16-010-protected-proof-producers/policy-observation.log",
       "log_sha256": "e0ce9eda7ed3b1665f065b57568face7552b16ee1b963dffca63c6eae2b730e5"
+    },
+    {
+      "name": "policy-diagnostic",
+      "command": "bash .claude/scripts/test/factory-policy-observation-diagnostic.sh",
+      "exit_code": 0,
+      "log": "verify/2026-10-16-010-protected-proof-producers/policy-diagnostic.log",
+      "log_sha256": "f73e0d00852c280bb3d0f908274a58a601df2562f515b13055c9e00e4366ebaf"
     }
   ],
   "testResults": [
@@ -61,14 +68,14 @@
           ]
         },
         {
-          "fullName": "AC-2: actual sandbox argv/output boundary fixtures; native Docker run remains hosted",
+          "fullName": "AC-2: actual sandbox argv/output boundary fixtures; native Docker remains hosted",
           "status": "passed",
           "command_names": [
             "producer-contracts"
           ]
         },
         {
-          "fullName": "AC-3: actual bounded fake reviewer subprocess and exact-model results; no live provider",
+          "fullName": "AC-3: actual bounded fake reviewer subprocess and exact-model fixtures; no live provider",
           "status": "passed",
           "command_names": [
             "bounded-review-runtime",
@@ -76,7 +83,7 @@
           ]
         },
         {
-          "fullName": "AC-4: latest-run identity, source/digest and injected-certificate artifact binding fixtures",
+          "fullName": "AC-4: latest-run source/digest and injected-certificate artifact binding fixtures",
           "status": "passed",
           "command_names": [
             "coordinator-contracts",
@@ -85,12 +92,12 @@
           ]
         },
         {
-          "fullName": "AC-5: strict administrative observation, protected ingress, failure invalidation and final live-metadata drift fixtures",
+          "fullName": "AC-5: strict operator observations and bounded rejected-metadata diagnostics; real App-view diagnosis pending deployment",
           "status": "passed",
           "command_names": [
             "policy-observation",
-            "coordinator-contracts",
-            "bounded-review-runtime"
+            "policy-diagnostic",
+            "coordinator-contracts"
           ]
         }
       ]
