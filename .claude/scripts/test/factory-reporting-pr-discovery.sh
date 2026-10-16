@@ -32,8 +32,8 @@ for total in (1000,1001):
   def run(command,*,env,**kwargs):
    assert env['GH_TOKEN']=='source-fixture' and command[5]=='GET'
    endpoint=command[6];query=parse_qs(urlsplit(endpoint).query);assert query['state']==['closed'] and query['sort']==['created'] and query['direction']==['asc']
-   page=int(query['page'][0]);calls.append(page)
-   return SimpleNamespace(returncode=0,stdout=json.dumps(rows[(page-1)*100:page*100]).encode(),stderr=b'')
+   page=int(query['page'][0]);size=int(query['per_page'][0]);assert size==25;calls.append(page)
+   return SimpleNamespace(returncode=0,stdout=json.dumps(rows[(page-1)*size:page*size]).encode(),stderr=b'')
   t.process.run=run
   try:
    for attempt in range(40):
@@ -45,7 +45,7 @@ for total in (1000,1001):
      if batch['status']=='complete':
       fetched=len(calls);batch=d.prepare(api,'2026-01-04T00:00:00Z');assert len(calls)==fetched
     else:batch=d.prepare(api,'2026-01-04T00:00:00Z')
-    assert len(calls)-before<=2
+    assert len(calls)-before<=8
     if batch.get('status')!='incomplete':break
     with sqlite3.connect(path) as db:assert db.execute('SELECT count(*) FROM digest_batches').fetchone()[0]==0
     assert d.cursor()=='2026-01-03T00:00:00+00:00'
@@ -71,12 +71,24 @@ with tempfile.TemporaryDirectory() as tmp:
  try:d.prepare(Bad(),'2026-01-04T00:00:00Z')
  except ValueError:pass
  else:raise AssertionError('foreign PR accepted')
+# A source ignoring the selected page bound fails closed; no fallback or batch.
+with tempfile.TemporaryDirectory() as tmp:
+ d=t.state.digest.Digest(Path(tmp)/'r.sqlite','org/repo','fixture','2026-01-01T00:00:00Z',pr_discovery_mode='resumable')
+ class Oversized:
+  repo='org/repo'
+  def request(self,*args,**kwargs):return [pr(n) for n in range(1,27)]
+ try:d.prepare(Oversized(),'2026-01-04T00:00:00Z')
+ except ValueError as error:assert str(error)=='PR source page invalid'
+ else:raise AssertionError('oversized PR page accepted')
+ with sqlite3.connect(d.path) as db:assert db.execute('SELECT count(*) FROM digest_batches').fetchone()[0]==0
 # Malformed source/progress and exhausted transport never create a report.
 with tempfile.TemporaryDirectory() as tmp:
  path=Path(tmp)/'r.sqlite';d=t.state.digest.Digest(path,'org/repo','fixture','2026-01-01T00:00:00Z',pr_discovery_mode='resumable')
  class Source:
   repo='org/repo'
-  def request(self,*args,**kwargs):return [pr(n) for n in range(1,101)]
+  def request(self,path,**kwargs):
+   query=parse_qs(urlsplit(path).query);page=int(query['page'][0]);size=int(query['per_page'][0])
+   return [pr(n) for n in range(1,301)][(page-1)*size:page*size]
  result=d.prepare(Source(),'2026-01-04T00:00:00Z');assert result['status']=='incomplete' and result['phase']=='pull-requests'
  with d.transaction() as db:db.execute("UPDATE reporting_pr_scans SET next_page='invalid'")
  try:d.prepare(Source(),'2026-01-04T00:00:00Z')

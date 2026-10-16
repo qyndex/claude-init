@@ -408,11 +408,8 @@ def validate_pr_checkpoint(document,stream):
             require(canonical(clean)==canonical(candidate) and clean['merged_at'] is not None and clean['base']['ref']==document['branch']
                     and origin<digest.instant(clean['merged_at'])<=until and clean['number'] not in seen,'PR checkpoint candidate binding differs')
             seen.add(clean['number'])
-    if row['phase']=='baseline':
-        require(len(pages)==row['next_page']-1 and all(p['count']==100 for p in pages),'PR baseline checkpoint cursor invalid')
-    else:
-        require(pages and pages[-1]['count']<100 and all(p['count']==100 for p in pages[:-1])
-                and (row['next_page']==len(pages)+1 if row['phase']=='ready' else row['next_page']<=len(pages)),'PR comparison checkpoint cursor invalid')
+    require(any(helper.compatible_layout(pages,row['phase'],row['next_page'],size) for size in (25,100)),
+            'PR checkpoint cursor invalid')
 
 
 def alert_key(stream, kind, cutoff, run_id, incident, run_attempt=None):

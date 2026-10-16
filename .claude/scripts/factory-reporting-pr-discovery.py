@@ -39,8 +39,16 @@ def normalize(row, repository):
             'head':{'sha':head['sha']},'base':{'ref':base['ref'],'repo':{'full_name':repository}}}
 
 
+def compatible_layout(pages, phase, next_page, size):
+    """Recognize only current 25-row or historical 100-row scratch layouts."""
+    if size not in (25,100):return False
+    if phase=='baseline':
+        return len(pages)==next_page-1 and all(r['count']==size for r in pages)
+    return bool(pages) and pages[-1]['count']<size and all(r['count']==size for r in pages[:-1]) and (next_page==len(pages)+1 if phase=='ready' else next_page<=len(pages))
+
+
 def scan(db, api, stream, repository, branch, origin, until):
-    """Two pages per call; two exact full observations before internal ready return."""
+    """Eight 25-row pages per call; two exact full observations before internal ready return."""
     require(api.repo==repository and re.fullmatch('[0-9a-f]{64}',stream),'PR source binding invalid')
     low,high=instant(origin),instant(until);require(low<high,'PR interval invalid')
     db.execute('CREATE TABLE IF NOT EXISTS reporting_pr_scans(stream TEXT PRIMARY KEY,repository TEXT NOT NULL,branch TEXT NOT NULL,origin TEXT NOT NULL,until TEXT NOT NULL,phase TEXT NOT NULL,next_page INTEGER NOT NULL)')
@@ -65,16 +73,18 @@ def scan(db, api, stream, repository, branch, origin, until):
             require(clean==row and clean['merged_at'] is not None and clean['base']['ref']==branch
                     and low<instant(clean['merged_at'])<=high and clean['number'] not in seen,'PR candidate binding invalid')
             seen.add(clean['number']);candidates.append(clean)
-    if phase=='baseline':require(len(saved)==page-1 and all(r['count']==100 for r in saved),'PR baseline cursor invalid')
-    else:
-        require(saved and saved[-1]['count']<100 and all(r['count']==100 for r in saved[:-1])
-                and (page==len(saved)+1 if phase=='ready' else page<=len(saved)),'PR comparison cursor invalid')
+    current=compatible_layout(saved,phase,page,25)
+    require(current or compatible_layout(saved,phase,page,100),'PR checkpoint cursor invalid')
+    # Authenticated historical scratch remains restorable, but incompatible page
+    # boundaries must restart observations; delivery/receipt tables are untouched.
+    if not current:
+        reset();phase='baseline';page=1;candidates=[];seen=set()
     # Ready scratch is never accepted on a subsequent process without a fresh pass.
     if phase=='ready':phase='compare';page=1
-    for _ in range(2):
-        endpoint=f'repos/{repository}/pulls?state=closed&sort=created&direction=asc&per_page=100&page={page}'
+    for _ in range(8):
+        endpoint=f'repos/{repository}/pulls?state=closed&sort=created&direction=asc&per_page=25&page={page}'
         raw=api.request(endpoint)
-        require(type(raw) is list and len(raw)<=100,'PR source page invalid')
+        require(type(raw) is list and len(raw)<=25,'PR source page invalid')
         rows=[normalize(row,repository) for row in raw]
         require(len({r['number'] for r in rows})==len(rows),'PR page duplicate identity')
         fingerprint=hashlib.sha256(canonical(rows).encode()).hexdigest()
@@ -83,13 +93,13 @@ def scan(db, api, stream, repository, branch, origin, until):
             if any(r['number'] in seen for r in selected):reset();return {'status':'incomplete','phase':'pull-requests','reason':'PR membership shifted'}
             db.execute('INSERT INTO reporting_pr_pages VALUES(?,?,?,?,?)',(stream,page,fingerprint,len(rows),canonical(selected)))
             seen.update(r['number'] for r in selected);candidates.extend(selected)
-            if len(rows)<100:phase='compare';page=1
+            if len(rows)<25:phase='compare';page=1
             else:page+=1
         else:
             expected=db.execute('SELECT * FROM reporting_pr_pages WHERE stream=? AND page=?',(stream,page)).fetchone()
             if expected is None or expected['fingerprint']!=fingerprint or expected['count']!=len(rows) or expected['payload']!=canonical(selected):
                 reset();return {'status':'incomplete','phase':'pull-requests','reason':'PR membership shifted'}
-            if len(rows)<100:
+            if len(rows)<25:
                 db.execute("UPDATE reporting_pr_scans SET phase='ready',next_page=? WHERE stream=?",(page+1,stream))
                 return {'status':'complete','rows':candidates}
             page+=1
