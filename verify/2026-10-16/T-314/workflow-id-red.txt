@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "<stdin>", line 79, in <module>
+  File "<stdin>", line 61, in unknown
+AssertionError: {'status': 'metadata-current', 'scope': 'queue-metadata', 'coverage_complete': True, 'receipt_verified': False, 'recovery_eligible': False, 'deployment_context': 'unknown', 'stalled': [], 'reporting_health': {'checkpoint_sha': 'f629d9c81cc5b839987c7d488ad7f9cbba6c272b', 'delivered_cutoff': '2026-10-15T21:00:00+00:00', 'expected_cutoff': '2026-10-15T21:00:00+00:00', 'pending_batches': 0, 'current': True}}
+
+exit_code: 1

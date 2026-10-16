@@ -1667,7 +1667,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-reporting-queue-cas.sh
   owner: implementer
 
-- [ ] T-314  | spec:029  | phase:2  | priority: security  | created: 2026-10-16  | deps: T-313  | parallel: no  | est: 5m
+- [x] T-314  | spec:029  | phase:2  | priority: security  | created: 2026-10-16  | deps: T-313  | parallel: no  | est: 5m
   summary: Observe bounded eligible reporting stalls without guessed queue ownership
   files: .claude/scripts/factory-reporting-queue.py, .claude/scripts/test/factory-reporting-queue-observation.sh
   accept: bash .claude/scripts/test/factory-reporting-queue-observation.sh

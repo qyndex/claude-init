@@ -1,0 +1,355 @@
+#!/usr/bin/env python3
+"""Pure bounded queue-journal contracts; validation grants no storage origin."""
+from datetime import datetime, timezone
+import hashlib
+import json
+import re
+
+MAX_BYTES = 262144
+MAX_EVENTS = 1000
+CONFIG = {'enabled', 'queue_monitor_enabled', 'repository', 'state_repository', 'branch', 'destination', 'team_id', 'grace_minutes'}
+FIELDS = {'schema_version', 'repository', 'branch', 'destination', 'team_id', 'stream', 'events'}
+EVENT = {'key', 'kind', 'incident', 'run_id', 'run_attempt', 'cutoff', 'status', 'message_id'}
+
+
+def require(condition, message):
+    if not condition:
+        raise ValueError(message)
+
+
+def canonical(value):
+    """Serialize already bounded typed values, not an untrusted input boundary."""
+    return json.dumps(value, sort_keys=True, separators=(',', ':')).encode()
+
+
+def string(value, pattern, maximum):
+    return type(value) is str and len(value) <= maximum and re.fullmatch(pattern, value) is not None
+
+
+def validate_config(config, *, repository, default_branch):
+    """Expected identity must come from protected context, never journal claims."""
+    require(type(config) is dict and len(config) == len(CONFIG) and set(config) == CONFIG, 'queue config fields differ')
+    require(string(repository, r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+', 201) and type(config['repository']) is str and type(config['state_repository']) is str and config['repository'] == config['state_repository'] == repository, 'queue repository differs')
+    require(string(default_branch, r'[A-Za-z0-9][A-Za-z0-9._/-]*', 255) and '..' not in default_branch and not default_branch.endswith('/') and type(config['branch']) is str and config['branch'] == default_branch, 'queue default branch differs')
+    require(type(config['enabled']) is bool and type(config['queue_monitor_enabled']) is bool, 'queue enable flags invalid')
+    require(string(config['destination'], r'[CG][A-Z0-9]+', 32) and string(config['team_id'], r'T[A-Z0-9]+', 32), 'queue destination/team invalid')
+    require(type(config['grace_minutes']) is int and 15 <= config['grace_minutes'] <= 1440, 'queue grace invalid')
+    return config
+
+
+def stream(config):
+    return hashlib.sha256(canonical(['factory-reporting-queue-v1', config['repository'], config['destination'], config['branch']])).hexdigest()
+
+
+def event_key(identity, row):
+    require(string(identity, r'[0-9a-f]{64}', 64) and type(row) is dict and type(row.get('kind')) is str and row['kind'] in {'stalled', 'drill', 'recovery'}, 'queue event identity invalid')
+    fields = ['factory-reporting-queue-event-v1', identity, row['kind']]
+    if row['kind'] == 'recovery':
+        require(string(row.get('incident'), r'[0-9a-f]{64}', 64), 'queue recovery identity invalid')
+        fields.append(row['incident'])
+    else:
+        require(all(type(row.get(k)) is int and 0 < row[k] < 2**63 for k in ('run_id', 'run_attempt')), 'queue run identity invalid')
+        fields.extend((row['run_id'], row['run_attempt']))
+    return hashlib.sha256(canonical(fields)).hexdigest()
+
+
+def cutoff(value):
+    require(string(value, r'[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{6}Z', 27), 'queue cutoff invalid')
+    try:
+        parsed = datetime.fromisoformat(value[:-1]+'+00:00')
+    except ValueError as error:
+        raise ValueError('queue cutoff invalid') from error
+    require(parsed <= datetime.now(timezone.utc), 'queue cutoff future')
+
+
+def validate_journal(value, config):
+    """Shape/invariants only. Protected branch/initialization is a later boundary."""
+    validate_config(config, repository=config.get('repository') if type(config) is dict else None, default_branch=config.get('branch') if type(config) is dict else None)
+    require(type(value) is dict and len(value) == len(FIELDS) and set(value) == FIELDS, 'queue journal fields differ')
+    require(type(value['schema_version']) is int and value['schema_version'] == 1, 'queue journal version differs')
+    require(all(type(value[k]) is str and value[k] == config[k] for k in ('repository', 'branch', 'destination', 'team_id')) and string(value['stream'], r'[0-9a-f]{64}', 64) and value['stream'] == stream(config), 'queue journal identity differs')
+    rows = value['events']; require(type(rows) is list and len(rows) <= MAX_EVENTS, 'queue journal event capacity exceeded')
+    seen = {}; recovered = set(); unfinished = False; open_stalled = set(); size = 1024
+    for row in rows:
+        require(not unfinished, 'queue unfinished event must reconcile first')
+        require(type(row) is dict and len(row) == len(EVENT) and set(row) == EVENT, 'queue event fields differ')
+        require(type(row['kind']) is str and row['kind'] in {'stalled', 'drill', 'recovery'} and type(row['status']) is str and row['status'] in {'pending', 'uncertain', 'confirmed'}, 'queue event state invalid')
+        cutoff(row['cutoff'])
+        require(string(row['key'], r'[0-9a-f]{64}', 64) and row['key'] == event_key(value['stream'], row) and row['key'] not in seen, 'queue event key duplicate or differs')
+        if row['kind'] == 'recovery':
+            require(row['run_id'] is None and row['run_attempt'] is None and row['incident'] in seen and seen[row['incident']]['kind'] != 'recovery' and seen[row['incident']]['status'] == 'confirmed' and row['incident'] not in recovered, 'queue recovery unjustified')
+            require(row['cutoff'] >= seen[row['incident']]['cutoff'], 'queue recovery clock differs')
+            recovered.add(row['incident'])
+            if row['status'] == 'confirmed':
+                open_stalled.discard(row['incident'])
+        else:
+            require(type(row['incident']) is str and row['incident'] == row['key'], 'queue incident differs')
+            if row['kind'] == 'stalled':
+                require(not open_stalled, 'queue prolonged incident duplicated')
+                open_stalled.add(row['key'])
+        if row['status'] == 'confirmed':
+            require(string(row['message_id'], r'[0-9]+\.[0-9]{1,6}', 32), 'queue confirmed receipt invalid')
+        else:
+            require(row['message_id'] is None, 'queue unfinished event has receipt')
+            unfinished = True
+        # Flat typed fields are bounded before canonical serialization; no arbitrary graph traversal.
+        size += 256 + sum(len(row[k]) for k in ('key', 'kind', 'incident', 'cutoff', 'status')) + (len(row['message_id']) if row['message_id'] else 0)
+        require(size <= MAX_BYTES, 'queue journal byte capacity exceeded')
+        seen[row['key']] = row
+    require(len(canonical(value)) <= MAX_BYTES, 'queue journal byte capacity exceeded')
+    return value
+
+
+def load_journal(raw, config):
+    require(type(raw) is bytes and 0 < len(raw) <= MAX_BYTES, 'queue journal input size invalid')
+    def pairs(items):
+        result = {}
+        for key, value in items:
+            require(key not in result, 'queue duplicate JSON key')
+            result[key] = value
+        return result
+    try:
+        value = json.loads(raw, object_pairs_hook=pairs)
+    except (ValueError, UnicodeError, RecursionError) as error:
+        raise ValueError('queue journal JSON invalid') from error
+    return validate_journal(value, config)
+
+
+def validate_transition(expected, desired, config):
+    """One immutable intent append or one monotonic receipt-state transition."""
+    validate_journal(desired, config)
+    before = [] if expected is None else validate_journal(expected, config)['events']
+    after = desired['events']
+    require(len(before) <= len(after) <= len(before)+1, 'queue transition drops or replaces intent')
+    changes = 0
+    for old, new in zip(before, after):
+        require(all(old[k] == new[k] for k in EVENT-{'status', 'message_id'}), 'queue transition changes immutable intent')
+        if old != new:
+            require((old['status'], new['status']) in {('pending', 'uncertain'), ('pending', 'confirmed'), ('uncertain', 'confirmed')}, 'queue transition regresses receipt state')
+            changes += 1
+    if len(after) > len(before):
+        require(changes == 0 and after[-1]['status'] == 'pending' and after[-1]['message_id'] is None, 'queue transition must durably append pending intent')
+    else:
+        require(changes <= 1, 'queue transition changes multiple effects')
+
+
+class QueueStore:
+    """Existing protected GitState origin, isolated path and bounded real CAS.
+
+    A caller snapshot is a precondition, never origin. This does not provide the
+    separate Spec014 exclusive-writer/archive-origin guarantees or activate them.
+    """
+    def __init__(self, api, config, storage):
+        import importlib.util
+        from pathlib import Path
+        validate_config(config, repository=api.repo, default_branch=config.get('branch') if type(config) is dict else None)
+        require(type(storage) is dict and len(storage) == 4 and set(storage) == {'state_branch', 'bootstrap_sha', 'initialize', 'policy_approvals'}, 'queue storage fields differ')
+        branch = storage['state_branch']
+        require(string(branch, r'[A-Za-z0-9][A-Za-z0-9._/-]*', 255) and '..' not in branch and not branch.endswith('/'), 'queue state branch invalid')
+        require(string(storage['bootstrap_sha'], r'[0-9a-f]{40}', 40) and type(storage['initialize']) is bool, 'queue bootstrap configuration invalid')
+        approvals = storage['policy_approvals']; require(type(approvals) is dict and len(approvals) <= 16, 'queue policy approvals bound exceeded')
+        fields = {'schema_version', 'repository', 'ruleset_id', 'policy_sha256', 'policy_updated_at', 'observed_at', 'bypass_actors'}
+        for key, value in approvals.items():
+            require(string(key, r'[0-9]{1,20}', 20) and type(value) is dict and len(value) == len(fields) and set(value) == fields, 'queue policy approval fields differ')
+            require(type(value['schema_version']) is int and value['schema_version'] == 1 and type(value['ruleset_id']) is int and 0 < value['ruleset_id'] < 2**63 and str(value['ruleset_id']) == key, 'queue policy approval identity invalid')
+            require(string(value['repository'], r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+', 201) and string(value['policy_sha256'], r'[0-9a-f]{64}', 64), 'queue policy approval binding invalid')
+            require(all(type(value[k]) is str and len(value[k]) <= 40 for k in ('policy_updated_at', 'observed_at')) and type(value['bypass_actors']) is list and not value['bypass_actors'], 'queue policy approval shape invalid')
+        module = importlib.util.spec_from_file_location('queue_git_state', Path(__file__).with_name('factory-git-state.py'))
+        self.state = importlib.util.module_from_spec(module); module.loader.exec_module(self.state)
+        self.source = api; self.repo = api.repo; self.config = json.loads(canonical(config)); self.storage = json.loads(canonical(storage))
+        self.identity = stream(config); self.calls = self.consumed = 0
+
+    def request(self, path, method='GET', payload=None):
+        require(path == 'repos/'+self.repo or path.startswith('repos/'+self.repo+'/'), 'queue storage foreign API')
+        require(self.calls < 128, 'queue storage API bound exceeded'); self.calls += 1
+        # Production state.API bounds stdout before JSON parse; preserve that transport bound.
+        value = self.source.request(path, method, payload)
+        size = len(canonical(value)); self.consumed += size
+        require(size <= self.state.MAX_STATE*2 and self.consumed <= 33554432, 'queue storage observation bound exceeded')
+        return value
+
+    def _load(self):
+        repository = self.request('repos/'+self.repo)
+        require(type(repository) is dict and repository.get('full_name') == self.repo, 'queue storage repository differs')
+        validate_config(self.config, repository=self.repo, default_branch=repository.get('default_branch'))
+        try:
+            current = self.state.GitState(self, self.storage['state_branch'], self.identity,
+                                          self.storage['bootstrap_sha'], self.storage['policy_approvals'],
+                                          bootstrap_existing=self.storage['initialize'])
+        except ValueError as error:
+            if str(error) == 'missing checkpoint requires exact protected bootstrap revision; never reset silently':
+                raise ValueError('queue initialization drift; exact reviewed bootstrap required') from error
+            raise
+        if current.bytes is None:
+            require(self.storage['initialize'], 'queue journal missing; reviewed initialization required')
+            journal = None
+        else:
+            journal = load_journal(current.bytes, self.config)
+        return current, journal
+
+    def read(self):
+        self.calls = self.consumed = 0
+        current, journal = self._load()
+        return {'head': current.head, 'journal': journal}
+
+    def checkpoint(self, expected, desired):
+        import subprocess
+        validate_transition(expected, desired, self.config)
+        expected = None if expected is None else json.loads(canonical(expected))
+        desired = json.loads(canonical(desired)); self.calls = self.consumed = 0; uncertain = False
+        for attempt in range(3):
+            current, journal = self._load()
+            if journal == desired:
+                return {'status': 'already-applied', 'head': current.head, 'uncertain_write_reconciled': uncertain}
+            require(journal == expected, 'queue journal conflict; reconcile immutable intent')
+            try:
+                current.checkpoint(canonical(desired))
+            except (ValueError, RuntimeError, OSError, subprocess.TimeoutExpired):
+                uncertain = True
+            try:
+                observed, actual = self._load()
+            except (ValueError, RuntimeError, OSError, subprocess.TimeoutExpired) as error:
+                if isinstance(error, ValueError) and str(error).startswith('queue initialization drift;'):
+                    raise
+                raise ValueError('queue write uncertain; protected ref/journal reconciliation required') from error
+            if actual == desired:
+                return {'status': 'applied', 'head': observed.head, 'uncertain_write_reconciled': uncertain}
+            require(actual == expected, 'queue journal conflict; reconcile immutable intent')
+        raise ValueError('queue three CAS attempts exhausted; no assumed success')
+
+
+WORKFLOWS = {
+    '.github/workflows/factory-hosted-digest.yml': {'schedule', 'workflow_dispatch'},
+    '.github/workflows/factory-hosted-feedback.yml': {'schedule', 'workflow_dispatch'},
+    '.github/workflows/factory-reporting-alerts.yml': {'schedule', 'workflow_dispatch', 'workflow_run'},
+}
+ACTIVE = ('queued', 'in_progress', 'waiting', 'pending', 'requested')
+
+
+def observe_queue(api, config, storage, now):
+    """Read-only metadata coverage. Even healthy never verifies a Slack receipt."""
+    from urllib.parse import quote
+    import subprocess
+    class Unknown(ValueError):
+        pass
+    def check(condition, reason='metadata-invalid'):
+        if not condition:
+            raise Unknown(reason)
+    def timestamp(value):
+        check(string(value, r'[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]{1,6})?(?:Z|[+-][0-9]{2}:[0-9]{2})', 40), 'metadata-clock-invalid')
+        check(value.endswith('Z') or (int(value[-5:-3]) < 24 and int(value[-2:]) < 60), 'metadata-clock-invalid')
+        parsed = datetime.fromisoformat(value.replace('Z', '+00:00')).astimezone(timezone.utc)
+        check(parsed <= now, 'metadata-clock-invalid')
+        return parsed
+    result = {'status': 'unknown', 'scope': 'queue-metadata', 'coverage_complete': False,
+              'receipt_verified': False, 'recovery_eligible': False, 'deployment_context': 'unknown', 'stalled': []}
+    try:
+        check(isinstance(now, datetime) and now.tzinfo is not None and now.utcoffset() is not None, 'clock-invalid')
+        now = now.astimezone(timezone.utc)
+        store = QueueStore(api, config, storage)
+        check(config['enabled'] is True and config['queue_monitor_enabled'] is True, 'queue-probe-disabled')
+        root = 'repos/'+api.repo
+        def get(path):
+            return store.request(path, 'GET', None)
+        repository = get(root)
+        check(type(repository) is dict and type(repository.get('id')) is int and repository['id'] > 0 and repository.get('full_name') == api.repo and repository.get('default_branch') == config['branch'] and repository.get('archived') is False, 'repository-invalid')
+        def workflows():
+            found = {}
+            for path in WORKFLOWS:
+                value = get(root+'/actions/workflows/'+path.rsplit('/', 1)[1])
+                check(type(value) is dict and type(value.get('id')) is int and value['id'] > 0 and value.get('path') == path and value.get('state') == 'active', 'workflow-invalid')
+                check(value['id'] not in found, 'workflow-ambiguous')
+                found[value['id']] = path
+            return found
+        approved = workflows()
+        def health():
+            identity = hashlib.sha256(canonical([api.repo, config['destination'], config['branch']])).hexdigest()
+            class ReadOnly:
+                repo = api.repo
+                def request(self, path, method='GET', payload=None):
+                    check(method == 'GET' and payload is None, 'observer-write-forbidden')
+                    return get(path)
+            checkpoint = store.state.GitState(ReadOnly(), storage['state_branch'], identity, storage['bootstrap_sha'], storage['policy_approvals'])
+            check(checkpoint.bytes is not None, 'protected-health-missing')
+            value = json.loads(checkpoint.bytes, object_pairs_hook=store.state.digest.coordinator.contract.no_duplicate_keys)
+            store.state.validate(value, api.repo, identity)
+            cursor = timestamp(value['tables']['digest_cursors'][0]['cutoff'])
+            target = timestamp(store.state.slack.due(now))
+            return {'checkpoint_sha': checkpoint.head, 'delivered_cutoff': cursor.isoformat(), 'expected_cutoff': target.isoformat(), 'pending_batches': sum(row['status'] != 'confirmed' for row in value['tables']['digest_batches']), 'current': cursor >= target}
+        initial_health = health()
+        def snapshot():
+            found = {}
+            for workflow, path in approved.items():
+                for status in ACTIVE:
+                    rows = []; total = None
+                    for page in (1, 2):
+                        value = get(root+'/actions/workflows/'+str(workflow)+'/runs?branch='+quote(config['branch'], safe='')+'&status='+status+'&per_page=100&page='+str(page))
+                        check(type(value) is dict and type(value.get('total_count')) is int and 0 <= value['total_count'] < 1000 and type(value.get('workflow_runs')) is list, 'run-list-invalid-or-saturated')
+                        check(value['total_count'] <= 200 and len(value['workflow_runs']) <= 100, 'run-list-capacity')
+                        if total is None:
+                            total = value['total_count']
+                        check(value['total_count'] == total, 'run-list-changed')
+                        rows.extend(value['workflow_runs'])
+                        expected = min(100, max(0, total-(page-1)*100))
+                        check(len(value['workflow_runs']) == expected, 'run-list-incomplete')
+                        if page*100 >= total:
+                            break
+                    check(len(rows) == total, 'run-list-incomplete')
+                    for run in rows:
+                        check(type(run) is dict and {'id', 'run_attempt', 'workflow_id', 'path', 'repository', 'head_repository', 'head_branch', 'head_sha', 'event', 'status', 'conclusion', 'created_at', 'updated_at', 'run_started_at'} <= set(run))
+                        check(all(type(run[k]) is int and 0 < run[k] < 2**63 for k in ('id', 'run_attempt', 'workflow_id')))
+                        check(run['id'] not in found and len(found) < 16, 'active-run-duplicate-or-capacity')
+                        check(run['workflow_id'] == workflow and run['path'] == path and run['head_branch'] == config['branch'] and run['event'] in WORKFLOWS[path] and run['status'] == status and run['conclusion'] is None)
+                        check(all(type(run[k]) is dict and type(run[k].get('id')) is int and run[k]['id'] == repository['id'] and run[k].get('full_name') == api.repo for k in ('repository', 'head_repository')))
+                        check(string(run['head_sha'], r'[0-9a-f]{40}', 40))
+                        created = timestamp(run['created_at']); updated = timestamp(run['updated_at']); check(created <= updated, 'metadata-clock-invalid')
+                        started = None if run['run_started_at'] is None else timestamp(run['run_started_at'])
+                        check(started is None or started >= created, 'metadata-clock-invalid')
+                        found[run['id']] = {'run_id': run['id'], 'attempt': run['run_attempt'], 'workflow_id': workflow, 'path': path, 'status': status, 'head_sha': run['head_sha'], 'created': created, 'updated': updated, 'started': started}
+            return found
+        def jobs(runs):
+            result = {}; total_jobs = 0
+            for identity, run in runs.items():
+                value = get(root+'/actions/runs/'+str(identity)+'/attempts/'+str(run['attempt'])+'/jobs?per_page=100&page=1')
+                check(type(value) is dict and type(value.get('total_count')) is int and 0 <= value['total_count'] <= 100 and type(value.get('jobs')) is list and len(value['jobs']) == value['total_count'], 'job-list-incomplete-or-capacity')
+                total_jobs += value['total_count']; check(total_jobs <= 64, 'job-capacity')
+                seen = set(); facts = []; activity = max(run['created'], run['updated'], run['started'] or run['created']); executed = False
+                for job in value['jobs']:
+                    check(type(job) is dict and {'id', 'run_id', 'run_attempt', 'head_sha', 'status', 'created_at', 'started_at', 'steps'} <= set(job))
+                    check(type(job['id']) is int and 0 < job['id'] < 2**63 and job['id'] not in seen)
+                    check(type(job['run_id']) is int and job['run_id'] == identity and type(job['run_attempt']) is int and job['run_attempt'] == run['attempt'] and job['head_sha'] == run['head_sha'])
+                    check(job['status'] in (*ACTIVE, 'completed') and type(job['steps']) is list and len(job['steps']) <= 100)
+                    seen.add(job['id']); created = timestamp(job['created_at']); started = None if job['started_at'] is None else timestamp(job['started_at'])
+                    check(created >= run['created'] and (started is None or started >= created), 'metadata-clock-invalid')
+                    activity = max(activity, created, started or created); executed |= started is not None or job['status'] in ('in_progress', 'completed')
+                    steps = []
+                    for step in job['steps']:
+                        check(type(step) is dict and step.get('status') in (*ACTIVE, 'completed'))
+                        step_start = None if step.get('started_at') is None else timestamp(step['started_at'])
+                        if step_start is not None:
+                            check(step_start >= created, 'metadata-clock-invalid'); activity = max(activity, step_start)
+                        executed |= step['status'] in ('in_progress', 'completed'); steps.append((step['status'], step_start))
+                    facts.append((job['id'], job['status'], created, started, steps))
+                result[identity] = {'facts': facts, 'last_activity': activity, 'executed': executed}
+            return result
+        first = snapshot(); first_jobs = jobs(first)
+        check(snapshot() == first, 'run-observation-changed')
+        check(jobs(first) == first_jobs, 'job-observation-changed')
+        check(health() == initial_health and workflows() == approved, 'protected-health-or-workflow-changed')
+        final_repo = get(root)
+        check(all(final_repo.get(k) == repository.get(k) for k in ('id', 'full_name', 'default_branch', 'archived')), 'repository-changed')
+        stalled = []
+        for identity, run in first.items():
+            observed = first_jobs[identity]
+            if (now-observed['last_activity']).total_seconds() >= config['grace_minutes']*60:
+                stalled.append({'run_id': identity, 'run_attempt': run['attempt'], 'workflow_id': run['workflow_id'], 'status': run['status'], 'created_at': run['created'].isoformat(), 'last_activity_at': observed['last_activity'].isoformat(), 'execution_observed': observed['executed']})
+        result.update(stalled=sorted(stalled, key=lambda r:r['run_id']), reporting_health=initial_health, coverage_complete=True)
+        result['status'] = 'stalled' if stalled else 'metadata-current' if initial_health['current'] and initial_health['pending_batches'] == 0 else 'unknown'
+        if result['status'] == 'unknown':
+            result.update(reason='protected-reporting-health-not-current', coverage_complete=False)
+        return result
+    except Unknown as error:
+        result['reason'] = str(error)
+    except (ValueError, KeyError, TypeError, RuntimeError, OSError, subprocess.TimeoutExpired, RecursionError, OverflowError):
+        result['reason'] = 'observation-unavailable-or-invalid'
+    return result
