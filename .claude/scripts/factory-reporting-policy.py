@@ -131,7 +131,7 @@ def validate(repo, policy, branch, writer_app_id, observation=None, *, now=None)
             'observation_sha256': metadata.hashlib.sha256(_canonical(observation)).hexdigest()}
 
 
-def load(path, repository, repository_id, branch, writer_app_id):
+def load(path, repository, repository_id, branch, writer_app_id, *, now=None):
     _binding(repository, repository_id, branch, writer_app_id)
     try:
         with Path(path).open('rb') as stream:
@@ -150,7 +150,7 @@ def load(path, repository, repository_id, branch, writer_app_id):
     for identity, value in packet['policies'].items():
         require(type(identity) is str and re.fullmatch(r'[1-9][0-9]{0,18}', identity), 'reporting observation identity invalid')
         _, observed = _record(value, repository, repository_id, branch, writer_app_id)
-        require(observed <= metadata.clock(None), 'reporting observation future timestamp')
+        require(observed <= metadata.clock(now), 'reporting observation future timestamp')
         require(int(identity) == value['ruleset_id'], 'reporting observation identity differs')
     return packet['policies']
 

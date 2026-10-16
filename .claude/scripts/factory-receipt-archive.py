@@ -156,7 +156,7 @@ def _approved_policy_digest(policy, approval, approval_path, *, now=None):
     if approval['schema_version'] == 1:
         return digest(canonical(policy))
     observations = reporting_policy.load(Path(approval_path).with_name(reporting_policy.SIDECAR),
-        approval['repository'], approval['repository_id'], approval['branch'], approval['writer_app_id'])
+        approval['repository'], approval['repository_id'], approval['branch'], approval['writer_app_id'], now=now)
     require(set(observations) == set(approval['policies']), 'archive reporting observation identities differ')
     repo = {'id': approval['repository_id'], 'full_name': approval['repository']}
     result = reporting_policy.validate(repo, policy, approval['branch'], approval['writer_app_id'],
@@ -511,8 +511,10 @@ def append_delivery(source_api, state_api, policy, run_id, trust_path, store, ap
         require(state_paths.valid_hash(newtree.get('sha'), 40), 'archive created tree invalid')
         commit = api.request(root+'/git/commits', 'POST', {'message': 'factory: compact receipt append '+uuid.uuid4().hex, 'tree': newtree['sha'], 'parents': [head]})
         require(state_paths.valid_hash(commit.get('sha'), 40) and commit['tree']['sha'] == newtree['sha'] and [parent['sha'] for parent in commit['parents']] == [head], 'archive created commit ancestry differs')
+        approval = document(Path(approval_path).read_bytes())
+        require(digest(canonical(approval)) == anchor['approval_sha256'], 'archive bootstrap approval changed before append')
         for policy_id, expected_hash in anchor['policies'].items():
-            require(digest(canonical(api.request(root+'/rulesets/'+policy_id))) == expected_hash, 'archive writer protection changed before append')
+            require(_approved_policy_digest(api.request(root+'/rulesets/'+policy_id), approval, approval_path) == expected_hash, 'archive writer protection changed before append')
         try:
             result = api.request(root+'/git/refs/heads/'+quote(anchor['branch'], safe=''), 'PATCH', {'sha': commit['sha'], 'force': False})
             require(result['ref'] == 'refs/heads/'+anchor['branch'] and result['object']['sha'] == commit['sha'], 'archive reference acknowledgement differs')

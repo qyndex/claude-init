@@ -38,6 +38,26 @@ cases=r'''
   try:fn()
   except ValueError as error:assert reason in str(error),(reason,str(error));count+=1
   else:raise AssertionError('accepted '+reason)
+ # One clock domain through the existing archive call, including visible actors.
+ # Pin only the test's default wallclock; explicit injected instants stay intact.
+ clock_raw=sidecar.read_bytes();clock_function=a.reporting_policy.metadata.clock
+ wall=datetime(2026,10,17,tzinfo=timezone.utc)
+ def fixed_clock(value):return clock_function(wall if value is None else value)
+ a.reporting_policy.metadata.clock=fixed_clock
+ try:
+  future_packet=copy.deepcopy(packet)
+  for value in future_packet['policies'].values():value['observed_at']=(now+timedelta(hours=1)).isoformat()
+  sidecar.write_text(json.dumps(future_packet))
+  visible=copy.deepcopy(policies[1]);hidden_policy=copy.deepcopy(visible);hidden_policy.pop('bypass_actors')
+  reject(lambda:a._approved_policy_digest(visible,selected,approval,now=now),'future')
+  reject(lambda:a._approved_policy_digest(hidden_policy,selected,approval,now=now),'future')
+  injected=wall+timedelta(days=2)
+  for value in future_packet['policies'].values():value['observed_at']=(injected-timedelta(hours=1)).isoformat()
+  sidecar.write_text(json.dumps(future_packet))
+  for value in (visible,hidden_policy):
+   assert a._approved_policy_digest(value,selected,approval,now=injected)==selected['policies']['1'];count+=1
+ finally:
+  sidecar.write_bytes(clock_raw);a.reporting_policy.metadata.clock=clock_function
  for identity,value in policies.items():
   capture=rp.capture(repo,value,branch,7,now=now);assert capture==packet['policies'][str(identity)];count+=1
   assert rp.validate(repo,value,branch,7,now=now)['mode']=='direct';count+=1
@@ -117,6 +137,53 @@ cases=r'''
  approval.write_text(json.dumps(original));reject(lambda:a.verify_bootstrap(Hidden(),approval,now=now),'policy changed')
  assert a.verify_bootstrap(State(),approval,now=now)['head']==initial;count+=1
  assert out('rev-parse',ref)==before and git('show',ref+':'+oldpath).stdout==b'opaque existing encrypted feedback envelope'
+ # Exercise schema2 publication rechecks, not only the read-only bootstrap.
+ approval.write_text(json.dumps(selected));sidecar.write_bytes(raw)
+ store={'repository':'org/repo','visibility':'public'};stream=a.archive_stream('org/repo')
+ discovery_spec=importlib.util.spec_from_file_location('schema2_discovery',scripts/'factory-receipt-discovery.py');discovery=importlib.util.module_from_spec(discovery_spec);discovery_spec.loader.exec_module(discovery)
+ class HiddenWriter(State):
+  def request(self,path,method='GET',payload=None):
+   value=super().request(path,method,payload)
+   if method=='GET' and '/rulesets/' in path:
+    value=copy.deepcopy(value);value.pop('bypass_actors')
+   return value
+ class DiscoveryRuns(Source):
+  def request(self,path,**kwargs):
+   if '/actions/workflows/' in path:return {'workflow_runs':[copy.deepcopy(self.run)],'total_count':1}
+   return super().request(path,**kwargs)
+ def publish(kind,transport,serial):
+  item=(Source if kind=='append' else DiscoveryRuns)(policy,receipt);item.run['id']=serial
+  if kind=='append':return a.append_delivery(item,transport,policy,serial,trust,store,approval,stream)
+  return discovery.advance(item,transport,policy,approval,stream,page_size=1,tree_pages=1)
+ failures=[]
+ for kind in ('append','checkpoint'):
+  for writer in (State,HiddenWriter):
+   current=writer()
+   try:result=publish(kind,current,20)
+   except ValueError as error:
+    failures.append(kind+'/'+writer.__name__+': '+str(error));assert out('rev-parse',ref)==initial
+   else:
+    assert result['status']==('appended' if kind=='append' else 'checkpointed') and current.patches==1
+    assert out('rev-parse',ref)!=initial;count+=1
+   assert git('show',ref+':'+oldpath).stdout==b'opaque existing encrypted feedback envelope'
+   git('update-ref',ref,initial,out('rev-parse',ref))
+ assert not failures,'schema2 publications rejected: '+str(failures)
+ class ApprovalDrift(State):
+  def request(self,path,method='GET',payload=None):
+   value=super().request(path,method,payload)
+   if method=='POST' and path.endswith('/git/commits'):
+    changed=copy.deepcopy(selected);changed['observed_at']=(now+timedelta(minutes=1)).isoformat();approval.write_text(json.dumps(changed))
+   return value
+ for kind in ('append','checkpoint'):
+  drift=State();drift.policy_drift=True
+  try:
+   reject(lambda:publish(kind,drift,21),'changed')
+  finally:policies[1]['updated_at']='2026-10-14T00:00:00Z'
+  assert drift.patches==0 and out('rev-parse',ref)==initial
+  changed=ApprovalDrift()
+  try:reject(lambda:publish(kind,changed,22),'approval changed')
+  finally:approval.write_text(json.dumps(selected))
+  assert changed.patches==0 and out('rev-parse',ref)==initial
  print(str(count)+' reporting-only positive policy and real-Git bootstrap cases passed; no live/App capability claim')
 '''
 exec(compile(fixture+cases,'reporting-positive-policy-fixture','exec'))

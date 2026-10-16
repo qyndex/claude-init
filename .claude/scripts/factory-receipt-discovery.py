@@ -580,8 +580,10 @@ def _checkpoint(source_api, state_api, policy, approval_path, stream, *, page_si
         require(archive.state_paths.valid_hash(tree.get('sha'), 40), 'discovery created tree invalid')
         commit = api.request(root+'/git/commits', 'POST', {'message': 'factory: discovery progress '+uuid.uuid4().hex, 'tree': tree['sha'], 'parents': [anchor['head']]})
         require(archive.state_paths.valid_hash(commit.get('sha'), 40) and commit['tree']['sha'] == tree['sha'] and [p['sha'] for p in commit['parents']] == [anchor['head']], 'discovery created commit differs')
+        approval = archive.document(Path(approval_path).read_bytes())
+        require(archive.digest(archive.canonical(approval)) == anchor['approval_sha256'], 'discovery bootstrap approval changed before checkpoint')
         for identity, expected in anchor['policies'].items():
-            require(archive.digest(archive.canonical(api.request(root+'/rulesets/'+identity))) == expected, 'discovery protection changed before checkpoint')
+            require(archive._approved_policy_digest(api.request(root+'/rulesets/'+identity), approval, approval_path) == expected, 'discovery protection changed before checkpoint')
         attempted = encoded; attempted_changes = dict(changes)
         try:
             result = api.request(root+'/git/refs/heads/'+quote(anchor['branch'], safe=''), 'PATCH', {'sha': commit['sha'], 'force': False})
