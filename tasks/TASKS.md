@@ -1637,7 +1637,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-policy-observation.sh && bash .claude/scripts/test/factory-coordinator.sh && bash .claude/scripts/test/factory-producers.sh
   owner: implementer
 
-- [ ] T-296  | spec:010  | phase:1  | priority: security  | created: 2026-10-16  | deps: T-291  | parallel: no  | est: 5m
+- [x] T-296  | spec:010  | phase:1  | priority: security  | created: 2026-10-16  | deps: T-291  | parallel: no  | est: 5m
   summary: Validate exact bounded operator observations and GET-only capture
   files: .claude/scripts/factory-policy-observation.py, .claude/scripts/test/factory-policy-observation.sh
   accept: bash .claude/scripts/test/factory-policy-observation.sh
