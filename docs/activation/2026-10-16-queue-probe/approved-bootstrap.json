@@ -1,0 +1,11 @@
+{
+  "source_sha": "91839087a769bd45670df5b84cb96993bcb97d42",
+  "values": {
+    "FACTORY_REPORTING_QUEUE_GRACE_MINUTES": "60",
+    "FACTORY_REPORTING_QUEUE_BOOTSTRAP_SHA": "32f304128cea765ba63cca10b11d3c5e5232c2d2",
+    "FACTORY_REPORTING_QUEUE_INITIALIZE": "true"
+  },
+  "state_sha": "32f304128cea765ba63cca10b11d3c5e5232c2d2",
+  "authority_enabled": false,
+  "notice_scope": "labelled verification drill + recovery"
+}

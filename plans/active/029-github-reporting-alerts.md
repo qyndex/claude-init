@@ -257,3 +257,23 @@ marker; malformed/extra/duplicate result JSON, arrays, unprefixed JSON and unkno
 bracket lines still reject. The first T317 collector attempt is retained as
 local contributions with changes requested, not source ready for merge. T317 now
 depends on this repair and fresh review/evidence; live T318 remains pending.
+
+## T318 actual bounded pilot acceptance — 2026-10-16
+
+Reviewed source91839087a769bd45670df5b84cb96993bcb97d42 is merged. The exact
+reviewed queue initialization was performed, then initialize=false restored.
+Actual protected drill38850566089a1 produced[1,0] across fresh CLI processes,
+recovery38850688638a1 produced[1], and repeat38850871872a1 produced[0]. The explicit
+--live checker reran successfully against actual GitHub metadata/logs and the
+protected role journal, with five publication parent/tree opaque-preservation
+checks. docs/activation/2026-10-16-queue-probe/README.md records safe source-bound
+observations. Earlier live-pending entries describe their historical checkpoints;
+T318 now closes the actual AC8 pilot portion without rewriting T317 local records.
+
+This is bounded administrative correlation, not native attestation, independent
+local Slack readback, actual stalled-worker proof or global-history certification.
+One isolated pair, ordered nonoverlap windows,24 commits and1024 tree entries
+remain explicit checker bounds. Per-adopter rollout, same-environment/GitHub/Slack
+outage limits remain; Healthchecks stays disabled. Factory authority/merge mode
+remain off. This documentary verification introduced no code/settings/credential
+changes, sends or dispatches.

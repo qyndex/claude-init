@@ -1,0 +1,1 @@
+Verification-only live rollout characterization; no runtime change and no manufactured RED. Existing source T312–325 has retained implementation evidence. Actual --live acceptance is required here.

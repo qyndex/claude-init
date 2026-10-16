@@ -1,0 +1,17 @@
+{
+  "source_sha": "91839087a769bd45670df5b84cb96993bcb97d42",
+  "verification_mode": "live-read-only",
+  "pilot_AC8_live_verified": true,
+  "native_attestation": false,
+  "all_history_coverage": false,
+  "files": {
+    "docs/activation/2026-10-16-queue-probe/README.md": "96696c38735c792b39d1b845a771325c8ad69ec96119013db51a6c65161b459a",
+    "docs/activation/2026-10-16-queue-probe/approved-bootstrap.json": "ea820d543d5dc80beb7584eca5f5936625cf32966f838ac833c80f0a2d028a20",
+    "docs/activation/2026-10-16-queue-probe/drill-observation.json": "86103a1f94b233b07575697c578d23159c3c70173326f252c98da94a0e02ba24",
+    "docs/activation/2026-10-16-queue-probe/live-proof.json": "dfc5feb969da212a80112b65fd4680aca1dd20ef8196a2b622f3af25009bfa2d",
+    "docs/activation/2026-10-16-queue-probe/main-policy-observation.json": "e7dda6b34fcf15bb6ffd0617f52650bfa2b22196afd7ce83a0fcbe601dba6122",
+    "docs/activation/2026-10-16-queue-probe/maintenance-completed.md": "bcc701358d5d9cc38d03af914b783600434350fed66a71502e2cccbdf121ca49",
+    "docs/activation/2026-10-16-queue-probe/pilot-configuration.json": "5b075dfb7ab4fa78a2bf571f969293f83d7c1d96969db83d27210de88bfbc005",
+    "docs/activation/2026-10-16-queue-probe/recovery-observation.json": "f54e6b5ffa44cfa34d7a12e31375d167481db807e180879b425b93e31a41cf2e"
+  }
+}

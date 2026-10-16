@@ -51,8 +51,10 @@ capability and secure candidate retrieval must still be established per adopter.
 
 ## Queue monitor setup and readiness
 
-The queue monitor is optional and defaults off. Local implementation is ready
-for review; actual queue rollout is **PENDING**. An installation of this harness
+The queue monitor is optional and defaults off. The qyndex/claude-init bounded
+pilot passed actual live acceptance on 2026-10-16; the
+[activation record](activation/2026-10-16-queue-probe/README.md) binds its source and runs.
+Every adopter must still review and verify its own rollout. An installation of this harness
 is not another repository's Slack/reporting activation. Preserve normal reporting
 and feedback while configuring this separate role; do not disable their existing
 gates merely to stage the queue workflow.
@@ -145,8 +147,8 @@ or private Slack/feedback history.
 `bash .claude/scripts/test/factory-reporting-queue.sh` is the local aggregate.
 No-argument live-evidence script execution is offline self-tests only and cannot
 complete T318. T321/T317 local evidence and reviewed live activation are separate;
-the latter remains **PENDING** until actual drill/recovery/repeat/preservation
-observations pass. Shared environment approvals, Actions-wide failures, delayed
+the latter passed for the recorded qyndex/claude-init bounded pilot and remains
+required independently for each adopter. Shared environment approvals, Actions-wide failures, delayed
 cron runs and Slack outages remain limitations. Healthchecks is disabled and
 independent monitoring remains optional. The operator-disabled Issue lifecycle,
 Lighthouse CI and E2E on Preview Deploy workflows stay disabled; the factory plan
