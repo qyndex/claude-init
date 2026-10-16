@@ -76,10 +76,13 @@ try:
    captured,api=seen[0]
    context=captured['reporting'] if filename=='factory-reporting-queue.py' else captured
    expected_view={'mode':'archive','approval_path':str(fixed/'receipt-archive-bootstrap.json')}
-   assert context['state_view']==expected_view and context['receipt_mode']=='durable'
-   assert context.get('pr_discovery_mode')=='resumable','selected CLI did not forward resumable PR discovery'
-   assert context['receipt_archive']['trust_mode']=='profile'
-   if filename=='factory-reporting-queue.py':assert captured['storage']['state_view']==expected_view
+   if filename=='factory-reporting-queue.py':
+    assert set(context)=={'enabled','repository','state_repository','branch','destination','team_id','start','attachments_enabled'}
+    assert captured['storage']['state_view']==expected_view
+   else:
+    assert context['state_view']==expected_view and context['receipt_mode']=='durable'
+    assert context.get('pr_discovery_mode')=='resumable','selected CLI did not forward resumable PR discovery'
+    assert context['receipt_archive']['trust_mode']=='profile'
    assert hasattr(api,'budget') and api.budget.calls==0
    before=len(record.read_text().splitlines()) if record.exists() else 0
    api.request('repos/org/repo/actions/runs/7');api.request('repos/org/repo/git/ref/heads/state')

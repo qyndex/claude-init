@@ -572,8 +572,8 @@ def build_config(env):
         from pathlib import Path
         spec=importlib.util.spec_from_file_location('queue_config_transport',Path(__file__).with_name('factory-reporting-transport.py'))
         transport=importlib.util.module_from_spec(spec);spec.loader.exec_module(transport)
-        reporting=transport.attach_reporting_context(dict(reporting,state_branch=storage['state_branch'],bootstrap_sha=storage['bootstrap_sha']))
-        storage['state_view']=reporting['state_view']
+        context=transport.attach_reporting_context(dict(reporting,state_branch=storage['state_branch']))
+        storage['state_view']=context['state_view']
     return {'config':config, 'storage':storage, 'reporting':reporting}
 
 

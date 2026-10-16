@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "<stdin>", line 25, in <module>
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "/private/tmp/factory-queue-context-fix-20261017/.claude/scripts/factory-hosted-feedback.py", line 18, in <module>
+    crypto=load('encrypted_feedback','factory-encrypted-feedback.py')
+  File "/private/tmp/factory-queue-context-fix-20261017/.claude/scripts/factory-hosted-feedback.py", line 15, in load
+    module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module);return module
+                                                 ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "/private/tmp/factory-queue-context-fix-20261017/.claude/scripts/factory-encrypted-feedback.py", line 14, in <module>
+    from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+ModuleNotFoundError: No module named 'cryptography'

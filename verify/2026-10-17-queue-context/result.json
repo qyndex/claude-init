@@ -1,0 +1,19 @@
+{
+  "base": "600e9ff36e4309a213c067f0d02ae31e6b1d2cc9",
+  "medium_baseline_red_exit": 1,
+  "high_after_medium_only_red_exit": 1,
+  "actual_queue_final_green_exit": 0,
+  "queue_cas_cases": 20,
+  "queue_cas_exit": 0,
+  "cli_selection_cases": 47,
+  "cli_selection_python": "/usr/bin/python3",
+  "cli_selection_exit": 0,
+  "source_sha256": {
+    ".claude/scripts/factory-reporting-queue.py": "62cb5b2a93c8d0cb48dc5b35161e0caa550e5880e2c0bb6ade5f73b15615b964",
+    ".claude/scripts/test/factory-reporting-queue-context.sh": "9e57ae4282d5b2c9ce642a7de5e8792c76d69396602378ec3e69babdc4c93613",
+    ".claude/scripts/test/factory-reporting-cli-selection.sh": "f65e87c7b0368df15fb826fe252995ec229f698b5d75271cba3993167ae7ce08"
+  },
+  "legacy_queue_actions": "preexisting missingcalls.json shell-fixture failure confirmed on clean600e",
+  "live_calls": false,
+  "task_closed": false
+}
