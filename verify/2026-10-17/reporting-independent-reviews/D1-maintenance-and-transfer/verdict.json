@@ -1,0 +1,99 @@
+{
+  "verdict": "changes_requested",
+  "review_summary": "I found no critical or blocker defects in the supplied code, and I did not infer correctness of any file not supplied. Four findings are medium; the rest are low or nit.\n\nWhat holds up:\n- The journal is bound to repository, stream, binding, policy hash and trust hash.\n- Each publication is checked through history, parent, ancestor and single-path delta.\n- A policy or trust change resets to backfill.\n- `verify` is only left through an exact selector match.\n- Completion of the old interval is re-checked by `discovery.coverage` before a rollover.\n- The `project_reporting` SQLite write runs in one `BEGIN IMMEDIATE` transaction under `with db`, so any exception rolls everything back.\n- Receipt, provenance and time rows cannot be altered or dropped.\n\nWhat needs changing:\n- Exact-selector enforcement during staging is incomplete: the campaign that `stage_projection` returns is never compared with the journal's campaign (line 240).\n- The watch checkpoint is validated with a page size read from the untrusted document itself (line 183).\n- A \"scheduling only\" call on an interval that was already delivered still writes `verify` (lines 252-253), which can send a legacy-mode caller into repeated backfill cycles.\n- Acknowledgement is a plain exported function. Nothing in it proves a validator ran (lines 170-174, 279-282).\n\nThe remaining items are hardening: unvalidated parent SHA and previous-interval string, a missing completeness check at the checkpoint phase, and adapter wrappers that don't fully enforce read-only or same-repository access.\n\nA pass here would cover only the supplied code, not native authority, cadence or activation.",
+  "findings": [
+    {
+      "severity": "medium",
+      "file": ".claude/scripts/factory-reporting-maintenance.py",
+      "line": 240,
+      "title": "Stage result campaign is never compared to the journal's exact campaign selector",
+      "reason": "`stage_projection` derives its own campaign from the lineage and the current trust hash and returns it as `staged['campaign']`. The stage branch only reads `status` and `facts_count`. It persists `offset+facts_count` without requiring `staged['campaign']==journal['campaign']`, so stage output written under a different campaign (trust or lineage racing the check at line 168) is credited to the journal's selectors. The mismatch is caught only later, when coverage fails and the whole cycle is reset. Add `require(staged.get('campaign')==journal['campaign'])` before advancing the offset."
+    },
+    {
+      "severity": "medium",
+      "file": ".claude/scripts/factory-reporting-maintenance.py",
+      "line": 183,
+      "title": "Watch checkpoint validated with a page size taken from the document under validation",
+      "reason": "`validate_checkpoint(..., archive.document(watch_raw)['pagination']['page_size'])` passes the checkpoint's own claimed page size as the expected value, so that parameter cannot detect a wrong value. Backfill is later run with a fixed `page_size=100`, so a checkpoint with a different page size can pass validation here and then be driven by incompatible pagination. A missing `pagination` key raises KeyError instead of a typed `require` failure. Validate against the fixed constant that backfill uses. The same lookup also runs in the checkpoint, stage and ready phases, which don't use the watch."
+    },
+    {
+      "severity": "medium",
+      "file": ".claude/scripts/factory-reporting-maintenance.py",
+      "line": 252,
+      "title": "Already-delivered interval re-enters verification and is later reset to backfill",
+      "reason": "When `reporting_cursor>=end` and `interval_end==end` (nothing new is due), `rollover` is false. A `reporting` call then persists `phase='verify'` and returns `projection-ready` (lines 252-253). The supplied caller in `run` invokes `prepare_reporting` before its not-due check (git-state lines 514-519 versus 539), so in legacy PR-discovery mode a not-due run publishes a journal commit and leaves `verify` behind. The next run hits lines 175-179, resets to backfill and repeats origin, backfill, review, checkpoint and stage work for an interval that was already delivered. Skip persisting verification intent, or return a not-due status, when the cursor already covers `interval_end`."
+    },
+    {
+      "severity": "medium",
+      "file": ".claude/scripts/factory-reporting-maintenance.py",
+      "line": 170,
+      "title": "Projection acknowledgement is not bound to evidence that a validator succeeded",
+      "reason": "`acknowledge_reporting` is an ordinary exported function. It needs only the selectors, which are readable from the protected journal, and it moves `verify` to `ready` without proof that projection and coverage actually completed. A mistaken or hostile caller inside the process can mark a failed verification as acknowledged. That skips the intended 'unsuccessful consumer must observe a newer source epoch' reset. The reporting gate itself is still enforced separately by `project_reporting`. Consider requiring a result token from `project_reporting` that carries the interval, history_head and campaign."
+    },
+    {
+      "severity": "low",
+      "file": ".claude/scripts/factory-reporting-maintenance.py",
+      "line": 222,
+      "title": "Checkpoint phase does not require the lineage window to be the completed one",
+      "reason": "Completion is judged from the raw scoped blob (`next_segment==records_count`). The journal's `records_count` and `campaign` are then taken from a separately fetched `projection_lineage` window, with no check that this window has `next_segment==records_count`. If the head moved between the two reads, stage can start on a partial window's selectors. Coverage would later reject it, but only after wasted cycles. Add `require(window['next_segment']==window['records_count'])`."
+    },
+    {
+      "severity": "low",
+      "file": ".claude/scripts/factory-reporting-maintenance.py",
+      "line": 148,
+      "title": "Parent commit SHA is interpolated into an API path without hash validation",
+      "reason": "`publication['parents'][0]['sha']` is appended to the request path without `valid_hash(...,40)`. The later equality check compares the value with itself, so it does not constrain the format. The history SHA at line 144 is validated; the parent SHA should be too."
+    },
+    {
+      "severity": "low",
+      "file": ".claude/scripts/factory-reporting-maintenance.py",
+      "line": 34,
+      "title": "previous_interval_end lacks the length and exact-seconds checks applied to interval_end",
+      "reason": "`interval_end` is checked for `len<=40` and `microsecond==0`. `previous_interval_end` is only checked to be a string that `instant()` parses and is `<=` interval_end. This is a weaker validation of a protected field, and it gives a looser canonical form for a field compared byte-for-byte at line 156. Apply the same checks."
+    },
+    {
+      "severity": "low",
+      "file": ".claude/scripts/factory-reporting-maintenance.py",
+      "line": 99,
+      "title": "Source and State wrappers do not enforce the read-only or same-repository scope they imply",
+      "reason": "`Source.get` and `Source.source` accept any path. `Source.request` rejects non-GET methods but still forwards a `payload` kwarg. `State.request` allows any method and path. The batch readers attached at lines 109-114 take an arbitrary `repository_id`. The envelope bounds work but not scope. The sibling receipts adapters at least restrict source paths to `/actions/`. Scope the paths to `repos/<repo>/...` (Actions for source) and bind `repository_id` for the batch readers."
+    },
+    {
+      "severity": "low",
+      "file": ".claude/scripts/factory-reporting-receipts.py",
+      "line": 37,
+      "title": "read_blobs/read_pull_requests are forwarded around the ReadOnly guard",
+      "reason": "`ReadOnly.request` enforces GET and same-repository paths. `read_blobs` and `read_pull_requests` are copied straight from the underlying API, so those reads bypass the guard. The wrapper also does not bind `repository_id` to `self.repo`. Wrap them to require the expected repository id."
+    },
+    {
+      "severity": "low",
+      "file": ".claude/scripts/factory-reporting-receipts.py",
+      "line": 48,
+      "title": "Source adapter exposes a narrower interface than the maintenance Source and may break coverage",
+      "reason": "This `Source` provides only `request(path)` and `get(path)`. The maintenance `Source` (maintenance lines 99-107) also provides `source(path, sha)` and `request(path, **kwargs)`. If `discovery.coverage` calls either of those, every `project_reporting` call would raise AttributeError or TypeError. That would fail closed but permanently. I could not see discovery, so this is unconfirmed."
+    },
+    {
+      "severity": "nit",
+      "file": ".claude/scripts/factory-reporting-maintenance.py",
+      "line": 72,
+      "title": "Cursor validation parses interval_end before its type and length are checked",
+      "reason": "Lines 72-74 call `archive.instant(interval_end)` before the `type(interval_end) is str` and length check at line 77, so a malformed value fails with whatever `instant` raises instead of the intended message. Move the interval_end validation above the scheduled-cursor validation."
+    },
+    {
+      "severity": "nit",
+      "file": ".claude/scripts/factory-reporting-receipts.py",
+      "line": 92,
+      "title": "Retained database is opened read-write and fully loaded before the capacity check",
+      "reason": "`sqlite3.connect(receipt_db)` could use a `mode=ro` URI. `fetchall` loads every row before the 32 MiB check at line 101, so the memory bound only applies after the allocation. Row counts upstream are bounded, so impact is small."
+    }
+  ],
+  "limitations": [
+    "Static review of the supplied lines only. I did not run the code and did not execute tests.",
+    "I did not see the bodies of `GitState` (its CAS and head-check semantics), `discovery.validate_checkpoint`, `validate_watch`, `backfill`, `reconcile` and `coverage`, `archive.projection_lineage`, `reconstruct_interval` (only part of it), `advance_origin`, `verify_bootstrap`, `slack.due` or `HostedDigest`. Their behaviour is assumed and not verified here.",
+    "The not-due churn finding depends on `slack.due(now)` returning a stable slot between report intervals, and on legacy PR-discovery mode being used.",
+    "The sqlite rollback analysis assumes CPython's default legacy transaction control for `sqlite3.connect`. An explicit `BEGIN IMMEDIATE` inside `with db` does roll back DDL and DML on exception under that mode.",
+    "Pending/confirmed batch immutability is enforced in the supplied caller (`pending_snapshot` skips projection). It is not enforced inside `project_reporting`, so I rely on the caller.",
+    "Excerpts of the archive and git-state files were used only as context for how selectors flow. I made no judgment on their correctness.",
+    "A pass would cover this code only, not native authority, cadence or activation."
+  ]
+}

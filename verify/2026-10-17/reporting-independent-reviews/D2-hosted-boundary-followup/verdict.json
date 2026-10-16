@@ -1,0 +1,79 @@
+{
+  "verdict": "changes_requested",
+  "review_summary": "Original changes_requested is kept. The findings below are all actionable but none is reachable through the protected hosted path. After reading the previously omitted boundary code, I withdraw the earlier HIGH and the three MEDIUM findings as hosted failures. I keep them as standalone-API gaps and hardening, at lower severity.\n\nHOSTED PATH (externally reachable dataflow failures): none established.\n- In durable mode, `run` requires the protected archive config and a non-None `receipt_policy` (git-state 493-499). Unless a pending snapshot is being resumed, it always runs the real `receipts.project` (555-560). That function accepts only an exact protected selection and has no caller-supplied database or \"complete\" flag (receipts 227-238).\n- `project_reporting` builds a private temporary receipt-only SQLite file (reporting-receipts 75-78). It requires verified_until == interval_end, no gaps, and no task credit (83-86). It requires the exact five-table schema and column types (92-100). It requires identical receipt/provenance/trust/time task sets and an interval subset (102-104). It then re-verifies the origin and trust files and writes the rows and the coverage marker in one `BEGIN IMMEDIATE` transaction (105-133). `run` then requires `coverage_complete` and acknowledges the projection (561-573) before `prepare` runs at 574.\n- `delivery_interval` is filled from actual retained merge times, using coverage_from and exactly interval_end (archive 1556-1557, 1582-1583). So an absent table, a missing mandatory join row, or a marker for a different interval needs independent mutation of the private local database after that transfer. That is outside the accepted boundary, and a digest-side reader is not the authentication point. The earlier limitation about archive line 1562 does not apply: reconstruction targets a separate temporary file, not the report database.\n- Pending payload: `validate` (git-state 344-380) checks repository, destination, stream, schema and merge shape. It also checks payload.until == cutoff, the deterministic key, the confirmed payload hash and receipt, pending cutoff > cursor, cursor == max(confirmed), and a single pending row. `HostedDigest` restores through it (452) and snapshots through it on every transaction (475). Skipping reconstruction for a pending resume (512-514, 555) is the intended immutability contract, and the remote receipt binds the sent bytes.\n- `confirm`: the only production call sites are 217 and 225 in `deliver`, each with the row just read at 210. Even a divergent cutoff would fail `validate` at 369 and 379 before the checkpoint, so it cannot reach durable state.\n\nINTENTIONAL SEMANTICS (not defects):\n- Requiring equal sets across all five tables is wrong. `delivery_interval` is a subset by design.\n- Requiring every merge to fall inside (from, until] is wrong. It contradicts `late_discovered` (digest 188). I withdraw that part of my earlier LOW finding.\n\nREMAINING (standalone API or optional hardening, not hosted failures):\n- One concrete standalone bug: `confirm` writes the caller's `row['cutoff']` (digest 239). This is the smallest repair and has the clearest regression test.\n- Several optional local-reader guards: a five-table check, the interval join, payload re-checks, history exceptions, and a deterministic evidence order.\n- Minor items: the vacuous handoff token, scan-progress rollback, and the connection-leak nit.\n- No new checks that authenticate data from a local database or marker are warranted.\n\nI issue no pass because actionable items remain. Any repair needs a targeted failing-then-passing test, plus unchanged controls for pending resume and the interval-subset behaviour. This review makes no native, cadence or activation claim.",
+  "findings": [
+    {
+      "severity": "medium",
+      "file": ".claude/scripts/factory-digest.py",
+      "line": 239,
+      "title": "[standalone API] confirm() advances the cursor from the caller's row['cutoff'], not the stored row",
+      "reason": "`confirm` is public. It compares only `current['payload'] == row['payload']` (233), then writes `row['cutoff']` to `digest_cursors` (239). A caller passing the same payload with a different cutoff can move the cursor backwards or skip an interval, which changes later `from` and `late_discovered`. Hosted reachability is NOT shown. The only production callers are `deliver` at 217 and 225, each passing the row just read at 210. No config, API or Slack value supplies the row or cutoff. Hosted `validate` also rejects a mismatched cutoff or cursor (git-state 369, 375, 379) before any checkpoint. Smallest repair: write `current['cutoff']`, and require `row['cutoff'] == current['cutoff']` before processing. Add a direct regression test that passes an identical payload with an altered cutoff and asserts the cursor is unchanged, with the normal deliver and uncertain-reconcile controls kept. Do not add batch-schema redesign for this."
+    },
+    {
+      "severity": "low",
+      "file": ".claude/scripts/factory-digest.py",
+      "line": 165,
+      "title": "[standalone API] Durable reader emits 'missing' evidence when the five-table set is absent or orphaned; document or guard it",
+      "reason": "Downgraded from HIGH. The hosted path cannot reach this state (reporting-receipts 92-104 and 130-133, plus git-state 555-574). It needs a direct `Digest` durable call over a locally mutated database with a coverage marker. In that case line 165 skips the proof query and the INNER JOINs at 166 drop orphaned receipts, so every PR is emitted as 'missing' without error. The existing transfer test that deletes trust/time/interval rows and expects 'missing' (cited in the triage at test 217-222; I did not see the tests) shows that 'fail closed' there means 'not authenticated', not 'report blocked'. Either document that distinction in the helper, or add a bounded guard in durable `prepare` before the payload is built. The guard should require all five tables and equal receipt/provenance/trust/time task sets, with interval as a subset only, and roll back before the batch insert. Do NOT require interval == receipts. Do NOT add a caller-authenticated marker protocol. A guard would change the existing 'missing' test expectation."
+    },
+    {
+      "severity": "low",
+      "file": ".claude/scripts/factory-digest.py",
+      "line": 166,
+      "title": "[optional hardening] Interval join can turn a retained-time disagreement into 'missing' instead of a failure",
+      "reason": "Replaces my earlier MEDIUM 'marker and interval not bound'. The interval cutoff binding is sound: reporting-receipts 83-86 require verified_until == interval_end, 130-133 write the marker atomically with the rows, and digest 161-164 bound `end` by verified_until. A stale-interval route needs local corruption. One narrow case remains: `delivery_interval` is built from the retained time (archive 1557), while the digest requires retained_time == GitHub merged_at only for rows that survive the join (183). A receipt whose retained time falls outside [coverage_from, interval_end] while its PR merges inside (origin, end] is dropped by the join. It is reported as 'missing' rather than failing with 'retained merge timestamp differs'. How retained times are derived is in omitted code, so this is conditional, not demonstrated. An optional guard is to look up receipts by PR number without the interval filter, then require time equality. That keeps the intentional interval-subset semantics."
+    },
+    {
+      "severity": "low",
+      "file": ".claude/scripts/factory-digest.py",
+      "line": 108,
+      "title": "[standalone API] Pending/uncertain rows are sent without local revalidation",
+      "reason": "Downgraded from MEDIUM. Hosted state is validated before restore and on every snapshot (git-state 344-380, 452, 475). Resume deliberately does not re-render the stored payload. A payload hash in the same editable row would not authenticate anything, so I withdraw that suggestion. A cheap standalone guard remains. Before `deliver` sends, check `payload.repository` and `payload.destination` equal `self`, `payload.until == cutoff`, and `key == sha256([stream, from, until])`. This is hardening against local-database drift, not a boundary fix."
+    },
+    {
+      "severity": "low",
+      "file": ".claude/scripts/factory-digest.py",
+      "line": 116,
+      "title": "[standalone API] Confirmed-history parsing can raise TypeError/KeyError instead of a require() error",
+      "reason": "A NULL receipt gives TypeError from `json.loads(None)` at 117. A missing key gives KeyError at 118-122. Both bypass the `require` path. In hosted use, `validate` (372-373) already enforces exact receipt and merge key sets first, so this is standalone only. I withdraw the suggestion to require merged_at inside the batch interval, because `late_discovered` merges at or before `from` are valid. If this is touched, only wrap or pre-check the types."
+    },
+    {
+      "severity": "low",
+      "file": ".claude/scripts/factory-digest.py",
+      "line": 166,
+      "title": "[optional hardening] Evidence list order depends on the SQLite plan; add ORDER BY",
+      "reason": "The proof query has no ORDER BY, while the producer copies rows in task order (reporting-receipts 99). `matches` keeps iteration order, and `canonical` does not sort lists. The planner may choose a different join order, so payload bytes could differ between runs for the same facts. There is no hosted defect. A pending payload is persisted once and its bytes are bound by the remote receipt. A failed checkpoint before sending only regenerates unsent bytes. Add `ORDER BY r.task` or sort `matches`."
+    },
+    {
+      "severity": "nit",
+      "file": ".claude/scripts/factory-digest.py",
+      "line": 128,
+      "title": "Handoff token check is vacuous; the real guard is API identity plus the binding tuple",
+      "reason": "`observation[0] is self._pr_token` cannot fail, because `discover` stores the token created in `__init__`. The effective checks are `observation[1] is api` and the binding tuple (stream, repository, branch, origin, end), after a real two-pass scan. A same-process subclass or collaborator assigning `_pr_observation` is outside the accepted boundary. Remove the token or document it. Do not add a second full comparison after receipts, because that reintroduces the rejected throughput cost."
+    },
+    {
+      "severity": "low",
+      "file": ".claude/scripts/factory-reporting-pr-discovery.py",
+      "line": 84,
+      "title": "Scan page progress rolls back if a later step in the same transaction raises",
+      "reason": "This is a reliability point, not an integrity one. An API or `require` failure inside the call rolls back that invocation's page checkpoints, because pages and cursor are written in the caller's transaction. A normal 'incomplete' return commits (digest 95-96, 134-135). Failure is closed: facts are not skipped and completeness is not claimed. At most 8 bounded pages are retried per invocation. Repositories with many closed PRs also need several invocations. A closing PR can shift later pages, which causes a 'membership shifted' reset. That behaviour is fail-closed but may stretch completion time. I did not evaluate throughput. Keep the 8-page bound. Committing per page would change the HostedDigest checkpoint/CAS composition, so it is optional and needs its own review."
+    },
+    {
+      "severity": "nit",
+      "file": ".claude/scripts/factory-digest.py",
+      "line": 65,
+      "title": "BEGIN IMMEDIATE outside the try block can leave the connection open until garbage collection",
+      "reason": "Carried over from the prior review. Lines 63-65 were not supplied this round, so this is not re-inspected. Moving the BEGIN into the try lets `finally` close the connection if the lock times out. No production change is required for this scope."
+    }
+  ],
+  "limitations": [
+    "Static reading of the supplied lines only. Nothing was executed, no tests were run, and no models were called.",
+    "The triage's claims about tests (transfer tests 110-141, 184-197, 217-222), line numbers in files not supplied, and the pinned commit 63b173d were treated as untrusted. I did not verify them. The findings rely only on the code shown.",
+    "Not supplied: digest lines 1-83 and 243+ (`Digest.__init__`, `transaction`, `batch`, `cursor`, `main`); PR-discovery lines 1-79 (`normalize`, scratch schema and compatibility, window binding); `factory-reporting-maintenance.py`; `discovery.coverage`; the archive code before 1540 and `verify_bootstrap`/`advance_origin`; the Slack transport; and `GitState.__init__` above line 285.",
+    "I could not confirm how `fact['merged_at']` is derived and authenticated in the archive. The conditional interval-join finding depends on it.",
+    "Git-state 551 and 570 recreate `GitState` without the `bootstrap_existing` argument. They also use `config.get('bootstrap_sha')` rather than the anchor head set at 534. This only matters if no report checkpoint exists at that point. I could not confirm that `Digest.__init__` always writes a checkpoint first, so I did not raise it as a finding.",
+    "Scan liveness for large repositories under PR churn, and GitHub list-API pagination consistency, were not evaluated. The scan fails closed in those cases.",
+    "The hosted-path conclusions assume trusted GitState writers, a protected state branch, and a private temporary report database. Same-process hostile collaborators, arbitrary caller-owned SQLite, and local Digest helpers alone as authentication are excluded, per the stated boundary.",
+    "No native, cadence or activation claim is made. A different verdict on this code would cover only the supplied code."
+  ]
+}

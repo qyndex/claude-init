@@ -1,0 +1,34 @@
+{
+  "head": "45b9c89f6867456e9ab72204ebd63589431947a6",
+  "prompt_sha256": "1456c640759e9b96bc3bdc9a81023ae79151b20f9421d21a296ac9b750f35975",
+  "review_files": [
+    {
+      "path": ".claude/scripts/factory-reporting-maintenance.py",
+      "start": 1,
+      "end": 284,
+      "full_sha256": "0ecc83555eedaf2fec08d82debdfb17aadb33cc85d73ce5216c4e5f29e39f800",
+      "range_sha256": "0ecc83555eedaf2fec08d82debdfb17aadb33cc85d73ce5216c4e5f29e39f800"
+    },
+    {
+      "path": ".claude/scripts/factory-digest.py",
+      "start": 227,
+      "end": 244,
+      "full_sha256": "bafeb74adf1a58965aa74fec6066c899f2308cbf701fa218ae6e074d694df59f",
+      "range_sha256": "3bfb488c09b155810a165e6892de438d82a4781f783d48cd411a44c08987ad22"
+    },
+    {
+      "path": ".claude/scripts/test/factory-reporting-maintenance-liveness.sh",
+      "start": 1,
+      "end": 77,
+      "full_sha256": "93c8b4892cf0d08782025ad14adf160f5705a4c96e84bfd5eaadff9cd54483a1",
+      "range_sha256": "93c8b4892cf0d08782025ad14adf160f5705a4c96e84bfd5eaadff9cd54483a1"
+    },
+    {
+      "path": ".claude/scripts/test/factory-digest-confirm.sh",
+      "start": 1,
+      "end": 41,
+      "full_sha256": "4470d4c4ed0df450ea0763c0b6a2613c259df7a1c9b36673cc0b4b34e72763e2",
+      "range_sha256": "4470d4c4ed0df450ea0763c0b6a2613c259df7a1c9b36673cc0b4b34e72763e2"
+    }
+  ]
+}

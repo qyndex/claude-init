@@ -1,0 +1,19 @@
+{
+  "head": "30ef054fb4f00abd4d1bc70b1799ac4670acb718",
+  "prompt_sha256": "4fd03c56d363f6f85c9411eb9f90cc74ac0414a643e00c24332f5cf4806c0f6c",
+  "review_files": [
+    {
+      "path": ".claude/scripts/factory-reporting-queue.py",
+      "sha256": "b175c5fda0cc6309475cf9a800ca9c3e9c9f366979df2caf3f51c479f697e3a7"
+    },
+    {
+      "path": ".claude/scripts/test/factory-reporting-queue-immutable.sh",
+      "sha256": "3c7ef5d3b41991c0bbd6bbee12801966b7d59cc19ce697c9ecd14c09f16ca2ff"
+    },
+    {
+      "path": "verify/2026-10-17-queue-immutable-cache/README.md",
+      "sha256": "99ab9f1b4f91b245c4595088c6122087ce26097b72df19c60d7f48c573670297"
+    }
+  ],
+  "native_attestation": false
+}

@@ -1,0 +1,81 @@
+{
+  "id": "A-archive-bootstrap-policy-paths",
+  "head": "6954a7a1669ddab6e852162eae547bbd00ea14c1",
+  "source_commit": "6954a7a1669ddab6e852162eae547bbd00ea14c1",
+  "requested_model": "claude-sonnet-5-5",
+  "prompt_sha256": "4d0aab8b864990a3d6f35d870a1ea3fc8dd50a7060ba2799769cb7730620641a",
+  "prompt_bytes": 112050,
+  "source_bytes_including_context": 98049,
+  "review_files": [
+    {
+      "path": ".claude/scripts/factory-receipt-archive.py",
+      "start": 1,
+      "end": 792,
+      "full_file_lines": 1584,
+      "full_file_bytes": 130550,
+      "full_file_sha256": "bc024a261c4eb8a2dc709f5725fd26ca778d79781d0260ba16faf0045fff369c",
+      "range_bytes": 63258,
+      "range_sha256": "e652313277cb079591f0404b388c5a015723cde0c02cc7bdfbf62273dbdd9773",
+      "kind": "PRIMARY SOURCE"
+    },
+    {
+      "path": ".claude/scripts/factory-reporting-policy.py",
+      "start": 1,
+      "end": 179,
+      "full_file_lines": 179,
+      "full_file_bytes": 10347,
+      "full_file_sha256": "a8d05f5225674462d990686c60ca96ca7fcf35c2007eed1ef2e22b3df9f79672",
+      "range_bytes": 10347,
+      "range_sha256": "a8d05f5225674462d990686c60ca96ca7fcf35c2007eed1ef2e22b3df9f79672",
+      "kind": "PRIMARY SOURCE"
+    },
+    {
+      "path": ".claude/scripts/factory-state-paths.py",
+      "start": 1,
+      "end": 165,
+      "full_file_lines": 165,
+      "full_file_bytes": 12010,
+      "full_file_sha256": "0648487106251e765e7f0a4504d510606970c6bab1f2b4024dc21c4e6bc487dd",
+      "range_bytes": 12010,
+      "range_sha256": "0648487106251e765e7f0a4504d510606970c6bab1f2b4024dc21c4e6bc487dd",
+      "kind": "PRIMARY SOURCE"
+    },
+    {
+      "path": ".claude/scripts/factory-receipts.py",
+      "start": 36,
+      "end": 75,
+      "full_file_lines": 294,
+      "full_file_bytes": 21454,
+      "full_file_sha256": "276573a80730be1fd246de4939e5fd8594d439724083f88037af96b8ce9e1255",
+      "range_bytes": 2834,
+      "range_sha256": "609d1fd0e239d9a6f4fd8f1eb8077b0ce01d5a21ba59bf59d577c8dff33e9134",
+      "kind": "BOUNDARY CONTEXT EXCERPT"
+    },
+    {
+      "path": ".claude/scripts/factory-receipts.py",
+      "start": 101,
+      "end": 133,
+      "full_file_lines": 294,
+      "full_file_bytes": 21454,
+      "full_file_sha256": "276573a80730be1fd246de4939e5fd8594d439724083f88037af96b8ce9e1255",
+      "range_bytes": 2828,
+      "range_sha256": "952598fd04d383425430e647e32ace9ca3aa8a55ef08cca519d191af90919ad9",
+      "kind": "BOUNDARY CONTEXT EXCERPT"
+    },
+    {
+      "path": ".claude/scripts/factory-reporting-receipts.py",
+      "start": 60,
+      "end": 134,
+      "full_file_lines": 134,
+      "full_file_bytes": 9146,
+      "full_file_sha256": "53d882ffda39652eb06300aa77b99c3fe96acc23128e8578925cc6d76ba0fef9",
+      "range_bytes": 6772,
+      "range_sha256": "b692f68da1667cc6885d2d2945c092b54062d4fdd0e4d16b04c7b6755e9a2b14",
+      "kind": "BOUNDARY CONTEXT EXCERPT"
+    }
+  ],
+  "api_key_environment_supplied": false,
+  "review_scope": "Static exact ranges only; no live authority/activation/cadence proof",
+  "original_timed_out_prompt_sha256": "991f8df2467df19555335193276e5f60f57575cab3c3702e03d19ece9ffed020",
+  "max_subprocess_seconds": 300
+}

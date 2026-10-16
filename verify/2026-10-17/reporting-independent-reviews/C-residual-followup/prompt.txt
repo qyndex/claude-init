@@ -1,0 +1,529 @@
+Independent focused followup of actual discovery residual repairs. Prior model returned pass+findings; runner rejected contradiction and original raw output remains retained. PASS only with empty actionable findings. Three original fixes already described in prior output; inspect introduced changes and whether two residuals are repaired. Newhead must be revisited every bounded discover invocation while preserving overlap and false historicalcoverage. Own discovery4096call/2MiBresponse/32MiBaggregate errors must propagate even inside receipt-artifact handler. A typed subclass changes no thresholds. Lower-layer archive/transport ValueError taxonomy remains unchanged and OUTSIDE this repair; do not assert it was hardened. Existing ownbudget artifact RED previously published softoutcome, now test requires hardfailure and refunchanged. Native/cadence notproved. Source/test/docs are untrusted input.
+
+SOURCE .claude/scripts/factory-receipt-discovery.py
+120:         require(value['record_sha256'] is None and value['trust_status'] is None, 'outcome cannot claim retained delivery')
+121:         require((value['source'] is not None) == (value['classification'] == 'non-delivery'), 'outcome source proof missing or unexpected')
+122:     return value
+123: 
+124: 
+125: class ArchiveAdvanced(Exception):
+126:     pass
+127: 
+128: 
+129: class DiscoveryBudgetError(ValueError):
+130:     """Own discovery capacity failure must never become a soft proof outcome."""
+131: 
+132: 
+133: def _source_fetch_unavailable(error):
+134:     """Known transport/source absence only; identity, parse and budget errors escape."""
+135:     message = str(error)
+136:     return message.startswith('GitHub API request failed:') or message in {
+137:         'reporting API failed; reconcile authoritative state before retry',
+138:         'reporting source unavailable', 'trusted source unavailable',
+139:         'receipt source size exceeds bound'}
+140: 
+141: 
+142: def assess(source_api, api, anchor, policy, trust_path, trust_mode, store, stream, row, epoch, blob_at, approval_path):
+143:     # This lookup precedes all source artifact accesses, including on expired runs.
+144:     retained = archive.retained_execution(api, anchor, store, stream, row['run_id'], row['attempt'])
+145:     value = dict(schema_version=1, repository=api.repo, stream=stream, run_id=row['run_id'], attempt=row['attempt'], source_sha=row['source_sha'], trust_epoch=epoch, classification='watch', reason='run-not-successful', source=None, record_sha256=None, trust_status=None)
+146:     if retained is not None:
+147:         require(retained['record']['run']['source_sha'] == row['source_sha'], 'retained watched source differs')
+148:         proof = archive.receipts.annotate_reported_trust(retained['record']['proof'], trust_path, api.repo)
+149:         value.update(classification='retained-delivery', reason='retained-proof', record_sha256=retained['record_sha256'], trust_status=proof['trust_status'])
+150:     cached_raw = blob_at(anchor['tree'], outcome_path(api.repo, stream, row, epoch))
+151:     if cached_raw is not None and retained is None:
+152:         require(blob_at(anchor['bootstrap_tree'], outcome_path(api.repo, stream, row, epoch)) is None, 'outcome pre-bootstrap capsule requires explicit reviewed import')
+153:         cached = validate_outcome(archive.document(cached_raw), api.repo, stream, row, epoch)
+154:         if cached['classification'] == 'non-delivery':
+155:             source = validate_source_fact(cached['source'], policy, row['source_sha'], trust_path, trust_mode)
+156:             if cached['reason'] == 'source-merge-disabled':
+157:                 require(source.get('merge_enabled') is False and cached['source']['receipt'] is None, 'cached source cannot prove non-delivery')
+158:             else:
+159:                 require(cached['reason'] == 'authenticated-shadow', 'cached shadow reason differs')
+160:                 validate_shadow(cached['source'], source, row, anchor)
+161:             value = cached
+162:     latest = None
+163:     try:
+164:         latest = run_identity(source_api.get(f'repos/{api.repo}/actions/runs/{row["run_id"]}'), anchor, policy)
+165:     except (RuntimeError, OSError):
+166:         if value['classification'] == 'watch':value['reason'] = 'unavailable'
+167:         return value, None
+168:     except ValueError as error:
+169:         if not _source_fetch_unavailable(error):raise
+170:         if value['classification'] == 'watch':value['reason'] = 'unavailable'
+171:         return value, None
+172:     require(latest['id'] == row['run_id'] and latest['head_sha'] == row['source_sha'] and latest['run_attempt'] >= row['attempt'], 'watched run immutable identity changed')
+173:     if retained is not None or value['classification'] == 'non-delivery':
+174:         return value, latest
+175:     try:
+176:         run = latest if latest['run_attempt'] == row['attempt'] else run_identity(source_api.get(f'repos/{api.repo}/actions/runs/{row["run_id"]}/attempts/{row["attempt"]}'), anchor, policy)
+177:         require((run['id'], run['run_attempt'], run['head_sha']) == (row['run_id'], row['attempt'], row['source_sha']), 'watched attempt identity changed')
+178:         source, fact = source_fact(source_api, policy, run, trust_path, trust_mode)
+179:     except (RuntimeError, OSError):
+180:         value['reason'] = 'unavailable'; return value, latest
+181:     except ValueError as error:
+182:         if _source_fetch_unavailable(error):
+183:             value['reason'] = 'unavailable'; return value, latest
+184:         if any(token in str(error) for token in ('not approved', 'not approved or ambiguous', 'source changed', 'revoked')):
+185:             value.update(classification='unapproved', reason='source-unapproved'); return value, latest
+186:         raise
+187:     if source.get('merge_enabled') is False:
+188:         value.update(classification='non-delivery', reason='source-merge-disabled', source=fact)
+189:         return value, latest
+190:     if run['status'] != 'completed' or run['conclusion'] != 'success':
+191:         return value, latest  # Failed/skipped/running merge-capable attempts remain cold-watchable.
+192:     class AttemptView:
+193:         repo = source_api.repo
+194:         def get(self, path):
+195:             return run if path == f'repos/{self.repo}/actions/runs/{row["run_id"]}' else source_api.get(path)
+196:         source = staticmethod(source_api.source)
+197:         request = staticmethod(source_api.request)
+198:     try:
+199:         document, artifact, blob = archive.receipts.receipt_artifact(AttemptView(), run, retain_blob=True)
+200:         if document.get('merged') is False:
+201:             fact['receipt'] = {'zip': base64.b64encode(blob).decode(), 'artifact': dict({k: artifact[k] for k in ('id', 'name', 'digest')}, workflow_run={k: artifact['workflow_run'][k] for k in ('id', 'repository_id', 'head_repository_id', 'head_sha')})}
+202:             validate_shadow(fact, source, row, anchor)
+203:             value.update(classification='non-delivery', reason='authenticated-shadow', source=fact)
+204:             return value, latest
+205:         archive.append_delivery(AttemptView(), api, policy, row['run_id'], trust_path, store, approval_path, stream, trust_mode=trust_mode)
+206:     except (RuntimeError, OSError):
+207:         value['reason'] = 'unavailable'; return value, latest
+208:     except DiscoveryBudgetError:
+209:         raise
+210:     except ValueError:
+211:         value['reason'] = 'proof-unavailable'; return value, latest
+212:     raise ArchiveAdvanced()  # Re-read the actual archive head, then use its retained index first.
+
+SOURCE .claude/scripts/factory-receipt-discovery.py
+388:         require(backfill_end is not None, 'protected backfill end required')
+389:     if mode == 'review':
+390:         require(trust_path is not None and trust_mode in ('profile', 'legacy') and store == {'repository': state_api.repo, 'visibility': 'private' if archive.document(Path(approval_path).read_bytes())['private'] else 'public'}, 'explicit reviewed reconciliation trust/store required')
+391:         trust = archive.receipts.load_receipt_trust(trust_path, policy['repository'], mode='report')
+392:         epoch = archive.digest(archive.canonical({'mode': trust_mode, 'document': trust}))
+393:     workflow = policy['receipts']['workflow_id']; require(type(workflow) is int and workflow > 0, 'discovery workflow missing')
+394:     root = 'repos/'+state_api.repo; path = f'receipt-archive/progress/{stream}.json'
+395:     consumed = 0; calls = 0; cache = {}; attempted = None; attempted_changes = {}; uncertain = False
+396: 
+397:     def charge(value):
+398:         nonlocal consumed
+399:         size = len(value) if isinstance(value, bytes) else len(archive.canonical(value)); consumed += size
+400:         if not (size <= 2097152 and consumed <= 33554432):
+401:             raise DiscoveryBudgetError('discovery observation budget exceeded; explicit coverage gap')
+402:         return value
+403: 
+404:     class State:
+405:         repo = state_api.repo
+406: 
+407:         def request(self, target, method='GET', payload=None):
+408:             nonlocal calls
+409:             require(target == root or target.startswith(root+'/'), 'foreign discovery state endpoint')
+410:             require(method == 'GET' or (method == 'POST' and target in {root+'/git/blobs', root+'/git/trees', root+'/git/commits'}) or (method == 'PATCH' and target.startswith(root+'/git/refs/heads/')), 'discovery write endpoint not permitted')
+411:             immutable = method == 'GET' and any(part in target for part in ('/git/trees/', '/git/blobs/', '/git/commits/'))
+412:             if immutable and target in cache:
+413:                 return cache[target]
+414:             if calls >= 4096:
+415:                 raise DiscoveryBudgetError('discovery invocation API call budget reached; explicit coverage gap')
+416:             calls += 1
+417:             try:
+418:                 result = charge(state_api.request(target, method=method, payload=payload))
+419:             except Exception as error:
+420:                 if uncertain:
+421:                     raise ValueError('discovery write uncertain; authoritative checkpoint unavailable') from error
+422:                 raise
+423:             if immutable:
+424:                 cache[target] = result
+425:             return result
+426: 
+427:     def source_read(fn, *args, **kwargs):
+428:         nonlocal calls
+429:         if calls >= 4096:
+430:             raise DiscoveryBudgetError('reconciliation API call budget reached; explicit coverage gap')
+431:         calls += 1
+432:         return charge(fn(*args, **kwargs))
+433: 
+434:     original_source = source_api
+435:     class Source:
+436:         repo = source_api.repo
+437:         def get(self, target):
+438:             require(target == root or target.startswith(root+'/'), 'foreign reconciliation source endpoint')
+439:             return source_read(original_source.get, target)
+440:         def source(self, name, sha):
+
+SOURCE .claude/scripts/factory-receipt-discovery.py
+480:         if raw is None or not progress['scan']['complete']:
+481:             scan = archive.state_paths.scan_tree(api, root, progress['scan']['tree'], cursor=cursor, page_budget=tree_pages)
+482:             progress['scan'].update(cursor=scan['cursor'], complete=scan['complete'])
+483:         page = progress['pagination']['next_page']; changes = {}
+484:         if mode == 'backfill':
+485:             rows, observations, _ = backfill_page(source_api, anchor, policy, stream, backfill_end, source_page_size, blob_at, interval_scoped=interval_scoped)
+486:             changes.update(observations)
+487:             response = {'workflow_runs': rows}
+488:         elif mode == 'discover':
+489:             target = f'{root}/actions/workflows/{workflow}/runs?per_page={page_size}&page={page}'
+490:             response = charge(source_api.request(target))
+491:             pages = [response]
+492:             if page > 1:
+493:                 overlap = progress['pagination']['overlap_page']
+494:                 # Poll the mutable head on every call while retaining older overlap.
+495:                 pages.append(source_api.request(f'{root}/actions/workflows/{workflow}/runs?per_page={page_size}&page=1'))
+496:                 if overlap not in (1, page):
+497:                     pages.append(source_api.request(f'{root}/actions/workflows/{workflow}/runs?per_page={page_size}&page={overlap}'))
+498:                 if overlap == progress['pagination']['overlap_until']:
+499:                     progress['pagination'].update(overlap_page=1, overlap_until=max(1, page-1))
+500:                 else:
+501:                     progress['pagination']['overlap_page'] = overlap+1
+502:             merged = {}
+503:             for observed_page in pages:
+504:                 require(isinstance(observed_page, dict) and isinstance(observed_page.get('workflow_runs'), list) and len(observed_page['workflow_runs']) <= page_size, 'discovery run page malformed')
+505:                 seen = set()
+506:                 for run in observed_page['workflow_runs']:
+507:                     run_identity(run, anchor, policy); key = (run['id'], run['run_attempt'])
+508:                     require(key not in seen, 'discovery duplicate page identity'); seen.add(key)
+509:                     require(key not in merged or merged[key]['head_sha'] == run['head_sha'], 'discovery overlap immutable identity changed')
+510:                     merged[key] = run
+511:             primary_short = len(pages[0]['workflow_runs']) < page_size
+512:             response = {'workflow_runs': list(merged.values())}
+513:         else:
+514:             if progress['watch']['segments'] == 0:
+515:                 return {'status': 'idle', 'head': anchor['head'], 'complete': False}
+516:             cursor = progress['review']; number = cursor['segment']
+517:             segment_raw = blob_at(anchor['tree'], archive.state_paths.pending_segment_path(stream, number))
+518:             require(segment_raw is not None, 'cold watch segment missing')
+519:             segment = validate_watch(archive.document(segment_raw), api.repo, stream, number)
+520:             require(cursor['row'] < len(segment['rows']), 'cold watch row missing')
+521:             selected = segment['rows'][cursor['row']:cursor['row']+review_rows]; latest = {}
+522:             try:
+523:                 for row in selected:
+524:                     outcome, observed = assess(source_api, api, anchor, policy, trust_path, trust_mode, store, stream, row, epoch, blob_at, approval_path)
+525:                     validate_outcome(outcome, api.repo, stream, row, epoch)
+526:                     changes[outcome_path(api.repo, stream, row, epoch)] = archive.canonical(outcome)
+527:                     if observed is not None:
+528:                         latest[(observed['id'], observed['run_attempt'])] = observed
+529:                         # Follow one predecessor per reviewed row. The protected
+530:                         # watch itself resumes a long rerun chain across calls.
+531:                         prior = row['attempt']-1
+532:                         if prior > 0:
+533:                             identity = watch_identity(api.repo, stream, row['run_id'], prior)
+534:                             lookup = f'receipt-archive/pending/{stream}/identities/{identity[:2]}/{identity}.json'
+535:                             occupied = blob_at(anchor['tree'], lookup)
+536:                             if occupied is not None:
+537:                                 saved = archive.document(occupied)
+538:                                 require(type(saved) is dict and set(saved) == {'schema_version', 'repository', 'stream', 'run_id', 'attempt', 'source_sha', 'segment'} and type(saved['schema_version']) is int and saved['schema_version'] == 1 and saved['repository'] == api.repo and saved['stream'] == stream and type(saved['run_id']) is int and saved['run_id'] == row['run_id'] and type(saved['attempt']) is int and saved['attempt'] == prior and saved['source_sha'] == row['source_sha'] and type(saved['segment']) is int and 0 <= saved['segment'] < progress['watch']['segments'], 'prior attempt pending identity differs')
+539:                                 retained_raw = blob_at(anchor['tree'], archive.state_paths.pending_segment_path(stream, saved['segment']))
+540:                                 require(retained_raw is not None, 'prior attempt retained watch missing')
+541:                                 retained = validate_watch(archive.document(retained_raw), api.repo, stream, saved['segment'])
+542:                                 require(sum(item == {'run_id': row['run_id'], 'attempt': prior, 'source_sha': row['source_sha'], 'classification': 'pending'} for item in retained['rows']) == 1, 'prior attempt retained watch differs')
+543:                             else:
+544:                                 try:
+545:                                     previous = run_identity(source_api.get(f'repos/{api.repo}/actions/runs/{row["run_id"]}/attempts/{prior}'), anchor, policy)
+546:                                 except (RuntimeError, OSError):
+547:                                     previous = None
+548:                                 except ValueError as error:
+549:                                     if not _source_fetch_unavailable(error):raise
+550:                                     previous = None
+551:                                 if previous is not None:
+552:                                     require((previous['id'], previous['run_attempt'], previous['head_sha']) == (row['run_id'], prior, row['source_sha']), 'prior attempt immutable identity changed')
+553:                                     latest[(previous['id'], previous['run_attempt'])] = previous
+554:             except ArchiveAdvanced:
+555:                 continue  # Actual retained append survived independently; resume index-first.
+556:             position = cursor['row']+len(selected)
+557:             progress['review'] = {'segment': number, 'row': position} if position < len(segment['rows']) else {'segment': (number+1) % progress['watch']['segments'], 'row': 0}
+558:             response = {'workflow_runs': list(latest.values())}
+559:         new_rows = []; page_seen = set()
+560:         for run in response['workflow_runs']:
+561:             run_identity(run, anchor, policy)
+562:             key = (run['id'], run['run_attempt']); require(key not in page_seen, 'discovery duplicate page identity'); page_seen.add(key)
+563:             row = {'run_id': run['id'], 'attempt': run['run_attempt'], 'source_sha': run['head_sha'], 'classification': 'pending'}
+564:             identity = watch_identity(state_api.repo, stream, *key)
+565:             lookup_path = f'receipt-archive/pending/{stream}/identities/{identity[:2]}/{identity}.json'
+566:             old_raw = blob_at(anchor['tree'], lookup_path)
+567:             if old_raw is not None:
+568:                 old = archive.document(old_raw)
+569:                 require(isinstance(old, dict) and set(old) == {'schema_version', 'repository', 'stream', 'run_id', 'attempt', 'source_sha', 'segment'} and type(old['schema_version']) is int and old['schema_version'] == 1 and old['repository'] == state_api.repo and old['stream'] == stream and all(type(old[k]) is int and old[k] > 0 for k in ('run_id', 'attempt')) and old['run_id'] == row['run_id'] and old['attempt'] == row['attempt'] and old['source_sha'] == row['source_sha'] and type(old['segment']) is int and 0 <= old['segment'] < progress['watch']['segments'], 'discovery immutable pending identity changed')
+570:                 retained_raw = blob_at(anchor['tree'], archive.state_paths.pending_segment_path(stream, old['segment']))
+571:                 require(retained_raw is not None, 'discovery retained watch segment missing')
+572:                 retained = validate_watch(archive.document(retained_raw), state_api.repo, stream, old['segment'])
+573:                 require(sum(item == row for item in retained['rows']) == 1, 'discovery retained watch lookup differs')
+574:             else:
+575:                 new_rows.append(row)
+576:                 changes[lookup_path] = archive.canonical({'schema_version': 1, 'repository': state_api.repo, 'stream': stream, 'run_id': row['run_id'], 'attempt': row['attempt'], 'source_sha': row['source_sha'], 'segment': progress['watch']['segments'] + (len(new_rows)-1)//128})
+577:         for start in range(0, len(new_rows), 128):
+578:             number = progress['watch']['segments']
+579:             rows = new_rows[start:start+128]
+580:             segment = validate_watch({'schema_version': 1, 'repository': state_api.repo, 'stream': stream, 'number': number, 'rows': rows}, state_api.repo, stream, number)
+581:             segment_path = archive.state_paths.pending_segment_path(stream, number)
+582:             require(blob_at(anchor['tree'], segment_path) is None, 'discovery conflicting occupied watch segment')
+583:             changes[segment_path] = archive.canonical(segment)
+584:             progress['watch']['segments'] += 1
+585:             progress['watch']['count'] += len(rows)
+586:         if mode == 'discover':
+587:             if primary_short:
+588:                 progress['pagination'].update(next_page=1, overlap_page=1, overlap_until=1)
+589:             else:
+590:                 progress['pagination']['next_page'] = page+1
+591:         progress['anchor'] = {'head': anchor['head'], 'tree': anchor['tree']}
+592:         validate_checkpoint(progress, anchor, workflow, page_size)
+593:         # Even a short/empty API page is NOT complete history (filtered queries cap
+594:         # at 1,000). Backfill count observations still require retained outcome proofs.
+595:         encoded = archive.canonical(progress); changes[path] = encoded
+
+SOURCE .claude/scripts/test/factory-receipt-discovery-review.sh
+1: #!/usr/bin/env bash
+2: set -euo pipefail
+3: cd "$(dirname "$0")/../../.."
+4: python3 - "$@" <<'PY'
+5: """Actual public discovery checkpoints remain loadable and reviewable after failures."""
+6: from pathlib import Path
+7: import sys
+8: selected_case=sys.argv[1] if len(sys.argv)>1 else 'all'
+9: fixture=Path('.claude/scripts/test/factory-receipt-cas.sh').read_text().split("<<'PY'\n",1)[1].split(" store={'repository'",1)[0]
+10: cases=r'''
+11:  from urllib.parse import parse_qs,urlsplit
+12:  spec=importlib.util.spec_from_file_location('discovery_review',scripts/'factory-receipt-discovery.py');d=importlib.util.module_from_spec(spec);spec.loader.exec_module(d)
+13:  stream=a.archive_stream('org/repo');store={'repository':'org/repo','visibility':'public'};start='2026-10-15T00:00:00Z'
+14:  def reset():git('update-ref',ref,initial,out('rev-parse',ref))
+15:  def progress():return json.loads(git('show',ref+':receipt-archive/progress/'+stream+'.json').stdout)
+16:  def outcomes():return [json.loads(git('show',ref+':'+p).stdout) for p in out('ls-tree','-r','--name-only',ref).splitlines() if p.startswith('receipt-archive/outcomes/')]
+17:  if selected_case in ('all','backfill'):
+18:   for end in ('2026-10-15T00:00:03Z',start):
+19:    reset()
+20:    class Drift(Source):
+21:     calls=0
+22:     def request(self,path,**kwargs):
+23:      if '/actions/workflows/' not in path:return super().request(path,**kwargs)
+24:      self.calls+=1;q=parse_qs(urlsplit(path).query);page=int(q['page'][0]);row=copy.deepcopy(self.run);row.update(id=page+20,created_at=start)
+25:      if q['created'][0]!=start+'..'+end:return {'total_count':0,'workflow_runs':[]}
+26:      return {'total_count':1000 if self.calls==2 else 2,'workflow_runs':[row]}
+27:    source=Drift(policy,receipt)
+28:    for i in range(9):
+29:     # A fresh API/module load resumes actual persisted Git bytes each invocation.
+30:     module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+31:     module.backfill(source,State(),policy,approval,stream,interval_end=end,page_size=1,tree_pages=10)
+32:     if i==1:
+33:      nodes=[json.loads(git('show',ref+':'+p).stdout) for p in out('ls-tree','-r','--name-only',ref).splitlines() if p.startswith('receipt-archive/backfill/'+stream+'/')]
+34:      assert len(nodes)==1 and nodes[0]['phase']=='gap' and nodes[0]['reason']=='count-drift'
+35:      assert nodes[0]['expected_count']==2 and nodes[0]['facts'][0]['page']==1
+36:      manifest=json.loads(git('show',ref+':receipt-archive/backfill/'+stream+'.json').stdout)
+37:      assert manifest['epoch']==1 and manifest['last_round_gaps']==1 and len(manifest['stack'])==1
+38:    nodes=[json.loads(git('show',ref+':'+p).stdout) for p in out('ls-tree','-r','--name-only',ref).splitlines() if p.startswith('receipt-archive/backfill/'+stream+'/')]
+39:    assert nodes and all([f['page'] for f in n['facts']]==list(range(1,len(n['facts'])+1)) for n in nodes)
+40:    assert progress()['watch']['count']>=2 and progress()['coverage_complete'] is False
+41:   print('real Git page2 count rise persists valid gap; range/dense restart recovers PASS')
+42:  if selected_case in ('all','review'):
+43:   class Review(Source):
+44:    error=None;kind='attempt';observed=[]
+45:    def request(self,path,**kwargs):
+46:     if '/actions/workflows/' in path:
+47:      rows=[]
+48:      for n in (20,21):
+49:       row=copy.deepcopy(self.run);row.update(id=n,conclusion='failure');rows.append(row)
+50:      return {'workflow_runs':rows}
+51:     return super().request(path,**kwargs)
+52:    def get(self,path):
+53:     if '/actions/runs/' in path:
+54:      n=int(path.split('/actions/runs/')[1].split('/')[0]);self.active=n;self.observed.append(n)
+55:      if '/attempts/' in path and n==20 and self.kind=='attempt':raise ValueError(self.error)
+56:      row=copy.deepcopy(self.run);row.update(id=n,conclusion='failure',run_attempt=2 if n==20 and self.kind=='attempt' else 1);return row
+57:     return super().get(path)
+58:    def source(self,path,sha):
+59:     if self.kind=='source' and getattr(self,'active',None)==20:raise ValueError(self.error)
+60:     return super().source(path,sha)
+61:   for kind,error in [('attempt','GitHub API request failed: fixture'),('attempt','reporting API failed; reconcile authoritative state before retry'),('source','GitHub API request failed: fixture'),('source','reporting source unavailable'),('source','trusted source unavailable'),('source','receipt source size exceeds bound')]:
+62:    reset();source=Review(policy,receipt);source.kind=kind;source.error=error;source.observed=[]
+63:    d.advance(source,State(),policy,approval,stream,page_size=2,tree_pages=10)
+64:    for repeat in range(2):d.reconcile(source,State(),policy,trust,store,approval,stream,review_rows=2)
+65:    rows=outcomes();assert any(r['run_id']==20 and r['classification']=='watch' and r['reason']=='unavailable' for r in rows)
+66:    assert any(r['run_id']==21 and r['classification']=='watch' for r in rows) and source.observed.count(21)>=2
+67:   for error in ('discovery run identity differs','reporting invocation capacity gap','malformed source JSON'):
+68:    reset();source=Review(policy,receipt);source.kind='source';source.error=error;d.advance(source,State(),policy,approval,stream,page_size=2,tree_pages=10);before=out('rev-parse',ref)
+69:    try:d.reconcile(source,State(),policy,trust,store,approval,stream,review_rows=2)
+70:    except ValueError as observed:assert str(observed)==error
+71:    else:raise AssertionError('malformed identity/JSON/budget failure became unavailable')
+72:    assert out('rev-parse',ref)==before
+73:   print('real Git known attempt/source failures do not starve following watched row; malformed/budget remain strict PASS')
+74:  if selected_case in ('all','head'):
+75:   class Head(Source):
+76:    extra=False;pages=[];count=4
+77:    def request(self,path,**kwargs):
+78:     if '/actions/workflows/' not in path:return super().request(path,**kwargs)
+79:     q=parse_qs(urlsplit(path).query);page=int(q['page'][0]);size=int(q['per_page'][0]);self.pages.append(page);rows=[]
+80:     for n in ([99] if self.extra else [])+list(range(20,20+self.count)):
+81:      row=copy.deepcopy(self.run);row['id']=n;rows.append(row)
+82:     return {'workflow_runs':rows[(page-1)*size:page*size]}
+83:   for count in (3,4):
+84:    reset();source=Head(policy,receipt);source.count=count;source.pages=[]
+85:    for i in range(2 if count==3 else 3):d.advance(source,State(),policy,approval,stream,page_size=2,tree_pages=10)
+86:    assert progress()['pagination']['next_page']==1,'short/empty source tail did not wrap to head'
+87:    source.extra=True;d.advance(source,State(),policy,approval,stream,page_size=2,tree_pages=10)
+88:    watched=[r['run_id'] for n in range(progress()['watch']['segments']) for r in json.loads(git('show',ref+':'+a.state_paths.pending_segment_path(stream,n)).stdout)['rows']]
+89:    assert 99 in watched and progress()['coverage_complete'] is False
+90:    for i in range(8):d.advance(source,State(),policy,approval,stream,page_size=2,tree_pages=10)
+91:    assert max(source.pages)<=3
+92:   print('real Git short/empty pages wrap bounded head polling and retain new head run PASS')
+93:  if selected_case in ('all','head-deep'):
+94:   reset()
+95:   class DeepHead(Source):
+96:    extra=False;pages=[]
+97:    def request(self,path,**kwargs):
+98:     if '/actions/workflows/' not in path:return super().request(path,**kwargs)
+99:     q=parse_qs(urlsplit(path).query);page=int(q['page'][0]);size=int(q['per_page'][0]);self.pages.append(page)
+100:     rows=[dict(copy.deepcopy(self.run),id=n) for n in ([99] if self.extra else [])+list(range(20,50))]
+101:     return {'workflow_runs':rows[(page-1)*size:page*size]}
+102:   source=DeepHead(policy,receipt)
+103:   for i in range(6):d.advance(source,State(),policy,approval,stream,page_size=2,tree_pages=10)
+104:   source.extra=True;before=len(source.pages);d.advance(source,State(),policy,approval,stream,page_size=2,tree_pages=10)
+105:   watched=[r['run_id'] for n in range(progress()['watch']['segments']) for r in json.loads(git('show',ref+':'+a.state_paths.pending_segment_path(stream,n)).stdout)['rows']]
+106:   assert 99 in watched,'new deep-listing head run missed next bounded invocation'
+107:   assert 1 in source.pages[before:] and len(source.pages[before:])<=3 and len(source.pages[before:])==len(set(source.pages[before:]))
+108:   print('real Git deep primary+head+distinct overlap observes new head next invocation PASS')
+109:  if selected_case in ('all','artifact-budget'):
+110:   reset()
+111:   class ArtifactBudget(Source):
+112:    def request(self,path,**kwargs):
+113:     if '/actions/workflows/' in path:return {'workflow_runs':[copy.deepcopy(self.run)]}
+114:     value=super().request(path,**kwargs)
+115:     if path.endswith('/artifacts'):value[0]['padding']='x'*2097152
+116:     return value
+117:   source=ArtifactBudget(policy,receipt);d.advance(source,State(),policy,approval,stream,page_size=1,tree_pages=10);before=out('rev-parse',ref)
+118:   try:d.reconcile(source,State(),policy,trust,store,approval,stream)
+119:   except ValueError as error:
+120:    assert str(error)=='discovery observation budget exceeded; explicit coverage gap'
+121:    assert type(error).__name__=='DiscoveryBudgetError'
+122:   else:raise AssertionError('artifact-path discovery budget failure persisted as soft proof outcome')
+123:   assert out('rev-parse',ref)==before and outcomes()==[]
+124:   print('actual source artifact response exceeds own budget: typed failure/ref unchanged PASS')
+125:  assert git('show',ref+':'+oldpath).stdout==b'opaque existing encrypted feedback envelope'
+126: '''
+127: exec(compile(fixture+cases,'discovery-review-real-git','exec'))
+128: PY
+
+SOURCE verify/2026-10-17/discovery-residual/README.md
+1: # Scoped discovery followup residuals
+2: 
+3: Base4ae9ee214d41734a8f58fbeca237203c4627ce58. Prior proof/verdicts remain unchanged.
+4: The followup Sonnet output at /private/tmp/factory-final-followups-20261017/
+5: C-discovery-findings-followup/stdout.json says pass while containing3findings;
+6: the parent correctly rejected that inconsistent result. This record claims no
+7: independent reviewer pass, activation, task closure, native or cadence acceptance.
+8: 
+9: Deep-head RED exits1: while primary pages are still full, a new head run is missed
+10: by the next invocation at page7 under the old geometric overlap schedule.
+11: GREEN explicitly fetches page1 on every discover call, alongside the primary page
+12: and distinct retained overlap. At most3pages are fetched; duplicate page selectors
+13: are skipped. Old overlap traversal and short/empty wrap remain, checkpoint schema
+14: and global call/byte/node limits unchanged. Deep real-Git test observes new run99
+15: on the next invocation while the full30-row listing is still being walked.
+16: 
+17: Own-artifact-budget RED exits1: an actual local source artifact-list response over
+18: 2MiB triggers discovery.charge, but the old broad proofcatch softens the ValueError
+19: and commits a proof-unavailable outcome. Scoped DiscoveryBudgetError subclasses
+20: ValueError and is raised only by the existing own discovery per-response/aggregate/
+21: call capacity guards. Its explicit handler rethrows it before the broad proofcatch.
+22: Messages and limits are unchanged. Actual GREEN proves typed failure, ref unchanged
+23: and no persisted outcomes through the public real-Git reconciliation path.
+24: 
+25: The count-drift test now explicitly asserts its second-publication partition is
+26: phase gap/reason count-drift, retained expected_count2/page1fact, advanced manifest
+27: epoch1/gap1 and one restart frontier. This supplements the original range/dense
+28: restart recovery without inventing coverage from a split or first-page saturation.
+29: Existing first-page saturation/dense controls remain in the unchanged backfill suite.
+30: 
+31: Final combined focused GREEN passes original3finding controls plus deep-head and
+32: actual artifact-budget tests. Existing backfill, reruns20 and prior-attempt suites
+33: pass; compile, ShellCheck, diffcheck and structural validation pass (4existingwarnings).
+34: The earlier larger500-watch discovery suite PASS remains in the base4ae proof;
+35: it was not rerun or relabelled as final-source proof for this scoped followup.
+36: 
+37: Scope limitation: the preexisting generic proofcatch still handles non-typed lower
+38: archive/transport ValueErrors and invalid proof inputs. No large string taxonomy or
+39: cross-module exception protocol is introduced. Syntactically catchable lower-layer
+40: capacity or artifact/append identity errors are NOT newly certified as fatal here.
+41: Successful soft checkpoint reachability for a globally exhausted transport is not
+42: proven and may fail again during state publication; no extra defect claim is made.
+43: A broader change needs concrete evidence and separate scope, per parent instruction.
+44: No shared-core or live writes, paid model calls, producer generation or policy changes.
+
+DIFF
+commit 3cd647ab25af05549ad5709c117c888549996978
+Author: Shravan Jha <shravan.jha@gmail.com>
+Date:   Sat Oct 17 03:46:01 2026 +1100
+
+    fix(factory): poll discovery head and propagate own budget errors
+    
+    Spec: 014
+    Task: T-334
+    Constraint: Keep bounded overlap strict own budgets and false coverage
+    Rejected: Geometric head delays and softening own budget failures
+    Directive: Poll exact head and rethrow typed local discovery capacity errors
+    Confidence: high
+    Scope-risk: localized
+    Not-tested: Lower-layer failure taxonomy and native cadence acceptance
+    Co-Authored-By: Codex <noreply@openai.com>
+
+diff --git a/.claude/scripts/factory-receipt-discovery.py b/.claude/scripts/factory-receipt-discovery.py
+index 53bee9e..1832eee 100755
+--- a/.claude/scripts/factory-receipt-discovery.py
++++ b/.claude/scripts/factory-receipt-discovery.py
+@@ -126,6 +126,10 @@ class ArchiveAdvanced(Exception):
+     pass
+ 
+ 
++class DiscoveryBudgetError(ValueError):
++    """Own discovery capacity failure must never become a soft proof outcome."""
++
++
+ def _source_fetch_unavailable(error):
+     """Known transport/source absence only; identity, parse and budget errors escape."""
+     message = str(error)
+@@ -201,6 +205,8 @@ def assess(source_api, api, anchor, policy, trust_path, trust_mode, store, strea
+         archive.append_delivery(AttemptView(), api, policy, row['run_id'], trust_path, store, approval_path, stream, trust_mode=trust_mode)
+     except (RuntimeError, OSError):
+         value['reason'] = 'unavailable'; return value, latest
++    except DiscoveryBudgetError:
++        raise
+     except ValueError:
+         value['reason'] = 'proof-unavailable'; return value, latest
+     raise ArchiveAdvanced()  # Re-read the actual archive head, then use its retained index first.
+@@ -391,7 +397,8 @@ def _checkpoint(source_api, state_api, policy, approval_path, stream, *, page_si
+     def charge(value):
+         nonlocal consumed
+         size = len(value) if isinstance(value, bytes) else len(archive.canonical(value)); consumed += size
+-        require(size <= 2097152 and consumed <= 33554432, 'discovery observation budget exceeded; explicit coverage gap')
++        if not (size <= 2097152 and consumed <= 33554432):
++            raise DiscoveryBudgetError('discovery observation budget exceeded; explicit coverage gap')
+         return value
+ 
+     class State:
+@@ -404,7 +411,8 @@ def _checkpoint(source_api, state_api, policy, approval_path, stream, *, page_si
+             immutable = method == 'GET' and any(part in target for part in ('/git/trees/', '/git/blobs/', '/git/commits/'))
+             if immutable and target in cache:
+                 return cache[target]
+-            require(calls < 4096, 'discovery invocation API call budget reached; explicit coverage gap')
++            if calls >= 4096:
++                raise DiscoveryBudgetError('discovery invocation API call budget reached; explicit coverage gap')
+             calls += 1
+             try:
+                 result = charge(state_api.request(target, method=method, payload=payload))
+@@ -418,7 +426,8 @@ def _checkpoint(source_api, state_api, policy, approval_path, stream, *, page_si
+ 
+     def source_read(fn, *args, **kwargs):
+         nonlocal calls
+-        require(calls < 4096, 'reconciliation API call budget reached; explicit coverage gap')
++        if calls >= 4096:
++            raise DiscoveryBudgetError('reconciliation API call budget reached; explicit coverage gap')
+         calls += 1
+         return charge(fn(*args, **kwargs))
+ 
+@@ -482,7 +491,10 @@ def _checkpoint(source_api, state_api, policy, approval_path, stream, *, page_si
+             pages = [response]
+             if page > 1:
+                 overlap = progress['pagination']['overlap_page']
+-                pages.append(source_api.request(f'{root}/actions/workflows/{workflow}/runs?per_page={page_size}&page={overlap}'))
++                # Poll the mutable head on every call while retaining older overlap.
++                pages.append(source_api.request(f'{root}/actions/workflows/{workflow}/runs?per_page={page_size}&page=1'))
++                if overlap not in (1, page):
++                    pages.append(source_api.request(f'{root}/actions/workflows/{workflow}/runs?per_page={page_size}&page={overlap}'))
+                 if overlap == progress['pagination']['overlap_until']:
+                     progress['pagination'].update(overlap_page=1, overlap_until=max(1, page-1))
+                 else:

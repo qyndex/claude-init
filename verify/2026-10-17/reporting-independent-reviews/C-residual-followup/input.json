@@ -1,0 +1,19 @@
+{
+  "head": "3cd647ab25af05549ad5709c117c888549996978",
+  "prompt_sha256": "075d0e0f88a8569d1578acc0a7c71a96b8ba1d74f1504789fbdbedcefe173fd1",
+  "full_source_sha256": "c3d21c5bfb629045c6f4440e8d2280d67175461e224d44ccdd2116a2b82401e0",
+  "ranges": [
+    [
+      120,
+      212
+    ],
+    [
+      388,
+      440
+    ],
+    [
+      480,
+      595
+    ]
+  ]
+}

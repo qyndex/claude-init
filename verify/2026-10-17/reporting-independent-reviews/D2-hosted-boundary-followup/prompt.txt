@@ -1,0 +1,754 @@
+Independent contextual followup of prior D2 findings, not a requested rubberstamp. Preserve original changes_requested. Determine which HIGH/MEDIUM findings remain reachable in actual protected hosted path after inspecting previously omitted boundary code. Same-process hostile collaborators and arbitrary caller-owned SQLite are not accepted authentication boundaries; local Digest helpers alone do not authenticate data. Clearly separate genuine standalone API issues and optional hardening from externally reachable hosted dataflow failures. All nonempty actionable findings require changes_requested. Do not implement anything. Return structured review_summary, limitations, findings, verdict. No native/cadence claim. Reviewer suggestions requiring all five tasksets equal or all merges newer than cursor would violate intentional interval subset and late_discovered semantics; evaluate actual code.
+PRIOR
+{
+  "verdict": "changes_requested",
+  "findings": [
+    {
+      "severity": "high",
+      "file": ".claude/scripts/factory-digest.py",
+      "line": 165,
+      "title": "Durable mode silently degrades to empty proofs when the five-table set is absent or only partly joinable",
+      "reason": "In durable mode a single `reporting_receipt_coverage` marker (lines 160-164) is enough to pass. If any of the five tables is missing, line 165 just skips the proof query and `proofs` stays `[]`. Every PR is then emitted with `delivery_evidence: []` and `evidence_status: 'missing'`. The batch is persisted pending and later delivered. Because confirmed PRs go into `reported` and are never re-reported, a false 'missing' label cannot be corrected afterwards. The line 166 query uses INNER JOINs across five tables, so a receipt with no provenance, trust, time or interval row is also dropped without error. Durable mode should require all five tables. It should also check that the key sets of the five tables are consistent, i.e. that every `delivery_receipts` task has a row in each of the others, before it trusts the coverage marker. Otherwise it should return a gap/incomplete status instead of building a payload."
+    },
+    {
+      "severity": "medium",
+      "file": ".claude/scripts/factory-digest.py",
+      "line": 166,
+      "title": "Coverage marker and `delivery_interval` are not bound to the reported interval or to table contents",
+      "reason": "The marker check (161-163) only compares dates against `verified_until`. The proof query joins `delivery_interval` but never reads it. This file does not check that the interval membership was built for an `interval_end` at or after `end`, and the marker holds no digest or count of the receipt tables. `delivery_interval` is only a filter. A stale or narrower interval, or a marker written for a different reconstruction, would silently remove proofs for PRs in (origin, end]. The result is again a false 'missing'. Verify that interval membership covers `end`, or compare every PR-matching `delivery_receipts` row against the joined result and fail on any row dropped by the join."
+    },
+    {
+      "severity": "medium",
+      "file": ".claude/scripts/factory-digest.py",
+      "line": 108,
+      "title": "Pending/uncertain payload is returned and sent without revalidation; payload immutability is not enforced",
+      "reason": "A pending or uncertain row is returned at 108-110 and later sent at line 224 as `row['payload']`. Nothing checks that the payload is canonical JSON or has the expected schema. Nothing checks that `repository` and `destination` equal `self`. Nothing checks that `key == sha256([stream, payload.from, payload.until])` or that the `cutoff` column equals `payload.until`. No payload hash is recorded when the row is inserted (195). The `confirm` check at 233 compares the database with a copy read from the same database a moment earlier. It only catches a change between that read and the confirm. It does not catch any change made after the row was created. The only integrity anchor is the remote receipt's `payload_sha256`, and the transport computes that from the payload it was given. Recompute and validate all of these fields from the stored row before `deliver` sends it. Do the same for the payload on a confirmed row."
+    },
+    {
+      "severity": "medium",
+      "file": ".claude/scripts/factory-digest.py",
+      "line": 239,
+      "title": "`confirm` advances the cursor from the caller-supplied row, with no monotonic or payload binding",
+      "reason": "`confirm(row, receipt)` is public. It checks only `current['payload'] == row['payload']`, then writes `row['cutoff']` from the caller's dict to `digest_cursors` (239). It should use `current['cutoff']`. It also does not check that this value equals `payload['until']`, that it is greater than the existing cursor, or that `payload['from']` equals the current cursor. A mismatched row can move the cursor backwards or skip an interval, which changes `from` and `late_discovered` in later batches."
+    },
+    {
+      "severity": "low",
+      "file": ".claude/scripts/factory-digest.py",
+      "line": 116,
+      "title": "Confirmed-history validation is incomplete and can fail with non-validation exceptions",
+      "reason": "Confirmed history is accepted after only a receipt/payload hash check (118) and a repository/destination check (120). The code does not check `schema_version`, the batch interval chain (`from`/`until` against `cutoff`), or that each merge's `merged_at` lies inside the batch interval. A confirmed row with a NULL receipt raises TypeError from `json.loads(None)`. A missing `merges` or `merge_sha` key raises KeyError. Both bypass the `require` error path. The hash check is also self-attested, because the receipt is stored in the same database."
+    },
+    {
+      "severity": "low",
+      "file": ".claude/scripts/factory-digest.py",
+      "line": 166,
+      "title": "`delivery_evidence` order depends on SQLite row order",
+      "reason": "The proof query has no ORDER BY, and `matches` (186) keeps iteration order. `canonical` sorts dict keys but not lists. The same evidence can therefore produce different payload bytes on different runs or after VACUUM. Order is persisted once the batch is pending, so this does not break resume. It still makes the payload non-reproducible, which hurts review and replay. Sort by task before inserting into the payload."
+    },
+    {
+      "severity": "low",
+      "file": ".claude/scripts/factory-digest.py",
+      "line": 128,
+      "title": "Private PR-observation handoff relies on convention, and the token check is vacuous",
+      "reason": "`observation[0] is self._pr_token` (128) can never fail, because the token is created in `__init__` (45) and stored by `discover`. The only real checks are API-object identity and the binding tuple. The handoff rows are plain mutable attributes that are not re-normalized in `prepare`. A subclass or collaborator that assigns `_pr_observation` can inject rows. Rows from `discover` can also be arbitrarily old, since the binding contains no database or scan state. Consider re-reading and validating scan 'ready' state in `prepare`, or storing a scan-generation value in the binding."
+    },
+    {
+      "severity": "low",
+      "file": "factory-reporting-pr-discovery.py",
+      "line": 84,
+      "title": "Scan progress is lost whenever a later step in the same transaction raises",
+      "reason": "Scan state (pages and cursor) is written inside the caller's single transaction (digest 90-99 and 107-133). An API failure or `require` failure on any of the eight pages rolls back every page checkpoint from that call. In the `prepare` fallback path, a later durable-proof or history `require` failure also rolls back a completed scan. A repeating transient failure can keep the scan from ever finishing. The 8-page bound should stay as is. Instead, commit completed-page progress before re-raising, or make the scan state transaction independent of later steps. Separately, the legacy `paginate=True` fetch at digest line 138 also runs inside the write lock."
+    },
+    {
+      "severity": "nit",
+      "file": ".claude/scripts/factory-digest.py",
+      "line": 65,
+      "title": "`BEGIN IMMEDIATE` runs outside the try block",
+      "reason": "If `BEGIN IMMEDIATE` fails (for example a lock timeout), the connection opened at line 63 is not closed until it is garbage-collected. Move the `BEGIN` into the try block so `finally` closes the connection."
+    }
+  ],
+  "limitations": [
+    "Static review of the supplied lines only. Nothing was executed, so there is no evidence of runtime behaviour, SQLite locking, or API shapes.",
+    "`factory-coordinator.py` (`require`, `contract.digest`, `GitHub.request` pagination), `factory-receipts.py`, `maintenance`, `HostedDigest` and Slack transport were not supplied. Their correctness is not inferred.",
+    "Only fragments of the receipt archive were supplied. I could not verify that reconstruction, acknowledgement or the coverage-marker writer produce `reporting_receipt_coverage` and `delivery_interval` consistently with the digest's checks. Line 1562 of `factory-receipt-archive.py` rejects any SQLite table outside the five `definitions` tables. If the receipt reconstruction targets the same database file as `Digest` (the `path` passed to `HostedDigest` and `receipts.project` in `run`), the digest, scan and coverage tables would conflict with it. This needs checking in the receipt-archive review. I did not count it as a finding here.",
+    "Only the 25-row layout and the historical 100-row layout were checked in the discovery scratch compatibility logic. I found no defect in the two-observation compare path, but I could not test it against changing GitHub pagination.",
+    "The `factory-git-state.py` `run` function was read only to see how `discover` and `prepare` are called. It is not reviewed.",
+    "Existing bounds (8 pages of 25 rows per call, 100-row compatibility, 30s timeout) were left unchanged. Recommendations do not alter them.",
+    "A pass on this code would cover only the supplied code. It would not establish native authority, cadence or activation."
+  ],
+  "review_summary": "The PR-discovery scan is sound for the cases I could check by reading it. It covers the manual, missing and late PR cases through origin-based coverage plus the `reported` dedupe in `prepare`. The scan's normalization is strict, and its checks of saved scratch state look correct. Scratch tables are separate from the receipt tables. Verdict is changes_requested because of the durable receipt ingestion and the batch-integrity checks in `factory-digest.py`. In durable mode, missing or partly joinable receipt tables degrade silently into 'missing' evidence that is then delivered and permanently recorded. The coverage marker and `delivery_interval` are not tied to the reported interval or to table contents. Pending payloads are sent without checking their key, cutoff, destination or schema against the stored row, so payload immutability is not enforced. `confirm` writes the cursor from caller-supplied data. The remaining items are low-severity hardening: history validation, non-deterministic evidence order, the vacuous handoff token, progress loss on rollback, and the connection leak.\""
+}
+
+ROOT/AGENT TRIAGE (untrusted claims, verify against source)
+# D2 nine-finding boundary triage — read-only
+
+Pinned integrated candidate63b173d. No tests/model calls/source edits performed. Raw verdict retained at `/private/tmp/factory-final-followups-20261017/D2-digest-and-pr-discovery/verdict.json`. This is source/contract triage, not an execution-based refutation.
+
+## HIGH1 / MEDIUM2: durable five-table and interval integrity
+
+**No reachable protected-hosted defect demonstrated.** `factory-git-state.py:555-574` always calls actual `receipts.project` before preparing a new durable batch, requires complete coverage, then acknowledges the exact target and reloads/authenticates the report checkpoint. `factory-receipts.py:227-238` selects ONLY the actual protected reconstruction/transfer with exact selection fields; no caller database/result-complete flag is accepted. `factory-reporting-receipts.py:75-99` creates an internally owned fresh receipt-only SQLite file, reconstructs it, checks actual coverage and exact five-table schema/types. Lines102-104 require identical receipt/provenance/trust/time task sets and interval membership subset; lines105-133 revalidate protected origin/trust and atomically replace fixed rows plus coverage marker in one reporting transaction. Producer `factory-receipt-archive.py:1556-1583` computes interval tasks from actual merged times against coverage_from and exact interval_end.
+
+Thus absent tables, missing mandatory join rows, or stale marker versus a different interval require independently mutating the private local DB after that trusted transfer, bypassing the producer/wrapper. The marker is a local derived record, not an externally authenticated flag. A digest reader alone deliberately is not the authentication boundary. Requiring all five task sets equal would be WRONG: delivery_interval is intentionally a subset, because retained facts outside the selected interval remain retained. A new marker table digest is unnecessary to fix an evidenced hosted dataflow issue; both rows and marker already share the same atomic transaction.
+
+There is a **real standalone defensive-profile gap**: direct Digest durable calls with a coverage marker plus absent/orphaned tables can render missing. Existing transfer test217-222 explicitly deletes trust/time/interval rows and expects missing, so calling the test's label 'fail closed' means no authentication, not blocking report creation. That distinction should be documented rather than claiming this proves structural completeness. If root chooses to strengthen the standalone contract, a bounded local guard can require all five tables and equal mandatory receipt/provenance/trust/time keys, interval subset only, with rollback-before-batch tests. It must NOT invent full interval=receipt equality or a caller marker authentication protocol. Current public hosted path already prevents that state.
+
+Interval cutoff is already bound: transfer80-89 requires coverage verified_until EXACTLY equal requested interval_end; reconstruction77-78 uses that same value; all rows+marker commit atomically; digest161-164 bounds end against verified_until. Existing transfer tests110-141 exercise actual earlier projection rejection and a new report beyond actual verified cutoff;184-197 cover missing/foreign/origin markers. No stale interval route exists absent caller/local corruption.
+
+## MEDIUM3: pending payload integrity
+
+**Not demonstrated in protected hosted path.** Authenticated report state is validated on prior load (`git-state:509-512`), then HostedDigest restores only typed validated JSON (`444-465`). `validate:344-380` checks repository/destination/stream/schema, merge shape, payload.until==stored cutoff, deterministic key, confirmed payload hash/receipt, pending cutoff>cursor and one-pending limit. Every HostedDigest transaction snapshots and validates before durable checkpoint (`467-477`; snapshot returns through validate at340). Actual main uses a fresh private temporary DB (`600-601`), not an untrusted caller SQLite.
+
+Pending handling intentionally skips new receipt reconstruction (`512-514`,555) so the previously persisted payload/receipt remain immutable during resume. Re-rendering it after current trust/scope changes would violate that approved continuity contract. The remote receipt additionally binds exact sent bytes. Arbitrary mutation of local rows or a precompromised trusted GitState writer is outside the stated boundary; adding a payload hash in the same tamperable row does not authenticate that mutation. No production change necessary on supplied evidence.
+
+## MEDIUM4: confirm caller cutoff
+
+**Concrete standalone API footgun, no current hosted reachability.** Digest.confirm uses caller row cutoff239 after comparing only payload233. All actual production call sites are deliver217/225, each passing the exact row freshly obtained by batch210; no config, API response or Slack receipt supplies the row/cutoff. Hosted typed snapshot validation additionally rejects cursor not matching confirmed stored rows (`validate:374-379`). Therefore no external source can move the durable cursor through the alleged caller-dict path.
+
+The minimal safe correctness repair, if root elects to address the public helper separately, is use `current['cutoff']` instead of `row['cutoff']`, ideally require row cutoff==current before processing. A focused direct Digest regression passes identical payload with altered cutoff and verifies unchanged/no-skipped cursor; normal actual deliver/uncertain reconciliation controls remain. Avoid a large independent batch validation/schema redesign based solely on adversarial in-process callers.
+
+## Remaining LOW/nit findings
+
+5. Confirmed-history validation: protected HostedDigest validate already handles shape/hash/key/cutoff before restore; arbitrary malformed direct SQLite does not establish hosted exploit. Recommendation that every merge be strictly within(from,until] conflicts with approved `late_discovered` merges, which may be <=from. Do not apply.
+6. Evidence ordering: producer transfer99 orders bytask; query has no ORDER BY, so direct deterministic-order guard could be useful but is LOW and no resume defect (payload persisted). Out of this necessary triage.
+7. Private handoff: current design intentionally trusts same-instance private observations after actual two-pass scan with API identity/exact stream/repo/branch/origin/cutoff binding (`digest:84-99,125-133`). In-process attribute/subclass mutation is not an external provenance boundary. Cross-instance ready scratch is freshly compared (`pr-discovery:82-104`), including canonical selected payload equality100. Requiring another full comparison after receipts would reintroduce the explicitly rejected throughput design; no supplied defect.
+8. Rollback loses partial pages within one invocation: true transactional behavior, but last committed invocation persists, transient failure stops cleanly, and next invocation retries at most eight bounded pages. This does not skip facts or falsely claim completeness. Independent committing after each page changes HostedDigest checkpoint/CAS composition and has no demonstrated required fix here.
+9. BEGIN outside try: small cleanup nit only; no production change in this scope.
+
+## Minimal next action
+
+No new reachable HIGH/MEDIUM protected-hosted defect is established by these nine static findings after inspecting the actual omitted producer/transfer/HostedDigest contracts. Do not close D2 solely from this note: give root/reviewer the omitted exact boundary files/lines and ask for a concrete path that avoids those validators. If root wants a tiny standalone correctness repair, confirm's current-cutoff binding is the smallest nonarchitectural option; five-table guards are a separately explicit strengthening of the local reader contract, not evidence that caller completeness can currently bypass protected reconstruction. No full transfer/capacity rerun is warranted merely by this triage. Any selected repair should get targeted RED/GREEN plus unchanged pending-resume and interval-subset controls.
+
+SOURCE .claude/scripts/factory-git-state.py
+285:         entries = [item for item in tree['tree'] if item['path'] == self.path]
+286:         require(len(entries) <= 1, 'state path ambiguous')
+287:         self.bytes = None
+288:         if entries:
+289:             item = entries[0]
+290:             require(0 < item['size'] <= MAX_STATE, 'checkpoint size invalid')
+291:             blob = api.request(self.root + '/git/blobs/' + item['sha'])
+292:             require(blob['encoding'] == 'base64' and blob['sha'] == item['sha'], 'checkpoint encoding/identity differs')
+293:             self.bytes = base64.b64decode(''.join(blob['content'].split()), validate=True)
+294:             require(len(self.bytes) == blob['size'] == item['size'] and git_hash(self.bytes) == item['sha'], 'checkpoint bytes differ')
+295:         else:
+296:             require(bootstrap_sha == self.head and (bootstrap_existing or not any(item['path'].startswith('reports/') for item in tree['tree'])), 'missing checkpoint requires exact protected bootstrap revision; never reset silently')
+297: 
+298:     def _archive_anchor(self):
+299:         try:anchor=self.archive.verify_bootstrap(self.reader,self.state_view['approval_path'])
+300:         except OSError as error:raise ValueError('protected state view approval unavailable') from error
+301:         require(anchor['branch']==self.branch,'protected state view branch differs')
+302:         require(not hasattr(self,'view_binding') or self.view_binding=={key:value for key,value in anchor.items() if key not in ('head','tree')},
+303:                 'protected state view input changed; reload authoritative snapshot')
+304:         return anchor
+305: 
+306:     def _unchanged_archive_view(self):
+307:         if self.state_view is not None:
+308:             anchor=self._archive_anchor()
+309:             require(anchor['head']==self.head and anchor['tree']==self.tree,'protected state view changed before checkpoint')
+310: 
+311:     def checkpoint(self, data):
+312:         require(isinstance(data, bytes) and 0 < len(data) <= MAX_STATE, 'checkpoint too large')
+313:         if data == self.bytes:
+314:             return
+315:         self._unchanged_archive_view()
+316:         blob = self.api.request(self.root + '/git/blobs', 'POST', {'encoding': 'base64', 'content': base64.b64encode(data).decode()})
+317:         require(blob['sha'] == git_hash(data), 'uploaded checkpoint differs')
+318:         tree = self.api.request(self.root + '/git/trees', 'POST', {'base_tree': self.tree, 'tree': [{'path': self.path, 'mode': '100644', 'type': 'blob', 'sha': blob['sha']}]})
+319:         # A unique commit prevents two identical writers producing the same SHA and both passing fast-forward.
+320:         commit = self.api.request(self.root + '/git/commits', 'POST', {'message': 'factory: reporting checkpoint ' + uuid.uuid4().hex, 'tree': tree['sha'], 'parents': [self.head]})
+321:         require(commit['tree']['sha'] == tree['sha'] and [p['sha'] for p in commit['parents']] == [self.head], 'checkpoint ancestry differs')
+322:         require(digest.coordinator.contract.digest(commit['sha'], 40), 'checkpoint commit invalid')
+323:         self._unchanged_archive_view()
+324:         result = self.api.request(self.root + '/git/refs/heads/' + quote(self.branch, safe=''), 'PATCH', {'sha': commit['sha'], 'force': False})
+325:         require(result['ref'] == 'refs/heads/' + self.branch and result['object']['sha'] == commit['sha'], 'checkpoint reference differs')
+326:         self.head = commit['sha']; self.tree = tree['sha']; self.bytes = data
+327: 
+328: 
+329: def snapshot(path, repository, stream, destination, branch, alerts=None):
+330:     with sqlite3.connect(path) as db:
+331:         db.row_factory = sqlite3.Row
+332:         present={row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+333:         selected=dict(TABLES)
+334:         if set(PR_TABLES)&present:
+335:             require(set(PR_TABLES)<=present,'partial PR checkpoint tables');selected.update(PR_TABLES)
+336:         tables = {table: [dict(row) for row in db.execute(f'SELECT {",".join(columns)} FROM {table} ORDER BY '+('stream,page' if table=='reporting_pr_pages' else columns[0]))] for table, columns in selected.items()}
+337:     document = {'schema_version': 1, 'repository': repository, 'stream': stream, 'destination': destination, 'branch': branch, 'tables': tables}
+338:     if alerts is not None:
+339:         document['alerts'] = alerts
+340:     validate(document, repository, stream)
+341:     return canonical(document).encode()
+342: 
+343: 
+344: def validate(document, repository, stream):
+345:     require(set(document) in ({'schema_version', 'repository', 'stream', 'destination', 'branch', 'tables'}, {'schema_version', 'repository', 'stream', 'destination', 'branch', 'tables', 'alerts'}) and type(document['schema_version']) is int and document['schema_version'] == 1 and document['repository'] == repository and document['stream'] == stream, 'foreign checkpoint schema/identity')
+346:     require(stream == hashlib.sha256(canonical([repository, document['destination'], document['branch']]).encode()).hexdigest(), 'checkpoint destination/branch differs')
+347:     require(type(document['tables']) is dict and set(document['tables']) in (set(TABLES),set(TABLES)|set(PR_TABLES)), 'unexpected checkpoint tables')
+348:     if set(PR_TABLES)<=set(document['tables']):validate_pr_checkpoint(document,stream)
+349:     for table, columns in TABLES.items():
+350:         rows = document['tables'][table]
+351:         require(isinstance(rows, list) and all(isinstance(row, dict) and set(row) == set(columns) and row['stream'] == stream for row in rows), 'malformed checkpoint rows')
+352:         require(len({row[columns[0]] for row in rows}) == len(rows), 'duplicate checkpoint rows')
+353:     require(len(document['tables']['digest_cursors']) == len(document['tables']['digest_origins']) == 1, 'checkpoint cursor/origin missing')
+354:     require(isinstance(document['tables']['digest_cursors'][0]['cutoff'], str) and isinstance(document['tables']['digest_origins'][0]['origin'], str), 'checkpoint timestamps invalid')
+355:     cursor = digest.instant(document['tables']['digest_cursors'][0]['cutoff'])
+356:     origin = digest.instant(document['tables']['digest_origins'][0]['origin'])
+357:     require(origin <= cursor, 'checkpoint origin after cursor')
+358:     pending = 0; confirmed = []
+359:     for row in document['tables']['digest_batches']:
+360:         require(all(isinstance(row[key], str) for key in ('key','cutoff','payload','status')), 'batch fields invalid')
+361:         require(row['status'] in {'pending', 'uncertain', 'confirmed'}, 'invalid batch state')
+362:         payload = json.loads(row['payload'], object_pairs_hook=digest.coordinator.contract.no_duplicate_keys)
+363:         require(set(payload) == {'schema_version','repository','destination','from','until','timezone','display_from','display_until','merges','product_acceptance'} and payload['schema_version'] == 1, 'unexpected report fields')
+364:         require(payload['destination'] == document['destination'] and origin <= digest.instant(payload['from']) < digest.instant(payload['until']), 'report interval/destination differs')
+365:         for item in payload['merges']:
+366:             require(set(item) == {'pr','title','url','merge_sha','merged_at','late_discovered','delivery_evidence','evidence_status','merge_time_checks'}, 'unexpected merge fields')
+367:             require(type(item['pr']) is int and item['pr'] > 0 and item['url'] == f'https://github.com/{repository}/pull/{item["pr"]}', 'report PR source differs')
+368:             require(all(set(proof) == {'task','spec','revision','producer_run','artifact_digest'} for proof in item['delivery_evidence']), 'unexpected evidence fields')
+369:         require(payload['repository'] == repository and payload['until'] == row['cutoff'], 'checkpoint report differs')
+370:         require(row['key'] == hashlib.sha256(canonical([stream, digest.stamp(digest.instant(payload['from'])), digest.stamp(digest.instant(payload['until']))]).encode()).hexdigest(), 'checkpoint report key differs')
+371:         if row['status'] == 'confirmed':
+372:             receipt = json.loads(row['receipt'])
+373:             require(set(receipt) == {'key', 'payload_sha256', 'destination', 'message_id'} and receipt['key'] == row['key'] and receipt['payload_sha256'] == hashlib.sha256(row['payload'].encode()).hexdigest() and receipt['destination'] == payload['destination'] and isinstance(receipt['message_id'], str) and bool(receipt['message_id']), 'checkpoint receipt differs')
+374:             confirmed.append(digest.instant(row['cutoff']))
+375:             require(digest.instant(row['cutoff']) <= cursor, 'confirmed report beyond cursor')
+376:         else:
+377:             pending += 1
+378:             require(row['receipt'] is None and digest.instant(row['cutoff']) > cursor, 'pending receipt/cutoff differs')
+379:     require(cursor == (max(confirmed) if confirmed else origin), 'cursor lacks confirmed delivery')
+380:     require(pending <= 1, 'multiple pending reports')
+
+SOURCE .claude/scripts/factory-git-state.py
+444: class HostedDigest(digest.Digest):
+445:     def __init__(self, path, config, state):
+446:         self.state = state; self.failed = False
+447:         # A private local projection is reconstructed from typed JSON, never remote SQL/SQLite binaries.
+448:         digest.Digest(path, config['repository'], config['destination'], config['start'], config['branch'])
+449:         if state.bytes is not None:
+450:             document = json.loads(state.bytes, object_pairs_hook=digest.coordinator.contract.no_duplicate_keys)
+451:             stream = hashlib.sha256(canonical([config['repository'], config['destination'], config['branch']]).encode()).hexdigest()
+452:             validate(document, config['repository'], stream)
+453:             with sqlite3.connect(path) as db:
+454:                 present={row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+455:                 if config.get('pr_discovery_mode','legacy')=='resumable' or set(PR_TABLES)&present:
+456:                     for sql in PR_SQL:db.execute(sql)
+457:                     for table in PR_TABLES:db.execute(f'DELETE FROM {table}')
+458:                 if set(PR_TABLES)<=set(document['tables']):
+459:                     for sql in PR_SQL:db.execute(sql)
+460:                 for table, columns in dict(TABLES,**PR_TABLES).items():
+461:                     if table not in document['tables']:continue
+462:                     db.execute(f'DELETE FROM {table}')
+463:                     for row in document['tables'][table]:
+464:                         db.execute(f'INSERT INTO {table}({",".join(columns)}) VALUES({",".join("?" for _ in columns)})', [row[c] for c in columns])
+465:         super().__init__(path, config['repository'], config['destination'], config['start'], config['branch'], receipt_mode=config.get('receipt_mode','legacy'),pr_discovery_mode=config.get('pr_discovery_mode','legacy'))
+466: 
+467:     @contextmanager
+468:     def transaction(self):
+469:         require(not self.failed, 'failed checkpoint requires a fresh authoritative restore')
+470:         with super().transaction() as db:
+471:             yield db
+472:         # Every state change must become durable BEFORE caller can send or acknowledge delivery.
+473:         try:
+474:             alerts = None if self.state.bytes is None else json.loads(self.state.bytes).get('alerts')
+475:             self.state.checkpoint(snapshot(self.path, self.repository, self.stream, self.destination, self.branch, alerts))
+476:         except BaseException:
+477:             self.failed = True; raise
+478: 
+479: 
+480: def run(config, report_api, state_api, slack_client, path, now):
+481:     require(config.get('enabled') is True and report_api.repo == config['repository'], 'hosted reporting disabled/foreign')
+482:     source = report_api.get(f'repos/{report_api.repo}')
+483:     require(source['full_name'] == report_api.repo and source['default_branch'] == config['branch'], 'report repository/default branch differs')
+484:     target = slack.due(now)
+485:     stream = hashlib.sha256(canonical([config['repository'], config['destination'], config['branch']]).encode()).hexdigest()
+486:     pending_snapshot = False
+487:     reporting_cursor = None
+488:     mode = config.get('receipt_mode', 'legacy')
+489:     require(type(mode) is str and mode in ('legacy', 'durable'), 'explicit reporting receipt mode required')
+490:     if mode == 'durable':
+491:         require(not Path(path).is_symlink(), 'reporting database symlink forbidden')
+492:         path = Path(path).resolve()
+493:         durable = config.get('receipt_archive')
+494:         require(type(durable) is dict and set(durable)=={'approval_path','trust_path','store','trust_mode'}
+495:                 and config.get('receipt_policy') is not None, 'protected durable reporting configuration required')
+496:         maintenance_spec = importlib.util.spec_from_file_location('report_maintenance', Path(__file__).with_name('factory-reporting-maintenance.py'))
+497:         maintenance = importlib.util.module_from_spec(maintenance_spec); maintenance_spec.loader.exec_module(maintenance)
+498:         require(config.get('state_view')=={'mode':'archive','approval_path':str(Path(durable['approval_path']).resolve())},
+499:                 'durable report requires protected archive state view')
+500:         origin = maintenance.archive.advance_origin(state_api, durable['approval_path'], commit_budget=16, tree_pages=4)
+501:         if not origin['frozen_complete']:
+502:             return {'status':'incomplete','phase':'origin','coverage_complete':False,'all_history_complete':False,'task_credit':False}
+503:         reader = _ProtectedStateReader(state_api)
+504:         prior_anchor = maintenance.archive.verify_bootstrap(reader, durable['approval_path'])
+505:         require(config['state_branch']==prior_anchor['branch'] and config['state_repository']==state_api.repo,
+506:                 'durable reporting state binding differs')
+507:         _, prior_blob = maintenance.archive.fixed_reader(reader, 'repos/'+state_api.repo)
+508:         prior_raw = prior_blob(prior_anchor['tree'], 'reports/'+stream+'.json')
+509:         if prior_raw is not None:
+510:             prior = json.loads(prior_raw, object_pairs_hook=digest.coordinator.contract.no_duplicate_keys)
+511:             validate(prior, state_api.repo, stream)
+512:             pending_snapshot = any(row['status']!='confirmed' for row in prior['tables']['digest_batches'])
+513:             reporting_cursor = prior['tables']['digest_cursors'][0]['cutoff']
+514:         if not pending_snapshot:
+515:             scheduling=maintenance.select_reporting if config.get('pr_discovery_mode','legacy')=='resumable' else maintenance.prepare_reporting
+516:             progress = scheduling(report_api, state_api, config['receipt_policy'], durable['trust_path'],
+517:                         durable['store'], durable['approval_path'], interval_end=target, trust_mode=durable['trust_mode'], reporting_cursor=reporting_cursor)
+518:             if progress['status'] != 'projection-ready':return progress
+519:             target = progress['interval_end']
+520:     stream = hashlib.sha256(canonical([config['repository'], config['destination'], config['branch']]).encode()).hexdigest()
+521:     bootstrap = config.get('bootstrap_sha')
+522:     if mode == 'durable':
+523:         view = {'mode':'archive','approval_path':str(Path(durable['approval_path']).resolve())}
+524:         require(config.get('state_view') == view, 'durable report requires protected archive state view')
+525:         anchor = maintenance.archive.verify_bootstrap(state_api, durable['approval_path'])
+526:         require(config['state_branch']==anchor['branch'] and config['state_repository']==state_api.repo,
+527:                 'durable reporting state binding differs')
+528:         item_at, _ = maintenance.archive.fixed_reader(state_api, 'repos/'+state_api.repo)
+529:         report_leaf = 'reports/'+stream+'.json'
+530:         if item_at(anchor['tree'], report_leaf) is None:
+531:             require(item_at(anchor['bootstrap_tree'], report_leaf) is None and
+532:                     state_api.request('repos/'+state_api.repo+'/commits?sha='+anchor['head']+'&path='+quote(report_leaf,safe='')+'&per_page=1') == [],
+533:                     'missing durable reporting checkpoint cannot reset historical state')
+534:             bootstrap = anchor['head']
+535:     state = GitState(state_api, config['state_branch'], stream, bootstrap, config.get('policy_approvals'),
+536:                      state_view=config.get('state_view'), bootstrap_existing=mode=='durable')
+537:     require(not source['private'] or state.private, 'private repository cannot publish public checkpoints')
+538:     store = HostedDigest(path, config, state)
+539:     if not pending_snapshot and digest.instant(store.cursor()) >= digest.instant(target):
+540:         return {'status': 'not-due'}
+541:     if not pending_snapshot and store.pr_discovery_mode=='resumable':
+542:         discovered=store.discover(report_api,target)
+543:         if discovered['status']!='complete':return discovered
+544:         if mode=='durable':
+545:             progress=maintenance.prepare_reporting(report_api,state_api,config['receipt_policy'],durable['trust_path'],
+546:                         durable['store'],durable['approval_path'],interval_end=target,trust_mode=durable['trust_mode'],reporting_cursor=reporting_cursor)
+547:             if progress['status']!='projection-ready':return progress
+548:             require(progress['interval_end']==target,'PR observation interval changed during maintenance')
+549:             # Maintenance changes only its own role. Retain the private current
+550:             # PR observation while refreshing the authenticated report state.
+551:             fresh=GitState(state_api,config['state_branch'],stream,config.get('bootstrap_sha'),
+552:                            config.get('policy_approvals'),state_view=config.get('state_view'))
+553:             require(fresh.bytes==store.state.bytes,'reporting checkpoint changed during maintenance')
+554:             store.state=state=fresh
+555:     if not pending_snapshot and config.get('receipt_policy') is not None:
+556:         receipts_spec = importlib.util.spec_from_file_location('report_receipts', Path(__file__).with_name('factory-receipts.py'))
+557:         receipts = importlib.util.module_from_spec(receipts_spec); receipts_spec.loader.exec_module(receipts)
+558:         projection = receipts.project(report_api, config['receipt_policy'], path, receipt_mode=mode, state_api=state_api,
+559:                          archive_config=config.get('receipt_archive'), selection=None if mode=='legacy' else
+560:                          {'interval_end':target,'history_head':progress['history_head'],'campaign':progress['campaign']})
+561:         if mode=='durable':
+562:             if projection.get('coverage_complete') is not True:
+563:                 return dict(projection,status='incomplete',phase='projection-pending')
+564:             acknowledgement=maintenance.acknowledge_reporting(report_api,state_api,config['receipt_policy'],
+565:                         durable['trust_path'],durable['store'],durable['approval_path'],interval_end=target,
+566:                         trust_mode=durable['trust_mode'],history_head=progress['history_head'],campaign=progress['campaign'])
+567:             if acknowledgement['status']!='projection-acknowledged':return acknowledgement
+568:             # Journal acknowledgement advanced the shared branch. Reload the exact
+569:             # report role before any prepare/send; typed local receipt tables stay.
+570:             state=GitState(state_api,config['state_branch'],stream,config.get('bootstrap_sha'),
+571:                            config.get('policy_approvals'),state_view=config.get('state_view'))
+572:             require(state.bytes==store.state.bytes,'reporting checkpoint changed during projection acknowledgement')
+573:             store.state=state
+574:     batch = store.prepare(report_api, target)
+575:     if batch.get('status')=='incomplete':return batch
+576:     adapter = slack.transport(slack_client, config, batch)
+577:     receipt = store.deliver(batch['key'], adapter)
+578:     require(adapter.lookup(batch['key']).get('receipt') == receipt, 'Delivered receipt not visible in Slack history; preserve confirmed state')
+579:     return {'status': 'delivered', 'receipt': receipt, 'checkpoint_sha': state.head}
+580: 
+
+SOURCE .claude/scripts/factory-receipts.py
+220:                 db.execute("UPDATE tasks SET state='merged',owner=NULL,expires=NULL,fence=fence+1 WHERE id=?", (task,))
+221:     return {'completed_tasks': tasks, 'run_id': run_id, 'merge_sha': proof['merge_sha']}
+222: 
+223: 
+224: def project(api, policy, db_path, *, receipt_mode='legacy', state_api=None, archive_config=None, selection=None):
+225:     """Rebuild reporting-only proof tables; never create or transition runtime tasks."""
+226:     require(type(receipt_mode) is str and receipt_mode in ('legacy', 'durable'), 'explicit reporting receipt mode required')
+227:     if receipt_mode == 'durable':
+228:         require(state_api is not None and type(archive_config) is dict and
+229:                 set(archive_config)=={'approval_path','trust_path','store','trust_mode'} and
+230:                 type(selection) is dict and set(selection)=={'interval_end','history_head','campaign'},
+231:                 'protected durable reporting selection required')
+232:         spec = importlib.util.spec_from_file_location('durable_reporting_receipts', Path(__file__).with_name('factory-reporting-receipts.py'))
+233:         retained = importlib.util.module_from_spec(spec); spec.loader.exec_module(retained)
+234:         try:
+235:             return retained.project_reporting(api, state_api, policy, db_path, archive_config['trust_path'],
+236:                         archive_config['store'], archive_config['approval_path'], retained.archive.archive_stream(api.repo),
+237:                         interval_end=selection['interval_end'], history_head=selection['history_head'],
+238:                         campaign=selection['campaign'], interval_scoped=True)
+239:         except retained.ProjectionPending:
+240:             return {'coverage_complete':False,'all_history_complete':False,'task_credit':False,
+
+SOURCE .claude/scripts/factory-reporting-receipts.py
+1: #!/usr/bin/env python3
+2: """Reconstruct protected retained proof before a fixed typed reporting transfer."""
+3: from contextlib import closing
+4: import importlib.util
+5: import json
+6: from pathlib import Path
+7: import sqlite3
+8: import tempfile
+9: 
+10: 
+11: def load(name, filename):
+12:     spec = importlib.util.spec_from_file_location(name, Path(__file__).with_name(filename))
+13:     module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
+14:     return module
+15: 
+16: 
+17: archive = load('report_archive', 'factory-receipt-archive.py')
+18: discovery = load('report_discovery', 'factory-receipt-discovery.py')
+19: require = archive.require
+20: DEFINITIONS = {
+21:     'delivery_receipts': ('task TEXT PRIMARY KEY, revision TEXT NOT NULL, receipt TEXT NOT NULL', ('task', 'revision', 'receipt')),
+22:     'delivery_provenance': ('task TEXT PRIMARY KEY, provenance TEXT NOT NULL', ('task', 'provenance')),
+23:     'delivery_trust': ('task TEXT PRIMARY KEY, status TEXT NOT NULL', ('task', 'status')),
+24:     'delivery_times': ('task TEXT PRIMARY KEY, merged_at TEXT NOT NULL', ('task', 'merged_at')),
+25:     'delivery_interval': ('task TEXT PRIMARY KEY', ('task',)),
+26: }
+27: class ProjectionPending(ValueError):
+28:     pass
+29: 
+30: 
+31: COVERAGE_SQL = 'CREATE TABLE reporting_receipt_coverage(repository TEXT PRIMARY KEY, coverage_from TEXT NOT NULL, verified_until TEXT NOT NULL)'
+32: 
+33: 
+34: class ReadOnly:
+35:     def __init__(self, api):
+36:         self.api = api; self.repo = api.repo
+37:         for name in ('read_blobs', 'read_pull_requests'):
+38:             method = getattr(api, name, None)
+39:             if callable(method):setattr(self, name, method)
+40: 
+41:     def request(self, path, method='GET', payload=None):
+42:         require(method == 'GET' and payload is None and
+43:                 (path == 'repos/'+self.repo or path.startswith('repos/'+self.repo+'/')),
+44:                 'reporting receipt transport must be same-repository read-only')
+45:         return self.api.request(path, method, payload)
+46: 
+47: 
+48: class Source:
+49:     def __init__(self, api):self.api = api; self.repo = api.repo
+50: 
+51:     def request(self, path):
+52:         require(path.startswith('repos/'+self.repo+'/actions/'), 'reporting receipt source must be same-repository Actions read')
+53:         return self.api.request(path)
+54: 
+55:     def get(self, path):
+56:         require(path.startswith('repos/'+self.repo+'/actions/'), 'reporting receipt source must be same-repository Actions read')
+57:         return self.api.get(path)
+58: 
+59: 
+60: def project_reporting(source_api, state_api, policy, report_path, trust_path, store,
+61:                       approval_path, stream, *, interval_end, history_head, campaign, page_size=100, interval_scoped=False):
+62:     """No caller SQLite/projection result is accepted as authentication evidence.
+63: 
+64:     Both validators perform actual protected reads. The only destination writes
+65:     are fixed typed receipt rows, in one transaction, after complete coverage.
+66:     """
+67:     require(type(interval_scoped) is bool, 'reporting interval scope mode invalid')
+68:     require(source_api.repo == state_api.repo == policy['repository'], 'reporting receipt repository differs')
+69:     report = Path(report_path)
+70:     require(report.is_absolute() and report.resolve() == report and report.is_file() and not report.is_symlink(),
+71:             'existing canonical report database required')
+72:     state = ReadOnly(state_api); source = Source(source_api)
+73:     before = archive.verify_bootstrap(state, approval_path)
+74:     approval_raw = Path(approval_path).read_bytes(); trust_raw = Path(trust_path).read_bytes()
+75:     with tempfile.TemporaryDirectory(prefix='factory-report-receipts-') as temporary:
+76:         receipt_db = Path(temporary)/'receipts.sqlite'
+77:         projection = archive.reconstruct_interval(state, policy, receipt_db, trust_path, store,
+78:                     approval_path, stream, interval_end=interval_end, history_head=history_head, campaign=campaign, interval_scoped=interval_scoped)
+79:         if projection.get('projection_complete') is not True:raise ProjectionPending('retained reporting projection incomplete')
+80:         coverage = discovery.coverage(source, state, policy, trust_path, store, approval_path, stream,
+81:                     interval_end=interval_end, projection_end=interval_end, history_head=history_head,
+82:                     campaign=campaign, page_size=page_size, interval_scoped=interval_scoped)
+83:         if not (all(coverage.get(key) is True for key in ('coverage_complete', 'source_partition_complete', 'frozen_projection_complete')) and
+84:                 coverage.get('verified_until') == interval_end and coverage.get('gaps') == [] and
+85:                 coverage.get('task_credit') is False and coverage.get('all_history_complete') is False):
+86:             raise ProjectionPending('retained reporting coverage incomplete')
+87:         require(coverage.get('repository') == policy['repository'] and
+88:                 coverage.get('coverage_from') == before['coverage_from'] and
+89:                 archive.instant(coverage['coverage_from']) <= archive.instant(coverage['verified_until']),
+90:                 'retained reporting coverage binding differs')
+91:         rows = {}
+92:         with closing(sqlite3.connect(receipt_db)) as db:
+93:             objects = db.execute('SELECT type,name,sql FROM sqlite_master').fetchall()
+94:             expected = {(name, 'CREATE TABLE '+name+'('+definition+')') for name,(definition,_) in DEFINITIONS.items()}
+95:             require({(name,sql) for kind,name,sql in objects if kind == 'table'} == expected and
+96:                     all(kind == 'table' or (kind == 'index' and sql is None and name in {'sqlite_autoindex_'+table+'_1' for table in DEFINITIONS}) for kind,name,sql in objects),
+97:                     'retained reporting receipt schema differs')
+98:             for name,(_,columns) in DEFINITIONS.items():
+99:                 rows[name] = db.execute('SELECT '+','.join(columns)+' FROM '+name+' ORDER BY task').fetchall()
+100:                 require(all(all(type(value) is str and value for value in row) for row in rows[name]), 'retained reporting row types differ')
+101:         require(len(json.dumps(rows).encode()) <= 33554432, 'retained reporting transfer capacity gap')
+102:         tasks = {row[0] for row in rows['delivery_receipts']}
+103:         require(all({row[0] for row in rows[name]} == tasks for name in ('delivery_provenance','delivery_trust','delivery_times')) and
+104:                 {row[0] for row in rows['delivery_interval']} <= tasks, 'retained reporting task sets differ')
+105:         require(archive.verify_bootstrap(state, approval_path) == before and Path(approval_path).read_bytes() == approval_raw and
+106:                 Path(trust_path).read_bytes() == trust_raw, 'retained reporting origin or trust changed')
+107:         with closing(sqlite3.connect(report)) as db, db:
+108:             db.execute('BEGIN IMMEDIATE')
+109:             require(not db.execute("SELECT name FROM sqlite_master WHERE type='trigger'").fetchone(), 'reporting database triggers unsupported')
+110:             existing = db.execute("SELECT type,sql FROM sqlite_master WHERE name='reporting_receipt_coverage'").fetchall()
+111:             require(not existing or existing == [('table', COVERAGE_SQL)], 'reporting coverage destination schema differs')
+112:             if not existing:db.execute(COVERAGE_SQL)
+113:             require(all(row[0] == policy['repository'] for row in db.execute('SELECT repository FROM reporting_receipt_coverage')),
+114:                     'reporting coverage repository differs')
+115:             require(all(origin == coverage['coverage_from'] and archive.instant(until) <= archive.instant(coverage['verified_until'])
+116:                         for origin,until in db.execute('SELECT coverage_from,verified_until FROM reporting_receipt_coverage')),
+117:                     'reporting coverage regressed or origin differs')
+118:             for name,(definition,columns) in DEFINITIONS.items():
+119:                 existing = db.execute('SELECT type,sql FROM sqlite_master WHERE name=?', (name,)).fetchall()
+120:                 require(not existing or existing == [('table','CREATE TABLE '+name+'('+definition+')')], 'reporting receipt destination schema differs')
+121:                 db.execute('CREATE TABLE IF NOT EXISTS '+name+'('+definition+')')
+122:                 old = dict((row[0],tuple(row)) for row in db.execute('SELECT '+','.join(columns)+' FROM '+name))
+123:                 new = {row[0]:tuple(row) for row in rows[name]}
+124:                 if name not in ('delivery_trust','delivery_interval'):
+125:                     require(all(task in new and new[task] == row for task,row in old.items()), 'reporting retained fact conflicts or disappears')
+126:                 if old == new:
+127:                     continue
+128:                 db.execute('DELETE FROM '+name)
+129:                 db.executemany('INSERT INTO '+name+' VALUES('+','.join('?' for _ in columns)+')', rows[name])
+130:             marker = (coverage['repository'], coverage['coverage_from'], coverage['verified_until'])
+131:             if db.execute('SELECT * FROM reporting_receipt_coverage').fetchall() != [marker]:
+132:                 db.execute('DELETE FROM reporting_receipt_coverage')
+133:                 db.execute('INSERT INTO reporting_receipt_coverage VALUES(?,?,?)', marker)
+134:     return {'facts_count':len(tasks), 'coverage_complete':True, 'all_history_complete':False, 'task_credit':False}
+
+SOURCE .claude/scripts/factory-receipt-archive.py
+1540:             for task in proof['tasks']:
+1541:                 require(task not in by_task, 'reconstruction conflicting task')
+1542:                 by_task[task] = (proof, fact['merged_at'])
+1543:             for kind, identities in (('execution',[list(execution)]),('task',proof['tasks'])):
+1544:                 for identity in identities:
+1545:                     index = {'schema_version':1,'campaign':campaign,'kind':kind,'identity':identity,'run_id':execution[0],'attempt':execution[1],'record_sha256':reference['record_sha256']}
+1546:                     key = path_for(kind,identity)
+1547:                     require(key not in expected_indices, 'reconstruction conflicting index')
+1548:                     expected_indices[key] = index
+1549:         require(canonical(stage['facts']) == canonical(actual), 'reconstruction staged facts differ')
+1550:     if len(covered) != count or (covered and (min(covered) != 0 or max(covered) != count-1)):
+1551:         return {'projection_complete': False, 'coverage_complete': False, 'reason': 'required-reference-gap'}
+1552:     indices = {path:value for path,value in documents.items() if 'kind' in value}
+1553:     require(set(indices) == set(expected_indices) and all(canonical(indices[key]) == canonical(value) for key,value in expected_indices.items()), 'reconstruction global indices differ')
+1554:     require(verify_bootstrap(api, approval_path) == anchor and Path(approval_path).read_bytes() == approval_raw and digest(Path(trust_path).read_bytes()) == trust_hash, 'reconstruction protected origin changed')
+1555:     definitions = {'delivery_receipts':'task TEXT PRIMARY KEY, revision TEXT NOT NULL, receipt TEXT NOT NULL','delivery_provenance':'task TEXT PRIMARY KEY, provenance TEXT NOT NULL','delivery_trust':'task TEXT PRIMARY KEY, status TEXT NOT NULL','delivery_times':'task TEXT PRIMARY KEY, merged_at TEXT NOT NULL','delivery_interval':'task TEXT PRIMARY KEY'}
+1556:     lower, upper = instant(anchor['coverage_from']), instant(interval_end)
+1557:     interval_tasks = {task for task,(_,time) in by_task.items() if lower <= instant(time) <= upper}
+1558:     with sqlite3.connect(db_path) as db:
+1559:         for kind,name,sql in db.execute('SELECT type,name,sql FROM sqlite_master'):
+1560:             if kind == 'index' and sql is None and any(name == 'sqlite_autoindex_'+table+'_1' for table in definitions):
+1561:                 continue
+1562:             require(kind == 'table' and name in definitions and sql == 'CREATE TABLE '+name+'('+definitions[name]+')', 'reconstruction foreign SQLite schema')
+1563:         db.execute('BEGIN IMMEDIATE')
+1564:         for table,columns in definitions.items():
+1565:             db.execute('CREATE TABLE IF NOT EXISTS '+table+'('+columns+')')
+1566:         for table in definitions:
+1567:             rows = db.execute('SELECT count(*) FROM '+table).fetchone()[0]
+1568:             require(rows <= len(by_task), 'reconstruction SQLite row bound')
+1569:             require({row[0] for row in db.execute('SELECT task FROM '+table)} <= set(by_task), 'reconstruction SQLite rows lack required proof')
+1570:         require({row[0] for row in db.execute('SELECT task FROM delivery_receipts')} <= set(by_task), 'reconstruction existing fact lacks required proof')
+1571:         require({row[0] for row in db.execute('SELECT task FROM delivery_provenance')} == {row[0] for row in db.execute('SELECT task FROM delivery_receipts')}, 'reconstruction orphan provenance')
+1572:         for task,(proof,time) in by_task.items():
+1573:             previous = db.execute('SELECT revision,receipt FROM delivery_receipts WHERE task=?',(task,)).fetchone()
+1574:             provenance = db.execute('SELECT provenance FROM delivery_provenance WHERE task=?',(task,)).fetchone()
+1575:             previous_time = db.execute('SELECT merged_at FROM delivery_times WHERE task=?',(task,)).fetchone()
+1576:             require(previous is None or (previous == (proof['revision'],proof['delivery']) and provenance == (proof['provenance'],)), 'reconstruction conflicting SQLite fact')
+1577:             require(previous_time is None or previous_time == (time,), 'reconstruction conflicting SQLite time')
+1578:             db.execute('INSERT OR IGNORE INTO delivery_receipts VALUES(?,?,?)',(task,proof['revision'],proof['delivery']))
+1579:             db.execute('INSERT OR IGNORE INTO delivery_provenance VALUES(?,?)',(task,proof['provenance']))
+1580:             db.execute('INSERT OR IGNORE INTO delivery_times VALUES(?,?)',(task,time))
+1581:             db.execute('INSERT INTO delivery_trust VALUES(?,?) ON CONFLICT(task) DO UPDATE SET status=excluded.status',(task,proof['trust_status']))
+1582:         db.execute('DELETE FROM delivery_interval')
+1583:         db.executemany('INSERT INTO delivery_interval VALUES(?)',[(task,) for task in sorted(interval_tasks)])
+1584:     return {'projection_complete':True,'coverage_complete':False,'facts_count':len(by_task),'interval_facts_count':len(interval_tasks),'frozen_head':first['frozen_head'],'suffix_pending':True}
+
+SOURCE .claude/scripts/factory-digest.py
+84:     def discover(self, api, until):
+85:         """Run bounded source work before expensive receipts; no caller rows accepted."""
+86:         self._pr_observation = None
+87:         require(self.pr_discovery_mode == 'resumable' and api.repo == self.repository, 'resumable PR source required')
+88:         end = instant(until)
+89:         require(end <= datetime.now(timezone.utc), 'future cutoff cannot be delivered')
+90:         with self.transaction() as db:
+91:             origin = db.execute('SELECT origin FROM digest_origins WHERE stream=?', (self.stream,)).fetchone()[0]
+92:             source = importlib.util.spec_from_file_location('reporting_pr_discovery', Path(__file__).with_name('factory-reporting-pr-discovery.py'))
+93:             discovery = importlib.util.module_from_spec(source); source.loader.exec_module(discovery)
+94:             result = discovery.scan(db, api, self.stream, self.repository, self.branch, origin, stamp(end))
+95:             if result['status'] == 'incomplete':
+96:                 return result
+97:             binding = (self.stream, self.repository, self.branch, origin, stamp(end))
+98:             self._pr_observation = (self._pr_token, api, binding, result['rows'])
+99:             return {'status': 'complete', 'phase': 'pull-requests'}
+100: 
+101:     def prepare(self, api, until):
+102:         require(api.repo == self.repository, 'foreign report source')
+103:         observation = self._pr_observation
+104:         self._pr_observation = None  # Every prepare consumes or invalidates the private handoff.
+105:         end = instant(until)
+106:         require(end <= datetime.now(timezone.utc), 'future cutoff cannot be delivered')
+107:         with self.transaction() as db:
+108:             pending = db.execute("SELECT * FROM digest_batches WHERE stream=? AND status!='confirmed'", (self.stream,)).fetchone()
+109:             if pending:
+110:                 return dict(pending)
+111:             start = instant(db.execute('SELECT cutoff FROM digest_cursors WHERE stream=?', (self.stream,)).fetchone()[0])
+112:             require(end > start, 'cutoff must advance')
+113:             origin = instant(db.execute('SELECT origin FROM digest_origins WHERE stream=?', (self.stream,)).fetchone()[0])
+114:             require(origin <= start, 'reporting origin exceeds cursor')
+115:             reported = {}
+116:             for previous in db.execute("SELECT key,payload,receipt FROM digest_batches WHERE stream=? AND status='confirmed'", (self.stream,)):
+117:                 remote = json.loads(previous['receipt'])
+118:                 require(remote['key'] == previous['key'] and remote['destination'] == self.destination and remote['payload_sha256'] == hashlib.sha256(previous['payload'].encode()).hexdigest(), 'historical report bytes differ from delivery receipt')
+119:                 document = json.loads(previous['payload'])
+120:                 require(document['repository'] == self.repository and document['destination'] == self.destination, 'foreign report history')
+121:                 for item in document['merges']:
+122:                     require(type(item['pr']) is int and item['pr'] > 0 and coordinator.contract.digest(item['merge_sha'], 40), 'invalid historical merge')
+123:                     require(item['pr'] not in reported or reported[item['pr']] == item['merge_sha'], 'contradictory report history')
+124:                     reported[item['pr']] = item['merge_sha']
+125:             # REST pagination is completed before any cursor/report state is committed.
+126:             if self.pr_discovery_mode == 'resumable':
+127:                 binding = (self.stream, self.repository, self.branch, stamp(origin), stamp(end))
+128:                 if observation is not None and observation[0] is self._pr_token and observation[1] is api and observation[2] == binding:
+129:                     pages = [observation[3]]
+130:                 else:
+131:                     source = importlib.util.spec_from_file_location('reporting_pr_discovery', Path(__file__).with_name('factory-reporting-pr-discovery.py'))
+132:                     discovery = importlib.util.module_from_spec(source); source.loader.exec_module(discovery)
+133:                     observed = discovery.scan(db, api, self.stream, self.repository, self.branch, stamp(origin), stamp(end))
+134:                     if observed['status'] == 'incomplete':
+135:                         return observed
+136:                     pages = [observed['rows']]
+137:             else:
+138:                 pages = api.request(f'repos/{self.repository}/pulls?state=closed&per_page=100', paginate=True)
+139:             merged = {}
+140:             for page in pages:
+141:                 require(isinstance(page, list), 'invalid merge page')
+142:                 for pr in page:
+143:                     if not pr.get('merged_at') or pr['base']['ref'] != self.branch:
+144:                         continue
+145:                     at = instant(pr['merged_at'])
+146:                     if not origin < at <= end:
+147:                         continue
+148:                     require(pr['base']['repo']['full_name'] == self.repository and type(pr['number']) is int and pr['number'] > 0, 'foreign merge')
+149:                     require(coordinator.contract.digest(pr['merge_commit_sha'], 40), 'missing merge identity')
+150:                     if pr['number'] in reported:
+151:                         require(reported[pr['number']] == pr['merge_commit_sha'], 'actual merge contradicts delivered coverage')
+152:                         continue
+153:                     old = merged.get(pr['number'])
+154:                     require(old is None or old == pr, 'inconsistent merge pages')
+155:                     merged[pr['number']] = pr
+156:             tables = {r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+157:             proofs = []
+158:             durable = self.receipt_mode == 'durable'
+159:             if durable:
+160:                 require('reporting_receipt_coverage' in tables, 'retained reporting coverage marker missing')
+161:                 markers = db.execute('SELECT repository,coverage_from,verified_until FROM reporting_receipt_coverage').fetchall()
+162:                 require(len(markers) == 1 and markers[0]['repository'] == self.repository and
+163:                         instant(markers[0]['coverage_from']) <= origin <= start < end <= instant(markers[0]['verified_until']),
+164:                         'retained reporting coverage does not cover report interval')
+165:                 if {'delivery_receipts', 'delivery_provenance', 'delivery_trust', 'delivery_times', 'delivery_interval'} <= tables:
+166:                     proofs = db.execute('SELECT r.*,p.provenance,t.status AS trust_status,m.merged_at AS retained_time FROM delivery_receipts r JOIN delivery_provenance p ON r.task=p.task JOIN delivery_trust t ON r.task=t.task JOIN delivery_times m ON r.task=m.task JOIN delivery_interval i ON r.task=i.task').fetchall()
+167:             elif {'delivery_receipts', 'delivery_provenance'} <= tables:
+168:                 proofs = db.execute('SELECT r.*,p.provenance FROM delivery_receipts r JOIN delivery_provenance p ON r.task=p.task').fetchall()
+169:             entries = []
+170:             for pr in sorted(merged.values(), key=lambda p: (instant(p['merged_at']), p['number'])):
+171:                 matches = []; withdrawn = False
+172:                 for proof in proofs:
+173:                     delivered = json.loads(proof['receipt']); provenance = json.loads(proof['provenance'])
+174:                     receipt = provenance['receipt']
+175:                     if delivered.get('repository') == self.repository and delivered.get('pr') == pr['number']:
+176:                         require(receipt['repository'] == self.repository and receipt['pull_request'] == pr['number'] and receipt['merged'] is True and receipt['eligible'] is True, 'foreign delivery provenance')
+177:                         require(type(provenance['run_id']) is int and provenance['run_id'] > 0 and provenance['artifact_digest'].startswith('sha256:') and coordinator.contract.digest(provenance['artifact_digest'][7:], 64), 'invalid delivery provenance')
+178:                         require(delivered['merge_sha'] == pr['merge_commit_sha'] == receipt['merge_sha'], 'delivery merge conflicts')
+179:                         require(receipt['head_sha'] == pr['head']['sha'] and receipt['spec_sha256'] == proof['revision'] and proof['task'] in receipt['task_ids'], 'delivery provenance conflicts')
+180:                         if durable:
+181:                             require(proof['trust_status'] in ('active', 'withdrawn'), 'retained trust status invalid')
+182:                             withdrawn = withdrawn or proof['trust_status'] == 'withdrawn'
+183:                             require(instant(proof['retained_time']) == instant(pr['merged_at']), 'retained merge timestamp differs')
+184:                         match = {'task': proof['task'], 'spec': receipt['spec'], 'revision': proof['revision'],
+185:                                  'producer_run': provenance['run_id'], 'artifact_digest': provenance['artifact_digest']}
+186:                         matches.append(match)
+187:                 entries.append({'pr': pr['number'], 'title': pr['title'], 'url': pr['html_url'], 'merge_sha': pr['merge_commit_sha'],
+188:                                 'merged_at': stamp(instant(pr['merged_at'])), 'late_discovered': instant(pr['merged_at']) <= start, 'delivery_evidence': matches,
+189:                                 'evidence_status': ('withdrawn' if durable and withdrawn else 'authenticated') if matches else 'missing', 'merge_time_checks': 'not independently recorded'})
+190:             payload = canonical({'schema_version': 1, 'repository': self.repository, 'destination': self.destination,
+191:                                  'from': stamp(start), 'until': stamp(end), 'timezone': 'Australia/Sydney',
+192:                                  'display_from': start.astimezone(SYDNEY).isoformat(), 'display_until': end.astimezone(SYDNEY).isoformat(),
+193:                                  'merges': entries, 'product_acceptance': 'not inferred from merge'})
+194:             key = hashlib.sha256(canonical([self.stream, stamp(start), stamp(end)]).encode()).hexdigest()
+195:             db.execute('INSERT INTO digest_batches VALUES(?,?,?,?,?,NULL)', (key, self.stream, stamp(end), payload, 'pending'))
+196:             return dict(db.execute('SELECT * FROM digest_batches WHERE key=?', (key,)).fetchone())
+197: 
+198:     def receipt(self, row, receipt):
+199:         require(isinstance(receipt, dict) and set(receipt) == {'key', 'payload_sha256', 'destination', 'message_id'}, 'malformed remote receipt')
+200:         require(receipt['key'] == row['key'] and receipt['destination'] == self.destination and
+201:                 receipt['payload_sha256'] == hashlib.sha256(row['payload'].encode()).hexdigest() and
+202:                 isinstance(receipt['message_id'], str) and bool(receipt['message_id']), 'remote delivery differs')
+203:         return canonical(receipt)
+204: 
+205:     def deliver(self, key, transport):
+206:         # Independent processes cannot send/reconcile this stream concurrently.
+207:         fd = os.open(self.path + '.' + self.stream + '.delivery-lock', os.O_CREAT | os.O_RDWR, 0o600)
+208:         try:
+209:             fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+210:             row = self.batch(key)
+211:             if row['status'] == 'confirmed':
+212:                 return json.loads(row['receipt'])
+213:             if row['status'] == 'uncertain':
+214:                 lookup = transport.lookup(key)
+215:                 require(isinstance(lookup, dict), 'invalid remote lookup')
+216:                 if lookup.get('receipt') is not None:
+217:                     return self.confirm(row, lookup['receipt'])
+218:                 require(lookup == {'receipt': None, 'authoritative_absence': True}, 'remote delivery remains uncertain')
+219:                 with self.transaction() as db:
+220:                     db.execute("UPDATE digest_batches SET status='pending' WHERE key=? AND status='uncertain'", (key,))
+221:             # Persist uncertainty BEFORE send. Any timeout/crash must reconcile.
+222:             with self.transaction() as db:
+223:                 db.execute("UPDATE digest_batches SET status='uncertain' WHERE key=? AND status='pending'", (key,))
+224:             receipt = transport.send(key, row['payload'], self.destination)
+225:             return self.confirm(row, receipt)
+226:         finally:
+227:             os.close(fd)
+228: 
+229:     def confirm(self, row, receipt):
+230:         encoded = self.receipt(row, receipt)
+231:         with self.transaction() as db:
+232:             current = db.execute('SELECT * FROM digest_batches WHERE key=? AND stream=?', (row['key'], self.stream)).fetchone()
+233:             require(current is not None and current['payload'] == row['payload'], 'report changed')
+234:             if current['status'] == 'confirmed':
+235:                 require(current['receipt'] == encoded, 'conflicting remote delivery')
+236:             else:
+237:                 require(current['status'] == 'uncertain', 'report not dispatched')
+238:                 db.execute("UPDATE digest_batches SET status='confirmed',receipt=? WHERE key=?", (encoded, row['key']))
+239:                 db.execute('UPDATE digest_cursors SET cutoff=? WHERE stream=?', (row['cutoff'], self.stream))
+240:         return receipt
+241: 
+242: 
+243: def main():
+
+SOURCE .claude/scripts/factory-reporting-pr-discovery.py
+80:     if not current:
+81:         reset();phase='baseline';page=1;candidates=[];seen=set()
+82:     # Ready scratch is never accepted on a subsequent process without a fresh pass.
+83:     if phase=='ready':phase='compare';page=1
+84:     for _ in range(8):
+85:         endpoint=f'repos/{repository}/pulls?state=closed&sort=created&direction=asc&per_page=25&page={page}'
+86:         raw=api.request(endpoint)
+87:         require(type(raw) is list and len(raw)<=25,'PR source page invalid')
+88:         rows=[normalize(row,repository) for row in raw]
+89:         require(len({r['number'] for r in rows})==len(rows),'PR page duplicate identity')
+90:         fingerprint=hashlib.sha256(canonical(rows).encode()).hexdigest()
+91:         selected=[r for r in rows if r['merged_at'] is not None and r['base']['ref']==branch and low<instant(r['merged_at'])<=high]
+92:         if phase=='baseline':
+93:             if any(r['number'] in seen for r in selected):reset();return {'status':'incomplete','phase':'pull-requests','reason':'PR membership shifted'}
+94:             db.execute('INSERT INTO reporting_pr_pages VALUES(?,?,?,?,?)',(stream,page,fingerprint,len(rows),canonical(selected)))
+95:             seen.update(r['number'] for r in selected);candidates.extend(selected)
+96:             if len(rows)<25:phase='compare';page=1
+97:             else:page+=1
+98:         else:
+99:             expected=db.execute('SELECT * FROM reporting_pr_pages WHERE stream=? AND page=?',(stream,page)).fetchone()
+100:             if expected is None or expected['fingerprint']!=fingerprint or expected['count']!=len(rows) or expected['payload']!=canonical(selected):
+101:                 reset();return {'status':'incomplete','phase':'pull-requests','reason':'PR membership shifted'}
+102:             if len(rows)<25:
+103:                 db.execute("UPDATE reporting_pr_scans SET phase='ready',next_page=? WHERE stream=?",(page+1,stream))
+104:                 return {'status':'complete','rows':candidates}
+105:             page+=1
+106:         db.execute('UPDATE reporting_pr_scans SET phase=?,next_page=? WHERE stream=?',(phase,page,stream))
+107:     return {'status':'incomplete','phase':'pull-requests','reason':'PR source scan in progress'}

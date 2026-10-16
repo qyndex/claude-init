@@ -1,0 +1,55 @@
+{
+  "head": "621a9d58a958b0c4685cb5be185b457e84643245",
+  "prompt_sha256": "da0ac01bd552455cb2387e149790119da5f91aae6f71bbaebc45e94e76decb0f",
+  "review_files": [
+    {
+      "path": ".claude/scripts/factory-git-state.py",
+      "start": 285,
+      "end": 380,
+      "full_sha256": "0324019d96a8e7a956621f5865b442bc12d194e0ad828e76162cbd658058cf80",
+      "range_sha256": "54d06467162a1d6c4f16bd7c885b7357f56dc6a5d7ed013b0732d3bb45e281a4"
+    },
+    {
+      "path": ".claude/scripts/factory-git-state.py",
+      "start": 444,
+      "end": 580,
+      "full_sha256": "0324019d96a8e7a956621f5865b442bc12d194e0ad828e76162cbd658058cf80",
+      "range_sha256": "d3e5e7f34529ea63d237dee4bd997691d1ec040bae190a7291980356419c35c9"
+    },
+    {
+      "path": ".claude/scripts/factory-receipts.py",
+      "start": 220,
+      "end": 240,
+      "full_sha256": "276573a80730be1fd246de4939e5fd8594d439724083f88037af96b8ce9e1255",
+      "range_sha256": "18996c4ba7c71ee9dfe6c54a1c9dda11fd9bda38a15d18991def51e0befbcf82"
+    },
+    {
+      "path": ".claude/scripts/factory-reporting-receipts.py",
+      "start": 1,
+      "end": 134,
+      "full_sha256": "53d882ffda39652eb06300aa77b99c3fe96acc23128e8578925cc6d76ba0fef9",
+      "range_sha256": "53d882ffda39652eb06300aa77b99c3fe96acc23128e8578925cc6d76ba0fef9"
+    },
+    {
+      "path": ".claude/scripts/factory-receipt-archive.py",
+      "start": 1540,
+      "end": 1584,
+      "full_sha256": "bc024a261c4eb8a2dc709f5725fd26ca778d79781d0260ba16faf0045fff369c",
+      "range_sha256": "3a2ec65215f4107c6b08a100a81ce6719d7768cf86ea03468a5d38c4bd2e0ee9"
+    },
+    {
+      "path": ".claude/scripts/factory-digest.py",
+      "start": 84,
+      "end": 243,
+      "full_sha256": "5dc5641c8326f6774667539f27667bc2f408854c6cf2df4328d0ccd5ebf57289",
+      "range_sha256": "e4455a51ca89510d88ca8045003c7fd54663a9877f538a4c006c06a58518dfe3"
+    },
+    {
+      "path": ".claude/scripts/factory-reporting-pr-discovery.py",
+      "start": 80,
+      "end": 107,
+      "full_sha256": "d688a392d87d8d391251a6b49e09bd5356ac3798fcfd119c301765c79951fbaa",
+      "range_sha256": "321d84043e62ac5cd29b09f851b8431903aad3be16fe93216e11087906cc5063"
+    }
+  ]
+}
