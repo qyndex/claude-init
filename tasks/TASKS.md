@@ -1802,7 +1802,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-receipt-projection-lineage.sh
   owner: implementer
 
-- [ ] T-307  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-306  | parallel: no  | est: 5m
+- [x] T-307  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-306  | parallel: no  | est: 5m
   summary: Authenticate exact retained PR merge times without inventing historical dates
   files: .claude/scripts/factory-receipt-archive.py, .claude/scripts/test/factory-receipt-projection-time.sh, plans/active/014-authenticated-receipt-recovery.md
   accept: bash .claude/scripts/test/factory-receipt-projection-time.sh

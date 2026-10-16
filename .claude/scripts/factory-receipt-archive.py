@@ -979,3 +979,64 @@ def projection_lineage(state_api, policy, trust_path, store, approval_path, stre
     require(verify_bootstrap(api, approval_path) == anchor and Path(approval_path).read_bytes() == approval_raw and digest(Path(trust_path).read_bytes()) == trust_hash, 'projection lineage protected origin changed')
     reaches_start = bool(windows) and expected_blob is None
     return {'history_head': selected, 'observed_head': anchor['head'], 'windows': windows, 'page': page, 'next_page': page+1 if rows and not reaches_start else None, 'reaches_start': reaches_start, 'partial': page != 1 or not reaches_start, 'suffix_pending': not windows or any(w['checkpoint']['frozen_head'] != anchor['head'] for w in windows), 'coverage_complete': False}
+
+
+def retained_merge_time(state_api, policy, store, approval_path, stream, run_id, attempt):
+    """Derive time only from exact PR GET after protected retained authentication.
+
+    Missing observations are explicit gaps; invalid identity/precision rejects.
+    No inferred date, archive mutation, current-task credit or coverage is granted.
+    """
+    import re
+    import subprocess
+    require(state_api.repo == policy['repository'] == store['repository'] and stream == archive_stream(state_api.repo), 'retained time repository differs')
+    calls = consumed = 0; root = 'repos/'+state_api.repo
+
+    class Bounded:
+        repo = state_api.repo
+
+        def request(self, path, method='GET', payload=None):
+            nonlocal calls, consumed
+            require(method == 'GET' and payload is None and (path == root or path.startswith(root+'/')), 'retained time foreign API or write')
+            require(calls < 2048, 'retained time API capacity gap')
+            calls += 1
+            value = state_api.request(path, method, payload)
+            size = len(canonical(value)); consumed += size
+            require(size <= 2097152 and consumed <= 33554432, 'retained time observation capacity gap')
+            return value
+
+    api = Bounded(); approval_raw = Path(approval_path).read_bytes()
+    anchor = verify_bootstrap(api, approval_path)
+    retained = retained_execution(api, anchor, store, stream, run_id, attempt)
+    result = {'status': 'gap', 'reason': 'retained-proof-missing', 'coverage_complete': False}
+    if retained is not None:
+        record = retained['record']; receipt = document(record['proof']['provenance'])['receipt']
+        result = {'status': 'gap', 'reason': 'merge-time-unavailable', 'record_sha256': retained['record_sha256'], 'coverage_complete': False}
+        try:
+            repository = api.request(root)
+            pr = api.request(root+'/pulls/'+str(receipt['pull_request']))
+        except (RuntimeError, OSError, subprocess.TimeoutExpired):
+            pass
+        except ValueError as error:
+            if not str(error).startswith('GitHub API request failed:'):
+                raise
+        else:
+            require(type(repository) is dict and type(repository.get('id')) is int and repository['id'] == anchor['repository_id'] and repository.get('full_name') == api.repo, 'retained time repository identity differs')
+            require(type(pr) is dict and type(pr.get('number')) is int and pr['number'] == receipt['pull_request'] and pr.get('merged') is True and pr.get('merge_commit_sha') == receipt['merge_sha'], 'retained time PR identity differs')
+            base = pr.get('base'); base_repo = base.get('repo') if type(base) is dict else None
+            require(type(base_repo) is dict and type(base_repo.get('id')) is int and base_repo['id'] == anchor['repository_id'] and base_repo.get('full_name') == api.repo, 'retained time base repository differs')
+            value = pr.get('merged_at')
+            if value is None:
+                result['reason'] = 'merge-time-missing'
+            else:
+                require(type(value) is str and re.fullmatch(r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})', value) is not None, 'retained merge timestamp precision/format invalid')
+                require(value.endswith('Z') or (int(value[-5:-3]) < 24 and int(value[-2:]) < 60), 'retained merge timestamp offset invalid')
+                try:
+                    merged_at = instant(value).astimezone(datetime.timezone.utc)
+                except (ValueError, OverflowError) as error:
+                    raise ValueError('retained merge timestamp invalid') from error
+                require(merged_at <= datetime.datetime.now(datetime.timezone.utc), 'retained merge timestamp future')
+                fact = {'repository': api.repo, 'repository_id': anchor['repository_id'], 'run_id': run_id, 'attempt': attempt, 'record_sha256': retained['record_sha256'], 'pr': receipt['pull_request'], 'merge_sha': receipt['merge_sha'], 'merged_at': merged_at.isoformat(timespec='microseconds').replace('+00:00', 'Z')}
+                result = {'status': 'observed', 'fact': fact, 'coverage_complete': False}
+    require(verify_bootstrap(api, approval_path) == anchor and Path(approval_path).read_bytes() == approval_raw, 'retained time protected origin changed')
+    return result

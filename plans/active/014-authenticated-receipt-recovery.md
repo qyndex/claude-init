@@ -443,3 +443,12 @@ lineage cases and checkpoint20/window17 regressions pass locally. No timestamp,
 retained-proof reconstruction or protected staging is implemented here. Global
 cross-page reconciliation and the256-origin integration remain pending; no live
 configuration, archive credential/capability, settings or push changes.
+
+T307 locally derives exact merge-time facts only after protected retained lookup
+and fixed same-repository PR GET. Original repository/base IDs, PR number, merged
+state and exact retained mergeSHA bind the response; supported precision remains
+lossless to microseconds. Missing proof/time or transport unavailability is an
+explicit gap, while malformed identity/time rejects. Actual20 real-Git cases
+include adapter-prefix distinction and one-microsecond noncollapse. No schema1
+rewrite, staged state, SQLite reconstruction or task credit; current revocation
+and completed-origin integration remain later work. No live or queue changes.
