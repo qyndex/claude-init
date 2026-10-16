@@ -1,0 +1,44 @@
+# TDD ledger — green — T-334/review-followup
+ledger_format: 2
+timestamp: 2026-10-17T01:44:01+11:00
+command: bash .claude/scripts/test/factory-reporting-maintenance.sh
+exit_code: 2
+---
+PASS real future-cutoff no-write and synthetic trust-race/cap/journal invariants
+fresh maintenance phase backfill invocation 0
+fresh maintenance phase origin invocation 2
+fresh maintenance phase backfill invocation 3
+fresh maintenance phase origin invocation 4
+fresh maintenance phase review invocation 5
+fresh maintenance phase checkpoint invocation 6
+fresh maintenance phase stage invocation 8
+fresh maintenance phase ready invocation 9
+fresh maintenance phase backfill invocation 0
+fresh maintenance phase origin invocation 1
+fresh maintenance phase backfill invocation 2
+fresh maintenance phase origin invocation 3
+fresh maintenance phase review invocation 4
+fresh maintenance phase checkpoint invocation 5
+fresh maintenance phase stage invocation 7
+fresh maintenance phase ready invocation 8
+fresh maintenance phase backfill invocation 0
+fresh maintenance phase origin invocation 1
+fresh maintenance phase backfill invocation 2
+fresh maintenance phase origin invocation 3
+fresh maintenance phase review invocation 4
+fresh maintenance phase checkpoint invocation 5
+fresh maintenance phase stage invocation 6
+fresh maintenance phase ready invocation 7
+fresh maintenance phase backfill invocation 0
+fresh maintenance phase origin invocation 2
+fresh maintenance phase backfill invocation 5
+fresh maintenance phase origin invocation 6
+fresh maintenance phase review invocation 7
+fresh maintenance phase origin invocation 10
+fresh maintenance phase checkpoint invocation 15
+fresh maintenance phase stage invocation 17
+fresh maintenance phase origin invocation 19
+fresh maintenance phase stage invocation 20
+fresh maintenance phase ready invocation 21
+actual two-day scoped source/backfill/coverage, fresh-process resume, real CAS/lostack, late append/rerun gap and opaque preservation passed; no Slack/task credit
+.claude/scripts/test/factory-reporting-maintenance.sh: line 165: syntax error near unexpected token `('

@@ -12,6 +12,72 @@ cases=r'''
  path=scripts/'factory-reporting-maintenance.py';assert path.exists(),'missing bounded protected reporting maintenance'
  ms=importlib.util.spec_from_file_location('maintenance',path);m=importlib.util.module_from_spec(ms);ms.loader.exec_module(m)
  store={'repository':'org/repo','visibility':'public'};ends=('2026-10-15T00:01:00Z','2026-10-16T00:01:00Z');stream=a.archive_stream('org/repo')
+ # AC-8 review regressions: real cutoff/trust entry, synthetic local budget/journal units.
+ failures=[]
+ class NoSources:
+  repo='org/repo'
+  def request(self,*args,**kwargs):raise AssertionError('unexpected source read')
+  get=source=request
+ class RecordedState(PipelineState):
+  def __init__(self):self.writes=[]
+  def request(self,target,method='GET',payload=None):
+   if method!='GET':self.writes.append((target,method))
+   return super().request(target,method,payload)
+ initial_head=out('rev-parse',ref);future_state=RecordedState()
+ try:
+  try:m.maintain(NoSources(),future_state,policy,trust,store,approval,interval_end='2099-01-01T00:00:00Z')
+  except ValueError:pass
+  else:failures.append('future cutoff accepted')
+  if future_state.writes or out('rev-parse',ref)!=initial_head:failures.append('future cutoff wrote protected progress')
+ finally:git('update-ref',ref,initial_head)
+ # Synthetic race changes the local file immediately after the real parser validated it.
+ trust_bytes=trust.read_bytes();real_trust_loader=m.archive.receipts.load_receipt_trust
+ def changed_trust(*args,**kwargs):
+  validated=real_trust_loader(*args,**kwargs);trust.write_bytes(b'{"unvalidated":true}');return validated
+ m.archive.receipts.load_receipt_trust=changed_trust
+ try:
+  try:m.maintain(NoSources(),PipelineState(),policy,trust,store,approval,interval_end=ends[0])
+  except ValueError:pass
+  else:failures.append('unvalidated reread trust bytes accepted')
+ finally:
+  m.archive.receipts.load_receipt_trust=real_trust_loader;trust.write_bytes(trust_bytes);git('update-ref',ref,initial_head)
+ # Synthetic adapters isolate pre-dispatch supplementary caps, not native API capability.
+ real_advance=m.archive.advance_origin
+ class CounterAPI:
+  repo='org/repo'
+  def __init__(self,size):self.calls=0;self.size=size
+  def request(self,*args,**kwargs):self.calls+=1;return b'x'*self.size
+  def read_blobs(self,*args):self.calls+=1;return {'raw_bytes':self.size}
+ for label,attempts,size,allowed,batch in (('calls',2049,1,2048,False),('bytes',17,2097152,16,False),('batch-bytes',17,2097152,16,True),('exact-calls',2048,1,2048,False),('exact-bytes',16,2097152,16,False),('response',1,2097153,1,False)):
+  counter=CounterAPI(size)
+  def dispatch(api,*args,**kwargs):
+   for _ in range(attempts):
+    if batch:api.read_blobs(101,[])
+    else:api.request('repos/org/repo/git/refs/heads/factory-reporting-state','PATCH',{'sha':'a'*40,'force':False})
+   return {'frozen_complete':False}
+  m.archive.advance_origin=dispatch
+  rejected=False
+  try:
+   try:m.maintain(NoSources(),counter,policy,trust,store,approval,interval_end=ends[0])
+   except ValueError:rejected=True
+   if counter.calls!=allowed:failures.append(label+' dispatched '+str(counter.calls)+' expected '+str(allowed))
+   if rejected!=(label not in ('exact-calls','exact-bytes')):failures.append(label+' rejection differs')
+  finally:m.archive.advance_origin=real_advance
+ role=a.digest(a.canonical(['reporting-maintenance-v1','org/repo',branch]));journal_path='reports/'+role+'.json'
+ m.maintain(NoSources(),PipelineState(),policy,trust,store,approval,interval_end=ends[0])
+ valid=json.loads(git('show',ref+':'+journal_path).stdout);expected={key:valid[key] for key in ('repository','stream','binding')}
+ for label,changes in (
+  ('review-pair',{'phase':'review','review_blob':'a'*40,'review_cursor':None,'review_watch_count':1,'review_watch_segments':1}),
+  ('cursor-segment',{'phase':'review','review_blob':'a'*40,'review_cursor':{'segment':1,'row':0},'review_watch_count':1,'review_watch_segments':1}),
+  ('zero-segments',{'phase':'review','review_blob':'a'*40,'review_cursor':{'segment':0,'row':0}}),
+  ('stage-selectors',{'phase':'stage'}),('ready-selectors',{'phase':'ready'}),
+  ('previous-pair',{'previous_blob':'a'*40}),('remaining-count',{'phase':'review','remaining':2,'review_watch_count':1,'review_watch_segments':1})):
+  try:m._journal(dict(valid,**changes),expected)
+  except ValueError:pass
+  else:failures.append('journal invariant accepted '+label)
+ git('update-ref',ref,initial_head)
+ assert not failures,failures
+ print('PASS real future-cutoff no-write and synthetic trust-race/cap/journal invariants',flush=True)
  context={'root':str(root),'work':str(work),'ref':ref,'branch':branch,'policies':policies,'policy':policy,'trust':str(trust),'approval':str(approval),'store':store}
  context_path=root/'context.json';context_path.write_text(json.dumps(context))
  header=fixture.split('\nwith tempfile.TemporaryDirectory() as tmp:',1)[0]
@@ -72,6 +138,53 @@ cases=r'''
    assert result['coverage_complete'] is False
   raise AssertionError('bounded protected phase progress did not reach usable interval coverage: '+str(result))
  first=ready(ends[0]);anchor=a.verify_bootstrap(PipelineState(),approval)
+ # Actual protected publications must reject altered bindings and predecessor facts.
+ maintained_head=out('rev-parse',ref);maintained_raw=git('show',ref+':'+journal_path).stdout
+ maintained=json.loads(maintained_raw)
+ def restored_call(candidate=policy,mode='profile',cutoff=ends[0]):
+  return m.maintain(NoSources(),PipelineState(),candidate,trust,store,approval,interval_end=cutoff,trust_mode=mode)
+ for label,field,value,reason in (('binding','binding',dict(maintained['binding'],workflow_id=999),'binding'),
+                                ('previous-blob','previous_blob','f'*40,'previous publication'),
+                                ('previous-interval','previous_interval_end','2026-10-15T00:00:59Z','previous interval')):
+  try:
+   altered=dict(maintained,previous_blob=m.state.git_hash(maintained_raw),previous_interval_end=maintained['interval_end'])
+   altered[field]=value
+   current=a.verify_bootstrap(PipelineState(),approval)
+   storage=m.state.GitState(PipelineState(),branch,role,current['head'],bootstrap_existing=True,state_view={'mode':'archive','approval_path':str(Path(approval).resolve())})
+   storage.checkpoint(a.canonical(altered))
+   try:restored_call()
+   except ValueError as error:assert reason in str(error),(label,str(error))
+   else:raise AssertionError('altered protected journal accepted: '+label)
+  finally:git('update-ref',ref,maintained_head)
+ # These three source identity selectors intentionally require reviewed migration.
+ for field in ('workflow_id','source_branch','trust_mode'):
+  changed=copy.deepcopy(policy);mode='profile'
+  if field=='workflow_id':changed['receipts']['workflow_id']+=1
+  elif field=='source_branch':changed['base_branch']='next-main'
+  else:mode='legacy'
+  try:
+   try:restored_call(changed,mode)
+   except ValueError as error:assert 'binding' in str(error),(field,str(error))
+   else:raise AssertionError('source identity rotated without migration: '+field)
+  finally:git('update-ref',ref,maintained_head)
+ # Mutable policy/trust content takes the existing reset path with cleared selectors.
+ for label in ('trust','policy'):
+  changed=copy.deepcopy(policy);saved_trust=trust.read_bytes()
+  try:
+   if label=='trust':
+    document=json.loads(saved_trust);document['profiles'][0]['status']='revoked';trust.write_text(json.dumps(document))
+   else:changed['merge_enabled']=not changed['merge_enabled']
+   reset=restored_call(changed);assert reset['phase']=='backfill' and reset['coverage_complete'] is False,reset
+   updated=json.loads(git('show',ref+':'+journal_path).stdout)
+   assert updated['history_head'] is None and updated['campaign'] is None
+   assert updated['policy_sha256']==a.receipts.coordinator.policy_hash(changed)
+   assert updated['trust_sha256']==a.digest(trust.read_bytes())
+  finally:trust.write_bytes(saved_trust);git('update-ref',ref,maintained_head)
+ try:restored_call(cutoff='2026-10-15T00:00:59Z')
+ except ValueError as error:assert 'cannot rewind' in str(error),str(error)
+ else:raise AssertionError('maintenance journal cutoff rewound')
+ assert git('show',ref+':'+journal_path).stdout==maintained_raw
+ print('PASS actual protected journal/predecessor negatives, immutable source identity, policy/trust resets and rewind rejection',flush=True)
  first_manifest='receipt-archive/backfill/'+a.interval_scope(anchor,stream,ends[0],True)+'.json';old_manifest=git('show',ref+':'+first_manifest).stdout
  second_manifest='receipt-archive/backfill/'+a.interval_scope(anchor,stream,ends[1],True)+'.json'
  assert git('cat-file','-e',ref+':'+second_manifest,check=False).returncode!=0,'second interval was preseeded'

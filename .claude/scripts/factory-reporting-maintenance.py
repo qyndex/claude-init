@@ -38,6 +38,14 @@ def _journal(value, expected):
     require(all(value[key] is None or archive.state_paths.valid_hash(value[key],40 if key=='history_head' else 64)
                 for key in ('history_head','campaign'))
             and all(archive.state_paths.valid_hash(value[key],64) for key in ('trust_sha256','policy_sha256')), 'maintenance selectors invalid')
+    require((value['previous_blob'] is None)==(value['previous_interval_end'] is None), 'maintenance previous pair differs')
+    require((value['review_blob'] is None)==(value['review_cursor'] is None), 'maintenance review pair differs')
+    require(value['review_blob'] is None or (value['phase']=='review' and value['review_watch_count']>0
+            and value['review_watch_segments']>0 and value['review_cursor']['segment']<value['review_watch_segments']),
+            'maintenance review cursor outside watch')
+    require(value['phase']!='review' or value['remaining']<=value['review_watch_count'], 'maintenance review remaining exceeds watch')
+    require(all((value[key] is not None)==(value['phase'] in ('stage','ready')) for key in ('history_head','campaign')),
+            'maintenance phase selectors differ')
     require(len(archive.canonical(value))<=16384, 'maintenance journal capacity gap')
     return value
 
@@ -53,41 +61,54 @@ def maintain(source_api, state_api, policy, trust_path, store, approval_path, *,
             'maintenance repository/trust mode differs')
     require(type(interval_end) is str and len(interval_end)<=40 and archive.instant(interval_end).microsecond==0,
             'maintenance cutoff requires exact seconds')
+    require(archive.instant(interval_end)<=archive.datetime.datetime.now(archive.datetime.timezone.utc),
+            'maintenance cutoff is in future')
     # Production passes the same RoutedAPI to both roles; its actual raw response
     # accounting survives every phase. This additional envelope also bounds local
     # adapter composition, including fixed-query raw batch responses.
     calls=consumed=0
-    def observe(value, *, batch=False):
-        nonlocal calls,consumed
+    def begin():
+        nonlocal calls
+        require(calls<2048 and consumed<33554432,'maintenance invocation capacity gap')
         calls+=1
+    def observe(value, *, batch=False):
+        nonlocal consumed
         size=value.get('raw_bytes') if batch and type(value) is dict else len(value) if type(value) is bytes else len(archive.canonical(value))
         require(type(size) is int and 0<size<=2097152,'maintenance response capacity gap')
         consumed+=size;require(calls<=2048 and consumed<=33554432,'maintenance invocation capacity gap')
         return value
     class State:
         repo=state_api.repo
-        def request(self,path,method='GET',payload=None):return observe(state_api.request(path,method,payload))
+        def request(self,path,method='GET',payload=None):
+            begin();return observe(state_api.request(path,method,payload))
     class Source:
         repo=source_api.repo
-        def get(self,path):return observe(source_api.get(path))
+        def get(self,path):
+            begin();return observe(source_api.get(path))
         def request(self,path,**kwargs):
             require(kwargs.get('method','GET')=='GET','maintenance source must be read-only')
-            return observe(source_api.request(path,**kwargs))
-        def source(self,path,sha):return observe(source_api.source(path,sha))
+            begin();return observe(source_api.request(path,**kwargs))
+        def source(self,path,sha):
+            begin();return observe(source_api.source(path,sha))
     api=State();source=Source()
     for name in ('read_blobs','read_pull_requests'):
         method=getattr(state_api,name,None)
         if callable(method):
-            def batch(repository_id,selectors,method=method):return observe(method(repository_id,selectors),batch=True)
+            def batch(repository_id,selectors,method=method):
+                begin();return observe(method(repository_id,selectors),batch=True)
             setattr(api,name,batch)
     progress=archive.advance_origin(api,approval_path,commit_budget=16,tree_pages=4)
     result={'status':'incomplete','phase':'origin','coverage_complete':False,'all_history_complete':False,'task_credit':False}
     if not progress['frozen_complete']:return result
     anchor=archive.verify_bootstrap(api,approval_path);root='repos/'+api.repo;stream=archive.archive_stream(api.repo)
     require(archive.instant(anchor['coverage_from'])<=archive.instant(interval_end), 'maintenance cutoff precedes approved origin')
-    archive.receipts.load_receipt_trust(trust_path,api.repo,mode='report')
-    trust_hash=archive.digest(Path(trust_path).read_bytes());policy_hash=archive.receipts.coordinator.policy_hash(policy)
+    validated_trust=archive.receipts.load_receipt_trust(trust_path,api.repo,mode='report')
+    with Path(trust_path).open('rb') as trust_source:trust_raw=trust_source.read(262145)
+    require(0<len(trust_raw)<=262144 and archive.canonical(archive.document(trust_raw))==archive.canonical(validated_trust),
+            'maintenance trust changed during validation')
+    trust_hash=archive.digest(trust_raw);policy_hash=archive.receipts.coordinator.policy_hash(policy)
     binding={key:anchor[key] for key in ('repository_id','branch','bootstrap_sha','bootstrap_tree','coverage_from','writer_app_id','approval_sha256')}
+    # Source identity rotations need reviewed migration, unlike mutable policy/trust content.
     binding.update(workflow_id=policy['receipts']['workflow_id'],source_branch=policy['base_branch'],trust_mode=trust_mode)
     role=archive.digest(archive.canonical(['reporting-maintenance-v1',api.repo,anchor['branch']]))
     path='reports/'+role+'.json';item_at,blob_at=archive.fixed_reader(api,root)
