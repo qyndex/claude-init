@@ -1,0 +1,8 @@
+{
+  "run_id": 38840013467,
+  "job_id": 116777712471,
+  "observed_command_lines": 44,
+  "parser_rejection": "queue evidence JSON invalid",
+  "raw_job_log_retained": false,
+  "native_attestation": false
+}

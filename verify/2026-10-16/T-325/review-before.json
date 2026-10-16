@@ -1,0 +1,20 @@
+{
+  "verdict": "changes_requested",
+  "findings": [
+    {
+      "severity": "high",
+      "file": ".claude/scripts/factory-reporting-queue-evidence.py",
+      "line": 95,
+      "title": "Log parser rejects ordinary Actions log lines that begin with '['",
+      "reason": "results() parses the whole job log. It treats every timestamp-prefixed line that starts with '{' or '[' as a candidate result, and decode() raises ValueError when a candidate is not valid JSON. The monitor job includes an actions/checkout step. That step's real log contains many `[command]/usr/bin/git ...` lines, which start with '[' and are not JSON. The first such line makes observe_runs raise 'queue evidence JSON invalid'. The live checker therefore refuses every genuine successful run, and live acceptance (T318) can never pass. The fixtures only include a harmless 'shell setup' line, so no test covers this. The result is fail-closed, not unsafe, but it is a functional defect against the contract. Fix: accept only lines that parse as the exact two-field result object, and ignore non-matching or non-JSON lines. Alternatively, restrict parsing to the selected step's section. Add a fixture containing `[command]` lines."
+    }
+  ],
+  "limitations": [
+    "Static review of the supplied diff and numbered sources only. I did not run any tests, workflows, GitHub calls or Slack calls.",
+    "Findings are limited to what the supplied files show. I only had the changed-file sources plus factory-git-state, watchdog, slack-digest and bounded-process; other repository files were not available.",
+    "The claim that actions/checkout logs contain `[command]` lines comes from my knowledge of its normal output and was not observed in a real log.",
+    "I treated these as intentional bounded fail-closed behavior or documented constraints, not defects: a recovery intent left pending after a failed recheck guard becomes a permanent uncertain block (the delivery fixture asserts this); the 24-commit, 1024-tree-entry and one-pair limits; the requirement that checkout HEAD equal current main; and the absence of independent Slack readback.",
+    "Spec014 exclusive-writer and archive guarantees are out of scope and not claimed."
+  ],
+  "review_summary": "I found one concrete defect, so this is not a pass. The live evidence checker's log parser errors on any '['-prefixed log line, and the checkout step's `[command]` lines are one. A genuine protected run would therefore always be refused, and live acceptance cannot succeed. The rest of the change is consistent with the stated contract. This covers the queue protected entry and workflow shell, strict journal validation and transitions, nonforce CAS with opaque preservation, the bounded metadata observer, the Slack outbox and receipt reconciliation, the two-fresh-CLI drill with no retry after failure, and the evidence checker's source, run and publication correlation. I found nothing that violates the AC5\u20138 contract or breaks the AC1\u20134 alert refactor. The sole change to existing alert code is the `Alert.event_type` and `format_text` hooks, which preserve the old behaviour."
+}

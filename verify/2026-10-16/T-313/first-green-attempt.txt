@@ -1,0 +1,36 @@
+# TDD ledger — green — T-313
+ledger_format: 2
+timestamp: 2026-10-16T13:00:13+11:00
+command: bash .claude/scripts/test/factory-reporting-queue-cas.sh
+exit_code: 1
+---
+Traceback (most recent call last):
+  File "/private/tmp/factory-queue-monitor-20261016/.claude/scripts/factory-reporting-queue.py", line 205, in checkpoint
+    observed, actual = self._load()
+                       ~~~~~~~~~~^^
+  File "/private/tmp/factory-queue-monitor-20261016/.claude/scripts/factory-reporting-queue.py", line 175, in _load
+    current = self.state.GitState(self, self.storage['state_branch'], self.identity,
+                                  self.storage['bootstrap_sha'], self.storage['policy_approvals'],
+                                  bootstrap_existing=self.storage['initialize'])
+  File "/private/tmp/factory-queue-monitor-20261016/.claude/scripts/factory-git-state.py", line 149, in __init__
+    require(bootstrap_sha == self.head and (bootstrap_existing or not any(item['path'].startswith('reports/') for item in tree['tree'])), 'missing checkpoint requires exact protected bootstrap revision; never reset silently')
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-queue-monitor-20261016/.claude/scripts/validate-candidate-evidence.py", line 19, in require
+    raise ValueError(message)
+ValueError: missing checkpoint requires exact protected bootstrap revision; never reset silently
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "<stdin>", line 70, in rejects
+  File "<stdin>", line 79, in <lambda>
+  File "/private/tmp/factory-queue-monitor-20261016/.claude/scripts/factory-reporting-queue.py", line 207, in checkpoint
+    raise ValueError('queue write uncertain; protected ref/journal reconciliation required') from error
+ValueError: queue write uncertain; protected ref/journal reconciliation required
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "<stdin>", line 79, in <module>
+  File "<stdin>", line 71, in rejects
+AssertionError: ('bootstrap', 'queue write uncertain; protected ref/journal reconciliation required')

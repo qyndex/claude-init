@@ -1,0 +1,64 @@
+{
+  "runner": "committed-source-shell-aggregate",
+  "source_sha": "d95c4339226e8789adf9ccf913160a305f20d86f",
+  "command": "bash .claude/scripts/test/factory-reporting-queue.sh",
+  "aggregate_log_sha256": "78cf1405862258fa77c0cf0178fc9f82286f7cc9121b3f52b116c317c20bc1e2",
+  "independent_attestation": false,
+  "scope": "local-contract-contributions-only",
+  "live_activation_verified": false,
+  "full_AC8_pending": true,
+  "testResults": [
+    {
+      "assertionResults": [
+        {
+          "fullName": "AC-1: LOCAL CONTRACT CONTRIBUTION \u2014 ordinary overdue/digest receipt and recovery regressions; no new live proof",
+          "status": "passed",
+          "scope": "local-contract-contribution",
+          "command": "bash .claude/scripts/test/factory-reporting-queue.sh"
+        },
+        {
+          "fullName": "AC-2: LOCAL CONTRACT CONTRIBUTION \u2014 exact Slack outbox/reconciliation, lost acknowledgement and drill fixtures",
+          "status": "passed",
+          "scope": "local-contract-contribution",
+          "command": "bash .claude/scripts/test/factory-reporting-queue.sh"
+        },
+        {
+          "fullName": "AC-3: LOCAL CONTRACT CONTRIBUTION \u2014 failed-run identity/default-branch/clock and disabled-input fixtures",
+          "status": "passed",
+          "scope": "local-contract-contribution",
+          "command": "bash .claude/scripts/test/factory-reporting-queue.sh"
+        },
+        {
+          "fullName": "AC-4: LOCAL CONTRACT CONTRIBUTION \u2014 strict journal, workflow baseline, existing reporting regression suites",
+          "status": "passed",
+          "scope": "local-contract-contribution",
+          "command": "bash .claude/scripts/test/factory-reporting-queue.sh"
+        },
+        {
+          "fullName": "AC-5: LOCAL CONTRACT CONTRIBUTION \u2014 bounded queue metadata/unknown/grace and protected entry fixtures",
+          "status": "passed",
+          "scope": "local-contract-contribution",
+          "command": "bash .claude/scripts/test/factory-reporting-queue.sh"
+        },
+        {
+          "fullName": "AC-6: LOCAL CONTRACT CONTRIBUTION \u2014 actual disposable Git CAS/restart/opaque-state preservation fixtures",
+          "status": "passed",
+          "scope": "local-contract-contribution",
+          "command": "bash .claude/scripts/test/factory-reporting-queue.sh"
+        },
+        {
+          "fullName": "AC-7: LOCAL CONTRACT CONTRIBUTION \u2014 durable pending intent, exact receipt and no-blind-resend fixtures",
+          "status": "passed",
+          "scope": "local-contract-contribution",
+          "command": "bash .claude/scripts/test/factory-reporting-queue.sh"
+        },
+        {
+          "fullName": "AC-8: LOCAL READINESS CONTRIBUTION ONLY \u2014 committed-source aggregate and offline live-checker fixtures; FULL AC-8 LIVE ACCEPTANCE IS PENDING",
+          "status": "passed",
+          "scope": "local-contract-contribution",
+          "command": "bash .claude/scripts/test/factory-reporting-queue.sh"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "<stdin>", line 54, in <module>
+  File "<stdin>", line 40, in rejects
+AssertionError: untrusted source/run/log accepted

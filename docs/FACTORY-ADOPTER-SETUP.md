@@ -48,3 +48,106 @@ exact settled metadata after every policy change; candidate messages cannot gran
 this administrative trust. The separate bounded administrative audit expires after
 90days and is not native attestation or a live delivery guarantee. Private-repository
 capability and secure candidate retrieval must still be established per adopter.
+
+## Queue monitor setup and readiness
+
+The queue monitor is optional and defaults off. Local implementation is ready
+for review; actual queue rollout is **PENDING**. An installation of this harness
+is not another repository's Slack/reporting activation. Preserve normal reporting
+and feedback while configuring this separate role; do not disable their existing
+gates merely to stage the queue workflow.
+
+GitHub [environment-level variables](https://docs.github.com/en/actions/reference/workflows-and-actions/variables)
+are available only after the job starts. The three job-if gates therefore need
+**repository or organization** variables, preferably explicit per-repository
+values: FACTORY_REPORTING_ENABLED (retain existing reporting policy),
+FACTORY_REPORTING_PROFILE=github-hosted, and FACTORY_REPORTING_QUEUE_ENABLED=false
+until reviewed activation. Do not rely on environment-level copies overriding
+job-if evaluation, or create conflicting copies. The CLI also validates the
+step's effective values and fails closed if disabled.
+
+Keep identity/storage variables in the main-only factory-reporting environment:
+
+| Variable | Required value |
+| --- | --- |
+| FACTORY_REPORTING_CHANNEL | This repository's existing Slack channel ID |
+| FACTORY_REPORTING_TEAM_ID | Its existing Slack team ID |
+| FACTORY_REPORTING_START | Exact established worker reporting origin; never a reset date |
+| FACTORY_REPORTING_ATTACHMENTS_ENABLED | Explicit true or false matching the worker policy |
+| FACTORY_REPORTING_STATE_REPOSITORY | Exact owner/repository, same as the source repository |
+| FACTORY_REPORTING_STATE_BRANCH | Existing protected inert reporting state branch, not default branch |
+| FACTORY_REPORTING_POLICY_APPROVALS | Existing reviewed exact policy observations JSON; explicit {} if not required |
+| FACTORY_REPORTING_QUEUE_GRACE_MINUTES | Explicit integer string 15–1440; choose 60 initially |
+| FACTORY_REPORTING_QUEUE_BOOTSTRAP_SHA | Separately reviewed exact current state commit before first queue role creation |
+| FACTORY_REPORTING_QUEUE_INITIALIZE | Explicit true only for that reviewed creation; false afterward |
+
+GITHUB_REPOSITORY and the actual default branch are supplied by the protected
+Actions context; FACTORY_REPORTING_BRANCH is derived from that branch by the
+workflow. Missing/invalid flags never enable defaults. The queue bootstrap is
+separate from the original worker FACTORY_REPORTING_BOOTSTRAP_SHA; it does not
+reset digest, feedback or existing queue state. The existing state branch must
+already satisfy the backend's inert README/reports and rewrite/deletion guards.
+
+Retain existing FACTORY_SLACK_BOT_TOKEN and FACTORY_REPORTING_STATE_TOKEN secrets
+in that same protected environment. No new secret or App permission is needed.
+The existing bot must be installed/in the channel with chat-write and appropriate
+history access; explicitly enabled files reuse its existing file scopes. Do not
+expand the state writer's permissions for Actions: the workflow routes fixed
+same-repository Actions GET through github.token/actions:read, and state operations
+through the existing writer/fallback. Do not copy bot or writer secrets to a local
+checker. Public state holds queue IDs/status/opaque receipts, never plaintext
+feedback; unrelated report/encrypted-feedback blobs remain opaque.
+
+After normal source review and checks, review exact configuration and state SHA
+before enabling the queue gate. Set initialization true only for that reviewed
+first creation, then false once the role exists. If a concurrent worker advances
+the branch first, initialization blocks: fresh-read and review a new exact SHA,
+never silently repin or reset. Keep workers operational; the new role uses
+base_tree/nonforce CAS with at most three retries and does not replace their data.
+If the role later disappears, stop and investigate; never delete its journal,
+change destination, or reinitialize to clear uncertainty.
+
+Run a labelled manual verification_drill=true on the default branch. The workflow
+must complete two fresh CLI invocations in the same run/attempt (one new notice,
+then zero). Stop on first failure; do not manually resend an uncertain effect.
+Restore bot membership/scopes/history or exact file access and reconcile the
+original intent. Deleted/altered/ambiguous history remains blocked; a separately
+reviewed migration may be required. Never edit a row to confirmed or remove it.
+A normal manual invocation must then show verified recovery, and another zero
+new notices. Refresh stalled-run/worker-health observations before this window;
+no concurrent production worker is stalled/cancelled as a test.
+
+From a fresh clean reviewed default-branch checkout, the read-only checker can use
+the same non-secret configuration via environment plus an existing gh session
+able to read source, Actions logs and state protections. For local checking set
+GITHUB_REPOSITORY and FACTORY_REPORTING_BRANCH to that actual repository/default
+branch. No Slack or state-writer token is required locally. Supply actual IDs and
+attempts from the completed protected runs; for example, replace every placeholder:
+
+```sh
+bash .claude/scripts/test/factory-reporting-queue-live-evidence.sh --live \
+  --drill-run DRILL_RUN_ID --drill-attempt DRILL_ATTEMPT \
+  --recovery-run RECOVERY_RUN_ID --recovery-attempt RECOVERY_ATTEMPT \
+  --repeat-run REPEAT_RUN_ID --repeat-attempt REPEAT_ATTEMPT
+```
+
+Missing selectors never fall back to fixtures. All three runs must share the
+clean current reviewed default-branch source, with ordered nonoverlapping windows.
+The isolated pilot checker requires one confirmed drill/recovery pair and bounded
+history (24 commits/1024 tree entries); extra effects or missing history block.
+Do not delete retained records to meet these limits. It checks actual queue-path
+publication parent/tree deltas, permitting unrelated worker updates between them.
+Its safe output is administrative correlation of protected execution and state,
+not native attestation or independent local Slack readback. Keep actual selectors,
+source hashes and this limitation in the rollout record; never save raw job logs
+or private Slack/feedback history.
+
+`bash .claude/scripts/test/factory-reporting-queue.sh` is the local aggregate.
+No-argument live-evidence script execution is offline self-tests only and cannot
+complete T318. T321/T317 local evidence and reviewed live activation are separate;
+the latter remains **PENDING** until actual drill/recovery/repeat/preservation
+observations pass. Shared environment approvals, Actions-wide failures, delayed
+cron runs and Slack outages remain limitations. Healthchecks is disabled and
+independent monitoring remains optional. The operator-disabled Issue lifecycle,
+Lighthouse CI and E2E on Preview Deploy workflows stay disabled; the factory plan
+continues, and those workflows supply no current verification credit.

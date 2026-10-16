@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "<stdin>", line 52, in <module>
+  File "/private/tmp/factory-queue-monitor-20261016/.claude/scripts/factory-reporting-queue.py", line 379, in run_queue
+    validate_config(config, repository=api.repo, default_branch=config.get('branch'))
+                                                                ^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'get'

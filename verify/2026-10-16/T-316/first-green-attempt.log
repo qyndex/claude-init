@@ -1,0 +1,15 @@
+# TDD ledger — green — T-316
+ledger_format: 2
+timestamp: 2026-10-16T13:29:32+11:00
+command: bash .claude/scripts/test/factory-reporting-queue-actions.sh
+exit_code: 1
+---
+Traceback (most recent call last):
+  File "<stdin>", line 59, in <module>
+  File "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py", line 787, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+         ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py", line 771, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '.github/workflows/factory-slack-feedback.yml'

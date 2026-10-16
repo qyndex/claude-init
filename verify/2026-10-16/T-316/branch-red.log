@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "<stdin>", line 53, in <module>
+  File "/private/tmp/factory-queue-monitor-20261016/.claude/scripts/factory-reporting-queue.py", line 591, in request
+    require(type(path) is str and (path == 'repos/'+self.repo or path.startswith('repos/'+self.repo+'/')) and '..' not in path and '%' not in path and '#' not in path and '\\' not in path, 'queue credential foreign endpoint')
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-queue-monitor-20261016/.claude/scripts/factory-reporting-queue.py", line 17, in require
+    raise ValueError(message)
+ValueError: queue credential foreign endpoint

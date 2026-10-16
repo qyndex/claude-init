@@ -1,0 +1,11 @@
+# TDD ledger — red — T-323
+ledger_format: 2
+timestamp: 2026-10-16T13:59:23+11:00
+command: bash .claude/scripts/test/factory-reporting-queue-evidence-journal.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 90, in <module>
+  File "real-Git-queue-journal-evidence-fixture", line 103, in <module>
+AttributeError: module 'evidence' has no attribute 'observe_journal'. Did you mean: 'observe_runs'?

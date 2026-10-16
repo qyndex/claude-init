@@ -1,0 +1,10 @@
+# TDD ledger — red — T-315
+ledger_format: 2
+timestamp: 2026-10-16T13:18:29+11:00
+command: bash .claude/scripts/test/factory-reporting-queue-delivery.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 53, in <module>
+AttributeError: module 'queue' has no attribute 'run_queue'

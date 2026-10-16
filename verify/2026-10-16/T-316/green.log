@@ -1,0 +1,7 @@
+# TDD ledger — green — T-316
+ledger_format: 2
+timestamp: 2026-10-16T13:31:26+11:00
+command: bash .claude/scripts/test/factory-reporting-queue-actions.sh
+exit_code: 0
+---
+48 protected queue workflow/config/credential boundary cases passed; no live calls

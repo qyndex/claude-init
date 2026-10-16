@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "source_sha": "d95c4339226e8789adf9ccf913160a305f20d86f",
+  "command": "bash .claude/scripts/test/factory-reporting-queue.sh",
+  "started_at": "2026-10-16T03:30:19.569808+00:00",
+  "finished_at": "2026-10-16T03:30:55.614937+00:00",
+  "duration_seconds": 36.045,
+  "exit_code": 0,
+  "aggregate_log_sha256": "78cf1405862258fa77c0cf0178fc9f82286f7cc9121b3f52b116c317c20bc1e2",
+  "scope": "local-contract-contributions-only",
+  "live_activation_verified": false,
+  "full_AC8_pending": true,
+  "task_317_complete": false
+}

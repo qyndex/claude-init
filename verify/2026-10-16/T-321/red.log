@@ -1,0 +1,12 @@
+# TDD ledger — red — T-321
+ledger_format: 2
+timestamp: 2026-10-16T14:14:58+11:00
+command: python3 -c 'from pathlib import Path; import subprocess; p=Path(".claude/scripts/test/factory-reporting-queue.sh"); assert p.is_file(), "AC-8: queue aggregate is absent"; subprocess.run(["bash",str(p)],check=True)'
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    from pathlib import Path; import subprocess; p=Path(".claude/scripts/test/factory-reporting-queue.sh"); assert p.is_file(), "AC-8: queue aggregate is absent"; subprocess.run(["bash",str(p)],check=True)
+                                                                                                                   ~~~~~~~~~^^
+AssertionError: AC-8: queue aggregate is absent

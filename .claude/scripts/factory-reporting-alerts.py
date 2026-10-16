@@ -32,12 +32,17 @@ def text(config, row):
 
 
 class Alert:
+    event_type = 'factory_reporting_alert_v1'
+
+    def format_text(self):
+        return text(self.config, self.row)
+
     def __init__(self, client, config, row):
         self.client = client; self.config = config; self.row = row
         identity = client.call('auth.test', {})
         require(identity.get('team_id') == config['team_id'] and identity.get('bot_id'), 'alert workspace/bot differs')
-        self.bot = identity['bot_id']; self.text = text(config, row)
-        self.metadata = {'event_type': 'factory_reporting_alert_v1', 'event_payload': {
+        self.bot = identity['bot_id']; self.text = self.format_text()
+        self.metadata = {'event_type': self.event_type, 'event_payload': {
             'key': row['key'], 'text_sha256': state.hashlib.sha256(self.text.encode()).hexdigest()}}
 
     def lookup(self):
@@ -50,7 +55,7 @@ class Alert:
             for message in page['messages']:
                 metadata = message.get('metadata')
                 payload = metadata.get('event_payload') if isinstance(metadata, dict) else None
-                if isinstance(metadata, dict) and metadata.get('event_type') == 'factory_reporting_alert_v1' and isinstance(payload, dict) and payload.get('key') == self.row['key']:
+                if isinstance(metadata, dict) and metadata.get('event_type') == self.event_type and isinstance(payload, dict) and payload.get('key') == self.row['key']:
                     require(message.get('bot_id') == self.bot and metadata == self.metadata and
                             state.slack.receipt_text_matches(self.text, message.get('text')) and
                             re.fullmatch(r'[0-9]+\.[0-9]{1,6}', message.get('ts', '')), 'alert remote receipt differs')

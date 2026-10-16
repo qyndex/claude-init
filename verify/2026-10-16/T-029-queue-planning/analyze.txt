@@ -1,0 +1,6 @@
+PASS Spec029 planning: AC1–3 preserved; AC4 serialization amended; AC5–8 covered by312–318.
+PASS unique task IDs; DAG acyclic;312dep203 then sequential313–318; all new tasks pending.
+PASS existing memory index byte-prefix preserved; exactly one ADR0009 appended.
+PASS role hash existing inert namespace; CAS/lostack/uncertain Slack effects remain implementation tasks.
+PASS no source/workflow/config implementation, credentials, permission increase or live proof claimed.
+No planning blockers. Live source review, exact role bootstrap and drill remain explicit activation gates.
