@@ -659,7 +659,7 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
   accept: bash .claude/scripts/test/factory-reporting-queue.sh
   owner: implementer
 
-- [ ] T-322  | spec:029  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-319  | parallel: no  | est: 5m
+- [x] T-322  | spec:029  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-319  | parallel: no  | est: 5m
   summary: Verify bounded protected queue run source and exact safe job-log results
   files: .claude/scripts/factory-reporting-queue-evidence.py, .claude/scripts/test/factory-reporting-queue-evidence-source.sh
   accept: bash .claude/scripts/test/factory-reporting-queue-evidence-source.sh
