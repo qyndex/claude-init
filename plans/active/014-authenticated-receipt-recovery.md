@@ -171,3 +171,42 @@ The main-policy observation repair approves explicit-empty actors only and canno
 be injected into the archive App-only-actor model. Separate reviewed bootstrap/
 credential/capability integration remains required; no active archive or live state
 was provisioned by this local task.
+
+### T-294 local partitioned backfill — 2026-10-16
+
+An explicit backfill operation joins the existing atomic discovery/CAS writer.
+Its immutable campaign starts at reviewed coverage_from and fixes a protected
+whole-second UTC end, workflow/default source branch and query size. A changed end
+or binding rejects; no candidate boundary or caller checkpoint grants authority.
+Filtered counts >=1000 split inclusive time ranges, with boundary overlap deduped
+by the existing immutable run/attempt pending index. A saturated one-second bucket
+is an explicit gap, persisted and revisited in later epochs rather than omitted.
+
+A constant <=64 DFS frontier selects strict sharded partition records. Each record
+bounds its page/count/unique identity facts below the filtered ceiling, checks
+exact row counts and retained page digests, and confirms the first page/count
+before calling a partition observed. Rounds revisit completed and gapped intervals
+so late old-created IDs and reruns join the existing segmented cold watch. Old IDs
+and attempts are never removed. Source observations are not retained delivery proof;
+missing artifacts/unapproved or unavailable sources remain pending under T285.
+Network/access/count/identity inconsistencies are gaps or blocked writes, never
+valid engineering proof; source/state observations share existing32MiB/API bounds.
+Page facts, partition/frontier and pending-watch progress publish in one nonforce
+base_tree commit; CAS conflicts/lost acknowledgements reconcile exact changed bytes.
+All complete/coverage flags remain false, including short or empty listings.
+
+Local acceptance separates full1100-run partition algorithm fixtures from actual
+Git atomic/CAS/fresh-process paging and boundary-dedup integration. It does not
+claim full large-state hosted bootstrap integration: existing strict bootstrap and
+T293 frozen-origin suffix boundaries remain until T286–288 complete integration.
+T295 retained-projection windows and aggregate T286 remain pending.
+
+T288 must extend a campaign only through a new protected campaign that retains the
+original coverage_from and old partition/seen facts. It may not overwrite history,
+reset origin or substitute a forward watermark. T288/T290 must also preserve
+historical authenticated six-file retained facts after the seven-file helper
+upgrade: validate against reviewed merge-time closure families/profile snapshots,
+while current ingest rejects omission of a current helper and revocation annotates
+old facts. Arbitrary self-asserted runtime sets or implicit legacy fallback are not
+acceptable cross-version proof. These integration acceptances are pending, not
+implemented by T294. Actual main PR110 source is intentionally not imported midtask.

@@ -1,0 +1,7 @@
+# TDD ledger — green — T-294
+ledger_format: 2
+timestamp: 2026-10-16T11:53:29+11:00
+command: bash .claude/scripts/test/factory-receipt-backfill.sh
+exit_code: 0
+---
+backfill: PASS; capped1100partitioned rows, realGit atomicCAS/fresh-process restart, dense gaps/count-identity-access negatives, dedup boundaries, epochs/late/reruns, fixed origin/end; coverage remains false

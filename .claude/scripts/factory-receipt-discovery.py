@@ -190,7 +190,166 @@ def assess(source_api, api, anchor, policy, trust_path, trust_mode, store, strea
     raise ArchiveAdvanced()  # Re-read the actual archive head, then use its retained index first.
 
 
-def _checkpoint(source_api, state_api, policy, approval_path, stream, *, page_size=10, tree_pages=1, review_rows=4, mode='discover', trust_path=None, trust_mode='profile', store=None):
+def backfill_page(source_api, anchor, policy, stream, interval_end, page_size, blob_at):
+    """Pure bounded partition step; caller must authenticate protected blob origin.
+
+    Only _checkpoint publishes changes. Listing facts alone never prove delivery
+    or grant trust to a supplied JSON blob/hash.
+    """
+    from datetime import datetime, timezone
+    def second(value):
+        point = archive.instant(value)
+        require(point.microsecond == 0 and point.timestamp() >= 0, 'backfill boundary requires exact seconds')
+        return int(point.timestamp())
+    def stamp(value):
+        return datetime.fromtimestamp(value, timezone.utc).isoformat().replace('+00:00', 'Z')
+    low = second(anchor['coverage_from']); high = second(interval_end)
+    require(low <= high <= int(datetime.now(timezone.utc).timestamp()) and type(page_size) is int
+            and 0 < page_size <= 100, 'backfill interval/page bound invalid')
+    workflow = policy['receipts']['workflow_id']; root = 'repos/'+anchor['repository']
+    require(source_api.repo == anchor['repository'] == policy['repository']
+            and stream == archive.archive_stream(anchor['repository']), 'backfill repository/stream differs')
+    path = 'receipt-archive/backfill/'+stream+'.json'
+    require(blob_at(anchor['bootstrap_tree'], path) is None, 'backfill pre-bootstrap manifest requires explicit reviewed import')
+    raw = blob_at(anchor['tree'], path)
+    expected = {'schema_version': 1, 'repository': anchor['repository'], 'stream': stream,
+                'binding': binding(anchor), 'workflow_id': workflow, 'source_branch': policy['base_branch'], 'page_size': page_size,
+                'interval_start': stamp(low), 'interval_end': stamp(high)}
+    if raw is None:
+        manifest = dict(expected, stack=[[low, high]], epoch=0, rounds_observed=0,
+                        round_gaps=0, last_round_gaps=0, coverage_complete=False)
+    else:
+        manifest = archive.document(raw)
+        require(type(manifest) is dict and manifest.keys() == expected.keys() | {'stack', 'epoch', 'rounds_observed', 'round_gaps', 'last_round_gaps', 'coverage_complete'}
+                and all(manifest[key] == value and type(manifest[key]) is type(value) for key, value in expected.items())
+                and manifest['coverage_complete'] is False, 'backfill protected campaign binding differs')
+        require(all(type(manifest[key]) is int and 0 <= manifest[key] < 10**12 for key in ('epoch', 'rounds_observed', 'round_gaps', 'last_round_gaps'))
+                and type(manifest['stack']) is list and 0 < len(manifest['stack']) <= 64
+                and all(type(part) is list and len(part) == 2 and all(type(n) is int for n in part)
+                        and low <= part[0] <= part[1] <= high for part in manifest['stack']), 'backfill frontier malformed')
+    lo, hi = manifest['stack'][-1]
+    identity = archive.digest(archive.canonical([expected, lo, hi]))
+    part_path = f'receipt-archive/backfill/{stream}/{identity[:2]}/{identity}.json'
+    require(blob_at(anchor['bootstrap_tree'], part_path) is None, 'backfill pre-bootstrap partition requires explicit reviewed import')
+    raw = blob_at(anchor['tree'], part_path)
+    part_binding = {'schema_version': 1, 'campaign_sha256': archive.digest(archive.canonical(expected)), 'lo': lo, 'hi': hi}
+    if raw is None:
+        node = dict(part_binding, epoch=manifest['epoch'], phase='paging', page=1,
+                    expected_count=None, seen=[], facts=[], reason=None, observation=None)
+    else:
+        node = archive.document(raw)
+        require(type(node) is dict and node.keys() == part_binding.keys() | {'epoch', 'phase', 'page', 'expected_count', 'seen', 'facts', 'reason', 'observation'}
+                and all(node[key] == value and type(node[key]) is type(value) for key, value in part_binding.items())
+                and type(node['epoch']) is int and 0 <= node['epoch'] <= manifest['epoch']
+                and node['phase'] in ('paging', 'confirm', 'split', 'observed', 'gap')
+                and type(node['page']) is int and 0 < node['page'] <= 1001
+                and (node['expected_count'] is None or type(node['expected_count']) is int and 0 <= node['expected_count'] < 10**12)
+                and type(node['seen']) is list and len(node['seen']) <= 999
+                and type(node['facts']) is list and len(node['facts']) <= 1000
+                and node['reason'] in (None, 'dense-second', 'unavailable', 'count-drift', 'row-count', 'duplicate-identity', 'confirmation-changed'), 'backfill partition malformed')
+        identities = set()
+        for row in node['seen']:
+            require(type(row) is dict and row.keys() == {'run_id', 'attempt', 'source_sha', 'created_at'}
+                    and all(type(row[key]) is int and row[key] > 0 for key in ('run_id', 'attempt'))
+                    and row['run_id'] not in identities and archive.state_paths.valid_hash(row['source_sha'], 40)
+                    and lo <= second(row['created_at']) <= hi, 'backfill retained identity malformed')
+            identities.add(row['run_id'])
+        for number, fact in enumerate(node['facts'], 1):
+            require(type(fact) is dict and fact.keys() == {'page', 'total_count', 'rows_sha256', 'rows_count'}
+                    and type(fact['page']) is int and fact['page'] == number
+                    and type(fact['total_count']) is int and 0 <= fact['total_count'] < 10**12
+                    and type(fact['rows_count']) is int and 0 <= fact['rows_count'] <= page_size
+                    and archive.state_paths.valid_hash(fact['rows_sha256'], 64), 'backfill page facts malformed')
+        require(node['page'] == len(node['facts'])+1, 'backfill retained page cursor differs')
+        offset = 0
+        for fact in node['facts']:
+            retained = node['seen'][offset:offset+fact['rows_count']]; offset += fact['rows_count']
+            require(fact['total_count'] == node['expected_count']
+                    and archive.digest(archive.canonical(retained)) == fact['rows_sha256'], 'backfill retained page identities differ')
+        require(offset == len(node['seen']), 'backfill retained unique count differs')
+        if node['phase'] in ('confirm', 'observed'):
+            require(type(node['expected_count']) is int and node['expected_count'] < 1000
+                    and len(node['seen']) == node['expected_count'], 'backfill retained completion count differs')
+        if node['phase'] == 'split':
+            require(lo < hi and type(node['expected_count']) is int and node['expected_count'] >= 1000
+                    and len(node['facts']) == 1, 'backfill retained split differs')
+        observation = node['observation']
+        require(observation is None or type(observation) is dict and observation.keys() == {'page', 'total_count', 'rows_sha256', 'rows_count'}
+                and type(observation['page']) is int and 0 < observation['page'] <= 1001
+                and type(observation['total_count']) is int and 0 <= observation['total_count'] < 10**12
+                and type(observation['rows_count']) is int and 0 <= observation['rows_count'] <= page_size
+                and archive.state_paths.valid_hash(observation['rows_sha256'], 64), 'backfill last observation malformed')
+        if node['epoch'] != manifest['epoch'] or node['phase'] in ('split', 'observed', 'gap'):
+            # Revisit preserves known watches and immutable Git history, not a new origin.
+            node = dict(part_binding, epoch=manifest['epoch'], phase='paging', page=1,
+                        expected_count=None, seen=[], facts=[], reason=None, observation=None)
+    query_page = 1 if node['phase'] == 'confirm' else node['page']
+    target = f'{root}/actions/workflows/{workflow}/runs?branch={quote(policy['base_branch'], safe="")}&created={quote(stamp(lo)+".."+stamp(hi), safe="")}&per_page={page_size}&page={query_page}'
+    response = None
+    try:
+        response = source_api.request(target)
+    except (RuntimeError, OSError):
+        node.update(phase='gap', reason='unavailable')
+    except ValueError as error:
+        if not str(error).startswith('GitHub API request failed:'):
+            raise
+        node.update(phase='gap', reason='unavailable')
+    rows = []; facts = []
+    if response is not None:
+        require(type(response) is dict and type(response.get('total_count')) is int and 0 <= response['total_count'] < 10**12
+                and type(response.get('workflow_runs')) is list and len(response['workflow_runs']) <= page_size, 'backfill source page malformed')
+        count = response['total_count']
+        for run in response['workflow_runs']:
+            run_identity(run, anchor, policy)
+            require(lo <= second(run['created_at']) <= hi, 'backfill run outside created partition')
+            facts.append({'run_id': run['id'], 'attempt': run['run_attempt'], 'source_sha': run['head_sha'], 'created_at': run['created_at']})
+        fact = {'page': query_page, 'total_count': count, 'rows_sha256': archive.digest(archive.canonical(facts)), 'rows_count': len(facts)}
+        node['observation'] = fact
+        duplicate = len({row['run_id'] for row in facts}) != len(facts)
+        if duplicate:
+            node.update(phase='gap', reason='duplicate-identity')
+        elif node['phase'] == 'confirm':
+            if node['expected_count'] != count or not node['facts'] or fact != node['facts'][0]:
+                node.update(phase='gap', reason='confirmation-changed')
+            else:
+                node['phase'] = 'observed'
+        elif count >= 1000:
+            # Filtered API counts at or above the ceiling are never exact coverage.
+            node.update(expected_count=count, facts=[fact], page=2, seen=facts)
+            node.update(phase='gap' if lo == hi else 'split', reason='dense-second' if lo == hi else None)
+        elif node['expected_count'] is not None and node['expected_count'] != count:
+            node.update(phase='gap', reason='count-drift')
+        elif len(facts) != min(page_size, max(0, count-(query_page-1)*page_size)):
+            node.update(phase='gap', reason='row-count')
+        elif duplicate or {row['run_id'] for row in facts} & {row['run_id'] for row in node['seen']}:
+            node.update(phase='gap', reason='duplicate-identity')
+        else:
+            node['expected_count'] = count; node['facts'].append(fact); node['seen'].extend(facts); node['page'] += 1
+            if len(node['seen']) == count:
+                node['phase'] = 'confirm'
+        if duplicate:
+            node.update(phase='gap', reason='duplicate-identity')
+        if node['phase'] != 'gap':
+            rows = response['workflow_runs']
+    if node['phase'] in ('split', 'observed', 'gap'):
+        manifest['stack'].pop()
+        if node['phase'] == 'split':
+            mid = (lo+hi)//2
+            children = [[lo, mid], [mid if hi-lo > 1 else hi, hi]]
+            manifest['stack'].extend(reversed(children))
+        elif node['phase'] == 'gap':
+            manifest['round_gaps'] += 1
+        if not manifest['stack']:
+            manifest.update(epoch=manifest['epoch']+1, rounds_observed=manifest['rounds_observed']+1,
+                            last_round_gaps=manifest['round_gaps'], round_gaps=0, stack=[[low, high]])
+    require(len(manifest['stack']) <= 64, 'backfill partition frontier capacity gap')
+    changes = {path: archive.canonical(manifest), part_path: archive.canonical(node)}
+    require(all(len(raw) <= archive.MAX_OBJECT for raw in changes.values()), 'backfill object capacity gap')
+    return rows, changes, {'epoch': manifest['epoch'], 'rounds_observed': manifest['rounds_observed'],
+                           'last_round_gaps': manifest['last_round_gaps'], 'partition_phase': node['phase'], 'coverage_complete': False}
+
+
+def _checkpoint(source_api, state_api, policy, approval_path, stream, *, page_size=10, tree_pages=1, review_rows=4, mode='discover', trust_path=None, trust_mode='profile', store=None, backfill_end=None):
     """Read actual protected progress, advance one bounded page/scan and CAS atomically.
 
     Only checked scanner output is persisted. No caller checkpoint/cursor input is
@@ -199,7 +358,11 @@ def _checkpoint(source_api, state_api, policy, approval_path, stream, *, page_si
     """
     require(source_api.repo == state_api.repo == policy['repository'] and stream == archive.archive_stream(state_api.repo), 'foreign discovery repository/stream')
     require(type(page_size) is int and 0 < page_size <= 100 and type(tree_pages) is int and 0 < tree_pages <= 10, 'discovery invocation budget invalid')
-    require(mode in ('discover', 'review') and type(review_rows) is int and 0 < review_rows <= 16, 'discovery review budget invalid')
+    require(mode in ('discover', 'review', 'backfill') and type(review_rows) is int and 0 < review_rows <= 16, 'discovery review budget invalid')
+    source_page_size = page_size
+    if mode == 'backfill':
+        page_size = 10  # Existing discovery page identity is independent of query partition size.
+        require(backfill_end is not None, 'protected backfill end required')
     if mode == 'review':
         require(trust_path is not None and trust_mode in ('profile', 'legacy') and store == {'repository': state_api.repo, 'visibility': 'private' if archive.document(Path(approval_path).read_bytes())['private'] else 'public'}, 'explicit reviewed reconciliation trust/store required')
         trust = archive.receipts.load_receipt_trust(trust_path, policy['repository'], mode='report')
@@ -264,13 +427,13 @@ def _checkpoint(source_api, state_api, policy, approval_path, stream, *, page_si
             require(all(blob_at(anchor['tree'], name) == data for name, data in attempted_changes.items()), 'discovery reconciled checkpoint material differs')
             return {'status': 'checkpointed', 'head': anchor['head'], 'complete': False, 'reconciled': True}
         if raw is None:
-            require(mode == 'discover', 'protected discovery checkpoint missing before reconciliation')
+            require(mode in ('discover', 'backfill'), 'protected discovery checkpoint missing before reconciliation')
             progress = {'schema_version': 3, 'stream': stream, 'binding': binding(anchor), 'anchor': {'head': anchor['head'], 'tree': anchor['tree']},
                         'scan': {'head': anchor['head'], 'tree': anchor['tree'], 'cursor': None, 'complete': True},
                         'pagination': {'workflow_id': workflow, 'page_size': page_size, 'next_page': 1, 'overlap_page': 1, 'overlap_until': 1}, 'watch': {'segments': 0, 'count': 0}, 'review': {'segment': 0, 'row': 0}, 'coverage_complete': False}
             cursor = None
         else:
-            if mode == 'review':
+            if mode in ('review', 'backfill'):
                 page_size = archive.document(raw)['pagination']['page_size']
             progress = validate_checkpoint(archive.document(raw), anchor, workflow, page_size)
             frozen = api.request(root+'/git/commits/'+progress['scan']['head'])
@@ -295,7 +458,11 @@ def _checkpoint(source_api, state_api, policy, approval_path, stream, *, page_si
             scan = archive.state_paths.scan_tree(api, root, progress['scan']['tree'], cursor=cursor, page_budget=tree_pages)
             progress['scan'].update(cursor=scan['cursor'], complete=scan['complete'])
         page = progress['pagination']['next_page']; changes = {}
-        if mode == 'discover':
+        if mode == 'backfill':
+            rows, observations, _ = backfill_page(source_api, anchor, policy, stream, backfill_end, source_page_size, blob_at)
+            changes.update(observations)
+            response = {'workflow_runs': rows}
+        elif mode == 'discover':
             target = f'{root}/actions/workflows/{workflow}/runs?per_page={page_size}&page={page}'
             response = charge(source_api.request(target))
             pages = [response]
@@ -367,7 +534,7 @@ def _checkpoint(source_api, state_api, policy, approval_path, stream, *, page_si
         progress['anchor'] = {'head': anchor['head'], 'tree': anchor['tree']}
         validate_checkpoint(progress, anchor, workflow, page_size)
         # Even a short/empty API page is NOT complete history (filtered queries cap
-        # at 1,000). Partition/reconciliation and outcome proofs are later stages.
+        # at 1,000). Backfill count observations still require retained outcome proofs.
         encoded = archive.canonical(progress); changes[path] = encoded
         prepared = []
         for name, data in changes.items():
@@ -404,3 +571,7 @@ def advance(source_api, state_api, policy, approval_path, stream, *, page_size=1
 
 def reconcile(source_api, state_api, policy, trust_path, store, approval_path, stream, *, trust_mode='profile', review_rows=4):
     return _checkpoint(source_api, state_api, policy, approval_path, stream, mode='review', trust_path=trust_path, trust_mode=trust_mode, store=store, review_rows=review_rows)
+
+
+def backfill(source_api, state_api, policy, approval_path, stream, *, interval_end, page_size=100, tree_pages=1):
+    return _checkpoint(source_api, state_api, policy, approval_path, stream, mode='backfill', backfill_end=interval_end, page_size=page_size, tree_pages=tree_pages)

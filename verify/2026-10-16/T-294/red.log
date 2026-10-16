@@ -1,0 +1,11 @@
+# TDD ledger — red — T-294
+ledger_format: 2
+timestamp: 2026-10-16T11:46:18+11:00
+command: bash .claude/scripts/test/factory-receipt-backfill.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 57, in <module>
+  File "backfill-real-git-fixture", line 88, in <module>
+AttributeError: module 'backfill' has no attribute 'backfill'
