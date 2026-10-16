@@ -232,3 +232,36 @@ def observe_journal(api, root, config, storage, selections, now):
     ref = api.request(prefix+'/git/ref/heads/'+quote(config['branch'],safe=''))
     require(type(ref) is dict and ref.get('ref') == 'refs/heads/'+config['branch'] and type(ref.get('object')) is dict and ref['object'].get('type') == 'commit' and ref['object'].get('sha') == runs['source_sha'], 'queue evidence reviewed source changed')
     return {'mode':'administrative-queue-observation','repository':api.repo,'source_sha':runs['source_sha'],'frozen_head':frozen,'observed_head':final.head,'role_sha256':hashlib.sha256(before).hexdigest(),'drill_key':drill['key'],'recovery_key':recovery['key'],'publications':len(publications),'runs':runs['runs']}
+
+
+def main(argv=None):
+    import argparse
+    def selector(value):
+        if type(value) is not str or re.fullmatch(r'[1-9][0-9]{0,18}',value) is None or int(value) >= 2**63:
+            raise argparse.ArgumentTypeError('positive bounded run/attempt required')
+        return int(value)
+    parser = argparse.ArgumentParser(description='Read-only administrative queue evidence; no live fallback.',allow_abbrev=False)
+    parser.add_argument('--live',action='store_true',required=True)
+    for role in ('drill','recovery','repeat'):
+        parser.add_argument('--'+role+'-run',type=selector,required=True)
+        parser.add_argument('--'+role+'-attempt',type=selector,required=True)
+    args = parser.parse_args(argv)
+    spec = importlib.util.spec_from_file_location('queue_live_configuration',Path(__file__).with_name('factory-reporting-queue.py'))
+    queue = importlib.util.module_from_spec(spec); spec.loader.exec_module(queue)
+    built = queue.build_config(os.environ)
+    selections = {role:{'run_id':getattr(args,role+'_run'),'attempt':getattr(args,role+'_attempt')} for role in ('drill','recovery','repeat')}
+    api = GitHub(built['config']['repository'])
+    result = observe_journal(api,Path(__file__).resolve().parents[2],built['config'],built['storage'],selections,datetime.now(timezone.utc))
+    result['verification_mode'] = 'live-read-only'
+    output = json.dumps(result,sort_keys=True)
+    require(len(output.encode()) <= 8192, 'queue evidence safe summary bound exceeded')
+    print(output); return 0
+
+
+if __name__ == '__main__':
+    import sys
+    try:
+        sys.exit(main())
+    except Exception:
+        print('Queue evidence unavailable; no live credit. Preserve state and inspect protected observations.',file=sys.stderr)
+        sys.exit(2)

@@ -671,7 +671,7 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
   accept: bash .claude/scripts/test/factory-reporting-queue-evidence-journal.sh
   owner: implementer
 
-- [ ] T-324  | spec:029  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-323  | parallel: no  | est: 5m
+- [x] T-324  | spec:029  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-323  | parallel: no  | est: 5m
   summary: Compose explicit read-only live queue checker without offline completion fallback
   files: .claude/scripts/factory-reporting-queue-evidence.py, .claude/scripts/test/factory-reporting-queue-live-evidence.sh
   accept: bash .claude/scripts/test/factory-reporting-queue-live-evidence.sh
