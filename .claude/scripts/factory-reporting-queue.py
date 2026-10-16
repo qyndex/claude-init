@@ -523,3 +523,115 @@ def run_queue(api, client, config, storage, reporting, now, *, drill_run=None):
             require(notice(existing).lookup() == existing['message_id'], 'queue existing receipt no longer verifiable')
             return {'notifications':0, 'reconciled':reconciled}
     return emit(pending)
+
+
+def build_config(env):
+    """Only named protected variables; never serialize credentials or user input."""
+    def value(key, limit=255):
+        text = env.get(key)
+        require(type(text) is str and len(text) <= limit, 'queue protected variable absent or too large')
+        return text
+    def flag(key):
+        text = value(key, 5); require(text in {'true', 'false'}, 'queue protected boolean invalid')
+        return text == 'true'
+    require(flag('FACTORY_REPORTING_ENABLED') and flag('FACTORY_REPORTING_QUEUE_ENABLED') and value('FACTORY_REPORTING_PROFILE') == 'github-hosted', 'queue protected policy disabled')
+    config = {'enabled':True, 'queue_monitor_enabled':True, 'repository':value('GITHUB_REPOSITORY'), 'state_repository':value('FACTORY_REPORTING_STATE_REPOSITORY'), 'branch':value('FACTORY_REPORTING_BRANCH'), 'destination':value('FACTORY_REPORTING_CHANNEL'), 'team_id':value('FACTORY_REPORTING_TEAM_ID')}
+    grace = value('FACTORY_REPORTING_QUEUE_GRACE_MINUTES', 4)
+    require(re.fullmatch(r'[0-9]{2,4}', grace) is not None, 'queue protected grace invalid')
+    config['grace_minutes'] = int(grace)
+    validate_config(config, repository=config['repository'], default_branch=config['branch'])
+    raw = value('FACTORY_REPORTING_POLICY_APPROVALS', MAX_BYTES)
+    require(len(raw.encode()) <= MAX_BYTES, 'queue approvals byte bound exceeded')
+    def pairs(items):
+        result = {}
+        for key, item in items:
+            require(key not in result, 'queue approval JSON duplicate key'); result[key] = item
+        return result
+    try:
+        approvals = json.loads(raw, object_pairs_hook=pairs)
+    except (ValueError, RecursionError, UnicodeError) as error:
+        raise ValueError('queue approval JSON invalid') from error
+    storage = {'state_branch':value('FACTORY_REPORTING_STATE_BRANCH'), 'bootstrap_sha':value('FACTORY_REPORTING_QUEUE_BOOTSTRAP_SHA'), 'initialize':flag('FACTORY_REPORTING_QUEUE_INITIALIZE'), 'policy_approvals':approvals}
+    # Constructor validates the complete bounded storage shape without any IO.
+    class Identity:
+        repo = config['repository']
+    QueueStore(Identity(), config, storage)
+    start = value('FACTORY_REPORTING_START', 40)
+    require(string(start, r'[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]{1,6})?(?:Z|[+-][0-9]{2}:[0-9]{2})', 40) and (start.endswith('Z') or (int(start[-5:-3]) < 24 and int(start[-2:]) < 60)), 'queue protected start invalid')
+    try:
+        require(datetime.fromisoformat(start.replace('Z', '+00:00')).astimezone(timezone.utc) <= datetime.now(timezone.utc), 'queue protected start future')
+    except (ValueError, OverflowError) as error:
+        raise ValueError('queue protected start invalid') from error
+    reporting = {key:config[key] for key in ('enabled', 'repository', 'state_repository', 'branch', 'destination', 'team_id')}
+    reporting.update(start=start, attachments_enabled=flag('FACTORY_REPORTING_ATTACHMENTS_ENABLED'))
+    return {'config':config, 'storage':storage, 'reporting':reporting}
+
+
+def execution_context(env, config, checkout_sha, drill):
+    """Validate immutable protected invocation before creating clients or effects."""
+    require(type(drill) is bool and env.get('GITHUB_ACTIONS') == 'true' and env.get('RUNNER_ENVIRONMENT') == 'github-hosted' and env.get('GITHUB_SERVER_URL') == 'https://github.com' and env.get('GITHUB_API_URL') == 'https://api.github.com', 'queue execution platform differs')
+    require(env.get('GITHUB_REF') == 'refs/heads/'+config['branch'] and env.get('GITHUB_WORKFLOW_REF') == config['repository']+'/.github/workflows/factory-reporting-queue.yml@refs/heads/'+config['branch'], 'queue protected workflow ref differs')
+    require(string(checkout_sha, r'[0-9a-f]{40}', 40) and checkout_sha == env.get('GITHUB_SHA') == env.get('GITHUB_WORKFLOW_SHA'), 'queue protected checkout differs')
+    event = env.get('GITHUB_EVENT_NAME')
+    require(type(event) is str and event in {'schedule', 'workflow_dispatch'} and (not drill or event == 'workflow_dispatch'), 'queue execution event differs')
+    values = []
+    for key in ('GITHUB_RUN_ID', 'GITHUB_RUN_ATTEMPT'):
+        text = env.get(key)
+        require(string(text, r'[1-9][0-9]{0,18}', 19) and int(text) < 2**63, 'queue execution identity invalid')
+        values.append(int(text))
+    return event, values[0], values[1]
+
+
+class RoutedAPI:
+    """Actions GET uses the workflow token; state transport keeps its existing key."""
+    def __init__(self, repository, actions, state):
+        require(actions.repo == state.repo == repository, 'queue credential repository differs')
+        self.repo = repository; self.actions = actions; self.state = state
+    def request(self, path, method='GET', payload=None):
+        require(type(path) is str and (path == 'repos/'+self.repo or path.startswith('repos/'+self.repo+'/')) and '..' not in path and '%' not in path.replace('%2F', '') and '#' not in path and '\\' not in path, 'queue credential foreign endpoint')
+        if path.startswith('repos/'+self.repo+'/actions/'):
+            require(method == 'GET' and payload is None, 'queue Actions API is read only')
+            return self.actions.request(path, method, payload)
+        return self.state.request(path, method, payload)
+
+
+def protected_entry(env, api, client, checkout_sha, now, *, drill=False):
+    built = build_config(env); config = built['config']
+    event, run_id, attempt = execution_context(env, config, checkout_sha, drill)
+    require(api.repo == config['repository'], 'queue protected API repository differs')
+    prefix = 'repos/'+api.repo
+    repository = api.request(prefix)
+    workflow = api.request(prefix+'/actions/workflows/factory-reporting-queue.yml')
+    run = api.request(prefix+'/actions/runs/'+str(run_id))
+    require(all(type(row) is dict for row in (repository, workflow, run)), 'queue protected metadata invalid')
+    require(type(repository.get('id')) is int and 0 < repository['id'] < 2**63 and repository.get('full_name') == api.repo and repository.get('default_branch') == config['branch'], 'queue protected repository differs')
+    require(type(workflow.get('id')) is int and 0 < workflow['id'] < 2**63 and workflow.get('path') == '.github/workflows/factory-reporting-queue.yml' and workflow.get('state') == 'active', 'queue protected workflow differs')
+    require(all(type(run.get(key)) is int and 0 < run[key] < 2**63 for key in ('id', 'workflow_id', 'run_attempt')) and run['id'] == run_id and run['workflow_id'] == workflow['id'] and run['run_attempt'] == attempt, 'queue protected run identity differs')
+    require(run.get('path') == workflow['path'] and run.get('event') == event and run.get('status') == 'in_progress' and run.get('conclusion') is None and run.get('head_branch') == config['branch'] and run.get('head_sha') == checkout_sha, 'queue protected source differs')
+    require(all(type(run.get(key)) is dict and type(run[key].get('id')) is int and run[key]['id'] == repository['id'] and run[key].get('full_name') == api.repo for key in ('repository', 'head_repository')), 'queue protected run repository differs')
+    return run_queue(api, client, config, built['storage'], built['reporting'], now, drill_run=run_id if drill else None)
+
+
+def main():
+    import argparse, importlib.util, os, subprocess
+    from pathlib import Path
+    parser = argparse.ArgumentParser(); parser.add_argument('--drill', action='store_true'); args = parser.parse_args()
+    built = build_config(os.environ)
+    checkout = subprocess.run(['git', 'rev-parse', '--verify', 'HEAD'], check=True, capture_output=True, text=True, timeout=10).stdout.strip()
+    execution_context(os.environ, built['config'], checkout, args.drill)
+    module = importlib.util.spec_from_file_location('queue_entry_state', Path(__file__).with_name('factory-git-state.py'))
+    state = importlib.util.module_from_spec(module); module.loader.exec_module(state)
+    actions = state.API(built['config']['repository'], os.environ.get('GH_TOKEN'))
+    writer = state.API(built['config']['repository'], os.environ.get('FACTORY_REPORTING_STATE_TOKEN') or os.environ.get('GH_TOKEN'))
+    api = RoutedAPI(built['config']['repository'], actions, writer)
+    result = protected_entry(os.environ, api, state.slack.http_client(built['reporting']), checkout, datetime.now(timezone.utc), drill=args.drill)
+    print(json.dumps(result, sort_keys=True)); return 0
+
+
+if __name__ == '__main__':
+    import sys
+    try:
+        sys.exit(main())
+    except Exception:
+        print('Queue monitor blocked; preserve intent and inspect protected run before retry.', file=sys.stderr)
+        sys.exit(2)

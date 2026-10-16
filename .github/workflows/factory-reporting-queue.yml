@@ -1,0 +1,56 @@
+name: Factory Reporting Queue Monitor
+on:
+  schedule:
+    - cron: '11,26,41,56 * * * *'
+  workflow_dispatch:
+    inputs:
+      verification_drill:
+        description: Send a labelled queue verification drill, not an outage
+        type: boolean
+        default: false
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: factory-reporting-queue-${{ github.repository }}
+  cancel-in-progress: false
+jobs:
+  monitor:
+    if: >-
+      vars.FACTORY_REPORTING_ENABLED == 'true' &&
+      vars.FACTORY_REPORTING_PROFILE == 'github-hosted' &&
+      vars.FACTORY_REPORTING_QUEUE_ENABLED == 'true' &&
+      github.server_url == 'https://github.com' &&
+      github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    environment: factory-reporting
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Observe and reconcile protected queue notifications
+        env:
+          FACTORY_REPORTING_ENABLED: ${{ vars.FACTORY_REPORTING_ENABLED }}
+          FACTORY_REPORTING_PROFILE: ${{ vars.FACTORY_REPORTING_PROFILE }}
+          FACTORY_REPORTING_QUEUE_ENABLED: ${{ vars.FACTORY_REPORTING_QUEUE_ENABLED }}
+          FACTORY_REPORTING_QUEUE_GRACE_MINUTES: ${{ vars.FACTORY_REPORTING_QUEUE_GRACE_MINUTES }}
+          FACTORY_REPORTING_QUEUE_BOOTSTRAP_SHA: ${{ vars.FACTORY_REPORTING_QUEUE_BOOTSTRAP_SHA }}
+          FACTORY_REPORTING_QUEUE_INITIALIZE: ${{ vars.FACTORY_REPORTING_QUEUE_INITIALIZE }}
+          FACTORY_REPORTING_ATTACHMENTS_ENABLED: ${{ vars.FACTORY_REPORTING_ATTACHMENTS_ENABLED }}
+          FACTORY_REPORTING_CHANNEL: ${{ vars.FACTORY_REPORTING_CHANNEL }}
+          FACTORY_REPORTING_TEAM_ID: ${{ vars.FACTORY_REPORTING_TEAM_ID }}
+          FACTORY_REPORTING_START: ${{ vars.FACTORY_REPORTING_START }}
+          FACTORY_REPORTING_BRANCH: ${{ github.event.repository.default_branch }}
+          FACTORY_REPORTING_STATE_REPOSITORY: ${{ vars.FACTORY_REPORTING_STATE_REPOSITORY }}
+          FACTORY_REPORTING_STATE_BRANCH: ${{ vars.FACTORY_REPORTING_STATE_BRANCH }}
+          FACTORY_REPORTING_POLICY_APPROVALS: ${{ vars.FACTORY_REPORTING_POLICY_APPROVALS }}
+          GH_TOKEN: ${{ github.token }}
+          FACTORY_REPORTING_STATE_TOKEN: ${{ secrets.FACTORY_REPORTING_STATE_TOKEN }}
+          FACTORY_SLACK_BOT_TOKEN: ${{ secrets.FACTORY_SLACK_BOT_TOKEN }}
+          VERIFICATION_DRILL: ${{ github.event_name == 'workflow_dispatch' && inputs.verification_drill && 'true' || 'false' }}
+        run: |
+          args=()
+          if [ "$VERIFICATION_DRILL" = "true" ]; then args+=(--drill); fi
+          python3 .claude/scripts/factory-reporting-queue.py "${args[@]}"

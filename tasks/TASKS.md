@@ -1703,7 +1703,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-reporting-queue-delivery.sh
   owner: implementer
 
-- [ ] T-316  | spec:029  | phase:2  | priority: security  | created: 2026-10-16  | deps: T-315  | parallel: no  | est: 5m
+- [x] T-316  | spec:029  | phase:2  | priority: security  | created: 2026-10-16  | deps: T-315  | parallel: no  | est: 5m
   summary: Wire separately serialized protected queue probe with existing credentials
   files: .github/workflows/factory-reporting-queue.yml, .claude/scripts/factory-reporting-queue.py, .claude/scripts/test/factory-reporting-queue-actions.sh, .claude/scripts/test/factory-workflow-baseline.sh
   accept: bash .claude/scripts/test/factory-reporting-queue-actions.sh
