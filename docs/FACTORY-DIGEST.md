@@ -92,8 +92,11 @@ Unknown Slack effects are not resent: a fresh monitor must find the exact origin
 
 ## Independently serialized queue monitor (029)
 
-Local implementation and contract verification are available; queue activation
-is **PENDING**. This is distinct from the earlier ordinary-alert pilot above.
+Local implementation and contract verification are available. The bounded
+qyndex/claude-init queue pilot passed actual drill/recovery/repeat acceptance on
+2026-10-16; see the [source-bound activation record](activation/2026-10-16-queue-probe/README.md).
+Each adopter still needs its own reviewed rollout. This is distinct from the
+earlier ordinary-alert pilot above.
 The queue workflow polls at minutes 11/26/41/56, with its own
 `factory-reporting-queue-${{ github.repository }}` concurrency group and
 cancel-in-progress=false. Digest, feedback and ordinary alerts keep their existing
@@ -143,7 +146,8 @@ a checker bound; any needed extension/migration requires review.
 Run the local aggregate with `bash .claude/scripts/test/factory-reporting-queue.sh`.
 It runs source/journal observer regressions once through the offline live-checker
 contract script. Its success proves local AC1–8 portions only. Actual labelled
-drill, recovery, repeat and opaque preservation remain **PENDING** under T318;
+drill, recovery, repeat and opaque preservation passed for the source-bound pilot
+under T318; local fixtures alone never establish another live activation;
 `--live` with real run/attempt selectors is mandatory for that separate acceptance.
 Source-bound local evidence is not a live activation certificate.
 
