@@ -19,6 +19,7 @@ FIELDS={'schema_version','repository','stream','binding','interval_end','previou
         'records_count','trust_sha256','policy_sha256','review_watch_count','review_watch_segments','source_epoch'}
 PHASES=('backfill','review','checkpoint','stage','ready','verify')
 _REPORTING=object()
+_SELECT_REPORTING=object()
 _ACKNOWLEDGE=object()
 
 
@@ -60,7 +61,7 @@ def maintain(source_api, state_api, policy, trust_path, store, approval_path, *,
     remain mandatory before reporting. No persistent local database is accepted.
     """
     acknowledge=type(_operation) is tuple and len(_operation)==3 and _operation[0] is _ACKNOWLEDGE
-    require(_operation is None or _operation is _REPORTING or (acknowledge and
+    require(_operation is None or _operation is _REPORTING or _operation is _SELECT_REPORTING or (acknowledge and
             archive.state_paths.valid_hash(_operation[1],40) and archive.state_paths.valid_hash(_operation[2],64)),
             'maintenance internal operation invalid')
     require(source_api.repo==state_api.repo==policy['repository']==store['repository'] and trust_mode in ('profile','legacy'),
@@ -226,8 +227,8 @@ def maintain(source_api, state_api, policy, trust_path, store, approval_path, *,
                     history_head=journal['history_head'],page=journal['page'],offset=journal['offset'],limit=8,interval_scoped=True)
         if staged['status']=='already-staged':return persist(dict(journal,offset=journal['offset']+staged['facts_count']))
         return result
-    if _operation is _REPORTING:
-        prepared=persist(dict(journal,phase='verify'))
+    if _operation is _REPORTING or _operation is _SELECT_REPORTING:
+        prepared=persist(dict(journal,phase='verify')) if _operation is _REPORTING else result
         return dict(prepared,status='projection-ready',history_head=journal['history_head'],
                     campaign=journal['campaign'],interval_scoped=True)
     coverage=discovery.coverage(source,api,policy,trust_path,store,approval_path,stream,interval_end=end,
@@ -239,6 +240,12 @@ def maintain(source_api, state_api, policy, trust_path, store, approval_path, *,
                             history_head=None,campaign=None,page=1,offset=0,records_count=0))
     return dict(result,status='ready',phase='ready',coverage_complete=True,history_head=journal['history_head'],
                 campaign=journal['campaign'],interval_scoped=True)
+
+
+def select_reporting(*args, **kwargs):
+    """Validated scheduling selectors only; no verification intent or coverage."""
+    require('_operation' not in kwargs, 'maintenance internal operation invalid')
+    return maintain(*args, **kwargs, _operation=_SELECT_REPORTING)
 
 
 def prepare_reporting(*args, **kwargs):

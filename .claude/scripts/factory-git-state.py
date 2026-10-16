@@ -27,6 +27,14 @@ TABLES = {
     'digest_origins': ('stream', 'origin'),
     'digest_batches': ('key', 'stream', 'cutoff', 'payload', 'status', 'receipt'),
 }
+PR_TABLES = {
+    'reporting_pr_scans': ('stream','repository','branch','origin','until','phase','next_page'),
+    'reporting_pr_pages': ('stream','page','fingerprint','count','payload'),
+}
+PR_SQL = (
+ 'CREATE TABLE IF NOT EXISTS reporting_pr_scans(stream TEXT PRIMARY KEY,repository TEXT NOT NULL,branch TEXT NOT NULL,origin TEXT NOT NULL,until TEXT NOT NULL,phase TEXT NOT NULL,next_page INTEGER NOT NULL)',
+ 'CREATE TABLE IF NOT EXISTS reporting_pr_pages(stream TEXT NOT NULL,page INTEGER NOT NULL,fingerprint TEXT NOT NULL,count INTEGER NOT NULL,payload TEXT NOT NULL,PRIMARY KEY(stream,page))',
+)
 MAX_STATE = 8_000_000
 
 
@@ -321,7 +329,11 @@ class GitState:
 def snapshot(path, repository, stream, destination, branch, alerts=None):
     with sqlite3.connect(path) as db:
         db.row_factory = sqlite3.Row
-        tables = {table: [dict(row) for row in db.execute(f'SELECT {",".join(columns)} FROM {table} ORDER BY {columns[0]}')] for table, columns in TABLES.items()}
+        present={row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+        selected=dict(TABLES)
+        if set(PR_TABLES)&present:
+            require(set(PR_TABLES)<=present,'partial PR checkpoint tables');selected.update(PR_TABLES)
+        tables = {table: [dict(row) for row in db.execute(f'SELECT {",".join(columns)} FROM {table} ORDER BY '+('stream,page' if table=='reporting_pr_pages' else columns[0]))] for table, columns in selected.items()}
     document = {'schema_version': 1, 'repository': repository, 'stream': stream, 'destination': destination, 'branch': branch, 'tables': tables}
     if alerts is not None:
         document['alerts'] = alerts
@@ -332,7 +344,8 @@ def snapshot(path, repository, stream, destination, branch, alerts=None):
 def validate(document, repository, stream):
     require(set(document) in ({'schema_version', 'repository', 'stream', 'destination', 'branch', 'tables'}, {'schema_version', 'repository', 'stream', 'destination', 'branch', 'tables', 'alerts'}) and type(document['schema_version']) is int and document['schema_version'] == 1 and document['repository'] == repository and document['stream'] == stream, 'foreign checkpoint schema/identity')
     require(stream == hashlib.sha256(canonical([repository, document['destination'], document['branch']]).encode()).hexdigest(), 'checkpoint destination/branch differs')
-    require(set(document['tables']) == set(TABLES), 'unexpected checkpoint tables')
+    require(type(document['tables']) is dict and set(document['tables']) in (set(TABLES),set(TABLES)|set(PR_TABLES)), 'unexpected checkpoint tables')
+    if set(PR_TABLES)<=set(document['tables']):validate_pr_checkpoint(document,stream)
     for table, columns in TABLES.items():
         rows = document['tables'][table]
         require(isinstance(rows, list) and all(isinstance(row, dict) and set(row) == set(columns) and row['stream'] == stream for row in rows), 'malformed checkpoint rows')
@@ -367,6 +380,39 @@ def validate(document, repository, stream):
     require(pending <= 1, 'multiple pending reports')
     if 'alerts' in document:
         validate_alerts(document['alerts'], stream)
+
+
+def validate_pr_checkpoint(document,stream):
+    tables=document['tables'];rows=tables['reporting_pr_scans'];pages=tables['reporting_pr_pages']
+    require(type(rows) is list and len(rows)<=1 and type(pages) is list,'PR checkpoint rows invalid')
+    require(bool(rows) or not pages,'PR pages lack scan')
+    if not rows:return
+    row=rows[0]
+    require(type(row) is dict and set(row)==set(PR_TABLES['reporting_pr_scans']) and row['stream']==stream
+            and row['repository']==document['repository'] and row['branch']==document['branch']
+            and type(row['phase']) is str and row['phase'] in ('baseline','compare','ready')
+            and type(row['next_page']) is int and 0<row['next_page']<2**63,'PR checkpoint scan binding invalid')
+    origin=digest.instant(row['origin']);until=digest.instant(row['until'])
+    require(origin<until and row['origin']==tables['digest_origins'][0]['origin'],'PR checkpoint interval differs')
+    helper_spec=importlib.util.spec_from_file_location('checkpoint_pr_discovery',Path(__file__).with_name('factory-reporting-pr-discovery.py'))
+    helper=importlib.util.module_from_spec(helper_spec);helper_spec.loader.exec_module(helper)
+    seen=set()
+    for index,item in enumerate(pages,1):
+        require(type(item) is dict and set(item)==set(PR_TABLES['reporting_pr_pages']) and item['stream']==stream
+                and type(item['page']) is int and item['page']==index and type(item['count']) is int and 0<=item['count']<=100
+                and state_paths.valid_hash(item['fingerprint'],64) and type(item['payload']) is str,'PR checkpoint page invalid')
+        candidates=json.loads(item['payload'],object_pairs_hook=digest.coordinator.contract.no_duplicate_keys)
+        require(type(candidates) is list and len(candidates)<=item['count'] and canonical(candidates)==item['payload'],'PR checkpoint candidates invalid')
+        for candidate in candidates:
+            clean=helper.normalize(candidate,document['repository'])
+            require(canonical(clean)==canonical(candidate) and clean['merged_at'] is not None and clean['base']['ref']==document['branch']
+                    and origin<digest.instant(clean['merged_at'])<=until and clean['number'] not in seen,'PR checkpoint candidate binding differs')
+            seen.add(clean['number'])
+    if row['phase']=='baseline':
+        require(len(pages)==row['next_page']-1 and all(p['count']==100 for p in pages),'PR baseline checkpoint cursor invalid')
+    else:
+        require(pages and pages[-1]['count']<100 and all(p['count']==100 for p in pages[:-1])
+                and (row['next_page']==len(pages)+1 if row['phase']=='ready' else row['next_page']<=len(pages)),'PR comparison checkpoint cursor invalid')
 
 
 def alert_key(stream, kind, cutoff, run_id, incident, run_attempt=None):
@@ -408,11 +454,18 @@ class HostedDigest(digest.Digest):
             stream = hashlib.sha256(canonical([config['repository'], config['destination'], config['branch']]).encode()).hexdigest()
             validate(document, config['repository'], stream)
             with sqlite3.connect(path) as db:
-                for table, columns in TABLES.items():
+                present={row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+                if config.get('pr_discovery_mode','legacy')=='resumable' or set(PR_TABLES)&present:
+                    for sql in PR_SQL:db.execute(sql)
+                    for table in PR_TABLES:db.execute(f'DELETE FROM {table}')
+                if set(PR_TABLES)<=set(document['tables']):
+                    for sql in PR_SQL:db.execute(sql)
+                for table, columns in dict(TABLES,**PR_TABLES).items():
+                    if table not in document['tables']:continue
                     db.execute(f'DELETE FROM {table}')
                     for row in document['tables'][table]:
                         db.execute(f'INSERT INTO {table}({",".join(columns)}) VALUES({",".join("?" for _ in columns)})', [row[c] for c in columns])
-        super().__init__(path, config['repository'], config['destination'], config['start'], config['branch'], receipt_mode=config.get('receipt_mode','legacy'))
+        super().__init__(path, config['repository'], config['destination'], config['start'], config['branch'], receipt_mode=config.get('receipt_mode','legacy'),pr_discovery_mode=config.get('pr_discovery_mode','legacy'))
 
     @contextmanager
     def transaction(self):
@@ -460,7 +513,8 @@ def run(config, report_api, state_api, slack_client, path, now):
             validate(prior, state_api.repo, stream)
             pending_snapshot = any(row['status']!='confirmed' for row in prior['tables']['digest_batches'])
         if not pending_snapshot:
-            progress = maintenance.prepare_reporting(report_api, state_api, config['receipt_policy'], durable['trust_path'],
+            scheduling=maintenance.select_reporting if config.get('pr_discovery_mode','legacy')=='resumable' else maintenance.prepare_reporting
+            progress = scheduling(report_api, state_api, config['receipt_policy'], durable['trust_path'],
                         durable['store'], durable['approval_path'], interval_end=target, trust_mode=durable['trust_mode'])
             if progress['status'] != 'projection-ready':return progress
             target = progress['interval_end']
@@ -485,6 +539,20 @@ def run(config, report_api, state_api, slack_client, path, now):
     store = HostedDigest(path, config, state)
     if not pending_snapshot and digest.instant(store.cursor()) >= digest.instant(target):
         return {'status': 'not-due'}
+    if not pending_snapshot and store.pr_discovery_mode=='resumable':
+        discovered=store.discover(report_api,target)
+        if discovered['status']!='complete':return discovered
+        if mode=='durable':
+            progress=maintenance.prepare_reporting(report_api,state_api,config['receipt_policy'],durable['trust_path'],
+                        durable['store'],durable['approval_path'],interval_end=target,trust_mode=durable['trust_mode'])
+            if progress['status']!='projection-ready':return progress
+            require(progress['interval_end']==target,'PR observation interval changed during maintenance')
+            # Maintenance changes only its own role. Retain the private current
+            # PR observation while refreshing the authenticated report state.
+            fresh=GitState(state_api,config['state_branch'],stream,config.get('bootstrap_sha'),
+                           config.get('policy_approvals'),state_view=config.get('state_view'))
+            require(fresh.bytes==store.state.bytes,'reporting checkpoint changed during maintenance')
+            store.state=state=fresh
     if not pending_snapshot and config.get('receipt_policy') is not None:
         receipts_spec = importlib.util.spec_from_file_location('report_receipts', Path(__file__).with_name('factory-receipts.py'))
         receipts = importlib.util.module_from_spec(receipts_spec); receipts_spec.loader.exec_module(receipts)
@@ -505,6 +573,7 @@ def run(config, report_api, state_api, slack_client, path, now):
             require(state.bytes==store.state.bytes,'reporting checkpoint changed during projection acknowledgement')
             store.state=state
     batch = store.prepare(report_api, target)
+    if batch.get('status')=='incomplete':return batch
     adapter = slack.transport(slack_client, config, batch)
     receipt = store.deliver(batch['key'], adapter)
     require(adapter.lookup(batch['key']).get('receipt') == receipt, 'Delivered receipt not visible in Slack history; preserve confirmed state')
