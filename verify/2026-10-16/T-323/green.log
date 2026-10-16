@@ -1,0 +1,7 @@
+# TDD ledger — green — T-323
+ledger_format: 2
+timestamp: 2026-10-16T14:01:51+11:00
+command: bash .claude/scripts/test/factory-reporting-queue-evidence-journal.sh
+exit_code: 0
+---
+12 real Git protected journal/publication preservation cases passed; no live credit

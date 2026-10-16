@@ -141,3 +141,94 @@ def observe_runs(api, root, branch, selections, now):
         observed.append({'role':role,'run_id':run['id'],'attempt':run['run_attempt'],'job_id':job['id'],'started_at':started.isoformat(),'ended_at':ended.isoformat(),'notifications':counts,'log_sha256':hashlib.sha256(raw).hexdigest()})
     source()
     return {'mode':'administrative-run-observation','repository':api.repo,'source_sha':sha,'runs':observed}
+
+
+def observe_journal(api, root, config, storage, selections, now):
+    """Isolated pilot correlation; no exclusive-writer or lifetime-history claim."""
+    import base64
+    spec = importlib.util.spec_from_file_location('queue_evidence_journal', Path(__file__).with_name('factory-reporting-queue.py'))
+    queue = importlib.util.module_from_spec(spec); spec.loader.exec_module(queue)
+    # Never accept a caller-supplied run-observation JSON as authenticated facts.
+    runs = observe_runs(api, root, config['branch'], selections, now)
+    store = queue.QueueStore(api, config, storage)
+    current, document = store._load()  # Read only even when initialize is configured.
+    require(current.bytes is not None and document is not None, 'queue evidence existing role required; no initialization')
+    rows = document['events']
+    require(len(rows) == 2 and rows[0]['kind'] == 'drill' and rows[1]['kind'] == 'recovery' and all(row['status'] == 'confirmed' for row in rows), 'queue evidence requires isolated confirmed drill/recovery pair')
+    drill, recovery = rows
+    require(drill['run_id'] == selections['drill']['run_id'] and drill['run_attempt'] == selections['drill']['attempt'] and recovery['incident'] == drill['key'], 'queue evidence journal run or incident differs')
+    frozen = current.head; before = current.bytes; prefix = 'repos/'+api.repo
+    commits = {}; trees = {}; roles = {}
+    def commit(sha):
+        require(type(sha) is str and re.fullmatch(r'[0-9a-f]{40}',sha) is not None, 'queue evidence state commit invalid')
+        if sha not in commits:
+            value = api.request(prefix+'/git/commits/'+sha)
+            require(type(value) is dict and value.get('sha') == sha and type(value.get('tree')) is dict and type(value['tree'].get('sha')) is str and re.fullmatch(r'[0-9a-f]{40}',value['tree']['sha']) is not None and type(value.get('parents')) is list, 'queue evidence state commit differs')
+            commits[sha] = value
+        return commits[sha]
+    def tree(sha):
+        identity = commit(sha)['tree']['sha']
+        if identity not in trees:
+            value = api.request(prefix+'/git/trees/'+identity+'?recursive=1')
+            require(type(value) is dict and value.get('sha') == identity and value.get('truncated') is False and type(value.get('tree')) is list and len(value['tree']) <= 1024, 'queue evidence state tree incomplete or capacity exceeded')
+            result = {}; seen = set()
+            for item in value['tree']:
+                require(type(item) is dict and type(item.get('path')) is str and item['path'] not in seen, 'queue evidence state tree path invalid or duplicate'); seen.add(item['path'])
+                require(type(item.get('sha')) is str and re.fullmatch(r'[0-9a-f]{40}',item['sha']) is not None, 'queue evidence tree object invalid')
+                if item.get('type') == 'tree':
+                    require(item['path'] == 'reports' and item.get('mode') == '040000', 'queue evidence unexpected state directory'); continue
+                require(item.get('type') == 'blob' and item.get('mode') == '100644' and (item['path'] == 'README.md' or re.fullmatch(r'reports/[0-9a-f]{64}\.json',item['path']) is not None), 'queue evidence unexpected state leaf')
+                result[item['path']] = (item['mode'],item['sha'])
+            trees[identity] = result
+        return trees[identity]
+    def role(sha):
+        entry = tree(sha).get(current.path)
+        if entry is None:
+            return None
+        identity = entry[1]
+        if identity not in roles:
+            value = api.request(prefix+'/git/blobs/'+identity)
+            require(type(value) is dict and value.get('sha') == identity and value.get('encoding') == 'base64' and type(value.get('size')) is int and 0 < value['size'] <= queue.MAX_BYTES and type(value.get('content')) is str and len(value['content']) <= queue.MAX_BYTES*2, 'queue evidence role blob invalid')
+            try:
+                raw = base64.b64decode(''.join(value['content'].split()),validate=True)
+            except ValueError as error:
+                raise ValueError('queue evidence role encoding invalid') from error
+            require(len(raw) == value['size'] and store.state.git_hash(raw) == identity, 'queue evidence role bytes differ')
+            roles[identity] = queue.load_journal(raw,config)
+        return roles[identity]
+    bootstrap = storage['bootstrap_sha']; publications = []; cursor = frozen
+    for unused in range(24):
+        if cursor == bootstrap:
+            break
+        value = commit(cursor); parents = value['parents']
+        require(len(parents) == 1 and type(parents[0]) is dict, 'queue evidence state history must be single parent')
+        parent = parents[0].get('sha'); old_tree = tree(parent); new_tree = tree(cursor)
+        if old_tree.get(current.path) != new_tree.get(current.path):
+            require({k:v for k,v in old_tree.items() if k != current.path} == {k:v for k,v in new_tree.items() if k != current.path}, 'queue evidence publication changes opaque worker blobs')
+            old, new = role(parent), role(cursor)
+            require(new is not None and (old is not None or parent == bootstrap), 'queue evidence role absence outside reviewed bootstrap')
+            queue.validate_transition(old,new,config)
+            require(type(value.get('committer')) is dict, 'queue evidence publication clock missing')
+            when = instant(value['committer'].get('date'))
+            old_rows = [] if old is None else old['events']; new_rows = new['events']
+            if old is None and not new_rows:
+                effect = None
+            else:
+                changed = [row for index,row in enumerate(new_rows) if index >= len(old_rows) or row != old_rows[index]]
+                require(len(changed) == 1, 'queue evidence publication lacks one immutable effect transition')
+                effect = changed[0]
+                expected = drill if effect['kind'] == 'drill' else recovery
+                require(effect['kind'] in {'drill','recovery'} and effect['key'] == expected['key'], 'queue evidence unexpected publication effect')
+                window = runs['runs'][0 if effect['kind'] == 'drill' else 1]
+                require(instant(window['started_at']) <= instant(effect['cutoff']) <= when <= instant(window['ended_at']), 'queue evidence publication outside selected run window')
+            publications.append((when,effect))
+        cursor = parent
+    require(cursor == bootstrap, 'queue evidence 24-commit history capacity exhausted; incomplete')
+    require(role(bootstrap) is None, 'queue evidence reviewed bootstrap already contains role')
+    require(publications and publications[-1][0] <= publications[0][0] and all(left[0] >= right[0] for left,right in zip(publications,publications[1:])), 'queue evidence publication order differs')
+    require(any(effect is not None and effect['key'] == drill['key'] and effect['status'] == 'confirmed' for when,effect in publications) and any(effect is not None and effect['key'] == recovery['key'] and effect['status'] == 'confirmed' for when,effect in publications), 'queue evidence confirmed publication missing')
+    final, unused = store._load()
+    require(final.bytes == before, 'queue evidence role changed during observation')
+    ref = api.request(prefix+'/git/ref/heads/'+quote(config['branch'],safe=''))
+    require(type(ref) is dict and ref.get('ref') == 'refs/heads/'+config['branch'] and type(ref.get('object')) is dict and ref['object'].get('type') == 'commit' and ref['object'].get('sha') == runs['source_sha'], 'queue evidence reviewed source changed')
+    return {'mode':'administrative-queue-observation','repository':api.repo,'source_sha':runs['source_sha'],'frozen_head':frozen,'observed_head':final.head,'role_sha256':hashlib.sha256(before).hexdigest(),'drill_key':drill['key'],'recovery_key':recovery['key'],'publications':len(publications),'runs':runs['runs']}
