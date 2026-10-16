@@ -491,7 +491,7 @@ def append_delivery(source_api, state_api, policy, run_id, trust_path, store, ap
     raise ValueError('archive append uncertain after three CAS observations; reconcile before advancing')
 
 
-def projection_window(state_api, policy, trust_path, store, approval_path, stream, *, interval_end, start=0, limit=128, frozen_head=None):
+def projection_window(state_api, policy, trust_path, store, approval_path, stream, *, interval_end, start=0, limit=128, frozen_head=None, _empty_origin=False):
     """Validate one bounded frozen retained window, granting no cursor/origin authority.
 
     Authenticate the protected view internally and recheck before returning facts.
@@ -540,11 +540,15 @@ def projection_window(state_api, policy, trust_path, store, approval_path, strea
     trust_sha256 = digest(Path(trust_path).read_bytes())
     approval_sha256 = digest(Path(approval_path).read_bytes())
     require(store['visibility'] == ('private' if anchor['private'] else 'public'), 'archive actual store visibility differs')
-    _, blob_at = fixed_reader(api, root); tree = view_tree
+    item_at, blob_at = fixed_reader(api, root); tree = view_tree
     require(blob_at(anchor['bootstrap_tree'], f'receipt-archive/discovery/{stream}.json') is None, 'archive pre-bootstrap proof requires explicit reviewed import')
     journal_raw = blob_at(tree, f'receipt-archive/discovery/{stream}.json')
-    require(journal_raw is not None, 'archive discovery missing; cannot claim retained coverage')
-    journal = document(journal_raw)
+    if journal_raw is None:
+        require(_empty_origin is True, 'archive discovery missing; cannot claim retained coverage')
+        require(all(item_at(tree, 'receipt-archive/'+name) is None for name in ('index','objects','materials')), 'archive discovery missing; cannot claim retained coverage')
+        journal = {'schema_version':1,'repository':state_api.repo,'stream':stream,'coverage_from':anchor['coverage_from'],'next_segment':0,'records_count':0}
+    else:
+        journal = document(journal_raw)
     require(set(journal) == {'schema_version', 'repository', 'stream', 'coverage_from', 'next_segment', 'records_count'} and type(journal['schema_version']) is int and journal['schema_version'] == 1 and journal['repository'] == state_api.repo and journal['stream'] == stream and journal['coverage_from'] == anchor['coverage_from'] and type(journal['next_segment']) is int and 0 <= journal['next_segment'] < 10**12 and type(journal['records_count']) is int and journal['records_count'] == journal['next_segment'], 'archive discovery identity/progress differs')
     require(start <= journal['next_segment'], 'archive projection window range differs')
     stop = min(start + limit, journal['next_segment'])
@@ -929,7 +933,7 @@ def checkpoint_projection(state_api, policy, trust_path, store, approval_path, s
                 require(verify_bootstrap(api, approval_path) == anchor, 'projection checkpoint origin changed')
                 return {'status': 'already-checkpointed', 'head': anchor['head'], 'next_segment': progress['next_segment'], 'frozen_complete': True, 'coverage_complete': False, 'suffix_pending': anchor['head'] != progress['frozen_head']}
             start = progress['next_segment']; frozen = progress['frozen_head']; previous_blob = item_at(anchor['tree'], path)['sha']
-        window = projection_window(api, policy, trust_path, store, approval_path, stream, interval_end=interval_end, start=start, limit=limit, frozen_head=frozen)
+        window = projection_window(api, policy, trust_path, store, approval_path, stream, interval_end=interval_end, start=start, limit=limit, frozen_head=frozen, _empty_origin=True)
         if window['observed_head'] != anchor['head']:
             continue
         progress = {'schema_version': 1, 'binding': binding, 'frozen_head': window['frozen_head'], 'frozen_tree': window['tree'], 'records_count': window['records_count'], 'next_segment': window['next_segment'], 'window': {'start': start, 'stop': window['next_segment'], 'references': window['references'], 'trust_sha256': window['trust_sha256']}, 'previous_blob': previous_blob, 'publication_parent': anchor['head']}
@@ -1109,10 +1113,14 @@ def stage_projection(state_api, policy, trust_path, store, approval_path, stream
         require(len(lineage['windows']) == 1, 'projection stage required window missing')
         window = lineage['windows'][0]; checkpoint = window['checkpoint']
         references = checkpoint['window']['references']
-        require(offset < len(references), 'projection stage slice missing')
-        chosen = references[offset:offset+limit]
         binding = dict(checkpoint['binding'], frozen_head=checkpoint['frozen_head'], frozen_tree=checkpoint['frozen_tree'], trust_sha256=trust_hash)
         campaign = digest(canonical(binding)); prefix = 'receipt-archive/stages/'+campaign+'/'
+        if not references:
+            require(offset == 0 and checkpoint['records_count'] == checkpoint['next_segment'] == checkpoint['window']['start'] == checkpoint['window']['stop'] == 0, 'projection empty checkpoint differs')
+            require(verify_bootstrap(api, approval_path) == anchor and Path(approval_path).read_bytes() == approval_raw and digest(Path(trust_path).read_bytes()) == trust_hash, 'projection empty protected input changed')
+            return {'status':'empty-window','campaign':campaign,'facts_count':0,'coverage_complete':False}
+        require(offset < len(references), 'projection stage slice missing')
+        chosen = references[offset:offset+limit]
         def path_for(kind, identity):
             key = digest(canonical([kind, identity])); return prefix+key[:2]+'/'+key+'.json'
         facts = []; indexes = {}
@@ -1270,7 +1278,13 @@ def reconstruct_interval(state_api, policy, db_path, trust_path, store, approval
     prefix = 'receipt-archive/stages/'+campaign; item_at, blob_at = fixed_reader(api, root)
     require(item_at(anchor['bootstrap_tree'], prefix) is None, 'reconstruction copied pre-bootstrap stages')
     directory = item_at(anchor['tree'], prefix)
-    if directory is None:
+    if count == 0:
+        expected_campaign = digest(canonical(dict(first['binding'], frozen_head=first['frozen_head'], frozen_tree=first['frozen_tree'], trust_sha256=trust_hash)))
+        require(campaign == expected_campaign and directory is None and all(w['checkpoint']['window'] == dict(w['checkpoint']['window'],start=0,stop=0,references=[]) for w in windows.values()), 'reconstruction empty campaign differs')
+        receipts.load_receipt_trust(trust_path, api.repo, mode='report')
+        empty = projection_window(api, policy, trust_path, store, approval_path, stream, interval_end=interval_end, start=0, limit=1, frozen_head=first['frozen_head'], _empty_origin=True)
+        require(empty['records_count'] == 0 and not empty['references'], 'reconstruction empty retained snapshot differs')
+    elif directory is None:
         return {'projection_complete': False, 'coverage_complete': False, 'reason': 'required-stages-gap'}
     documents = {}
     def entries(tree, path):
@@ -1279,8 +1293,8 @@ def reconstruct_interval(state_api, policy, db_path, trust_path, store, approval
         rows = [dict(item, path=path+'/'+item['path']) for item in value['tree']]
         state_paths.validate_tree(rows)
         return rows
-    require(directory['type'] == 'tree', 'reconstruction stage directory differs')
-    for shard in entries(directory['sha'], prefix):
+    require(directory is None or directory['type'] == 'tree', 'reconstruction stage directory differs')
+    for shard in (entries(directory['sha'], prefix) if directory is not None else []):
         require(shard['type'] == 'tree', 'reconstruction stage shard differs')
         for item in entries(shard['sha'], shard['path']):
             require(item['type'] == 'blob' and item['path'] not in documents, 'reconstruction duplicate or nested stage')

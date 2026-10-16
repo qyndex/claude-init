@@ -1735,9 +1735,9 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-receipt-reruns.sh
   owner: implementer
 
-- [ ] T-286  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-285,T-293,T-294,T-295,T-310  | parallel: no  | est: 5m
+- [x] T-286  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-285,T-293,T-294,T-295,T-310  | parallel: no  | est: 5m
   summary: Resume cold-start backfill and expose pagination or required-history gaps
-  files: .claude/scripts/factory-receipt-discovery.py, .claude/scripts/test/factory-receipt-coverage.sh
+  files: .claude/scripts/factory-receipt-discovery.py, .claude/scripts/test/factory-receipt-coverage.sh, .claude/scripts/factory-receipt-archive.py, plans/active/014-authenticated-receipt-recovery.md
   accept: bash .claude/scripts/test/factory-receipt-coverage.sh
   owner: implementer
 

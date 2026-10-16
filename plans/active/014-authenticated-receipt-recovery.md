@@ -590,3 +590,67 @@ No component suite by itself is called cross-component integration. All results
 remain bounded frozen-interval reporting, coverage_complete=false and no runtime
 task credit. T286/T287 still own source-completeness and real1000-history acceptance;
 T288 retains final loader/configuration and approved App-dependent integration.
+
+### T286 bounded observed-interval coverage composition — 2026-10-16
+
+A read-only coverage evaluator now composes actual protected cold-start/backfill
+state with current source observations, cold-watch outcomes, retained proof and
+fresh isolated SQLite projection. It verifies a finished gap-free partition epoch,
+strict page/count/identity hashes and overlap consistency, then re-enumerates every
+bounded leaf page (not count-only probes). Protected watch/scan state must be complete;
+current run attempts cannot silently outrun known pending rows. Retained materials
+and current revocation are reapplied; only exact approved non-delivery outcomes
+can close a non-retained attempt. Unknown, failed-capable, missing or unapproved
+work remains a gap. All source observations, protected origin, policy and trust
+are rechecked before returning completion.
+
+The result separates source_partition_complete, frozen_projection_complete and
+coverage_complete for the requested interval as observed in that source epoch.
+all_history_complete and task_credit always remain false. verified_until remains
+null for every gap; this evaluator performs no remote writes, persisted cursor
+advance, reporting send or runtime task transition. Fresh SQLite is private derived
+scratch, never caller SQL or cursor authority. Exact current/frozen retained
+references bind run/attempt/artifact/record hash; a stale empty freeze cannot hide
+an actual later retained append while source listing visibility still lags.
+
+An audited initial empty interval can become ready without inventing a receipt:
+absence of retained index/object/material namespaces proves the canonical zero
+snapshot, which the actual protected checkpoint writer publishes. Empty stage
+campaigns are bound to that publication and current trust. Reconstruction then
+independently revalidates the exact frozen tree's zero record count before the
+same final origin/trust checks and fixed five-table SQL/schema/row validation.
+A false zero checkpoint over existing retained data is rejected before SQL.
+Missing/incomplete checkpoint or positive-count missing proof never becomes ready.
+
+The real Git acceptance composes two actual approved-task producers and source
+partitions through fresh projection, real scan continuation, current withdrawal,
+old-created reruns, same-count late identity swaps, count changes, clamped1000,
+transport/capacity, concurrent source changes, missing partition history and both
+empty-origin negatives. Unknown current work does not advance a delivery cursor.
+Every scope remains bounded by2048 actual observations/32MiB; limits were not raised.
+
+This is not proof of complete future visibility or large-history usability. The
+current reconstruction/reference comparison still revalidates the archived frozen
+set in one bounded invocation; a larger history may therefore hit a capacity gap.
+T287 must exercise genuine >1000 retained deliveries and repair any permanent
+cliff with authenticated bounded progress, not count a permanent gap or1100
+non-delivery rows plus two receipts as completion. T288 still owns controlled
+campaign rollover/end extension preserving old origins/facts, final loaders and
+the separately approved reporting-App/positive-actor-observation integration.
+No App-specific code, credentials, permissions or live cutover are included here.
+
+Final T286 boundary clarifications: canonical empty handling is an internal opt-in
+used by the actual protected checkpoint producer and verified empty reconstruction.
+The public/default projection reader retains its original missing-journal rejection;
+this preserves legacy missing-history behavior rather than silently treating API
+absence as an empty report. The opt-in itself grants no proof: current protected
+origin, namespace absence and actual empty publication/frozen-tree checks remain
+mandatory before the common final checks and fixed SQL transaction.
+
+A run first observed at attempt2 cannot imply attempt1 was safe or non-delivering.
+The bounded evaluator now keeps missing prior watched attempts as an explicit
+required-prior-attempt-history gap; retained attempt2 alone cannot erase that
+unknown history. T287/T288 must resume available prior-attempt enumeration using
+actual bounded GitHub run-attempt endpoints and protected watch/CAS progress, not
+leave ordinary first-seen retries permanently unresolved or infer their effects
+from a latest-only listing. No numeric budget is raised to bypass this requirement.

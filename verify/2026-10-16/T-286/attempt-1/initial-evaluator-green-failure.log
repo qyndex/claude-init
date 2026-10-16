@@ -1,0 +1,10 @@
+# TDD ledger — green — T-286
+ledger_format: 2
+timestamp: 2026-10-16T15:56:36+11:00
+command: bash .claude/scripts/test/factory-receipt-coverage.sh
+exit_code: 1
+---
+Traceback (most recent call last):
+  File "<stdin>", line 36, in <module>
+  File "composed-coverage-real-git-fixture", line 136, in <module>
+AssertionError
