@@ -1,0 +1,9 @@
+# TDD ledger — green — T-298
+ledger_format: 2
+timestamp: 2026-10-16T11:27:35+11:00
+command: bash .claude/scripts/test/factory-producers.sh && bash .claude/scripts/test/factory-provenance.sh && bash .claude/scripts/test/factory-preflight.sh
+exit_code: 0
+---
+passed: 38; failed: 0
+provenance: PASS; assertions=42; injected verified-certificate positive fixtures; nonzero verifier rejection; no live signing/hosted verdict
+preflight: PASS; missing helper in either role blocks, current complete8-file pins match bytes; unrelated policy unchanged; emitter7 paths; fixture metadata only, no credential authentication

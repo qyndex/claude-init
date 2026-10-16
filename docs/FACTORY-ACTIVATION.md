@@ -56,3 +56,48 @@ Independent producer jobs must report unique required contexts `factory-verifica
 
 
 Ruleset planning derives repository/base branch from the explicitly supplied protected policy. Select the active ruleset ID reported by that branch's rule metadata; a pilot ID cannot be reused in another repository. The generator performs bounded GET-only queries, preserves unrelated controls/pins, and includes every policy-required context (including legacy review/security) plus dedicated-App eligibility. It rejects nonapplicable, bypass, nonstrict, duplicate and conflicting rules. Generated files are proposals, not activation receipts. Claude review/security were restored on 2026-10-16, including synchronize security coverage; fresh passing results for the current head are required. Their historical exemptions do not constitute current-head proof.
+
+## Exact administrative observations for omitted bypass metadata
+
+T296–T298 implement the operator-approved Administration-read approach. Until all
+three tasks and current-source CI pass, these instructions describe prepared
+integration, not live authority or merge readiness. Keep merge mode disabled.
+The factory App keeps `permission-administration: read`.
+
+An operator whose GitHub access actually exposes `bypass_actors: []` can generate
+a nonsecret observation after the ruleset has settled for at least 60 seconds:
+
+```bash
+python3 .claude/scripts/factory-policy-observation.py observe \
+  --repository qyndex/claude-init --ruleset-id <actual-applicable-ruleset-id> \
+  > /tmp/factory-policy-observation.json
+```
+
+Use each actual ruleset ID returned by `GET repos/qyndex/claude-init/rules/branches/main`.
+The command uses fixed GitHub GET endpoints, fetches the real repository ID, and
+fails when actors are omitted, nonempty or malformed. Do not manufacture an empty
+list or copy an observation from a candidate, PR body or another repository.
+Generate again after any server-side policy change; exact timestamp strings,
+semantic metadata, repository and ruleset identity must still match live reads.
+
+In GitHub repository Settings → Environments → **factory-authority**, retain its
+main-only deployment branch restriction. Add environment variable
+**FACTORY_POLICY_OBSERVATIONS** with this bounded JSON envelope, placing each
+actual command result inside the observations array:
+
+```json
+{"schema_version":1,"repository":"qyndex/claude-init","observations":[]}
+```
+
+An empty array supplies no exception: it works only where the live API explicitly
+exposes empty actors. The protected workflow writes this variable to a bounded
+runner-temporary file. It never accepts an observation from a workflow-dispatch
+input. Visible nonempty or malformed actors always block, even with an observation.
+Current effective check pins and strict PR protection are rechecked before effects.
+
+The separate `factory-policy-observation-<run>-<attempt>` artifact retains bounded
+administrative observation/hash checks. It is not portable GitHub-signed proof.
+The `factory-receipt-<run>-<attempt>` artifact still contains only `receipt.json`.
+No App permission increase, authority flag, ruleset change or merge activation is
+authorized by configuring an observation. Landing source changes still needs the
+separately reviewed maintenance procedure; public/adopter live proof remains due.

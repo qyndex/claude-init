@@ -1,0 +1,10 @@
+# TDD ledger — green — T-292
+ledger_format: 2
+timestamp: 2026-10-16T11:29:20+11:00
+command: bash .claude/scripts/test/factory-policy-observation.sh && bash .claude/scripts/test/factory-coordinator.sh && bash .claude/scripts/test/factory-producers.sh
+exit_code: 0
+---
+60 policy observation cases PASS (AC-5); transport fixture only, no live operator observation
+AC-5: protected hidden observations, visible actor rejection, final drift and bounded strict input PASS
+passed: 63; failed: 0
+passed: 38; failed: 0

@@ -1,0 +1,10 @@
+# TDD ledger — red — T-297
+ledger_format: 2
+timestamp: 2026-10-16T11:24:38+11:00
+command: bash .claude/scripts/test/factory-coordinator.sh && bash .claude/scripts/test/factory-workflow-baseline.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 220, in <module>
+AssertionError

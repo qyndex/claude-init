@@ -1,0 +1,9 @@
+# Spec-match: 010
+  ✓ AC-1 — proven by a passing tagged test
+  ✓ AC-2 — proven by a passing tagged test
+  ✓ AC-3 — proven by a passing tagged test
+  ✓ AC-4 — proven by a passing tagged test
+  ✓ AC-5 — proven by a passing tagged test
+
+✓ spec-match PASS: all acceptance criteria proven
+Local evidence complete for: 010

@@ -34,3 +34,17 @@ Protected producer proofs use the operator-selected GitHub-native attestation ba
 Use each adopter's own reviewed producer workflows, `id-token: write` and `attestations: write` permission decision, complete runtime source pins, approved spec and genuine signed verifier/reviewer evidence. A public source pilot is not an adopter's certification. Exact certificate identity, protected source/ref/repository, hosted runner and run/attempt must pass independently; no unsigned fallback is provided. ADR0006 records this trust boundary. Production adapters and merge-mode approval remain separate gates.
 
 Enterprise Cloud attestation capability is necessary, not a complete private-repository activation certificate. Private adopters must also configure and prove secure private-candidate retrieval, native provider execution, independent signed evidence and the full repository-specific shadow gates. The public pilot does not certify private operation; this pin refresh does not implement a private-fetch adapter.
+
+### Policy-observation source completeness
+
+Adopters must install the policy-observation helper along with the complete
+protected producer runtime (eight files per role) and seven-file receipt emitter
+closure. A copied seven-file producer policy is incomplete and must fail preflight.
+Follow the main-only environment observation setup in
+[FACTORY-ACTIVATION.md](FACTORY-ACTIVATION.md#exact-administrative-observations-for-omitted-bypass-metadata).
+The dedicated App retains Administration read. Explicitly visible nonempty or
+malformed bypass actors reject even when an observation is configured. Reobserve
+exact settled metadata after every policy change; candidate messages cannot grant
+this administrative trust. The separate bounded administrative audit expires after
+90days and is not native attestation or a live delivery guarantee. Private-repository
+capability and secure candidate retrieval must still be established per adopter.

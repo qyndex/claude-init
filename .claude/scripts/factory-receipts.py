@@ -22,7 +22,8 @@ ledger = module('ledger', 'factory-ledger.py')
 coordinator = module('coordinator', 'factory-coordinator.py')
 RUNTIME_PATHS = ('.github/workflows/factory-merge.yml', '.claude/scripts/factory-coordinator.py',
                  '.claude/scripts/factory-preflight.py', '.claude/scripts/validate-candidate-evidence.py',
-                 '.claude/scripts/factory-provenance.py', '.claude/scripts/factory-bounded-process.py')
+                 '.claude/scripts/factory-provenance.py', '.claude/scripts/factory-bounded-process.py',
+                 '.claude/scripts/factory-policy-observation.py')
 require = coordinator.require
 
 
