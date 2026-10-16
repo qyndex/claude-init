@@ -1673,7 +1673,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-reporting-queue-observation.sh
   owner: implementer
 
-- [ ] T-315  | spec:029  | phase:2  | priority: security  | created: 2026-10-16  | deps: T-314  | parallel: no  | est: 5m
+- [x] T-315  | spec:029  | phase:2  | priority: security  | created: 2026-10-16  | deps: T-314  | parallel: no  | est: 5m
   summary: Reconcile durable queue alert and recovery Slack effects before retry
   files: .claude/scripts/factory-reporting-queue.py, .claude/scripts/factory-reporting-alerts.py, .claude/scripts/test/factory-reporting-queue-delivery.sh
   accept: bash .claude/scripts/test/factory-reporting-queue-delivery.sh

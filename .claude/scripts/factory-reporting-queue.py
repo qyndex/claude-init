@@ -368,3 +368,158 @@ def observe_queue(api, config, storage, now):
     except (ValueError, KeyError, TypeError, RuntimeError, OSError, subprocess.TimeoutExpired, RecursionError, OverflowError):
         result['reason'] = 'observation-unavailable-or-invalid'
     return result
+
+
+def run_queue(api, client, config, storage, reporting, now, *, drill_run=None):
+    """Protected queue outbox; no workflow/CLI activation or caller health proof."""
+    import importlib.util
+    from pathlib import Path
+    fields = {'enabled', 'repository', 'state_repository', 'branch', 'destination', 'team_id', 'start', 'attachments_enabled'}
+    require(type(reporting) is dict and len(reporting) == len(fields) and set(reporting) == fields, 'queue reporting context fields differ')
+    require(type(config) is dict, 'queue configuration must be an object')
+    validate_config(config, repository=api.repo, default_branch=config.get('branch'))
+    require(config['enabled'] is True and config['queue_monitor_enabled'] is True and reporting['enabled'] is True and type(reporting['attachments_enabled']) is bool, 'queue reporting policy disabled or invalid')
+    require(all(type(reporting[k]) is str and reporting[k] == config[k] for k in ('repository', 'state_repository', 'branch', 'destination', 'team_id')), 'queue reporting identity differs')
+    require(isinstance(now, datetime) and now.tzinfo is not None and now.utcoffset() is not None and now.astimezone(timezone.utc) <= datetime.now(timezone.utc), 'queue delivery clock invalid')
+    now = now.astimezone(timezone.utc)
+    start = reporting['start']
+    require(string(start, r'[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]{1,6})?(?:Z|[+-][0-9]{2}:[0-9]{2})', 40) and (start.endswith('Z') or (int(start[-5:-3]) < 24 and int(start[-2:]) < 60)), 'queue reporting origin invalid')
+    start_time = datetime.fromisoformat(start.replace('Z', '+00:00')).astimezone(timezone.utc)
+    require(start_time <= now, 'queue reporting origin future')
+    reporting = json.loads(canonical(reporting))
+    class DeliveryAPI:
+        repo = api.repo
+        calls = consumed = 0
+        def request(self, path, method='GET', payload=None):
+            require(path == 'repos/'+self.repo or path.startswith('repos/'+self.repo+'/'), 'queue delivery foreign API')
+            require(self.calls < 512, 'queue delivery API bound exceeded'); self.calls += 1
+            value = api.request(path, method, payload)
+            size = len(canonical(value)); self.consumed += size
+            require(size <= 16000000 and self.consumed <= 67108864, 'queue delivery API byte bound exceeded')
+            return value
+    class DeliverySlack:
+        calls = consumed = 0
+        def account(self, size):
+            self.calls += 1; self.consumed += size
+            require(self.calls <= 512 and self.consumed <= 8000000, 'queue Slack observation bound exceeded')
+        def call(self, method, body):
+            require(method in {'auth.test', 'conversations.history', 'chat.postMessage', 'files.info'}, 'queue Slack method forbidden')
+            require(self.calls < 512, 'queue Slack observation bound exceeded')
+            value = client.call(method, body); size = len(canonical(value))
+            require(size <= 2000000, 'queue Slack response bound exceeded'); self.account(size)
+            return value
+        def transfer(self, url, data=None, **kwargs):
+            require(data is None and self.calls < 512, 'queue recovery upload forbidden')
+            value = client.transfer(url, **kwargs)
+            require(type(value) is bytes and len(value) <= 1000000, 'queue file response bound exceeded'); self.account(len(value))
+            return value
+    source = DeliveryAPI(); remote = DeliverySlack(); store = QueueStore(source, config, storage)
+    spec = importlib.util.spec_from_file_location('queue_alert_runtime', Path(__file__).with_name('factory-reporting-alerts.py'))
+    runtime = importlib.util.module_from_spec(spec); spec.loader.exec_module(runtime)
+    watch = dict(reporting, state_branch=storage['state_branch'], bootstrap_sha=storage['bootstrap_sha'], policy_approvals=storage['policy_approvals'], watchdog_grace_minutes=config['grace_minutes'])
+    identity = stream(config)
+    class Notice(runtime.Alert):
+        event_type = 'factory_reporting_queue_v1'
+        def format_text(self):
+            row = self.row
+            if row['kind'] == 'drill':
+                detail = 'Queue alert verification drill; this is not an actual reporting outage.'
+            elif row['kind'] == 'stalled':
+                detail = 'Eligible reporting workflow has no observed progress past queue grace: https://github.com/'+config['repository']+'/actions/runs/'+str(row['run_id'])+' (attempt '+str(row['run_attempt'])+'). Concurrency owner and deployment cause are unknown.'
+            else:
+                detail = 'Queue recovery: current protected digest receipt and worker metadata verified. Incident '+row['incident'][:12]
+            return 'Factory reporting queue — '+config['repository']+'\n'+detail
+    def notice(row):
+        result = Notice(remote, config, row)
+        require(string(result.bot, r'B[A-Z0-9]+', 32), 'queue bot identity invalid')
+        return result
+    def worker():
+        state = runtime.state
+        key = hashlib.sha256(canonical([source.repo, config['destination'], config['branch']])).hexdigest()
+        current = state.GitState(source, storage['state_branch'], key, storage['bootstrap_sha'], storage['policy_approvals'])
+        require(current.bytes is not None, 'queue worker checkpoint missing')
+        body = json.loads(current.bytes, object_pairs_hook=state.digest.coordinator.contract.no_duplicate_keys)
+        state.validate(body, source.repo, key)
+        require(body['tables']['digest_origins'][0]['origin'] == state.digest.stamp(start_time), 'queue reporting origin differs from protected worker')
+        return hashlib.sha256(current.bytes).hexdigest(), body
+    def verified_worker():
+        before, body = worker()
+        health = runtime.w.inspect(watch, source, remote, now)
+        require(health['status'] == 'current' and health['latest_receipt_verified'] is True and health['pending_batches'] == 0, 'queue recovery requires current exact delivery receipt')
+        after, current = worker(); require(before == after, 'queue worker changed during receipt proof')
+        batches = [row for row in current['tables']['digest_batches'] if row['status'] == 'confirmed']
+        require(bool(batches), 'queue recovery current receipt missing')
+        latest = max(batches, key=lambda row:runtime.state.digest.instant(row['cutoff']))
+        adapter = runtime.state.slack.transport(remote, watch, latest)
+        require(adapter.lookup(latest['key']).get('receipt') == json.loads(latest['receipt']), 'queue recovery receipt differs')
+        require(worker()[0] == before, 'queue worker changed during receipt proof')
+        return before
+    worker()  # Bind protected origin before initialization or any other effect.
+    document = store.read()['journal']
+    if document is None:
+        empty = {'schema_version':1, 'repository':config['repository'], 'branch':config['branch'], 'destination':config['destination'], 'team_id':config['team_id'], 'stream':identity, 'events':[]}
+        store.checkpoint(None, empty); document = empty
+    def persist(value):
+        nonlocal document
+        store.checkpoint(document, value); document = value
+    reconciled = 0
+    for index, row in enumerate(document['events']):
+        if row['status'] != 'confirmed':
+            receipt = notice(row).lookup()
+            next_document = json.loads(canonical(document))
+            next_document['events'][index].update(status='confirmed' if receipt else 'uncertain', message_id=receipt)
+            persist(next_document)
+            require(receipt is not None, 'queue send uncertain; no automatic resend')
+            reconciled += 1
+    def emit(row, guard=None):
+        value = json.loads(canonical(document)); value['events'].append(row); persist(value)
+        if guard is not None:
+            guard()
+        try:
+            receipt = notice(row).send()
+        except Exception:
+            value = json.loads(canonical(document)); value['events'][-1]['status'] = 'uncertain'; persist(value)
+            raise
+        value = json.loads(canonical(document)); value['events'][-1].update(status='confirmed', message_id=receipt); persist(value)
+        return {'notifications':1, 'reconciled':reconciled}
+    def row(kind, run=None, attempt=None, incident=None):
+        value = {'kind':kind, 'run_id':run, 'run_attempt':attempt, 'cutoff':now.isoformat(timespec='microseconds').replace('+00:00','Z'), 'status':'pending', 'message_id':None, 'incident':incident}
+        value['key'] = event_key(identity, value); value['incident'] = incident or value['key']
+        return value
+    if drill_run is not None:
+        require(type(drill_run) is int and 0 < drill_run < 2**63, 'queue drill run invalid')
+        root = 'repos/'+source.repo
+        repository = source.request(root); workflow = source.request(root+'/actions/workflows/factory-reporting-queue.yml'); actual = source.request(root+'/actions/runs/'+str(drill_run))
+        require(all(type(value) is dict for value in (repository, workflow, actual)), 'queue drill metadata must be objects')
+        require(all(type(actual.get(field)) is int and 0 < actual[field] < 2**63 for field in ('id', 'workflow_id', 'run_attempt')), 'queue drill execution identity invalid')
+        require(type(repository.get('id')) is int and 0 < repository['id'] < 2**63, 'queue drill repository identity invalid')
+        require(type(workflow.get('id')) is int and 0 < workflow['id'] < 2**63 and workflow.get('path') == '.github/workflows/factory-reporting-queue.yml' and workflow.get('state') == 'active', 'queue drill workflow differs')
+        require(actual.get('id') == drill_run and actual.get('workflow_id') == workflow['id'] and actual.get('path') == workflow['path'] and actual.get('event') == 'workflow_dispatch' and actual.get('status') == 'in_progress' and actual.get('conclusion') is None and actual.get('head_branch') == config['branch'] and string(actual.get('head_sha'), r'[0-9a-f]{40}', 40), 'queue drill execution differs')
+        require(repository.get('full_name') == source.repo and repository.get('default_branch') == config['branch'] and type(repository.get('id')) is int and all(type(actual.get(k)) is dict and type(actual[k].get('id')) is int and actual[k]['id'] == repository['id'] and actual[k].get('full_name') == source.repo for k in ('repository','head_repository')), 'queue drill repository differs')
+        require(type(actual.get('run_attempt')) is int and 0 < actual['run_attempt'] < 2**63, 'queue drill attempt invalid')
+        pending = row('drill', drill_run, actual['run_attempt'])
+    else:
+        observation = observe_queue(source, config, storage, now)
+        require(observation['status'] != 'unknown', 'queue metadata unknown; no notification or recovery proof')
+        recovered = {r['incident'] for r in document['events'] if r['kind'] == 'recovery'}
+        active = [r for r in document['events'] if r['kind'] != 'recovery' and r['key'] not in recovered]
+        if observation['status'] == 'stalled':
+            if any(r['kind'] == 'stalled' for r in active):
+                for item in active:
+                    require(notice(item).lookup() == item['message_id'], 'queue incident receipt no longer verifiable')
+                return {'notifications':0, 'reconciled':reconciled}
+            selected = observation['stalled'][0]; pending = row('stalled', selected['run_id'], selected['run_attempt'])
+        elif active:
+            incident = active[0]; require(notice(incident).lookup() == incident['message_id'], 'queue incident receipt no longer verifiable')
+            binding = verified_worker(); pending = row('recovery', incident=incident['key'])
+            def recheck():
+                require(observe_queue(source, config, storage, now)['status'] == 'metadata-current', 'queue recovery metadata changed')
+                require(verified_worker() == binding, 'queue worker changed before recovery post')
+            return emit(pending, recheck)
+        else:
+            return {'notifications':0, 'reconciled':reconciled}
+    for existing in document['events']:
+        if existing['key'] == pending['key']:
+            require(notice(existing).lookup() == existing['message_id'], 'queue existing receipt no longer verifiable')
+            return {'notifications':0, 'reconciled':reconciled}
+    return emit(pending)
