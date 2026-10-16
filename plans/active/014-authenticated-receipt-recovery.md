@@ -356,3 +356,79 @@ No fresh SQLite reconstruction, >128segment completeness, T293 replacement of th
 256commit bootstrap reader or report-loader integration is implemented here.
 T295/T286/T288 remain pending; actual App hidden-metadata/writer cutover is still
 unsupported. No live bootstrap, profile, credential, flags or protection changes.
+
+### T302 atomic decomposition and origin ordering — 2026-10-16
+
+Inspection confirms compact immutable schema1 has no merged_at. Its existing
+interval_end is only a campaign label: neither coordinator run time nor checkpoint
+publication time can legitimately filter delivery merge time. The recommended
+backward-compatible engineering choice is a derived exact same-repository PR GET
+observation; no schema2, invented historical date or new authority is needed.
+Retain schema1 facts unchanged even when time cannot be authenticated.
+
+T302 remains a pending aggregate, now depending on301 and309. Its approved scope
+is split into sequential bounded children, all pending:
+
+1. **T306(after301): authenticated lineage reader.** Read bounded checkpoint
+   history only after independently authenticating current protected origin. Bind
+   actual publication descent, exact single-parent checkpoint-only delta and
+   previous-blob continuity to the frozen repository/branch/bootstrap/tree and
+   campaign. Raw Git blobs, caller JSON/hashes/cursors or a complete flag cannot
+   establish origin. Return only checked window references with explicit partial
+   continuation; current frozen suffix remains pending. Acceptance:
+   factory-receipt-projection-lineage.sh.
+2. **T307(after306): derived exact merge-time facts.** Use a trusted fixed same-
+   repository PR GET and bind PR number, merged=true, exact retained merge SHA
+   and base repository ID/identity before accepting supported aware merged_at.
+   Preserve source proof identity and immutable schema1. No caller-supplied time,
+   run/publication time fallback, rounding or unsupported precision. Missing or
+   unavailable PR/time metadata is an explicit required-time gap, not deletion or
+   invalidation of a retained historical delivery fact. Stage only bounded checked
+   facts under the existing protected writer; no new credentials or permissions.
+   Acceptance: factory-receipt-projection-time.sh.
+3. **T308(after307): protected derived-fact stages.** Define strict inert staged-
+   fact/cursor namespaces and bounded complete schemas, protected publication
+   identity and CAS/lost-ack reconciliation preserving reports/encrypted feedback.
+   Retain immutable source references and global cross-window task/execution
+   duplicate/conflict indices; never silently select a winner or trust arbitrary
+   serialized SQLite/schema/SQL. Stage progress must originate only from checked
+   lineage/material/time facts. Per-invocation limits cannot become lifetime
+   history caps; no source archive pruning. Acceptance:
+   factory-receipt-projection-stage.sh.
+4. **T309(after308): fresh-process SQLite reconstruction.** Materialize only
+   authenticated requested-interval facts from protected stages, revalidating
+   original retained source/material binding and current revocation. Fresh SQLite
+   processes must advance/reconstruct beyond128 retained segments using protected
+   progress rather than restarting at0. Real Git, restart, partial continuation,
+   CAS/feedback preservation and global conflicting/copy/private negatives are
+   required. Time/required-proof gaps and unfinished scans keep reports explicitly
+   incomplete; no runtime task creation/credit. Report-time filtering uses checked
+   PR merged_at, not the campaign label. Every old historical fact remains in the
+   archive even when outside this requested interval or withdrawn. Acceptance:
+   factory-receipt-projection-resume.sh.
+
+**T310(after293 and completed302)** is the completed-origin integration foundation
+BEFORE T286 and therefore before T287's >1000-history acceptance. This fixes an
+ordering defect: real append histories can exceed the existing256-ancestor reader
+before the old T288 integration point. T310 must authenticate completed T293
+checkpoint publication and checked-prefix provenance, validate any current suffix
+within invocation budgets and preserve all single-parent/inert-tree/bootstrap/
+copy/rollback/policy-binding guards. Raw completed:true or compare ancestry alone
+never substitutes for checked historical content. Integrate the shared origin
+entry point into core append/discovery/projection paths; incomplete origin stays
+a gap. No hidden-App metadata model or live writer capability change is included.
+Acceptance: factory-receipt-completed-origin.sh. This is an outline requiring
+implementation review, not a claim that T293 already removes256 everywhere.
+
+T286 now explicitly depends on310 in addition to its existing children. T287
+continues to depend on286; it must exercise genuine >1000 append/source history
+with completed-origin integration, never mock away or bypass the256 guard. T288
+retains final CLI/report-loader/profile configuration integration, not the first
+origin foundation needed by earlier acceptance. T309's >128-segment test can use
+a real sub256-commit history while that foundation is pending; it must state this
+limit honestly. T295/T302/T286/287/288 and306–310 remain pending.
+
+No new signature boundary, App permission, credential, store, retention policy,
+live profile, rules or authority is authorized by this routine decomposition.
+Any shared parser/helper adaptation must use actual merged protected source, not
+unmerged diagnostic candidates. This checkpoint adds no source implementation.

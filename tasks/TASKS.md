@@ -1699,7 +1699,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-receipt-reruns.sh
   owner: implementer
 
-- [ ] T-286  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-285,T-293,T-294,T-295  | parallel: no  | est: 5m
+- [ ] T-286  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-285,T-293,T-294,T-295,T-310  | parallel: no  | est: 5m
   summary: Resume cold-start backfill and expose pagination or required-history gaps
   files: .claude/scripts/factory-receipt-discovery.py, .claude/scripts/test/factory-receipt-coverage.sh
   accept: bash .claude/scripts/test/factory-receipt-coverage.sh
@@ -1790,8 +1790,38 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-receipt-projection-checkpoint.sh
   owner: implementer
 
-- [ ] T-302  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-301  | parallel: no  | est: 5m
+- [ ] T-302  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-301,T-309  | parallel: no  | est: 5m
   summary: Resume bounded retained reporting reconstruction across fresh hosted processes
   files: .claude/scripts/factory-receipt-archive.py, .claude/scripts/test/factory-receipt-projection-resume.sh, .claude/scripts/test/factory-receipt-retained-proof.sh, plans/active/014-authenticated-receipt-recovery.md
   accept: bash .claude/scripts/test/factory-receipt-projection-resume.sh
+  owner: implementer
+
+- [ ] T-306  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-301  | parallel: no  | est: 5m
+  summary: Read bounded projection window lineage from authenticated publications
+  files: .claude/scripts/factory-receipt-archive.py, .claude/scripts/test/factory-receipt-projection-lineage.sh, plans/active/014-authenticated-receipt-recovery.md
+  accept: bash .claude/scripts/test/factory-receipt-projection-lineage.sh
+  owner: implementer
+
+- [ ] T-307  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-306  | parallel: no  | est: 5m
+  summary: Authenticate exact retained PR merge times without inventing historical dates
+  files: .claude/scripts/factory-receipt-archive.py, .claude/scripts/test/factory-receipt-projection-time.sh, plans/active/014-authenticated-receipt-recovery.md
+  accept: bash .claude/scripts/test/factory-receipt-projection-time.sh
+  owner: implementer
+
+- [ ] T-308  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-307  | parallel: no  | est: 5m
+  summary: Persist bounded report reconstruction stages with global conflict guards
+  files: .claude/scripts/factory-receipt-archive.py, .claude/scripts/factory-state-paths.py, .claude/scripts/test/factory-receipt-projection-stage.sh, plans/active/014-authenticated-receipt-recovery.md
+  accept: bash .claude/scripts/test/factory-receipt-projection-stage.sh
+  owner: implementer
+
+- [ ] T-309  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-308  | parallel: no  | est: 5m
+  summary: Reconstruct requested interval facts across fresh SQLite processes
+  files: .claude/scripts/factory-receipt-archive.py, .claude/scripts/test/factory-receipt-projection-resume.sh, .claude/scripts/test/factory-receipt-retained-proof.sh, plans/active/014-authenticated-receipt-recovery.md
+  accept: bash .claude/scripts/test/factory-receipt-projection-resume.sh
+  owner: implementer
+
+- [ ] T-310  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-293,T-302  | parallel: no  | est: 5m
+  summary: Integrate completed protected origin before large-history acceptance
+  files: .claude/scripts/factory-receipt-archive.py, .claude/scripts/factory-receipt-discovery.py, .claude/scripts/test/factory-receipt-completed-origin.sh, .claude/scripts/test/factory-receipt-origin-windows.sh, plans/active/014-authenticated-receipt-recovery.md
+  accept: bash .claude/scripts/test/factory-receipt-completed-origin.sh
   owner: implementer
