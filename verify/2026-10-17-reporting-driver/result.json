@@ -1,0 +1,15 @@
+{
+  "base": "eae78f9df87c5c1ebe4947359bad590d2b0bf7ba",
+  "initial_assertion_red_exit": 1,
+  "focused_final_green_exit": 0,
+  "real_process_cases": 14,
+  "source_sha256": {
+    ".claude/scripts/factory-reporting-driver.py": "17b2cc988c24c07ada552b7ed76bd404c4243d71686ef744910821a47c03a609",
+    ".claude/scripts/test/factory-reporting-driver.sh": "d507e8c6901ab6d798a79dffea0816c5b15eb224e325576fee97604a916f4d6b"
+  },
+  "child_api_counters_available": false,
+  "observer_budget": "separate retained whole-job existing2048call32MiB transport budget; at most one observer per iteration, maximum512iterations",
+  "live_calls": false,
+  "cadence_accepted": false,
+  "task_closed": false
+}
