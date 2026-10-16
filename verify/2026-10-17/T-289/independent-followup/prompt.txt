@@ -1,0 +1,357 @@
+Review the narrow T289 follow-up to your original changes-requested review. Confirm the accepted structured-error finding is fixed without introduced actionable defects. The original conditional interval finding was disproven by the actual invoked coverage validator below. Return pass with empty findings if satisfied; do not invent new requirements or claim tests ran. Static exact frozen working-tree snapshot; no tools/native claims.
+ORIGINAL VERDICT
+{
+  "verdict": "changes_requested",
+  "findings": [
+    {
+      "severity": "medium",
+      "file": ".claude/scripts/factory-preflight.py",
+      "line": 57,
+      "title": "Readiness omits the coverage_from <= verified_until ordering check that the merge-path projection enforces",
+      "reason": "project_reporting (factory-reporting-receipts.py:87-90) requires `archive.instant(coverage['coverage_from']) <= archive.instant(coverage['verified_until'])` in addition to the repository and coverage_from equality checks. reporting_readiness copies the equality checks but not the ordering check. If the retained validators do not themselves reject an interval_end earlier than the anchor's coverage_from, readiness can report `retained_interval: passed` for an interval the emitter would refuse. That is a false-positive readiness signal. The merge path repeats this check, which suggests the validators do not guarantee it. I could not confirm that from the visible code, so please either add the same check here or show that the validators reject the case. No test covers an interval_end before coverage_from."
+    },
+    {
+      "severity": "low",
+      "file": ".claude/scripts/factory-preflight.py",
+      "line": 63,
+      "title": "Narrow exception set can turn a validation failure into an uncaught traceback instead of structured failed JSON",
+      "reason": "Both reporting_readiness (line 63) and reporting_main (line 80) catch only ValueError, OSError, KeyError and TypeError. factory-receipt-discovery.py:852 shows that the API and observation layer can raise RuntimeError, which coverage() handles itself. verify_bootstrap and reconstruct_interval run outside that handler, and sqlite3.Error from reconstruct_interval's temporary database is also not in this set. Any of these would escape as a traceback with no JSON result. The exit code is still nonzero, so this fails closed. The contract of reporting a `failed` check with a fixed reason string is broken, though, and the traceback prints unsanitized exception text. Consider catching RuntimeError and sqlite3.Error as well, or a broader handler that emits the fixed reason."
+    }
+  ],
+  "limitations": [
+    "Static review of the provided snapshot only. No tests or code were run, and I make no claim that any test passes.",
+    "I could not see the bodies of archive.reconstruct_interval, archive.verify_bootstrap, factory-reporting-transport.py (build_config, create_api, attach_reporting_context), or most of discovery.coverage. I could not confirm which exceptions they raise or whether they already reject an interval that ends before coverage_from.",
+    "I found no source or state mutation in the new readiness path. State access goes through helper.ReadOnly and helper.Source, and the new code writes only to a temporary directory. The result sets only protected_origin and retained_interval; installed_app, private_capability, native_cadence and operator_cutover stay not_checked, and no `ready` key is emitted.",
+    "The existing `--policy` path is functionally unchanged. The only visible differences are the mutually exclusive required group and a rejection of interval selectors when `--policy` is used.",
+    "With selectors supplied, a protected-input change detected by the final recheck at lines 60-62 marks `retained_interval` failed. `protected_origin` stays `passed` and the earlier anchor stays in the output. The overall exit is still nonzero, so I did not file this as a finding."
+  ],
+  "review_summary": "The reporting-only readiness mode is mostly sound. It uses read-only wrappers for the state and source APIs, requires profile trust mode with an active profile, checks the repository and store binding, and rechecks the bootstrap anchor and the approval and trust bytes at the end. It runs the real reconstruct_interval and coverage validators and reports only protected_origin and retained_interval. Everything else stays not_checked, there is no overall `ready` claim, and the `--policy` flow is unchanged. I found two issues. The medium one is that readiness drops the `coverage_from <= verified_until` ordering check that project_reporting applies, so it could report a pass the emitter would reject. The low one is that the narrow exception set can leak a traceback instead of the structured failed result."
+}
+
+EXACT DIFF SINCE REVIEWED COMMIT
+diff --git a/.claude/scripts/factory-preflight.py b/.claude/scripts/factory-preflight.py
+index 300f9d8..1741ae8 100644
+--- a/.claude/scripts/factory-preflight.py
++++ b/.claude/scripts/factory-preflight.py
+@@ -14,6 +14,7 @@ def reporting_readiness(config, source_api, state_api, *, interval_end=None,
+     """Observe existing protected proof without creating progress or authority."""
+     # Reporting-only imports leave the merge emitter's execution closure unchanged.
+     import importlib.util
++    import sqlite3
+     import tempfile
+     spec = importlib.util.spec_from_file_location('preflight_reporting', Path(__file__).with_name('factory-reporting-receipts.py'))
+     helper = importlib.util.module_from_spec(spec); spec.loader.exec_module(helper)
+@@ -60,13 +61,14 @@ def reporting_readiness(config, source_api, state_api, *, interval_end=None,
+         archive.require(archive.verify_bootstrap(state, approval) == anchor and
+                         approval.read_bytes() == approval_bytes and trust.read_bytes() == trust_bytes,
+                         'readiness protected origin or trust changed')
+-    except (ValueError, OSError, KeyError, TypeError):
++    except (ValueError, OSError, KeyError, TypeError, RuntimeError, sqlite3.Error):
+         checks[current] = {'status': 'failed', 'reason': 'protected reporting validation failed'}
+     return result
+ 
+ 
+ def reporting_main(args):
+     import importlib.util
++    import sqlite3
+     spec = importlib.util.spec_from_file_location('preflight_transport', Path(__file__).with_name('factory-reporting-transport.py'))
+     transport = importlib.util.module_from_spec(spec); spec.loader.exec_module(transport)
+     try:
+@@ -77,7 +79,7 @@ def reporting_main(args):
+         api = transport.create_api(os.environ)
+         result = reporting_readiness(config, api, api, interval_end=args.interval_end,
+             history_head=args.history_head, campaign=args.campaign, interval_scoped=True)
+-    except (ValueError, OSError, KeyError, TypeError):
++    except (ValueError, OSError, KeyError, TypeError, RuntimeError, sqlite3.Error):
+         result = {'scope': 'reporting-readiness', 'checks': {'configuration': {
+             'status': 'failed', 'reason': 'selected reporting configuration unavailable or invalid'}}}
+     print(json.dumps(result, indent=2))
+diff --git a/.claude/scripts/test/factory-receipt-readiness.sh b/.claude/scripts/test/factory-receipt-readiness.sh
+index 11244e8..40d98c6 100755
+--- a/.claude/scripts/test/factory-receipt-readiness.sh
++++ b/.claude/scripts/test/factory-receipt-readiness.sh
+@@ -38,6 +38,19 @@ cases=r'''
+  def check(source=runs,state=None):
+   return pre.reporting_readiness(config,source,state or ReadState(),interval_end=end,history_head=context['history'],campaign=campaign,page_size=1)
+  def passed(value,key):return value['checks'][key]['status']=='passed'
++ class Unavailable(ReadState):
++  def request(self,path,method='GET',payload=None):
++   raise RuntimeError('private provider diagnostic must not reach JSON')
++ unavailable=check(state=Unavailable())
++ assert unavailable['checks']['protected_origin']['status']=='failed',unavailable
++ assert 'private provider diagnostic' not in json.dumps(unavailable)
++ # Synthetic local SQLite failure at the actual reconstruction boundary.
++ import sqlite3
++ from unittest.mock import patch
++ with patch('sqlite3.connect',side_effect=sqlite3.OperationalError('private database diagnostic')):
++  database_failure=check()
++ assert database_failure['checks']['retained_interval']['status']=='failed',database_failure
++ assert 'private database diagnostic' not in json.dumps(database_failure)
+  for item in sources:item.expired=True
+  result=check();assert passed(result,'protected_origin') and passed(result,'retained_interval'),result
+  assert all(result['checks'][name]['status']=='not_checked' for name in ('installed_app','private_capability','native_cadence','operator_cutover')),result
+
+
+FILE .claude/scripts/factory-preflight.py
+1: #!/usr/bin/env python3
+2: """Report missing activation prerequisites without exposing credentials."""
+3: import argparse
+4: import json
+5: import re
+6: import os
+7: from pathlib import Path
+8: import sys
+9: 
+10: 
+11: def reporting_readiness(config, source_api, state_api, *, interval_end=None,
+12:                         history_head=None, campaign=None, page_size=100,
+13:                         interval_scoped=False):
+14:     """Observe existing protected proof without creating progress or authority."""
+15:     # Reporting-only imports leave the merge emitter's execution closure unchanged.
+16:     import importlib.util
+17:     import sqlite3
+18:     import tempfile
+19:     spec = importlib.util.spec_from_file_location('preflight_reporting', Path(__file__).with_name('factory-reporting-receipts.py'))
+20:     helper = importlib.util.module_from_spec(spec); spec.loader.exec_module(helper)
+21:     archive = helper.archive
+22:     checks = {name: {'status': 'not_checked'} for name in (
+23:         'protected_origin', 'retained_interval', 'installed_app',
+24:         'private_capability', 'native_cadence', 'operator_cutover')}
+25:     result = {'scope': 'reporting-readiness', 'checks': checks}
+26:     current = 'protected_origin'
+27:     try:
+28:         selected = config['receipt_archive']; policy = config['receipt_policy']
+29:         archive.require(source_api.repo == state_api.repo == config['repository'] == policy['repository'], 'readiness repository differs')
+30:         archive.require(selected['trust_mode'] == 'profile', 'readiness profile mode required')
+31:         state = helper.ReadOnly(state_api); source = helper.Source(source_api)
+32:         approval = Path(selected['approval_path']); trust = Path(selected['trust_path'])
+33:         approval_bytes = approval.read_bytes(); trust_bytes = trust.read_bytes()
+34:         archive.receipts.load_receipt_trust(trust, state.repo, mode='profile')
+35:         anchor = archive.verify_bootstrap(state, approval)
+36:         archive.require(selected['store']['repository'] == state.repo and
+37:                         (not anchor['private'] or selected['store']['visibility'] == 'private'), 'readiness private store required')
+38:         result['anchor'] = anchor
+39:         checks[current] = {'status': 'passed'}
+40:         selectors = (interval_end, history_head, campaign)
+41:         if any(value is not None for value in selectors):
+42:             current = 'retained_interval'
+43:         archive.require(all(value is None for value in selectors) or all(value is not None for value in selectors), 'readiness interval selectors incomplete')
+44:         if interval_end is not None:
+45:             stream = archive.archive_stream(state.repo)
+46:             with tempfile.TemporaryDirectory(prefix='factory-readiness-') as temporary:
+47:                 projection = archive.reconstruct_interval(state, policy, Path(temporary)/'receipts.sqlite', trust,
+48:                     selected['store'], approval, stream, interval_end=interval_end,
+49:                     history_head=history_head, campaign=campaign, interval_scoped=interval_scoped)
+50:                 archive.require(projection.get('projection_complete') is True, 'readiness retained projection incomplete')
+51:                 observed = helper.discovery.coverage(source, state, policy, trust, selected['store'], approval, stream,
+52:                     interval_end=interval_end, projection_end=interval_end, history_head=history_head,
+53:                     campaign=campaign, page_size=page_size, interval_scoped=interval_scoped)
+54:                 archive.require(all(observed.get(key) is True for key in (
+55:                     'coverage_complete', 'source_partition_complete', 'frozen_projection_complete')) and
+56:                     observed.get('verified_until') == interval_end and observed.get('gaps') == [] and
+57:                     observed.get('task_credit') is False and observed.get('all_history_complete') is False and
+58:                     observed.get('repository') == state.repo and observed.get('coverage_from') == anchor['coverage_from'],
+59:                     'readiness retained coverage incomplete')
+60:             checks[current] = {'status': 'passed', 'verified_until': interval_end}
+61:         archive.require(archive.verify_bootstrap(state, approval) == anchor and
+62:                         approval.read_bytes() == approval_bytes and trust.read_bytes() == trust_bytes,
+63:                         'readiness protected origin or trust changed')
+64:     except (ValueError, OSError, KeyError, TypeError, RuntimeError, sqlite3.Error):
+65:         checks[current] = {'status': 'failed', 'reason': 'protected reporting validation failed'}
+66:     return result
+67: 
+68: 
+69: def reporting_main(args):
+70:     import importlib.util
+71:     import sqlite3
+72:     spec = importlib.util.spec_from_file_location('preflight_transport', Path(__file__).with_name('factory-reporting-transport.py'))
+73:     transport = importlib.util.module_from_spec(spec); spec.loader.exec_module(transport)
+74:     try:
+75:         selected = transport.build_config(os.environ)
+76:         transport.require(selected['writer_mode'] == 'app', 'explicit reporting App selection required')
+77:         config = transport.state.digest.coordinator.contract.load(args.reporting_config)
+78:         config = transport.attach_reporting_context(config)
+79:         api = transport.create_api(os.environ)
+80:         result = reporting_readiness(config, api, api, interval_end=args.interval_end,
+81:             history_head=args.history_head, campaign=args.campaign, interval_scoped=True)
+82:     except (ValueError, OSError, KeyError, TypeError, RuntimeError, sqlite3.Error):
+83:         result = {'scope': 'reporting-readiness', 'checks': {'configuration': {
+84:             'status': 'failed', 'reason': 'selected reporting configuration unavailable or invalid'}}}
+85:     print(json.dumps(result, indent=2))
+86:     return 1 if any(check['status'] == 'failed' for check in result['checks'].values()) else 0
+87: 
+88: 
+89: def main():
+90:     parser = argparse.ArgumentParser(description=__doc__)
+91:     mode = parser.add_mutually_exclusive_group(required=True)
+92:     mode.add_argument('--policy', type=Path)
+93:     mode.add_argument('--reporting-config', type=Path)
+94:     parser.add_argument('--interval-end')
+95:     parser.add_argument('--history-head')
+96:     parser.add_argument('--campaign')
+97:     args = parser.parse_args()
+98:     if args.reporting_config is not None:
+99:         selectors = (args.interval_end, args.history_head, args.campaign)
+100:         if any(value is not None for value in selectors) and any(value is None for value in selectors):
+101:             parser.error('reporting proof requires all three interval selectors')
+102:         return reporting_main(args)
+103:     if any(value is not None for value in (args.interval_end, args.history_head, args.campaign)):
+104:         parser.error('interval selectors require --reporting-config')
+105:     policy = json.loads(args.policy.read_text())
+106:     missing = []
+107:     if policy.get('enabled') is not True:
+108:         missing.append('operator-approved policy activation')
+109:     app = policy.get('app_id')
+110:     if type(app) is not int or app <= 0 or os.environ.get('FACTORY_APP_ID') != str(app):
+111:         missing.append('matching dedicated GitHub App ID')
+112:     if os.environ.get('FACTORY_KEY_PRESENT') != 'true':
+113:         missing.append('private key in protected factory-authority environment')
+114:     if not policy.get('required_checks'):
+115:         missing.append('required check producer pins')
+116:     if not policy.get('specs'):
+117:         missing.append('approved spec revision, AC set and path scope')
+118:     producers = policy.get('producers', {})
+119:     for role in ('verification', 'review'):
+120:         definition = producers.get(role, {})
+121:         if type(definition.get('workflow_id')) is not int or definition['workflow_id'] <= 0 or not definition.get('trusted_files'):
+122:             missing.append(f'{role} authenticated workflow and runtime hashes')
+123:         expected = 'factory-verification' if role == 'verification' else 'factory-independent-review'
+124:         if definition.get('event') != 'pull_request_target' or definition.get('check_name') != expected:
+125:             missing.append(f'{role} protected event and candidate-check identity')
+126:         paths = {f'.github/workflows/factory-{role}.yml', '.claude/scripts/factory-producer.py',
+127:                  '.claude/scripts/factory-producer-check.py', '.claude/scripts/factory-coordinator.py', '.claude/scripts/factory-provenance.py',
+128:                  '.claude/scripts/validate-candidate-evidence.py', '.claude/scripts/factory-bounded-process.py',
+129:                  '.claude/scripts/factory-policy-observation.py'}
+130:         if not paths <= set(definition.get('trusted_files', {})):
+131:             missing.append(f'{role} complete transitive runtime hashes')
+132:     for sid, approved in policy.get('specs', {}).items():
+133:         acs = approved.get('ac_ids', [])
+134:         if not approved.get('path') or not acs or not approved.get('allowed_paths') or set(approved.get('acceptance_commands', {})) != set(acs):
+135:             missing.append(f'spec {sid} bytes, scope and per-AC acceptance commands')
+136:         if re.fullmatch(r'[A-Za-z0-9./:_-]+@sha256:[0-9a-f]{64}', approved.get('verification_image', '')) is None:
+137:             missing.append(f'spec {sid} digest-pinned verification runtime')
+138:     print(json.dumps({'ready': not missing, 'missing': missing}, indent=2))
+139:     return 1 if missing else 0
+140: 
+141: 
+142: if __name__ == '__main__':
+143:     sys.exit(main())
+
+
+FILE .claude/scripts/test/factory-receipt-readiness.sh
+1: #!/usr/bin/env bash
+2: # Spec014 AC-1/2/5/6/7/8: readiness is observed proof, never a declaration.
+3: set -euo pipefail
+4: cd "$(dirname "$0")/../../.."
+5: "${FACTORY_TEST_PYTHON:-python3}" - <<'PYTEST'
+6: from pathlib import Path
+7: import importlib.util,json,subprocess,sys,tempfile,os
+8: scripts=Path('.claude/scripts').resolve()
+9: s=importlib.util.spec_from_file_location('readiness',scripts/'factory-preflight.py');p=importlib.util.module_from_spec(s);s.loader.exec_module(p)
+10: with tempfile.TemporaryDirectory() as temporary:
+11:  path=Path(temporary)/'policy.json';path.write_text('{}')
+12:  old=subprocess.run([sys.executable,str(scripts/'factory-preflight.py'),'--policy',str(path)],capture_output=True,text=True)
+13:  assert old.returncode==1 and set(json.loads(old.stdout))=={'ready','missing'},old
+14:  assert 'operator-approved policy activation' in json.loads(old.stdout)['missing']
+15:  for flag,state_repo in (('false','org/repo'),('TRUE','org/repo'),('true','foreign/repo'),('true','org/repo')):
+16:   env={'PATH':os.environ.get('PATH',''),'GITHUB_REPOSITORY':'org/repo','FACTORY_REPORTING_STATE_REPOSITORY':state_repo,
+17:        'FACTORY_REPORTING_APP_WRITER_ENABLED':flag,'FACTORY_REPORTING_APP_ID':'7'}
+18:   child=subprocess.run([sys.executable,str(scripts/'factory-preflight.py'),'--reporting-config',str(path)],env=env,capture_output=True,text=True)
+19:   assert child.returncode==1 and json.loads(child.stdout)['checks']['configuration']['status']=='failed',child
+20:   assert 'ready' not in json.loads(child.stdout)
+21:  incomplete=subprocess.run([sys.executable,str(scripts/'factory-preflight.py'),'--reporting-config',str(path),'--interval-end','2026-10-15T23:00:00Z'],capture_output=True,text=True)
+22:  assert incomplete.returncode==2 and 'all three interval selectors' in incomplete.stderr,incomplete
+23: assert callable(getattr(p,'reporting_readiness',None)), 'preflight has no read-only reporting readiness composition'
+24: fixture=Path('.claude/scripts/test/factory-receipt-coverage-batch.sh').read_text()
+25: for marker in ("<<'PY'\n", "\ncases=r'''\n", ' assert batch_calls,'):
+26:  assert fixture.count(marker)==1,'coverage fixture splice marker changed: '+repr(marker)
+27: source=fixture.split("<<'PY'\n",1)[1]
+28: prefix=source.split("\ncases=r'''",1)[0]
+29: setup=source.split("\ncases=r'''\n",1)[1].split(' assert batch_calls,',1)[0]
+30: cases=r'''
+31:  ps=importlib.util.spec_from_file_location('actual_preflight',scripts/'factory-preflight.py');pre=importlib.util.module_from_spec(ps);ps.loader.exec_module(pre)
+32:  config={'repository':'org/repo','receipt_policy':policy,'receipt_archive':{'approval_path':str(approval),'trust_path':str(trust),'store':store,'trust_mode':'profile'}}
+33:  before=out('rev-parse',ref);approval_bytes=approval.read_bytes();trust_bytes=trust.read_bytes()
+34:  class ReadState(PipelineState):
+35:   def request(self,path,method='GET',payload=None):
+36:    assert method=='GET' and payload is None,'readiness attempted a state mutation'
+37:    return super().request(path,method,payload)
+38:  def check(source=runs,state=None):
+39:   return pre.reporting_readiness(config,source,state or ReadState(),interval_end=end,history_head=context['history'],campaign=campaign,page_size=1)
+40:  def passed(value,key):return value['checks'][key]['status']=='passed'
+41:  class Unavailable(ReadState):
+42:   def request(self,path,method='GET',payload=None):
+43:    raise RuntimeError('private provider diagnostic must not reach JSON')
+44:  unavailable=check(state=Unavailable())
+45:  assert unavailable['checks']['protected_origin']['status']=='failed',unavailable
+46:  assert 'private provider diagnostic' not in json.dumps(unavailable)
+47:  # Synthetic local SQLite failure at the actual reconstruction boundary.
+48:  import sqlite3
+49:  from unittest.mock import patch
+50:  with patch('sqlite3.connect',side_effect=sqlite3.OperationalError('private database diagnostic')):
+51:   database_failure=check()
+52:  assert database_failure['checks']['retained_interval']['status']=='failed',database_failure
+53:  assert 'private database diagnostic' not in json.dumps(database_failure)
+54:  for item in sources:item.expired=True
+55:  result=check();assert passed(result,'protected_origin') and passed(result,'retained_interval'),result
+56:  assert all(result['checks'][name]['status']=='not_checked' for name in ('installed_app','private_capability','native_cadence','operator_cutover')),result
+57:  assert 'ready' not in result,'local proof claims overall activation readiness'
+58:  assert out('rev-parse',ref)==before and approval.read_bytes()==approval_bytes and trust.read_bytes()==trust_bytes
+59:  local=pre.reporting_readiness(config,runs,ReadState());assert passed(local,'protected_origin') and local['checks']['retained_interval']['status']=='not_checked'
+60:  wrong=pre.reporting_readiness(config,runs,ReadState(),interval_end=end,history_head=context['history'],campaign='f'*64,page_size=1)
+61:  assert wrong['checks']['retained_interval']['status']=='failed',wrong
+62:  changed=json.loads(trust_bytes);changed['profiles'][0]['status']='revoked';trust.write_text(json.dumps(changed))
+63:  assert check()['checks']['protected_origin']['status']=='failed','zero active profiles accepted for readiness'
+64:  current=copy.deepcopy(changed['profiles'][0]);current.update(id='current-active',status='active');changed['profiles'].append(current);trust.write_text(json.dumps(changed))
+65:  withdrawn=check();assert passed(withdrawn,'retained_interval'),withdrawn
+66:  trust.write_bytes(trust_bytes)
+67:  class Changed(Runs):
+68:   def request(self,target,**kwargs):
+69:    value=super().request(target,**kwargs)
+70:    if '/actions/workflows/' in target and value['workflow_runs']:value['workflow_runs'][0]['repository']['id']=999
+71:    return value
+72:  assert check(source=Changed())['checks']['retained_interval']['status']=='failed'
+73:  broken=json.loads(approval_bytes);broken['private']=True;approval.write_text(json.dumps(broken))
+74:  assert check()['checks']['protected_origin']['status']=='failed';approval.write_bytes(approval_bytes)
+75:  class TrustRace(ReadState):
+76:   def read_pull_requests(self,repo,numbers):
+77:    value=super().read_pull_requests(repo,numbers);trust.write_bytes(trust_bytes+b' ');return value
+78:  raced=check(state=TrustRace());assert raced['checks']['retained_interval']['status']=='failed',raced;trust.write_bytes(trust_bytes)
+79:  assert out('rev-parse',ref)==before,'readiness changed protected Git state'
+80:  print('PASS actual expired-artifact retained proof, withdrawn annotations, foreign/private/race negatives; GET-only state')
+81: '''
+82: exec(compile(prefix+"\ncases=r'''\n"+setup+cases+"\n'''\nexec(compile(fixture+pipeline+cases,'readiness-real-git','exec'))\n",'readiness-wrapper','exec'))
+83: PYTEST
+
+
+FILE .claude/scripts/factory-receipt-discovery.py
+715:             return archive.document(raw) if raw is not None else None
+716:         def second(value):
+717:             point = archive.instant(value)
+718:             require(point.microsecond == 0 and point.timestamp() >= 0, 'coverage boundary requires exact seconds')
+719:             return int(point.timestamp())
+720:         def stamp(number):return datetime.datetime.fromtimestamp(number,datetime.timezone.utc).isoformat().replace('+00:00','Z')
+721:         low, high = second(anchor['coverage_from']), second(interval_end)
+722:         require(low <= high <= int(datetime.datetime.now(datetime.timezone.utc).timestamp()), 'coverage interval clock invalid')
+723:         expected = {'schema_version':1,'repository':api.repo,'stream':stream,'binding':binding(anchor),'workflow_id':policy['receipts']['workflow_id'],'source_branch':policy['base_branch'],'page_size':page_size,'interval_start':stamp(low),'interval_end':stamp(high)}
+724:         scope=archive.interval_scope(anchor,stream,interval_end,interval_scoped)
+725:         manifest = protected('receipt-archive/backfill/'+scope+'.json')
+726:         if manifest is None:return gap('required-source-history-missing')
+
+
+FILE .claude/scripts/factory-receipt-archive.py
+1100:                 immutable[path] = canonical(value)
+1101:                 return document(immutable[path])
+1102:             return value
+1103: 
+1104:     api = Bounded(); anchor = verify_bootstrap(api, approval_path)
+1105:     require(store == {'repository': api.repo, 'visibility': 'private' if anchor['private'] else 'public'}, 'projection lineage visibility differs')
+1106:     approval_raw = Path(approval_path).read_bytes(); approval = document(approval_raw)
+1107:     trust_hash = digest(Path(trust_path).read_bytes())
+1108:     binding = {key: approval[key] for key in ('repository', 'repository_id', 'private', 'branch', 'bootstrap_sha', 'bootstrap_tree', 'coverage_from', 'writer_app_id', 'policies')}
+1109:     binding.update(stream=stream, approval_sha256=digest(canonical(approval)), policy_sha256=receipts.coordinator.policy_hash(policy), interval_end=interval_end)
+1110:     require(instant(anchor['coverage_from']) <= instant(interval_end) <= datetime.datetime.now(datetime.timezone.utc), 'projection lineage interval differs')
+1111:     selected = anchor['head'] if history_head is None else history_head
+1112:     require(state_paths.valid_hash(selected, 40), 'projection lineage history revision differs')
+1113:     _origin_ancestor(api.request, root, anchor['bootstrap_sha'], selected)
+1114:     _origin_ancestor(api.request, root, selected, anchor['head'])

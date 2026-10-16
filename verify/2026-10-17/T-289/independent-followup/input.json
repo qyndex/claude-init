@@ -1,0 +1,31 @@
+{
+  "head": "3bc07da61493005fe1679934d89642dd7a3b49d8",
+  "source_scope": "frozen working-tree follow-up, not committed implementation-head claim",
+  "review_files": [
+    {
+      "path": ".claude/scripts/factory-preflight.py",
+      "start": 1,
+      "end": 143,
+      "full_sha256": "c3997120ee8d7064738b26fa1c30e318db02ebf411c46baa3aa67d521d1dad56"
+    },
+    {
+      "path": ".claude/scripts/test/factory-receipt-readiness.sh",
+      "start": 1,
+      "end": 83,
+      "full_sha256": "92291ea3a62085868e5ca0daf129ae0cbceb967a3a5569d32101c08398c1fe2f"
+    },
+    {
+      "path": ".claude/scripts/factory-receipt-discovery.py",
+      "start": 715,
+      "end": 726,
+      "full_sha256": "7d35812cc68950a59b73dcea3dee8f31edf9845994ed9ef062fc907011fc1f5e"
+    },
+    {
+      "path": ".claude/scripts/factory-receipt-archive.py",
+      "start": 1100,
+      "end": 1114,
+      "full_sha256": "bc024a261c4eb8a2dc709f5725fd26ca778d79781d0260ba16faf0045fff369c"
+    }
+  ],
+  "prompt_sha256": "2c8cacb4ecc6f6717e9cd1d1e8bbb2014f5cce61f20afaad473952a832b80005"
+}
