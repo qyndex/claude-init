@@ -48,6 +48,7 @@ print('PASS invalid/default receipt modes, fixed byte-exact legacy payload and p
 source=fixture_source.split("<<'PY'\n",1)[1]
 prefix=source.split("\ncases=r'''",1)[0]
 setup=source.split("\ncases=r'''\n",1)[1].split(' assert batch_calls,',1)[0]
+prefix+="\nmarker=' first=a.checkpoint_projection('\nassert pipeline.count(marker)==1, 'projection fixture checkpoint marker changed'\npipeline=pipeline.replace(marker, \" projection_parent=out('rev-parse',ref)\\n\"+marker,1)\n"
 cases=r'''
  # Real Git/bootstrap/stages/coverage above; no caller authenticated flag.
  ds=importlib.util.spec_from_file_location('report_digest',scripts/'factory-digest.py');digest=importlib.util.module_from_spec(ds);ds.loader.exec_module(digest)
@@ -59,7 +60,7 @@ cases=r'''
  active=trust.read_bytes();revoked=json.loads(active);revoked['profiles'][0]['status']='revoked';trust.write_text(json.dumps(revoked))
  retained=root/'retained-only.sqlite';assert a.reconstruct_interval(PipelineState(),policy,retained,trust,store,approval,stream,interval_end=end,history_head=context['history'],campaign=campaign)['projection_complete']
  report=root/'report.sqlite';view=digest.Digest(report,'org/repo','C1','2026-10-15T00:00:00Z');view.receipt_mode='durable'
- # Baseline renders genuine withdrawn retained proof as authenticated.
+ # Raw copied tables without a coverage marker cannot authorize a durable report.
  with sqlite3.connect(retained) as src,sqlite3.connect(report) as dst:
   for name,sql in src.execute("SELECT name,sql FROM sqlite_master WHERE type='table'"):
    dst.execute(sql)
@@ -91,6 +92,42 @@ cases=r'''
   assert db.execute('SELECT status FROM delivery_trust').fetchall()==[('withdrawn',),('withdrawn',)]
   assert db.execute('SELECT merged_at FROM delivery_times').fetchall()==[('2026-10-15T01:00:00.123456Z',)]*2
  snapshot=target.read_bytes()
+ # AC-2: real projected withdrawn proof reaches the durable digest unchanged.
+ import shutil
+ withdrawn_copy=root/'withdrawn-digest.sqlite';shutil.copyfile(target,withdrawn_copy)
+ withdrawn_view=digest.Digest(withdrawn_copy,'org/repo','C1','2026-10-15T00:00:00Z',receipt_mode='durable')
+ withdrawn_entries=json.loads(withdrawn_view.prepare(Report(),end)['payload'])['merges']
+ assert len(withdrawn_entries)==2 and all(row['evidence_status']=='withdrawn' and row['delivery_evidence'] for row in withdrawn_entries),withdrawn_entries
+ print('PASS actual helper marker+withdrawn proof retains attribution through durable digest')
+ # AC-7: an independently validated earlier protected campaign cannot shrink cache coverage.
+ full_head=out('rev-parse',ref);saved_trust=trust.read_bytes();earlier='2026-10-15T22:00:00Z'
+ try:
+  git('update-ref',ref,projection_parent);trust.write_bytes(active)
+  for item in sources:item.expired=False
+  narrow_checkpoint=a.checkpoint_projection(PipelineState(),policy,trust,store,approval,stream,interval_end=earlier,limit=2)
+  assert narrow_checkpoint['frozen_complete']
+  narrow_history=out('rev-parse',ref)
+  narrow_stage=a.stage_projection(PipelineState(),policy,trust,store,approval,stream,interval_end=earlier,history_head=narrow_history,limit=2)
+  assert narrow_stage['status']=='staged' and narrow_stage['facts_count']==2
+  d.advance(runs,PipelineState(),policy,approval,stream,page_size=1)
+  for _ in range(3):d.backfill(runs,PipelineState(),policy,approval,stream,interval_end=earlier,page_size=1)
+  for _ in range(32):
+   d.reconcile(runs,PipelineState(),policy,trust,store,approval,stream,review_rows=4)
+   progress=json.loads(git('show',ref+':receipt-archive/progress/'+stream+'.json').stdout)
+   if progress['scan']['complete']:break
+  assert progress['scan']['complete']
+  trust.write_bytes(saved_trust)
+  for item in sources:item.expired=True
+  narrow_coverage=d.coverage(runs,ReadState(),policy,trust,store,approval,stream,interval_end=earlier,projection_end=earlier,history_head=narrow_history,campaign=narrow_stage['campaign'],page_size=1)
+  assert narrow_coverage['coverage_complete'],narrow_coverage
+  try:helper.project_reporting(runs,ReadState(),policy,target,trust,store,approval,stream,interval_end=earlier,history_head=narrow_history,campaign=narrow_stage['campaign'],page_size=1)
+  except ValueError as error:assert 'coverage regressed' in str(error),str(error)
+  else:raise AssertionError('actual earlier protected projection moved coverage backwards')
+  assert target.read_bytes()==snapshot
+ finally:
+  git('update-ref',ref,full_head);trust.write_bytes(saved_trust)
+  for item in sources:item.expired=True
+ print('PASS actual earlier protected projection rejects without changing reporting bytes')
  # AC-7: an actual complete projection cannot authorize an unverified later cutoff.
  wider=root/'unverified-cutoff.sqlite'
  import shutil
@@ -108,6 +145,7 @@ cases=r'''
   'schema':"ALTER TABLE delivery_receipts ADD COLUMN extra TEXT",
   'coverage-schema':"ALTER TABLE reporting_receipt_coverage ADD COLUMN extra TEXT",
   'foreign-coverage':"UPDATE reporting_receipt_coverage SET repository='other/repo'",
+  'changed-origin':"UPDATE reporting_receipt_coverage SET coverage_from='2026-10-15T00:00:00.000001Z'",
   'receipt-conflict':"UPDATE delivery_receipts SET revision='conflict'",
   'provenance-conflict':"UPDATE delivery_provenance SET provenance='conflict'",
   'time-conflict':"UPDATE delivery_times SET merged_at='conflict'",

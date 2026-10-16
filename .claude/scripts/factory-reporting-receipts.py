@@ -107,6 +107,9 @@ def project_reporting(source_api, state_api, policy, report_path, trust_path, st
             if not existing:db.execute(COVERAGE_SQL)
             require(all(row[0] == policy['repository'] for row in db.execute('SELECT repository FROM reporting_receipt_coverage')),
                     'reporting coverage repository differs')
+            require(all(origin == coverage['coverage_from'] and archive.instant(until) <= archive.instant(coverage['verified_until'])
+                        for origin,until in db.execute('SELECT coverage_from,verified_until FROM reporting_receipt_coverage')),
+                    'reporting coverage regressed or origin differs')
             for name,(definition,columns) in DEFINITIONS.items():
                 existing = db.execute('SELECT type,sql FROM sqlite_master WHERE name=?', (name,)).fetchall()
                 require(not existing or existing == [('table','CREATE TABLE '+name+'('+definition+')')], 'reporting receipt destination schema differs')
