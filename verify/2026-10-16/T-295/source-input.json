@@ -1,0 +1,17 @@
+{
+  "runtime_source_sha": "9fef064042d31df7edd1d7af75cfebcc6a6f2d48",
+  "runtime_unchanged": true,
+  "runtime_files": {
+    ".claude/scripts/factory-receipt-archive.py": "716541420ec95c1e9720c8e4aae07b46c1b8c5f1005182780cc9d24c3347b2ca",
+    ".claude/scripts/factory-receipt-discovery.py": "1579350250cbe7d8a7e4d534c54890d929cc7371df838f3b7f181491fd9f554d",
+    ".claude/scripts/factory-receipts.py": "8558f4304c246e2756d7b65f8b54ef89997865d4f92e0b2bb9b3e1e85f52a104",
+    ".claude/scripts/factory-state-paths.py": "d942c292464032dd1493921e4905c9abffe6052ac2d6e53eb5fc69443552991d"
+  },
+  "aggregate_test_sha256": "32a84488a20ef650df130273b9a706518090346675382004b1707fbe375535c3",
+  "verification_only": true,
+  "live_activation_verified": false,
+  "global_coverage_complete": false,
+  "task_credit": false,
+  "fixture_129_setup": "mostly batched checkpoint/stage fixture, not live producer issuance",
+  "integrated_pipeline_tasks": 2
+}

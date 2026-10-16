@@ -1,0 +1,1 @@
+Verification-only aggregate of existing runtime contracts; actual producer-to-consumer pipeline plus bounded129 batched fixture and historical-family characterization. No fabricated RED or runtime behavior change.

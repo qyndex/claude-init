@@ -549,3 +549,44 @@ retained/current-revocation consumers plus another fresh origin reader. Copy/re-
 partial/schema/delta/bootstrap, merged/executable suffix and mutable protection/
 App-writer negatives remain enforced. This does not constitute live App capability,
 large-delivery coverage, source pagination completeness or T286/T287 acceptance.
+
+### Approved reporting writer design — 2026-10-16
+
+The operator approved Option A of the reporting-writer decision: prepare a separate
+qyndex-factory-reporting App with Contents write, Administration read and automatic
+Metadata read, installed only on the selected repository. Its new private key
+belongs in main-only factory-reporting as FACTORY_REPORTING_APP_PRIVATE_KEY, with
+nonsecret FACTORY_REPORTING_APP_ID. Existing GitHub.token remains the Actions/source
+reader; the merge App key stays unchanged in factory-authority. No merge-App key
+copying, privilege inheritance or new Actions/Checks/Pull requests write permission
+is authorized. Repository-wide Contents scope and unchanged main protections must
+remain explicit to adopters.
+
+This approves default-off source/setup preparation plus separate protected exact
+positive-actor observations for the App-only update policy. Existing empty-actor
+observations cannot assert that positive binding, and API responses must not be
+filled with invented actors. T288/T289 must cover shared digest/feedback/alerts/
+queue/archive writer compatibility before restrictions are applied. No actual App
+registration/credential/bootstrap capability or live policy cutover is established
+by this decision. Final activation requires the concrete reviewed App/installation,
+source/profile/state-head/tree/origin/protection package and worker-preservation
+proof. Merge mode remains off; this paragraph introduces no App-dependent code.
+
+### T295 bounded projection aggregate — 2026-10-16
+
+The aggregate now includes an actual small producer-to-consumer chain: two distinct
+approved tasks are appended through the real archive writer, bounded projection
+checkpoints/stages are actually published, and separate fresh Python processes
+reconstruct SQLite only after both protected windows are present. Partial input
+leaves no database; expired source artifacts do not erase retained facts; current
+revocation is reapplied. Foreign privacy and contradictory staged facts reject
+atomically. The same disposable Git branch preserves opaque encrypted worker data.
+
+Additional aggregate contributions remain separately labelled: the129-reference
+fresh-process fixture batches most checkpoint/stage setup and is not evidence of
+129 live producer-issued deliveries; the known6/7 runtime-family fixture proves
+historical retained compatibility without accepting omitted current dependencies.
+No component suite by itself is called cross-component integration. All results
+remain bounded frozen-interval reporting, coverage_complete=false and no runtime
+task credit. T286/T287 still own source-completeness and real1000-history acceptance;
+T288 retains final loader/configuration and approved App-dependent integration.
