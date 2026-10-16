@@ -42,9 +42,10 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
 
 **Hotfix tasks** (Round 12) carry extra fields: `fingerprint:` (Sentry dedup key), `sentry:` (permalink), `hotfix_issue:` (projected issue #). Inserted at the TOP of `## Active
 
-- [ ] T-336  | spec:029  | phase:5  | priority: security  | created: 2026-10-17  | deps:   | parallel: no  | est: 5m
+- [x] T-336  | spec:029  | phase:5  | priority: security  | created: 2026-10-17  | deps:   | parallel: no  | est: 5m
   summary: Validate distinct authenticated historical operational proof
-  progress: Supporting repair for original T318; approved amendment2026-10-17, not new original-goal scope
+  progress: Local strict historical contract and synthetic certificate-verifier seam verified; native producer, retention, replay and live proof remain T337-T339 pending
+  files: .claude/scripts/factory-operational-proof.py, .claude/scripts/test/factory-operational-proof.sh
   accept: bash .claude/scripts/test/factory-operational-proof.sh
   owner: codex
 

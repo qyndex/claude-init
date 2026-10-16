@@ -1,0 +1,10 @@
+# TDD ledger — red — T-336
+ledger_format: 2
+timestamp: 2026-10-17T10:49:50+11:00
+command: bash .claude/scripts/test/factory-operational-proof.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 5, in <module>
+AssertionError: distinct authenticated historical operational-proof contract missing
