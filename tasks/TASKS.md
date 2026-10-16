@@ -1631,7 +1631,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-request-intake.sh worker-outcome
   owner: implementer
 
-- [ ] T-292  | spec:010  | phase:1  | priority: security  | created: 2026-10-16  | deps: T-291,T-296,T-297,T-298  | parallel: no  | est: 5m
+- [x] T-292  | spec:010  | phase:1  | priority: security  | created: 2026-10-16  | deps: T-291,T-296,T-297,T-298  | parallel: no  | est: 5m
   summary: Verify complete protected policy observation repair
   files: specs/active/010-protected-proof-producers.md, plans/active/010-protected-proof-producers.md
   accept: bash .claude/scripts/test/factory-policy-observation.sh && bash .claude/scripts/test/factory-coordinator.sh && bash .claude/scripts/test/factory-producers.sh
