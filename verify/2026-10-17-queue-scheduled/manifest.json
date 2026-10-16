@@ -1,0 +1,15 @@
+{
+  "source_commit": "6954a7a1669ddab6e852162eae547bbd00ea14c1",
+  "sha256": {
+    ".claude/scripts/factory-reporting-queue.py": "62cb5b2a93c8d0cb48dc5b35161e0caa550e5880e2c0bb6ade5f73b15615b964",
+    ".claude/scripts/factory-reporting-transport.py": "3c4794b2fea7784f9f7c2d642377c75d72e3e054bc4555a4a2c5d28c83e485cb",
+    ".claude/scripts/factory-git-state.py": "0324019d96a8e7a956621f5865b442bc12d194e0ad828e76162cbd658058cf80",
+    ".claude/scripts/test/factory-reporting-queue-scheduled.sh": "c41d342f32b33c505f9b6f9fff72048ba2fd61b7ce0b6ce177291e50840e9771",
+    ".claude/scripts/test/factory-reporting-queue-actions.sh": "cd26af51f93078240e4a7cd0520ecf807ed784a8562a4c084c6cd13739702f7d"
+  },
+  "scheduled_exit": 1,
+  "actions_before_exit": 1,
+  "actions_after_exit": 0,
+  "native_calls": false,
+  "production_changed": false
+}

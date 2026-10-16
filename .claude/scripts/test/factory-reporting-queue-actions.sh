@@ -98,7 +98,8 @@ result=subprocess.run(['python3','.claude/scripts/factory-reporting-queue.py'],e
 assert result.returncode==2 and 'DO_NOT_ECHO_SENTINEL' not in result.stdout+result.stderr;count+=1
 # AC-8: execute the actual shipped shell; each CLI call is a fresh process.
 import re,textwrap
-shell=textwrap.dedent(workflow.split('        run: |\n',1)[1])
+step=workflow.split('      - name: Observe and reconcile protected queue notifications\n',1)[1].split('      - ',1)[0]
+shell=textwrap.dedent(step.split('        run: |\n',1)[1])
 with tempfile.TemporaryDirectory() as directory:
  base=Path(directory);tools=base/'tools';tools.mkdir();capture=base/'calls.json'
  shim=tools/'python3'
