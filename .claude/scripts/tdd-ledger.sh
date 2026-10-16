@@ -77,11 +77,12 @@ timed_out=0
 # signatures — a tooling error means the test never ran, so it proves nothing.
 red_reason="assertion-failure"
 if [ "$phase" = "red" ]; then
-  # Runner color must not hide anchored tooling diagnostics. Keep output itself
-  # unchanged so the evidence log preserves the original diagnostic bytes.
+  # Seven-bit ECMA-48 CSI styling/cursor bytes must not hide diagnostics;
+  # parameters, intermediates and final bytes are stripped only for classification.
+  # Keep output unchanged so evidence preserves original diagnostic bytes.
   if [ "$timed_out" = "1" ]; then
     red_reason="timeout"
-  elif ! classification_output=$(printf '%s\n' "$output" | sed -E $'s/\033\\[[0-9;:]*m//g'); then
+  elif ! classification_output=$(printf '%s\n' "$output" | sed -E $'s#\033\\[[0-?]*[ -/]*[@-~]##g'); then
     red_reason="tooling-error"
   elif printf '%s' "$classification_output" | grep -qiE 'command not found|No such file or directory.*(npx|npm|pnpm|yarn|pytest|cargo|go)|ModuleNotFoundError|ImportError: cannot import|Cannot find module|SyntaxError: (Unexpected|invalid)|error: could not compile|no tests? (found|ran|collected)|collected 0 items|No tests found'; then
     red_reason="tooling-error"
@@ -92,6 +93,7 @@ if [ "$phase" = "red" ]; then
   # A config helper may be called by a real assertion test. Only that clear
   # assertion + test-file stack context narrows the config-frame heuristic;
   # explicit startup/load diagnostics above still win, including AssertionError.
+  # Error: expect-style failures with config frames remain conservatively tooling.
   elif printf '%s\n' "$classification_output" | grep -qiE '^[[:space:]]+at[[:space:]].*[/\\](playwright|vitest|vite)\.config\.[cm]?[jt]s:[0-9]+(:[0-9]+)?' &&
        ! { printf '%s\n' "$classification_output" | grep -qE '^AssertionError([[:space:]:]|\[)' &&
            printf '%s\n' "$classification_output" | grep -qE '^[[:space:]]+at[[:space:]].*[/\\]([^/\\]*\.(test|spec)\.[cm]?[jt]sx?|__tests__[/\\][^/\\]+\.[cm]?[jt]sx?):[0-9]+(:[0-9]+)?'; }; then

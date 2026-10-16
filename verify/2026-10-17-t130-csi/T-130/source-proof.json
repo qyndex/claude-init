@@ -1,0 +1,7 @@
+{
+  "base": "a8af6c369306810634da069b0f06ca3e496f7117",
+  "files": {
+    ".claude/scripts/tdd-ledger.sh": "73cadca76427a8a7d00c3f91a12ce4489d70514c5d6944b687aa551e1591d11c",
+    ".claude/scripts/test/tdd-ledger-suite.sh": "7f8aeecbfb8e57c68e587efac367142e203c9e25a6ec76ab33fcc72ea7eb0adf"
+  }
+}

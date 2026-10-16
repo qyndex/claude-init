@@ -1,0 +1,11 @@
+# TDD ledger — red — T-130
+ledger_format: 2
+timestamp: 2026-10-17T00:05:31+11:00
+command: bash .claude/scripts/test/tdd-ledger-suite.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+  File "<stdin>", line 50
+    ('config-erase-cursor-prefix', '[2K[1Gfailed to load config from /tmp/vitest.config.ts
+                                   ^
+SyntaxError: unterminated string literal (detected at line 50)

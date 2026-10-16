@@ -52,6 +52,13 @@ with tempfile.TemporaryDirectory(prefix='tdd-ledger-classification-') as directo
         print('SKIP optional native Node helper/config assertions: node unavailable')
     assert not native_failures, native_failures
     cases = [
+        # Diagnostic transcripts; Error: expect + config frames stays conservative.
+        ('config-erase-cursor-prefix', '\x1b[2K\x1b[1Gfailed to load config from /tmp/vitest.config.ts\nError: config exploded', 1, 'tooling-error'),
+        ('startup-cursor-prefix', '\x1b[1A\x1b[2K⎯⎯⎯ Startup Error ⎯⎯⎯\nError: config exploded', 1, 'tooling-error'),
+        ('config-private-csi-prefix', '\x1b[?25lfailed to load config from /tmp/vitest.config.ts\nError: config exploded', 1, 'tooling-error'),
+        ('config-intermediate-csi-prefix', '\x1b[1 qfailed to load config from /tmp/vitest.config.ts\nError: config exploded', 1, 'tooling-error'),
+        ('assertion-csi-prefix', '\x1b[2K\x1b[1GAssertionError: expected "failed to load config from" to equal "ready"', 1, 'assertion-failure'),
+        ('expect-config-frame-unsupported', 'Error: expect(received).toBe(expected)\n    at helper (/tmp/playwright.config.ts:3:7)\n    at /tmp/tests/example.test.ts:5:2', 1, 'tooling-error'),
         ('vitest-colored', '\x1b[31mfailed to load config from /tmp/vitest.config.ts\x1b[0m\nError: config exploded', 1, 'tooling-error'),
         ('startup-colored', '\x1b[31m⎯⎯⎯ Startup Error ⎯⎯⎯\x1b[0m\nError: config exploded', 1, 'tooling-error'),
         ('stack-colored', '\x1b[31m    at Object.<anonymous> (/tmp/playwright.config.ts:3:7)\x1b[0m', 1, 'tooling-error'),
