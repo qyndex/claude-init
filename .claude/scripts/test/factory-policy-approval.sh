@@ -2,7 +2,7 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
 python3 - "$ROOT" <<'PYTEST'
-import copy,hashlib,importlib.util,json,os,sys,types
+import copy,hashlib,importlib.util,json,os,re,sys,types,yaml
 from datetime import datetime,timedelta,timezone
 from pathlib import Path
 from types import SimpleNamespace
@@ -72,6 +72,20 @@ reject(lambda:client.request('repos/foreign/repo/rulesets/7'));reject(lambda:cli
 workflow=(root/'.github/workflows/factory-hosted-digest.yml').read_text()
 assert 'FACTORY_REPORTING_POLICY_APPROVALS: ${{ vars.FACTORY_REPORTING_POLICY_APPROVALS }}' in workflow
 assert "'policy_approvals':json.loads(" in workflow and 'FACTORY_APP_PRIVATE_KEY' not in workflow
-assert 'administration:' not in workflow
+def workflow_permissions_safe(text):
+    document=yaml.safe_load(text);jobs=document.get('jobs',{}).values()
+    scopes=[document.get('permissions',{}),*(job.get('permissions',{}) for job in jobs)]
+    app=[step['with']['permission-administration'] for job in jobs for step in job.get('steps',[])
+         if 'permission-administration' in step.get('with',{})]
+    return not any(isinstance(scope,dict) and {'administration','id-token'} & scope.keys() for scope in scopes) and all(value=='read' for value in app)
+assert 'permission-administration: read' in workflow and workflow_permissions_safe(workflow)
+for forged in (
+    workflow.replace('permissions:','permissions:\n  administration: read',1),
+    workflow.replace('permissions:','permissions:\n  id-token: write',1),
+    workflow.replace('permission-administration: read','permission-administration: write',1),
+    re.sub(r'(?m)^permissions:\n(?:[ \t]+[^\n]*\n)+','permissions: {contents: write, administration: read}\n',workflow,count=1),
+    workflow.replace('    timeout-minutes: 15','    permissions: {id-token: write}\n    timeout-minutes: 15',1),
+):
+    assert forged!=workflow and not workflow_permissions_safe(forged),'workflow permission expansion accepted'
 print('factory-policy-approval: hidden-field rejection, visible no-bypass approval, settled UTC fingerprint, changed policy/source/clock rejection and GET-only credential separation passed')
 PYTEST
