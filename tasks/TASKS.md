@@ -1953,7 +1953,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-reporting-state-view.sh
   owner: implementer
 
-- [ ] T-333  | spec:014  | phase:4  | priority: security  | created: 2026-10-17  | deps: T-332  | parallel: no  | est: 5m
+- [x] T-333  | spec:014  | phase:4  | priority: security  | created: 2026-10-17  | deps: T-332  | parallel: no  | est: 5m
   summary: Transfer authenticated interval receipts into reporting with typed trust semantics
   files: .claude/scripts/factory-receipts.py, .claude/scripts/factory-digest.py, .claude/scripts/factory-reporting-receipts.py, .claude/scripts/factory-slack-digest.py, .claude/scripts/test/factory-reporting-receipt-transfer.sh
   accept: bash .claude/scripts/test/factory-reporting-receipt-transfer.sh

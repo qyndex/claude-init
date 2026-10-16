@@ -1,0 +1,11 @@
+{
+  "head": "108d0f447fbc7719099dab318e842ca18097f942",
+  "scope": "T334 interval namespaces and forwarding only; parent incomplete",
+  "prompt_sha256": "6ed9af59a400bb33e8258da1411c9480babfa869dec95e8be4a3ad61b40991c0",
+  "sources": {
+    ".claude/scripts/factory-receipt-archive.py": "bf766ae8a920bbb03e3e188718ff22f5ca449e3d2a1a439aad414fcc83e35906",
+    ".claude/scripts/factory-receipt-discovery.py": "ab174f17cba018cd518d017af8ab34a6c9ce5dd271c27382d4d744887329d1b8",
+    ".claude/scripts/test/factory-reporting-intervals.sh": "b87981a7a9a32b3cffdda8dff45a250a6c27c24f9f7cd00ee8fbb104be56de77",
+    "verify/2026-10-17/T-334/INTERVALS.md": "0be34d4178fa0aaa878dfd38bc8b94dd285c50e890810232ccf616f007169b1f"
+  }
+}
