@@ -85,7 +85,7 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
   accept: bash .claude/scripts/test/factory-coordinator.sh
   owner: codex
 
-- [ ] T-129  | spec:003  | phase:9  | priority: normal  | created: 2026-06-12  | last_touched: 2026-10-17  | deps:  | parallel: yes  | est: 5m
+- [x] T-129  | spec:003  | phase:9  | priority: normal  | created: 2026-06-12  | last_touched: 2026-10-17  | deps:  | parallel: yes  | est: 5m
   summary: Scope pre-bash-guard backtick-network-verb pattern to command position (live-e2e FINDING-3 — false-positives on heredoc bodies carrying frontend fetch code or prose)
   files: .claude/hooks/pre-bash-guard.sh, .claude/scripts/test/pre-bash-guard-literals.sh, specs/active/003-audit-round2-remediation.md, plans/active/003-audit-round2-remediation.md
   accept: bash .claude/scripts/test/pre-bash-guard-literals.sh

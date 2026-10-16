@@ -279,6 +279,30 @@ T129_CASE
 for name in wget2 curl-impersonate curlie customcurl prefetch fetch2; do
   check deny "network-name-$name" "echo \`$name https://example.invalid/p\`"
 done
+# Final comment-boundary review: these characters do not end the shell word.
+check deny vertical-tab-before-hash $'echo a\v#x; `curl https://example.invalid/p`'
+check deny form-feed-before-hash $'echo a\f#x; `curl https://example.invalid/p`'
+check deny carriage-return-before-hash $'echo a\r#x; `curl https://example.invalid/p`'
+check_stdin extglob-closing-paren-before-hash <<'T129_CASE'
+shopt -s extglob
+echo @(a)#x; `curl https://example.invalid/p`
+T129_CASE
+check_stdin extglob-pipe-before-hash <<'T129_CASE'
+shopt -s extglob
+echo @(a|#b); `curl https://example.invalid/p`
+T129_CASE
+# Extglob permits apparent word boundaries inside the pattern; do not parse it.
+for operator in '@' '!' '?' '+' '*'; do
+  boundary=0
+  for separator in ' ' $'\t' ';'; do
+    boundary=$((boundary+1))
+    check deny "extglob-$operator-boundary-$boundary" "shopt -s extglob"$'\n'"echo ${operator}(a${separator}#b); \`curl https://example.invalid/p\`"
+  done
+done
+check pass quoted-extglob-prose "$(cat <<'PAYLOAD'
+printf '%s\n' 'Use @(a #b), !(a #b), ?(a #b), +(a #b), *(a #b) with `client.get` to fetch the response.'
+PAYLOAD
+)"
 # Final independent review: escaped literal separators cannot start comments.
 for separator in ' ' ';' '|' '&' '(' ')' $'\t'; do
   check deny "escaped-separator-comment-$separator" ": a\\${separator}#x; \`curl https://example.invalid/p\`"

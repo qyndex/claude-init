@@ -262,8 +262,10 @@ elif ! backtick_payloads=$(printf '%s\n' "$cmd" | awk -v sq="'" '
         else quote = "double"
         continue
       }
+      # Unquoted extglob patterns have context-sensitive boundaries: use raw fallback.
+      if (quote == "" && ch ~ /[@!?+*]/ && substr(line, i + 1, 1) == "(") ambiguous = 1
       if (ch == "#" && quote == "" &&
-          (i == 1 || substr(line, i - 1, 1) ~ /[[:space:];|&()]/)) break
+          (i == 1 || substr(line, i - 1, 1) ~ /[ \t;]/)) break
       if (ch == "`") { inside = 1; payload = "" }
     }
     if (has_here) ambiguous = 1

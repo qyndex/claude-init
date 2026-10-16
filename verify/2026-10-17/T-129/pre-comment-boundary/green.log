@@ -1,0 +1,7 @@
+# TDD ledger — green — T-129
+ledger_format: 2
+timestamp: 2026-10-17T00:02:57+11:00
+command: bash .claude/scripts/test/pre-bash-guard-literals.sh
+exit_code: 0
+---
+guard literal cases: 145 passed, 0 failed
