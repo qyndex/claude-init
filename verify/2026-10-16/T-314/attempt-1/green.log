@@ -1,0 +1,7 @@
+# TDD ledger — green — T-314
+ledger_format: 2
+timestamp: 2026-10-16T13:08:27+11:00
+command: bash .claude/scripts/test/factory-reporting-queue-observation.sh
+exit_code: 0
+---
+31 bounded protected queue observation cases passed; no Slack or state mutation

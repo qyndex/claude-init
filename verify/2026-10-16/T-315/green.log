@@ -1,0 +1,8 @@
+# TDD ledger — green — T-315
+ledger_format: 2
+timestamp: 2026-10-16T13:24:27+11:00
+command: bash .claude/scripts/test/factory-reporting-queue-delivery.sh
+exit_code: 0
+---
+Slack receipt comparison: {"text_is_string": true, "expected_length": 319, "actual_length": 80, "first_difference_line": 2, "first_difference_column": 53, "actual_character_category": "end", "url_wrappers": 0, "html_entities_match": false, "trimmed_match": false, "newline_match": false}
+39 queue intent/receipt/recovery/split/failure cases passed; no live Slack

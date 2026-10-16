@@ -1,0 +1,137 @@
+→ Validating .claude/ harness
+
+[core]
+  ✓ .claude/CLAUDE.md
+  ✓ .claude/settings.json
+  ✓ .mcp.json
+  ✓ .claude/VERSION
+
+[json]
+  ✓ validated 21 JSON files
+
+[frontmatter]
+  ✓ validated 202 frontmatter blocks (0 bad)
+
+[adr-single-schema]
+  ✓ ADR single-schema: 0 body-bullet violation(s)
+
+[executables]
+  ✓ 292 shell files checked
+
+[agents]
+  ✓ 18 agents discovered
+
+[skills]
+  ✓ 58 project-specific skills
+  ℹ (plugin-installed skills validated by `/plugin list`, not here)
+  ✓ all skill descriptions within 1536-char cap
+  ✓ all referenced skill paths resolve
+  ✓ REGISTRY.md fresh (58/58 skills)
+  ✓ all skills carry when_to_use frontmatter
+
+[commands]
+  ✓ 57 commands discovered
+  ✓ all commands carry disable-model-invocation: true
+  ✓ all hook-injected slash-commands resolve
+
+[hooks]
+  ✓ 28 referenced hooks present
+  ⚠ hook on disk but not referenced in settings.json: post-intake-action.sh
+  ⚠ hook on disk but not referenced in settings.json: pre-intake-action.sh
+  ⚠ hook on disk but not referenced in settings.json: request-intake.sh
+  ✓ pre-spawn-cost-gate.sh covered by an Agent-matching matcher
+
+[autopilot]
+  ✓ overnight-build.yml
+  ✓ dream-cron.yml
+  ✓ quarterly-archive.yml
+  ✓ overnight-report.md
+  ✓ AUTOPILOT.md
+  ✓ PARALLEL-SWARM.md
+
+[swarm]
+  ✓ fleet.json
+  ✓ decisions.log
+  ✓ brief.md
+  ✓ analysis.md
+  ✓ task.json
+
+[scaffold]
+  ✓ spec.md
+  ✓ plan.md
+  ✓ initiative.md
+  ✓ TASKS.md
+  ✓ OKRs.md
+  ✓ roadmap.md
+  ✓ slo.yml
+  ⚠ task accept: is a no-op, not a test: "ls verify/2026-05-29-003/T-111/green.log verify/2026-05-29-003/T-114/green.log"
+
+[artifacts]
+  ✓ specs/plans frontmatter, ids, pointers, and TASKS.md spec refs all consistent
+
+[memory]
+  ✓ MEMORY.md
+  ✓ 0000-template.md
+  ✓ 0000-template.md
+  ✓ REGISTRY.md
+  ✓ MEMORY.md within budget (      61/200 lines)
+  ✓ ADR store non-vacuous (8 ADR(s), 49 active plan(s))
+  ✓ lifecycle frontmatter present on all 26 topic files
+
+[security]
+  ✓ disableBypassPermissionsMode: disable
+  ✓ no Bash(env) in allow
+  ✓ no Bash(claude:*) catch-all
+  ✓ ENABLE_TOOL_SEARCH=true (MCP schemas deferred)
+  ✓ CLAUDE_CODE_AUTO_COMPACT_WINDOW set (400000)
+  ✓ ephemeral verb 'npx' allowed AND handled by dep-freshness hook
+  ✓ ephemeral verb 'uvx' allowed AND handled by dep-freshness hook
+  ✓ ephemeral verb 'bunx' allowed AND handled by dep-freshness hook
+  ✓ ephemeral verb 'pnpx' allowed AND handled by dep-freshness hook
+  ✓ alwaysLoad MCP 'filesystem' write tools have a PreToolUse matcher
+  ✓ alwaysLoad MCP 'github' write tools have a PreToolUse matcher
+  ✓ no exported FORCE_CONSTITUTION_EDIT in harness files (force-bypass clean)
+  ✓ comment-triggered write workflow has actor guard: .github/workflows/claude.yml
+  ✓ docs never recommend boolean disableBypassPermissionsMode (only "disable" string works)
+  ✓ docs agree with tasks/TASKS.md legend: [s] = skipped, never shipped
+
+[constitution-size]
+  ✓ constitution .claude/CLAUDE.md is 213 lines / 300 cap
+
+[mcp]
+  ✓ no @latest pins in .mcp.json
+
+[ruleset-coverage]
+  ✓ required context 'adr-gate' maps to .github/workflows/adr-gate.yml (pull_request, no paths filter)
+  ✓ required context 'check-daily-batch' maps to .github/workflows/merge-gate.yml (pull_request, no paths filter)
+  ✓ required context 'commitlint' maps to .github/workflows/commitlint.yml (pull_request, no paths filter)
+  ✓ required context 'evidence-gate' maps to .github/workflows/evidence-gate.yml (pull_request, no paths filter)
+  ✓ required context 'harness-validate' maps to .github/workflows/harness-validate.yml (pull_request, no paths filter)
+  ✓ required context 'lint-exception-audit' maps to .github/workflows/lint-exception-audit.yml (pull_request, no paths filter)
+  ✓ required context 'lint-test' maps to .github/workflows/ci.yml (pull_request, no paths filter)
+
+[handoff-dialect]
+  ✓ no handoff-*.md references — single NEXUS yaml dialect
+
+[state-producers]
+  ✓ every hook-referenced state path has an existing documented producer
+
+[model-doc-consistency]
+  ✓ model routing + ARCHITECTURE agent table consistent with frontmatter
+
+[auth-credential]
+  ✓ every Anthropic-auth workflow offers the OAuth token (API key is fallback only)
+
+[dead-tests]
+  ✓ test/*.sh covered by a directory-glob CI runner
+
+  ✓ [spec-plan-trace] every approved/shipped spec has a plan
+
+  ✓ [roadmap-trace] every roadmap spec:NNN ref resolves (roadmap/ROADMAP.md)
+
+  ℹ [pivot-trace] no pivots in pivots/active (skipped)
+
+  ✓ [liveness] committed index fresh — index mtime ≥ newest committed memory .md
+
+─────────────────────────────────────
+✓ all checks passed (with 4 warnings)

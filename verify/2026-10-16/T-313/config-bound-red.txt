@@ -1,0 +1,7 @@
+fresh process protected real Git read PASS
+Traceback (most recent call last):
+  File "<stdin>", line 116, in <module>
+  File "<stdin>", line 73, in rejects
+AssertionError: accepted approval identity
+
+exit_code: 1

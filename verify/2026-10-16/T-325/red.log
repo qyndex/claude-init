@@ -1,0 +1,30 @@
+# TDD ledger — red — T-325
+ledger_format: 2
+timestamp: 2026-10-16T14:27:46+11:00
+command: bash .claude/scripts/test/factory-reporting-queue-evidence-source.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "/private/tmp/factory-queue-monitor-20261016/.claude/scripts/factory-reporting-queue-evidence.py", line 34, in decode
+    return json.loads(raw, object_pairs_hook=pairs)
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/json/__init__.py", line 365, in loads
+    return cls(**kw).decode(s)
+           ~~~~~~~~~~~~~~~~^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/json/decoder.py", line 345, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/json/decoder.py", line 363, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 2 (char 1)
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "<stdin>", line 15, in <module>
+  File "/private/tmp/factory-queue-monitor-20261016/.claude/scripts/factory-reporting-queue-evidence.py", line 99, in results
+    item = decode(line.encode())
+  File "/private/tmp/factory-queue-monitor-20261016/.claude/scripts/factory-reporting-queue-evidence.py", line 36, in decode
+    raise ValueError('queue evidence JSON invalid') from error
+ValueError: queue evidence JSON invalid

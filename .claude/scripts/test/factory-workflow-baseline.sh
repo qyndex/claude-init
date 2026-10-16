@@ -32,6 +32,28 @@ with tempfile.TemporaryDirectory() as directory:
  assert 'name: factory-policy-observation-' in text and 'path: factory-receipt/' in text
  assert 'path: ${{ runner.temp }}/factory-policy-audit/observation.json' in text
  print('AC-5: shipped protected ingress defers malformed/foreign/duplicate/unknown JSON to coordinator without raw echo; read-only App and separate audit retained')
+# AC-5: the queue shell accepts only its labelled boolean drill switch.
+with tempfile.TemporaryDirectory() as directory:
+ base=Path(directory);tools=base/'tools';tools.mkdir();capture=base/'args.json'
+ shim=tools/'python3';shim.write_text('#!'+sys.executable+'\n'+r'''import json,os,sys
+from pathlib import Path
+if sys.argv[1:2]==['.claude/scripts/factory-reporting-queue.py']:
+ path=Path(os.environ['CAPTURE']);calls=json.loads(path.read_text()) if path.exists() else []
+ calls.append(sys.argv[1:]);path.write_text(json.dumps(calls))
+ print(json.dumps({'notifications':int('--drill' in sys.argv and len(calls)==1),'reconciled':0}));sys.exit(0)
+os.execv(sys.executable,[sys.executable]+sys.argv[1:])
+''');shim.chmod(0o755)
+ script=body('factory-reporting-queue.yml','Observe and reconcile protected queue notifications')
+ for value,expected in [('false',[]),('true',['--drill']),('$(touch SHOULD_NOT_EXIST)',[])]:
+  if capture.exists():capture.unlink()
+  result=run(script,base,{'PATH':str(tools)+':'+os.environ['PATH'],'CAPTURE':str(capture),'VERIFICATION_DRILL':value,'RUNNER_TEMP':directory})
+  assert result.returncode==0,result.stderr
+  assert json.loads(capture.read_text())==[['.claude/scripts/factory-reporting-queue.py']+expected]*(2 if value=='true' else 1)
+  assert not (base/'SHOULD_NOT_EXIST').exists()
+ queue=(root/'.github/workflows/factory-reporting-queue.yml').read_text()
+ assert 'group: factory-reporting-queue-${{ github.repository }}' in queue and 'cancel-in-progress: false' in queue
+ assert 'environment: factory-reporting' in queue and 'administration:' not in queue and 'id-token:' not in queue
+ print('AC-5: protected separately serialized queue shell passes only fixed CLI drill flag without interpolation')
 print('AC-1: actual full actionlint including ShellCheck passes all shipped workflows without warning waivers')
 with tempfile.TemporaryDirectory() as temporary:
  base=Path(temporary);(base/'.claude').mkdir();(base/'.github').mkdir();(base/'.mcp.json').write_text('{}')

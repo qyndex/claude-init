@@ -89,3 +89,68 @@ Only the first workflow run's first attempt may allocate. Later invocations veri
 The monitor uses the existing protected data-only checkpoint. An optional strict `alerts` field journals pre-send intent and confirmed opaque Slack receipts. Report snapshots preserve it. No private Slack feedback or arbitrary diagnostic text is published. Failed-run alerts authenticate the actual GitHub run and workflow, rather than trusting the triggering event. Repeated overdue/failure observations remain one incident until a current exact digest receipt proves recovery. Slack API/credential and checkpoint failures remain visible in GitHub when the same channel cannot be notified.
 
 Unknown Slack effects are not resent: a fresh monitor must find the exact original bot/metadata/text receipt or remain blocked for operator reconciliation. Do not delete journal rows to clear uncertainty. The journal is bounded at 10,000 events; exceeding this blocks rather than silently pruning proof. Retention/archival needs a separately approved migration. Keep Healthchecks disabled. Disabling the monitor variable stops notifications while preserving normal reporting. Roll forward to fix a fault; older pre-029 reporters reject checkpoints containing alerts, so reverting to older code requires an explicit compatible state migration rather than dropping the journal.
+
+## Independently serialized queue monitor (029)
+
+Local implementation and contract verification are available; queue activation
+is **PENDING**. This is distinct from the earlier ordinary-alert pilot above.
+The queue workflow polls at minutes 11/26/41/56, with its own
+`factory-reporting-queue-${{ github.repository }}` concurrency group and
+cancel-in-progress=false. Digest, feedback and ordinary alerts keep their existing
+shared group. The queue job uses the same main-only factory-reporting environment,
+existing Slack bot and state writer; no key copying or permission increase occurs.
+Actions GET metadata uses the existing workflow GH_TOKEN with actions:read, while
+state/protection access retains the existing writer token and its prior fallback.
+
+The job gate uses repository/organization FACTORY_REPORTING_ENABLED,
+FACTORY_REPORTING_PROFILE and FACTORY_REPORTING_QUEUE_ENABLED; keep the queue
+flag false until reviewed rollout. Step-only protected configuration includes
+FACTORY_REPORTING_QUEUE_GRACE_MINUTES (explicit 15–1440, choose 60 initially),
+FACTORY_REPORTING_QUEUE_BOOTSTRAP_SHA (reviewed exact state revision), and
+FACTORY_REPORTING_QUEUE_INITIALIZE (explicit true only for reviewed creation,
+false afterward). [Adopter setup](FACTORY-ADOPTER-SETUP.md#queue-monitor-setup-and-readiness)
+lists every required identity/storage value and the GitHub variable-stage boundary.
+
+The isolated reports/<role-hash>.json binds the queue role, repository, channel
+and default branch, with team identity in its strict document. The role is
+separate from digest and feedback. Initialization never resets existing state:
+if a worker advances the state branch before the missing role is created, it
+blocks instead of repinning. Review a new exact initialization revision; never
+replace or delete worker data. Existing role updates use bounded nonforce CAS
+and preserve opaque report/encrypted-feedback bytes. Journal limits are 1000
+events and 262144 bytes; exhaustion blocks without pruning.
+
+A stalled eligible run does not prove the concurrency owner or deployment cause.
+Unknown pagination/API/schema/clock observations never prove healthy delivery.
+Recovery requires the exact current worker Slack receipt, zero pending batches
+and fresh metadata/worker-byte rechecks after durable intent. The existing split
+fragment and explicitly enabled file receipt adapters are reused. Missing,
+altered or ambiguous history never permits blind resend. Retain uncertain intent,
+restore the original access/receipt and reconcile; do not clear rows or invent
+confirmation. Irrecoverable uncertainty requires a reviewed recovery/migration.
+
+The labelled verification drill invokes two fresh CLI processes under the same
+protected run/attempt: first notifications=1, then notifications=0 with exact
+receipt reconciliation. A subsequent normal monitor invocation must produce one
+verified recovery; another produces zero. No worker is deliberately stalled or
+cancelled. The read-only live checker uses source/run/log/journal and per-queue
+publication parent/tree observations; unrelated worker commits are allowed
+between publications. It does not locally read a Slack token or claim native
+attestation. Its isolated one-pair, 24-commit and 1024-tree-entry bounds fail
+explicitly and do not certify all-history coverage. Do not erase history to fit
+a checker bound; any needed extension/migration requires review.
+
+Run the local aggregate with `bash .claude/scripts/test/factory-reporting-queue.sh`.
+It runs source/journal observer regressions once through the offline live-checker
+contract script. Its success proves local AC1–8 portions only. Actual labelled
+drill, recovery, repeat and opaque preservation remain **PENDING** under T318;
+`--live` with real run/attempt selectors is mandatory for that separate acceptance.
+Source-bound local evidence is not a live activation certificate.
+
+A shared environment approval or Actions-wide outage can block both workers and
+monitor. Slack/API/credential outages cannot reliably notify through the same
+channel. Scheduled jobs can be delayed; the cron expression is not an alert SLA.
+Healthchecks remains disabled (FACTORY_REPORTING_WATCHDOG_ENABLED=false), and
+independent monitoring stays optional. The three operator-disabled auxiliary
+workflows do not pause the factory plan and supply no current verification
+credit; keep their disabled state until separately authorized.

@@ -1,0 +1,7 @@
+{
+  "repository": "actions/checkout",
+  "sha": "3d3c42e5aac5ba805825da76410c181273ba90b1",
+  "observed_commit_subject": "prep v7.0.1 release (#2531)",
+  "method": "GET official repository git commit via GitHub API",
+  "native_attestation": false
+}

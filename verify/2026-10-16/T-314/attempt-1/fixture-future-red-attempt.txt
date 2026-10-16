@@ -1,0 +1,15 @@
+# TDD ledger — red — T-314
+ledger_format: 2
+timestamp: 2026-10-16T13:05:46+11:00
+command: bash .claude/scripts/test/factory-reporting-queue-observation.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 42, in <module>
+  File "/private/tmp/factory-queue-monitor-20261016/.claude/scripts/factory-digest.py", line 81, in prepare
+    require(end <= datetime.now(timezone.utc), 'future cutoff cannot be delivered')
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-queue-monitor-20261016/.claude/scripts/validate-candidate-evidence.py", line 19, in require
+    raise ValueError(message)
+ValueError: future cutoff cannot be delivered

@@ -1,0 +1,10 @@
+# TDD ledger — red — T-316
+ledger_format: 2
+timestamp: 2026-10-16T13:28:53+11:00
+command: bash .claude/scripts/test/factory-reporting-queue-actions.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 8, in <module>
+AttributeError: module 'queue' has no attribute 'build_config'

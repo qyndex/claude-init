@@ -1,0 +1,10 @@
+# TDD ledger — red — T-313
+ledger_format: 2
+timestamp: 2026-10-16T12:59:29+11:00
+command: bash .claude/scripts/test/factory-reporting-queue-cas.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 55, in <module>
+AttributeError: module 'queue' has no attribute 'QueueStore'
