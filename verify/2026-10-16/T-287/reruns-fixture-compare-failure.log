@@ -1,0 +1,15 @@
+Traceback (most recent call last):
+  File "<stdin>", line 128, in <module>
+  File "real-git-rerun-fixture", line 92, in <module>
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-discovery.py", line 596, in reconcile
+    return _checkpoint(source_api, state_api, policy, approval_path, stream, mode='review', trust_path=trust_path, trust_mode=trust_mode, store=store, review_rows=review_rows)
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-discovery.py", line 451, in _checkpoint
+    archive._origin_ancestor(api.request, root, anchor['bootstrap_sha'], sha)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 686, in _origin_ancestor
+    value = read(root+'/compare/'+base+'...'+head)
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-discovery.py", line 393, in request
+    result = charge(state_api.request(target, method=method, payload=payload))
+                    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "real-git-rerun-fixture", line 64, in request
+AssertionError: ('repos/org/repo/compare/8703585e520ac7743c0c8ddca09400fca1b74daa...8703585e520ac7743c0c8ddca09400fca1b74daa', 'GET')

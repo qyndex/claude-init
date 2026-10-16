@@ -1,0 +1,4 @@
+  File "<stdin>", line 4
+    pipeline=Path('.claude/scripts/test/factory-receipt-projection-windows.sh').read_text().split("cases=r'''
+                                                                                                  ^
+SyntaxError: unterminated string literal (detected at line 4)

@@ -12,6 +12,11 @@ archive = importlib.util.module_from_spec(spec); spec.loader.exec_module(archive
 require = archive.require
 
 
+def _checkpoint_ancestor(read, root, base, head):
+    """Request compare metadata without the first-page file/patch payload."""
+    archive._origin_ancestor(read, root, base, head)
+
+
 def binding(anchor):
     return {key: value for key, value in anchor.items() if key not in ('head', 'tree')}
 
@@ -442,17 +447,14 @@ def _checkpoint(source_api, state_api, policy, approval_path, stream, *, page_si
             # verify its previously observed anchor is actually on that same chain.
             require(progress['anchor']['head'] != progress['scan']['head'] or progress['anchor']['tree'] == progress['scan']['tree'], 'discovery saved anchor/frozen tree differs')
             required = {progress['anchor']['head']: progress['anchor']['tree'], progress['scan']['head']: progress['scan']['tree']}
-            sha = anchor['head']
-            for _ in range(256):
+            # The shared origin verifier already checked every single-parent
+            # inert edge to this current head. Compare only links the retained
+            # source frames into that checked history; it grants no origin alone.
+            for sha, expected_tree in required.items():
                 commit = api.request(root+'/git/commits/'+sha)
-                if sha in required:
-                    require(commit['tree']['sha'] == required.pop(sha), 'discovery retained anchor tree differs')
-                if not required:
-                    break
-                require(len(commit['parents']) == 1, 'discovery retained anchor not on protected chain')
-                sha = commit['parents'][0]['sha']
-            else:
-                raise ValueError('discovery anchor invocation bound reached; verified continuation required')
+                require(commit.get('sha') == sha and commit['tree']['sha'] == expected_tree, 'discovery retained anchor tree differs')
+                _checkpoint_ancestor(api.request, root, anchor['bootstrap_sha'], sha)
+                _checkpoint_ancestor(api.request, root, sha, anchor['head'])
             cursor = progress['scan']['cursor']
         if raw is None or not progress['scan']['complete']:
             scan = archive.state_paths.scan_tree(api, root, progress['scan']['tree'], cursor=cursor, page_budget=tree_pages)
@@ -497,7 +499,33 @@ def _checkpoint(source_api, state_api, policy, approval_path, stream, *, page_si
                     outcome, observed = assess(source_api, api, anchor, policy, trust_path, trust_mode, store, stream, row, epoch, blob_at, approval_path)
                     validate_outcome(outcome, api.repo, stream, row, epoch)
                     changes[outcome_path(api.repo, stream, row, epoch)] = archive.canonical(outcome)
-                    if observed is not None:latest[(observed['id'], observed['run_attempt'])] = observed
+                    if observed is not None:
+                        latest[(observed['id'], observed['run_attempt'])] = observed
+                        # Follow one predecessor per reviewed row. The protected
+                        # watch itself resumes a long rerun chain across calls.
+                        prior = row['attempt']-1
+                        if prior > 0:
+                            identity = watch_identity(api.repo, stream, row['run_id'], prior)
+                            lookup = f'receipt-archive/pending/{stream}/identities/{identity[:2]}/{identity}.json'
+                            occupied = blob_at(anchor['tree'], lookup)
+                            if occupied is not None:
+                                saved = archive.document(occupied)
+                                require(type(saved) is dict and set(saved) == {'schema_version', 'repository', 'stream', 'run_id', 'attempt', 'source_sha', 'segment'} and type(saved['schema_version']) is int and saved['schema_version'] == 1 and saved['repository'] == api.repo and saved['stream'] == stream and type(saved['run_id']) is int and saved['run_id'] == row['run_id'] and type(saved['attempt']) is int and saved['attempt'] == prior and saved['source_sha'] == row['source_sha'] and type(saved['segment']) is int and 0 <= saved['segment'] < progress['watch']['segments'], 'prior attempt pending identity differs')
+                                retained_raw = blob_at(anchor['tree'], archive.state_paths.pending_segment_path(stream, saved['segment']))
+                                require(retained_raw is not None, 'prior attempt retained watch missing')
+                                retained = validate_watch(archive.document(retained_raw), api.repo, stream, saved['segment'])
+                                require(sum(item == {'run_id': row['run_id'], 'attempt': prior, 'source_sha': row['source_sha'], 'classification': 'pending'} for item in retained['rows']) == 1, 'prior attempt retained watch differs')
+                            else:
+                                try:
+                                    previous = run_identity(source_api.get(f'repos/{api.repo}/actions/runs/{row["run_id"]}/attempts/{prior}'), anchor, policy)
+                                except (RuntimeError, OSError):
+                                    previous = None
+                                except ValueError as error:
+                                    if not str(error).startswith('GitHub API request failed:'):raise
+                                    previous = None
+                                if previous is not None:
+                                    require((previous['id'], previous['run_attempt'], previous['head_sha']) == (row['run_id'], prior, row['source_sha']), 'prior attempt immutable identity changed')
+                                    latest[(previous['id'], previous['run_attempt'])] = previous
             except ArchiveAdvanced:
                 continue  # Actual retained append survived independently; resume index-first.
             position = cursor['row']+len(selected)
@@ -588,7 +616,7 @@ def coverage(source_api, state_api, policy, trust_path, store, approval_path, st
     import tempfile
     require(source_api.repo == state_api.repo == policy['repository'] == store['repository'] and stream == archive.archive_stream(state_api.repo), 'foreign coverage repository/stream')
     require(type(page_size) is int and 0 < page_size <= 100 and interval_end == projection_end, 'coverage interval/page binding differs')
-    root = 'repos/'+state_api.repo; calls = consumed = 0; cache = {}; source_observations = []
+    root = 'repos/'+state_api.repo; calls = consumed = cached_bytes = 0; cache = {}; source_observations = []; listed_runs = {}
     result = {'source_partition_complete': False, 'frozen_projection_complete': False, 'coverage_complete': False, 'all_history_complete': False, 'task_credit': False, 'gaps': [], 'verified_until': None}
     def gap(reason):
         result['gaps'].append(reason); return result
@@ -600,18 +628,48 @@ def coverage(source_api, state_api, policy, trust_path, store, approval_path, st
     class State:
         repo = state_api.repo
         def request(self, target, method='GET', payload=None):
+            nonlocal cached_bytes
             require(method == 'GET' and payload is None and (target == root or target.startswith(root+'/')), 'coverage state API must be read-only and same repository')
             immutable = any(target.startswith(root+'/git/'+kind+'/') and archive.state_paths.valid_hash(target.rsplit('/',1)[1],40) for kind in ('commits','trees','blobs'))
             if immutable and target in cache:return archive.document(cache[target])
             value = charge(state_api.request(target))
-            if immutable:cache[target] = archive.canonical(value)
+            if immutable:
+                encoded=archive.canonical(value);require(cached_bytes+len(encoded)<=33554432,'coverage normalized cache capacity gap')
+                cached_bytes+=len(encoded);cache[target]=encoded
             return value
+    def read_blobs(repository_id, entries):
+        nonlocal calls, consumed, cached_bytes
+        require(calls<2048,'coverage invocation capacity gap');calls+=1
+        value=state_api.read_blobs(repository_id,entries)
+        require(type(value) is dict and set(value)=={'blobs','calls','raw_bytes'} and type(value['calls']) is int and value['calls']==1 and type(value['raw_bytes']) is int and 0<value['raw_bytes']<=2097152 and type(value['blobs']) is dict and set(value['blobs'])=={item['sha'] for item in entries},'coverage batch response differs')
+        consumed+=value['raw_bytes'];require(consumed<=33554432,'coverage invocation capacity gap')
+        prepared={}
+        for item in entries:
+            blob=value['blobs'][item['sha']]
+            require(type(blob) is dict and set(blob)=={'sha','encoding','size','content'} and blob['sha']==item['sha'] and blob['encoding']=='base64' and type(blob['size']) is int and blob['size']==item['size'] and type(blob['content']) is str and len(blob['content'])<=1398104,'coverage batch object differs')
+            raw=base64.b64decode(blob['content'],validate=True)
+            require(len(raw)==item['size'] and hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()==item['sha'],'coverage batch bytes differ')
+            key=root+'/git/blobs/'+item['sha']
+            if key not in cache:prepared[key]=archive.canonical(blob)
+        extra=sum(map(len,prepared.values()));require(cached_bytes+extra<=33554432,'coverage normalized cache capacity gap')
+        cache.update(prepared);cached_bytes+=extra
+        return value
+    def read_pull_requests(repository_id,numbers):
+        nonlocal calls,consumed
+        require(calls<2048,'coverage invocation capacity gap');calls+=1
+        value=state_api.read_pull_requests(repository_id,numbers)
+        require(type(value) is dict and set(value)=={'pull_requests','calls','raw_bytes'} and type(value['calls']) is int and value['calls']==1 and type(value['raw_bytes']) is int and 0<value['raw_bytes']<=2097152 and type(value['pull_requests']) is dict and all(type(key) is int for key in value['pull_requests']) and set(value['pull_requests'])==set(numbers),'coverage PR batch response differs')
+        consumed+=value['raw_bytes'];require(consumed<=33554432,'coverage invocation capacity gap')
+        return value
     def observe(target, *, detail=False, repeat=False):
         require(target.startswith(root+'/actions/'), 'coverage source endpoint differs')
         value = charge(source_api.get(target) if detail else source_api.request(target))
         if not repeat:source_observations.append((target,detail,archive.canonical(value)))
         return value
-    api = State(); approval_raw = Path(approval_path).read_bytes(); trust_raw = Path(trust_path).read_bytes()
+    api = State()
+    if callable(getattr(state_api,'read_blobs',None)):api.read_blobs=read_blobs
+    if callable(getattr(state_api,'read_pull_requests',None)):api.read_pull_requests=read_pull_requests
+    approval_raw = Path(approval_path).read_bytes(); trust_raw = Path(trust_path).read_bytes()
     try:
         anchor = archive.verify_bootstrap(api, approval_path)
         require(store == {'repository':api.repo,'visibility':'private' if anchor['private'] else 'public'}, 'coverage store visibility differs')
@@ -662,6 +720,9 @@ def coverage(source_api, state_api, policy, trust_path, store, approval_path, st
                 rows = []
                 for run in response['workflow_runs']:
                     run_identity(run,anchor,policy);require(lo <= second(run['created_at']) <= hi,'coverage source outside partition')
+                    encoded=archive.canonical(run)
+                    require(run['id'] not in listed_runs or listed_runs[run['id']]==encoded,'coverage conflicting full source identity')
+                    listed_runs[run['id']]=encoded
                     rows.append({'run_id':run['id'],'attempt':run['run_attempt'],'source_sha':run['head_sha'],'created_at':run['created_at']})
                 if response['total_count'] != fact['total_count'] or archive.canonical(rows) != archive.canonical(retained):return gap('source-identities-changed')
             require(offset == len(node['seen']), 'coverage page total differs')
@@ -699,9 +760,17 @@ def coverage(source_api, state_api, policy, trust_path, store, approval_path, st
         for row in listed.values():
             if row['attempt'] > len(watched) or any((row['run_id'],attempt) not in watched for attempt in range(1,row['attempt'])):
                 return gap('required-prior-attempt-history-missing')
+        with tempfile.TemporaryDirectory() as tmp:
+            db=Path(tmp)/'projection.sqlite'
+            projection=archive.reconstruct_interval(api,policy,db,trust_path,store,approval_path,stream,interval_end=projection_end,history_head=history_head,campaign=campaign)
+            result['frozen_projection_complete']=projection['projection_complete']
+            if not projection['projection_complete']:return gap('required-projection-gap')
+            with sqlite3.connect(db) as sql:
+                provenances=[archive.document(row[0].encode()) for row in sql.execute('SELECT provenance FROM delivery_provenance')]
+            projected={(row['run_id'],row['attempt']) for row in provenances}
         retained_ids=set();withdrawn=0
         for identity,row in watched.items():
-            latest=run_identity(observe(f'{root}/actions/runs/{row["run_id"]}',detail=True),anchor,policy)
+            latest=run_identity(archive.document(listed_runs[row['run_id']]) if row['run_id'] in listed_runs else observe(f'{root}/actions/runs/{row["run_id"]}',detail=True),anchor,policy)
             require(latest['id'] == row['run_id'] and latest['head_sha'] == row['source_sha'] and latest['run_attempt'] >= row['attempt'], 'coverage watched immutable identity changed')
             created=second(latest['created_at'])
             if not low <= created <= high:continue
@@ -718,38 +787,30 @@ def coverage(source_api, state_api, policy, trust_path, store, approval_path, st
             source=validate_source_fact(outcome['source'],policy,row['source_sha'],trust_path,'profile')
             if outcome['reason']=='source-merge-disabled':require(source.get('merge_enabled') is False and outcome['source']['receipt'] is None,'coverage non-delivery differs')
             else:require(outcome['reason']=='authenticated-shadow','coverage non-delivery reason differs');validate_shadow(outcome['source'],source,row,anchor)
-        with tempfile.TemporaryDirectory() as tmp:
-            db=Path(tmp)/'projection.sqlite'
-            projection=archive.reconstruct_interval(api,policy,db,trust_path,store,approval_path,stream,interval_end=projection_end,history_head=history_head,campaign=campaign)
-            result['frozen_projection_complete']=projection['projection_complete']
-            if not projection['projection_complete']:return gap('required-projection-gap')
-            with sqlite3.connect(db) as sql:
-                provenances=[archive.document(row[0].encode()) for row in sql.execute('SELECT provenance FROM delivery_provenance')]
-            projected={(row['run_id'],row['attempt']) for row in provenances}
-            if not retained_ids <= projected:return gap('required-delivery-not-projected')
-            def references(tree):
-                journal_path='receipt-archive/discovery/'+stream+'.json'
-                require(blob_at(anchor['bootstrap_tree'],journal_path) is None,'coverage pre-bootstrap retained journal')
-                raw=blob_at(tree,journal_path)
-                if raw is None:
-                    item_at,_=archive.fixed_reader(api,root)
-                    require(all(item_at(tree,'receipt-archive/'+name) is None for name in ('index','objects','materials')),'coverage retained journal missing over existing data')
-                    return set()
-                journal=archive.document(raw)
-                require(type(journal) is dict and set(journal)=={'schema_version','repository','stream','coverage_from','next_segment','records_count'} and type(journal['schema_version']) is int and journal['schema_version']==1 and journal['repository']==api.repo and journal['stream']==stream and journal['coverage_from']==anchor['coverage_from'] and type(journal['records_count']) is int and type(journal['next_segment']) is int and 0<=journal['records_count']==journal['next_segment']<10**12,'coverage retained journal differs')
-                values=set();executions=set()
-                for number in range(journal['next_segment']):
-                    raw=blob_at(tree,archive.state_paths.segment_path(stream,number))
-                    require(raw is not None,'coverage retained segment missing')
-                    segment=archive.state_paths.validate_segment(archive.document(raw),api.repo,stream,number)
-                    require(len(segment['records'])==1,'coverage retained segment count differs')
-                    row=segment['records'][0];identity=(row['run_id'],row['attempt'])
-                    require(identity not in executions,'coverage retained execution duplicated');executions.add(identity)
-                    values.add((*identity,row['artifact_id'],row['record_sha256']))
-                return values
-            frozen=api.request(root+'/git/commits/'+projection['frozen_head'])
-            require(frozen['sha']==projection['frozen_head'] and archive.state_paths.valid_hash(frozen['tree']['sha'],40),'coverage frozen tree differs')
-            if references(anchor['tree']) != references(frozen['tree']['sha']):return gap('retained-snapshot-incomplete')
+        if not retained_ids <= projected:return gap('required-delivery-not-projected')
+        def references(tree):
+            journal_path='receipt-archive/discovery/'+stream+'.json'
+            require(blob_at(anchor['bootstrap_tree'],journal_path) is None,'coverage pre-bootstrap retained journal')
+            raw=blob_at(tree,journal_path)
+            if raw is None:
+                item_at,_=archive.fixed_reader(api,root)
+                require(all(item_at(tree,'receipt-archive/'+name) is None for name in ('index','objects','materials')),'coverage retained journal missing over existing data')
+                return set()
+            journal=archive.document(raw)
+            require(type(journal) is dict and set(journal)=={'schema_version','repository','stream','coverage_from','next_segment','records_count'} and type(journal['schema_version']) is int and journal['schema_version']==1 and journal['repository']==api.repo and journal['stream']==stream and journal['coverage_from']==anchor['coverage_from'] and type(journal['records_count']) is int and type(journal['next_segment']) is int and 0<=journal['records_count']==journal['next_segment']<10**12,'coverage retained journal differs')
+            values=set();executions=set()
+            for number in range(journal['next_segment']):
+                raw=blob_at(tree,archive.state_paths.segment_path(stream,number))
+                require(raw is not None,'coverage retained segment missing')
+                segment=archive.state_paths.validate_segment(archive.document(raw),api.repo,stream,number)
+                require(len(segment['records'])==1,'coverage retained segment count differs')
+                row=segment['records'][0];identity=(row['run_id'],row['attempt'])
+                require(identity not in executions,'coverage retained execution duplicated');executions.add(identity)
+                values.add((*identity,row['artifact_id'],row['record_sha256']))
+            return values
+        frozen=api.request(root+'/git/commits/'+projection['frozen_head'])
+        require(frozen['sha']==projection['frozen_head'] and archive.state_paths.valid_hash(frozen['tree']['sha'],40),'coverage frozen tree differs')
+        if references(anchor['tree']) != references(frozen['tree']['sha']):return gap('retained-snapshot-incomplete')
         for target,detail,raw in source_observations:
             if archive.canonical(observe(target,detail=detail,repeat=True)) != raw:return gap('source-changed-during-coverage')
         require(archive.verify_bootstrap(api,approval_path)==anchor and Path(approval_path).read_bytes()==approval_raw and Path(trust_path).read_bytes()==trust_raw,'coverage protected inputs changed')

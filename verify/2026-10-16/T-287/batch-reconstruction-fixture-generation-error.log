@@ -1,0 +1,4 @@
+  File "/private/tmp/t287-batch-reconstruct-diagnostic.py", line 3
+    pipeline=Path('.claude/scripts/test/factory-receipt-projection-windows.sh').read_text().split("cases=r'''
+                                                                                                  ^
+SyntaxError: unterminated string literal (detected at line 3)

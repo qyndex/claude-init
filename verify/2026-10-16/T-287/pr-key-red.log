@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "<stdin>", line 116, in <module>
+  File "actual-coverage-batch-real-git", line 160, in <module>
+AssertionError: float PR map keys accepted as exact integer identifiers

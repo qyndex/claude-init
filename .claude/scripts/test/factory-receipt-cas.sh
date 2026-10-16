@@ -34,6 +34,9 @@ with tempfile.TemporaryDirectory() as tmp:
     if not suffix:return {'id':101,'full_name':self.repo,'private':False,'archived':False,'default_branch':'main'}
     if suffix.startswith('rules/branches/'):return [{'type':x['type'],'ruleset_id':i} for i,p in policies.items() for x in p['rules']]
     if suffix.startswith('rulesets/'):return policies[int(suffix.rsplit('/',1)[1])]
+    if suffix.startswith('compare/'):
+     base,head=suffix.split('?',1)[0].removeprefix('compare/').split('...');ancestor=git('merge-base','--is-ancestor',base,head,check=False).returncode==0
+     return {'base_commit':{'sha':base},'merge_base_commit':{'sha':out('merge-base',base,head)},'status':'identical' if base==head else 'ahead' if ancestor else 'diverged','behind_by':0 if ancestor else 1,'ahead_by':int(out('rev-list','--count',base+'..'+head)),'total_commits':int(out('rev-list','--count',base+'..'+head))}
     if suffix.startswith('git/ref/'):return {'ref':ref,'object':{'type':'commit','sha':out('rev-parse',ref)}}
     if suffix.startswith('git/commits/'):
      sha=suffix.rsplit('/',1)[1];parts=out('show','-s','--format=%T %P',sha).split();return {'sha':sha,'tree':{'sha':parts[0]},'parents':[{'sha':p} for p in parts[1:]]}

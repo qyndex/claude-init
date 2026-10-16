@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "<stdin>", line 50, in <module>
+  File "actual-coverage-batch-real-git", line 142, in <module>
+AssertionError: coverage rereads each listed source run instead of rechecking exact listing pages

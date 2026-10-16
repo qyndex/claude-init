@@ -1,0 +1,29 @@
+consumer diagnostic actual retained history=380; cloned immutable history, not injected facts
+actual checkpoint next_segment=380
+actual stage page=8
+actual stage page=16
+actual stage page=24
+actual stage page=32
+actual consumer diagnostic history preserved=/private/tmp/t287-timecache-consumer-result-20261016
+Traceback (most recent call last):
+  File "/private/tmp/t287-timecache-consumer-diagnostic.py", line 42, in <module>
+    exec(compile(fixture+pipeline+provider+cases,'actual-retained-consumer-diagnostic','exec'))
+    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "actual-retained-consumer-diagnostic", line 125, in <module>
+  File "/private/tmp/t287-linear-candidate-20261016/.claude/scripts/factory-receipt-archive.py", line 1127, in stage_projection
+    lineage = projection_lineage(api, policy, trust_path, store, approval_path, stream, interval_end=interval_end, page=page, limit=1, history_head=selected)
+  File "/private/tmp/t287-linear-candidate-20261016/.claude/scripts/factory-receipt-archive.py", line 1055, in projection_lineage
+    require(verify_bootstrap(api, approval_path) == anchor and Path(approval_path).read_bytes() == approval_raw and digest(Path(trust_path).read_bytes()) == trust_hash, 'projection lineage protected origin changed')
+            ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/t287-linear-candidate-20261016/.claude/scripts/factory-receipt-archive.py", line 294, in verify_bootstrap
+    tree = state_paths.scan_tree(Reader(), root, tree_sha, cursor=cursor)
+  File "/private/tmp/t287-linear-candidate-20261016/.claude/scripts/factory-state-paths.py", line 89, in scan_tree
+    value = api.request(root + '/git/trees/' + node['sha'])
+  File "/private/tmp/t287-linear-candidate-20261016/.claude/scripts/factory-receipt-archive.py", line 182, in read
+    value = api.request(path)
+  File "/private/tmp/t287-linear-candidate-20261016/.claude/scripts/factory-receipt-archive.py", line 1000, in request
+    require(calls < 2048, 'projection lineage API capacity gap')
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/t287-linear-candidate-20261016/.claude/scripts/validate-candidate-evidence.py", line 19, in require
+    raise ValueError(message)
+ValueError: projection lineage API capacity gap

@@ -10,7 +10,7 @@ cases=r'''
  class ProjectionState(State):
   def request(self,path,method='GET',payload=None):
    if method=='GET' and '/compare/' in path:
-    base,head=path.rsplit('/',1)[1].split('...');ancestor=git('merge-base','--is-ancestor',base,head,check=False).returncode==0
+    base,head=path.split('?',1)[0].rsplit('/',1)[1].split('...');ancestor=git('merge-base','--is-ancestor',base,head,check=False).returncode==0
     return {'base_commit':{'sha':base},'merge_base_commit':{'sha':out('merge-base',base,head)},'status':'identical' if base==head else 'ahead' if ancestor else 'diverged','behind_by':0 if ancestor else 1,'ahead_by':0 if base==head else 1,'total_commits':0 if base==head else 1}
    if method=='GET' and '/commits?' in path:
     query=parse_qs(urlparse(path).query);value=out('log','-1','--format=%H',query['sha'][0],'--',query['path'][0]);return [{'sha':value}] if value else []

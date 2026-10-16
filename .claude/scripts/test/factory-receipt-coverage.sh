@@ -163,7 +163,9 @@ prior=r'''
  assert a.append_delivery(item,PipelineState(),policy,20,trust,store,approval,stream)['status']=='appended'
  class Latest:
   repo='org/repo'
-  def get(self,target):return copy.deepcopy(item.run) if '/actions/runs/' in target else item.get(target)
+  def get(self,target):
+   if '/attempts/' in target:raise RuntimeError('prior attempt history unavailable')
+   return copy.deepcopy(item.run) if '/actions/runs/' in target else item.get(target)
   def source(self,name,sha):return item.source(name,sha)
   def request(self,target,**kwargs):return {'total_count':1,'workflow_runs':[copy.deepcopy(item.run)]} if '/actions/workflows/' in target else item.request(target,**kwargs)
  latest=Latest()

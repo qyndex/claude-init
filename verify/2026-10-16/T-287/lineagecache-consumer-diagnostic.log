@@ -1,0 +1,26 @@
+consumer diagnostic actual retained history=380; cloned immutable history, not injected facts
+actual stage page=40
+actual stage page=48
+actual consumer diagnostic history preserved=/private/tmp/t287-lineagecache-consumer-result-20261016
+Traceback (most recent call last):
+  File "actual-retained-consumer-diagnostic", line 119, in <module>
+  File "/private/tmp/t287-linear-candidate-20261016/.claude/scripts/factory-receipt-archive.py", line 1323, in reconstruct_interval
+    documents[item['path']] = document(blob_at(anchor['tree'], item['path']))
+                                       ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/t287-linear-candidate-20261016/.claude/scripts/factory-receipt-archive.py", line 352, in blob_at
+    value = api.request(root+'/git/blobs/'+item['sha'])
+  File "/private/tmp/t287-linear-candidate-20261016/.claude/scripts/factory-receipt-archive.py", line 1273, in request
+    require(calls < 2048, 'reconstruction API capacity gap'); calls += 1
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/t287-linear-candidate-20261016/.claude/scripts/validate-candidate-evidence.py", line 19, in require
+    raise ValueError(message)
+ValueError: reconstruction API capacity gap
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/private/tmp/t287-lineagecache-consumer-diagnostic.py", line 33, in <module>
+    exec(compile(fixture+pipeline+provider+cases,'actual-retained-consumer-diagnostic','exec'))
+    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "actual-retained-consumer-diagnostic", line 120, in <module>
+AssertionError: actual 380-retained consumer reconstruction blocked: reconstruction API capacity gap

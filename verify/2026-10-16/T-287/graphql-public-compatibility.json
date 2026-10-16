@@ -1,0 +1,17 @@
+{
+  "repository": "qyndex/claude-init",
+  "source_sha": "91839087a769bd45670df5b84cb96993bcb97d42",
+  "path": "README.md",
+  "oid": "7c372bd0dfbecd94a81d3bf6c662fe0ef8eefe47",
+  "byte_size": 18019,
+  "git_blob_sha_verified": true,
+  "utf8_exact": true,
+  "is_binary": false,
+  "is_truncated": false,
+  "errors_absent": true,
+  "credential": "existing authenticated CLI; not reporting App installation token",
+  "authority_or_mutation": false,
+  "exact_oid_query_verified": true,
+  "two_alias_batch_verified": true,
+  "exact_alias_set_verified": true
+}

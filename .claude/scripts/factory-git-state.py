@@ -37,6 +37,9 @@ def git_hash(blob):
     return hashlib.sha1(b'blob ' + str(len(blob)).encode() + b'\0' + blob).hexdigest()
 
 
+_batch_spec = importlib.util.spec_from_file_location('state_batch_process', Path(__file__).with_name('factory-bounded-process.py'))
+_batch_process = importlib.util.module_from_spec(_batch_spec); _batch_spec.loader.exec_module(_batch_process)
+
 class API:
     def __init__(self, repository, token):
         require(re.fullmatch(r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+', repository or ''), 'state repository required')
@@ -54,6 +57,89 @@ class API:
         require(result.returncode == 0, 'state API failed; reconcile authoritative branch before retry')
         require(len(result.stdout) <= MAX_STATE * 2, 'state API response too large')
         return json.loads(result.stdout, object_pairs_hook=digest.coordinator.contract.no_duplicate_keys)
+
+
+    def read_blobs(self, repository_id, entries):
+        """Bounded fixed query for immutable archive JSON leaves; not origin proof."""
+        require(type(repository_id) is int and 0 < repository_id < 2**63, 'blob batch repository identity invalid')
+        require(type(entries) is list and 0 < len(entries) <= 32, 'blob batch selector bound invalid')
+        selected = {}; variables = {}; declarations = []; aliases = []
+        owner, name = self.repo.split('/')
+        variables.update(owner=owner, name=name)
+        for index, item in enumerate(entries):
+            require(type(item) is dict and set(item) == {'path', 'sha', 'size'} and type(item['path']) is str and len(item['path']) <= 512 and item['path'].startswith('receipt-archive/') and type(item['sha']) is str and len(item['sha']) == 40 and type(item['size']) is int and 0 < item['size'] <= 1048576, 'blob batch archive selector invalid')
+            state_paths.validate_entry(dict(item, type='blob', mode='100644'))
+            require(item['sha'] not in selected, 'blob batch selector duplicated')
+            selected[item['sha']] = item
+            declarations.append('$oid'+str(index)+':GitObjectID!'); variables['oid'+str(index)] = item['sha']
+            aliases.append('o'+str(index)+':object(oid:$oid'+str(index)+'){__typename ... on Blob{oid byteSize isBinary isTruncated text}}')
+        require(sum(item['size'] for item in entries) <= 1048576, 'blob batch declared bytes exceed bound')
+        query = 'query ReceiptBlobs($owner:String!,$name:String!,'+','.join(declarations)+'){repository(owner:$owner,name:$name,followRenames:false){databaseId nameWithOwner '+' '.join(aliases)+'}}'
+        payload = canonical({'query': query, 'variables': variables}).encode()
+        require(len(payload) <= 16384, 'blob batch request bytes exceed bound')
+        env = {key: os.environ[key] for key in ('PATH', 'HOME') if key in os.environ}
+        env.update(GH_TOKEN=self.token, GH_HOST='github.com', GH_PROMPT_DISABLED='1', GH_NO_UPDATE_NOTIFIER='1', LANG='C', LC_ALL='C')
+        with tempfile.TemporaryFile() as source:
+            source.write(payload); source.seek(0)
+            result = _batch_process.run(['gh', 'api', '--hostname', 'github.com', '--method', 'POST', 'graphql', '--input', '-'],
+                                        env=env, cwd=Path.cwd(), timeout=60, limit=2097152, aggregate_limit=2097152, stdin=source)
+        require(result.returncode == 0, 'blob batch API failed; no fallback')
+        try:
+            value = json.loads(result.stdout, object_pairs_hook=digest.coordinator.contract.no_duplicate_keys)
+        except (ValueError, UnicodeError, RecursionError) as error:
+            raise ValueError('blob batch response JSON invalid') from error
+        require(type(value) is dict and set(value) == {'data'} and type(value['data']) is dict and set(value['data']) == {'repository'}, 'blob batch partial/error response')
+        repository = value['data']['repository']; expected = {'databaseId', 'nameWithOwner'} | {'o'+str(i) for i in range(len(entries))}
+        require(type(repository) is dict and set(repository) == expected and type(repository['databaseId']) is int and repository['databaseId'] == repository_id and repository['nameWithOwner'] == self.repo, 'blob batch repository/aliases differ')
+        blobs = {}
+        for index, item in enumerate(entries):
+            blob = repository['o'+str(index)]
+            require(type(blob) is dict and set(blob) == {'__typename', 'oid', 'byteSize', 'isBinary', 'isTruncated', 'text'} and blob['__typename'] == 'Blob' and blob['oid'] == item['sha'] and type(blob['byteSize']) is int and blob['byteSize'] == item['size'] and blob['isBinary'] is False and blob['isTruncated'] is False and type(blob['text']) is str, 'blob batch object identity/shape differs')
+            try:
+                raw = blob['text'].encode('utf-8')
+            except UnicodeError as error:
+                raise ValueError('blob batch UTF8 invalid') from error
+            require(len(raw) == item['size'] and git_hash(raw) == item['sha'], 'blob batch bytes differ')
+            blobs[item['sha']] = {'sha': item['sha'], 'encoding': 'base64', 'size': len(raw), 'content': base64.b64encode(raw).decode('ascii')}
+        require(len(canonical(blobs).encode()) <= 2097152, 'blob batch normalized memory exceeds bound')
+        return {'blobs': blobs, 'calls': 1, 'raw_bytes': len(result.stdout)}
+
+
+    def read_pull_requests(self, repository_id, numbers):
+        """Fresh bounded merge observations; never an immutable/persistent cache."""
+        require(type(repository_id) is int and 0 < repository_id < 2**63, 'PR batch repository identity invalid')
+        require(type(numbers) is list and 0 < len(numbers) <= 32 and all(type(n) is int and 0 < n <= 2147483647 for n in numbers) and len(set(numbers)) == len(numbers), 'PR batch selectors invalid')
+        owner, name = self.repo.split('/'); variables = {'owner':owner,'name':name}; declarations = []; aliases = []
+        for index, number in enumerate(numbers):
+            declarations.append('$n'+str(index)+':Int!');variables['n'+str(index)]=number
+            aliases.append('p'+str(index)+':pullRequest(number:$n'+str(index)+'){number merged mergedAt mergeCommit{oid} baseRepository{databaseId nameWithOwner}}')
+        query='query ReceiptPullRequests($owner:String!,$name:String!,'+','.join(declarations)+'){repository(owner:$owner,name:$name,followRenames:false){databaseId nameWithOwner '+' '.join(aliases)+'}}'
+        payload=canonical({'query':query,'variables':variables}).encode();require(len(payload)<=16384,'PR batch request bytes exceed bound')
+        env={key:os.environ[key] for key in ('PATH','HOME') if key in os.environ}
+        env.update(GH_TOKEN=self.token,GH_HOST='github.com',GH_PROMPT_DISABLED='1',GH_NO_UPDATE_NOTIFIER='1',LANG='C',LC_ALL='C')
+        with tempfile.TemporaryFile() as source:
+            source.write(payload);source.seek(0)
+            result=_batch_process.run(['gh','api','--hostname','github.com','--method','POST','graphql','--input','-'],env=env,cwd=Path.cwd(),timeout=60,limit=2097152,aggregate_limit=2097152,stdin=source)
+        require(result.returncode==0,'PR batch API failed; no fallback')
+        try:value=json.loads(result.stdout,object_pairs_hook=digest.coordinator.contract.no_duplicate_keys)
+        except (ValueError,UnicodeError,RecursionError) as error:raise ValueError('PR batch response JSON invalid') from error
+        require(type(value) is dict and set(value)=={'data'} and type(value['data']) is dict and set(value['data'])=={'repository'},'PR batch partial/error response')
+        repository=value['data']['repository'];expected={'databaseId','nameWithOwner'}|{'p'+str(i) for i in range(len(numbers))}
+        require(type(repository) is dict and set(repository)==expected and type(repository['databaseId']) is int and repository['databaseId']==repository_id and repository['nameWithOwner']==self.repo,'PR batch repository/aliases differ')
+        observations={}
+        for index,number in enumerate(numbers):
+            pr=repository['p'+str(index)]
+            require(type(pr) is dict and set(pr)=={'number','merged','mergedAt','mergeCommit','baseRepository'} and type(pr['number']) is int and pr['number']==number and pr['merged'] is True,'PR batch merge identity differs')
+            commit=pr['mergeCommit'];base=pr['baseRepository'];time=pr['mergedAt']
+            require(type(commit) is dict and set(commit)=={'oid'} and state_paths.valid_hash(commit['oid'],40),'PR batch merge commit differs')
+            require(type(base) is dict and set(base)=={'databaseId','nameWithOwner'} and type(base['databaseId']) is int and base['databaseId']==repository_id and base['nameWithOwner']==self.repo,'PR batch base repository differs')
+            require(time is None or (type(time) is str and len(time)<=40 and re.fullmatch(r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})',time) is not None and (time.endswith('Z') or (int(time[-5:-3])<24 and int(time[-2:])<60))),'PR batch timestamp shape invalid')
+            if time is not None:
+                try:datetime.fromisoformat(time.replace('Z','+00:00'))
+                except (ValueError,OverflowError) as error:raise ValueError('PR batch timestamp invalid') from error
+            observations[number]={'number':number,'merged':True,'merged_at':time,'merge_commit_sha':commit['oid'],'base':{'repo':{'id':repository_id,'full_name':self.repo}}}
+        require(len(canonical(observations).encode())<=2097152,'PR batch normalized memory exceeds bound')
+        return {'pull_requests':observations,'calls':1,'raw_bytes':len(result.stdout)}
 
 
 POLICY_FIELDS = {'id', 'name', 'target', 'source_type', 'source', 'enforcement',

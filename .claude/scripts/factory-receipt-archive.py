@@ -286,23 +286,35 @@ def verify_bootstrap(api, approval_path, *, now=None):
         tree_sha = commit['tree']['sha']
         if head_tree is None:
             head_tree = tree_sha
+        if sha == verified_prefix and sha != approval['bootstrap_sha']:
+            break  # Actual protected completed publication already certifies this tree.
+        bootstrap = sha == approval['bootstrap_sha']
+        if bootstrap:
+            require(tree_sha == approval['bootstrap_tree'], 'archive bootstrap tree differs')
+        else:
+            require(type(commit.get('parents')) is list and len(commit['parents']) == 1
+                    and type(commit['parents'][0]) is dict and state_paths.valid_hash(commit['parents'][0].get('sha'), 40),
+                    'archive bootstrap ancestry missing or merged')
+            parent_sha = commit['parents'][0]['sha']
+            parent = read(root+'/git/commits/'+parent_sha)
+            require(parent.get('sha') == parent_sha and type(parent.get('tree')) is dict
+                    and state_paths.valid_hash(parent['tree'].get('sha'), 40), 'archive bootstrap parent identity/tree differs')
         class Reader:
             repo = api.repo
             request = staticmethod(read)
         cursor = None
         for tree_window in range(10):
-            tree = state_paths.scan_tree(Reader(), root, tree_sha, cursor=cursor)
+            # Conditional deltas gain authority only after EVERY single-parent edge
+            # reaches the checked bootstrap or authenticated completed prefix below.
+            tree = (state_paths.scan_tree(Reader(), root, tree_sha, cursor=cursor) if bootstrap
+                    else state_paths.scan_delta(Reader(), root, tree_sha, parent['tree']['sha'], cursor=cursor))
             if tree['complete']:
                 break
             cursor = tree['cursor']  # Checked in-memory continuation; never external input.
         require(tree['complete'], 'archive bootstrap tree incomplete; authenticated cursor continuation required')
-        if sha == approval['bootstrap_sha']:
-            require(tree_sha == approval['bootstrap_tree'], 'archive bootstrap tree differs')
+        if bootstrap:
             break
-        if sha == verified_prefix:
-            break  # Completed protected scanner proof covers the older checked prefix.
-        require(isinstance(commit['parents'], list) and len(commit['parents']) == 1, 'archive bootstrap ancestry missing or merged')
-        sha = commit['parents'][0]['sha']
+        sha = parent_sha
     else:
         raise ValueError('archive bootstrap ancestry bound reached; explicit coverage gap')
     for identity in sorted(ids):
@@ -683,7 +695,7 @@ def retained_execution(api, anchor, store, stream, run_id, attempt):
 def _origin_ancestor(read, root, base, head):
     """Compare metadata assists ancestry; it never proves intermediate content."""
     require(all(state_paths.valid_hash(value, 40) for value in (base, head)), 'origin comparison identity invalid')
-    value = read(root+'/compare/'+base+'...'+head)
+    value = read(root+'/compare/'+base+'...'+head+'?per_page=1&page=2')
     require(value['base_commit']['sha'] == base and value['merge_base_commit']['sha'] == base
             and value['status'] == ('identical' if base == head else 'ahead')
             and type(value['behind_by']) is int and value['behind_by'] == 0
@@ -808,8 +820,18 @@ def advance_origin(state_api, approval_path, *, commit_budget=16, tree_pages=4, 
             class Reader:
                 repo = api.repo
                 request = staticmethod(read)
-            checked = state_paths.scan_tree(Reader(), root, commit['tree']['sha'],
-                                            cursor=progress['tree_cursor'], page_budget=tree_pages)
+            cursor = progress['tree_cursor']
+            if sha == approval['bootstrap_sha'] or (cursor is not None and cursor.get('kind') != 'delta'):
+                # Historic partial full-tree cursors retain their original check;
+                # bootstrap has no independently valid parent and is always full.
+                checked = state_paths.scan_tree(Reader(), root, commit['tree']['sha'], cursor=cursor, page_budget=tree_pages)
+            else:
+                parent = read(root+'/git/commits/'+commit['parents'][0]['sha'])
+                require(parent['sha'] == commit['parents'][0]['sha'] and state_paths.valid_hash(parent['tree']['sha'], 40), 'origin delta parent identity differs')
+                # Every edge is checked before the frozen snapshot can complete.
+                # Unchanged subtrees inherit validity only once this walk reaches
+                # the actual fully checked bootstrap or authenticated prefix.
+                checked = state_paths.scan_delta(Reader(), root, commit['tree']['sha'], parent['tree']['sha'], cursor=cursor, page_budget=tree_pages)
             progress['tree_cursor'] = checked['cursor']
             if not checked['complete']:
                 break
@@ -876,26 +898,31 @@ def checkpoint_projection(state_api, policy, trust_path, store, approval_path, s
     A fixed bounded file links previous immutable Git blobs. Each publication
     changes only that inert file; historical windows are retained in Git history.
     T302 must authenticate/read that chain in bounded work before reconstruction.
-    Full bootstrap's 256-commit integration gap remains explicit.
+    Completed protected origins resume history; unchecked suffixes remain bounded.
     """
     from urllib.parse import quote
     import uuid
     require(type(limit) is int and 0 < limit <= 128, 'projection checkpoint bounds differ')
     require(state_api.repo == policy['repository'] == store['repository'] and stream == archive_stream(state_api.repo), 'projection checkpoint repository differs')
     receipts.load_receipt_trust(trust_path, state_api.repo, mode='report')
-    calls = consumed = 0; root = 'repos/'+state_api.repo
+    calls = consumed = cached_bytes = 0; immutable = {}; root = 'repos/'+state_api.repo
 
     class Bounded:
         repo = state_api.repo
 
         def request(self, path, method='GET', payload=None):
-            nonlocal calls, consumed
+            nonlocal calls, consumed, cached_bytes
             require(path == root or path.startswith(root+'/'), 'projection checkpoint foreign API')
+            cacheable = method == 'GET' and payload is None and any(path.startswith(root+'/git/'+kind+'/') and state_paths.valid_hash(path.rsplit('/',1)[1],40) for kind in ('commits','trees','blobs'))
+            if cacheable and path in immutable:return document(immutable[path])
             require(calls < 2048, 'projection checkpoint API capacity gap')
             calls += 1
             value = state_api.request(path, method, payload)
-            size = len(canonical(value)); consumed += size
+            encoded = canonical(value); size = len(encoded); consumed += size
             require(size <= 2097152 and consumed <= 33554432, 'projection checkpoint observation capacity gap')
+            if cacheable:
+                require(cached_bytes+size <= 33554432, 'projection checkpoint normalized cache capacity gap')
+                immutable[path] = encoded; cached_bytes += size
             return value
 
     api = Bounded(); path = 'receipt-archive/projection/'+stream+'.json'; uncertain = False
@@ -979,7 +1006,7 @@ def projection_lineage(state_api, policy, trust_path, store, approval_path, stre
     require(type(page) is int and 1 <= page <= 10**12 and type(limit) is int and 1 <= limit <= 32, 'projection lineage bounds differ')
     require(state_api.repo == policy['repository'] == store['repository'] and stream == archive_stream(state_api.repo), 'projection lineage repository differs')
     receipts.load_receipt_trust(trust_path, state_api.repo, mode='report')
-    calls = consumed = 0; root = 'repos/'+state_api.repo
+    calls = consumed = 0; immutable = {}; root = 'repos/'+state_api.repo
 
     class Bounded:
         repo = state_api.repo
@@ -987,11 +1014,17 @@ def projection_lineage(state_api, policy, trust_path, store, approval_path, stre
         def request(self, path, method='GET', payload=None):
             nonlocal calls, consumed
             require(method == 'GET' and payload is None and (path == root or path.startswith(root+'/')), 'projection lineage foreign API or write')
+            cacheable = any(path.startswith(root+'/git/'+kind+'/') and state_paths.valid_hash(path.rsplit('/', 1)[1], 40) for kind in ('commits', 'trees', 'blobs'))
+            if cacheable and path in immutable:
+                return document(immutable[path])
             require(calls < 2048, 'projection lineage API capacity gap')
             calls += 1
             value = state_api.request(path, method, payload)
             size = len(canonical(value)); consumed += size
             require(size <= 2097152 and consumed <= 33554432, 'projection lineage observation capacity gap')
+            if cacheable:
+                immutable[path] = canonical(value)
+                return document(immutable[path])
             return value
 
     api = Bounded(); anchor = verify_bootstrap(api, approval_path)
@@ -1056,7 +1089,7 @@ def retained_merge_time(state_api, policy, store, approval_path, stream, run_id,
     import re
     import subprocess
     require(state_api.repo == policy['repository'] == store['repository'] and stream == archive_stream(state_api.repo), 'retained time repository differs')
-    calls = consumed = 0; root = 'repos/'+state_api.repo
+    calls = consumed = 0; immutable = {}; root = 'repos/'+state_api.repo
 
     class Bounded:
         repo = state_api.repo
@@ -1064,11 +1097,17 @@ def retained_merge_time(state_api, policy, store, approval_path, stream, run_id,
         def request(self, path, method='GET', payload=None):
             nonlocal calls, consumed
             require(method == 'GET' and payload is None and (path == root or path.startswith(root+'/')), 'retained time foreign API or write')
+            cacheable = any(path.startswith(root+'/git/'+kind+'/') and state_paths.valid_hash(path.rsplit('/', 1)[1], 40) for kind in ('commits', 'trees', 'blobs'))
+            if cacheable and path in immutable:
+                return document(immutable[path])
             require(calls < 2048, 'retained time API capacity gap')
             calls += 1
             value = state_api.request(path, method, payload)
             size = len(canonical(value)); consumed += size
             require(size <= 2097152 and consumed <= 33554432, 'retained time observation capacity gap')
+            if cacheable:
+                immutable[path] = canonical(value)
+                return document(immutable[path])
             return value
 
     api = Bounded(); approval_raw = Path(approval_path).read_bytes()
@@ -1082,7 +1121,7 @@ def stage_projection(state_api, policy, trust_path, store, approval_path, stream
     """Derive one protected bounded slice; no supplied facts/cursors are authority.
 
     Conflict indices cover this frozen interval/trust campaign, not all history.
-    Consumers must reauthenticate retained materials/current trust (T309). Existing
+    Consumers must reauthenticate retained materials/current trust (T309).
     Unscanned suffixes retain the256-ancestor bound; coverage is always false here.
     """
     from urllib.parse import quote
@@ -1201,7 +1240,6 @@ def _retained_time_from_anchor(api, anchor, store, stream, run_id, attempt):
         record = retained['record']; receipt = document(record['proof']['provenance'])['receipt']
         result = {'status': 'gap', 'reason': 'merge-time-unavailable', 'record_sha256': retained['record_sha256'], 'coverage_complete': False}
         try:
-            repository = api.request(root)
             pr = api.request(root+'/pulls/'+str(receipt['pull_request']))
         except (RuntimeError, OSError, subprocess.TimeoutExpired):
             pass
@@ -1209,7 +1247,6 @@ def _retained_time_from_anchor(api, anchor, store, stream, run_id, attempt):
             if not str(error).startswith('GitHub API request failed:'):
                 raise
         else:
-            require(type(repository) is dict and type(repository.get('id')) is int and repository['id'] == anchor['repository_id'] and repository.get('full_name') == api.repo, 'retained time repository identity differs')
             require(type(pr) is dict and type(pr.get('number')) is int and pr['number'] == receipt['pull_request'] and pr.get('merged') is True and pr.get('merge_commit_sha') == receipt['merge_sha'], 'retained time PR identity differs')
             base = pr.get('base'); base_repo = base.get('repo') if type(base) is dict else None
             require(type(base_repo) is dict and type(base_repo.get('id')) is int and base_repo['id'] == anchor['repository_id'] and base_repo.get('full_name') == api.repo, 'retained time base repository differs')
@@ -1234,17 +1271,18 @@ def reconstruct_interval(state_api, policy, db_path, trust_path, store, approval
 
     Every retained proof and current trust annotation is checked before SQL writes.
     projection_complete is not discovery/global coverage or current-task credit.
-    Larger intervals fail explicitly at unchanged per-invocation budgets; T310's
-    Unscanned suffixes remain bounded. No database-dump or SQL payload is accepted.
+    Larger requested sets fail explicitly at unchanged per-invocation budgets.
+    Unscanned suffixes require authenticated protected origin progress. No database-dump or SQL payload is accepted.
     """
     import sqlite3
     require(state_paths.valid_hash(campaign, 64) and state_paths.valid_hash(history_head, 40), 'reconstruction selector differs')
-    root = 'repos/'+state_api.repo; calls = consumed = 0; cache = {}
+    root = 'repos/'+state_api.repo; calls = consumed = cached_bytes = 0; cache = {}; fresh_prs = {}
     class ReadOnly:
         repo = state_api.repo
         def request(self, path, method='GET', payload=None):
-            nonlocal calls, consumed
+            nonlocal calls, consumed, cached_bytes
             require(method == 'GET' and payload is None and (path == root or path.startswith(root+'/')), 'reconstruction foreign API or write')
+            if path in fresh_prs:return document(fresh_prs[path])
             immutable = any(path.startswith(root+'/git/'+kind+'/') and state_paths.valid_hash(path.rsplit('/', 1)[1], 40) for kind in ('commits', 'trees', 'blobs'))
             if immutable and path in cache:
                 return document(cache[path])
@@ -1252,8 +1290,72 @@ def reconstruct_interval(state_api, policy, db_path, trust_path, store, approval
             value = state_api.request(path, method, payload); encoded = canonical(value); consumed += len(encoded)
             require(len(encoded) <= 2097152 and consumed <= 33554432, 'reconstruction observation capacity gap')
             if immutable:
-                cache[path] = encoded
+                require(cached_bytes+len(encoded) <= 33554432, 'reconstruction normalized cache capacity gap')
+                cached_bytes += len(encoded); cache[path] = encoded
             return value
+        def prefetch_blobs(self, entries):
+            nonlocal calls, consumed, cached_bytes
+            transport = getattr(state_api, 'read_blobs', None)
+            if not callable(transport):
+                return  # Original bounded REST remains available for small callers.
+            selected = {}
+            for item in entries:
+                state_paths.validate_entry(item)
+                require(item['type'] == 'blob' and item['path'].startswith('receipt-archive/'), 'reconstruction batch leaf differs')
+                key = root+'/git/blobs/'+item['sha']
+                if key not in cache:
+                    descriptor = {field:item[field] for field in ('path','sha','size')}
+                    require(item['sha'] not in selected or selected[item['sha']]['size'] == item['size'], 'reconstruction batch size differs')
+                    selected[item['sha']] = descriptor
+            group = []; estimate = 0
+            def fetch(items):
+                nonlocal calls, consumed, cached_bytes
+                require(calls < 2048, 'reconstruction API capacity gap'); calls += 1
+                result = transport(anchor['repository_id'], items)
+                require(type(result) is dict and set(result) == {'blobs','calls','raw_bytes'} and type(result['calls']) is int and result['calls'] == 1 and type(result['raw_bytes']) is int and 0 < result['raw_bytes'] <= 2097152 and type(result['blobs']) is dict and set(result['blobs']) == {item['sha'] for item in items}, 'reconstruction batch response differs')
+                consumed += result['raw_bytes']
+                require(consumed <= 33554432, 'reconstruction observation capacity gap')
+                prepared = {}
+                for item in items:
+                    value = result['blobs'][item['sha']]
+                    require(type(value) is dict and set(value) == {'sha','encoding','size','content'} and value['sha'] == item['sha'] and value['encoding'] == 'base64' and type(value['size']) is int and value['size'] == item['size'] and type(value['content']) is str and len(value['content']) <= 1398104, 'reconstruction batch object differs')
+                    raw = base64.b64decode(value['content'], validate=True)
+                    require(len(raw) == item['size'] and hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest() == item['sha'], 'reconstruction batch bytes differ')
+                    prepared[root+'/git/blobs/'+item['sha']] = canonical(value)
+                extra = sum(map(len,prepared.values()))
+                require(cached_bytes+extra <= 33554432, 'reconstruction normalized cache capacity gap')
+                cache.update(prepared); cached_bytes += extra
+            for item in selected.values():
+                size = item['size']*2+512
+                if size > 1900000:
+                    continue  # Plan an individually bounded REST read before any batch call.
+                if group and (len(group) == 32 or estimate+size > 1900000):
+                    fetch(group); group = []; estimate = 0
+                group.append(item); estimate += size
+            if group:
+                fetch(group)
+
+        def prefetch_pull_requests(self, numbers):
+            nonlocal calls, consumed, cached_bytes
+            transport=getattr(state_api,'read_pull_requests',None)
+            if not callable(transport):return
+            selected=sorted(set(numbers))
+            require(all(type(number) is int and 0<number<=2147483647 for number in selected),'reconstruction PR selector invalid')
+            for start in range(0,len(selected),32):
+                group=selected[start:start+32]
+                require(calls<2048,'reconstruction API capacity gap');calls+=1
+                value=transport(anchor['repository_id'],group)
+                require(type(value) is dict and set(value)=={'pull_requests','calls','raw_bytes'} and type(value['calls']) is int and value['calls']==1 and type(value['raw_bytes']) is int and 0<value['raw_bytes']<=2097152 and type(value['pull_requests']) is dict and all(type(key) is int for key in value['pull_requests']) and set(value['pull_requests'])==set(group),'reconstruction PR batch response differs')
+                consumed+=value['raw_bytes'];require(consumed<=33554432,'reconstruction observation capacity gap')
+                prepared={}
+                for number in group:
+                    pr=value['pull_requests'][number]
+                    require(type(pr) is dict and set(pr)=={'number','merged','merged_at','merge_commit_sha','base'} and type(pr['number']) is int and pr['number']==number and pr['merged'] is True and state_paths.valid_hash(pr['merge_commit_sha'],40) and (pr['merged_at'] is None or type(pr['merged_at']) is str and len(pr['merged_at'])<=40),'reconstruction PR observation differs')
+                    base=pr['base'];require(type(base) is dict and set(base)=={'repo'} and type(base['repo']) is dict and set(base['repo'])=={'id','full_name'} and type(base['repo']['id']) is int and base['repo']['id']==anchor['repository_id'] and base['repo']['full_name']==api.repo,'reconstruction PR base differs')
+                    prepared[root+'/pulls/'+str(number)]=canonical(pr)
+                extra=sum(map(len,prepared.values()));require(cached_bytes+extra<=33554432,'reconstruction normalized observation capacity gap')
+                fresh_prs.update(prepared);cached_bytes+=extra
+
     api = ReadOnly(); anchor = verify_bootstrap(api, approval_path)
     approval_raw = Path(approval_path).read_bytes(); trust_hash = digest(Path(trust_path).read_bytes())
     windows = {}; page = 1; previous_blob = None
@@ -1294,11 +1396,40 @@ def reconstruct_interval(state_api, policy, db_path, trust_path, store, approval
         state_paths.validate_tree(rows)
         return rows
     require(directory is None or directory['type'] == 'tree', 'reconstruction stage directory differs')
+    stage_entries = []; seen_stage_paths = set()
     for shard in (entries(directory['sha'], prefix) if directory is not None else []):
         require(shard['type'] == 'tree', 'reconstruction stage shard differs')
         for item in entries(shard['sha'], shard['path']):
-            require(item['type'] == 'blob' and item['path'] not in documents, 'reconstruction duplicate or nested stage')
-            documents[item['path']] = document(blob_at(anchor['tree'], item['path']))
+            require(item['type'] == 'blob' and item['path'] not in seen_stage_paths, 'reconstruction duplicate or nested stage')
+            seen_stage_paths.add(item['path']); stage_entries.append(item)
+    api.prefetch_blobs(stage_entries)
+    for item in stage_entries:
+        documents[item['path']] = document(blob_at(anchor['tree'], item['path']))
+    references = {row['segment']:row for window in windows.values() for row in window['checkpoint']['window']['references']}
+    retained_entries = []; record_paths = set()
+    for number, reference in references.items():
+        identity = digest(canonical({'repository':api.repo,'stream':stream,'run_id':reference['run_id'],'attempt':reference['attempt']}))
+        key = reference['record_sha256']; path = f'receipt-archive/objects/{key[:2]}/{key}.json'; record_paths.add(path)
+        for name in (state_paths.segment_path(stream,number),f'receipt-archive/index/{stream}/identities/{identity[:2]}/{identity}.json',path):
+            item = item_at(anchor['tree'],name); require(item is not None, 'reconstruction required retained leaf missing'); retained_entries.append(item)
+    api.prefetch_blobs(retained_entries)
+    materials = set()
+    for path in record_paths:
+        record = document(blob_at(anchor['tree'],path)); links = record.get('materials') if type(record) is dict else None
+        require(type(links) is dict and len(links) <= 10 and all(state_paths.valid_hash(key,64) for key in links.values()), 'reconstruction retained material links differ')
+        materials.update(links.values())
+    material_entries = []
+    for key in materials:
+        item = item_at(anchor['tree'],f'receipt-archive/materials/{key[:2]}/{key}.json'); require(item is not None, 'reconstruction required material missing'); material_entries.append(item)
+    api.prefetch_blobs(material_entries)
+    numbers=[]
+    for path in record_paths:
+        record=document(blob_at(anchor['tree'],path));proof=record.get('proof') if type(record) is dict else None
+        require(type(proof) is dict and type(proof.get('provenance')) is str,'reconstruction retained PR source differs')
+        provenance=document(proof['provenance']);receipt=provenance.get('receipt') if type(provenance) is dict else None
+        require(type(receipt) is dict and type(receipt.get('pull_request')) is int and 0<receipt['pull_request']<=2147483647,'reconstruction retained PR selector differs')
+        numbers.append(receipt['pull_request'])
+    api.prefetch_pull_requests(numbers)
     facts = {}; by_task = {}; expected_indices = {}; covered = set()
     for path, stage in documents.items():
         require(type(stage) is dict, 'reconstruction stage JSON differs')

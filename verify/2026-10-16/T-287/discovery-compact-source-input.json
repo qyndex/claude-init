@@ -1,0 +1,14 @@
+{
+  "phase": "discovery-only compact comparison tests",
+  "base_source": "925b2d24dd5dbf16c3f7b49b43a9defac06f597e",
+  "files": {
+    ".claude/scripts/factory-receipt-discovery.py": "8ddbfaaba7a50c274b45d4a3b1ce988a728dda4f8eb9f961698b56b953fb8889",
+    ".claude/scripts/test/factory-receipt-discovery-chain.sh": "e6da7b94b867b749be4a3f394a43fcb9bc28be4a3cc88580d56798a754ccfc14",
+    ".claude/scripts/test/factory-receipt-discovery-compare.sh": "dfe48908643c8c77642ccd3ba99d16b6d277744d3d0d8c5a7f82b595659dfea1"
+  },
+  "actual_commands": [
+    "bash .claude/scripts/test/factory-receipt-discovery-compare.sh",
+    "bash .claude/scripts/test/factory-receipt-discovery-chain.sh"
+  ],
+  "live_credit": false
+}

@@ -1,0 +1,3 @@
+actual completed-origin refreshed before independent read-only reconstruction
+actual underlying request categories={"other": 12, "rulesets/": 24, "git/ref/": 12, "git/commits/": 98, "git/trees/": 957, "git/blobs/": 50, "commits?": 8, "compare/": 226, "blob_batches": 63, "blob_raw_bytes": 3099219, "pulls/": 380}
+actual380retained records reconstructed through concrete bounded Blob adapter; SQLite and remote state remain separate

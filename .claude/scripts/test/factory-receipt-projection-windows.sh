@@ -11,7 +11,7 @@ cases=r'''
  class PipelineState(State):
   def request(self,target,method='GET',payload=None):
    if method=='GET' and '/compare/' in target:
-    base,head=target.rsplit('/',1)[1].split('...');ancestor=out('merge-base',base,head)
+    base,head=target.split('?',1)[0].rsplit('/',1)[1].split('...');ancestor=out('merge-base',base,head)
     return {'base_commit':{'sha':base},'merge_base_commit':{'sha':ancestor},'status':'identical' if base==head else 'ahead','behind_by':0,'ahead_by':int(out('rev-list','--count',base+'..'+head)),'total_commits':int(out('rev-list','--count',base+'..'+head))}
    if method=='GET' and '/commits?' in target:
     query=parse_qs(urlparse(target).query);rows=out('log','--format=%H',query['sha'][0],'--',query['path'][0]).splitlines();size=int(query['per_page'][0]);page=int(query.get('page',['1'])[0]);return [{'sha':sha} for sha in rows[(page-1)*size:page*size]]

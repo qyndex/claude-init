@@ -7,3 +7,8 @@ b85245aac449f220b5ddb55f5e8782e656360b2b:docs/audits/2026-10-10/reporting-live/s
 
 # Discarded temporary Spec050 fixture receipt; retained failed log, no live native delivery.
 f2e14119001141748a410f86d2ffb7cb50f7be19:verify/2026-10-16-050-request-intake-router/phase3-attempt-1alfw8dy/routes.log:generic-api-key:8
+
+# Public deterministic queue stream/drill/recovery SHA-256 identifiers; no authentication.
+80ec79611dbb8b010c7de74877a3d888054402c9:docs/activation/2026-10-16-queue-probe/live-proof.json:generic-api-key:2
+80ec79611dbb8b010c7de74877a3d888054402c9:docs/activation/2026-10-16-queue-probe/live-proof.json:generic-api-key:7
+80ec79611dbb8b010c7de74877a3d888054402c9:verify/2026-10-16/T-318/green.log:generic-api-key:7

@@ -1,0 +1,4 @@
+consumer diagnostic actual retained history=380; cloned immutable history, not injected facts
+new targeted page27 diagnostic; previous failing page not asserted
+targeted actual stage27 result={'status': 'staged', 'campaign': '3f4ceb5d08584c010af34dcbfc7be26b738d1bc9f5a6b2624bca3b63c394cd48', 'stage_path': 'receipt-archive/stages/3f4ceb5d08584c010af34dcbfc7be26b738d1bc9f5a6b2624bca3b63c394cd48/3c/3c1a59bef3a3df0c334d04639ef9dfcb3ac2f554af8a7a8e0b43bb9132e6fc0a.json', 'facts_count': 8, 'coverage_complete': False, 'uncertain_write_reconciled': False}
+actual consumer diagnostic history preserved=/private/tmp/t287-targeted27-result-20261016

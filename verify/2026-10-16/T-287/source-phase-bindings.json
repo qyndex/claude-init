@@ -1,0 +1,13 @@
+{
+  "append_run_session": "10815",
+  "append_used_files_sha256": {
+    ".claude/scripts/factory-receipt-archive.py": "aa828afa3e3fb901c05a08c05c75f2fbaa4cb7997cb4a35b5258d9cf2632f855",
+    ".claude/scripts/factory-state-paths.py": "a8773f68f0b69ee446f52a66c0e65952fbe4b071811a86080859af5718817e2f",
+    ".claude/scripts/test/factory-receipt-history.sh": "9395ed4fd042ba5e49e8f1ec88c66a7332c4769ac8e883066b8c53c796306406"
+  },
+  "append_original_record": "scale-optimized-source-input.json",
+  "discovery_updated_only_after_actual_229_checkpoint_RED": true,
+  "discovery_phase_source_sha256": "0d8f7adbde5decdbdf39bc44c06ee09f26aa1f91a75b584f9c3972b291c64450",
+  "discovery_not_imported_by_append_phase": true,
+  "live_activation_verified": false
+}

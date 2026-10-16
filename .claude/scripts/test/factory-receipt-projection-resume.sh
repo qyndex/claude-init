@@ -46,7 +46,7 @@ cases=r'''
     if path not in self.cache:self.cache[path]=super().request(path,method,payload)
     return copy.deepcopy(self.cache[path])
    if method=='GET' and '/compare/' in path:
-    first,last=path.rsplit('/',1)[1].split('...');ancestor=git('merge-base','--is-ancestor',first,last,check=False).returncode==0;return {'base_commit':{'sha':first},'merge_base_commit':{'sha':out('merge-base',first,last)},'status':'identical' if first==last else 'ahead' if ancestor else 'diverged','behind_by':0 if ancestor else 1,'ahead_by':0 if first==last else 1,'total_commits':0 if first==last else 1}
+    first,last=path.split('?',1)[0].rsplit('/',1)[1].split('...');ancestor=git('merge-base','--is-ancestor',first,last,check=False).returncode==0;return {'base_commit':{'sha':first},'merge_base_commit':{'sha':out('merge-base',first,last)},'status':'identical' if first==last else 'ahead' if ancestor else 'diverged','behind_by':0 if ancestor else 1,'ahead_by':0 if first==last else 1,'total_commits':0 if first==last else 1}
    if method=='GET' and '/commits?' in path:
     query=parse_qs(urlparse(path).query);size=int(query['per_page'][0]);page=int(query.get('page',['1'])[0]);rows=out('log','--format=%H',query['sha'][0],'--',query['path'][0]).splitlines();return [{'sha':sha} for sha in rows[(page-1)*size:page*size]]
    if method=='GET' and '/pulls/' in path:

@@ -1,0 +1,36 @@
+resumed actual captured1001 retained prefix=6eaacc0e5702b390ac96b5a541e0856f6f94b097; fresh synthetic current metadata matches original constructor; no new append claim
+actual1001source rows partitioned beyondclamped1000API; protectedwatch progress persisted
+actual protectedstage page=1; authenticatedfacts=105
+actual protectedstage page=2; authenticatedfacts=233
+actual protectedstage page=3; authenticatedfacts=361
+actual protectedstage page=4; authenticatedfacts=489
+actual protectedstage page=5; authenticatedfacts=617
+actual protectedstage page=6; authenticatedfacts=745
+actual protectedstage page=7; authenticatedfacts=873
+actual protectedstage page=8; authenticatedfacts=1001
+actual1001source/staged history saved=/var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/t287-full-staged-e_pl7qbz
+exact resumed phase preserved=/var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/t287-resumed-exact-phase-orm7fldw
+Traceback (most recent call last):
+  File "/private/tmp/t287-resume-full-prefix.py", line 38, in <module>
+    exec(compile(body,'resumed-actual1001-full-prefix','exec'),namespace)
+    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "resumed-actual1001-full-prefix", line 169, in <module>
+AssertionError: projection fresh-process actual1001 failed: Traceback (most recent call last):
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/test/factory-receipt-history-reader.py", line 67, in <module>
+    main()
+    ~~~~^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/test/factory-receipt-history-reader.py", line 63, in main
+    exec(compile(fixture+pipeline+provider+case,'fresh1001-retained-history-reader','exec'),namespace)
+    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "fresh1001-retained-history-reader", line 116, in <module>
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 1422, in reconstruct_interval
+    timed = _retained_time_from_anchor(api, anchor, store, stream, *execution)
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 1243, in _retained_time_from_anchor
+    pr = api.request(root+'/pulls/'+str(receipt['pull_request']))
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 1288, in request
+    require(calls < 2048, 'reconstruction API capacity gap'); calls += 1
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/validate-candidate-evidence.py", line 19, in require
+    raise ValueError(message)
+ValueError: reconstruction API capacity gap
+

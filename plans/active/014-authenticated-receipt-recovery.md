@@ -67,7 +67,7 @@ T-278 enforces revocation when the protected external document is supplied and a
 
 Bootstrap origin requires an explicitly reviewed approval from protected authority, exact repository ID/name/privacy and nondefault state branch, exact bootstrap commit/tree, coverage origin and settled current protection hashes. The supported capability model is one update-only ruleset whose sole bypass actor is the exact approved existing dedicated GitHub App, plus separate rewrite/deletion policies with no bypass. Source authors, blob hashes and an authenticated flag cannot establish exclusive origin. Bound each verification to 256 first-parent commits, 1024 entries per tree, 1 MiB per API response and 32 MiB aggregate; a bound is a visible gap requiring resumable continuation, not a successful reset. T-281 alone may extend current data-only paths.
 
-Existing reporting uses `FACTORY_REPORTING_STATE_TOKEN` and is not certified as this exclusive App writer. Therefore the current live state remains unsupported for trusted archive bootstrap until a concrete operator-reviewed capability/cutover package proves the updater, current policy hashes, writer protection and coverage boundary. This plan does not authorize reading token values, silently migrating credentials, applying update restrictions or breaking existing feedback/reporting. No new credential/signing permission is implied. Coverage before the reviewed origin stays labelled outside coverage; unavailable required history at/after origin remains an explicit gap. Bootstrap alone cannot complete runtime tasks or enable unattended merging.
+Reporting supports the optional legacy `FACTORY_REPORTING_STATE_TOKEN` setting. Verified live pilot metadata found no such secret; its existing writer falls back to `github.token`, which is not certified as this exclusive App writer. Therefore the current live state remains unsupported for trusted archive bootstrap until a concrete operator-reviewed capability/cutover package proves the updater, current policy hashes, writer protection and coverage boundary. These origin checks do not themselves authorize reading token values, silently migrating credentials, applying update restrictions or breaking existing feedback/reporting. The later explicit reporting-App approval below authorizes source/setup preparation, not a live cutover or signing permission. Coverage before the reviewed origin stays labelled outside coverage; unavailable required history at/after origin remains an explicit gap. Bootstrap alone cannot complete runtime tasks or enable unattended merging.
 
 T-284 must persist and validate a previously authenticated chain anchor and resumable per-invocation traversal cursor: 256 is a work budget, not a replacement lifetime commit cliff. T-281 and later index/discovery tasks must segment retained objects and make progress within tree/object/page bounds, or expose an explicit capacity gap without claiming indefinite complete coverage. Until that integration, the bootstrap validator may refuse long chains; it does not certify indefinite operation. Live bootstrap anchors the reviewed actual current state before first unattended merge, never retrospectively asserts missing historical coverage.
 
@@ -654,3 +654,100 @@ unknown history. T287/T288 must resume available prior-attempt enumeration using
 actual bounded GitHub run-attempt endpoints and protected watch/CAS progress, not
 leave ordinary first-seen retries permanently unresolved or infer their effects
 from a latest-only listing. No numeric budget is raised to bypass this requirement.
+
+### T287 implementation boundary (offline acceptance verified)
+
+The physical scale acceptance targets1001 distinct synthetic upstream deliveries,
+each authenticated through the actual retained append path and committed in real
+Git. These are offline upstream API fixtures, not1001 new GitHub merges. A first
+run exposed scanner-checkpoint amplification at24 retained appends; its256-resume
+fixture limit is retained as a fixture failure, not relabelled a production budget
+rejection. All historical data remains. An equivalent bounded provider metadata
+cache and `git ls-tree -l` avoid fixture-only per-blob subprocess amplification;
+production request and byte wrappers still charge every response.
+
+Actual behavior REDs require bounded conditional inert-tree deltas and available
+prior-attempt retrieval. Delta validation covers changed paths against exact
+actual parent trees, with complete single-parent induction back to the fully
+checked bootstrap or authenticated completed prefix. Equal tree hashes alone,
+comparison metadata, caller cursors and partial windows grant no origin. The
+bootstrap and historical partial full-tree cursors retain full validation. Logical
+delta page units may issue two actual GETs each;2048/32MiB invocation limits and
+all current policy, mode, copied-bootstrap and no-merge guards remain unchanged.
+
+Cold-watch retrieval follows one immediate predecessor per reviewed row through
+actual run-attempt endpoints, validates immutable repository/workflow/run/source
+identity, and publishes new rows under the existing atomic protected watch CAS.
+Fresh invocations descend3→2→1 without an unbounded attempt loop. Unavailable
+history still remains a gap; an occupied lookup is validated against its typed
+retained watch row. A latest failed attempt does not hide an earlier successful
+merged receipt, and no retained reporting fact grants current task completion.
+
+T287 is not complete until the actual >1000 retained history also supports usable
+bounded protected projection, fresh SQLite and source-coverage reconstruction.
+Neither source-only listing counts nor permanently returning a capacity gap can
+satisfy this exit criterion. T288 still owns final loader/campaign integration and
+the separately approved reporting-App/positive-actor setup, not implicit live
+activation or credential reuse here.
+
+The current T287 capacity repairs use invocation-only exact immutable Git object
+caches and linear duplicate-aware tree validation. Fresh refs, policy, repository,
+PR merge facts and source observations remain outside those caches. A fixed
+same-repository GraphQL Blob query batches only strict archive leaf descriptors;
+all aliases, numeric repository identity, UTF8 size and Git Blob SHA are checked,
+with actual raw response bytes/calls and normalized cache memory bounded. It is
+an equivalent read transport, not a generic GraphQL mutation/POST grant. Existing
+REST callers remain fail-closed and invalid batches never trigger a fallback.
+The public query compatibility observation does not certify the reporting App or
+private adopter operation. New transitive reader dependencies must be included
+in T288's complete protected loader closure and historical-family compatibility.
+
+A separately tested coverage candidate preserves the concrete Blob capability
+through its shared-budget read-only wrapper. It reconstructs authenticated facts
+before revalidating retained watch rows, and reuses full current run objects from
+already identity-checked partition listings. Exact final listing page rereads
+still reject same-count swaps, late identities and changed attempts; unlisted
+watch IDs retain current detail reads. This candidate remains isolated until the
+active fresh1001 run terminates. Neither candidate subset GREEN nor the earlier
+380-record diagnostic certifies full T287 acceptance or live activation.
+
+The actual1001 retained namespace exposed two further concrete limits: duplicate
+immutable reads during projection checkpoint publication and full replay of an
+already authenticated prefix. Checkpoints now cache only exact immutable GET
+objects for one invocation. Bootstrap verification keeps its original bounded
+ancestry and tree windows, fully checks the exact reviewed bootstrap, and checks
+every actual single-parent suffix delta before accepting a protected completed
+prefix. Incomplete capsules, copied JSON, malformed/foreign parents, transient
+unsafe modes and mutable protection still fail closed.
+
+After all1001 actual facts were staged, fresh reconstruction exhausted2048 calls
+on PR metadata (measured912 individual PR reads,162 Blob batches,9,243,831 total
+observed bytes; SQLite absent). A second fixed read-only query therefore batches
+at most32 selected PRs while preserving exact numeric repository/PR identity,
+merged status, merge SHA, supported merge timestamp and base repository checks.
+These are fresh observations for this invocation, never immutable Git cache or
+persisted proof authority. Shared call/raw-byte/normalized-memory bounds and all
+retained-material/current-trust/stage/final-origin checks remain. Coverage must
+forward this exact capability without hiding per-PR REST reads. Missing timestamps
+remain explicit history gaps, and malformed batches never trigger a fallback.
+
+The existing digest already has workflow-token pull-requests:read. T288 must
+route PR metadata through that reader, while the reporting App retains only its
+approved Contents/write, Administration/read and Metadata/read scope. Any other
+loader that actually requires PR reads needs an explicit minimal workflow-token
+read permission in its reviewed source; public-only access is not a fallback.
+No permission or live setting is changed by T287. Actual App/private capability
+and full long-history loader/campaign integration remain separate readiness work.
+
+T287 closeout (17October): the exact sanctioned `cost && history` command passed
+from a fresh history on the spacious validation volume. Production append/CAS
+created1,001 retained deliveries from synthetic upstream metadata; created-time
+partitioning watched all1,001 runs, protected checkpoints/stages completed, and
+two fresh Python/SQLite readers reconstructed1,001 facts in each reporting table
+and verified the requested interval with no gaps. All-history completeness and
+current-task credit remain false. `verify/2026-10-16/T-287/final-fresh-result.json`
+binds the actual log and unchanged inputs. Earlier physical fixture/space-related
+failures remain retained, including the Git write128 whose stderr was unavailable
+(and therefore is not asserted to be confirmed ENOSPC). T288 loader, campaign,
+reporting-App and exact positive-actor integration remain unimplemented here;
+there was no live activation, key copy, permission change or archive pruning.

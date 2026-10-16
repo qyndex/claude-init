@@ -83,7 +83,7 @@ def scan_tree(api, root, tree_sha, *, cursor=None, page_budget=100):
             validate_entry({'path': node['prefix'], 'sha': node['sha'], 'type': 'tree', 'mode': '040000'})
         else:
             require(node['sha'] == tree_sha, 'state traversal root differs')
-    entries = []; consumed = 0; pages = 0
+    entries = []; seen_paths = set(); consumed = 0; pages = 0
     while pending and pages < page_budget and consumed <= 32505856:
         node = pending.pop(0)
         value = api.request(root + '/git/trees/' + node['sha'])
@@ -94,10 +94,11 @@ def scan_tree(api, root, tree_sha, *, cursor=None, page_budget=100):
         for item in value['tree']:
             require(isinstance(item, dict) and isinstance(item.get('path'), str) and '/' not in item['path'] and item['path'] not in ('.', '..'), 'state subtree entry not immediate')
             entry = dict(item, path=(node['prefix']+'/' if node['prefix'] else '')+item['path'])
-            validate_entry(entry); entries.append(entry)
+            validate_entry(entry)
+            require(entry['path'] not in seen_paths, 'state tree path duplicated')
+            seen_paths.add(entry['path']); entries.append(entry)
             if entry['type'] == 'tree':
                 children.append({'prefix': entry['path'], 'sha': entry['sha']})
-        validate_tree(entries)
         pending.extend(children)
         require(len(pending) <= 4096, 'state traversal frontier capacity gap')
     return {'entries': entries, 'complete': not pending, 'cursor': {'root': tree_sha, 'pending': pending} if pending else None, 'pages': pages}
@@ -111,3 +112,54 @@ def segment_path(stream, number):
 
 def pending_segment_path(stream, number):
     return segment_path(stream, number).replace('receipt-archive/index/', 'receipt-archive/pending/', 1)
+
+
+def scan_delta(api, root, tree_sha, base_sha, *, cursor=None, page_budget=8):
+    """Check changed inert paths, conditional on independently checked ancestry.
+
+    page_budget counts compared subtree pairs (at most two actual GETs each).
+    Equal subtrees are reused only as an induction step: the caller must check
+    every single-parent edge back to an actually validated bootstrap/prefix.
+    This helper or a caller-supplied cursor never establishes that origin.
+    """
+    require(root == f'repos/{api.repo}' and valid_hash(tree_sha, 40) and valid_hash(base_sha, 40), 'state delta identity differs')
+    require(type(page_budget) is int and 0 < page_budget <= 100, 'state delta budget differs')
+    if cursor is None:
+        pending = [{'prefix': '', 'sha': tree_sha, 'base': base_sha}]
+    else:
+        require(type(cursor) is dict and set(cursor) == {'kind', 'root', 'base', 'pending'} and cursor['kind'] == 'delta' and cursor['root'] == tree_sha and cursor['base'] == base_sha and type(cursor['pending']) is list and 0 < len(cursor['pending']) <= 4096, 'state delta cursor differs')
+        require(all(type(node) is dict for node in cursor['pending']), 'state delta node malformed')
+        pending = [dict(node) for node in cursor['pending']]
+    for node in pending:
+        require(set(node) == {'prefix', 'sha', 'base'} and type(node['prefix']) is str and valid_hash(node['sha'], 40) and (node['base'] is None or valid_hash(node['base'], 40)), 'state delta node differs')
+        if node['prefix']:
+            validate_entry({'path': node['prefix'], 'sha': node['sha'], 'type': 'tree', 'mode': '040000'})
+        else:
+            require(node['sha'] == tree_sha and node['base'] == base_sha, 'state delta root differs')
+    require(len({(node['prefix'], node['sha'], node['base']) for node in pending}) == len(pending), 'state delta cursor duplicated')
+    consumed = pages = 0
+    def children(sha, prefix):
+        nonlocal consumed
+        if sha is None:
+            return {}
+        value = api.request(root+'/git/trees/'+sha)
+        require(type(value) is dict, 'state delta response malformed')
+        size = len(json.dumps(value).encode()); consumed += size
+        require(size <= 1048576 and consumed <= 33554432 and value.get('sha') == sha and value.get('truncated') is False and type(value.get('tree')) is list, 'state delta tree incomplete/capacity gap')
+        result = {}
+        for item in value['tree']:
+            require(type(item) is dict and type(item.get('path')) is str and '/' not in item['path'] and item['path'] not in ('.', '..') and item['path'] not in result, 'state delta immediate entry differs')
+            entry = dict(item, path=(prefix+'/' if prefix else '')+item['path'])
+            validate_entry(entry); result[item['path']] = entry
+        return result
+    while pending and pages < page_budget:
+        node = pending.pop(0)
+        if node['sha'] == node['base']:
+            continue
+        newer = children(node['sha'], node['prefix']); older = children(node['base'], node['prefix']); pages += 1
+        for name, entry in newer.items():
+            old = older.get(name)
+            if entry['type'] == 'tree' and (old is None or old['type'] != 'tree' or old['sha'] != entry['sha']):
+                pending.append({'prefix': entry['path'], 'sha': entry['sha'], 'base': old['sha'] if old is not None and old['type'] == 'tree' else None})
+        require(len(pending) <= 4096, 'state delta frontier capacity gap')
+    return {'complete': not pending, 'cursor': {'kind': 'delta', 'root': tree_sha, 'base': base_sha, 'pending': pending} if pending else None, 'pages': pages, 'coverage_complete': False}

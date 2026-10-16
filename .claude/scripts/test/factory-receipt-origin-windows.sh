@@ -11,7 +11,7 @@ cases=r'''
  class OriginState(State):
   def request(self,path,method='GET',payload=None):
    if method=='GET' and '/compare/' in path:
-    base,head=path.split('/compare/')[1].split('...');ancestor=git('merge-base',base,head).stdout.decode().strip()
+    base,head=path.split('?',1)[0].split('/compare/')[1].split('...');ancestor=git('merge-base',base,head).stdout.decode().strip()
     return {'base_commit':{'sha':base},'merge_base_commit':{'sha':ancestor},'status':'identical' if base==head else 'ahead','ahead_by':int(out('rev-list','--count',base+'..'+head)),'behind_by':0,'total_commits':int(out('rev-list','--count',base+'..'+head))}
    if method=='GET' and '/commits?' in path:
     q=parse_qs(urlsplit(path).query);sha=out('log','-1','--format=%H',q['sha'][0],'--',q['path'][0]);return [{'sha':sha}] if sha else []

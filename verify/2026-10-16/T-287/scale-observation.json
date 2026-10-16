@@ -1,0 +1,14 @@
+{
+  "diagnostic_snapshot_only": true,
+  "source_base": "925b2d24dd5dbf16c3f7b49b43a9defac06f597e",
+  "archive_source_sha256": "21c6aab3dc670d4fb1c4c7a5ce17a0869ee8fe73ff9148a79f82b2ddd2c09a66",
+  "snapshot_head": "77cc17804f3acc3efe78e93e0e4949c2d88ccd77",
+  "actual_retained_appends": 24,
+  "actual_git_commits": 446,
+  "origin_checked_commits": 39,
+  "origin_complete": false,
+  "origin_frozen_head": "85d33488e43b5f47888cf223be9847ffd8226ba1",
+  "origin_next_sha": "88fb0791604bd017b82aef81e94bb07f2219a360",
+  "snapshot_path": "/private/tmp/t287-scale-snapshot-20261016",
+  "live_or_copied_authentication_claim": false
+}

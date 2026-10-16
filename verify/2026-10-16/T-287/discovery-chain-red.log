@@ -1,0 +1,18 @@
+actual protected source checkpoints=50
+actual protected source checkpoints=100
+actual protected source checkpoints=150
+actual protected source checkpoints=200
+Traceback (most recent call last):
+  File "actual-discovery-history-real-git", line 112, in <module>
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-discovery.py", line 603, in backfill
+    return _checkpoint(source_api, state_api, policy, approval_path, stream, mode='backfill', backfill_end=interval_end, page_size=page_size, tree_pages=tree_pages)
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-discovery.py", line 455, in _checkpoint
+    raise ValueError('discovery anchor invocation bound reached; verified continuation required')
+ValueError: discovery anchor invocation bound reached; verified continuation required
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "<stdin>", line 29, in <module>
+  File "actual-discovery-history-real-git", line 113, in <module>
+AssertionError: actual source checkpoint 229/300 blocked despite authenticated completed origin: discovery anchor invocation bound reached; verified continuation required

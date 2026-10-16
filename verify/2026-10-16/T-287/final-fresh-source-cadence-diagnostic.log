@@ -1,0 +1,15 @@
+resumed actual captured1001 retained prefix=1cc14136be335387756ebba8503c25f7189d73fa; fresh synthetic current metadata matches original constructor; no new append claim
+actual1001source rows partitioned beyondclamped1000API; protectedwatch progress persisted
+actual protectedstage page=1; authenticatedfacts=105
+actual protectedstage page=2; authenticatedfacts=233
+actual protectedstage page=3; authenticatedfacts=361
+actual protectedstage page=4; authenticatedfacts=489
+actual protectedstage page=5; authenticatedfacts=617
+actual protectedstage page=6; authenticatedfacts=745
+actual protectedstage page=7; authenticatedfacts=873
+actual protectedstage page=8; authenticatedfacts=1001
+actual1001source/staged history saved=/var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/t287-full-staged-73uw88zz
+{"fresh_process": true, "result": {"projection_complete": true, "coverage_complete": false, "facts_count": 1001, "interval_facts_count": 1001, "frozen_head": "60efc22db165e6f5dcdd77878137cce53f3fce33", "suffix_pending": true}, "sqlite_counts": {"delivery_receipts": 1001, "delivery_provenance": 1001, "delivery_times": 1001, "delivery_trust": 1001, "delivery_interval": 1001}}
+{"fresh_process": true, "result": {"source_partition_complete": true, "frozen_projection_complete": true, "coverage_complete": true, "all_history_complete": false, "task_credit": false, "gaps": [], "verified_until": "2026-10-15T23:00:00Z", "repository": "org/repo", "observed_head": "418c19b56666b86bb732ba15174d07f2457b1cf6", "coverage_from": "2026-10-15T00:00:00Z", "source_epoch": 1, "retained_attempts": 1001, "withdrawn_attempts": 0}}
+actual1001retained appends/source rows/protectedwindows/stages/freshSQLite/as-observedcoverage passed; no all-history/taskcredit
+exact resumed phase preserved=/var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/t287-resumed-exact-phase-5nwnbz6i

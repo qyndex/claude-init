@@ -1,0 +1,50 @@
+{
+  "terminal_recorded_at": "2026-10-16T13:34:40.748479+00:00",
+  "canonical_session": 36641,
+  "exit_code": 0,
+  "accept_command": "bash .claude/scripts/test/factory-state-scan-cost.sh && bash .claude/scripts/test/factory-receipt-history.sh",
+  "input_sha256": "f3384096fd428305121fc044404e20bc6de047d0e4a9519f848344b8cff9df91",
+  "green_log_sha256": "454d719f90dc5e0c65587385c204c8605ceb5e8adfb64ce6f35d16c7ff0a409b",
+  "input_files_unchanged": true,
+  "fresh_history": true,
+  "synthetic_upstream_real_git": true,
+  "live_cloud_proof": false,
+  "proofs": [
+    {
+      "fresh_process": true,
+      "result": {
+        "projection_complete": true,
+        "coverage_complete": false,
+        "facts_count": 1001,
+        "interval_facts_count": 1001,
+        "frozen_head": "19fc88c77cb47243fac1ca5a8fc0071b504319ef",
+        "suffix_pending": true
+      },
+      "sqlite_counts": {
+        "delivery_receipts": 1001,
+        "delivery_provenance": 1001,
+        "delivery_times": 1001,
+        "delivery_trust": 1001,
+        "delivery_interval": 1001
+      }
+    },
+    {
+      "fresh_process": true,
+      "result": {
+        "source_partition_complete": true,
+        "frozen_projection_complete": true,
+        "coverage_complete": true,
+        "all_history_complete": false,
+        "task_credit": false,
+        "gaps": [],
+        "verified_until": "2026-10-15T23:00:00Z",
+        "repository": "org/repo",
+        "observed_head": "20cf7d7ef5211eec40fbd9f3d8f2215a5db6c504",
+        "coverage_from": "2026-10-15T00:00:00Z",
+        "source_epoch": 1,
+        "retained_attempts": 1001,
+        "withdrawn_attempts": 0
+      }
+    }
+  ]
+}
