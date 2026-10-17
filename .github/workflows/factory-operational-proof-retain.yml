@@ -6,6 +6,8 @@ on:
 permissions:
   contents: read
   actions: read
+  id-token: write
+  attestations: write
 concurrency:
   group: factory-operational-proof-retention
   cancel-in-progress: false
@@ -27,6 +29,24 @@ jobs:
           ref: ${{ github.sha }}
           fetch-depth: 0
           persist-credentials: false
+      - name: Verify completed upstream and prepare completion assertion
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FACTORY_OPERATIONAL_PROOF_ENABLED: ${{ vars.FACTORY_OPERATIONAL_PROOF_ENABLED || 'false' }}
+          PROFILE: ${{ vars.FACTORY_OPERATIONAL_PROOF_PROFILE }}
+        run: python3 .claude/scripts/factory-operational-producer.py prepare-completion --profile "$PROFILE"
+      - name: Sign already-completed upstream observation
+        id: completion_signature
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: operational-completion-output/completion.json
+      - name: Preserve bounded completion signature
+        env:
+          BUNDLE: ${{ steps.completion_signature.outputs.bundle-path }}
+        run: |
+          test -f "$BUNDLE"
+          test "$(wc -c < "$BUNDLE")" -le 1000000
+          cp "$BUNDLE" operational-completion-output/completion.sigstore.json
       - name: Mint dedicated reporting writer
         id: reporting_app
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3

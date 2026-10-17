@@ -55,7 +55,7 @@ def load_registry(root):
 
 
 def validate_entry(entry):
-    proof.fields(entry, 'profile_id status repository branch original producer selections queue_config original_state retention')
+    proof.fields(entry, 'profile_id status repository branch original producer retainer selections queue_config original_state retention')
     proof.text(entry['profile_id'], r'[A-Za-z0-9][A-Za-z0-9_.-]{0,99}')
     require(entry['status'] in ('active', 'inactive', 'withdrawn'), 'profile status invalid')
     proof.repository(entry['repository']); proof.branch(entry['branch'])
@@ -64,6 +64,9 @@ def validate_entry(entry):
     proof.fields(entry['producer'], 'workflow_path workflow_id runtime')
     proof.source(dict(entry['producer'], source_sha='0'*40))
     require(entry['producer']['workflow_path'] == SIGNER, 'producer workflow differs')
+    proof.fields(entry['retainer'], 'workflow_path workflow_id runtime')
+    proof.source(dict(entry['retainer'],source_sha='0'*40))
+    require(entry['retainer']['workflow_path'] == RETAINER, 'retainer workflow differs')
     proof.fields(entry['selections'], 'drill recovery repeat')
     ids = set()
     for selector in entry['selections'].values():
@@ -180,7 +183,7 @@ def observe_runs(api, entry, now):
     observed = []; previous = None
     for role_name, counts in (('drill',[1,0]),('recovery',[1]),('repeat',[0])):
         selector = entry['selections'][role_name]
-        run = api.request('repos/'+api.repo+'/actions/runs/'+str(selector['run_id']))
+        run = api.request(f'repos/{api.repo}/actions/runs/{selector["run_id"]}/attempts/{selector["attempt"]}')
         # Recovery/repeat may have been a scheduled run, preserving original contract.
         require(type(run) is dict and run.get('event') in (('workflow_dispatch',) if role_name == 'drill' else ('workflow_dispatch','schedule')), 'historical event differs')
         run_binding(run,entry,entry['original']['source_sha'],entry['original'],completed=True,events=('workflow_dispatch',) if role_name == 'drill' else ('workflow_dispatch','schedule'))
@@ -315,20 +318,23 @@ def unpack(raw):
     except (zipfile.BadZipFile,RuntimeError,OSError) as exc:raise ValueError('operational artifact invalid') from exc
 
 
-def retain(api, entry, raw, bundle, *, guard, state_view=None):
+def retain(api, entry, raw, bundle, completion_raw, completion_bundle, *, guard, state_view=None, _accept_existing=None):
     """Internal post-authentication CAS primitive, not a public trust callback CLI."""
     active(entry)
     value = proof.decode(raw,262144,True)
     require(value.get('profile_sha256') == hashlib.sha256(proof.canonical(entry)).hexdigest() and value.get('profile_id') == entry['profile_id'] and value.get('repository') == entry['repository'] and all(value.get('original',{}).get(k) == v for k,v in entry['original'].items()), 'retained record profile differs')
     require(type(bundle) is bytes and 0 < len(bundle) <= 1000000, 'retained bundle invalid')
-    data = proof.canonical({'schema_version':1,'type':'retained-historical-queue-completion','record':value,'bundle':base64.b64encode(bundle).decode()})
+    require(type(completion_bundle) is bytes and 0 < len(completion_bundle) <= 1000000, 'completion bundle invalid')
+    completed = proof.decode(completion_raw,262144,True)
+    require(completed.get('profile_sha256') == value['profile_sha256'] and completed.get('upstream',{}).get('record_sha256') == hashlib.sha256(raw).hexdigest() and completed['upstream'].get('bundle_sha256') == hashlib.sha256(bundle).hexdigest(), 'completion retention binding differs')
+    data = proof.canonical({'schema_version':1,'type':'retained-historical-queue-completion','record':value,'bundle':base64.b64encode(bundle).decode(),'completion':completed,'completion_bundle':base64.b64encode(completion_bundle).decode()})
     require(len(data) <= 1048576, 'retained envelope exceeds bounded blob response')
     identity = role(api.repo,entry['profile_id'],entry['original']['source_sha'])
     for unused in range(3):
         require(guard() is True, 'protected profile changed before retention')
         current = state.GitState(api,entry['retention']['branch'],identity,entry['retention']['bootstrap_sha'],bootstrap_existing=True,state_view=state_view)
         if current.bytes is not None:
-            require(current.bytes == data, 'retained historical role immutable')
+            require(current.bytes == data or (_accept_existing is not None and _accept_existing(current.bytes) is True), 'retained historical role immutable')
             return {'status':'already-applied','path':current.path,'head':current.head}
         require(guard() is True, 'protected profile changed before write')
         try:current.checkpoint(data)
@@ -337,7 +343,7 @@ def retain(api, entry, raw, bundle, *, guard, state_view=None):
     # Reconcile the final uncertain write before declaring failure; never send a fourth.
     require(guard() is True, 'protected profile changed during uncertain retention')
     current = state.GitState(api,entry['retention']['branch'],identity,entry['retention']['bootstrap_sha'],bootstrap_existing=True,state_view=state_view)
-    require(current.bytes == data, 'three bounded CAS attempts unresolved')
+    require(current.bytes == data or (current.bytes is not None and _accept_existing is not None and _accept_existing(current.bytes) is True), 'three bounded CAS attempts unresolved')
     return {'status':'already-applied','path':current.path,'head':current.head}
 
 
@@ -376,31 +382,116 @@ def completed_artifact(api, run, identity):
     job = jobs['jobs'][0]
     require(type(job) is dict and type(job.get('id')) is int and job['id'] > 0 and type(job.get('run_id')) is int and job['run_id'] == run['id'] and type(job.get('run_attempt')) is int and job['run_attempt'] == run['run_attempt'] and job.get('head_sha') == run['head_sha'] and job.get('name') == 'sign' and job.get('status') == 'completed' and job.get('conclusion') == 'success', 'signer job differs')
     response = api.request(f'{root}/actions/runs/{run["id"]}/artifacts?per_page=100&page=1')
-    require(type(response) is dict and type(response.get('total_count')) is int and response['total_count'] == 1 and type(response.get('artifacts')) is list and len(response['artifacts']) == 1, 'signer artifacts incomplete')
-    item = response['artifacts'][0]
+    require(type(response) is dict and type(response.get('total_count')) is int and type(response.get('artifacts')) is list and 0 < response['total_count'] == len(response['artifacts']) <= 100, 'signer artifacts incomplete')
+    selected = [item for item in response['artifacts'] if type(item) is dict and item.get('name') == f'factory-operational-proof-{identity}-{run["id"]}-{run["run_attempt"]}']
+    require(len(selected) == 1, 'selected signer artifact missing or ambiguous')
+    item = selected[0]
     require(type(item) is dict and type(item.get('id')) is int and item['id'] > 0 and item.get('name') == f'factory-operational-proof-{identity}-{run["id"]}-{run["run_attempt"]}' and item.get('expired') is False and type(item.get('size_in_bytes')) is int and 0 < item['size_in_bytes'] <= 2097152, 'signer artifact differs')
     binding = item.get('workflow_run')
     require(type(binding) is dict and type(binding.get('id')) is int and binding['id'] == run['id'] and binding.get('head_sha') == run['head_sha'], 'artifact run binding differs')
-    return unpack(api.request(f'{root}/actions/artifacts/{item["id"]}/zip',raw=True))
+    zipped = api.request(f'{root}/actions/artifacts/{item["id"]}/zip',raw=True)
+    raw,bundle = unpack(zipped)
+    return raw,bundle,{'job_id':job['id'],'artifact_id':item['id'],'artifact_sha256':hashlib.sha256(zipped).hexdigest()}
 
 
-def retain_completed(source_api, writer_api, entry, run, *, guard, root=None, state_view=None, runner=None, now=None):
-    """Authenticate real completed run/artifact before any state creation.
+def completion_profile(api, entry, upstream_run, observer_run, *, root=None):
+    expected = resolve_profile(api,entry,upstream_run,root=root)
+    run_binding(observer_run,entry,observer_run.get('head_sha'),entry['retainer'],completed=False,events=('workflow_run',))
+    require(observer_run.get('status') == 'in_progress', 'observer must be actual running execution')
+    runtime_bytes(api,observer_run['head_sha'],entry['retainer']['runtime'],root)
+    return {'schema_version':1,'profile_id':entry['profile_id'],'profile_sha256':expected['profile_sha256'],'status':'active','repository':entry['repository'],'branch':entry['branch'],'upstream':expected['producer'],'observer':dict(entry['retainer'],source_sha=observer_run['head_sha'])}
 
-    runner is the explicit synthetic verifier seam for local tests only; CLI does
-    not expose it. Native operation always uses the patched-gh bounded verifier.
+
+def prepare_completion(api, entry, upstream_run, observer_run, *, root=None, runner=None, now=None):
+    now = datetime.now(timezone.utc) if now is None else now
+    run_binding(upstream_run,entry,upstream_run.get('head_sha'),entry['producer'],completed=True)
+    expected = resolve_profile(api,entry,upstream_run,root=root)
+    completed_profile = completion_profile(api,entry,upstream_run,observer_run,root=root)
+    raw,bundle,metadata = completed_artifact(api,upstream_run,entry['profile_id'])
+    proof.verify(raw,bundle,expected,upstream_run,runner=runner,now=now)
+    upstream = dict(metadata,record_sha256=hashlib.sha256(raw).hexdigest(),bundle_sha256=hashlib.sha256(bundle).hexdigest(),
+                    source_sha=upstream_run['head_sha'],workflow_path=upstream_run['path'],workflow_id=upstream_run['workflow_id'],
+                    run_id=upstream_run['id'],attempt=upstream_run['run_attempt'],started_at=upstream_run['run_started_at'],
+                    completed_at=upstream_run['updated_at'],status='completed',conclusion='success')
+    observer = dict(completed_profile['observer'],run_id=observer_run['id'],attempt=observer_run['run_attempt'],started_at=observer_run['run_started_at'],verified_at=now.isoformat())
+    value = {'schema_version':1,'type':'historical-queue-completion-observation','purpose':'historical-operational-acceptance','profile_id':entry['profile_id'],'profile_sha256':completed_profile['profile_sha256'],'repository':entry['repository'],'upstream':upstream,'verification':observer}
+    completion_raw = proof.canonical(value); proof.validate_completion(completion_raw,completed_profile,now=now)
+    return raw,bundle,completion_raw
+
+
+def retained_materials(raw):
+    envelope = proof.decode(raw,1048576,True)
+    proof.fields(envelope,'schema_version type record bundle completion completion_bundle')
+    require(type(envelope['schema_version']) is int and envelope['schema_version'] == 1 and envelope['type'] == 'retained-historical-queue-completion', 'retained envelope type differs')
+    result = []
+    for key in ('record','bundle','completion','completion_bundle'):
+        if key in ('record','completion'):
+            encoded = proof.canonical(envelope[key]); require(len(encoded) <= 262144, 'retained subject bound exceeded')
+        else:
+            require(type(envelope[key]) is str and len(envelope[key]) <= 1333336, 'retained signature encoding invalid')
+            try:encoded = base64.b64decode(envelope[key],validate=True)
+            except ValueError as exc:raise ValueError('retained signature invalid') from exc
+            require(0 < len(encoded) <= 1000000, 'retained signature bound exceeded')
+        result.append(encoded)
+    return tuple(result)
+
+
+def retained_profiles(api, entry, materials, *, root=None):
+    """Source claims are lookup hints; approved bytes AND native certificates authorize.
+
+    Durable replay cannot require forever-available Actions run metadata. This
+    constructs strict expected profiles, but confers no authenticity by itself.
+    The caller MUST verify_durable before crediting any retained observation.
     """
-    run_binding(run,entry,run.get('head_sha'),entry['producer'],completed=True)
-    expected = resolve_profile(source_api,entry,run,root=root)
-    raw,bundle = completed_artifact(source_api,run,entry['profile_id'])
-    proof.verify(raw,bundle,expected,run,runner=runner,now=now)
+    active(entry); native_repository(api,entry)
+    record = proof.decode(materials[0],262144,True); completed = proof.decode(materials[2],262144,True)
+    require(type(record) is dict and type(record.get('verification')) is dict and type(completed) is dict and type(completed.get('verification')) is dict, 'retained source hints invalid')
+    upstream = record['verification'].get('source_sha'); observer = completed['verification'].get('source_sha')
+    proof.hexstr(upstream,40); proof.hexstr(observer,40)
+    runtime_bytes(api,entry['original']['source_sha'],entry['original']['runtime'],root)
+    runtime_bytes(api,upstream,entry['producer']['runtime'],root)
+    runtime_bytes(api,observer,entry['retainer']['runtime'],root)
+    common = {'schema_version':1,'profile_id':entry['profile_id'],'profile_sha256':hashlib.sha256(proof.canonical(entry)).hexdigest(),'status':'active','repository':entry['repository'],'branch':entry['branch']}
+    first = dict(common,original=entry['original'],producer=dict(entry['producer'],source_sha=upstream))
+    second = dict(common,upstream=first['producer'],observer=dict(entry['retainer'],source_sha=observer))
+    return first,second
+
+
+def retain_completed(source_api, writer_api, entry, upstream_run, observer_run, materials, *, guard, root=None, state_view=None, runner=None, now=None):
+    """Authenticate both signatures before CAS; no forever-native-API replay need."""
+    require(type(materials) is tuple and len(materials) == 4, 'signed completion materials required')
+    run_binding(upstream_run,entry,upstream_run.get('head_sha'),entry['producer'],completed=True)
+    expected = resolve_profile(source_api,entry,upstream_run,root=root)
+    completed_profile = completion_profile(source_api,entry,upstream_run,observer_run,root=root)
+    proof.verify_durable(*materials,expected,completed_profile,runner=runner,now=now)
+    completion = proof.validate_completion(materials[2],completed_profile,now=now)
+    require(completion['verification']['run_id'] == observer_run['id'] and completion['verification']['attempt'] == observer_run['run_attempt'] and completion['verification']['source_sha'] == observer_run['head_sha'], 'current observer differs')
     require(source_api.repo == writer_api.repo == entry['repository']['name'], 'retention repository differs')
-    return retain(writer_api,entry,raw,bundle,guard=guard,state_view=state_view)
+    def accept_existing(raw):
+        previous = retained_materials(raw)
+        require(previous[:2] == materials[:2], 'retained upstream immutable')
+        profiles = retained_profiles(source_api,entry,previous,root=root)
+        proof.verify_durable(*previous,*profiles,runner=runner,now=now)
+        require(guard() is True, 'protected profile changed during reconciliation')
+        return True
+    return retain(writer_api,entry,*materials,guard=guard,state_view=state_view,_accept_existing=accept_existing)
+
+
+def output_materials(root):
+    folder = root/'operational-completion-output'
+    limits = {'evidence.json':262144,'provenance.sigstore.json':1000000,'completion.json':262144,'completion.sigstore.json':1000000}
+    require(folder.is_dir() and folder.resolve() == folder and {path.name for path in folder.iterdir()} == set(limits), 'completion output paths differ')
+    result = []
+    for name,maximum in limits.items():
+        path = folder/name
+        require(path.is_file() and not path.is_symlink() and 0 < path.stat().st_size <= maximum, 'completion output file invalid')
+        result.append(path.read_bytes())
+    return tuple(result)
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser(allow_abbrev=False)
-    parser.add_argument('mode',choices=('produce','retain'))
+    parser.add_argument('mode',choices=('produce','prepare-completion','retain'))
     parser.add_argument('--profile',required=True)
     args = parser.parse_args(argv)
     env = os.environ; require(env.get('FACTORY_OPERATIONAL_PROOF_ENABLED','false') == 'true', 'operational proof disabled')
@@ -414,7 +505,7 @@ def main(argv=None):
         return True
     if args.mode == 'produce':
         require(env.get('GITHUB_RUN_ID','').isdigit() and env.get('GITHUB_RUN_ATTEMPT','').isdigit(), 'execution run missing')
-        run = api.request('repos/'+api.repo+'/actions/runs/'+env['GITHUB_RUN_ID'])
+        run = api.request('repos/'+api.repo+'/actions/runs/'+env['GITHUB_RUN_ID']+'/attempts/'+env['GITHUB_RUN_ATTEMPT'])
         require(str(run.get('id')) == env['GITHUB_RUN_ID'] and str(run.get('run_attempt')) == env['GITHUB_RUN_ATTEMPT'] and run.get('head_sha') == source, 'execution run differs')
         require(run.get('status') == 'in_progress', 'signer must be actual running execution')
         record = produce(api,entry,run,root=root)
@@ -425,12 +516,20 @@ def main(argv=None):
     event_document = proof.decode(event_path.read_bytes(),1000000)
     native = event_document.get('workflow_run',{})
     proof.integer(native.get('id')); proof.integer(native.get('run_attempt'))
-    run = api.request('repos/'+api.repo+'/actions/runs/'+str(native['id']))
+    run = api.request(f'repos/{api.repo}/actions/runs/{native["id"]}/attempts/{native["run_attempt"]}')
     require(run.get('id') == native['id'] and run.get('run_attempt') == native['run_attempt'], 'completed event attempt differs')
+    require(env.get('GITHUB_RUN_ID','').isdigit() and env.get('GITHUB_RUN_ATTEMPT','').isdigit(), 'observer run missing')
+    observer = api.request('repos/'+api.repo+'/actions/runs/'+env['GITHUB_RUN_ID']+'/attempts/'+env['GITHUB_RUN_ATTEMPT'])
+    require(str(observer.get('id')) == env['GITHUB_RUN_ID'] and str(observer.get('run_attempt')) == env['GITHUB_RUN_ATTEMPT'] and observer.get('head_sha') == source, 'observer execution differs')
+    if args.mode == 'prepare-completion':
+        raw,bundle,completion = prepare_completion(api,entry,run,observer,root=root)
+        guard(); output = root/'operational-completion-output'; output.mkdir(exist_ok=False)
+        for name,data in (('evidence.json',raw),('provenance.sigstore.json',bundle),('completion.json',completion)):(output/name).write_bytes(data)
+        return 0
     require(env.get('FACTORY_REPORTING_APP_WRITER_ENABLED') == 'true', 'retainer requires selected reporting App')
     writer = transport.create_api(env)
     config = transport.attach_reporting_context({'repository':api.repo,'state_repository':api.repo,'state_branch':entry['retention']['branch']},checkout=root)
-    guard(); result = retain_completed(api,writer,entry,run,guard=guard,root=root,state_view=config['state_view'])
+    guard(); result = retain_completed(api,writer,entry,run,observer,output_materials(root),guard=guard,root=root,state_view=config['state_view'])
     print(proof.canonical(result).decode()); return 0
 
 

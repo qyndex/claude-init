@@ -184,6 +184,13 @@ def verify(raw, bundle, trusted_profile, actual_completed_run, *, runner=None, n
         require(type(observed) is dict and type(observed.get('id')) is int and observed['id'] == value['repository']['id'] and observed.get('full_name') == repo, 'native repository differs')
     low = stamp(run.get('run_started_at'))[0]; end, resolution = stamp(run.get('updated_at'))
     require(low == stamp(v['started_at'])[0] and low <= stamp(v['verified_at'])[0] < end + resolution and end <= clock(now), 'native execution time differs')
+    _signature(raw,bundle,trusted_profile,v,'workflow_dispatch',low,end+resolution,runner=runner,now=now)
+    return value
+
+
+def _signature(raw, bundle, trusted_profile, v, event, low, high, *, runner=None, now=None):
+    require(type(bundle) is bytes and 0 < len(bundle) <= 1000000, 'signature bundle bound exceeded')
+    repo = trusted_profile['repository']['name']
     ref = 'refs/heads/' + trusted_profile['branch']; uri = 'https://github.com/' + repo + '/' + v['workflow_path'] + '@' + ref
     with tempfile.TemporaryDirectory(prefix='factory-operational-proof-') as folder:
         root = Path(folder); subject = root / 'historical.json'; signature = root / 'bundle.json'
@@ -202,7 +209,7 @@ def verify(raw, bundle, trusted_profile, actual_completed_run, *, runner=None, n
     try:
         require(type(results) is list and len(results) == 1, 'verified result ambiguous')
         verified = results[0]['verificationResult']; cert = verified['signature']['certificate']
-        expected = {'issuer': 'https://token.actions.githubusercontent.com', 'subjectAlternativeName': uri, 'buildSignerURI': uri, 'buildSignerDigest': v['source_sha'], 'sourceRepositoryURI': 'https://github.com/' + repo, 'sourceRepositoryDigest': v['source_sha'], 'sourceRepositoryRef': ref, 'buildTrigger': 'workflow_dispatch', 'runnerEnvironment': 'github-hosted', 'runInvocationURI': f'https://github.com/{repo}/actions/runs/{v["run_id"]}/attempts/{v["attempt"]}'}
+        expected = {'issuer': 'https://token.actions.githubusercontent.com', 'subjectAlternativeName': uri, 'buildSignerURI': uri, 'buildSignerDigest': v['source_sha'], 'sourceRepositoryURI': 'https://github.com/' + repo, 'sourceRepositoryDigest': v['source_sha'], 'sourceRepositoryRef': ref, 'buildTrigger': event, 'runnerEnvironment': 'github-hosted', 'runInvocationURI': f'https://github.com/{repo}/actions/runs/{v["run_id"]}/attempts/{v["attempt"]}'}
         require(type(cert) is dict and all(cert.get(key) == expected_value for key, expected_value in expected.items()), 'verified certificate binding differs')
         statement = verified['statement']; subjects = statement.get('subject')
         require(statement.get('_type') == 'https://in-toto.io/Statement/v1' and statement.get('predicateType') == 'https://slsa.dev/provenance/v1', 'signed statement type differs')
@@ -214,9 +221,61 @@ def verify(raw, bundle, trusted_profile, actual_completed_run, *, runner=None, n
             parsed = urlsplit(timestamp.get('uri', ''))
             require(parsed.scheme == 'https' and bool(parsed.hostname) and not parsed.username and not parsed.password and not parsed.fragment, 'verified timestamp URI invalid')
             signed = stamp(timestamp.get('timestamp'))[0]
-            require(low <= stamp(v['verified_at'])[0] <= signed < end + resolution and signed <= clock(now), 'verified timestamp outside execution')
+            require(low <= stamp(v['verified_at'])[0] <= signed and (high is None or signed < high) and signed <= clock(now), 'verified timestamp outside execution')
     except (KeyError, TypeError, AttributeError) as exc:
         raise ValueError('verified result malformed') from exc
+    return None
+
+
+def validate_completion(raw, trusted_profile, *, now=None):
+    """Purpose-limited observation of an already completed upstream producer.
+
+    No final status of this observer is asserted or recursively required.
+    trusted_profile.upstream/observer are independently approved exact sources.
+    """
+    fields(trusted_profile, 'schema_version profile_id profile_sha256 status repository branch upstream observer')
+    translated = {key:trusted_profile[key] for key in ('schema_version','profile_id','profile_sha256','status','repository','branch')}
+    translated.update(original=trusted_profile['upstream'],producer=trusted_profile['observer'])
+    profile(translated)
+    value = decode(raw,262144,True)
+    fields(value,'schema_version type purpose profile_id profile_sha256 repository upstream verification')
+    require(type(value['schema_version']) is int and value['schema_version'] == 1 and value['type'] == 'historical-queue-completion-observation' and value['purpose'] == 'historical-operational-acceptance', 'completion purpose/version differs')
+    repository(value['repository']); hexstr(value['profile_sha256'],64)
+    for key in ('profile_id','profile_sha256','repository'):
+        require(value[key] == trusted_profile[key], 'completion profile binding differs')
+    upstream = value['upstream']; observer = value['verification']
+    fields(upstream,'record_sha256 bundle_sha256 source_sha workflow_path workflow_id run_id attempt started_at completed_at status conclusion job_id artifact_id artifact_sha256')
+    for key in ('record_sha256','bundle_sha256','artifact_sha256'):hexstr(upstream[key],64)
+    for key in ('run_id','attempt','workflow_id','job_id','artifact_id'):integer(upstream[key])
+    require(upstream['status'] == 'completed' and upstream['conclusion'] == 'success', 'upstream completion not successful')
+    require(all(upstream[key] == trusted_profile['upstream'][key] for key in ('source_sha','workflow_path','workflow_id')), 'upstream approved source differs')
+    fields(observer,'source_sha workflow_path workflow_id runtime run_id attempt started_at verified_at')
+    source(observer); integer(observer['run_id']); integer(observer['attempt'])
+    require(all(observer[key] == trusted_profile['observer'][key] for key in trusted_profile['observer']), 'completion observer source differs')
+    require(stamp(upstream['started_at'])[0] <= stamp(upstream['completed_at'])[0] <= stamp(observer['verified_at'])[0] <= clock(now), 'completion observation clock differs')
+    require(stamp(observer['started_at'])[0] <= stamp(observer['verified_at'])[0] and (upstream['run_id'],upstream['attempt']) != (observer['run_id'],observer['attempt']), 'completion observer identity/clock differs')
+    return value
+
+
+def verify_completion(raw, bundle, trusted_profile, *, runner=None, now=None):
+    value = validate_completion(raw,trusted_profile,now=now)
+    observer = value['verification']
+    _signature(raw,bundle,trusted_profile,observer,'workflow_run',stamp(observer['started_at'])[0],None,runner=runner,now=now)
+    return value
+
+
+def verify_durable(raw, bundle, completion_raw, completion_bundle, producer_profile, completion_profile, *, runner=None, now=None):
+    """Replay both native certificates without permanently available run APIs."""
+    require(type(bundle) is bytes and 0 < len(bundle) <= 1000000, 'signature bundle bound exceeded')
+    value = validate_record(raw,producer_profile,now=now)
+    completed = verify_completion(completion_raw,completion_bundle,completion_profile,runner=runner,now=now)
+    require(all(completed[key] == value[key] for key in ('profile_id','profile_sha256','repository')), 'durable profile differs')
+    upstream = completed['upstream']; v = value['verification']
+    require(upstream['record_sha256'] == hashlib.sha256(raw).hexdigest() and upstream['bundle_sha256'] == hashlib.sha256(bundle).hexdigest(), 'durable subject/bundle digest differs')
+    require(all(upstream[key] == v[key] for key in ('source_sha','workflow_path','workflow_id','run_id','attempt','started_at')), 'durable upstream identity differs')
+    end,resolution = stamp(upstream['completed_at'])
+    require(stamp(v['verified_at'])[0] < end+resolution, 'durable upstream completion clock differs')
+    _signature(raw,bundle,producer_profile,v,'workflow_dispatch',stamp(v['started_at'])[0],end+resolution,runner=runner,now=now)
     return value
 
 
