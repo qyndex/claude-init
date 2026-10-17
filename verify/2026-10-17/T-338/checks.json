@@ -1,0 +1,13 @@
+{
+  "shellcheck": 0,
+  "py_compile": 0,
+  "structural_validate": 0,
+  "existing_warnings": 4,
+  "silent_lint": 0,
+  "task_ledger": 0,
+  "scoped_gitleaks": 0,
+  "diff_check": 0,
+  "native_replay": "not_checked",
+  "T318": "blocked_on_T339",
+  "T339": "pending"
+}

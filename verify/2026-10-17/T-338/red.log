@@ -1,0 +1,10 @@
+# TDD ledger — red — T-338
+ledger_format: 2
+timestamp: 2026-10-17T11:57:28+11:00
+command: bash .claude/scripts/test/factory-operational-replay.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 4, in <module>
+AssertionError: independent protected-registry historical replay consumer missing

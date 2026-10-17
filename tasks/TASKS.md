@@ -56,16 +56,17 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
   accept: bash .claude/scripts/test/factory-operational-producer.sh
   owner: codex
 
-- [ ] T-338  | spec:029  | phase:5  | priority: security  | created: 2026-10-17  | deps: T-337  | parallel: no  | est: 5m
+- [x] T-338  | spec:029  | phase:5  | priority: security  | created: 2026-10-17  | deps: T-337  | parallel: no  | est: 5m
   summary: Replay historical operational acceptance with read-only PR authority
-  progress: Supporting repair for original T318; approved amendment2026-10-17, not new original-goal scope
+  files: .claude/scripts/factory-operational-replay.py, .claude/scripts/test/factory-operational-replay.sh, docs/activation/HISTORICAL-OPERATIONAL-PROOF.md
+  progress: Local protected-registry dual-certificate replay verified; native T339 and original T318 publication closure remain pending
   accept: bash .claude/scripts/test/factory-operational-replay.sh
   owner: codex
 
 - [ ] T-339  | spec:029  | phase:5  | priority: security  | created: 2026-10-17  | deps: T-338  | parallel: no  | est: 5m
   summary: Bootstrap genuine historical queue proof and verify native read-only replay
   progress: Supporting repair for original T318; approved amendment2026-10-17, not new original-goal scope
-  accept: python3 .claude/scripts/factory-operational-proof.py verify-live
+  accept: python3 .claude/scripts/factory-operational-replay.py --live --repository qyndex/claude-init --profile queue-pilot-20261016
   owner: codex
 
 - [x] T-194  | spec:021  | phase:1  | priority: security  | created: 2026-10-10  | last_touched: 2026-10-10  | deps: T-193  | parallel: no  | est: 30m
@@ -1947,10 +1948,11 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-reporting-queue.sh
   owner: implementer
 
-- [x] T-318  | spec:029  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-317  | parallel: no  | est: 5m
+- [b] T-318  | spec:029  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-317,T-339  | parallel: no  | est: 5m
   summary: Verify labelled live queue drill recovery and unchanged worker state
+  progress: Original native administrative observation retained; publication closure deferred until genuine authenticated replay T339
   files: docs/activation/2026-10-16-queue-probe/README.md, plans/active/029-github-reporting-alerts.md, docs/FACTORY-DIGEST.md, docs/FACTORY-ADOPTER-SETUP.md
-  accept: bash .claude/scripts/test/factory-reporting-queue-live-evidence.sh --live
+  accept: python3 .claude/scripts/factory-operational-replay.py --live --repository qyndex/claude-init --profile queue-pilot-20261016
   owner: implementer
 
 - [x] T-325  | spec:029  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-324  | parallel: no  | est: 5m

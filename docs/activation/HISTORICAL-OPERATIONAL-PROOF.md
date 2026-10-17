@@ -67,3 +67,40 @@ Actual attestation verification requires gh>=2.93.0 because of
 Older installed CLI versions fail before native verification. Local tests use
 explicit synthetic verifier output and real Git fixtures; they establish no
 native Sigstore/App/private-repository capability.
+
+## Read-only acceptance replay
+
+The consumer command is:
+
+```bash
+python3 .claude/scripts/factory-operational-replay.py --live \
+  --repository OWNER/REPOSITORY --profile APPROVED_PROFILE_ID
+```
+
+It needs only normal read authentication and a full-history checkout containing the
+immutable signed source objects. No reporting environment, reporting App token,
+protected variable or private key is selected. Existing evidence-gate Contents
+read permission is sufficient for its native Git/Contents/branch reads; no new
+Actions or Administration permission is added. Native signature verification uses
+the supplied bundles and requires the patched gh version described above.
+
+The repository identity, protected default-branch head and active registry are
+read independently from fixed-host GitHub APIs. Registry bytes are fetched at that
+immutable head into a separate temporary data directory. Candidate registry and
+current working-file contents grant no trust. Each exact signed source's closed
+runtime family is checked through immutable Git objects. Missing source objects
+fail closed; the consumer does not clone/fetch or loosen the128-call budget.
+
+Both native certificates, the full protected profile hash, exact purposes and
+retained upstream/completion bindings must verify. Original Actions run metadata
+is not required forever. Current protected source is rechecked, and a changed
+target leaf rejects; a later unrelated opaque state publication is allowed when
+the target bytes remain unchanged. Other feedback/archive contents are opaque.
+The output explicitly grants no delivery, task, merge, production or current
+readiness authority. Its use here is the specifically approved historical T318
+operational-acceptance replay, not ordinary software-delivery task credit.
+
+The planned pilot selector is `queue-pilot-20261016`; this name is not a live
+registration. T318 publication closure is blocked on genuine T339 bootstrap/native
+proof. The original successful administrative observation remains preserved.
+Local fixture tests of the consumer do not close that native prerequisite.
