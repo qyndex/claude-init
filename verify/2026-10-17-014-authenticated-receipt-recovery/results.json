@@ -1,87 +1,43 @@
 {
-  "runner": "actual-source-bound-shell-observations",
-  "source_commit": "83761689af4eee8d6ba64f438102fdcc02e2d050",
+  "runner": "explicit full-acceptance status; local proof is not native approval",
+  "source_sha": "8a764ac3c7786a2d9036d60d7709843e3e725eeb",
+  "scope": "source-first bootstrap with incomplete live acceptance",
   "independent_attestation": false,
-  "scope": "Local implementation proof; native App/private capability, cadence and cutover remain unverified",
-  "all_history_complete": false,
-  "task_credit": false,
+  "live_activation_verified": false,
   "testResults": [
     {
       "assertionResults": [
         {
-          "fullName": "AC-1 LOCAL IMPLEMENTATION: Actual retained/source authentication, expired artifact reconstruction, foreign/malformed proof refusal; no caller auth flag",
-          "status": "passed",
-          "observed_checks": [
-            "factory-receipt-readiness.sh",
-            "factory-reporting-receipt-transfer.sh",
-            "factory-receipts-recovery.sh"
-          ],
-          "proof": "verify/2026-10-17/T-290/result.json"
+          "fullName": "AC-1: full acceptance not claimed; local contributions and remaining prerequisites are recorded separately",
+          "status": "pending"
         },
         {
-          "fullName": "AC-2 LOCAL IMPLEMENTATION: Exact retained merge/task facts, withdrawal annotation, revised-task isolation and immutable delivery payload/receipt",
-          "status": "passed",
-          "observed_checks": [
-            "factory-reporting-receipt-transfer.sh",
-            "factory-reporting-rollover.sh",
-            "factory-receipts-recovery.sh"
-          ],
-          "proof": "verify/2026-10-17/T-290/result.json"
+          "fullName": "AC-2: full acceptance not claimed; local contributions and remaining prerequisites are recorded separately",
+          "status": "pending"
         },
         {
-          "fullName": "AC-3 LOCAL IMPLEMENTATION: Inherited liveness death, descendant cleanup, fenced bounded retry, uncertainty and stale/cancelled recovery rejection",
-          "status": "passed",
-          "observed_checks": [
-            "factory-receipts-recovery.sh",
-            "factory-supervisor.sh"
-          ],
-          "proof": "verify/2026-10-17/T-290/result.json"
+          "fullName": "AC-3: actual OS guardian/SIGKILL/cleanup/fenced-retry contract verified by factory-receipts-recovery.sh within the full shared run",
+          "status": "passed"
         },
         {
-          "fullName": "AC-4 LOCAL IMPLEMENTATION: Actual SIGKILL/process cleanup, duplicate exclusion and retry; supervisor cancellation/timeout/descriptor contracts; runtime exact-input regression reuse",
-          "status": "passed",
-          "observed_checks": [
-            "factory-receipts-recovery.sh",
-            "factory-supervisor.sh"
-          ],
-          "proof": "verify/2026-10-17/T-290/result.json"
+          "fullName": "AC-4: actual OS guardian/SIGKILL/cleanup/fenced-retry contract verified by factory-receipts-recovery.sh within the full shared run",
+          "status": "passed"
         },
         {
-          "fullName": "AC-5 LOCAL IMPLEMENTATION: Active/revoked source profiles, changed authority bytes and explicit historical/current runtime-family compatibility; no native proof",
-          "status": "passed",
-          "observed_checks": [
-            "factory-receipt-profiles.sh",
-            "factory-receipt-runtime-compatibility.sh"
-          ],
-          "proof": "verify/2026-10-17/T-290/profile-regression/result.json"
+          "fullName": "AC-5: full acceptance not claimed; local contributions and remaining prerequisites are recorded separately",
+          "status": "pending"
         },
         {
-          "fullName": "AC-6 LOCAL IMPLEMENTATION: Actual authenticated origin and retained materials after detailed artifact expiration, no archive pruning",
-          "status": "passed",
-          "observed_checks": [
-            "factory-receipt-readiness.sh",
-            "factory-reporting-receipt-transfer.sh"
-          ],
-          "proof": "verify/2026-10-17/T-290/result.json"
+          "fullName": "AC-6: full acceptance not claimed; local contributions and remaining prerequisites are recorded separately",
+          "status": "pending"
         },
         {
-          "fullName": "AC-7 LOCAL IMPLEMENTATION: Restartable two-interval cadence, old partial interval first, late old manual merge and explicit incomplete/foreign coverage failure",
-          "status": "passed",
-          "observed_checks": [
-            "factory-reporting-rollover.sh",
-            "factory-receipt-readiness.sh"
-          ],
-          "proof": "verify/2026-10-17/T-290/result.json"
+          "fullName": "AC-7: full acceptance not claimed; local contributions and remaining prerequisites are recorded separately",
+          "status": "pending"
         },
         {
-          "fullName": "AC-8 LOCAL IMPLEMENTATION: Opaque feedback bytes unchanged, strict typed transfer/read-only proof, no task writes or new authority; private-store mismatch rejection, not native private capability",
-          "status": "passed",
-          "observed_checks": [
-            "factory-reporting-rollover.sh",
-            "factory-reporting-receipt-transfer.sh",
-            "factory-receipt-readiness.sh"
-          ],
-          "proof": "verify/2026-10-17/T-290/result.json"
+          "fullName": "AC-8: full acceptance not claimed; local contributions and remaining prerequisites are recorded separately",
+          "status": "pending"
         }
       ]
     }

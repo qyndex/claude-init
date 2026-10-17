@@ -1,0 +1,27 @@
+{
+  "kind": "operator-approved shared local verifier; no native authorization",
+  "head": "8a764ac3c7786a2d9036d60d7709843e3e725eeb",
+  "base": "b533a82f4b4b45712e26a33239ef269a6847aa92",
+  "command": "bash .claude/scripts/verify.sh",
+  "started_at": "2026-10-17T06:15:18.931118+00:00",
+  "task_timeout_seconds": 600,
+  "total_timeout_seconds": 3600,
+  "declared_generated_outputs_excluded_from_inputs": [
+    "verify/2026-10-17/story-coverage.md"
+  ],
+  "skip_flags": [],
+  "removed_inherited_skip_flag_names": [],
+  "native_acceptance_pending": true,
+  "ci_default_300_proven": false,
+  "gh_version": "gh version 2.102.0 (2026-09-30)",
+  "python_version": "Python 3.12.14",
+  "exit_code": 0,
+  "elapsed_seconds": 2073.696813290968,
+  "finished_at": "2026-10-17T06:49:52.688939+00:00",
+  "head_unchanged": true,
+  "tracked_inputs_unchanged": true,
+  "changed_tracked_paths": [],
+  "log_sha256": "7daedc9c479c1dcd8aa8389c51634c69849fafff65d921b60efbcfa5b771fb17",
+  "inputs_sha256": "050391f02c9332d500a79c905bba706325a549c8c053138c88ef73daac78c1cc",
+  "verdict": "PASS"
+}

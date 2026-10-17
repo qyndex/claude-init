@@ -1,53 +1,31 @@
 {
-  "runner": "actual-shell-command-observations",
-  "source_commit": "802d921259c74ff21b4d26d45ccc242dc51ea756",
+  "runner": "explicit full-acceptance status; local proof is not native approval",
+  "source_sha": "8a764ac3c7786a2d9036d60d7709843e3e725eeb",
+  "scope": "source-first bootstrap with incomplete live acceptance",
   "independent_attestation": false,
-  "scope": "Local implementation compatibility plus actual historical bootstrap publication; no current live activation claim",
+  "live_activation_verified": false,
   "testResults": [
     {
       "assertionResults": [
         {
-          "fullName": "AC-1 authenticated coordinator exact-source proof and missing-provenance rejection",
-          "status": "passed",
-          "observed_commands": [
-            "factory-coordinator.sh"
-          ],
-          "proof": "stdout.log"
+          "fullName": "AC-1: full acceptance not claimed; local contributions and remaining prerequisites are recorded separately",
+          "status": "pending"
         },
         {
-          "fullName": "AC-2 exact head/base/spec/policy bindings and conditional merge fixture",
-          "status": "passed",
-          "observed_commands": [
-            "factory-coordinator.sh",
-            "local-evidence-gate.sh"
-          ],
-          "proof": "stdout.log"
+          "fullName": "AC-2: full acceptance not claimed; local contributions and remaining prerequisites are recorded separately",
+          "status": "pending"
         },
         {
-          "fullName": "AC-3 request-only routes and rejected local authority bypasses",
-          "status": "passed",
-          "observed_commands": [
-            "autonomous-ship.sh"
-          ],
-          "proof": "stdout.log"
+          "fullName": "AC-3: full acceptance not claimed; local contributions and remaining prerequisites are recorded separately",
+          "status": "pending"
         },
         {
-          "fullName": "AC-4 private least-privilege registration and historical disabled bootstrap; current shadow-only preflight remains blocked",
-          "status": "passed",
-          "observed_commands": [
-            "historical bootstrap PR50 metadata",
-            "current disabled-merge preflight",
-            "private App registration manifest"
-          ],
-          "proof": "AC-4.json"
+          "fullName": "AC-4: full acceptance not claimed; local contributions and remaining prerequisites are recorded separately",
+          "status": "pending"
         },
         {
-          "fullName": "AC-5 injected stale, foreign, malformed, drift and failure cases; pinned-head receipt fixture",
-          "status": "passed",
-          "observed_commands": [
-            "factory-coordinator.sh"
-          ],
-          "proof": "stdout.log"
+          "fullName": "AC-5: full acceptance not claimed; local contributions and remaining prerequisites are recorded separately",
+          "status": "pending"
         }
       ]
     }

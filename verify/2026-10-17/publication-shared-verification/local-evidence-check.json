@@ -1,0 +1,13 @@
+{
+  "command": [
+    "python3",
+    ".claude/scripts/check-local-evidence.py",
+    "--changed-files",
+    "/private/tmp/factory-final-changed-files-20261017.txt",
+    "--output-paths",
+    "/private/tmp/factory-final-evidence-paths-20261017.txt"
+  ],
+  "exit_code": 1,
+  "observed_at": "2026-10-17T06:51:01.887518+00:00",
+  "meaning": "Expected blocked incomplete full native AC counts; full local verifier passed, not merge eligibility."
+}

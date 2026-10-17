@@ -1,46 +1,42 @@
 ## Evidence Bundle — Spec 014 (014-authenticated-receipt-recovery)
-Spec: `specs/active/014-authenticated-receipt-recovery.md` · Commit: `b2fe148`
 
-### Acceptance criteria (8/8 proven)
-| AC | Proven by | Result |
-|----|-----------|--------|
-| AC-1 | tagged test | ✓ PASS |
-| AC-2 | tagged test | ✓ PASS |
-| AC-3 | tagged test | ✓ PASS |
-| AC-4 | tagged test | ✓ PASS |
-| AC-5 | tagged test | ✓ PASS |
-| AC-6 | tagged test | ✓ PASS |
-| AC-7 | tagged test | ✓ PASS |
-| AC-8 | tagged test | ✓ PASS |
+Spec: `specs/active/014-authenticated-receipt-recovery.md` · Observed source: `8a764ac3c7786a2d9036d60d7709843e3e725eeb`
 
-### Smoke test (exit codes are load-bearing)
+This is an intentionally incomplete source-first bootstrap bundle. The collector was not executed for this assembly. One actual full unskipped verifier observation is shared under the operator-approved exception; each spec has its own retained acceptance-status file and actual failing spec-match result. Local per-task implementation proofs remain available, but do not establish full live/native acceptance.
+
+### Acceptance criteria (2/8 complete criteria supported by this observation)
+
+| AC | Status |
+|----|--------|
+| AC-1 | UNPROVEN — full acceptance not claimed; local contributions and remaining prerequisites are separate |
+| AC-2 | UNPROVEN — full acceptance not claimed; local contributions and remaining prerequisites are separate |
+| AC-3 | PASS — actual local guardian/SIGKILL/cleanup/fenced-retry proof; no merge authority |
+| AC-4 | PASS — actual local guardian/SIGKILL/cleanup/fenced-retry proof; no merge authority |
+| AC-5 | UNPROVEN — full acceptance not claimed; local contributions and remaining prerequisites are separate |
+| AC-6 | UNPROVEN — full acceptance not claimed; local contributions and remaining prerequisites are separate |
+| AC-7 | UNPROVEN — full acceptance not claimed; local contributions and remaining prerequisites are separate |
+| AC-8 | UNPROVEN — full acceptance not claimed; local contributions and remaining prerequisites are separate |
+
+Retained status: `verify/2026-10-17-014-authenticated-receipt-recovery/attempt-shared-f5ef2f4f7bca/results.json`; spec-match exit: 1.
+
+### Shared smoke observation
+
+```text
+One shared verifier execution, reused under explicit operator approval.
+Command: bash .claude/scripts/verify.sh
+Source: 8a764ac3c7786a2d9036d60d7709843e3e725eeb
+Base: b533a82f4b4b45712e26a33239ef269a6847aa92
+TDD_LEDGER_TIMEOUT=600; no skip flags
+Actual exit: 0
+Shared verdict: PASS
+Log SHA256: 7daedc9c479c1dcd8aa8389c51634c69849fafff65d921b60efbcfa5b771fb17
+Full log: verify/2026-10-17/publication-shared-verification/verify.log
 ```
-# Smoke test — 2026-10-17T05:00:46+11:00
-$ bash .claude/scripts/verify.sh
 
-→ Integration coverage gate
-  ✓ changed API/DB files have integration tests
+### Limits
 
-verify: FAIL (1 check(s) failed)
-exit: 1
----
-```
+No native producer/reviewer receipt, current factory authority, merge eligibility, production approval or complete adopter cycle is claimed. T339/T318, T180 and T222 remain open. No browser screenshots or coverage percentages are invented for this shell/docs harness.
 
-### Visual proof
-0 screenshot(s) captured under `verify/2026-10-17-014-authenticated-receipt-recovery/screenshots/` (named by AC).
+### Verdict: **FAIL** — source bootstrap only; keep the PR a draft until its separate reviewed bootstrap decision.
 
-### API traces
-0 API trace file(s) under `verify/2026-10-17-014-authenticated-receipt-recovery/traces/`; full HAR at `verify/2026-10-17-014-authenticated-receipt-recovery/network.har`.
-
-### Coverage
-line ?% · branch ?% (gate: line≥90 branch≥85)
-
-### Verdict: **FAIL**
-
-## Artifact index
-- verify/2026-10-17-014-authenticated-receipt-recovery/evidence.json
-- verify/2026-10-17-014-authenticated-receipt-recovery/binding.json
-- verify/2026-10-17-014-authenticated-receipt-recovery/pr-body.md
-- verify/2026-10-17-014-authenticated-receipt-recovery/EVIDENCE.md
-- verify/2026-10-17-014-authenticated-receipt-recovery/results.json
-- verify/2026-10-17-014-authenticated-receipt-recovery/smoke.log
+Artifact index: `verify/2026-10-17-014-authenticated-receipt-recovery/attempt-shared-f5ef2f4f7bca` and the shared verification directory.

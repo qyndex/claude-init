@@ -1,65 +1,49 @@
 {
-  "runner": "committed-source-shell-aggregate",
-  "source_sha": "b2fe148fc1beb62eb362e3cbdfe17a004995da4b",
-  "command": "bash .claude/scripts/test/factory-reporting-queue.sh",
-  "aggregate_log_sha256": "c2afdab410fbaf4acc124af26170b0cc96fda21cc4b42d62dea5e272b726d04f",
+  "runner": "explicit full-acceptance status; local proof is not native approval",
+  "source_sha": "8a764ac3c7786a2d9036d60d7709843e3e725eeb",
+  "scope": "source-first bootstrap with incomplete live acceptance",
   "independent_attestation": false,
-  "scope": "local-contract-contributions-only",
   "live_activation_verified": false,
-  "full_AC8_pending": true,
   "testResults": [
     {
       "assertionResults": [
         {
-          "fullName": "AC-1: LOCAL CONTRACT CONTRIBUTION \u2014 ordinary overdue/digest receipt and recovery regressions; no new live proof",
-          "status": "passed",
-          "scope": "local-contract-contribution",
-          "command": "bash .claude/scripts/test/factory-reporting-queue.sh"
+          "fullName": "AC-1: full acceptance not claimed; local contributions and remaining prerequisites are recorded separately",
+          "status": "pending"
         },
         {
-          "fullName": "AC-2: LOCAL CONTRACT CONTRIBUTION \u2014 exact Slack outbox/reconciliation, lost acknowledgement and drill fixtures",
-          "status": "passed",
-          "scope": "local-contract-contribution",
-          "command": "bash .claude/scripts/test/factory-reporting-queue.sh"
+          "fullName": "AC-2: full acceptance not claimed; local contributions and remaining prerequisites are recorded separately",
+          "status": "pending"
         },
         {
-          "fullName": "AC-3: LOCAL CONTRACT CONTRIBUTION \u2014 failed-run identity/default-branch/clock and disabled-input fixtures",
-          "status": "passed",
-          "scope": "local-contract-contribution",
-          "command": "bash .claude/scripts/test/factory-reporting-queue.sh"
+          "fullName": "AC-3: full acceptance not claimed; local contributions and remaining prerequisites are recorded separately",
+          "status": "pending"
         },
         {
-          "fullName": "AC-4: LOCAL CONTRACT CONTRIBUTION \u2014 strict journal, workflow baseline, existing reporting regression suites",
-          "status": "passed",
-          "scope": "local-contract-contribution",
-          "command": "bash .claude/scripts/test/factory-reporting-queue.sh"
+          "fullName": "AC-4: full acceptance not claimed; local contributions and remaining prerequisites are recorded separately",
+          "status": "pending"
         },
         {
-          "fullName": "AC-5: LOCAL CONTRACT CONTRIBUTION \u2014 bounded queue metadata/unknown/grace and protected entry fixtures",
-          "status": "passed",
-          "scope": "local-contract-contribution",
-          "command": "bash .claude/scripts/test/factory-reporting-queue.sh"
+          "fullName": "AC-5: full acceptance not claimed; local contributions and remaining prerequisites are recorded separately",
+          "status": "pending"
         },
         {
-          "fullName": "AC-6: LOCAL CONTRACT CONTRIBUTION \u2014 actual disposable Git CAS/restart/opaque-state preservation fixtures",
-          "status": "passed",
-          "scope": "local-contract-contribution",
-          "command": "bash .claude/scripts/test/factory-reporting-queue.sh"
+          "fullName": "AC-6: full acceptance not claimed; local contributions and remaining prerequisites are recorded separately",
+          "status": "pending"
         },
         {
-          "fullName": "AC-7: LOCAL CONTRACT CONTRIBUTION \u2014 durable pending intent, exact receipt and no-blind-resend fixtures",
-          "status": "passed",
-          "scope": "local-contract-contribution",
-          "command": "bash .claude/scripts/test/factory-reporting-queue.sh"
+          "fullName": "AC-7: full acceptance not claimed; local contributions and remaining prerequisites are recorded separately",
+          "status": "pending"
         },
         {
-          "fullName": "AC-8: LOCAL READINESS CONTRIBUTION ONLY \u2014 committed-source aggregate and offline live-checker fixtures; FULL AC-8 LIVE ACCEPTANCE IS PENDING",
-          "status": "passed",
-          "scope": "local-contract-contribution",
-          "command": "bash .claude/scripts/test/factory-reporting-queue.sh"
+          "fullName": "AC-8: full acceptance not claimed; local contributions and remaining prerequisites are recorded separately",
+          "status": "pending"
+        },
+        {
+          "fullName": "AC-9: full acceptance not claimed; local contributions and remaining prerequisites are recorded separately",
+          "status": "pending"
         }
       ]
     }
-  ],
-  "actual_proof": "verify/2026-10-17/T-335/workflow-permission-followup/final-aggregate/result.json"
+  ]
 }

@@ -1,1 +1,28 @@
-{"spec":"014","commit":"b2fe148fc1beb62eb362e3cbdfe17a004995da4b","generated_at":"2026-10-17T05:01:20+11:00","ac_total":8,"ac_proven":8,"ac_unproven":[],"smoke_exit_max":1,"runner_exit":0,"coverage":{"line":"?","branch":"?"},"verdict":"FAIL"}
+{
+  "spec": "014",
+  "commit": "8a764ac3c7786a2d9036d60d7709843e3e725eeb",
+  "generated_at": "2026-10-17T06:50:50.513893+00:00",
+  "results_file": "verify/2026-10-17-014-authenticated-receipt-recovery/attempt-shared-f5ef2f4f7bca/results.json",
+  "results_sha256": "497a9ddade30f38e8897b316e7eb2426fc504f83f80332955033b67b8c7bff72",
+  "ac_total": 8,
+  "ac_proven": 2,
+  "ac_unproven": [
+    "AC-1",
+    "AC-2",
+    "AC-5",
+    "AC-6",
+    "AC-7",
+    "AC-8"
+  ],
+  "smoke_exit_max": 0,
+  "runner_exit": 1,
+  "runner_command": "bash .claude/scripts/spec-match.sh 014 verify/2026-10-17-014-authenticated-receipt-recovery/attempt-shared-f5ef2f4f7bca/results.json",
+  "coverage": {
+    "line": "not measured; shell/docs harness",
+    "branch": "not measured; shell/docs harness"
+  },
+  "verdict": "FAIL",
+  "assembly": "operator-approved shared observation; collector commands not claimed",
+  "native_acceptance_pending": true,
+  "shared_result": "verify/2026-10-17/publication-shared-verification/result.json"
+}
