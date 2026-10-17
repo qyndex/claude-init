@@ -62,7 +62,12 @@ class GitHub:
         require(self.calls < 128 and self.consumed < TOTAL, 'queue evidence API budget exhausted'); self.calls += 1
         # Do not forward Slack/state-writer credentials to the read-only gh child.
         env = {key:value for key,value in os.environ.items() if key in {'PATH','HOME','GH_CONFIG_DIR','XDG_CONFIG_HOME','GH_TOKEN','GITHUB_TOKEN','SSL_CERT_FILE','SSL_CERT_DIR','TMPDIR'}}
-        result = self.process.run(['gh','api','--hostname','github.com','--method','GET',path], env=env, cwd=str(Path.cwd()), timeout=30, limit=LIMIT, aggregate_limit=min(LIMIT,TOTAL-self.consumed))
+        # Raw job logs are bounded pipe data, never rendered to a terminal.
+        # New gh versions reject their runner ANSI framing without this opt-in.
+        require(not raw or re.fullmatch(r'repos/'+re.escape(self.repo)+r'/actions/jobs/[1-9][0-9]*/logs',path) is not None, 'raw queue evidence endpoint invalid')
+        arguments = ['gh','api','--hostname','github.com','--method','GET']
+        if raw:arguments.append('--allow-escape-sequences')
+        result = self.process.run(arguments+[path], env=env, cwd=str(Path.cwd()), timeout=30, limit=LIMIT, aggregate_limit=min(LIMIT,TOTAL-self.consumed))
         self.consumed += len(result.stdout)+len(result.stderr)
         require(result.returncode == 0 and self.consumed <= TOTAL, 'queue evidence API unavailable or budget exhausted')
         return result.stdout if raw else decode(result.stdout)
