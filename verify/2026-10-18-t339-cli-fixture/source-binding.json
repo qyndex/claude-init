@@ -1,0 +1,10 @@
+{
+  "source": "4188466bdbc38d123eee61385a4e49a4443b6f7c",
+  "base": "1a6626a44a76a44e791db167a4af4cf65fcfc2db",
+  "only_changed_source_path": ".claude/scripts/test/factory-reporting-queue-live-evidence.sh",
+  "test_sha256": "33a67883687145a8c37b33f1a4a1f8a50dc364c11d2679cc103aae202625ec95",
+  "production_changed": false,
+  "profile_changed": false,
+  "native_acceptance": "pending",
+  "review": "Independent source review found no actionable blocker; source inspection only, no rerun of recorded tests"
+}

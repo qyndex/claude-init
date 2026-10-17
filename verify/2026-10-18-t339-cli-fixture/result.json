@@ -1,0 +1,30 @@
+{
+  "base": "1a6626a44a76a44e791db167a4af4cf65fcfc2db",
+  "test_sha256": "33a67883687145a8c37b33f1a4a1f8a50dc364c11d2679cc103aae202625ec95",
+  "red": {
+    "command": "bash .claude/scripts/test/factory-reporting-queue-live-evidence.sh",
+    "exit": 1,
+    "cause": "existing stub treated --allow-escape-sequences as response key; CLI composition failed"
+  },
+  "green": {
+    "command": "bash .claude/scripts/test/factory-reporting-queue-live-evidence.sh",
+    "exit": 0,
+    "cases": {
+      "CLI": 11,
+      "source": 43,
+      "journal": 13
+    }
+  },
+  "aggregate": {
+    "command": [
+      "bash",
+      ".claude/scripts/test/factory-reporting-queue.sh"
+    ],
+    "exit": 0,
+    "elapsed_seconds": 20.313168499968015
+  },
+  "shellcheck": 0,
+  "diffcheck": 0,
+  "production_changes": false,
+  "native_claim": false
+}

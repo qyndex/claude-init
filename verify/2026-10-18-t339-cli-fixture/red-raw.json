@@ -1,0 +1,7 @@
+{
+  "type": "exact-observed-red-log",
+  "encoding": "base64",
+  "sha256": "d146197ff441ba2267b540e57f6c18009a5ba959fb09ad0a529f54558cdb9ff5",
+  "bytes": "VHJhY2ViYWNrIChtb3N0IHJlY2VudCBjYWxsIGxhc3QpOgogIEZpbGUgIjxzdGRpbj4iLCBsaW5lIDU3LCBpbiA8bW9kdWxlPgogIEZpbGUgImxpdmUtQ0xJLWZpeHR1cmUtbG9hZGVyIiwgbGluZSAxNSwgaW4gPG1vZHVsZT4KICBGaWxlICJsaXZlLUNMSS1yZWFsLUdpdC1maXh0dXJlIiwgbGluZSAxNDUsIGluIDxtb2R1bGU+CkFzc2VydGlvbkVycm9yOiBRdWV1ZSBldmlkZW5jZSB1bmF2YWlsYWJsZTsgbm8gbGl2ZSBjcmVkaXQuIFByZXNlcnZlIHN0YXRlIGFuZCBpbnNwZWN0IHByb3RlY3RlZCBvYnNlcnZhdGlvbnMuCgo=",
+  "display_normalization": "red.log removes only trailing empty lines to meet diff whitespace checks; exact raw bytes preserved here"
+}

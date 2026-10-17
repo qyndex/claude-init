@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "<stdin>", line 57, in <module>
+  File "live-CLI-fixture-loader", line 15, in <module>
+  File "live-CLI-real-Git-fixture", line 145, in <module>
+AssertionError: Queue evidence unavailable; no live credit. Preserve state and inspect protected observations.
