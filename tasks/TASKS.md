@@ -1829,7 +1829,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-receipt-backfill.sh
   owner: implementer
 
-- [~] T-295  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-294,T-299,T-302  | parallel: no  | est: 5m
+- [x] T-295  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-294,T-299,T-302  | parallel: no  | est: 5m
   summary: Resume protected retained-proof windows across fresh hosted SQLite projections
   files: .claude/scripts/factory-receipt-archive.py, .claude/scripts/factory-receipt-discovery.py, .claude/scripts/factory-receipts.py, .claude/scripts/factory-state-paths.py, .claude/scripts/test/factory-receipt-projection-windows.sh, plans/active/014-authenticated-receipt-recovery.md
   accept: bash .claude/scripts/test/factory-receipt-projection-windows.sh
