@@ -1,0 +1,17 @@
+{
+  "observed_at": "2026-10-17T13:38:51.742199+00:00",
+  "pr": 117,
+  "head": "1a6626a44a76a44e791db167a4af4cf65fcfc2db",
+  "run_id": 39035167035,
+  "job_id": 117403395061,
+  "attempt": 1,
+  "conclusion": "failure",
+  "step": "Harness test suite",
+  "failed_invocations": 2,
+  "root_cause": "The same CLI fixture is invoked directly and by the queue aggregate; fixed argv[6] incorrectly selects the new flag as endpoint.",
+  "production_43_case_source_test": "passed in same native job",
+  "ordinary_other_seven": "success",
+  "maintenance_started": false,
+  "signer_dispatched_for_this_PR": false,
+  "all_twelve_requirements": "remain restored"
+}

@@ -1,0 +1,8 @@
+{
+  "command": [
+    "bash",
+    ".claude/scripts/test/factory-reporting-queue.sh"
+  ],
+  "exit": 0,
+  "elapsed_seconds": 20.313168499968015
+}

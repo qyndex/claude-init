@@ -1,0 +1,29 @@
+{
+  "model_requested": "claude-sonnet-5-5",
+  "tools": [],
+  "api_fallback": false,
+  "auth": "existing local subscription only",
+  "timeout_seconds": 180,
+  "started_at": "2026-10-17T12:59:49.938647+00:00",
+  "native_factory_credit": false,
+  "exit_code": 0,
+  "finished_at": "2026-10-17T12:59:58.245187+00:00",
+  "actual_model_usage": {
+    "claude-sonnet-5-5": {
+      "inputTokens": 2,
+      "outputTokens": 746,
+      "cacheReadInputTokens": 2092,
+      "cacheCreationInputTokens": 3818,
+      "webSearchRequests": 0,
+      "costUSD": 0.0229452,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 128000,
+      "thinkingTokens": 0,
+      "canonicalModel": "claude-sonnet-5-5",
+      "provider": "firstParty",
+      "costBasis": "list"
+    }
+  },
+  "num_turns": 2,
+  "permission_denials": []
+}

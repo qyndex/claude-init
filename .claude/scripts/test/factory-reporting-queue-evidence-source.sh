@@ -78,6 +78,12 @@ with tempfile.TemporaryDirectory() as directory:
   rejects(lambda:transport.request('repos/org/repo','POST',{}))
   for i in range(126):transport.request('repos/org/repo')
   rejects(lambda:transport.request('repos/org/repo'))
+  # Modern gh refuses terminal controls unless explicitly accepted. These bytes
+  # remain bounded pipe data for hashing/parsing, never terminal output.
+  stub.write_text('#!'+__import__('sys').executable+'\nimport sys\nassert "--allow-escape-sequences" in sys.argv[1:], "raw log opt-in absent"\nsys.stdout.buffer.write(b"\\x1b[32mrunner setup\\x1b[0m\\n2026-10-16T00:00:00Z {\\"notifications\\":0,\\"reconciled\\":0}\\n")\n');stub.chmod(0o755)
+  captured=e.GitHub('org/repo').request('repos/org/repo/actions/jobs/100/logs',raw=True)
+  assert b'\x1b[32m' in captured and e.results(captured)==[{'notifications':0,'reconciled':0}];count+=1
+  rejects(lambda:e.GitHub('org/repo').request('repos/org/repo',raw=True))
   stub.write_text('#!'+__import__('sys').executable+'\nimport sys\nsys.stdout.write("x"*2097153)\n');stub.chmod(0o755)
   try:e.GitHub('org/repo').request('repos/org/repo/actions/jobs/100/logs',raw=True)
   except ValueError as error:assert 'output limit' in str(error);count+=1

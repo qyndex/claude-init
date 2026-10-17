@@ -1,0 +1,10 @@
+{
+  "factory-operational-producer": {
+    "exit": 0,
+    "seconds": 2.230563874996733
+  },
+  "factory-operational-replay": {
+    "exit": 0,
+    "seconds": 5.080567499971949
+  }
+}
