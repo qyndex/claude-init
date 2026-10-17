@@ -1,0 +1,24 @@
+{
+  "testResults": [
+    {
+      "name": "approved policy spec048 commands",
+      "assertionResults": [
+        {
+          "fullName": "AC-1 approved quickstart policy acceptance",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "AC-2 approved quickstart policy acceptance",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "AC-3 approved quickstart policy acceptance",
+          "status": "passed",
+          "failureMessages": []
+        }
+      ]
+    }
+  ]
+}

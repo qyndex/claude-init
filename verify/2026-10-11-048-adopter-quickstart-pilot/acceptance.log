@@ -1,0 +1,137 @@
+# Actual T-222 acceptance and collector observations
+{
+  "base": "94e40be14af35b11bbd81d355a723141c4383299",
+  "start": "2026-10-17T15:59:02.835786+00:00",
+  "accept_command": "python3 -c \"from pathlib import Path; t=Path('docs/FACTORY-ADOPTER-QUICKSTART.md').read_text(); assert all(s in t for s in ['Prerequisites','Dry-run adoption','immutable','existing','python3 .claude/scripts/factory-adopt.py --from /path/to/reviewed-harness --into /path/to/target --dry-run']); assert not any(s in t for s in ['qyndex','C0C7T1Y29K5','5251754','T0B2VADDUG4']); print('AC-1 quickstart adoption contract passed'); from pathlib import Path; t=Path('docs/FACTORY-ADOPTER-QUICKSTART.md').read_text(); assert all(s in t for s in ['Protected readiness','factory-preflight.py --policy /path/to/protected-policy.json','block','merge authority','reporting','production','secrets']); print('AC-2 protected readiness contract passed'); from pathlib import Path; t=Path('docs/FACTORY-ADOPTER-QUICKSTART.md').read_text(); assert all(s in t for s in ['Delivery and acceptance','engineering verification','merged delivery','product acceptance','SLO','rollback','FACTORY-ADOPTER-SETUP.md','FACTORY-ACTIVATION.md']); print('AC-3 distinct delivery and acceptance contract passed')\"",
+  "accept_sha256": "62147a05ce0efd4f2cba51bbcd23ca56cf3b18748a22ab396f6bdbd354035053",
+  "doc_sha256": "184eaf11385185ed0c55ac24c1dd1ff550ee6584b8b2ed416dfce1a448f7210d",
+  "green_completed_at": "2026-10-17T15:59:08.657439+00:00",
+  "links_verified_at_source": "94e40be14af35b11bbd81d355a723141c4383299",
+  "source_commit": "eb543039cdef5e008218b10be5a3c8c1bffa5fbb",
+  "observed_local": "2026-10-18T02:59:23.394555+11:00",
+  "per_ac": [
+    {
+      "ac": "AC-1",
+      "argv": [
+        "python3",
+        "-c",
+        "from pathlib import Path; t=Path('docs/FACTORY-ADOPTER-QUICKSTART.md').read_text(); assert all(s in t for s in ['Prerequisites','Dry-run adoption','immutable','existing','python3 .claude/scripts/factory-adopt.py --from /path/to/reviewed-harness --into /path/to/target --dry-run']); assert not any(s in t for s in ['qyndex','C0C7T1Y29K5','5251754','T0B2VADDUG4']); print('AC-1 quickstart adoption contract passed')"
+      ],
+      "argv_sha256": "0c42ad0ee3014dda900128c56d9a7b07cec54a048285e86255dc3b977066b08a",
+      "started_at": "2026-10-17T15:59:23.338617+00:00",
+      "completed_at": "2026-10-17T15:59:23.358923+00:00",
+      "exit_code": 0,
+      "stdout": "AC-1 quickstart adoption contract passed\n",
+      "stderr": ""
+    },
+    {
+      "ac": "AC-2",
+      "argv": [
+        "python3",
+        "-c",
+        "from pathlib import Path; t=Path('docs/FACTORY-ADOPTER-QUICKSTART.md').read_text(); assert all(s in t for s in ['Protected readiness','factory-preflight.py --policy /path/to/protected-policy.json','block','merge authority','reporting','production','secrets']); print('AC-2 protected readiness contract passed')"
+      ],
+      "argv_sha256": "dae0c57ab0412cb181fc0d51e67a21742142c50d1032e7dc36c87c7c5c05ec58",
+      "started_at": "2026-10-17T15:59:23.358983+00:00",
+      "completed_at": "2026-10-17T15:59:23.376780+00:00",
+      "exit_code": 0,
+      "stdout": "AC-2 protected readiness contract passed\n",
+      "stderr": ""
+    },
+    {
+      "ac": "AC-3",
+      "argv": [
+        "python3",
+        "-c",
+        "from pathlib import Path; t=Path('docs/FACTORY-ADOPTER-QUICKSTART.md').read_text(); assert all(s in t for s in ['Delivery and acceptance','engineering verification','merged delivery','product acceptance','SLO','rollback','FACTORY-ADOPTER-SETUP.md','FACTORY-ACTIVATION.md']); print('AC-3 distinct delivery and acceptance contract passed')"
+      ],
+      "argv_sha256": "c7aef82fc6ce4cc3e8839b67e649be53dea37cc4fefae2a67489eef9d0b9f1ab",
+      "started_at": "2026-10-17T15:59:23.376820+00:00",
+      "completed_at": "2026-10-17T15:59:23.393476+00:00",
+      "exit_code": 0,
+      "stdout": "AC-3 distinct delivery and acceptance contract passed\n",
+      "stderr": ""
+    }
+  ],
+  "ac_started_at": "2026-10-17T15:59:23.338523+00:00",
+  "ac_completed_at": "2026-10-17T15:59:23.395080+00:00",
+  "collector_command": [
+    "bash",
+    ".claude/scripts/collect-evidence.sh",
+    "048",
+    "--check-only"
+  ],
+  "collector_environment": {
+    "VERIFY_BASE": "94e40be14af35b11bbd81d355a723141c4383299",
+    "TDD_LEDGER_TIMEOUT": "600",
+    "PATH_prefix": "/Users/shravanjha/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin"
+  },
+  "collector_exit": 0,
+  "collector_evidence": {
+    "spec": "048",
+    "commit": "eb543039cdef5e008218b10be5a3c8c1bffa5fbb",
+    "generated_at": "2026-10-18T03:00:06+11:00",
+    "results_file": "verify/2026-10-18-048-adopter-quickstart-pilot/attempt-PtgR0UVN/results.json",
+    "results_sha256": "ac0b4c0ef855d4d374216a7ba042ceb59907966d25431c1e4826dfa0471909e5",
+    "ac_total": 3,
+    "ac_proven": 3,
+    "ac_unproven": [],
+    "smoke_exit_max": 0,
+    "runner_exit": 0,
+    "coverage": {
+      "line": "?",
+      "branch": "?"
+    },
+    "verdict": "PASS"
+  },
+  "retention_completed_at": "2026-10-17T16:00:26.755453+00:00",
+  "retention_mapping": [
+    {
+      "original": "verify/2026-10-18-048-adopter-quickstart-pilot/results.json",
+      "retained": "verify/2026-10-11-048-adopter-quickstart-pilot/results.json",
+      "original_sha256": "ac0b4c0ef855d4d374216a7ba042ceb59907966d25431c1e4826dfa0471909e5",
+      "identical_copy_sha256": "ac0b4c0ef855d4d374216a7ba042ceb59907966d25431c1e4826dfa0471909e5"
+    },
+    {
+      "original": "verify/2026-10-18-048-adopter-quickstart-pilot/evidence.json",
+      "retained": "verify/2026-10-11-048-adopter-quickstart-pilot/evidence.json",
+      "original_sha256": "8b054c237a0ec64bd714190eff73026fdcde0a6b507c35e2d80f9ea6de8c6468",
+      "identical_copy_sha256": "8b054c237a0ec64bd714190eff73026fdcde0a6b507c35e2d80f9ea6de8c6468"
+    },
+    {
+      "original": "verify/2026-10-18-048-adopter-quickstart-pilot/pr-body.md",
+      "retained": "verify/2026-10-11-048-adopter-quickstart-pilot/pr-body.md",
+      "original_sha256": "2acf6014647b94442830f764a7a14eb59ca633bc3284d5f4eca11c7d234bbf49",
+      "identical_copy_sha256": "2acf6014647b94442830f764a7a14eb59ca633bc3284d5f4eca11c7d234bbf49"
+    },
+    {
+      "original": "verify/2026-10-18-048-adopter-quickstart-pilot/EVIDENCE.md",
+      "retained": "verify/2026-10-11-048-adopter-quickstart-pilot/EVIDENCE.md",
+      "original_sha256": "d683988b1cf550f8686738c3aa41f7243b68a3b5aa1c7b40fd37248947456d90",
+      "identical_copy_sha256": "d683988b1cf550f8686738c3aa41f7243b68a3b5aa1c7b40fd37248947456d90"
+    },
+    {
+      "original": "verify/2026-10-18-048-adopter-quickstart-pilot/smoke.log",
+      "retained": "verify/2026-10-11-048-adopter-quickstart-pilot/smoke.log",
+      "original_sha256": "ac7dcc0175447fe1b590e487e384a09bc6b27ce7258f731daf267d014c88f1e6",
+      "identical_copy_sha256": "ac7dcc0175447fe1b590e487e384a09bc6b27ce7258f731daf267d014c88f1e6"
+    },
+    {
+      "original": "verify/2026-10-18/T-222/red.log",
+      "retained": "verify/2026-10-11/T-222/red.log",
+      "original_sha256": "d4092431a2f6e8dde3a4526ca78570f6022aff632666ca3fff5ab37850c14464",
+      "identical_copy_sha256": "d4092431a2f6e8dde3a4526ca78570f6022aff632666ca3fff5ab37850c14464"
+    },
+    {
+      "original": "verify/2026-10-18/T-222/green.log",
+      "retained": "verify/2026-10-11/T-222/green.log",
+      "original_sha256": "dc7a1ab527e8a05a6a4661cd76b4b3f655b4d7deb2f2ee6a2fc36b3734d78277",
+      "identical_copy_sha256": "dc7a1ab527e8a05a6a4661cd76b4b3f655b4d7deb2f2ee6a2fc36b3734d78277"
+    }
+  ],
+  "notes": [
+    "Actual observation is 18 October 2026 Australia/Sydney (17 October UTC); 2026-10-11 is the approved retention path only.",
+    "Source commit contains only the approved document; evidence binds that actual ancestor source. T-222 remains open; private local verification is not independent verification, review, shadow eligibility, merged delivery or product acceptance.",
+    "No skipped verification gates, date overrides, model/provider calls, public effects or authority changes were used. The collector reports coverage as unknown and zero screenshots/API traces for this documentation-only candidate."
+  ]
+}
