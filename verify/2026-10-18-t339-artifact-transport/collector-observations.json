@@ -1,0 +1,76 @@
+[
+  {
+    "spec": "014",
+    "source": "fa95a48c81a7928c4cf95aa662df0c8306f32413",
+    "started_at": "2026-10-17T15:02:32.723088+00:00",
+    "finished_at": "2026-10-17T15:03:09.253683+00:00",
+    "exit_code": 1,
+    "original_output": "verify/2026-10-18-014-authenticated-receipt-recovery",
+    "retained_output": "verify/2026-10-18-t339-artifact-transport/collectors/014",
+    "original_tracked_bytes_restored": true,
+    "observed": {
+      "spec": "014",
+      "commit": "fa95a48c81a7928c4cf95aa662df0c8306f32413",
+      "generated_at": "2026-10-18T02:03:09+11:00",
+      "results_file": "verify/2026-10-18-014-authenticated-receipt-recovery/attempt-zsrGRanI/results.json",
+      "results_sha256": "",
+      "ac_total": 9,
+      "ac_proven": 0,
+      "ac_unproven": [
+        "AC-1",
+        "AC-2",
+        "AC-3",
+        "AC-4",
+        "AC-5",
+        "AC-6",
+        "AC-7",
+        "AC-8",
+        "AC-9"
+      ],
+      "smoke_exit_max": 0,
+      "runner_exit": 0,
+      "coverage": {
+        "line": "?",
+        "branch": "?"
+      },
+      "verdict": "FAIL"
+    }
+  },
+  {
+    "spec": "029",
+    "source": "fa95a48c81a7928c4cf95aa662df0c8306f32413",
+    "started_at": "2026-10-17T15:03:09.255141+00:00",
+    "finished_at": "2026-10-17T15:03:44.363238+00:00",
+    "exit_code": 1,
+    "original_output": "verify/2026-10-18-029-github-reporting-alerts",
+    "retained_output": "verify/2026-10-18-t339-artifact-transport/collectors/029",
+    "original_tracked_bytes_restored": true,
+    "observed": {
+      "spec": "029",
+      "commit": "fa95a48c81a7928c4cf95aa662df0c8306f32413",
+      "generated_at": "2026-10-18T02:03:44+11:00",
+      "results_file": "verify/2026-10-18-029-github-reporting-alerts/attempt-UXI6Jnvr/results.json",
+      "results_sha256": "",
+      "ac_total": 9,
+      "ac_proven": 0,
+      "ac_unproven": [
+        "AC-1",
+        "AC-2",
+        "AC-3",
+        "AC-4",
+        "AC-5",
+        "AC-6",
+        "AC-7",
+        "AC-8",
+        "AC-9"
+      ],
+      "smoke_exit_max": 0,
+      "runner_exit": 0,
+      "coverage": {
+        "line": "?",
+        "branch": "?"
+      },
+      "verdict": "FAIL"
+    }
+  }
+]

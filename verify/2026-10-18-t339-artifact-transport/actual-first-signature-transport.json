@@ -1,0 +1,17 @@
+{
+  "observed_at": "2026-10-17T15:03:13.301531+00:00",
+  "observed_code_source": "fa95a48c81a7928c4cf95aa662df0c8306f32413",
+  "reader_sha256": "6556c09acb72de6dd822382e4c8af0b042d7e35205c57ba6e19da195d7285a29",
+  "verified": true,
+  "actual_run": 39042851400,
+  "actual_source": "1af871964f190a24105a51c6529111db1d560f5a",
+  "old_authenticated_profile_sha256": "6ec432dce8349839b47b360213790bdeacb39354675c514d4898cafb4fbe3031",
+  "metadata": {
+    "job_id": 117425656173,
+    "artifact_id": 12103779318,
+    "artifact_sha256": "0834ae8d4466dfa0bdd2cde0bdc694301bf56c79c86d38696fef94948cfb72f5"
+  },
+  "record_sha256": "3d07cc73af1990b4c9ea24d316220eadfd336ee76b302980072443ae019dd4d7",
+  "scope": "Modified bounded reader actual completed_artifact path and real upstream signature. Uses original immutable1af profile, not updated future profile. No protected native execution/completion/durable retention/task acceptance.",
+  "state_or_workflow_mutations": false
+}

@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "<stdin>", line 85, in <module>
+  File "/private/tmp/factory-t339-native-retainer-diagnosis-20261018/.claude/scripts/factory-reporting-queue-evidence.py", line 67, in request
+    require(not raw or re.fullmatch(r'repos/'+re.escape(self.repo)+r'/actions/jobs/[1-9][0-9]*/logs',path) is not None, 'raw queue evidence endpoint invalid')
+  File "/private/tmp/factory-t339-native-retainer-diagnosis-20261018/.claude/scripts/factory-reporting-queue-evidence.py", line 21, in require
+    raise ValueError(message)
+ValueError: raw queue evidence endpoint invalid

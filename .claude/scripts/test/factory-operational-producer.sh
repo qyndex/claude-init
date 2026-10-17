@@ -171,6 +171,29 @@ with tempfile.TemporaryDirectory() as folder:
    if tail=='/actions/artifacts/501/zip':return archive([('evidence.json',record_raw),('provenance.sigstore.json',bundle)])
    return super().request(path,method,payload,raw=raw)
  record_raw=raw;artifact_source=ArtifactSource();uri='https://github.com/org/repo/'+entry['producer']['workflow_path']+'@refs/heads/main'
+ # AC-9: completed_artifact must compose with the actual bounded evidence client,
+ # not only the in-process API fixture that bypasses raw endpoint selection.
+ with tempfile.TemporaryDirectory() as transport_directory:
+  transport_root=Path(transport_directory);tools=transport_root/'tools';tools.mkdir();responses={}
+  for endpoint in ('repos/org/repo/actions/runs/40/attempts/2/jobs?per_page=100&page=1','repos/org/repo/actions/runs/40/artifacts?per_page=100&page=1','repos/org/repo/actions/artifacts/501/zip'):
+   value=artifact_source.request(endpoint,raw=endpoint.endswith('/zip'))
+   responses[endpoint]={'raw':base64.b64encode(value).decode()} if type(value) is bytes else {'json':value}
+  data=transport_root/'responses.json';data.write_text(json.dumps(responses))
+  stub=tools/'gh';stub.write_text('#!'+__import__('sys').executable+'\n'+f'DATA={str(data)!r}\n'+'''import base64,json,sys
+from pathlib import Path
+arguments=sys.argv[1:];prefix=['api','--hostname','github.com','--method','GET']
+assert arguments[:5]==prefix and len(arguments) in (6,7)
+endpoint=arguments[-1];item=json.loads(Path(DATA).read_text())[endpoint]
+assert arguments==prefix+(['--allow-escape-sequences'] if 'raw' in item else [])+[endpoint]
+sys.stdout.buffer.write(base64.b64decode(item['raw']) if 'raw' in item else json.dumps(item['json']).encode())
+''');stub.chmod(0o755)
+  prior_environment=dict(os.environ)
+  try:
+   os.environ['PATH']=str(tools)+os.pathsep+os.environ['PATH']
+   observed_artifact=m.completed_artifact(m.evidence.GitHub('org/repo'),completed,'test')
+   captured_zip=base64.b64decode(responses['repos/org/repo/actions/artifacts/501/zip']['raw'])
+   assert observed_artifact==(raw,bundle,{'job_id':500,'artifact_id':501,'artifact_sha256':hashlib.sha256(captured_zip).hexdigest()})
+  finally:os.environ.clear();os.environ.update(prior_environment)
  observer=copy.deepcopy(native);observer.update(id=50,run_attempt=1,workflow_id=12,path=m.RETAINER,event='workflow_run',run_started_at='2026-10-17T02:30:00Z',updated_at='2026-10-17T02:30:00Z')
  cert={'issuer':'https://token.actions.githubusercontent.com','subjectAlternativeName':uri,'buildSignerURI':uri,'buildSignerDigest':new,'sourceRepositoryURI':'https://github.com/org/repo','sourceRepositoryIdentifier':'101','sourceRepositoryDigest':new,'sourceRepositoryRef':'refs/heads/main','buildTrigger':'workflow_dispatch','runnerEnvironment':'github-hosted','runInvocationURI':'https://github.com/org/repo/actions/runs/40/attempts/2'}
  completion_cert_bad=False

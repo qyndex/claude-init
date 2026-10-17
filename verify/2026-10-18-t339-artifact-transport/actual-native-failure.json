@@ -1,0 +1,15 @@
+{
+  "protected_source": "1af871964f190a24105a51c6529111db1d560f5a",
+  "successful_signer": 39042851400,
+  "signer_attempt": 1,
+  "failed_retainer": 39042905484,
+  "retainer_attempt": 1,
+  "failed_job": 117425809708,
+  "failed_step": "Verify completed upstream and prepare completion assertion",
+  "local_actual_component_failure": "raw queue evidence endpoint invalid at completed_artifact raw ZIP GET",
+  "completion_signing": "skipped",
+  "App_token_mint": "skipped",
+  "retention": "skipped",
+  "recovery": "verified OPfalse/retainerdisabled/fivewritersfrozen, no state deletion or rewind",
+  "native_acceptance": "pending"
+}
