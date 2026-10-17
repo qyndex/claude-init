@@ -1,0 +1,12 @@
+{
+  "verdict": "pass",
+  "findings": [],
+  "limitations": [
+    "Review was tool-free and based only on the diff and the claims you supplied. I did not inspect Git, run tests, or recompute the file hashes.",
+    "I could not check that the two updated SHA-256 pins match the new content of factory-reporting-queue-evidence.py. I also could not check that the pins for the producer and retainer readers are the only ones that need to change.",
+    "I did not check whether the live `gh` version has other behavior for the artifact ZIP endpoint. GitHub normally answers that endpoint with a redirect to a signed blob URL, which `gh api` follows. `--allow-escape-sequences` is harmless for binary output, but real-world behavior is untested here.",
+    "I did not check the claim that no other raw call routes exist beyond logs and ZIP. The check relies on `require(not raw or ...)` being the only gate, and I could not see the rest of the file.",
+    "The tests use a stub `gh` and a captured archive, not the live API. They cover the transport composition but not a native end-to-end run, which matches what you said you are not claiming."
+  ],
+  "review_summary": "I found no actionable correctness or security defects. The regex allowlist now permits only `repos/<repo>/actions/jobs/<positive id>/logs` or `repos/<repo>/actions/artifacts/<positive id>/zip`. It is anchored by `fullmatch`, the repo is `re.escape`d, and ids cannot be zero or have a leading zero. Query strings, a bare `artifacts/N` path, an id of 0 and a foreign repo are all rejected, and the new source test covers each of those cases. The invocation keeps GET, the fixed `github.com` host, the filtered credential environment, and the size and aggregate limits. Raw bytes still go through the bounded pipe, so they are never rendered to a terminal. The added `--allow-escape-sequences` flag only affects how `gh` handles terminal output, and it is applied only on the raw path. The new producer test runs `completed_artifact` through the real `GitHub` client with a stub `gh`. It asserts the exact argument vector and compares the result against the captured ZIP bytes, which avoids the variable-timestamp problem you described. It restores `os.environ` in a `finally` block. The two hash updates in the profiles file are limited to the changed reader."
+}

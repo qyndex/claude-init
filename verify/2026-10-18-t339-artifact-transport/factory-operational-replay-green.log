@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "<stdin>", line 182, in <module>
+  File "<operational-replay-cases>", line 189, in <module>
+AssertionError

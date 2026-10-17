@@ -1,0 +1,49 @@
+{
+  "base": "1af871964f190a24105a51c6529111db1d560f5a",
+  "files": {
+    ".claude/scripts/factory-reporting-queue-evidence.py": "6556c09acb72de6dd822382e4c8af0b042d7e35205c57ba6e19da195d7285a29",
+    ".claude/scripts/test/factory-reporting-queue-evidence-source.sh": "88d150b47e6dc74cdf9a8305f9b4fe2949df53c9b1ced7f2332733dcb6fd9f11",
+    ".claude/scripts/test/factory-operational-producer.sh": "671d34d17c416b1934f4c4c4320cec4158c567604b5eb643ec3036e60f41bc7f",
+    "factory/operational-proof-profiles.json": "6c92120b461c6327f2bc149f55452f4ec81802a766aaac351bcb2a07da8b531a"
+  },
+  "selected_profile_canonical_sha256": "886e0c7a5f4e27f7eb0b721d52dd3fe0e993c00930f275a5a3311183abe147b6",
+  "original_pins_unchanged": true,
+  "source_red_exit": 1,
+  "composition_red_exit": 1,
+  "first_focused_run": {
+    "factory-reporting-queue-evidence-source": {
+      "exit": 0,
+      "seconds": 2.6394607499823906
+    },
+    "factory-reporting-queue-live-evidence": {
+      "exit": 0,
+      "seconds": 14.857358374982141
+    },
+    "factory-reporting-queue": {
+      "exit": 0,
+      "seconds": 19.840656083018985
+    },
+    "factory-operational-producer": {
+      "exit": 0,
+      "seconds": 2.4943324999767356
+    },
+    "factory-operational-replay": {
+      "exit": 1,
+      "seconds": 1.6450992910540663
+    }
+  },
+  "composition_zip_timestamp_test_failure": "retained; corrected to exact captured bytes, no production change",
+  "final_composition": {
+    "factory-operational-producer": {
+      "exit": 0,
+      "seconds": 2.6833637920208275
+    },
+    "factory-operational-replay": {
+      "exit": 0,
+      "seconds": 5.597533583000768
+    }
+  },
+  "shellcheck": 0,
+  "diffcheck": 0,
+  "native_acceptance": "pending; successful prior first signature alone is partial"
+}
