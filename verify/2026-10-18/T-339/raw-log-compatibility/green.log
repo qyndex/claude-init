@@ -1,0 +1,7 @@
+# TDD ledger — green — T-339
+ledger_format: 2
+timestamp: 2026-10-18T00:00:44+11:00
+command: bash .claude/scripts/test/factory-reporting-queue-evidence-source.sh
+exit_code: 0
+---
+43 bounded reviewed-source/run/job/log observer cases passed; fixtures only, no live credit

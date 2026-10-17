@@ -1,0 +1,22 @@
+{
+  "observed_at": "2026-10-17T13:01:24.770094+00:00",
+  "protected_source": "460b687318b41f152761f3198dc31f8f6d5cafa6",
+  "native_run": 39034390136,
+  "native_job": 117401181627,
+  "native_attempt": 1,
+  "conclusion": "failure",
+  "failed_step": "Re-read historical native observations",
+  "signing_upload": "skipped",
+  "public_log_message": "Historical operational proof unavailable; no live/current-readiness credit",
+  "read_only_diagnosis": "Runtime profile resolves; raw historical job-log GET denied by gh2.102 terminal-escape default. Modified read-only component observations and state pass. Not a protected/native replay.",
+  "exact_cli_error": "the response contains terminal escape sequences; pass --allow-escape-sequences to output it anyway",
+  "recovery": {
+    "op_enabled": false,
+    "retainer_disabled": true,
+    "ordinary_five_frozen": true,
+    "state_deleted_or_rewound": false
+  },
+  "native_acceptance": "pending",
+  "authority_enabled": false,
+  "merge_enabled": false
+}

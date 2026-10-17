@@ -1,0 +1,19 @@
+{
+  "phase": "red",
+  "head": "460b687318b41f152761f3198dc31f8f6d5cafa6",
+  "test_sha256": "5e1e412a54cb95d67eb2007c6c10ad907ff1fbb7799c6c06e7eace7a54d45580",
+  "source_sha256": "e49cf34478d74b904c5cbcc210485f462550a756270a2cf75ac313bb076e6c9d",
+  "command": [
+    "bash",
+    ".claude/scripts/tdd-ledger.sh",
+    "red",
+    "T-339",
+    "bash .claude/scripts/test/factory-reporting-queue-evidence-source.sh"
+  ],
+  "started_at": "2026-10-17T13:00:30.660612+00:00",
+  "only_test_modified": [
+    ".claude/scripts/test/factory-reporting-queue-evidence-source.sh"
+  ],
+  "ledger_exit": 0,
+  "elapsed_seconds": 2.885812792053912
+}

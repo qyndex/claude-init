@@ -1,0 +1,35 @@
+{
+  "base": "460b687318b41f152761f3198dc31f8f6d5cafa6",
+  "files": {
+    ".claude/scripts/factory-reporting-queue-evidence.py": "ab4046f26bb3a7e6f65cd05211772ea9d965caab7a599306d57f2590e8f5ed45",
+    ".claude/scripts/test/factory-reporting-queue-evidence-source.sh": "5e1e412a54cb95d67eb2007c6c10ad907ff1fbb7799c6c06e7eace7a54d45580",
+    "factory/operational-proof-profiles.json": "8369e05c2dbdb7e117937549c432472243d1eeae40035ba581b07cb2496d106c"
+  },
+  "selected_profile_only_delta": [
+    "producer.runtime.queue-evidence",
+    "retainer.runtime.queue-evidence"
+  ],
+  "original_profile_pins_unchanged": true,
+  "profile_parser": "PASS",
+  "source_test": {
+    "exit": 0,
+    "cases": 43,
+    "python": "bundled3.12.14",
+    "escalated": "actual subprocess cleanup ps; stubgh no network"
+  },
+  "operational_regressions": {
+    "factory-operational-producer": {
+      "exit": 0,
+      "seconds": 2.230563874996733
+    },
+    "factory-operational-replay": {
+      "exit": 0,
+      "seconds": 5.080567499971949
+    }
+  },
+  "shellcheck": 0,
+  "compile": 0,
+  "diffcheck": 0,
+  "native_signer": "previous39034390136 failed before signing, not replaced by localPASS",
+  "live_changes": false
+}

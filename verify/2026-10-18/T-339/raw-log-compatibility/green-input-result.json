@@ -1,0 +1,16 @@
+{
+  "phase": "green",
+  "head": "5f0f61ba298bee41505f0342034dbbc460f4afbe",
+  "test_sha256": "5e1e412a54cb95d67eb2007c6c10ad907ff1fbb7799c6c06e7eace7a54d45580",
+  "source_sha256": "ab4046f26bb3a7e6f65cd05211772ea9d965caab7a599306d57f2590e8f5ed45",
+  "command": [
+    "bash",
+    ".claude/scripts/tdd-ledger.sh",
+    "green",
+    "T-339",
+    "bash .claude/scripts/test/factory-reporting-queue-evidence-source.sh"
+  ],
+  "started_at": "2026-10-17T13:00:44.236132+00:00",
+  "ledger_exit": 0,
+  "elapsed_seconds": 2.722338709048927
+}

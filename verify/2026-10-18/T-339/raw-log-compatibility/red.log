@@ -1,0 +1,14 @@
+# TDD ledger — red — T-339
+ledger_format: 2
+timestamp: 2026-10-18T00:00:30+11:00
+command: bash .claude/scripts/test/factory-reporting-queue-evidence-source.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 80, in <module>
+  File "/private/tmp/factory-t339-raw-log-canonical-red-20261018/.claude/scripts/factory-reporting-queue-evidence.py", line 67, in request
+    require(result.returncode == 0 and self.consumed <= TOTAL, 'queue evidence API unavailable or budget exhausted')
+  File "/private/tmp/factory-t339-raw-log-canonical-red-20261018/.claude/scripts/factory-reporting-queue-evidence.py", line 21, in require
+    raise ValueError(message)
+ValueError: queue evidence API unavailable or budget exhausted
