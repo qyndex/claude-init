@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "<stdin>", line 7, in <module>
+  File "/private/tmp/factory-operational-registry-fixture-fix-20261017/.claude/scripts/factory-operational-producer.py", line 52, in load_registry
+    validate_entry(item)
+  File "/private/tmp/factory-operational-registry-fixture-fix-20261017/.claude/scripts/factory-operational-producer.py", line 58, in validate_entry
+    proof.fields(entry, 'profile_id status repository branch original producer retainer selections queue_config original_state retention')
+  File "/private/tmp/factory-operational-registry-fixture-fix-20261017/.claude/scripts/factory-operational-proof.py", line 30, in fields
+    require(type(value) is dict and set(value) == set(names.split()), 'historical fields differ')
+  File "/private/tmp/factory-operational-registry-fixture-fix-20261017/.claude/scripts/factory-operational-proof.py", line 26, in require
+    raise ValueError(message)
+ValueError: historical fields differ

@@ -1,0 +1,326 @@
+Verification root: /private/tmp/factory-t339-profile-cutover-20261017
+
+→ Branch freshness
+  ✓ branch fresh against main
+
+→ Stack accounting
+  ✓ no language stacks detected (template/docs/shell-only repo)
+
+→ Assertion-density gate
+assert-density: no test files to check
+  ✓ all tests contain real assertions
+
+→ TDD red→green ledger gate (check-tdd-ledger.sh)
+✓ T-336: red+green ledger present and content-valid
+✓ T-337: red+green ledger present and content-valid
+✓ T-338: red+green ledger present and content-valid
+✓ T-194: red+green ledger present and content-valid
+✓ T-193: red+green ledger present and content-valid
+✓ T-192: red+green ledger present and content-valid
+✓ T-186: red+green ledger present and content-valid
+✓ T-185: red+green ledger present and content-valid
+✓ T-184: red+green ledger present and content-valid
+✓ T-182: red+green ledger present and content-valid
+✓ T-183: red+green ledger present and content-valid
+✓ T-129: red+green ledger present and content-valid
+✓ T-130: red+green ledger present and content-valid
+✓ T-131: red+green ledger present and content-valid
+✓ T-329: red+green ledger present and content-valid
+✓ T-328: red+green ledger present and content-valid
+✓ T-326: red+green ledger present and content-valid
+✓ T-327: red+green ledger present and content-valid
+✓ T-291: red+green ledger present and content-valid
+✓ T-274: red+green ledger present and content-valid
+✓ T-273: red+green ledger present and content-valid
+✓ T-191: red+green ledger present and content-valid
+✓ T-190: red+green ledger present and content-valid
+✓ T-189: red+green ledger present and content-valid
+✓ T-188: red+green ledger present and content-valid
+✓ T-187: red+green ledger present and content-valid
+✓ T-181: red+green ledger present and content-valid
+✓ T-177: red+green ledger present and content-valid
+✓ T-178: red+green ledger present and content-valid
+✓ T-179: characterization task — green-only ledger accepted (no red phase for golden-master tests)
+✓ T-176: red+green ledger present and content-valid
+✓ T-175: red+green ledger present and content-valid
+✓ T-173: red+green ledger present and content-valid
+✓ T-174: red+green ledger present and content-valid
+✓ T-165: red+green ledger present and content-valid
+✓ T-166: red+green ledger present and content-valid
+✓ T-167: red+green ledger present and content-valid
+✓ T-168: red+green ledger present and content-valid
+✓ T-169: red+green ledger present and content-valid
+✓ T-170: red+green ledger present and content-valid
+✓ T-171: characterization task — green-only ledger accepted (no red phase for golden-master tests)
+✓ T-172: red+green ledger present and content-valid
+⚠ T-001: legacy (pre-T-111) incomplete ledger — warn only
+✓ T-002: red+green ledger present and content-valid
+✓ T-003: red+green ledger present and content-valid
+⚠ T-004: legacy (pre-T-111) incomplete ledger — warn only
+✓ T-005: red+green ledger present and content-valid
+⚠ T-006: legacy ledger content invalid (warn only) — red timestamp (2026-05-29T00:56:23+10:00) not before green (2026-05-29T00:56:23+10:00);
+✓ T-007: red+green ledger present and content-valid
+✓ T-008: red+green ledger present and content-valid
+✓ T-009: red+green ledger present and content-valid
+✓ T-010: red+green ledger present and content-valid
+⚠ T-011: legacy ledger content invalid (warn only) — red timestamp (2026-05-29T01:03:48+10:00) not before green (2026-05-29T01:03:48+10:00);
+⚠ T-012: legacy ledger content invalid (warn only) — red timestamp (2026-05-29T01:04:18+10:00) not before green (2026-05-29T01:04:18+10:00);
+⚠ T-013: legacy ledger content invalid (warn only) — red timestamp (2026-05-29T01:04:39+10:00) not before green (2026-05-29T01:04:39+10:00);
+⚠ T-014: legacy ledger content invalid (warn only) — red timestamp (2026-05-29T01:06:48+10:00) not before green (2026-05-29T01:06:48+10:00);
+⚠ T-015: legacy ledger content invalid (warn only) — red timestamp (2026-05-29T01:07:55+10:00) not before green (2026-05-29T01:07:55+10:00);
+⚠ T-016: legacy ledger content invalid (warn only) — red timestamp (2026-05-29T01:08:32+10:00) not before green (2026-05-29T01:08:32+10:00);
+⚠ T-017: legacy ledger content invalid (warn only) — red timestamp (2026-05-29T01:09:39+10:00) not before green (2026-05-29T01:09:39+10:00);
+⚠ T-018: legacy ledger content invalid (warn only) — red timestamp (2026-05-29T01:10:26+10:00) not before green (2026-05-29T01:10:26+10:00);
+✓ T-019: red+green ledger present and content-valid
+✓ T-020: red+green ledger present and content-valid
+✓ T-021: red+green ledger present and content-valid
+✓ T-022: red+green ledger present and content-valid
+⚠ T-023: legacy ledger content invalid (warn only) — red timestamp (2026-05-29T01:26:04+10:00) not before green (2026-05-29T01:26:04+10:00);
+⚠ T-024: legacy ledger content invalid (warn only) — red timestamp (2026-05-29T01:27:08+10:00) not before green (2026-05-29T01:27:08+10:00);
+⚠ T-025: legacy ledger content invalid (warn only) — red timestamp (2026-05-29T01:27:29+10:00) not before green (2026-05-29T01:27:29+10:00);
+⚠ T-026: legacy ledger content invalid (warn only) — red timestamp (2026-05-29T01:29:12+10:00) not before green (2026-05-29T01:29:12+10:00);
+⚠ T-027: legacy ledger content invalid (warn only) — red timestamp (2026-05-29T01:53:20+10:00) not before green (2026-05-29T01:53:20+10:00);
+⚠ T-028: legacy ledger content invalid (warn only) — red timestamp (2026-05-29T01:54:08+10:00) not before green (2026-05-29T01:54:08+10:00);
+⚠ T-029: legacy ledger content invalid (warn only) — red timestamp (2026-05-29T01:54:30+10:00) not before green (2026-05-29T01:54:30+10:00);
+✓ T-030: red+green ledger present and content-valid
+⚠ T-031: legacy ledger content invalid (warn only) — red timestamp (2026-05-29T01:56:19+10:00) not before green (2026-05-29T01:56:19+10:00);
+⚠ T-032: legacy ledger content invalid (warn only) — red timestamp (2026-05-29T01:57:01+10:00) not before green (2026-05-29T01:57:01+10:00);
+⚠ T-033: legacy ledger content invalid (warn only) — red timestamp (2026-05-29T01:57:44+10:00) not before green (2026-05-29T01:57:44+10:00);
+✓ T-034: red+green ledger present and content-valid
+✓ T-035: red+green ledger present and content-valid
+⚠ T-036: legacy ledger content invalid (warn only) — red timestamp (2026-05-29T01:59:55+10:00) not before green (2026-05-29T01:59:55+10:00);
+✓ T-037: red+green ledger present and content-valid
+✓ T-038: red+green ledger present and content-valid
+✓ T-039: red+green ledger present and content-valid
+✓ T-040: red+green ledger present and content-valid
+✓ T-041: red+green ledger present and content-valid
+✓ T-042: red+green ledger present and content-valid
+✓ T-043: red+green ledger present and content-valid
+✓ T-044: red+green ledger present and content-valid
+✓ T-045: red+green ledger present and content-valid
+✓ T-046: red+green ledger present and content-valid
+✓ T-047: red+green ledger present and content-valid
+✓ T-048: red+green ledger present and content-valid
+✓ T-049: red+green ledger present and content-valid
+⚠ T-050: legacy ledger content invalid (warn only) — command differs between red and green (must prove the SAME test);
+✓ T-051: red+green ledger present and content-valid
+✓ T-052: red+green ledger present and content-valid
+✓ T-053: red+green ledger present and content-valid
+✓ T-054: red+green ledger present and content-valid
+✓ T-055: red+green ledger present and content-valid
+✓ T-056: red+green ledger present and content-valid
+✓ T-319: red+green ledger present and content-valid
+✓ T-320: characterization task — green-only ledger accepted (no red phase for golden-master tests)
+✓ T-321: red+green ledger present and content-valid
+✓ T-322: red+green ledger present and content-valid
+✓ T-323: red+green ledger present and content-valid
+✓ T-324: red+green ledger present and content-valid
+⚠ T-059: legacy (pre-T-111) incomplete ledger — warn only
+⚠ T-060: legacy (pre-T-111) incomplete ledger — warn only
+⚠ T-061: legacy (pre-T-111) incomplete ledger — warn only
+⚠ T-062: legacy (pre-T-111) incomplete ledger — warn only
+⚠ T-063: legacy (pre-T-111) incomplete ledger — warn only
+⚠ T-064: legacy (pre-T-111) incomplete ledger — warn only
+⚠ T-065: legacy (pre-T-111) incomplete ledger — warn only
+⚠ T-066: legacy (pre-T-111) incomplete ledger — warn only
+✓ T-067: red+green ledger present and content-valid
+✓ T-068: red+green ledger present and content-valid
+✓ T-069: red+green ledger present and content-valid
+⚠ T-070: legacy ledger content invalid (warn only) — command differs between red and green (must prove the SAME test);
+✓ T-071: red+green ledger present and content-valid
+✓ T-072: red+green ledger present and content-valid
+⚠ T-073: legacy (pre-T-111) incomplete ledger — warn only
+⚠ T-074: legacy (pre-T-111) incomplete ledger — warn only
+⚠ T-075: legacy (pre-T-111) incomplete ledger — warn only
+⚠ T-076: legacy (pre-T-111) incomplete ledger — warn only
+⚠ T-077: legacy (pre-T-111) incomplete ledger — warn only
+⚠ T-078: legacy (pre-T-111) incomplete ledger — warn only
+⚠ T-079: legacy (pre-T-111) incomplete ledger — warn only
+⚠ T-080: legacy (pre-T-111) incomplete ledger — warn only
+⚠ T-081: legacy (pre-T-111) incomplete ledger — warn only
+⚠ T-082: legacy (pre-T-111) incomplete ledger — warn only
+⚠ T-083: legacy (pre-T-111) incomplete ledger — warn only
+⚠ T-084: legacy (pre-T-111) incomplete ledger — warn only
+⚠ T-085: legacy (pre-T-111) incomplete ledger — warn only
+⚠ T-086: legacy (pre-T-111) incomplete ledger — warn only
+⚠ T-087: legacy (pre-T-111) incomplete ledger — warn only
+⚠ T-088: legacy (pre-T-111) incomplete ledger — warn only
+⚠ T-089: legacy (pre-T-111) incomplete ledger — warn only
+⚠ T-090: legacy (pre-T-111) incomplete ledger — warn only
+⚠ T-091: legacy (pre-T-111) incomplete ledger — warn only
+⚠ T-092: legacy (pre-T-111) incomplete ledger — warn only
+⚠ T-093: legacy (pre-T-111) incomplete ledger — warn only
+⚠ T-094: legacy (pre-T-111) incomplete ledger — warn only
+⚠ T-095: legacy (pre-T-111) incomplete ledger — warn only
+⚠ T-096: legacy (pre-T-111) incomplete ledger — warn only
+⚠ T-097: legacy (pre-T-111) incomplete ledger — warn only
+⚠ T-098: legacy (pre-T-111) incomplete ledger — warn only
+⚠ T-099: legacy (pre-T-111) incomplete ledger — warn only
+⚠ T-100: legacy (pre-T-111) incomplete ledger — warn only
+⚠ T-101: legacy (pre-T-111) incomplete ledger — warn only
+⚠ T-102: legacy (pre-T-111) incomplete ledger — warn only
+⚠ T-103: legacy (pre-T-111) incomplete ledger — warn only
+⚠ T-104: legacy (pre-T-111) incomplete ledger — warn only
+⚠ T-105: legacy (pre-T-111) incomplete ledger — warn only
+⚠ T-106: legacy (pre-T-111) incomplete ledger — warn only
+⚠ T-107: legacy (pre-T-111) incomplete ledger — warn only
+⚠ T-108: legacy (pre-T-111) incomplete ledger — warn only
+⚠ T-109: legacy (pre-T-111) incomplete ledger — warn only
+⚠ T-110: legacy (pre-T-111) incomplete ledger — warn only
+✓ T-111: red+green ledger present and content-valid
+✓ T-112: red+green ledger present and content-valid
+✓ T-113: red+green ledger present and content-valid
+✓ T-114: red+green ledger present and content-valid
+✓ T-115: red+green ledger present and content-valid
+✓ T-116: red+green ledger present and content-valid
+✓ T-117: red+green ledger present and content-valid
+✓ T-118: red+green ledger present and content-valid
+✓ T-119: red+green ledger present and content-valid
+✓ T-120: red+green ledger present and content-valid
+✓ T-121: red+green ledger present and content-valid
+✓ T-122: red+green ledger present and content-valid
+✓ T-123: red+green ledger present and content-valid
+✓ T-124: red+green ledger present and content-valid
+✓ T-125: red+green ledger present and content-valid
+✓ T-126: red+green ledger present and content-valid
+✓ T-127: red+green ledger present and content-valid
+✓ T-128: red+green ledger present and content-valid
+✓ T-154: red+green ledger present and content-valid
+✓ T-195: red+green ledger present and content-valid
+✓ T-196: red+green ledger present and content-valid
+✓ T-197: red+green ledger present and content-valid
+✓ T-198: red+green ledger present and content-valid
+✓ T-199: red+green ledger present and content-valid
+✓ T-200: red+green ledger present and content-valid
+✓ T-201: red+green ledger present and content-valid
+✓ T-202: red+green ledger present and content-valid
+✓ T-203: red+green ledger present and content-valid
+✓ T-204: red+green ledger present and content-valid
+✓ T-205: red+green ledger present and content-valid
+✓ T-206: red+green ledger present and content-valid
+✓ T-207: red+green ledger present and content-valid
+✓ T-208: red+green ledger present and content-valid
+✓ T-209: red+green ledger present and content-valid
+✓ T-210: red+green ledger present and content-valid
+✓ T-211: red+green ledger present and content-valid
+✓ T-212: red+green ledger present and content-valid
+✓ T-213: red+green ledger present and content-valid
+✓ T-214: red+green ledger present and content-valid
+✓ T-215: red+green ledger present and content-valid
+✓ T-216: red+green ledger present and content-valid
+✓ T-217: red+green ledger present and content-valid
+✓ T-218: red+green ledger present and content-valid
+✓ T-219: red+green ledger present and content-valid
+✓ T-220: red+green ledger present and content-valid
+✓ T-221: red+green ledger present and content-valid
+✓ T-223: red+green ledger present and content-valid
+✓ T-224: red+green ledger present and content-valid
+✓ T-226: red+green ledger present and content-valid
+✓ T-227: red+green ledger present and content-valid
+✓ T-228: red+green ledger present and content-valid
+✓ T-229: red+green ledger present and content-valid
+✓ T-230: red+green ledger present and content-valid
+✓ T-231: red+green ledger present and content-valid
+✓ T-232: red+green ledger present and content-valid
+✓ T-233: red+green ledger present and content-valid
+✓ T-234: red+green ledger present and content-valid
+✓ T-235: red+green ledger present and content-valid
+✓ T-236: characterization task — green-only ledger accepted (no red phase for golden-master tests)
+✓ T-237: red+green ledger present and content-valid
+✓ T-239: red+green ledger present and content-valid
+✓ T-240: red+green ledger present and content-valid
+✓ T-241: red+green ledger present and content-valid
+✓ T-242: red+green ledger present and content-valid
+✓ T-243: characterization task — green-only ledger accepted (no red phase for golden-master tests)
+✓ T-244: red+green ledger present and content-valid
+✓ T-245: red+green ledger present and content-valid
+✓ T-246: red+green ledger present and content-valid
+✓ T-247: red+green ledger present and content-valid
+✓ T-248: red+green ledger present and content-valid
+✓ T-249: red+green ledger present and content-valid
+✓ T-250: red+green ledger present and content-valid
+✓ T-251: red+green ledger present and content-valid
+✓ T-252: characterization task — green-only ledger accepted (no red phase for golden-master tests)
+✓ T-253: red+green ledger present and content-valid
+✓ T-254: characterization task — green-only ledger accepted (no red phase for golden-master tests)
+✓ T-255: characterization task — green-only ledger accepted (no red phase for golden-master tests)
+✓ T-256: red+green ledger present and content-valid
+✓ T-257: characterization task — green-only ledger accepted (no red phase for golden-master tests)
+✓ T-258: red+green ledger present and content-valid
+✓ T-259: red+green ledger present and content-valid
+✓ T-260: red+green ledger present and content-valid
+✓ T-261: red+green ledger present and content-valid
+✓ T-262: red+green ledger present and content-valid
+✓ T-263: red+green ledger present and content-valid
+✓ T-264: red+green ledger present and content-valid
+✓ T-265: red+green ledger present and content-valid
+✓ T-266: red+green ledger present and content-valid
+✓ T-267: red+green ledger present and content-valid
+✓ T-268: red+green ledger present and content-valid
+✓ T-269: red+green ledger present and content-valid
+✓ T-270: red+green ledger present and content-valid
+✓ T-271: red+green ledger present and content-valid
+✓ T-272: red+green ledger present and content-valid
+✓ T-275: red+green ledger present and content-valid
+✓ T-276: red+green ledger present and content-valid
+✓ T-277: red+green ledger present and content-valid
+✓ T-278: red+green ledger present and content-valid
+✓ T-279: red+green ledger present and content-valid
+✓ T-280: red+green ledger present and content-valid
+✓ T-281: red+green ledger present and content-valid
+✓ T-282: red+green ledger present and content-valid
+✓ T-283: red+green ledger present and content-valid
+✓ T-284: red+green ledger present and content-valid
+✓ T-285: red+green ledger present and content-valid
+✓ T-286: red+green ledger present and content-valid
+✓ T-287: red+green ledger present and content-valid
+✓ T-288: red+green ledger present and content-valid
+✓ T-289: red+green ledger present and content-valid
+✓ T-290: red+green ledger present and content-valid
+✓ T-293: red+green ledger present and content-valid
+✓ T-294: red+green ledger present and content-valid
+✓ T-295: characterization task — green-only ledger accepted (no red phase for golden-master tests)
+✓ T-292: red+green ledger present and content-valid
+✓ T-296: red+green ledger present and content-valid
+✓ T-297: red+green ledger present and content-valid
+✓ T-298: red+green ledger present and content-valid
+✓ T-303: red+green ledger present and content-valid
+✓ T-304: red+green ledger present and content-valid
+✓ T-305: red+green ledger present and content-valid
+✓ T-311: red+green ledger present and content-valid
+✓ T-299: red+green ledger present and content-valid
+✓ T-300: red+green ledger present and content-valid
+✓ T-301: red+green ledger present and content-valid
+✓ T-302: red+green ledger present and content-valid
+✓ T-306: red+green ledger present and content-valid
+✓ T-307: red+green ledger present and content-valid
+✓ T-308: red+green ledger present and content-valid
+✓ T-309: red+green ledger present and content-valid
+✓ T-310: red+green ledger present and content-valid
+✓ T-312: red+green ledger present and content-valid
+✓ T-313: red+green ledger present and content-valid
+✓ T-314: red+green ledger present and content-valid
+✓ T-315: red+green ledger present and content-valid
+✓ T-316: red+green ledger present and content-valid
+✓ T-317: characterization task — green-only ledger accepted (no red phase for golden-master tests)
+✓ T-325: red+green ledger present and content-valid
+✓ T-330: red+green ledger present and content-valid
+✓ T-331: red+green ledger present and content-valid
+✓ T-332: red+green ledger present and content-valid
+✓ T-333: red+green ledger present and content-valid
+✓ T-334: red+green ledger present and content-valid
+✓ T-335: red+green ledger present and content-valid
+tdd-ledger: 0 fail(s), 0 warn(s), 70 legacy-incomplete (pre-T-111, not enforced)
+  ✓ TDD ledger gate clean
+
+→ Rerun newly completed task acceptance
+acceptance: PASS (0 newly completed tasks; base=1defb2898993c164929c1643aefcedfa55714966)
+  ✓ task acceptance green
+
+→ Story → E2E coverage gate
+  ✓ every approved-spec user story has an E2E test
+
+→ Integration coverage gate
+  ✓ changed API/DB files have integration tests
+
+verify: PASS

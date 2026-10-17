@@ -1,0 +1,14 @@
+{
+  "base": "bb7f4846213dcc1d9b467c5e4240ab20cd0ff083",
+  "gitleaks_version": "8.30.1",
+  "command": "gitleaks git --log-opts=--full-history HEAD --redact --report-format json --report-path <private> --no-banner",
+  "red_exit": 1,
+  "red_findings": 4,
+  "unique_exact_fingerprints": 3,
+  "green_exit": 0,
+  "green_findings": 0,
+  "unrelated_synthetic_credential_negative_exit": 1,
+  "detectors_unchanged": true,
+  "native_approval_or_activation": false,
+  "scope": "historical commit/path/rule/line false-positive fingerprints only; no credential values retained"
+}

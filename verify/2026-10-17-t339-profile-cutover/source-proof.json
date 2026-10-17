@@ -1,0 +1,18 @@
+{
+  "base": "1defb2898993c164929c1643aefcedfa55714966",
+  "observed_source_commit": "31c2a6763b49cd937df09f93075285eec36c6b2b",
+  "files_sha256": {
+    ".claude/scripts/test/factory-operational-producer.sh": "1687e061a215494477928f6f48ddc66b93cd105ada558513c82c7241597fbf67",
+    ".claude/scripts/test/factory-operational-replay.sh": "aa99b56c17f560e5a1bb170554736804ade2201d235a11e3f8de44ed9b8d0ba6",
+    "factory/operational-proof-profiles.json": "440811dd688831b347d0d6e59cd9eef35231d38443c8865c78ee132b5ac1e6e5",
+    "factory/receipt-archive-bootstrap.json": "ff337c7e8b20fc46dfdd5ecb31ae396a0f3953ffe5e892ae4d81837d70e792e7",
+    "factory/receipt-policy-observations.json": "a315b42a76242dd7e8cf949771c9b5ee08367f9618362c5c1f317cc2f959fb2e",
+    "factory/receipt-store.json": "3977e0ac6f3cf83e7c51b851299e79ba2a2eeb4833ad9b791940de47edf687a2",
+    "factory/receipt-trust.json": "ce57e0a201db350652dbe8e7e2fba94c010ccc50b2a9f6ea65b0ed5e78fcd781"
+  },
+  "collector_native_ac_verdict": "FAIL: both specs 0/9; no native proof yet",
+  "structural_verify": "two unskipped actual runs PASS with explicit reviewed base",
+  "production_python_or_workflow_changes": false,
+  "authority_enabled": false,
+  "merge_enabled": false
+}

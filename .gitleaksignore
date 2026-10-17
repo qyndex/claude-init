@@ -23,3 +23,6 @@ verify/2026-10-17/T-334/final-capacity/capacity-current/saved1001-compare-cache-
 fe68f383efd447f62d42ed615c1bb45baf9b0ca0:docs/activation/2026-10-16-queue-probe/live-proof.json:generic-api-key:2
 fe68f383efd447f62d42ed615c1bb45baf9b0ca0:docs/activation/2026-10-16-queue-probe/live-proof.json:generic-api-key:7
 fe68f383efd447f62d42ed615c1bb45baf9b0ca0:verify/2026-10-16/T-318/green.log:generic-api-key:7
+1defb2898993c164929c1643aefcedfa55714966:docs/activation/2026-10-16-queue-probe/live-proof.json:generic-api-key:2
+1defb2898993c164929c1643aefcedfa55714966:docs/activation/2026-10-16-queue-probe/live-proof.json:generic-api-key:7
+1defb2898993c164929c1643aefcedfa55714966:verify/2026-10-16/T-318/green.log:generic-api-key:7

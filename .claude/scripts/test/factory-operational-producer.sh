@@ -9,7 +9,12 @@ assert p.is_file(), 'protected historical producer and completed-run retainer mi
 import importlib.util
 s=importlib.util.spec_from_file_location('operational_producer',p);m=importlib.util.module_from_spec(s);s.loader.exec_module(m)
 assert hasattr(m.proof,'verify_completion'), 'durable signed upstream-completion assertion missing'
-assert m.load_registry(Path.cwd())['profiles']==[], 'shipped registry must remain inactive'
+# Test empty-registry semantics without assuming adopter configuration is empty.
+import tempfile
+with tempfile.TemporaryDirectory() as empty_registry:
+ empty_root=Path(empty_registry).resolve();(empty_root/'factory').mkdir()
+ (empty_root/m.REGISTRY).write_text('{"schema_version":1,"profiles":[]}')
+ assert m.load_registry(empty_root)['profiles']==[]
 assert m.role('org/repo','test','a'*40)==m.role('org/repo','test','a'*40)
 assert m.role('org/repo','test','a'*40)!=m.role('org/repo','other','a'*40)
 # Written before production implementation; real-Git state and native-API fixtures.

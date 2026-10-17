@@ -1,42 +1,55 @@
 ## Evidence Bundle — Spec 014 (014-authenticated-receipt-recovery)
+Spec: `specs/active/014-authenticated-receipt-recovery.md` · Commit: `fa402b9`
 
-Spec: `specs/active/014-authenticated-receipt-recovery.md` · Observed source: `8a764ac3c7786a2d9036d60d7709843e3e725eeb`
+Retained results: [verify/2026-10-17-014-authenticated-receipt-recovery/attempt-jHzJzPNe/results.json](verify/2026-10-17-014-authenticated-receipt-recovery/attempt-jHzJzPNe/results.json)
 
-This is an intentionally incomplete source-first bootstrap bundle. The collector was not executed for this assembly. One actual full unskipped verifier observation is shared under the operator-approved exception; each spec has its own retained acceptance-status file and actual failing spec-match result. Local per-task implementation proofs remain available, but do not establish full live/native acceptance.
+### Acceptance criteria (0/9 proven)
+| AC | Proven by | Result |
+|----|-----------|--------|
+| AC-1 | — | ✗ UNPROVEN |
+| AC-2 | — | ✗ UNPROVEN |
+| AC-3 | — | ✗ UNPROVEN |
+| AC-4 | — | ✗ UNPROVEN |
+| AC-5 | — | ✗ UNPROVEN |
+| AC-6 | — | ✗ UNPROVEN |
+| AC-7 | — | ✗ UNPROVEN |
+| AC-8 | — | ✗ UNPROVEN |
+| AC-9 | — | ✗ UNPROVEN |
 
-### Acceptance criteria (2/8 complete criteria supported by this observation)
+### Smoke test (exit codes are load-bearing)
+```
+# Smoke test — 2026-10-17T23:10:57+11:00
+$ bash .claude/scripts/verify.sh
 
-| AC | Status |
-|----|--------|
-| AC-1 | UNPROVEN — full acceptance not claimed; local contributions and remaining prerequisites are separate |
-| AC-2 | UNPROVEN — full acceptance not claimed; local contributions and remaining prerequisites are separate |
-| AC-3 | PASS — actual local guardian/SIGKILL/cleanup/fenced-retry proof; no merge authority |
-| AC-4 | PASS — actual local guardian/SIGKILL/cleanup/fenced-retry proof; no merge authority |
-| AC-5 | UNPROVEN — full acceptance not claimed; local contributions and remaining prerequisites are separate |
-| AC-6 | UNPROVEN — full acceptance not claimed; local contributions and remaining prerequisites are separate |
-| AC-7 | UNPROVEN — full acceptance not claimed; local contributions and remaining prerequisites are separate |
-| AC-8 | UNPROVEN — full acceptance not claimed; local contributions and remaining prerequisites are separate |
+→ Integration coverage gate
+  ✓ changed API/DB files have integration tests
 
-Retained status: `verify/2026-10-17-014-authenticated-receipt-recovery/attempt-shared-f5ef2f4f7bca/results.json`; spec-match exit: 1.
-
-### Shared smoke observation
-
-```text
-One shared verifier execution, reused under explicit operator approval.
-Command: bash .claude/scripts/verify.sh
-Source: 8a764ac3c7786a2d9036d60d7709843e3e725eeb
-Base: b533a82f4b4b45712e26a33239ef269a6847aa92
-TDD_LEDGER_TIMEOUT=600; no skip flags
-Actual exit: 0
-Shared verdict: PASS
-Log SHA256: 7daedc9c479c1dcd8aa8389c51634c69849fafff65d921b60efbcfa5b771fb17
-Full log: verify/2026-10-17/publication-shared-verification/verify.log
+verify: PASS
+exit: 0
+---
 ```
 
-### Limits
+### Visual proof
+0 screenshot(s) captured under `verify/2026-10-17-014-authenticated-receipt-recovery/screenshots/` (named by AC).
 
-No native producer/reviewer receipt, current factory authority, merge eligibility, production approval or complete adopter cycle is claimed. T339/T318, T180 and T222 remain open. No browser screenshots or coverage percentages are invented for this shell/docs harness.
+### API traces
+0 API trace file(s) under `verify/2026-10-17-014-authenticated-receipt-recovery/traces/`; full HAR at `verify/2026-10-17-014-authenticated-receipt-recovery/network.har`.
 
-### Verdict: **FAIL** — source bootstrap only; keep the PR a draft until its separate reviewed bootstrap decision.
+### Coverage
+line ?% · branch ?% (gate: line≥90 branch≥85)
 
-Artifact index: `verify/2026-10-17-014-authenticated-receipt-recovery/attempt-shared-f5ef2f4f7bca` and the shared verification directory.
+### Verdict: **FAIL**
+
+## Artifact index
+- verify/2026-10-17-014-authenticated-receipt-recovery/evidence.json
+- verify/2026-10-17-014-authenticated-receipt-recovery/binding.json
+- verify/2026-10-17-014-authenticated-receipt-recovery/pr-body.md
+- verify/2026-10-17-014-authenticated-receipt-recovery/EVIDENCE.md
+- verify/2026-10-17-014-authenticated-receipt-recovery/results.json
+- verify/2026-10-17-014-authenticated-receipt-recovery/smoke.log
+- verify/2026-10-17-014-authenticated-receipt-recovery/attempt-shared-f5ef2f4f7bca/spec-match.log
+- verify/2026-10-17-014-authenticated-receipt-recovery/attempt-shared-f5ef2f4f7bca/results.json
+- verify/2026-10-17-014-authenticated-receipt-recovery/attempt-shared-f5ef2f4f7bca/prior-canonical/evidence.json
+- verify/2026-10-17-014-authenticated-receipt-recovery/attempt-shared-f5ef2f4f7bca/prior-canonical/pr-body.md
+- verify/2026-10-17-014-authenticated-receipt-recovery/attempt-shared-f5ef2f4f7bca/prior-canonical/EVIDENCE.md
+- verify/2026-10-17-014-authenticated-receipt-recovery/attempt-shared-f5ef2f4f7bca/prior-canonical/results.json

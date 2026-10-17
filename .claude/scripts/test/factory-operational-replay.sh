@@ -33,9 +33,16 @@ cases = r"""
    else:value=super().request(path,method,payload,raw=raw)
    self.seen[path]=copy.deepcopy(value);return value
  replay_api=ReplayAPI()
- # Candidate registry is empty, while current protected native fixture is active.
- assert json.loads(Path('factory/operational-proof-profiles.json').read_bytes())['profiles']==[]
- answer=replay.replay(replay_api,'test',runner=verified_runner,now=late)
+ # Deliberately invalid candidate registry is not the protected API trust source.
+ with tempfile.TemporaryDirectory() as candidate_directory:
+  candidate_root=Path(candidate_directory).resolve();(candidate_root/'factory').mkdir()
+  (candidate_root/m.REGISTRY).write_text('{"schema_version":1,"profiles":[{"untrusted":true}]}')
+  previous_cwd=Path.cwd()
+  try:
+   os.chdir(candidate_root)
+   assert json.loads(Path(m.REGISTRY).read_bytes())['profiles']==[{'untrusted':True}]
+   answer=replay.replay(replay_api,'test',runner=verified_runner,now=late)
+  finally:os.chdir(previous_cwd)
  assert answer['type']=='historical-operational-replay' and not any(answer['authority'].values())
  assert answer['record_sha256']==hashlib.sha256(raw).hexdigest() and replay_api.number<128
  replay_checks=0

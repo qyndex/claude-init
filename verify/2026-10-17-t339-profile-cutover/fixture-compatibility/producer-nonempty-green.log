@@ -1,0 +1,3 @@
+focused historical producer contracts: negative assertions=42; real Git CAS/opaque preservation; native API and verifier fixtures only
+all focused negative assertions=58
+operational producer local contracts PASS; native signing/installation/bootstrap remain pending
