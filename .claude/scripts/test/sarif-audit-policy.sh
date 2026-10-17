@@ -122,8 +122,8 @@ with tempfile.TemporaryDirectory(prefix='sarif-audit-policy-') as directory:
         else:passed+=1
     step=protected.split('- name: Verify trusted audit source\n',1)[1].split('\n      - name:',1)[0]
     script=step.split('        run: |\n',1)[1];script='\n'.join(line[10:] for line in script.splitlines() if line.startswith('          '))
-    bins=base/'bin';bins.mkdir();(bins/'git').write_text('#!/bin/sh\nprintf "%s\\n" "$FAKE_HEAD"\n');(bins/'git').chmod(0o755)
-    env={'PATH':str(bins)+os.pathsep+os.environ['PATH'],'GITHUB_SHA':'a'*40,'FAKE_HEAD':'a'*40,'GITHUB_REF':'refs/heads/main'}
+    bins=base/'bin';bins.mkdir();(bins/'git').write_text('#!/bin/sh\n[ \"$#\" = 4 ] && [ \"$1\" = -c ] && [ \"$2\" = \"safe.directory=$GITHUB_WORKSPACE\" ] && [ \"$3\" = rev-parse ] && [ \"$4\" = HEAD ] || exit 90\nprintf \"%s\\n\" \"$FAKE_HEAD\"\n');(bins/'git').chmod(0o755)
+    env={'PATH':str(bins)+os.pathsep+os.environ['PATH'],'GITHUB_SHA':'a'*40,'FAKE_HEAD':'a'*40,'GITHUB_REF':'refs/heads/main','GITHUB_WORKSPACE':str(source)}
     for ref,head,ok in [('refs/heads/main','a'*40,True),('refs/heads/topic','a'*40,False),('refs/heads/main','b'*40,False)]:
         env.update(GITHUB_REF=ref,FAKE_HEAD=head);p=subprocess.run(['bash','-e','-o','pipefail','-c',script],env=env,capture_output=True,text=True);assert (p.returncode==0)==ok,(ref,head,p.stderr);passed+=1
 print(f'SARIF exact-source audit policy: {passed} checks passed; {len(failures)} failed')
