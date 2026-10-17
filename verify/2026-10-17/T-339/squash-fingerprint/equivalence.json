@@ -1,0 +1,39 @@
+{
+  "raw_findings": 4,
+  "unique_fingerprints": 3,
+  "source": "public deterministic queue drill/recovery SHA256 identifiers; no credential values printed",
+  "matches": [
+    {
+      "path": "docs/activation/2026-10-16-queue-probe/live-proof.json",
+      "line": 2,
+      "whole_file_sha256": "dfc5feb969da212a80112b65fd4680aca1dd20ef8196a2b622f3af25009bfa2d",
+      "equal_old_reviewed_source": true,
+      "rule": "generic-api-key",
+      "fingerprint": "1defb2898993c164929c1643aefcedfa55714966:docs/activation/2026-10-16-queue-probe/live-proof.json:generic-api-key:2"
+    },
+    {
+      "path": "docs/activation/2026-10-16-queue-probe/live-proof.json",
+      "line": 7,
+      "whole_file_sha256": "dfc5feb969da212a80112b65fd4680aca1dd20ef8196a2b622f3af25009bfa2d",
+      "equal_old_reviewed_source": true,
+      "rule": "generic-api-key",
+      "fingerprint": "1defb2898993c164929c1643aefcedfa55714966:docs/activation/2026-10-16-queue-probe/live-proof.json:generic-api-key:7"
+    },
+    {
+      "path": "verify/2026-10-16/T-318/green.log",
+      "line": 7,
+      "whole_file_sha256": "598b91e284794af5328eda7776f425ea98f47c9f45a431e97e50dd69fadbdaf3",
+      "equal_old_reviewed_source": true,
+      "rule": "generic-api-key",
+      "fingerprint": "1defb2898993c164929c1643aefcedfa55714966:verify/2026-10-16/T-318/green.log:generic-api-key:7"
+    },
+    {
+      "path": "verify/2026-10-16/T-318/green.log",
+      "line": 7,
+      "whole_file_sha256": "598b91e284794af5328eda7776f425ea98f47c9f45a431e97e50dd69fadbdaf3",
+      "equal_old_reviewed_source": true,
+      "rule": "generic-api-key",
+      "fingerprint": "1defb2898993c164929c1643aefcedfa55714966:verify/2026-10-16/T-318/green.log:generic-api-key:7"
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+11:09PM INF Unknown SCM platform. Use --platform to include links in findings. host=
+11:09PM INF 154 commits scanned.
+11:09PM INF scanned ~23035371 bytes (23.04 MB) in 1.62s
+11:09PM WRN leaks found: 4

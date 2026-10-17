@@ -1,0 +1,3 @@
+# T339 squash fingerprint correction
+
+The protected-main squash1def introduced new commit-qualified fingerprints for the same byte-identical public deterministic queue drill/recovery hashes previously reviewed atfe68. Four actual scanner findings map to three unique exact fingerprints. All original fingerprints and detector configuration remain unchanged. Full reachable history RED exit1/four findings then GREEN exit0/zero findings under Gitleaks8.30.1. A fresh unrelated synthetic credential in a disposable Git repository still blocks exit1. No production, live approval or activation claim. Original proof/source bytes unchanged; equivalence.json records hashes and exact old-source comparison, not credential values.
