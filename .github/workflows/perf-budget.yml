@@ -36,7 +36,7 @@ jobs:
             echo "exists=0" >> "$GITHUB_OUTPUT"
             echo "no package.json build script — skipping bundle budget (backend-only or non-Node project)"
           fi
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@v7.1.0
         if: steps.detect.outputs.exists == '1'
         with: { node-version-file: 'package.json' }
       - if: steps.detect.outputs.exists == '1'
