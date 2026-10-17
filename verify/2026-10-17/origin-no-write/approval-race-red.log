@@ -1,0 +1,6 @@
+unchanged exact-head origin: GET-only calls 45 repeated 45
+Traceback (most recent call last):
+  File "<stdin>", line 84, in <module>
+  File "origin-no-write-real-git-fixture", line 137, in <module>
+  File "origin-no-write-real-git-fixture", line 108, in reject
+AssertionError: untrusted origin accepted origin changed

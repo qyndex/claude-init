@@ -1,0 +1,7 @@
+# TDD ledger — green — T-282
+ledger_format: 2
+timestamp: 2026-10-16T10:40:18+11:00
+command: bash .claude/scripts/test/factory-receipt-cas.sh
+exit_code: 0
+---
+11 real Git CAS/restart/conflict/preservation scenarios passed; no live state writes

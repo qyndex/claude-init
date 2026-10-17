@@ -1,0 +1,18 @@
+{
+  "base": "21c9910",
+  "prerequisite_original_commits": [
+    "6749aaf56bd5029628d3a2fcd9aa52e1963e564b",
+    "757dd4fd6bf59195e99f933b0e87f4618531a032"
+  ],
+  "prerequisite_local_commits": [
+    "32407f4",
+    "f1c9881"
+  ],
+  "files": {
+    ".claude/scripts/factory-reporting-alerts.py": "81dcef20524207e7677931e5b75726f5188909dd306434dfd3ef0f8ec2be6b43",
+    ".claude/scripts/factory-reporting-queue.py": "b86f3bf59ea2c2dfe0f45b12addc8c1560d9c70c21d98eef65645e787a343ef4",
+    ".claude/scripts/factory-hosted-feedback.py": "0b0dccb49d7cecd2dc6b518e4510aa62197da11d25f1ececc1acf2c7484bfbf6",
+    ".claude/scripts/factory-reporting-watchdog.py": "094dbda41ae27224553a3034e456643530a7caae14c6d6b285103b150481cb99",
+    ".claude/scripts/test/factory-reporting-cli-selection.sh": "6e446580db790fe717361f25aa197d28f22b8d233f402ae1b07215efdc7e507d"
+  }
+}

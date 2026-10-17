@@ -1,0 +1,33 @@
+{
+  "verdict": "changes_requested",
+  "findings": [
+    {
+      "severity": "medium",
+      "file": ".claude/scripts/factory-operational-proof.py",
+      "line": 212,
+      "title": "Durable verification binds repository by name only; certificate repository ID is never checked",
+      "reason": "The expected certificate fields at line 212 are all name-based: sourceRepositoryURI, SAN and runInvocationURI. The numeric repository.id is checked only in verify() against the live run API (line 184). verify_durable() and verify_completion() are designed to run without that API, so nothing authenticates repository.id in the durable path. The id in the signed record only has to equal the profile, and the record is written by the signer's workflow, so it can be copied. Scenario: the protected repo is deleted, or renamed and its name reclaimed, and someone else recreates org/repo. They push the same commit objects and workflow files so that source_sha and the runtime digests match the profile. Their workflows then sign a record and completion observation with fabricated content, copying the old repository.id and profile digest. Both certificates pass every name-based check. The reader accepts fabricated historical completion proof. Fulcio certificates carry the source repository identifier and owner identifier extensions for this case, and gh reports them as sourceRepositoryIdentifier and sourceRepositoryOwnerIdentifier. I could not confirm the exact gh JSON field names from the supplied code. The fix is to require cert['sourceRepositoryIdentifier'] == str(repository id) in _signature(), and likewise for the owner if the profile carries it. This applies to both the producer and completion certificates."
+    },
+    {
+      "severity": "low",
+      "file": ".claude/scripts/factory-operational-proof.py",
+      "line": 205,
+      "title": "gh>=2.93 gate is skipped whenever a caller supplies a runner",
+      "reason": "require_cli_version() runs only when native_runner is true (runner is None). verify(), verify_completion() and verify_durable() all take a public runner= parameter. A production consumer that passes its own bounded or sandboxed runner to run the real gh skips the GHSA-8xvp-7hj6-mcj9 version check. It then verifies attestations with a vulnerable gh and gets no error. The stated invariant is that native verification rejects gh<2.93. The check should run for any runner that executes real gh, or the runner parameter should be limited to the tests."
+    },
+    {
+      "severity": "low",
+      "file": ".claude/scripts/factory-operational-proof.py",
+      "line": 272,
+      "title": "verify_durable does not tie the completion profile's branch to the producer profile's branch",
+      "reason": "The cross-profile check compares only profile_id, profile_sha256 and repository between the two records. This module never recomputes profile_sha256 from profile content, and the producer and completion profiles have different shapes (original/producer versus upstream/observer). Equal digests therefore do not prove the profiles agree. _signature() derives ref and the expected certificate identity from each profile's own 'branch'. If completion_profile['branch'] differs from producer_profile['branch'], the original record is verified against one branch and the observation against another, and nothing flags it. For example, a stale or wrong completion profile could accept an observer signed from a non-main ref. The two profiles' branch and status should be compared explicitly. Their repository fields are already covered through the records."
+    }
+  ],
+  "limitations": [
+    "Static review of only the supplied file. Callers, the runner implementation (factory-bounded-process.py), the producer and observer workflows, and the registry were not visible.",
+    "The exact field names in gh attestation verify JSON output, such as sourceRepositoryIdentifier, were not confirmed against the real tool. Synthetic seams were not checked against real native proof output.",
+    "Imported receipt, GitState and transport primitives, and the missing activation and bootstrap, were treated as out of scope as instructed.",
+    "Minor robustness points were noted but not reported as findings. The \\d regex in stamp() accepts non-ASCII Unicode digits in fractions and offsets. stamp() can raise OverflowError instead of ValueError for extreme years with an offset. Neither is exploitable here, since all such inputs are signer-produced or already natively verified, and both fail closed."
+  ],
+  "review_summary": "The record, profile and completion validation, canonical JSON handling, time-window logic, native-run binding, subject digest binding and certificate field checks look correct for the supplied scope. I found one medium issue. The durable path, which deliberately avoids the run API, never authenticates the numeric repository ID from the certificate, so identity rests on a reusable repository name. I also found two low-severity gaps: the gh version gate is bypassed whenever a custom runner is passed, and the completion and producer profiles are not cross-checked for branch."
+}

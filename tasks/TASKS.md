@@ -42,6 +42,33 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
 
 **Hotfix tasks** (Round 12) carry extra fields: `fingerprint:` (Sentry dedup key), `sentry:` (permalink), `hotfix_issue:` (projected issue #). Inserted at the TOP of `## Active
 
+- [x] T-336  | spec:029  | phase:5  | priority: security  | created: 2026-10-17  | deps:   | parallel: no  | est: 5m
+  summary: Validate distinct authenticated historical operational proof
+  progress: Local strict historical contract and synthetic certificate-verifier seam verified; native producer, retention, replay and live proof remain T337-T339 pending
+  files: .claude/scripts/factory-operational-proof.py, .claude/scripts/test/factory-operational-proof.sh
+  accept: bash .claude/scripts/test/factory-operational-proof.sh
+  owner: codex
+
+- [x] T-337  | spec:029  | phase:5  | priority: security  | created: 2026-10-17  | deps: T-336  | parallel: no  | est: 5m
+  summary: Produce and retain protected signed historical operational proof
+  files: .claude/scripts/factory-operational-producer.py, .claude/scripts/factory-operational-proof.py, .claude/scripts/test/factory-operational-producer.sh, .claude/scripts/test/factory-operational-proof.sh, .github/workflows/factory-operational-proof.yml, .github/workflows/factory-operational-proof-retain.yml, factory/operational-proof-profiles.json, docs/activation/HISTORICAL-OPERATIONAL-PROOF.md
+  progress: Local dual-signed historical producer/completion/CAS contracts verified; registry empty and activation/native T339 proof pending
+  accept: bash .claude/scripts/test/factory-operational-producer.sh
+  owner: codex
+
+- [x] T-338  | spec:029  | phase:5  | priority: security  | created: 2026-10-17  | deps: T-337  | parallel: no  | est: 5m
+  summary: Replay historical operational acceptance with read-only PR authority
+  files: .claude/scripts/factory-operational-replay.py, .claude/scripts/test/factory-operational-replay.sh, docs/activation/HISTORICAL-OPERATIONAL-PROOF.md
+  progress: Local protected-registry dual-certificate replay verified; native T339 and original T318 publication closure remain pending
+  accept: bash .claude/scripts/test/factory-operational-replay.sh
+  owner: codex
+
+- [ ] T-339  | spec:029  | phase:5  | priority: security  | created: 2026-10-17  | deps: T-338  | parallel: no  | est: 5m
+  summary: Bootstrap genuine historical queue proof and verify native read-only replay
+  progress: Supporting repair for original T318; approved amendment2026-10-17, not new original-goal scope
+  accept: python3 .claude/scripts/factory-operational-replay.py --live --repository qyndex/claude-init --profile queue-pilot-20261016
+  owner: codex
+
 - [x] T-194  | spec:021  | phase:1  | priority: security  | created: 2026-10-10  | last_touched: 2026-10-10  | deps: T-193  | parallel: no  | est: 30m
   summary: Persist hosted digest state on a protected per-repository data branch with fenced atomic checkpoints
   files: .claude/scripts/factory-git-state.py, .github/workflows/factory-hosted-digest.yml
@@ -225,10 +252,10 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
   accept: bash .claude/scripts/test/autonomous-ship.sh
   owner: codex
 
-- [~] T-179  | spec:009  | phase:2  | priority: security  | created: 2026-10-09  | last_touched: 2026-10-09  | deps: T-177, T-178  | parallel: no  | est: 5m
+- [x] T-179  | spec:009  | phase:2  | priority: security  | created: 2026-10-09  | last_touched: 2026-10-17  | deps: T-177, T-178  | parallel: no  | est: 5m
   summary: Publish isolated activation draft PR and account bootstrap package
-  progress: PR #50 merged at 148238ad; account setup and authenticated shadow activation remain pending
-  accept: gh pr view "${FACTORY_ACTIVATION_PR:?}" --json state,isDraft | jq -e '.state == "OPEN" and .isDraft == true'
+  progress: Bootstrap publication verified at148238ad; protected account metadata retained. T180 capability, signed shadow and authority activation remain pending
+  accept: gh pr view "${FACTORY_ACTIVATION_PR:-https://github.com/qyndex/claude-init/pull/50}" --json state,isDraft,mergeCommit | jq -e '.state == "MERGED" and .mergeCommit.oid == "148238ad8950681d352985cdb9c48ad0301e97d3"'
   owner: codex
 
 - [b] T-180  | spec:009  | phase:3  | priority: security  | created: 2026-10-09  | last_touched: 2026-10-09  | deps: T-179  | parallel: no  | est: 5m
@@ -1691,6 +1718,123 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-request-intake.sh worker-outcome
   owner: implementer
 
+## Approved Spec 014 durable receipt continuation
+
+- [x] T-275  | spec:014  | phase:1  | priority: security  | created: 2026-10-16  | deps: T-187  | parallel: no  | est: 5m
+  summary: Parse strict external receipt profiles and explicit legacy mode
+  files: .claude/scripts/factory-receipts.py, factory/receipt-trust.json, .claude/scripts/test/factory-receipt-profiles.sh
+  accept: bash .claude/scripts/test/factory-receipt-profiles.sh
+  owner: implementer
+
+- [x] T-276  | spec:014  | phase:1  | priority: security  | created: 2026-10-16  | deps: T-275  | parallel: no  | est: 5m
+  summary: Authenticate immutable run workflow path and complete emitter source closure
+  files: .claude/scripts/factory-receipts.py, .claude/scripts/test/factory-receipt-source.sh, .claude/scripts/test/factory-receipt-projection.sh, .claude/scripts/test/factory-receipts-recovery.sh
+  accept: bash .claude/scripts/test/factory-receipt-source.sh
+  owner: implementer
+
+- [x] T-277  | spec:014  | phase:1  | priority: security  | created: 2026-10-16  | deps: T-276  | parallel: no  | est: 5m
+  summary: Accept equivalent ordinary source commits while rejecting changed authority bytes
+  files: .claude/scripts/factory-receipts.py, .claude/scripts/test/factory-receipt-equivalence.sh
+  accept: bash .claude/scripts/test/factory-receipt-equivalence.sh
+  owner: implementer
+
+- [x] T-278  | spec:014  | phase:1  | priority: security  | created: 2026-10-16  | deps: T-277  | parallel: no  | est: 5m
+  summary: Enforce profile revocation and current-task versus historical report separation
+  files: .claude/scripts/factory-receipts.py, .claude/scripts/test/factory-receipt-revocation.sh, plans/active/014-authenticated-receipt-recovery.md
+  accept: bash .claude/scripts/test/factory-receipt-revocation.sh
+  owner: implementer
+
+- [x] T-279  | spec:014  | phase:2  | priority: security  | created: 2026-10-16  | deps: T-278  | parallel: no  | est: 5m
+  summary: Validate bounded compact archive records and shared proof material
+  files: .claude/scripts/factory-receipt-archive.py, .claude/scripts/test/factory-receipt-archive.sh, .claude/scripts/factory-receipts.py, .claude/scripts/test/factory-receipt-projection.sh, .claude/scripts/test/factory-receipts-recovery.sh
+  accept: bash .claude/scripts/test/factory-receipt-archive.sh
+  owner: implementer
+
+- [x] T-280  | spec:014  | phase:2  | priority: security  | created: 2026-10-16  | deps: T-279  | parallel: no  | est: 5m
+  summary: Authenticate archive bootstrap origin and explicit coverage boundary
+  files: .claude/scripts/factory-receipt-archive.py, .claude/scripts/test/factory-receipt-bootstrap.sh, plans/active/014-authenticated-receipt-recovery.md
+  accept: bash .claude/scripts/test/factory-receipt-bootstrap.sh
+  owner: implementer
+
+- [x] T-281  | spec:014  | phase:2  | priority: security  | created: 2026-10-16  | deps: T-280  | parallel: no  | est: 5m
+  summary: Extend exact data-only state paths for bounded immutable archive segments
+  files: .claude/scripts/factory-git-state.py, .claude/scripts/factory-receipt-archive.py, .claude/scripts/test/factory-receipt-state-paths.sh, .claude/scripts/factory-state-paths.py, .claude/scripts/test/factory-receipt-bootstrap.sh, plans/active/014-authenticated-receipt-recovery.md
+  accept: bash .claude/scripts/test/factory-receipt-state-paths.sh
+  owner: implementer
+
+- [x] T-282  | spec:014  | phase:2  | priority: security  | created: 2026-10-16  | deps: T-281  | parallel: no  | est: 5m
+  summary: Append authenticated records with atomic CAS and encrypted-state preservation
+  files: .claude/scripts/factory-git-state.py, .claude/scripts/factory-receipt-archive.py, .claude/scripts/test/factory-receipt-cas.sh, .claude/scripts/factory-state-paths.py, .claude/scripts/test/factory-receipt-state-paths.sh, plans/active/014-authenticated-receipt-recovery.md
+  accept: bash .claude/scripts/test/factory-receipt-cas.sh
+  owner: implementer
+
+- [x] T-283  | spec:014  | phase:2  | priority: security  | created: 2026-10-16  | deps: T-282  | parallel: no  | est: 5m
+  summary: Reconstruct reporting-only proof after artifact expiry with privacy isolation
+  files: .claude/scripts/factory-receipts.py, .claude/scripts/factory-receipt-archive.py, .claude/scripts/test/factory-receipt-retained-proof.sh, plans/active/014-authenticated-receipt-recovery.md, verify/2026-10-16/T-277/README.md, verify/2026-10-16/T-277/red.log, verify/2026-10-16/T-277/green.log, verify/2026-10-16/T-277/original-red.log, verify/2026-10-16/T-277/original-green.log
+  accept: bash .claude/scripts/test/factory-receipt-retained-proof.sh
+  owner: implementer
+
+- [x] T-284  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-283  | parallel: no  | est: 5m
+  summary: Persist bounded segmented discovery cursor and unresolved attempt journal
+  files: .claude/scripts/factory-receipt-discovery.py, .claude/scripts/test/factory-receipt-discovery.sh, .claude/scripts/factory-state-paths.py, .claude/scripts/test/factory-receipt-state-paths.sh, plans/active/014-authenticated-receipt-recovery.md, .claude/scripts/factory-receipt-archive.py
+  accept: bash .claude/scripts/test/factory-receipt-discovery.sh
+  owner: implementer
+
+- [x] T-285  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-284  | parallel: no  | est: 5m
+  summary: Reconcile reruns late visibility and non-delivery outcomes without omissions
+  files: .claude/scripts/factory-receipt-discovery.py, .claude/scripts/test/factory-receipt-reruns.sh, .claude/scripts/factory-receipts.py, .claude/scripts/factory-receipt-archive.py, .claude/scripts/factory-state-paths.py, .claude/scripts/test/factory-receipt-state-paths.sh, plans/active/014-authenticated-receipt-recovery.md
+  accept: bash .claude/scripts/test/factory-receipt-reruns.sh
+  owner: implementer
+
+- [x] T-286  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-285,T-293,T-294,T-295,T-310  | parallel: no  | est: 5m
+  summary: Resume cold-start backfill and expose pagination or required-history gaps
+  files: .claude/scripts/factory-receipt-discovery.py, .claude/scripts/test/factory-receipt-coverage.sh, .claude/scripts/factory-receipt-archive.py, plans/active/014-authenticated-receipt-recovery.md
+  accept: bash .claude/scripts/test/factory-receipt-coverage.sh
+  owner: implementer
+
+- [x] T-287  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-286  | parallel: no  | est: 5m
+  summary: Prove bounded discovery beyond one thousand historical runs without pruning
+  files: .claude/scripts/test/factory-receipt-git-objects.py, .claude/scripts/test/factory-receipt-git-objects.sh, .claude/scripts/test/factory-receipt-history-fixture.sh, .gitleaksignore, .claude/scripts/test/factory-receipt-pr-batch.sh, .claude/scripts/test/factory-receipt-bootstrap-delta.sh, .claude/scripts/test/factory-receipt-coverage-batch.sh, .claude/scripts/test/factory-receipt-history-reader.py, .claude/scripts/test/factory-receipt-blob-provider.py, .claude/scripts/test/factory-receipt-projection-resume.sh, .claude/scripts/test/factory-receipt-origin-windows.sh, .claude/scripts/test/factory-receipt-projection-checkpoint.sh, .claude/scripts/test/factory-receipt-projection-windows.sh, .claude/scripts/test/factory-receipt-cas.sh, .claude/scripts/test/factory-receipt-blob-batch.sh, .claude/scripts/factory-git-state.py, .claude/scripts/test/factory-receipt-compare-metadata.sh, .claude/scripts/test/factory-state-scan-cost.sh, .claude/scripts/test/factory-receipt-discovery-compare.sh, .claude/scripts/test/factory-receipt-discovery-chain.sh, .claude/scripts/factory-receipt-discovery.py, .claude/scripts/factory-receipt-archive.py, .claude/scripts/factory-state-paths.py, .claude/scripts/test/factory-receipt-history.sh, .claude/scripts/test/factory-receipt-prior-attempts.sh, .claude/scripts/test/factory-state-delta.sh, .claude/scripts/test/factory-receipt-coverage.sh, plans/active/014-authenticated-receipt-recovery.md
+  accept: bash .claude/scripts/test/factory-state-scan-cost.sh && bash .claude/scripts/test/factory-receipt-history.sh
+  owner: implementer
+
+- [x] T-288  | spec:014  | phase:4  | priority: security  | created: 2026-10-16  | deps: T-287,T-335  | parallel: no  | est: 5m
+  summary: Integrate profiles archive and discovery into digest and alert loaders
+  files: .github/workflows/factory-hosted-digest.yml, .github/workflows/factory-reporting-alerts.yml, .claude/scripts/factory-receipts.py, .claude/scripts/test/factory-receipt-reporting.sh
+  accept: bash .claude/scripts/test/factory-receipt-reporting.sh
+  owner: implementer
+
+- [x] T-289  | spec:014  | phase:4  | priority: security  | created: 2026-10-16  | deps: T-288  | parallel: no  | est: 5m
+  summary: Gate readiness on audited bootstrap private-store capability and retained proof
+  files: .claude/scripts/factory-preflight.py, docs/FACTORY-DIGEST.md, docs/FACTORY-ADOPTER-SETUP.md, .claude/scripts/test/factory-receipt-readiness.sh
+  accept: bash .claude/scripts/test/factory-receipt-readiness.sh
+  owner: implementer
+
+- [x] T-290  | spec:014  | phase:4  | priority: security  | created: 2026-10-16  | deps: T-289  | parallel: no  | est: 5m
+  summary: Verify complete receipt continuation and unchanged guardian recovery contracts
+  files: .claude/scripts/test/factory-receipt-continuation.sh, docs/FACTORY-DIGEST.md
+  accept: bash .claude/scripts/test/factory-receipt-continuation.sh
+  owner: implementer
+
+
+- [x] T-293  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-285  | parallel: no  | est: 5m
+  summary: Authenticate bounded archive ancestry and persist checked inert-tree scan windows
+  files: .claude/scripts/factory-receipt-archive.py, .claude/scripts/factory-receipt-discovery.py, .claude/scripts/factory-state-paths.py, .claude/scripts/test/factory-receipt-origin-windows.sh, plans/active/014-authenticated-receipt-recovery.md
+  accept: bash .claude/scripts/test/factory-receipt-origin-windows.sh
+  owner: implementer
+
+- [x] T-294  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-293  | parallel: no  | est: 5m
+  summary: Persist partitioned source backfill with capped-query and required-history gaps
+  files: .claude/scripts/factory-receipt-discovery.py, .claude/scripts/factory-state-paths.py, .claude/scripts/test/factory-receipt-backfill.sh, plans/active/014-authenticated-receipt-recovery.md
+  accept: bash .claude/scripts/test/factory-receipt-backfill.sh
+  owner: implementer
+
+- [x] T-295  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-294,T-299,T-302  | parallel: no  | est: 5m
+  summary: Resume protected retained-proof windows across fresh hosted SQLite projections
+  files: .claude/scripts/factory-receipt-archive.py, .claude/scripts/factory-receipt-discovery.py, .claude/scripts/factory-receipts.py, .claude/scripts/factory-state-paths.py, .claude/scripts/test/factory-receipt-projection-windows.sh, plans/active/014-authenticated-receipt-recovery.md
+  accept: bash .claude/scripts/test/factory-receipt-projection-windows.sh
+  owner: implementer
+
 - [x] T-292  | spec:010  | phase:1  | priority: security  | created: 2026-10-16  | deps: T-291,T-296,T-297,T-298  | parallel: no  | est: 5m
   summary: Verify complete protected policy observation repair
   files: specs/active/010-protected-proof-producers.md, plans/active/010-protected-proof-producers.md
@@ -1737,6 +1881,59 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   summary: Preserve unavailable diagnostic marker separately from rejection category
   files: .claude/scripts/factory-coordinator.py, .claude/scripts/test/factory-policy-observation-diagnostic.sh, factory/policy.json, plans/active/010-protected-proof-producers.md
   accept: bash .claude/scripts/test/factory-policy-observation-diagnostic.sh
+
+- [x] T-299  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-294,T-292  | parallel: no  | est: 5m
+  summary: Integrate current seven-file runtime while preserving authenticated historical six-file facts
+  files: .claude/scripts/factory-receipts.py, .claude/scripts/factory-receipt-archive.py, .claude/scripts/factory-receipt-discovery.py, .claude/scripts/factory-preflight.py, .claude/scripts/test/factory-receipt-runtime-compatibility.sh, .claude/scripts/test/factory-receipt-profiles.sh, .claude/scripts/test/factory-receipt-source.sh, .claude/scripts/test/factory-receipt-archive.sh, .claude/scripts/test/factory-receipt-retained-proof.sh, .claude/scripts/test/factory-receipt-revocation.sh, plans/active/014-authenticated-receipt-recovery.md
+  accept: bash .claude/scripts/test/factory-receipt-runtime-compatibility.sh
+  owner: implementer
+
+- [x] T-300  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-294,T-299  | parallel: no  | est: 5m
+  summary: Validate bounded frozen-view retained projection windows
+  files: .claude/scripts/factory-receipt-archive.py, .claude/scripts/test/factory-receipt-projection-window.sh, plans/active/014-authenticated-receipt-recovery.md
+  accept: bash .claude/scripts/test/factory-receipt-projection-window.sh
+  owner: implementer
+
+- [x] T-301  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-300  | parallel: no  | est: 5m
+  summary: Publish authenticated retained projection checkpoints atomically
+  files: .claude/scripts/factory-receipt-archive.py, .claude/scripts/factory-state-paths.py, .claude/scripts/test/factory-receipt-projection-checkpoint.sh, .claude/scripts/test/factory-receipt-projection-window.sh, plans/active/014-authenticated-receipt-recovery.md
+  accept: bash .claude/scripts/test/factory-receipt-projection-checkpoint.sh
+  owner: implementer
+
+- [x] T-302  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-301,T-309  | parallel: no  | est: 5m
+  summary: Resume bounded retained reporting reconstruction across fresh hosted processes
+  files: .claude/scripts/factory-receipt-archive.py, .claude/scripts/test/factory-receipt-projection-resume.sh, .claude/scripts/test/factory-receipt-retained-proof.sh, plans/active/014-authenticated-receipt-recovery.md
+  accept: bash .claude/scripts/test/factory-receipt-projection-resume.sh
+  owner: implementer
+
+- [x] T-306  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-301  | parallel: no  | est: 5m
+  summary: Read bounded projection window lineage from authenticated publications
+  files: .claude/scripts/factory-receipt-archive.py, .claude/scripts/test/factory-receipt-projection-lineage.sh, plans/active/014-authenticated-receipt-recovery.md
+  accept: bash .claude/scripts/test/factory-receipt-projection-lineage.sh
+  owner: implementer
+
+- [x] T-307  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-306  | parallel: no  | est: 5m
+  summary: Authenticate exact retained PR merge times without inventing historical dates
+  files: .claude/scripts/factory-receipt-archive.py, .claude/scripts/test/factory-receipt-projection-time.sh, plans/active/014-authenticated-receipt-recovery.md
+  accept: bash .claude/scripts/test/factory-receipt-projection-time.sh
+  owner: implementer
+
+- [x] T-308  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-307  | parallel: no  | est: 5m
+  summary: Persist bounded report reconstruction stages with global conflict guards
+  files: .claude/scripts/factory-receipt-archive.py, .claude/scripts/factory-state-paths.py, .claude/scripts/test/factory-receipt-projection-stage.sh, plans/active/014-authenticated-receipt-recovery.md
+  accept: bash .claude/scripts/test/factory-receipt-projection-stage.sh
+  owner: implementer
+
+- [x] T-309  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-308  | parallel: no  | est: 5m
+  summary: Reconstruct requested interval facts across fresh SQLite processes
+  files: .claude/scripts/factory-receipt-archive.py, .claude/scripts/test/factory-receipt-projection-resume.sh, .claude/scripts/test/factory-receipt-retained-proof.sh, .claude/scripts/test/factory-receipt-origin-windows.sh, plans/active/014-authenticated-receipt-recovery.md
+  accept: bash .claude/scripts/test/factory-receipt-projection-resume.sh
+  owner: implementer
+
+- [x] T-310  | spec:014  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-293,T-302  | parallel: no  | est: 5m
+  summary: Integrate completed protected origin before large-history acceptance
+  files: .claude/scripts/factory-receipt-archive.py, .claude/scripts/factory-receipt-discovery.py, .claude/scripts/test/factory-receipt-completed-origin.sh, .claude/scripts/test/factory-receipt-origin-windows.sh, plans/active/014-authenticated-receipt-recovery.md
+  accept: bash .claude/scripts/test/factory-receipt-completed-origin.sh
   owner: implementer
 
 - [x] T-312  | spec:029  | phase:1  | priority: security  | created: 2026-10-16  | deps: T-203  | parallel: no  | est: 5m
@@ -1775,15 +1972,53 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-reporting-queue.sh
   owner: implementer
 
-- [ ] T-318  | spec:029  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-317  | parallel: no  | est: 5m
+- [b] T-318  | spec:029  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-317,T-339  | parallel: no  | est: 5m
   summary: Verify labelled live queue drill recovery and unchanged worker state
-  files: docs/activation/2026-10-16-queue-probe/README.md, plans/active/029-github-reporting-alerts.md
-  accept: bash .claude/scripts/test/factory-reporting-queue-live-evidence.sh --live
+  progress: Original native administrative observation retained; publication closure deferred until genuine authenticated replay T339
+  files: docs/activation/2026-10-16-queue-probe/README.md, plans/active/029-github-reporting-alerts.md, docs/FACTORY-DIGEST.md, docs/FACTORY-ADOPTER-SETUP.md
+  accept: python3 .claude/scripts/factory-operational-replay.py --live --repository qyndex/claude-init --profile queue-pilot-20261016
   owner: implementer
-  blocked_by: Reviewed source rollout and exact protected role-journal initialization; live drill not run
 
 - [x] T-325  | spec:029  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-324  | parallel: no  | est: 5m
   summary: Recognize actual timestamped Actions command markers without relaxing result parsing
   files: .claude/scripts/factory-reporting-queue-evidence.py, .claude/scripts/test/factory-reporting-queue-evidence-source.sh, plans/active/029-github-reporting-alerts.md
   accept: bash .claude/scripts/test/factory-reporting-queue-evidence-source.sh
+  owner: implementer
+
+## Approved Spec014 sequential reporting integration children
+
+- [x] T-330  | spec:014  | phase:4  | priority: security  | created: 2026-10-17  | deps: T-287  | parallel: no  | est: 5m
+  summary: Authenticate separately protected reporting-writer policy observations
+  files: .claude/scripts/factory-reporting-policy.py, .claude/scripts/factory-receipt-archive.py, .claude/scripts/test/factory-reporting-policy.sh
+  accept: bash .claude/scripts/test/factory-reporting-policy.sh
+  owner: implementer
+
+- [x] T-331  | spec:014  | phase:4  | priority: security  | created: 2026-10-17  | deps: T-330  | parallel: no  | est: 5m
+  summary: Route reporting source and state reads through explicit bounded roles
+  files: .claude/scripts/factory-reporting-transport.py, .claude/scripts/test/factory-reporting-transport.sh
+  accept: bash .claude/scripts/test/factory-reporting-transport.sh
+  owner: implementer
+
+- [x] T-332  | spec:014  | phase:4  | priority: security  | created: 2026-10-17  | deps: T-331  | parallel: no  | est: 5m
+  summary: Load bounded authenticated report views across shared state consumers
+  files: .claude/scripts/factory-git-state.py, .claude/scripts/factory-reporting-queue.py, .claude/scripts/factory-hosted-feedback.py, .claude/scripts/factory-reporting-watchdog.py, .claude/scripts/test/factory-reporting-state-view.sh
+  accept: bash .claude/scripts/test/factory-reporting-state-view.sh
+  owner: implementer
+
+- [x] T-333  | spec:014  | phase:4  | priority: security  | created: 2026-10-17  | deps: T-332  | parallel: no  | est: 5m
+  summary: Transfer authenticated interval receipts into reporting with typed trust semantics
+  files: .claude/scripts/factory-receipts.py, .claude/scripts/factory-digest.py, .claude/scripts/factory-reporting-receipts.py, .claude/scripts/factory-slack-digest.py, .claude/scripts/test/factory-reporting-receipt-transfer.sh
+  accept: bash .claude/scripts/test/factory-reporting-receipt-transfer.sh
+  owner: implementer
+
+- [x] T-334  | spec:014  | phase:4  | priority: security  | created: 2026-10-17  | deps: T-333  | parallel: no  | est: 5m
+  summary: Resume protected maintenance before fresh reporting snapshots
+  files: .claude/scripts/factory-reporting-maintenance.py, .claude/scripts/factory-git-state.py, .claude/scripts/factory-reporting-alerts.py, .claude/scripts/factory-receipts.py, .claude/scripts/factory-receipt-archive.py, .claude/scripts/factory-receipt-discovery.py, .claude/scripts/test/factory-reporting-intervals.sh, .claude/scripts/test/factory-reporting-maintenance.sh, .claude/scripts/factory-reporting-receipts.py, .claude/scripts/test/factory-reporting-hosted-maintenance.sh, .claude/scripts/factory-reporting-transport.py, .claude/scripts/test/factory-reporting-transport.sh, .claude/scripts/test/factory-reporting-transport-cache.sh, .claude/scripts/test/factory-reporting-composition-probe.py, .claude/scripts/factory-digest.py, .claude/scripts/factory-reporting-pr-discovery.py, .claude/scripts/test/factory-reporting-pr-discovery.sh, .claude/scripts/test/factory-reporting-pr-checkpoint.sh, .claude/scripts/test/factory-reporting-pr-prepass.sh, .claude/scripts/test/factory-reporting-tail-probe.py, .claude/scripts/test/factory-reporting-context.sh, .claude/scripts/test/factory-reporting-stage-ack.sh, .claude/scripts/factory-reporting-driver.py, .claude/scripts/test/factory-reporting-driver.sh, .claude/scripts/test/factory-receipt-origin-no-write.sh, .claude/scripts/test/factory-reporting-review-throughput.sh, .claude/scripts/test/factory-reporting-rollover.sh, .claude/scripts/test/factory-receipt-stage-anchor.sh, .claude/scripts/test/factory-receipt-discovery-review.sh, .claude/scripts/test/factory-reporting-compare-cache.sh, .claude/scripts/test/factory-reporting-maintenance-liveness.sh
+  accept: bash .claude/scripts/test/factory-reporting-maintenance.sh
+  owner: implementer
+
+- [x] T-335  | spec:014  | phase:4  | priority: security  | created: 2026-10-17  | deps: T-334  | parallel: no  | est: 5m
+  summary: Wire default-off reporting App workflows and complete consumer source closure
+  files: .github/workflows/factory-hosted-digest.yml, .github/workflows/factory-reporting-alerts.yml, .github/workflows/factory-reporting-queue.yml, .github/workflows/factory-hosted-feedback.yml, .claude/scripts/factory-git-state.py, .claude/scripts/factory-reporting-alerts.py, .claude/scripts/factory-reporting-queue.py, .claude/scripts/factory-hosted-feedback.py, .claude/scripts/test/factory-receipt-reporting.sh, .claude/scripts/factory-reporting-watchdog.py, .claude/scripts/factory-reporting-queue-evidence.py, .claude/scripts/test/factory-reporting-cli-selection.sh, .claude/scripts/test/factory-hosted-digest-cli.sh, .claude/scripts/test/factory-reporting-driver-workflow.sh, .claude/scripts/test/factory-reporting-queue-evidence-source.sh, .claude/scripts/factory-digest.py, .claude/scripts/test/factory-digest-confirm.sh, .claude/scripts/test/factory-reporting-driver-public.py, .claude/scripts/test/factory-reporting-queue-actions.sh, .claude/scripts/test/factory-reporting-queue-context.sh, .claude/scripts/test/factory-reporting-queue-immutable.sh, .claude/scripts/test/factory-reporting-queue-scheduled.sh, .claude/scripts/test/factory-reporting-driver-quiet.py, .claude/scripts/test/factory-workflow-baseline.sh, .claude/scripts/test/factory-policy-approval.sh
+  accept: bash .claude/scripts/test/factory-receipt-reporting.sh
   owner: implementer

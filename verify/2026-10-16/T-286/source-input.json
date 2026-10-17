@@ -1,0 +1,20 @@
+{
+  "task": "T-286",
+  "source_base": "ddea366d3dc0004e8bfed3ddd055c30d3323dc03",
+  "runtime_and_test_sha256": {
+    ".claude/scripts/factory-receipt-archive.py": "21c6aab3dc670d4fb1c4c7a5ce17a0869ee8fe73ff9148a79f82b2ddd2c09a66",
+    ".claude/scripts/factory-receipt-discovery.py": "6f3f5aa0520630e2a52f8a2927cf6cc6f2d89e194577233aac1b072c49e4d184",
+    ".claude/scripts/test/factory-receipt-coverage.sh": "4bce46ee89be729dde49368ba3f1923fdfdd11dc7b0025d77786ae2717c2dca5"
+  },
+  "command": "bash .claude/scripts/test/factory-receipt-coverage.sh",
+  "verification_mode": "offline-real-git-contract",
+  "live_activation_verified": false,
+  "all_history_complete": false,
+  "task_credit": false,
+  "large_retained_history_pending": "T-287",
+  "final_loader_and_App_cutover_pending": "T-288",
+  "final_green_log_sha256": "5d1b67cac309a9232362b094a51f230cd79718dfe95988069344f568d49e86ce",
+  "final_green_exit_code": 0,
+  "final_case_groups": 3,
+  "focused_partition_count_green_exit_code": 0
+}

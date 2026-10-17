@@ -1,0 +1,3 @@
+25 immutable receipt source cases passed
+
+exit_code: 0

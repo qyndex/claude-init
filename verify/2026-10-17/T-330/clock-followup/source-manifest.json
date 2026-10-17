@@ -1,0 +1,10 @@
+{
+  "base": "43bb02f",
+  "timestamp": "2026-10-16T14:01:55.117656+00:00",
+  "files": {
+    ".claude/scripts/factory-reporting-policy.py": "a8d05f5225674462d990686c60ca96ca7fcf35c2007eed1ef2e22b3df9f79672",
+    ".claude/scripts/factory-receipt-archive.py": "7f47cfca34c8bc5181ee351f5dd0d86cf139bbb3ba102bffcd0ffb9071ed2095",
+    ".claude/scripts/factory-receipt-discovery.py": "05c913199d8b5a29524f83e9138fefd5dc7542ef43f19ebe7028664a9643970c",
+    ".claude/scripts/test/factory-reporting-policy.sh": "8ccdef2ea213078bfb58736f77fc81f410b708a7604c3d58daa3b82bc3d2ab83"
+  }
+}

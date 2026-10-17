@@ -1,0 +1,14 @@
+{
+  "requested_model": "claude-sonnet-5-5",
+  "observed_models": [
+    "claude-sonnet-5-5"
+  ],
+  "exit_code": 0,
+  "completed_at": "2026-10-17T01:16:32.795527+00:00",
+  "num_turns": 2,
+  "permission_denials": [],
+  "native_attestation": false,
+  "static_review_only": true,
+  "raw_execution_sha256": "35024453d9a1bb11860bfa29d5224e5ef4a834949af96612d0101a20c4c08b97",
+  "raw_stdout_sha256": "079ef6451067ce9dc2e38b1faddd7581c3f8e6e1234ca29006f0f690cf01614a"
+}

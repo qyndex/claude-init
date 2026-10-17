@@ -1,0 +1,44 @@
+{
+  "purpose": "Independent read-only real-Git fixture metadata equivalence; no source/guard change",
+  "snapshot_head": "77cc17804f3acc3efe78e93e0e4949c2d88ccd77",
+  "tree_samples": [
+    {
+      "tree_sha": "a41f4d3748bfafedc8d75add5c8602acd7908fa0",
+      "entries": 3,
+      "identical": true,
+      "metadata_sha256": "f48677c24db6088a0944edf3f4a771d2b9bf62a4b50ad0ca0b6c64d6619464b4"
+    },
+    {
+      "tree_sha": "431b77e55a868538ffcefaa80e96809c9661baf8",
+      "entries": 5,
+      "identical": true,
+      "metadata_sha256": "c6afa661e5b5744d38d3ea9fac5ae5e497e4acfaa8b55a6014e7135b8576baec"
+    },
+    {
+      "tree_sha": "8871a68039cbc8047fa59e37af6c76dea001f266",
+      "entries": 1,
+      "identical": true,
+      "metadata_sha256": "13e7fd9272297ff95f97475398762af8753db838b6cfc6f8742d4c10e98586f6"
+    },
+    {
+      "tree_sha": "1b1c1946d334421e07f01c8d3e5ce734f3358242",
+      "entries": 1,
+      "identical": true,
+      "metadata_sha256": "d60ff00bbaf2239b5b4a5fa10e63ad94fc7130086fe1fe868084d393fdb1c8f1"
+    },
+    {
+      "tree_sha": "9033913c889a6417f32cfbbd26b39dbf77fd63f0",
+      "entries": 1,
+      "identical": true,
+      "metadata_sha256": "c57c64105ed2c5b96e3c5f5680a8a49f40b5e217f1b698d2098846d5526c5239"
+    },
+    {
+      "tree_sha": "081ccd8782a5c66cb8c7a10a5fabf6ffa23e1b3a",
+      "entries": 1,
+      "identical": true,
+      "metadata_sha256": "062012e4e36945665bf05fa4ede3c31ed8e333d5606d981b2bab699b07a99d5f"
+    }
+  ],
+  "consumer_API_or_byte_charges_changed": false,
+  "secret_values_read": false
+}

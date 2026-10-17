@@ -1,0 +1,20 @@
+{
+  "actual_result": {
+    "source_commit": "83761689af4eee8d6ba64f438102fdcc02e2d050",
+    "command": [
+      "bash",
+      ".claude/scripts/test/factory-reporting-queue.sh"
+    ],
+    "inputs": {
+      ".claude/scripts/test/factory-workflow-baseline.sh": "71949b60b5183ff15de8491dca257e71211e54a536b9ea787d5e9a8bf65561f3",
+      ".claude/scripts/test/factory-reporting-queue.sh": "befb2e8ae7edf511d7b48452fff6e21fca0f47c7273ce345e6ca2c4e9c02306f",
+      ".github/workflows/factory-reporting-queue.yml": "0098aa17dd30b94d5351380ba7ef118cc6238ed5fbfc3399209885e84b22f7fd"
+    },
+    "maximum_seconds": 300,
+    "started_at": "2026-10-16T17:56:51.691387+00:00",
+    "native_or_cadence_claim": false,
+    "exit_code": 0,
+    "completed_at": "2026-10-16T17:57:11.434242+00:00"
+  },
+  "scope": "Current local contract proof only; historical native T318 proof remains separately source-bound. No current App-mode rollout or cadence claim."
+}

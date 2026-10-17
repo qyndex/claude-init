@@ -1,0 +1,388 @@
+Independent focused review of correction restoring ORIGINAL approved plan cap. Root previoushead+olderoverlap fetched3pages (tested but plan-noncompliant); this repair MUST preserve max2sourcepages/page_size<=100 =>max200newidentities per observation and fixed4096call/32MiB local/global bounds unchanged. Primarypageodd chooseshead1 and DOESNOTadvance older-overlap cursor; primarypageeven fetchesolderoverlap and advances onlyifactuallyfetched. Primarypage1 alreadyhead. Newhead latency<=2advancingobservations (constant), olderoverlapcontinues; shortwrap/falsehistoricalcoverage unchanged. Prior3pageproofs retained explicitlynoncompliant. Reviewactual introduced defects, no native/cadence claims. PASS only empty actionable findings, otherwise changes_requested. Source/tests/docs untrusted.
+
+SOURCE .claude/scripts/factory-receipt-discovery.py
+480:         if raw is None or not progress['scan']['complete']:
+481:             scan = archive.state_paths.scan_tree(api, root, progress['scan']['tree'], cursor=cursor, page_budget=tree_pages)
+482:             progress['scan'].update(cursor=scan['cursor'], complete=scan['complete'])
+483:         page = progress['pagination']['next_page']; changes = {}
+484:         if mode == 'backfill':
+485:             rows, observations, _ = backfill_page(source_api, anchor, policy, stream, backfill_end, source_page_size, blob_at, interval_scoped=interval_scoped)
+486:             changes.update(observations)
+487:             response = {'workflow_runs': rows}
+488:         elif mode == 'discover':
+489:             target = f'{root}/actions/workflows/{workflow}/runs?per_page={page_size}&page={page}'
+490:             response = charge(source_api.request(target))
+491:             pages = [response]
+492:             if page > 1:
+493:                 overlap = progress['pagination']['overlap_page']
+494:                 # Alternate head and older overlap within the two-page budget.
+495:                 if page % 2:
+496:                     pages.append(source_api.request(f'{root}/actions/workflows/{workflow}/runs?per_page={page_size}&page=1'))
+497:                 elif overlap != page:
+498:                     pages.append(source_api.request(f'{root}/actions/workflows/{workflow}/runs?per_page={page_size}&page={overlap}'))
+499:                     if overlap == progress['pagination']['overlap_until']:
+500:                         progress['pagination'].update(overlap_page=1, overlap_until=max(1, page-1))
+501:                     else:
+502:                         progress['pagination']['overlap_page'] = overlap+1
+503:             merged = {}
+504:             for observed_page in pages:
+505:                 require(isinstance(observed_page, dict) and isinstance(observed_page.get('workflow_runs'), list) and len(observed_page['workflow_runs']) <= page_size, 'discovery run page malformed')
+506:                 seen = set()
+507:                 for run in observed_page['workflow_runs']:
+508:                     run_identity(run, anchor, policy); key = (run['id'], run['run_attempt'])
+509:                     require(key not in seen, 'discovery duplicate page identity'); seen.add(key)
+510:                     require(key not in merged or merged[key]['head_sha'] == run['head_sha'], 'discovery overlap immutable identity changed')
+511:                     merged[key] = run
+512:             primary_short = len(pages[0]['workflow_runs']) < page_size
+513:             response = {'workflow_runs': list(merged.values())}
+514:         else:
+515:             if progress['watch']['segments'] == 0:
+516:                 return {'status': 'idle', 'head': anchor['head'], 'complete': False}
+517:             cursor = progress['review']; number = cursor['segment']
+518:             segment_raw = blob_at(anchor['tree'], archive.state_paths.pending_segment_path(stream, number))
+519:             require(segment_raw is not None, 'cold watch segment missing')
+520:             segment = validate_watch(archive.document(segment_raw), api.repo, stream, number)
+521:             require(cursor['row'] < len(segment['rows']), 'cold watch row missing')
+522:             selected = segment['rows'][cursor['row']:cursor['row']+review_rows]; latest = {}
+523:             try:
+524:                 for row in selected:
+525:                     outcome, observed = assess(source_api, api, anchor, policy, trust_path, trust_mode, store, stream, row, epoch, blob_at, approval_path)
+526:                     validate_outcome(outcome, api.repo, stream, row, epoch)
+527:                     changes[outcome_path(api.repo, stream, row, epoch)] = archive.canonical(outcome)
+528:                     if observed is not None:
+529:                         latest[(observed['id'], observed['run_attempt'])] = observed
+530:                         # Follow one predecessor per reviewed row. The protected
+531:                         # watch itself resumes a long rerun chain across calls.
+532:                         prior = row['attempt']-1
+533:                         if prior > 0:
+534:                             identity = watch_identity(api.repo, stream, row['run_id'], prior)
+535:                             lookup = f'receipt-archive/pending/{stream}/identities/{identity[:2]}/{identity}.json'
+536:                             occupied = blob_at(anchor['tree'], lookup)
+537:                             if occupied is not None:
+538:                                 saved = archive.document(occupied)
+539:                                 require(type(saved) is dict and set(saved) == {'schema_version', 'repository', 'stream', 'run_id', 'attempt', 'source_sha', 'segment'} and type(saved['schema_version']) is int and saved['schema_version'] == 1 and saved['repository'] == api.repo and saved['stream'] == stream and type(saved['run_id']) is int and saved['run_id'] == row['run_id'] and type(saved['attempt']) is int and saved['attempt'] == prior and saved['source_sha'] == row['source_sha'] and type(saved['segment']) is int and 0 <= saved['segment'] < progress['watch']['segments'], 'prior attempt pending identity differs')
+540:                                 retained_raw = blob_at(anchor['tree'], archive.state_paths.pending_segment_path(stream, saved['segment']))
+541:                                 require(retained_raw is not None, 'prior attempt retained watch missing')
+542:                                 retained = validate_watch(archive.document(retained_raw), api.repo, stream, saved['segment'])
+543:                                 require(sum(item == {'run_id': row['run_id'], 'attempt': prior, 'source_sha': row['source_sha'], 'classification': 'pending'} for item in retained['rows']) == 1, 'prior attempt retained watch differs')
+544:                             else:
+545:                                 try:
+546:                                     previous = run_identity(source_api.get(f'repos/{api.repo}/actions/runs/{row["run_id"]}/attempts/{prior}'), anchor, policy)
+547:                                 except (RuntimeError, OSError):
+548:                                     previous = None
+549:                                 except ValueError as error:
+550:                                     if not _source_fetch_unavailable(error):raise
+551:                                     previous = None
+552:                                 if previous is not None:
+553:                                     require((previous['id'], previous['run_attempt'], previous['head_sha']) == (row['run_id'], prior, row['source_sha']), 'prior attempt immutable identity changed')
+554:                                     latest[(previous['id'], previous['run_attempt'])] = previous
+555:             except ArchiveAdvanced:
+556:                 continue  # Actual retained append survived independently; resume index-first.
+557:             position = cursor['row']+len(selected)
+558:             progress['review'] = {'segment': number, 'row': position} if position < len(segment['rows']) else {'segment': (number+1) % progress['watch']['segments'], 'row': 0}
+559:             response = {'workflow_runs': list(latest.values())}
+560:         new_rows = []; page_seen = set()
+561:         for run in response['workflow_runs']:
+562:             run_identity(run, anchor, policy)
+563:             key = (run['id'], run['run_attempt']); require(key not in page_seen, 'discovery duplicate page identity'); page_seen.add(key)
+564:             row = {'run_id': run['id'], 'attempt': run['run_attempt'], 'source_sha': run['head_sha'], 'classification': 'pending'}
+565:             identity = watch_identity(state_api.repo, stream, *key)
+566:             lookup_path = f'receipt-archive/pending/{stream}/identities/{identity[:2]}/{identity}.json'
+567:             old_raw = blob_at(anchor['tree'], lookup_path)
+568:             if old_raw is not None:
+569:                 old = archive.document(old_raw)
+570:                 require(isinstance(old, dict) and set(old) == {'schema_version', 'repository', 'stream', 'run_id', 'attempt', 'source_sha', 'segment'} and type(old['schema_version']) is int and old['schema_version'] == 1 and old['repository'] == state_api.repo and old['stream'] == stream and all(type(old[k]) is int and old[k] > 0 for k in ('run_id', 'attempt')) and old['run_id'] == row['run_id'] and old['attempt'] == row['attempt'] and old['source_sha'] == row['source_sha'] and type(old['segment']) is int and 0 <= old['segment'] < progress['watch']['segments'], 'discovery immutable pending identity changed')
+571:                 retained_raw = blob_at(anchor['tree'], archive.state_paths.pending_segment_path(stream, old['segment']))
+572:                 require(retained_raw is not None, 'discovery retained watch segment missing')
+573:                 retained = validate_watch(archive.document(retained_raw), state_api.repo, stream, old['segment'])
+574:                 require(sum(item == row for item in retained['rows']) == 1, 'discovery retained watch lookup differs')
+575:             else:
+576:                 new_rows.append(row)
+577:                 changes[lookup_path] = archive.canonical({'schema_version': 1, 'repository': state_api.repo, 'stream': stream, 'run_id': row['run_id'], 'attempt': row['attempt'], 'source_sha': row['source_sha'], 'segment': progress['watch']['segments'] + (len(new_rows)-1)//128})
+578:         for start in range(0, len(new_rows), 128):
+579:             number = progress['watch']['segments']
+580:             rows = new_rows[start:start+128]
+581:             segment = validate_watch({'schema_version': 1, 'repository': state_api.repo, 'stream': stream, 'number': number, 'rows': rows}, state_api.repo, stream, number)
+582:             segment_path = archive.state_paths.pending_segment_path(stream, number)
+583:             require(blob_at(anchor['tree'], segment_path) is None, 'discovery conflicting occupied watch segment')
+584:             changes[segment_path] = archive.canonical(segment)
+585:             progress['watch']['segments'] += 1
+586:             progress['watch']['count'] += len(rows)
+587:         if mode == 'discover':
+588:             if primary_short:
+589:                 progress['pagination'].update(next_page=1, overlap_page=1, overlap_until=1)
+590:             else:
+591:                 progress['pagination']['next_page'] = page+1
+592:         progress['anchor'] = {'head': anchor['head'], 'tree': anchor['tree']}
+593:         validate_checkpoint(progress, anchor, workflow, page_size)
+594:         # Even a short/empty API page is NOT complete history (filtered queries cap
+595:         # at 1,000). Backfill count observations still require retained outcome proofs.
+596:         encoded = archive.canonical(progress); changes[path] = encoded
+597:         prepared = []
+598:         for name, data in changes.items():
+599:             require(0 < len(data) <= archive.MAX_OBJECT, 'discovery encoded checkpoint exceeds bound')
+600:             sha = hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()
+601:             archive.state_paths.validate_entry({'path': name, 'type': 'blob', 'mode': '100644', 'sha': sha, 'size': len(data)})
+602:             prepared.append((name, data, sha))
+603:         require(archive.verify_bootstrap(api, approval_path) == anchor, 'discovery state changed before checkpoint')
+604:         entries = []
+605:         for name, data, sha in prepared:
+606:             uploaded = api.request(root+'/git/blobs', 'POST', {'encoding': 'base64', 'content': base64.b64encode(data).decode()})
+607:             require(uploaded.get('sha') == sha, 'discovery uploaded checkpoint differs')
+608:             entries.append({'path': name, 'type': 'blob', 'mode': '100644', 'sha': sha})
+609:         tree = api.request(root+'/git/trees', 'POST', {'base_tree': anchor['tree'], 'tree': entries})
+610:         require(archive.state_paths.valid_hash(tree.get('sha'), 40), 'discovery created tree invalid')
+
+SOURCE .claude/scripts/test/factory-receipt-discovery-review.sh
+1: #!/usr/bin/env bash
+2: set -euo pipefail
+3: cd "$(dirname "$0")/../../.."
+4: python3 - "$@" <<'PY'
+5: """Actual public discovery checkpoints remain loadable and reviewable after failures."""
+6: from pathlib import Path
+7: import sys
+8: selected_case=sys.argv[1] if len(sys.argv)>1 else 'all'
+9: fixture=Path('.claude/scripts/test/factory-receipt-cas.sh').read_text().split("<<'PY'\n",1)[1].split(" store={'repository'",1)[0]
+10: cases=r'''
+11:  from urllib.parse import parse_qs,urlsplit
+12:  spec=importlib.util.spec_from_file_location('discovery_review',scripts/'factory-receipt-discovery.py');d=importlib.util.module_from_spec(spec);spec.loader.exec_module(d)
+13:  stream=a.archive_stream('org/repo');store={'repository':'org/repo','visibility':'public'};start='2026-10-15T00:00:00Z'
+14:  def reset():git('update-ref',ref,initial,out('rev-parse',ref))
+15:  def progress():return json.loads(git('show',ref+':receipt-archive/progress/'+stream+'.json').stdout)
+16:  def outcomes():return [json.loads(git('show',ref+':'+p).stdout) for p in out('ls-tree','-r','--name-only',ref).splitlines() if p.startswith('receipt-archive/outcomes/')]
+17:  if selected_case in ('all','backfill'):
+18:   for end in ('2026-10-15T00:00:03Z',start):
+19:    reset()
+20:    class Drift(Source):
+21:     calls=0
+22:     def request(self,path,**kwargs):
+23:      if '/actions/workflows/' not in path:return super().request(path,**kwargs)
+24:      self.calls+=1;q=parse_qs(urlsplit(path).query);page=int(q['page'][0]);row=copy.deepcopy(self.run);row.update(id=page+20,created_at=start)
+25:      if q['created'][0]!=start+'..'+end:return {'total_count':0,'workflow_runs':[]}
+26:      return {'total_count':1000 if self.calls==2 else 2,'workflow_runs':[row]}
+27:    source=Drift(policy,receipt)
+28:    for i in range(9):
+29:     # A fresh API/module load resumes actual persisted Git bytes each invocation.
+30:     module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+31:     module.backfill(source,State(),policy,approval,stream,interval_end=end,page_size=1,tree_pages=10)
+32:     if i==1:
+33:      nodes=[json.loads(git('show',ref+':'+p).stdout) for p in out('ls-tree','-r','--name-only',ref).splitlines() if p.startswith('receipt-archive/backfill/'+stream+'/')]
+34:      assert len(nodes)==1 and nodes[0]['phase']=='gap' and nodes[0]['reason']=='count-drift'
+35:      assert nodes[0]['expected_count']==2 and nodes[0]['facts'][0]['page']==1
+36:      manifest=json.loads(git('show',ref+':receipt-archive/backfill/'+stream+'.json').stdout)
+37:      assert manifest['epoch']==1 and manifest['last_round_gaps']==1 and len(manifest['stack'])==1
+38:    nodes=[json.loads(git('show',ref+':'+p).stdout) for p in out('ls-tree','-r','--name-only',ref).splitlines() if p.startswith('receipt-archive/backfill/'+stream+'/')]
+39:    assert nodes and all([f['page'] for f in n['facts']]==list(range(1,len(n['facts'])+1)) for n in nodes)
+40:    assert progress()['watch']['count']>=2 and progress()['coverage_complete'] is False
+41:   print('real Git page2 count rise persists valid gap; range/dense restart recovers PASS')
+42:  if selected_case in ('all','review'):
+43:   class Review(Source):
+44:    error=None;kind='attempt';observed=[]
+45:    def request(self,path,**kwargs):
+46:     if '/actions/workflows/' in path:
+47:      rows=[]
+48:      for n in (20,21):
+49:       row=copy.deepcopy(self.run);row.update(id=n,conclusion='failure');rows.append(row)
+50:      return {'workflow_runs':rows}
+51:     return super().request(path,**kwargs)
+52:    def get(self,path):
+53:     if '/actions/runs/' in path:
+54:      n=int(path.split('/actions/runs/')[1].split('/')[0]);self.active=n;self.observed.append(n)
+55:      if '/attempts/' in path and n==20 and self.kind=='attempt':raise ValueError(self.error)
+56:      row=copy.deepcopy(self.run);row.update(id=n,conclusion='failure',run_attempt=2 if n==20 and self.kind=='attempt' else 1);return row
+57:     return super().get(path)
+58:    def source(self,path,sha):
+59:     if self.kind=='source' and getattr(self,'active',None)==20:raise ValueError(self.error)
+60:     return super().source(path,sha)
+61:   for kind,error in [('attempt','GitHub API request failed: fixture'),('attempt','reporting API failed; reconcile authoritative state before retry'),('source','GitHub API request failed: fixture'),('source','reporting source unavailable'),('source','trusted source unavailable'),('source','receipt source size exceeds bound')]:
+62:    reset();source=Review(policy,receipt);source.kind=kind;source.error=error;source.observed=[]
+63:    d.advance(source,State(),policy,approval,stream,page_size=2,tree_pages=10)
+64:    for repeat in range(2):d.reconcile(source,State(),policy,trust,store,approval,stream,review_rows=2)
+65:    rows=outcomes();assert any(r['run_id']==20 and r['classification']=='watch' and r['reason']=='unavailable' for r in rows)
+66:    assert any(r['run_id']==21 and r['classification']=='watch' for r in rows) and source.observed.count(21)>=2
+67:   for error in ('discovery run identity differs','reporting invocation capacity gap','malformed source JSON'):
+68:    reset();source=Review(policy,receipt);source.kind='source';source.error=error;d.advance(source,State(),policy,approval,stream,page_size=2,tree_pages=10);before=out('rev-parse',ref)
+69:    try:d.reconcile(source,State(),policy,trust,store,approval,stream,review_rows=2)
+70:    except ValueError as observed:assert str(observed)==error
+71:    else:raise AssertionError('malformed identity/JSON/budget failure became unavailable')
+72:    assert out('rev-parse',ref)==before
+73:   print('real Git known attempt/source failures do not starve following watched row; malformed/budget remain strict PASS')
+74:  if selected_case in ('all','head'):
+75:   class Head(Source):
+76:    extra=False;pages=[];count=4
+77:    def request(self,path,**kwargs):
+78:     if '/actions/workflows/' not in path:return super().request(path,**kwargs)
+79:     q=parse_qs(urlsplit(path).query);page=int(q['page'][0]);size=int(q['per_page'][0]);self.pages.append(page);rows=[]
+80:     for n in ([99] if self.extra else [])+list(range(20,20+self.count)):
+81:      row=copy.deepcopy(self.run);row['id']=n;rows.append(row)
+82:     return {'workflow_runs':rows[(page-1)*size:page*size]}
+83:   for count in (3,4):
+84:    reset();source=Head(policy,receipt);source.count=count;source.pages=[]
+85:    for i in range(2 if count==3 else 3):d.advance(source,State(),policy,approval,stream,page_size=2,tree_pages=10)
+86:    assert progress()['pagination']['next_page']==1,'short/empty source tail did not wrap to head'
+87:    source.extra=True;d.advance(source,State(),policy,approval,stream,page_size=2,tree_pages=10)
+88:    watched=[r['run_id'] for n in range(progress()['watch']['segments']) for r in json.loads(git('show',ref+':'+a.state_paths.pending_segment_path(stream,n)).stdout)['rows']]
+89:    assert 99 in watched and progress()['coverage_complete'] is False
+90:    for i in range(8):d.advance(source,State(),policy,approval,stream,page_size=2,tree_pages=10)
+91:    assert max(source.pages)<=3
+92:   print('real Git short/empty pages wrap bounded head polling and retain new head run PASS')
+93:  if selected_case in ('all','head-deep'):
+94:   reset()
+95:   class DeepHead(Source):
+96:    extra=False;pages=[]
+97:    def request(self,path,**kwargs):
+98:     if '/actions/workflows/' not in path:return super().request(path,**kwargs)
+99:     q=parse_qs(urlsplit(path).query);page=int(q['page'][0]);size=int(q['per_page'][0]);self.pages.append(page)
+100:     rows=[dict(copy.deepcopy(self.run),id=n) for n in ([99] if self.extra else [])+list(range(20,50))]
+101:     return {'workflow_runs':rows[(page-1)*size:page*size]}
+102:   source=DeepHead(policy,receipt);cursor_checks=[]
+103:   def observation():
+104:    previous=progress()['pagination'] if git('cat-file','-e',ref+':receipt-archive/progress/'+stream+'.json',check=False).returncode==0 else None
+105:    before=len(source.pages);d.advance(source,State(),policy,approval,stream,page_size=2,tree_pages=10);fetched=source.pages[before:];after=progress()['pagination']
+106:    assert len(fetched)<=2 and len(fetched)==len(set(fetched)),'observation exceeds two distinct source pages'
+107:    if previous and previous['next_page']>1:
+108:     page=previous['next_page'];old=previous['overlap_page'];until=previous['overlap_until']
+109:     if page%2:
+110:      cursor_checks.append(fetched==[page,1] and (after['overlap_page'],after['overlap_until'])==(old,until))
+111:     else:
+112:      cursor_checks.append(fetched==[page,old])
+113:      expected=(1,max(1,page-1)) if old==until else (old+1,until)
+114:      cursor_checks.append((after['overlap_page'],after['overlap_until'])==expected)
+115:    return fetched
+116:   for i in range(7):observation()
+117:   source.extra=True
+118:   first=observation();second=observation()
+119:   watched=[r['run_id'] for n in range(progress()['watch']['segments']) for r in json.loads(git('show',ref+':'+a.state_paths.pending_segment_path(stream,n)).stdout)['rows']]
+120:   assert 99 in watched and 1 not in first and 1 in second,'new deep-listing head run missed two-observation bound'
+121:   assert all(cursor_checks),'unfetched older overlap moved or fetched older overlap failed to advance'
+122:   print('real Git two-page alternating head/older overlap observes new head within two observations PASS')
+123:  if selected_case in ('all','two-page-cap'):
+124:   reset()
+125:   class Wide(Source):
+126:    changed=False;pages=[]
+127:    def request(self,path,**kwargs):
+128:     if '/actions/workflows/' not in path:return super().request(path,**kwargs)
+129:     q=parse_qs(urlsplit(path).query);page=int(q['page'][0]);size=int(q['per_page'][0]);assert size==100;self.pages.append(page)
+130:     first=1001 if page==1 and self.changed else page*100
+131:     return {'workflow_runs':[dict(copy.deepcopy(self.run),id=n) for n in range(first,first+100)]}
+132:   source=Wide(policy,receipt);d.advance(source,State(),policy,approval,stream,page_size=100,tree_pages=10)
+133:   before_count=progress()['watch']['count'];assert before_count==100
+134:   # Authenticate the actual larger inert suffix before the next observation;
+135:   # do not relax bootstrap tree windows or seed completed-origin JSON.
+136:   class OriginState(State):
+137:    def request(self,path,method='GET',payload=None):
+138:     if method=='GET' and '/commits?' in path:
+139:      q=parse_qs(urlsplit(path).query);rows=out('log','-1','--format=%H',q['sha'][0],'--',q['path'][0]).splitlines();return [{'sha':v} for v in rows]
+140:     return super().request(path,method,payload)
+141:   for call in range(64):
+142:    checked=a.advance_origin(OriginState(),approval,commit_budget=16,tree_pages=8)
+143:    if checked['frozen_complete']:break
+144:   else:raise AssertionError('actual bounded origin did not cover100-watch suffix')
+145:   source.changed=True;before=len(source.pages);d.advance(source,OriginState(),policy,approval,stream,page_size=100,tree_pages=10)
+146:   assert source.pages[before:]==[2,1] and progress()['watch']['count']-before_count==200
+147:   assert progress()['coverage_complete'] is False
+148:   print('actual two100-row pages persist at most200 new identities with no completeness credit PASS')
+149:  if selected_case in ('all','artifact-budget'):
+150:   reset()
+151:   class ArtifactBudget(Source):
+152:    def request(self,path,**kwargs):
+153:     if '/actions/workflows/' in path:return {'workflow_runs':[copy.deepcopy(self.run)]}
+154:     value=super().request(path,**kwargs)
+155:     if path.endswith('/artifacts'):value[0]['padding']='x'*2097152
+156:     return value
+157:   source=ArtifactBudget(policy,receipt);d.advance(source,State(),policy,approval,stream,page_size=1,tree_pages=10);before=out('rev-parse',ref)
+158:   try:d.reconcile(source,State(),policy,trust,store,approval,stream)
+159:   except ValueError as error:
+160:    assert str(error)=='discovery observation budget exceeded; explicit coverage gap'
+161:    assert type(error).__name__=='DiscoveryBudgetError'
+162:   else:raise AssertionError('artifact-path discovery budget failure persisted as soft proof outcome')
+163:   assert out('rev-parse',ref)==before and outcomes()==[]
+164:   print('actual source artifact response exceeds own budget: typed failure/ref unchanged PASS')
+165:  assert git('show',ref+':'+oldpath).stdout==b'opaque existing encrypted feedback envelope'
+166: '''
+167: exec(compile(fixture+cases,'discovery-review-real-git','exec'))
+168: PY
+
+SOURCE verify/2026-10-17/discovery-two-page/README.md
+1: # Restore approved two-page discovery observation bound
+2: 
+3: Isolated base3cd647ab25af05549ad5709c117c888549996978. No shared candidate changes.
+4: plans/active/014-authenticated-receipt-recovery.md:T285 explicitly requires at most
+5: two source pages/200 new identities per observation. The prior three-page head+
+6: older-overlap source passed its recorded tests but violated that plan. Those proofs
+7: and review artifacts remain unchanged; they are not compliant acceptance evidence.
+8: 
+9: Correction: primary page1 already observes head. For later odd primary pages, observe
+10: head1 only and retain older-overlap cursor unchanged. For even pages, fetch the saved
+11: older-overlap page unless it duplicates primary, then advance the overlap cursor only
+12: when actually fetched. Thus at most2distinct pages/200rows are observed, and head is
+13: revisited within2advancing observations while older overlap continues. Short/empty
+14: wrap, immutable identity deduplication, schema and existing global bounds unchanged.
+15: No source page/identity budget increase or history-completeness claim.
+16: 
+17: Actual final-test RED against immutable original3cd source in a separate baseline
+18: clone exits1 at `observation exceeds two distinct source pages` (red.log). A prior
+19: selector assertion diagnostic and initial budget reproduction are retained separately.
+20: The exact final test file was copied to that baseline clone without production edits;
+21: no old source/proof histories were rewritten.
+22: 
+23: GREEN deep-listing real-Git control: new head arrives after odd-page observation;
+24: next even observation fetches older overlap, following odd observes new head. Every
+25: call has at most2distinct source pages, cursor stays unchanged on head-only calls and
+26: advances on actual older fetches. Wide real-Git control: two actual100-row source
+27: pages atomically retain exactly200new identities with coverage false. After the first
+28: 100-watch suffix, the fixture must use actual bounded advance_origin before resuming;
+29: its initial missing-origin prerequisite attempt failed the existing bootstrap tree
+30: window, and was not a product RED/PASS or reason to loosen that window.
+31: 
+32: Final focused commands are head-deep and two-page-cap; unaffected backfill/review/
+33: producer loops were not repeated. Existing bounded discovery regression and structural
+34: validation outputs are retained; final exits are recorded in verification.json.
+35: No native calls, new model calls, large producer rerun, activation or task closure.
+36: Typed own-budget changes remain as in3cd; lower-layer proofcatch limitations unchanged.
+37: Parent owns exact integration and focused independent review.
+
+EXACT DIFF
+commit 5420fd47936e0801be4dc7fc1526bba66a5d1843
+Author: Shravan Jha <shravan.jha@gmail.com>
+Date:   Sat Oct 17 04:05:18 2026 +1100
+
+    fix(factory): restore two-page discovery observation bound
+    
+    Spec: 014
+    Task: T-334
+    Constraint: Preserve approved two-page and 200-identity observation limits
+    Rejected: Three-page head and older-overlap observations
+    Directive: Alternate bounded head polling with actual older-overlap progress
+    Confidence: high
+    Scope-risk: localized
+    Not-tested: Native authority and large-history cadence acceptance
+    Co-Authored-By: Codex <noreply@openai.com>
+
+diff --git a/.claude/scripts/factory-receipt-discovery.py b/.claude/scripts/factory-receipt-discovery.py
+index 1832eee..a1afb0a 100755
+--- a/.claude/scripts/factory-receipt-discovery.py
++++ b/.claude/scripts/factory-receipt-discovery.py
+@@ -491,14 +491,15 @@ def _checkpoint(source_api, state_api, policy, approval_path, stream, *, page_si
+             pages = [response]
+             if page > 1:
+                 overlap = progress['pagination']['overlap_page']
+-                # Poll the mutable head on every call while retaining older overlap.
+-                pages.append(source_api.request(f'{root}/actions/workflows/{workflow}/runs?per_page={page_size}&page=1'))
+-                if overlap not in (1, page):
++                # Alternate head and older overlap within the two-page budget.
++                if page % 2:
++                    pages.append(source_api.request(f'{root}/actions/workflows/{workflow}/runs?per_page={page_size}&page=1'))
++                elif overlap != page:
+                     pages.append(source_api.request(f'{root}/actions/workflows/{workflow}/runs?per_page={page_size}&page={overlap}'))
+-                if overlap == progress['pagination']['overlap_until']:
+-                    progress['pagination'].update(overlap_page=1, overlap_until=max(1, page-1))
+-                else:
+-                    progress['pagination']['overlap_page'] = overlap+1
++                    if overlap == progress['pagination']['overlap_until']:
++                        progress['pagination'].update(overlap_page=1, overlap_until=max(1, page-1))
++                    else:
++                        progress['pagination']['overlap_page'] = overlap+1
+             merged = {}
+             for observed_page in pages:
+                 require(isinstance(observed_page, dict) and isinstance(observed_page.get('workflow_runs'), list) and len(observed_page['workflow_runs']) <= page_size, 'discovery run page malformed')

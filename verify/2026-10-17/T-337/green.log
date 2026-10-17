@@ -1,0 +1,9 @@
+# TDD ledger — green — T-337
+ledger_format: 2
+timestamp: 2026-10-17T11:49:39+11:00
+command: bash .claude/scripts/test/factory-operational-producer.sh
+exit_code: 0
+---
+focused historical producer contracts: negative assertions=42; real Git CAS/opaque preservation; native API and verifier fixtures only
+all focused negative assertions=55
+operational producer local contracts PASS; native signing/installation/bootstrap remain pending

@@ -1,0 +1,7 @@
+{
+  "base": "a8545e00d7f16bc3828452d998dde0be967db133",
+  "files": {
+    ".claude/scripts/factory-reporting-maintenance.py": "f8d3849c2f5115cb8d6f6db095d31f807a195d1eb411ab4667b1efbba9944fcc",
+    ".claude/scripts/test/factory-reporting-maintenance.sh": "203f637c8da208c326947039b6b666a1b7d573792459e9a49921b058c571f608"
+  }
+}

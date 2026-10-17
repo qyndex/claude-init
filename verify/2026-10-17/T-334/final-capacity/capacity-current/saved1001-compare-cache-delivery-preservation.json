@@ -1,0 +1,19 @@
+{
+  "sqlite_sha256": "8fa8f34dc1a7e821830349e58e4fd9cbaf2e897136a6c10868b07473eff7becb",
+  "sqlite_bytes": 3870720,
+  "counts": {
+    "delivery_receipts": 1001,
+    "delivery_provenance": 1001,
+    "delivery_times": 1001,
+    "delivery_trust": 1001,
+    "delivery_interval": 1001
+  },
+  "synthetic_receipt": {
+    "key": "1b48887224aaf93e627b81701e4ab7edd1f6655d3eb91d36b6428db47589810c",
+    "payload_sha256": "61cff9698da139b5d698ba928f8a149145fe095ad667127cf218d4fd391de52e",
+    "destination": "C1",
+    "message_id": "1"
+  },
+  "live": false,
+  "scope": "offline synthetic SQL/receipt only; no actual Slack history or feedback"
+}

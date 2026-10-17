@@ -1,0 +1,10 @@
+{
+  "head": "040711df83ba6b3601a3658acca81d71598f0dbc",
+  "scope": "Final three T333 review findings closure and newdiff only",
+  "prompt_sha256": "72809f59b2fcdbd431e55535b7154721452f2350bf4ff9ceafcb6c06612f405e",
+  "sources": {
+    ".claude/scripts/factory-reporting-receipts.py": "5e7ce876ceeb5135600abf974aa68742ac3cd6cbd1733dcfc97902859c9755df",
+    ".claude/scripts/factory-digest.py": "2408c969559eb1566dac604a54c1b1b95716137f98f454d3b92b395de2576157",
+    ".claude/scripts/test/factory-reporting-receipt-transfer.sh": "7c2918e268937339354d7ccbcf86993746109bf4a22fb2e250dede08a408ae3f"
+  }
+}

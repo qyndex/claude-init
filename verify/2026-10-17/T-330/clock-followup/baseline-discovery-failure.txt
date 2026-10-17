@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "<stdin>", line 92, in <module>
+  File "real-git-discovery-fixture", line 141, in <module>
+  File "/private/tmp/factory-t330-clock-baseline-20261017/.claude/scripts/factory-receipt-discovery.py", line 597, in advance
+    return _checkpoint(source_api, state_api, policy, approval_path, stream, page_size=page_size, tree_pages=tree_pages)
+  File "/private/tmp/factory-t330-clock-baseline-20261017/.claude/scripts/factory-receipt-discovery.py", line 427, in _checkpoint
+    anchor = archive.verify_bootstrap(api, approval_path)
+  File "/private/tmp/factory-t330-clock-baseline-20261017/.claude/scripts/factory-receipt-archive.py", line 334, in verify_bootstrap
+    require(tree['complete'], 'archive bootstrap tree incomplete; authenticated cursor continuation required')
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-t330-clock-baseline-20261017/.claude/scripts/validate-candidate-evidence.py", line 19, in require
+    raise ValueError(message)
+ValueError: archive bootstrap tree incomplete; authenticated cursor continuation required

@@ -1,0 +1,11 @@
+# TDD ledger — red — T-283
+ledger_format: 2
+timestamp: 2026-10-16T10:45:37+11:00
+command: bash .claude/scripts/test/factory-receipt-retained-proof.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 72, in <module>
+  File "real-git-retained-proof-fixture", line 75, in <module>
+AttributeError: module 'archive' has no attribute 'project_retained'

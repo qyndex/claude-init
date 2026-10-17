@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "<stdin>", line 123, in <module>
+  File "discovery-review-real-git", line 182, in <module>
+AssertionError: artifact-path discovery budget failure persisted as soft proof outcome

@@ -1,0 +1,27 @@
+# TDD ledger — green — T-334/review-followup
+ledger_format: 2
+timestamp: 2026-10-17T01:46:00+11:00
+command: bash .claude/scripts/test/factory-reporting-maintenance.sh
+exit_code: 1
+---
+PASS real future-cutoff no-write and synthetic trust-race/cap/journal invariants
+fresh maintenance phase backfill invocation 0
+fresh maintenance phase origin invocation 2
+fresh maintenance phase backfill invocation 3
+fresh maintenance phase origin invocation 4
+fresh maintenance phase review invocation 5
+fresh maintenance phase checkpoint invocation 6
+fresh maintenance phase stage invocation 8
+fresh maintenance phase ready invocation 9
+Traceback (most recent call last):
+  File "<stdin>", line 206, in <module>
+  File "reporting-maintenance-fixture", line 227, in <module>
+  File "/private/tmp/factory-t334-maintenance-review-fix-20261017/.claude/scripts/factory-git-state.py", line 235, in __init__
+    self.state_view = state_view_config(state_view)
+                      ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "/private/tmp/factory-t334-maintenance-review-fix-20261017/.claude/scripts/factory-git-state.py", line 207, in state_view_config
+    require(path.is_absolute() and path.resolve()==path and not path.is_symlink(), 'protected state view path invalid')
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-t334-maintenance-review-fix-20261017/.claude/scripts/validate-candidate-evidence.py", line 19, in require
+    raise ValueError(message)
+ValueError: protected state view path invalid

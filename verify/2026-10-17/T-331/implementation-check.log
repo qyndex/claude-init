@@ -1,0 +1,52 @@
+Traceback (most recent call last):
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-bounded-process.py", line 58, in run
+    if len(output)+len(data)>limit:raise ValueError('trusted subprocess output limit')
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: trusted subprocess output limit
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-bounded-process.py", line 16, in terminate_group
+    observed=subprocess.run(['/bin/ps','-axo','pgid=,stat='],capture_output=True,text=True,check=True,timeout=2,env={'PATH':'/usr/bin:/bin','HOME':'/nonexistent','LANG':'C','LC_ALL':'C'})
+  File "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py", line 555, in run
+    with Popen(*popenargs, **kwargs) as process:
+         ~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py", line 1039, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                        pass_fds, cwd, env,
+                        ^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+                        gid, gids, uid, umask,
+                        ^^^^^^^^^^^^^^^^^^^^^^
+                        start_new_session, process_group)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py", line 1990, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+PermissionError: [Errno 1] Operation not permitted: '/bin/ps'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "<stdin>", line 22, in reject
+  File "<stdin>", line 43, in <lambda>
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-reporting-transport.py", line 142, in request
+    if not paginate:return self._once(path,method,payload,raw)
+                           ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-reporting-transport.py", line 132, in _once
+    result = process.run(command,env=env,cwd=Path.cwd(),timeout=60,limit=MAX_RESPONSE,
+                         aggregate_limit=MAX_RESPONSE,stdin=source if encoded is not None else None)
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-bounded-process.py", line 64, in run
+    if termination_grace is None:terminate_group(process)
+                                 ~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-bounded-process.py", line 21, in terminate_group
+    raise ValueError('process cleanup status uncertain')
+ValueError: process cleanup status uncertain
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "<stdin>", line 43, in <module>
+  File "<stdin>", line 23, in reject
+AssertionError: ('output', 'process cleanup status uncertain')

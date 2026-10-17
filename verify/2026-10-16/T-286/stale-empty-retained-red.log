@@ -1,0 +1,12 @@
+# TDD ledger — red — T-286
+ledger_format: 2
+timestamp: 2026-10-16T16:03:12+11:00
+command: bash .claude/scripts/test/factory-receipt-coverage.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+actual cold-start/protected projection coverage passed: resolved interval, old-created rerun and same-count late swap/count/capacity/unavailable/mutable-source/missing-history gaps, current withdrawal, no cursor advance or state/task writes
+Traceback (most recent call last):
+  File "<stdin>", line 125, in <module>
+  File "empty-coverage-real-git-fixture", line 102, in <module>
+AssertionError: {'source_partition_complete': True, 'frozen_projection_complete': True, 'coverage_complete': True, 'all_history_complete': False, 'task_credit': False, 'gaps': [], 'verified_until': '2026-10-15T00:00:00Z', 'repository': 'org/repo', 'observed_head': '820784973df06295b7079e2c2d39b9eb01603702', 'coverage_from': '2026-10-15T00:00:00Z', 'source_epoch': 0, 'retained_attempts': 0, 'withdrawn_attempts': 0}

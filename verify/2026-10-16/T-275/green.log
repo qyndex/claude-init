@@ -1,0 +1,7 @@
+# TDD ledger — green — T-275
+ledger_format: 2
+timestamp: 2026-10-16T10:07:43+11:00
+command: bash .claude/scripts/test/factory-receipt-profiles.sh
+exit_code: 0
+---
+33 strict receipt profile cases passed; no runtime integration or activation

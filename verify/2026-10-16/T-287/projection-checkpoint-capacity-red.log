@@ -1,0 +1,19 @@
+resumed actual captured1001 retained prefix=b3bbaa7f9ec9302fdb38ab4693818e3b3decce63; fresh synthetic current metadata matches original constructor; no new append claim
+actual1001source rows partitioned beyondclamped1000API; protectedwatch progress persisted
+exact resumed phase preserved=/var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/t287-resumed-exact-phase-2hawtljd
+Traceback (most recent call last):
+  File "/private/tmp/t287-resume-full-prefix.py", line 37, in <module>
+    exec(compile(body,'resumed-actual1001-full-prefix','exec'),namespace)
+    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "resumed-actual1001-full-prefix", line 144, in <module>
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 956, in checkpoint_projection
+    _origin_delta(api.request, root, anchor['tree'], tree['sha'], path)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 702, in _origin_delta
+    tree = read(root+'/git/trees/'+sha)
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 904, in request
+    require(calls < 2048, 'projection checkpoint API capacity gap')
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/validate-candidate-evidence.py", line 19, in require
+    raise ValueError(message)
+ValueError: projection checkpoint API capacity gap

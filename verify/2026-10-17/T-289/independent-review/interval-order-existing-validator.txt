@@ -1,0 +1,11 @@
+715:             return archive.document(raw) if raw is not None else None
+716:         def second(value):
+717:             point = archive.instant(value)
+718:             require(point.microsecond == 0 and point.timestamp() >= 0, 'coverage boundary requires exact seconds')
+719:             return int(point.timestamp())
+720:         def stamp(number):return datetime.datetime.fromtimestamp(number,datetime.timezone.utc).isoformat().replace('+00:00','Z')
+721:         low, high = second(anchor['coverage_from']), second(interval_end)
+722:         require(low <= high <= int(datetime.datetime.now(datetime.timezone.utc).timestamp()), 'coverage interval clock invalid')
+723:         expected = {'schema_version':1,'repository':api.repo,'stream':stream,'binding':binding(anchor),'workflow_id':policy['receipts']['workflow_id'],'source_branch':policy['base_branch'],'page_size':page_size,'interval_start':stamp(low),'interval_end':stamp(high)}
+724:         scope=archive.interval_scope(anchor,stream,interval_end,interval_scoped)
+725:         manifest = protected('receipt-archive/backfill/'+scope+'.json')

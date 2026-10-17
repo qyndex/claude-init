@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "<stdin>", line 36, in <module>
+  File "actual-state-delta-real-git", line 95, in <module>
+AssertionError: {'status': 'checkpointed', 'head': '4796556b758dfbcc0d785eb47b829d0cb70ffed1', 'tree': 'dad6e717915c8db95585eacc61a0bed3e7e0328d', 'frozen_head': '6fea12331ff95c6263500755f545f7e26388b228', 'frozen_complete': False, 'checked_commits': 0, 'coverage_complete': False, 'suffix_pending': True, 'uncertain_write_reconciled': False}

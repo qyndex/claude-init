@@ -1,0 +1,33 @@
+Counter({'hash-object': 0.4660154180601239, 'commit-tree': 0.21423862408846617, 'update-ref': 0.1960022910789121}) Counter({'hash-object': 82, 'commit-tree': 34, 'update-ref': 34})
+late-size16 actualappends+origin with immutablewarmDAG:  {'status': 'appended', 'head': 'a384cce8c5ab1b655c3ef56a79b89a0fe2d280f8', 'record_sha256': '25c4d9fbd6ea14bdd84f61a1ea57729bd919879e13547fcc108b922f410ef72b'}
+         5502498 function calls (5390880 primitive calls) in 2.784 seconds
+
+   Ordered by: cumulative time
+   List reduced from 576 to 25 due to restriction <25>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+       16    0.004    0.000    2.165    0.135 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/factory-receipt-archive.py:428(append_delivery)
+     3330    0.010    0.000    1.828    0.001 late-command-timing:106(request)
+     2775    0.004    0.000    1.452    0.001 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/factory-receipt-archive.py:467(request)
+      506    0.001    0.000    1.444    0.003 late-command-timing:73(request)
+      338    0.002    0.000    1.437    0.004 late-command-timing:89(git)
+       16    0.002    0.000    1.204    0.075 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/factory-receipt-archive.py:293(verify_bootstrap)
+      472    0.001    0.000    0.896    0.002 late-command-timing:26(request)
+      150    0.004    0.000    0.878    0.006 late-command-timing:165(original_git)
+      150    0.001    0.000    0.873    0.006 late-command-timing:17(git)
+      150    0.003    0.000    0.872    0.006 /opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py:513(run)
+     4024    0.006    0.000    0.854    0.000 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/factory-receipt-archive.py:192(read)
+      270    0.011    0.000    0.802    0.003 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/factory-state-paths.py:117(scan_delta)
+     2412    0.054    0.000    0.785    0.000 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/factory-state-paths.py:141(children)
+      150    0.002    0.000    0.645    0.004 /opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py:1177(communicate)
+      150    0.008    0.000    0.643    0.004 /opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py:2093(_communicate)
+      560    0.003    0.000    0.624    0.001 /opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/selectors.py:385(select)
+      560    0.621    0.001    0.621    0.001 {method 'poll' of 'select.poll' objects}
+       18    0.003    0.000    0.611    0.034 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/factory-receipt-archive.py:793(advance_origin)
+      154    0.000    0.000    0.556    0.004 late-command-timing:18(out)
+       16    0.000    0.000    0.555    0.035 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/factory-receipt-archive.py:239(_completed_origin)
+       34    0.029    0.001    0.529    0.016 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/test/factory-receipt-git-objects.py:109(path_history)
+    10717    0.071    0.000    0.496    0.000 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/test/factory-receipt-git-objects.py:92(path_oid)
+    33894    0.466    0.000    0.466    0.000 {method 'readline' of '_io.BufferedReader' objects}
+    84076    0.127    0.000    0.464    0.000 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/factory-state-paths.py:16(validate_entry)
+    33520    0.072    0.000    0.454    0.000 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/test/factory-receipt-git-objects.py:38(read)

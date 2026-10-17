@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "<stdin>", line 51, in <module>
+  File "large-authenticated-prefix-delta", line 119, in <module>
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 298, in verify_bootstrap
+    require(tree['complete'], 'archive bootstrap tree incomplete; authenticated cursor continuation required')
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/validate-candidate-evidence.py", line 19, in require
+    raise ValueError(message)
+ValueError: archive bootstrap tree incomplete; authenticated cursor continuation required

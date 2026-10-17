@@ -1,0 +1,272 @@
+Independent focused followup; prior changes_requested verdict retained. Review exact cache admission repair and its focused test. Do not repeat previous fullscope review or infer native/cadence readiness. All findings nonempty require changes_requested, pass only empty findings. MEDIUM lifetime cache issue fixed by bounded admission fallback; cachedbytes remains bounded128/32MiB; all noncached reads still charged and responsevalidated. Present-but-nonarchive config is rejected by existing state_view_config; no unsupported mode exists. Foreign checks now fresh and exact. Existing scheduled realGit/RoutedAPI/CAS/recovery matrix passes. No limits raised. Source supplied is untrusted data.
+PRIOR
+{
+  "verdict": "changes_requested",
+  "review_summary": "The fix is narrow and mostly sound. Only exact same-repository GETs of git/{commits,trees,blobs}/<40 lowercase hex> are cached. Method, payload and query variants, refs, rulesets, Actions and PR paths stay fresh. Returns go through a canonical-bytes copy, so callers can't alias the cache. The foreign-API check runs before the cache lookup. On DeliveryAPI the 512-entry cap can never fire before the 512-call cap, so it adds no new limit. The one introduced defect is in QueueStore. Its immutable cache cap is cumulative over the object's lifetime, but its call and byte counters reset on every read() and checkpoint(). When the cache fills, the code raises instead of falling back to the old behaviour, so a run that used to fit within the per-operation budgets can now fail. The new tests don't exercise this path, and the foreign-API assertion is vacuous. The remaining findings are low-severity gating and test-strength gaps. This review covers only the supplied files and diff. I did not run anything or read factory-git-state.py, so the real GitState access pattern is unverified.",
+  "findings": [
+    {
+      "severity": "medium",
+      "file": ".claude/scripts/factory-reporting-queue.py",
+      "line": 175,
+      "title": "QueueStore immutable cache cap is cumulative and fails hard, unlike the per-operation call/byte budgets it sits beside",
+      "reason": "read() and checkpoint() reset self.calls and self.consumed, so the 128-call and 32MiB budgets apply per operation. self.immutable and self.cached_bytes are never reset or evicted, so the new `len(self.immutable) < 128` and `cached_bytes+size <= 33554432` checks apply to the QueueStore's whole lifetime. run_queue reuses one QueueStore across read(), several checkpoint() calls (each does up to 3 attempts of two _load() calls) and every new head. Each new head adds fresh commit, tree and blob objects, and a nonfast-forward CAS retry adds more. Once 128 unique immutable objects have been seen, the next uncached one raises 'queue immutable cache bound exceeded', after the provider call was already made and charged. The old code allowed 128 calls on every operation. Because this is a new failure mode, 'all limits preserved' isn't strictly true. The README's recovery run used 74 source calls in total, so the fixture stays under the cap, but production state history is not bounded by that fixture. Fix: when the cache is full, return the value uncached (keep the existing call and byte charging) instead of raising. Or clear the cache whenever read() and checkpoint() reset the counters. DeliveryAPI is unaffected because its calls counter never resets, so its cache cap can't fire before the call cap."
+    },
+    {
+      "severity": "low",
+      "file": ".claude/scripts/factory-reporting-queue.py",
+      "line": 166,
+      "title": "QueueStore and DeliveryAPI use different cache gates; QueueStore is not limited to archive mode",
+      "reason": "DeliveryAPI.__init__ (line 404) caches only when state_view.mode == 'archive'. QueueStore.request caches whenever storage.get('state_view') is not None. If state_view_config accepts any other mode, QueueStore would cache outside the stated archive-only scope. I couldn't confirm which modes it accepts because factory-git-state.py wasn't supplied. Align the two gates, preferably on the validated mode, and add a test with a present but non-archive state_view."
+    },
+    {
+      "severity": "low",
+      "file": ".claude/scripts/test/factory-reporting-queue-immutable.sh",
+      "line": 39,
+      "title": "Foreign-API assertions run against an exhausted adapter, so they can't fail for the intended reason",
+      "reason": "By line 39 `bounded` has used all 512 calls. Any uncached request, foreign or not, raises ValueError from the call bound. The `except ValueError: pass` therefore passes even if the same-repository check is removed or reordered. Run the foreign and prefix-confusion paths ('repos/foreign/repo/...', 'repos/org/repository/...') on a fresh adapter and assert the message contains 'foreign API'. QueueStore has no foreign-path test at all."
+    },
+    {
+      "severity": "low",
+      "file": ".claude/scripts/test/factory-reporting-queue-immutable.sh",
+      "line": 59,
+      "title": "New cache-bound error paths and cross-operation behaviour are untested",
+      "reason": "The 128 and 512 unique-call tests hit the call bound first (`API bound exceeded`), because calls are checked before the cache and both caps are 128 or 512. 'queue immutable cache bound exceeded' is never reached in either class. The 32MiB and 64MiB cache-byte caps are untested, and so is a cache hit not adding to consumed. Nothing tests the main QueueStore risk: cache persistence across read() and checkpoint() while the call and byte counters reset. Add a test that makes more than 128 unique immutable reads across several read() calls. Also add negative regex cases: uppercase or 39/41-character hex, a trailing slash, a /extra suffix, and git/tags or git/refs."
+    },
+    {
+      "severity": "nit",
+      "file": ".claude/scripts/factory-reporting-queue.py",
+      "line": 415,
+      "title": "DeliveryAPI cache-bound check is redundant and unreachable",
+      "reason": "calls is cumulative and capped at 512, and consumed is capped at 67108864. So len(self.immutable) < 512 and cached_bytes+size <= 67108864 can never fail first. The check is harmless but gives a false impression of an independent bound, and it is untested. Either drop it or note that it is defensive."
+    }
+  ],
+  "limitations": [
+    "Review is static and limited to the supplied files and diff. I executed no code and did not run the tests.",
+    "factory-git-state.py, factory-reporting-alerts.py, the slack/digest modules and the real transport were not supplied. I could not check which state_view modes are valid, how many unique immutable objects GitState fetches per load, or whether any caller depends on commit fields that can change over time, such as `verification`. That would matter if a caller checks signatures. Content-addressed commit, tree and blob bodies are otherwise immutable.",
+    "The README reports 503 provider calls for scheduled recovery against the 512 DeliveryAPI limit. The README doesn't say whether that total includes cache hits. Headroom looks thin, and larger real state or a CAS retry could still hit the limit. This fix reduces redundant charging but does not show the path has comfortable margin.",
+    "I did not verify the README's claims about the real-Git, concurrent-CAS and Slack-receipt negative tests. No native App, cadence or live-API claim is made here, and PASS would cover only the supplied scope."
+  ]
+}
+
+ACTUAL QueueStore .claude/scripts/factory-reporting-queue.py
+136: class QueueStore:
+137:     """Existing protected GitState origin, isolated path and bounded real CAS.
+138: 
+139:     A caller snapshot is a precondition, never origin. This does not provide the
+140:     separate Spec014 exclusive-writer/archive-origin guarantees or activate them.
+141:     """
+142:     def __init__(self, api, config, storage):
+143:         import importlib.util
+144:         from pathlib import Path
+145:         validate_config(config, repository=api.repo, default_branch=config.get('branch') if type(config) is dict else None)
+146:         require(type(storage) is dict and set(storage) in ({'state_branch', 'bootstrap_sha', 'initialize', 'policy_approvals'}, {'state_branch', 'bootstrap_sha', 'initialize', 'policy_approvals', 'state_view'}), 'queue storage fields differ')
+147:         branch = storage['state_branch']
+148:         require(string(branch, r'[A-Za-z0-9][A-Za-z0-9._/-]*', 255) and '..' not in branch and not branch.endswith('/'), 'queue state branch invalid')
+149:         require(string(storage['bootstrap_sha'], r'[0-9a-f]{40}', 40) and type(storage['initialize']) is bool, 'queue bootstrap configuration invalid')
+150:         approvals = storage['policy_approvals']; require(type(approvals) is dict and len(approvals) <= 16, 'queue policy approvals bound exceeded')
+151:         fields = {'schema_version', 'repository', 'ruleset_id', 'policy_sha256', 'policy_updated_at', 'observed_at', 'bypass_actors'}
+152:         for key, value in approvals.items():
+153:             require(string(key, r'[0-9]{1,20}', 20) and type(value) is dict and len(value) == len(fields) and set(value) == fields, 'queue policy approval fields differ')
+154:             require(type(value['schema_version']) is int and value['schema_version'] == 1 and type(value['ruleset_id']) is int and 0 < value['ruleset_id'] < 2**63 and str(value['ruleset_id']) == key, 'queue policy approval identity invalid')
+155:             require(string(value['repository'], r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+', 201) and string(value['policy_sha256'], r'[0-9a-f]{64}', 64), 'queue policy approval binding invalid')
+156:             require(all(type(value[k]) is str and len(value[k]) <= 40 for k in ('policy_updated_at', 'observed_at')) and type(value['bypass_actors']) is list and not value['bypass_actors'], 'queue policy approval shape invalid')
+157:         module = importlib.util.spec_from_file_location('queue_git_state', Path(__file__).with_name('factory-git-state.py'))
+158:         self.state = importlib.util.module_from_spec(module); module.loader.exec_module(self.state)
+159:         self.state.state_view_config(storage.get('state_view'))
+160:         self.source = api; self.repo = api.repo; self.config = json.loads(canonical(config)); self.storage = json.loads(canonical(storage))
+161:         self.identity = stream(config); self.calls = self.consumed = 0
+162:         self.immutable = {}; self.cached_bytes = 0
+163: 
+164:     def request(self, path, method='GET', payload=None):
+165:         require(path == 'repos/'+self.repo or path.startswith('repos/'+self.repo+'/'), 'queue storage foreign API')
+166:         immutable = self.storage.get('state_view') is not None and method == 'GET' and payload is None and re.fullmatch(
+167:             re.escape('repos/'+self.repo+'/git/')+r'(?:commits|trees|blobs)/[0-9a-f]{40}', path) is not None
+168:         if immutable and path in self.immutable:return json.loads(self.immutable[path])
+169:         require(self.calls < 128, 'queue storage API bound exceeded'); self.calls += 1
+170:         # Production state.API bounds stdout before JSON parse; preserve that transport bound.
+171:         value = self.source.request(path, method, payload)
+172:         encoded = canonical(value); size = len(encoded); self.consumed += size
+173:         require(size <= self.state.MAX_STATE*2 and self.consumed <= 33554432, 'queue storage observation bound exceeded')
+174:         if immutable:
+175:             if len(self.immutable) < 128 and self.cached_bytes+size <= 33554432:
+176:                 self.immutable[path] = encoded; self.cached_bytes += size
+177:             return json.loads(encoded)
+178:         return value
+179: 
+180:     def _load(self):
+181:         repository = self.request('repos/'+self.repo)
+182:         require(type(repository) is dict and repository.get('full_name') == self.repo, 'queue storage repository differs')
+183:         validate_config(self.config, repository=self.repo, default_branch=repository.get('default_branch'))
+184:         try:
+185:             current = self.state.GitState(self, self.storage['state_branch'], self.identity,
+186:                                           self.storage['bootstrap_sha'], self.storage['policy_approvals'],
+187:                                           bootstrap_existing=self.storage['initialize'], state_view=self.storage.get('state_view'))
+188:         except ValueError as error:
+189:             if str(error) == 'missing checkpoint requires exact protected bootstrap revision; never reset silently':
+190:                 raise ValueError('queue initialization drift; exact reviewed bootstrap required') from error
+191:             raise
+192:         if current.bytes is None:
+193:             require(self.storage['initialize'], 'queue journal missing; reviewed initialization required')
+194:             journal = None
+195:         else:
+196:             journal = load_journal(current.bytes, self.config)
+197:         return current, journal
+198: 
+199:     def read(self):
+200:         self.calls = self.consumed = 0
+201:         current, journal = self._load()
+202:         return {'head': current.head, 'journal': journal}
+203: 
+204:     def checkpoint(self, expected, desired):
+205:         import subprocess
+206:         validate_transition(expected, desired, self.config)
+207:         expected = None if expected is None else json.loads(canonical(expected))
+208:         desired = json.loads(canonical(desired)); self.calls = self.consumed = 0; uncertain = False
+209:         for attempt in range(3):
+210:             current, journal = self._load()
+211:             if journal == desired:
+212:                 return {'status': 'already-applied', 'head': current.head, 'uncertain_write_reconciled': uncertain}
+213:             require(journal == expected, 'queue journal conflict; reconcile immutable intent')
+214:             try:
+215:                 current.checkpoint(canonical(desired))
+216:             except (ValueError, RuntimeError, OSError, subprocess.TimeoutExpired):
+217:                 uncertain = True
+218:             try:
+219:                 observed, actual = self._load()
+220:             except (ValueError, RuntimeError, OSError, subprocess.TimeoutExpired) as error:
+221:                 if isinstance(error, ValueError) and str(error).startswith('queue initialization drift;'):
+222:                     raise
+223:                 raise ValueError('queue write uncertain; protected ref/journal reconciliation required') from error
+224:             if actual == desired:
+225:                 return {'status': 'applied', 'head': observed.head, 'uncertain_write_reconciled': uncertain}
+226:             require(actual == expected, 'queue journal conflict; reconcile immutable intent')
+227:         raise ValueError('queue three CAS attempts exhausted; no assumed success')
+
+TEST .claude/scripts/test/factory-reporting-queue-immutable.sh
+1: #!/usr/bin/env bash
+2: set -euo pipefail
+3: cd "$(dirname "$0")/../../.."
+4: python3 - <<'PY'
+5: """Exercise the actual nested queue delivery adapter, never a mirrored classifier."""
+6: import ast,copy,importlib.util,json
+7: from pathlib import Path
+8: spec=importlib.util.spec_from_file_location('queue_cache',Path('.claude/scripts/factory-reporting-queue.py'));q=importlib.util.module_from_spec(spec);spec.loader.exec_module(q)
+9: tree=ast.parse(Path(q.__file__).read_text())
+10: run=next(node for node in tree.body if isinstance(node,ast.FunctionDef) and node.name=='run_queue')
+11: node=next(node for node in run.body if isinstance(node,ast.ClassDef) and node.name=='DeliveryAPI')
+12: class API:
+13:  repo='org/repo'
+14:  def __init__(self):self.calls=[];self.value={'sha':'a'*40,'nested':{'value':1}}
+15:  def request(self,path,method='GET',payload=None):self.calls.append((path,method,payload));return copy.deepcopy(self.value)
+16: def adapter(archive=True):
+17:  api=API();scope=dict(vars(q),api=api,storage={'state_view':{'mode':'archive'}} if archive else {})
+18:  exec(compile(ast.fix_missing_locations(ast.Module(body=[node],type_ignores=[])),'actual-queue-delivery-class','exec'),scope)
+19:  return api,scope['DeliveryAPI']()
+20: path='repos/org/repo/git/blobs/'+'a'*40
+21: api,delivery=adapter();first=delivery.request(path);first['nested']['value']=99
+22: api.value['nested']['value']=2
+23: second=delivery.request(path)
+24: assert second['nested']['value']==1 and len(api.calls)==1,'immutable repeated read charged/refetched or returned mutable alias'
+25: second['nested']['value']=100;assert delivery.request(path)['nested']['value']==1
+26: for suffix in ('git/ref/heads/state','rulesets/1','actions/runs/1','pulls/7','commits?path=x','git/blobs/'+'b'*40+'?query=x'):
+27:  target='repos/org/repo/'+suffix;before=len(api.calls);delivery.request(target);api.value['nested']['value']+=1;result=delivery.request(target)
+28:  assert len(api.calls)==before+2 and result['nested']['value']==api.value['nested']['value'],'mutable/query response cached'
+29: for method,payload in [('POST',{}),('GET',{})]:
+30:  before=len(api.calls);delivery.request(path,method,payload);delivery.request(path,method,payload);assert len(api.calls)==before+2
+31: legacy,off=adapter(False);off.request(path);off.request(path);assert len(legacy.calls)==2,'legacy mode changed'
+32: api,bounded=adapter()
+33: for number in range(512):bounded.request('repos/org/repo/git/trees/'+f'{number:040x}')
+34: try:bounded.request('repos/org/repo/git/trees/'+'f'*40)
+35: except ValueError as error:assert 'API bound exceeded' in str(error)
+36: else:raise AssertionError('unique request capacity enlarged')
+37: assert len(api.calls)==512
+38: assert bounded.request('repos/org/repo/git/trees/'+'0'*40)['nested']['value']==1
+39: foreign_api,fresh=adapter()
+40: for target in ('repos/foreign/repo/git/blobs/'+'a'*40,'repos/org/repository/git/blobs/'+'a'*40):
+41:  try:fresh.request(target)
+42:  except ValueError as error:assert str(error)=='queue delivery foreign API'
+43:  else:raise AssertionError('foreign API accepted')
+44: assert foreign_api.calls==[]
+45: api,large=adapter();api.value='x'*16000001
+46: try:large.request(path)
+47: except ValueError as error:assert 'byte bound exceeded' in str(error)
+48: else:raise AssertionError('oversized immutable object cached')
+49: config={'enabled':True,'queue_monitor_enabled':True,'repository':'org/repo','state_repository':'org/repo','branch':'main','destination':'C1','team_id':'T1','grace_minutes':60}
+50: storage={'state_branch':'factory-reporting-state','bootstrap_sha':'a'*40,'initialize':False,'policy_approvals':{},'state_view':{'mode':'archive','approval_path':'/private/tmp/queue-immutable-bootstrap.json'}}
+51: api=API();store=q.QueueStore(api,config,storage)
+52: first=store.request(path);first['nested']['value']=99;api.value['nested']['value']=2
+53: assert store.request(path)['nested']['value']==1 and len(api.calls)==1,'QueueStore recharges immutable proof or aliases caller mutation'
+54: for suffix in ('git/ref/heads/state','rulesets/1','actions/runs/1','pulls/7','git/blobs/'+'b'*40+'?query=x'):
+55:  target='repos/org/repo/'+suffix;before=len(api.calls);store.request(target);api.value['nested']['value']+=1;assert store.request(target)['nested']['value']==api.value['nested']['value'] and len(api.calls)==before+2
+56: for method,payload in [('POST',{}),('GET',{})]:
+57:  before=len(api.calls);store.request(path,method,payload);store.request(path,method,payload);assert len(api.calls)==before+2
+58: legacy=API();off=q.QueueStore(legacy,config,{k:v for k,v in storage.items() if k!='state_view'});off.request(path);off.request(path);assert len(legacy.calls)==2
+59: api=API();store=q.QueueStore(api,config,storage)
+60: for number in range(128):store.request('repos/org/repo/git/trees/'+f'{number:040x}')
+61: try:store.request('repos/org/repo/git/trees/'+'f'*40)
+62: except ValueError as error:assert 'API bound exceeded' in str(error)
+63: else:raise AssertionError('QueueStore unique request bound enlarged')
+64: assert len(api.calls)==128 and store.request('repos/org/repo/git/trees/'+'0'*40)['nested']['value']==1
+65: from types import SimpleNamespace
+66: class SequentialReads(q.QueueStore):
+67:  offset=0
+68:  def _load(self):
+69:   for number in range(self.offset,self.offset+128):self.request('repos/org/repo/git/trees/'+f'{number:040x}')
+70:   self.offset+=128
+71:   return SimpleNamespace(head='a'*40),None
+72: api=API();store=SequentialReads(api,config,storage)
+73: assert store.read()['journal'] is None and store.calls==128
+74: assert store.read()['journal'] is None and store.calls==128 and len(api.calls)==256
+75: assert len(store.immutable)==128 and store.cached_bytes<=33554432
+76: # Full cache admission falls back; an old cached proof remains useful.
+77: store.calls=store.consumed=0
+78: before=len(api.calls);store.request('repos/org/repo/git/trees/'+'0'*40);assert len(api.calls)==before and store.calls==0 and store.consumed==0
+79: uncached='repos/org/repo/git/trees/'+f'{200:040x}'
+80: store.request(uncached);store.request(uncached);assert len(api.calls)==before+2
+81: fresh_api=API();fresh_store=q.QueueStore(fresh_api,config,storage)
+82: for target in ('repos/foreign/repo/git/blobs/'+'a'*40,'repos/org/repository/git/blobs/'+'a'*40):
+83:  try:fresh_store.request(target)
+84:  except ValueError as error:assert str(error)=='queue storage foreign API'
+85:  else:raise AssertionError('foreign QueueStore API accepted')
+86: assert fresh_api.calls==[]
+87: try:q.QueueStore(API(),config,dict(storage,state_view={'mode':'other','approval_path':'/private/tmp/queue-immutable-bootstrap.json'}))
+88: except ValueError as error:assert str(error)=='protected state view configuration invalid'
+89: else:raise AssertionError('non-archive present view accepted')
+90: for suffix in ('git/blobs/'+'A'*40,'git/blobs/'+'a'*39,'git/blobs/'+'a'*41,'git/blobs/'+'a'*40+'/','git/blobs/'+'a'*40+'/extra','git/tags/'+'a'*40,'git/refs/'+'a'*40):
+91:  for selected_api,selected in (adapter(),(fresh_api,fresh_store)):
+92:   target='repos/org/repo/'+suffix;before=len(selected_api.calls);selected.request(target);selected.request(target);assert len(selected_api.calls)==before+2
+93: print('actual queue adapter immutable isolation, mutable freshness, legacy mode, same-repo and unchanged unique-call/byte limits PASS')
+94: PY
+
+EXACT DIFF
+commit e8719d4317642c34a643882de2f12988f692e942
+Author: Shravan Jha <shravan.jha@gmail.com>
+Date:   Sat Oct 17 03:43:42 2026 +1100
+
+    fix(factory): fall back when queue proof cache is full
+    
+    Keep lifetime cache bounds independent of per-operation budgets; valid charged reads remain available after cache admission fills.
+    
+    Constraint: Retain128 cache entries and all request/byte ceilings.
+    Rejected: Reset useful immutable proofs or raise operation limits.
+    Confidence: high
+    Scope-risk: localized
+    Not-tested: Native App and full cadence validation.
+    Task: T-335
+    Co-Authored-By: Codex <noreply@openai.com>
+
+diff --git a/.claude/scripts/factory-reporting-queue.py b/.claude/scripts/factory-reporting-queue.py
+index 1acc380..1bea4ff 100755
+--- a/.claude/scripts/factory-reporting-queue.py
++++ b/.claude/scripts/factory-reporting-queue.py
+@@ -172,8 +172,8 @@ class QueueStore:
+         encoded = canonical(value); size = len(encoded); self.consumed += size
+         require(size <= self.state.MAX_STATE*2 and self.consumed <= 33554432, 'queue storage observation bound exceeded')
+         if immutable:
+-            require(len(self.immutable) < 128 and self.cached_bytes+size <= 33554432, 'queue immutable cache bound exceeded')
+-            self.immutable[path] = encoded; self.cached_bytes += size
++            if len(self.immutable) < 128 and self.cached_bytes+size <= 33554432:
++                self.immutable[path] = encoded; self.cached_bytes += size
+             return json.loads(encoded)
+         return value
+ 

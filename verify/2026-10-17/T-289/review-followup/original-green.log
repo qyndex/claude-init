@@ -1,0 +1,7 @@
+# TDD ledger — green — T-289
+ledger_format: 2
+timestamp: 2026-10-17T04:27:19+11:00
+command: bash .claude/scripts/test/factory-receipt-readiness.sh
+exit_code: 0
+---
+PASS actual expired-artifact retained proof, withdrawn annotations, foreign/private/race negatives; GET-only state

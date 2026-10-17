@@ -1,0 +1,7 @@
+{
+  "started_at": "2026-10-17T06:05:07.586218+00:00",
+  "command": "bash .claude/scripts/test/factory-receipt-projection-resume.sh",
+  "test_sha256": "97bd0249f98c2f71cded55613172db9ac66b7819a48271b1eb25c1d36f729ddb",
+  "exit_code": 0,
+  "elapsed_seconds": 170.2996109999949
+}

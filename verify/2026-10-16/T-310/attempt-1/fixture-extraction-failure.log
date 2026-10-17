@@ -1,0 +1,11 @@
+# TDD ledger — red — T-310
+ledger_format: 2
+timestamp: 2026-10-16T15:40:59+11:00
+command: bash .claude/scripts/test/factory-receipt-completed-origin.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 15, in <module>
+  File "completed-origin-real-git-fixture", line 84, in <module>
+IndexError: list index out of range

@@ -1,0 +1,61 @@
+{
+  "verdict": "changes_requested",
+  "review_summary": "I reviewed the supplied text only. I ran nothing and could not see archive.advance_origin, _origin_ancestor, _origin_delta, discovery.reconcile, discovery.coverage or projection_lineage. The core design holds up on the lines I could check. The journal is reloaded from the protected origin on every call. Its binding and previous-blob chain are checked against the parent and publication trees. Trust and policy changes reset to backfill. The source_epoch watermark is strict. CAS and lost-ack recovery go through GitState, and nothing in the helper treats a returned selector as authority. I found one medium issue and several low ones. The medium one is a monotonic journal advance driven by an unbounded caller cutoff. The low ones are a bound that is checked after the request is sent, a trust-file double read, a policy-reset path that can't be reached for some policy changes, a progress heuristic that may stall, and negative-path test gaps. I found no bypass of the origin or previous-blob validation, and no authority leak into the final consumer.",
+  "findings": [
+    {
+      "severity": "medium",
+      "file": ".claude/scripts/factory-reporting-maintenance.py",
+      "line": 106,
+      "title": "Unbounded caller cutoff irreversibly advances a no-rewind journal",
+      "reason": "The only checks on interval_end are exact seconds (54), not before coverage_from (87), and not before the journal's own interval_end (106). Nothing bounds it from above. Failure: a caller passes a far-future cutoff such as 2099-01-01T00:00:00Z. On first use it is written into the new journal (101). Once the current interval is ready, lines 196-198 persist it. After that, every legitimate cutoff fails the 'cannot rewind' check at 106 on every later run. The helper offers no recovery, because it never resets silently and line 94 demands a reviewed import. Backfill for a far-future window also cannot finish, so the journal sits in backfill indefinitely. Because no later invocation can undo the advance, this helper should reject a cutoff beyond the current time, or beyond a small tolerance of it, before it writes journal state. The pending loader may supply a safe cutoff, but this component is the only one that makes the advance irreversible."
+    },
+    {
+      "severity": "low",
+      "file": ".claude/scripts/factory-reporting-maintenance.py",
+      "line": 65,
+      "title": "Call and byte limits are enforced after the request has been issued",
+      "reason": "observe() runs only after state_api.request has returned, and then checks calls<=2048 and consumed<=32MiB. Failure: call 2049 is still sent. If it is a mutating call, such as the checkpoint ref PATCH or a blob or commit POST, the write takes effect remotely. The process then raises, and the acknowledgement is discarded. State recovers on the next run, so this is not corruption. It is, however, a break in the 'limits unchanged' claim and in the 'no writes past the budget' reading of it. The size check at 64 likewise runs after the body has been read. The fix is to check calls before dispatch, and to refuse writes once the remaining budget is exhausted."
+    },
+    {
+      "severity": "low",
+      "file": ".claude/scripts/factory-reporting-maintenance.py",
+      "line": 89,
+      "title": "Trust file is read twice, so the recorded hash may not be of the validated bytes",
+      "reason": "load_receipt_trust (88) validates the file. Line 89 then re-reads it with read_bytes() to compute trust_hash. If the file changes between the two reads, the journal's trust_sha256 (130, 133, 146) and the campaign digest (178) are bound to bytes that were never validated by this call. Coverage reloads the trust file again later, and final consumers revalidate, so the impact is limited. Exposure is local, to whoever can write the trust path. Compute the hash from the same bytes that were parsed."
+    },
+    {
+      "severity": "low",
+      "file": ".claude/scripts/factory-reporting-maintenance.py",
+      "line": 91,
+      "title": "Policy and trust-mode fields in the immutable binding make the policy-reset path unreachable for those changes",
+      "reason": "binding includes workflow_id, source_branch and trust_mode (91). _journal compares the whole binding on every load (26, 105). A change to policy['receipts']['workflow_id'], policy['base_branch'] or trust_mode (profile to legacy) fails with 'protected journal binding differs' at 105. That happens before the policy_sha256 reset at 129-131 can run. Failure: the journal becomes permanently unusable until a manual protected import, even though the code appears to handle policy rotation. If these fields are meant to be pinned, the reset branch is misleading. If rotation is meant to be recoverable, they should not be in the binding. Either way, state the intended behavior and test it."
+    },
+    {
+      "severity": "low",
+      "file": ".claude/scripts/factory-reporting-maintenance.py",
+      "line": 162,
+      "title": "Review progress depends on the watch blob changing, so a wrapped cursor can stall",
+      "reason": "Progress is detected only when git_hash(watch_raw) differs from journal['review_blob'] (153). If reconcile reviews rows without changing the watch bytes, for example a watch of 4 or fewer rows in one segment where the cursor wraps back to the same position and the rows are unchanged, then 153 is false. remaining never decreases and 165 is false, so line 167 reruns reconcile on every invocation and never reaches 'checkpoint'. The comment at 160-161 claims the wrapped one-row case is handled. That is true only if reconcile always rewrites a changed byte. I can't see reconcile, so this is conditional on that. The test would not catch it, because the rerun loop (test line 92) only asserts coverage_complete is False and so cannot tell a stall from a genuine gap."
+    },
+    {
+      "severity": "low",
+      "file": ".claude/scripts/factory-reporting-maintenance.py",
+      "line": 35,
+      "title": "Journal validation lacks cross-field invariants, so an unrecoverable journal can be written and accepted",
+      "reason": "_journal checks fields independently. It accepts review_blob set with review_cursor None, a cursor segment >= review_watch_segments, and phases with inconsistent selectors, such as stage with history_head None. Line 154 then dereferences cursor['segment'] and line 159 takes a modulo by review_watch_segments, so TypeError or ZeroDivisionError is possible. persist() validates through the same function (124), so a logic slip would write a journal that every later run accepts and then crashes on. It is fail-closed but wedges the journal permanently. Add the invariants to _journal."
+    },
+    {
+      "severity": "low",
+      "file": ".claude/scripts/test/factory-reporting-maintenance.sh",
+      "line": 95,
+      "title": "The focused test never exercises the protected-origin, trust/policy or limit failure branches",
+      "reason": "The test runs only legitimate sequences: normal progress, a foreign write (CAS race), a lost acknowledgement, source unavailable, a late source and a rerun. It has no negative case for the new validation code. The untested branches are: a tampered journal or one with a binding mismatch; a previous_blob or previous_interval_end that doesn't match the parent; a publication with more than one parent or one that isn't an ancestor; a changed trust or policy hash resetting to backfill; a far-future or rewound cutoff; and the 2048-call and 32 MiB caps. The 96 fresh-process invocations all use the happy path through lines 107-121. A regression in those security checks would pass this test."
+    }
+  ],
+  "limitations": [
+    "Static read only. I ran nothing, and the supplied local test output is only evidence the author's run passed.",
+    "I could not see advance_origin, verify_bootstrap, _origin_ancestor, _origin_delta, fixed_reader, discovery.backfill, discovery.reconcile, discovery.coverage, projection_lineage, stage_projection or validate_checkpoint. Origin authorship and writer-app verification of the publication commit, that backfill increments the epoch on every call, that reconcile advances by at most four rows within one segment, and that facts_count tracks references in the offset arithmetic at 186-190 are all taken on trust.",
+    "I did not review the pending public loader, the app workflow wiring or the final consumers' revalidation, per the instructions.",
+    "The finding on the unbounded cutoff assumes the future loader may pass a caller-influenced value. If the loader will always derive the cutoff from a trusted clock, severity drops to low."
+  ]
+}

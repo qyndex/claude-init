@@ -1,0 +1,13 @@
+{
+  "base": "eae78f9df87c5c1ebe4947359bad590d2b0bf7ba",
+  "red_exit": 1,
+  "green_exit": 0,
+  "actual_main_cases": 18,
+  "legacy_hosted_exit": 0,
+  "source_sha256": {
+    ".claude/scripts/factory-git-state.py": "0324019d96a8e7a956621f5865b442bc12d194e0ad828e76162cbd658058cf80",
+    ".claude/scripts/test/factory-hosted-digest-cli.sh": "3ec7020407e7aad376866a1398d4eef32f76cea80d2fa79f42b56078efa3cfea"
+  },
+  "live_calls": false,
+  "task_closed": false
+}

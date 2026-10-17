@@ -92,8 +92,11 @@ Unknown Slack effects are not resent: a fresh monitor must find the exact origin
 
 ## Independently serialized queue monitor (029)
 
-Local implementation and contract verification are available; queue activation
-is **PENDING**. This is distinct from the earlier ordinary-alert pilot above.
+Local implementation and contract verification are available. The bounded
+qyndex/claude-init queue pilot passed actual drill/recovery/repeat acceptance on
+2026-10-16; see the [source-bound activation record](activation/2026-10-16-queue-probe/README.md).
+Each adopter still needs its own reviewed rollout. This is distinct from the
+earlier ordinary-alert pilot above.
 The queue workflow polls at minutes 11/26/41/56, with its own
 `factory-reporting-queue-${{ github.repository }}` concurrency group and
 cancel-in-progress=false. Digest, feedback and ordinary alerts keep their existing
@@ -143,7 +146,8 @@ a checker bound; any needed extension/migration requires review.
 Run the local aggregate with `bash .claude/scripts/test/factory-reporting-queue.sh`.
 It runs source/journal observer regressions once through the offline live-checker
 contract script. Its success proves local AC1–8 portions only. Actual labelled
-drill, recovery, repeat and opaque preservation remain **PENDING** under T318;
+drill, recovery, repeat and opaque preservation passed for the source-bound pilot
+under T318; local fixtures alone never establish another live activation;
 `--live` with real run/attempt selectors is mandatory for that separate acceptance.
 Source-bound local evidence is not a live activation certificate.
 
@@ -154,3 +158,78 @@ Healthchecks remains disabled (FACTORY_REPORTING_WATCHDOG_ENABLED=false), and
 independent monitoring stays optional. The three operator-disabled auxiliary
 workflows do not pause the factory plan and supply no current verification
 credit; keep their disabled state until separately authorized.
+
+## Read-only retained-proof readiness
+
+The merge activation preflight remains `factory-preflight.py --policy PATH`.
+Reporting inspection is separate and does not require enabling merge authority:
+
+```sh
+python3 .claude/scripts/factory-preflight.py --reporting-config /protected/reporting.json
+python3 .claude/scripts/factory-preflight.py --reporting-config /protected/reporting.json \
+  --interval-end UTC_CUTOFF --history-head AUTHENTICATED_HISTORY_SHA \
+  --campaign AUTHENTICATED_CAMPAIGN_DIGEST
+```
+
+Use the reviewed default-branch checkout and the same protected App selection as
+the hosted consumers. Reporting inspection requires explicit App mode and its
+selected source/reporting tokens; there is no fallback to legacy credentials.
+It selects the existing fixed `factory/policy.json`, `receipt-trust.json`,
+`receipt-store.json`, `receipt-archive-bootstrap.json` and, for schema2,
+`receipt-policy-observations.json`. These are the existing protected contracts,
+not new authority files. Interval arguments select existing interval-scoped
+maintenance work; they do not assert that the work is complete.
+
+Output separates passed, failed and not_checked checks. Without interval
+selectors it checks the audited protected origin only. With all three it rebuilds
+retained proof into disposable local SQLite and checks actual requested source
+coverage, current trust and final mutable origin again. Expired detailed Actions
+artifacts can be reconstructed from retained authenticated bytes. Withdrawn facts
+stay historical evidence with withdrawn trust, never newly authenticated task
+completion. Incomplete scans, unavailable required history and exhausted budgets
+block the requested proof check. The command cannot advance discovery, bootstrap,
+stage, publish state, import into the report database, complete tasks or merge.
+
+Exit zero means the requested read-only checks passed; it is not activation
+approval. Installed App permissions, private-adopter capability, native cadence
+and operator cutover remain explicitly not_checked. Read-only access alone does
+not prove Contents-write permission. Existing local capacity and quiet-repeat
+fixtures are not a native quota or scheduled morning-delivery certificate.
+GitHub-hosted reporting, GitHub-only alerts and disabled Healthchecks are unchanged.
+
+## Finite continuation acceptance
+
+Run `bash .claude/scripts/test/factory-receipt-continuation.sh` from the reviewed
+integration checkout. This is local acceptance with a shared 300-second ceiling,
+not a live activation command. It executes five existing checks once: real Git
+two-interval rollover; retained readiness; typed retained receipt transfer;
+receipt ingestion and real supervisor-death recovery; and supervisor lifecycle.
+Its final JSON records the actual commands, exit codes, test hashes and elapsed
+time. A changed runtime-regression input or failed check blocks the aggregate; it does not skip ahead.
+
+The rollover uses fresh local reporting databases across bounded invocations,
+finishes an older partial interval before the next, includes a newly visible old
+manual merge, preserves the first payload/receipt and opaque encrypted-feedback
+bytes, and proves the same cutoff does not resend. Retained readiness and transfer
+exercise expired detailed artifacts, actual protected origin/coverage, withdrawn
+historical proof, revised-task isolation, exact typed imports and immutable
+pending/confirmed payloads. These are complementary assertions on real disposable
+Git state, not one synthetic caller-provided completion flag.
+
+Recovery executes real local processes: killing the supervisor must clean up its
+worker group/descendants, retain uncertain external effects, reject duplicate or
+stale recovery, increase the fence and permit the bounded retry. The supervisor
+suite separately checks cancellation, lease/heartbeat/timeout and descriptor
+ownership. Runtime state regression reuse requires the exact recorded source/test
+SHA256 and original successful output digest; a mismatch fails rather than claiming
+an unchanged result. Current profile/legacy-family regressions are recorded
+separately against exact final inputs, outside this finite aggregate deadline.
+
+The historical regression-baseline RED for this aggregate is labelled explicitly:
+the new test is applied to actual pre-readiness source to reproduce the missing
+behavior. It does not claim that the final integration was originally developed
+in that order. Local continuation acceptance cannot certify simultaneous guardian
+death, native Docker isolation, installed App/private capability, scheduled quota
+or morning delivery. No default Docker SKIP is counted as a native PASS. Existing
+retained long-history evidence is retained without repeating producer history or
+claiming all-history completeness. Merge authority and live cutover stay separate.

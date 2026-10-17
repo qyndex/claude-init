@@ -1,0 +1,8 @@
+{
+  "diagnostic_snapshot_only": true,
+  "head": "fd5af9e17bce97a4cd5109bad8d82f643385f8f1",
+  "actual_retained_appends": 56,
+  "actual_git_commits": 117,
+  "snapshot": "/private/tmp/t287-after-delta-snapshot-20261016",
+  "reason": "owned run stopped for equivalent Git adapter subprocess optimization; not production RED or GREEN"
+}

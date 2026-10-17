@@ -1,0 +1,19 @@
+# TDD ledger — red — T-310
+ledger_format: 2
+timestamp: 2026-10-16T15:45:12+11:00
+command: bash .claude/scripts/test/factory-receipt-completed-origin.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 108, in <module>
+  File "completed-origin-real-git-fixture", line 77, in <module>
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 277, in verify_bootstrap
+    verified_prefix = _completed_origin(api, context)
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 232, in _completed_origin
+    head = ref['object']['sha']; current = read(root+'/git/commits/'+head)
+                                           ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 182, in read
+    value = api.request(path)
+  File "completed-origin-real-git-fixture", line 74, in request
+AssertionError: malformed ref reached commit GET

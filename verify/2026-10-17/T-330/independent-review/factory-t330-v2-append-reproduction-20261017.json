@@ -1,0 +1,7 @@
+{
+  "schema2_bootstrap_passed": true,
+  "append_rejected": "archive writer protection changed before append",
+  "ref_unchanged": true,
+  "real_git_fixture": true,
+  "live_network": false
+}

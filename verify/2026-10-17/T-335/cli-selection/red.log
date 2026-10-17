@@ -1,0 +1,12 @@
+# TDD ledger — red — T-335/cli-selection
+ledger_format: 2
+timestamp: 2026-10-17T02:15:03+11:00
+command: /Users/shravanjha/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3 verify/2026-10-17/T-335/cli-selection/test.py
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "/private/tmp/factory-t335-cli-selection-20261017/verify/2026-10-17/T-335/cli-selection/test.py", line 40, in <module>
+    assert not failures,failures
+           ^^^^^^^^^^^^
+AssertionError: ['factory-reporting-alerts.py accepted malformed flag', 'factory-reporting-alerts.py accepted missing selected App token', 'factory-reporting-queue.py accepted malformed flag', 'factory-reporting-queue.py accepted missing selected App token', 'factory-hosted-feedback.py accepted malformed flag', 'factory-hosted-feedback.py accepted missing selected App token', 'factory-reporting-watchdog.py accepted malformed flag', 'factory-reporting-watchdog.py accepted missing selected App token']

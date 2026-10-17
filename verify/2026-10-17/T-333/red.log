@@ -1,0 +1,16 @@
+# TDD ledger — red — T-333
+ledger_format: 2
+timestamp: 2026-10-17T00:53:07+11:00
+command: bash .claude/scripts/test/factory-reporting-receipt-transfer.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 9, in <module>
+AssertionError: Factory delivery — org/repo
+start to end (Australia/Sydney)
+Merged PRs: 1; product acceptance remains separate.
+#7 Feature — T-1/spec 001
+https://github.com/org/repo/pull/7 — merge bbbbbbbbbbbb
+Evidence: https://github.com/org/repo/actions/runs/20
+Missing historical check records are not treated as a pass.

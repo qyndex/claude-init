@@ -1,0 +1,21 @@
+{
+  "command": [
+    "bash",
+    ".claude/scripts/tdd-ledger.sh",
+    "green",
+    "T-338",
+    "bash .claude/scripts/test/factory-operational-replay.sh"
+  ],
+  "exit_code": 0,
+  "elapsed_seconds": 5.57,
+  "timeout_seconds": 60,
+  "python": "/Users/shravanjha/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+  "files": {
+    ".claude/scripts/factory-operational-replay.py": "bf3ae38739df7a0b17fbea15715cb5d5b9267a9b9af6a1ba49e8cd511c15a5f7",
+    ".claude/scripts/test/factory-operational-replay.sh": "d9b07e5d32411c9a9c61378ee34b0497c90e49ae5542bcf2066f234777205f35",
+    ".claude/scripts/test/factory-operational-producer.sh": "374d5f6f0c30db37c508ac3037b9112414e7d06adb9382a8106c65de41b30842",
+    ".claude/scripts/factory-operational-proof.py": "82f051c273ab3cff5e484e902dbecf38b7c647b9c84390a7703255370fc5a0a1",
+    ".claude/scripts/factory-operational-producer.py": "4b215adbb2e5abf99d793a8d12487596f13fae31188b531b739a1ed6208f2a2e"
+  },
+  "scope": "local native-API and certificate fixtures; real Git; no actual native replay"
+}

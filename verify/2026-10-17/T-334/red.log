@@ -1,0 +1,12 @@
+# TDD ledger — red — T-334
+ledger_format: 2
+timestamp: 2026-10-17T01:12:06+11:00
+command: bash .claude/scripts/test/factory-reporting-maintenance.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+actual disposable Git origin and opaque feedback baseline verified
+Traceback (most recent call last):
+  File "<stdin>", line 31, in <module>
+  File "reporting-maintenance-fixture", line 82, in <module>
+TypeError: backfill() got an unexpected keyword argument 'interval_scoped'. Did you mean 'interval_end'?

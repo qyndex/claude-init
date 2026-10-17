@@ -1,0 +1,34 @@
+[
+{"check":".claude/CLAUDE.md exists","status":"pass","detail":""}
+,{"check":".claude/settings.json exists","status":"pass","detail":""}
+,{"check":".mcp.json exists","status":"pass","detail":""}
+,{"check":"tasks/TASKS.md exists","status":"pass","detail":""}
+,{"check":".claude/settings.json valid JSON","status":"pass","detail":""}
+,{"check":".mcp.json valid JSON","status":"pass","detail":""}
+,{"check":"disableBypassPermissionsMode=disable","status":"pass","detail":""}
+,{"check":"hooks executable","status":"pass","detail":""}
+,{"check":"constitution ≤300 lines","status":"pass","detail":"213 lines"}
+,{"check":"no @latest MCP pins","status":"pass","detail":""}
+,{"check":"handoff.yaml has tdd_state","status":"pass","detail":""}
+,{"check":"metabolism: --bare spawn authenticates","status":"warn","detail":"claude -p --bare → 'Not logged in' (rc=1). The dream/instinct/witness spawns are DEAD. M-01b fix: drop --bare so OAuth is read (staged patch). --bare cannot read OAuth by design."}
+,{"check":"metabolism: portable timeout available","status":"warn","detail":"no timeout/gtimeout on PATH — pre-compact-witness.sh:68 dies 'command not found' before claude runs (M-01b adds a portable guard)"}
+,{"check":"memory: committed index fresh","status":"pass","detail":"index mtime ≥ newest committed memory .md"}
+,{"check":"memory: dream has run recently","status":"warn","detail":"no dream has ever run (.claude/hooks/.log/dream-*.log absent) — the overnight /dream metabolism is dead (M-01b)"}
+,{"check":"memory: rollup freshness","status":"warn","detail":"rollup freshness unknown (set LIVENESS_NOW_WEEK=YYYY-Www) — no deterministic clock, refusing to guess the current week (Correction 3)"}
+,{"check":"no witness briefs stuck pending >2d","status":"pass","detail":""}
+,{"check":"initiative/spec pointers present","status":"fail","detail":"run: bash .claude/scripts/initiative-state.sh sync"}
+,{"check":"initiative STATE.md fresh (≤7d)","status":"pass","detail":"0d old"}
+,{"check":"memory index lifecycle ≥50% populated","status":"pass","detail":"27/39"}
+,{"check":"skill-use telemetry","status":"warn","detail":"no skill-use.jsonl yet — skill-use-log.sh hook records Skill invocations once installed"}
+,{"check":"cache hit-rate measured","status":"pass","detail":"no cost-summary.json yet — run cost-report.sh"}
+,{"check":"stop-verify blocks (7d)","status":"pass","detail":"no block log yet"}
+,{"check":"feedback intake wiring","status":"warn","detail":"feedback-source MCPs present but every auth env key is EMPTY — intake is configured but UNWIRED; export the API keys (docs/ADOPTION.md §feedback)"}
+,{"check":"anti-slop ramp (30d)","status":"warn","detail":"wired in 2026-05-29 (>30d ago) but pr-review.yml is still advisory — remove continue-on-error to make it gating, and add the job to the ruleset"}
+,{"check":"stale swarm worktrees","status":"pass","detail":"no terminal-status stream retains a worktree"}
+,{"check":"live branch ruleset","status":"warn","detail":"no server-side ruleset found (or gh unauthenticated) — every required check is ADVISORY; apply: gh api repos/{owner}/{repo}/rulesets --method POST --input .github/rulesets/main-protection.json"}
+,{"check":"routine installs","status":"warn","detail":"routines with NO install record: appetite-circuit-breaker atlas-refresh constitution-compact-cron dream-cron feedback-poll feedback-triage gc-nightly hotfix-sentry-poll morning-briefing oq-aging overnight-build quarterly-archive — locally-eligible ones: bash .claude/scripts/install-overnight-tasks.sh; cloud-only (overnight-build, feedback-*): claude.ai/code/routines (Routine Installation Matrix: docs/AUTOPILOT.md)"}
+,{"check":"runtime log size","status":"pass","detail":"no runtime log over the 50MB rotation cap"}
+,{"check":"release-please config","status":"warn","detail":"release-please-config.json still has the placeholder package-name '@your-org/your-repo' — releases are broken until set (setup.sh configures it by stack)"}
+,{"check":"Anthropic credential secret","status":"warn","detail":"no credential secret (or gh unauthenticated) — claude-review/claude-security required checks will fail every PR; set the FREE token: gh secret set CLAUDE_CODE_OAUTH_TOKEN (claude setup-token)"}
+,{"check":"deploy stub","status":"warn","detail":"canary-deploy.yml is a STUB and DEPLOY_WIRED is unset — deploys are BYO and refuse to run (by design); wire via docs/DEPLOY-INTEGRATION.md"}
+]

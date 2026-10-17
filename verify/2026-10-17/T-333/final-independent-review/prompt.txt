@@ -1,0 +1,632 @@
+Final narrowly scoped followup. Prior reviewed candidate6a468aec0381f2ba628ec038ce5c39c41abab58e had ONLY the three outstanding findings in supplied prior verdict. Review whether commit040711df closes those: (1) actual helper-projected withdrawn evidence with validated marker reaches real durable digest, (2) same-origin and nondecreasing verified_until before SQLwrites, real earlier protected campaign negative preserves bytes, (3) corrected stalecomment. Review actual newdiff for regressions; do not reopen optional policies or unchanged previouslyreviewed architecture. Tests already executed locally, but you have no tools and must not claim execution/native attestation/live authority. Guard uses real campaignproof; disposable fixture update-ref restores ancestry only in test, not permission for production origin reset. Return concrete actionable findings only; pass if allthree closed and no new defect in this delta.
+
+{
+  "verdict": "changes_requested",
+  "review_summary": "Static review only. I executed nothing and relied on no self-reported test results. I read the diff against the full current helper, digest and test source.\n\n**Prior findings**\n- **Prior 1 (`delivery_interval` unbound): substantially fixed.** A local marker `reporting_receipt_coverage(repository, coverage_from, verified_until)` is now written in the same `BEGIN IMMEDIATE` transaction as the five fixed tables. This happens only after reconstruction, `discovery.coverage`, a binding check and the unchanged-origin/trust recheck.\n  - Durable `prepare` (factory-digest.py:125-129) requires exactly one marker. It must match the repository and satisfy `coverage_from <= origin <= start < end <= verified_until`.\n  - The check runs after the pending short-circuit, so pending batches stay immutable. A missing, foreign, late-origin or too-narrow marker fails closed.\n  - One residue remains: the marker can be moved backwards (finding 2).\n- **Prior 2 (missing negative tests): mostly fixed.**\n  - New tests cover invalid and default receipt modes, a byte-exact legacy payload, and a pending-batch mode switch.\n  - They also cover the destination guards (trigger, schema, coverage schema, foreign coverage, and receipt/provenance/time conflict or disappearance), SQLite-authorizer rollback after receipt writes, and missing/foreign/late-origin/later-cutoff markers.\n  - I found no logic error in those fixtures by inspection.\n  - However, the replaced assertion removed the only digest-level check that a withdrawn trust status renders as `withdrawn` (finding 1).\n- **Prior 3 (fixture splicing): partly fixed.** The splice markers are now asserted to occur exactly once, with clear messages. The nested `exec` coupling remains. I accept that for a test.\n- **Prior 4 (connection not closed): fixed.** Both helper connections now use `closing`. The destination uses `closing(...) as db, db`, so it commits or rolls back first and then closes.\n\n**Scope checks**\n- The fixed five-table reconstruction is unchanged.\n- The marker is written only by the helper after both validators pass. Digest only reads it, which matches the local-cache-not-authority framing.\n- Legacy and default digest behaviour is unchanged. No source receipt schema relaxation or task mutation was introduced.\n\nTwo findings remain. Pass is withheld because of them.",
+  "findings": [
+    {
+      "severity": "medium",
+      "file": ".claude/scripts/test/factory-reporting-receipt-transfer.sh",
+      "line": 67,
+      "title": "Replaced assertion leaves durable digest 'withdrawn' labelling unexercised end-to-end",
+      "reason": "The deleted assertion (old lines 66-68) was the only digest-level check that actual retained withdrawn trust yields `evidence_status=='withdrawn'` and never `authenticated` (factory-digest.py:146-147,154). The new code at lines 67-70 asserts only that raw tables without a marker are refused.\n\nLater `prepare` calls on helper-projected data do not restore it:\n- Lines 183-184 expect `missing` for deleted trust, times and interval rows.\n- Line 189 expects a timestamp-mismatch error.\n- Line 193 uses legacy mode.\n- Line 199 runs only after trust has been restored to active.\n\nThe helper never has a marker-bearing, withdrawn-status destination passed through `prepare`. Line 91 checks the DB row only, and the line 11-14 renderer test uses a hand-built dict. A regression that labelled withdrawn proof `authenticated` in durable mode would pass this suite, even though AC-2 requires the withdrawn annotation.\n\nFix: after the first helper projection (target holds withdrawn rows and a valid marker), run `digest.Digest(copy, ..., receipt_mode='durable').prepare(Report(), end)` on a copy of `target`. Assert every merge has `evidence_status=='withdrawn'` and keeps its `delivery_evidence`."
+    },
+    {
+      "severity": "low",
+      "file": ".claude/scripts/factory-reporting-receipts.py",
+      "line": 122,
+      "title": "Marker and delivery_interval can be moved backwards by a narrower or older rerun, with no test",
+      "reason": "Lines 116-125 (`delivery_interval` is exempt from the monotonic check) and 122-125 overwrite both the interval membership and the single marker row with whatever the current call verified. Nothing compares the existing `verified_until` or `coverage_from` with the new values.\n\nA stale or retried call with `interval_end` earlier than the stored value therefore shrinks `verified_until` and drops interval tasks. It fails closed: durable `prepare` then refuses every end past the older bound. But coverage already recorded is silently discarded, and reporting stays blocked until a wider run happens to follow.\n\nA changed `coverage_from` is also silently replaced. No test covers either case.\n\nFix: inside the transaction, load any existing marker. Require the same repository and `coverage_from`, and require `instant(interval_end) >= instant(existing verified_until)`. Otherwise refuse with `require` and leave the DB untouched. Add a negative test that reruns with a smaller `interval_end` and asserts the bytes are unchanged."
+    },
+    {
+      "severity": "nit",
+      "file": ".claude/scripts/test/factory-reporting-receipt-transfer.sh",
+      "line": 62,
+      "title": "Stale comment contradicts the assertion that follows",
+      "reason": "The comment says 'Baseline renders genuine withdrawn retained proof as authenticated.' The block now asserts that this state is refused with 'coverage marker missing'. Update the comment to describe the new intent: raw copied tables with no marker must not authorize a durable report."
+    }
+  ],
+  "limitations": [
+    "Static review only. Nothing was executed, so I could not confirm that the sqlite authorizer DENY surfaces as `sqlite3.DatabaseError` containing 'authorized' on the Python version in use, that the byte-identical assertions hold, or that the fixture splice still composes.",
+    "Helper line 83 reads `before['coverage_from']` from `archive.verify_bootstrap`, and line 82 reads `coverage['repository']`. The archive and discovery modules were not supplied, so I could not confirm these keys exist or that their formats match.",
+    "`delivery_trust` is still exempt from the monotonic check, and the test deliberately flips withdrawn back to active. Replacing the local trust file therefore re-authenticates previously withdrawn proof in future batches. This is carried over from the prior review. AC-2 says previously reported revoked facts remain annotated, so consider sticky withdrawal or a protected trust epoch in later work.",
+    "The marker does not carry a branch, a destination, or a digest of the projected rows. Anyone who can write the report DB can forge the marker and tables together. This matches the stated local-cache-only model, but a real authority boundary needs the helper's own authenticated record, for example a projection digest that coverage exposes.",
+    "The reconstruction and `discovery.coverage` still run as two independent reads. Their agreement relies on determinism of the frozen head and campaign, plus the unchanged-bootstrap check.",
+    "The rollback test patches `sqlite3.connect` process-wide, because `helper.sqlite3` is the shared module. It is restored in `finally` and filtered by path, which is acceptable but fragile. Several test connections use `with sqlite3.connect(...)` without closing.",
+    "The digest CLI `main()` still constructs legacy-mode digests only. Integration, rollover and role wiring and native/live authority remain pending, and I infer no current readiness from this change."
+  ]
+}
+
+commit 040711df83ba6b3601a3658acca81d71598f0dbc
+Author: Shravan Jha <shravan.jha@gmail.com>
+Date:   Sat Oct 17 01:23:26 2026 +1100
+
+    fix(reporting): preserve monotonic cached receipt coverage
+    
+    Spec: 014
+    Task: T-333
+    Constraint: Local coverage guard only; protected receipt schemas stay unchanged.
+    Rejected: Replacing verified cache coverage with a narrower stale campaign.
+    Directive: Close final three scoped independent review findings.
+    Confidence: high
+    Scope-risk: localized
+    Not-tested: Live capability and separate digest branch mutation experiment.
+    Co-Authored-By: Codex <noreply@openai.com>
+
+diff --git a/.claude/scripts/factory-reporting-receipts.py b/.claude/scripts/factory-reporting-receipts.py
+index 9a41d16..c3f723e 100755
+--- a/.claude/scripts/factory-reporting-receipts.py
++++ b/.claude/scripts/factory-reporting-receipts.py
+@@ -107,6 +107,9 @@ def project_reporting(source_api, state_api, policy, report_path, trust_path, st
+             if not existing:db.execute(COVERAGE_SQL)
+             require(all(row[0] == policy['repository'] for row in db.execute('SELECT repository FROM reporting_receipt_coverage')),
+                     'reporting coverage repository differs')
++            require(all(origin == coverage['coverage_from'] and archive.instant(until) <= archive.instant(coverage['verified_until'])
++                        for origin,until in db.execute('SELECT coverage_from,verified_until FROM reporting_receipt_coverage')),
++                    'reporting coverage regressed or origin differs')
+             for name,(definition,columns) in DEFINITIONS.items():
+                 existing = db.execute('SELECT type,sql FROM sqlite_master WHERE name=?', (name,)).fetchall()
+                 require(not existing or existing == [('table','CREATE TABLE '+name+'('+definition+')')], 'reporting receipt destination schema differs')
+diff --git a/.claude/scripts/test/factory-reporting-receipt-transfer.sh b/.claude/scripts/test/factory-reporting-receipt-transfer.sh
+index 64d5c1c..a3565d3 100755
+--- a/.claude/scripts/test/factory-reporting-receipt-transfer.sh
++++ b/.claude/scripts/test/factory-reporting-receipt-transfer.sh
+@@ -48,6 +48,7 @@ print('PASS invalid/default receipt modes, fixed byte-exact legacy payload and p
+ source=fixture_source.split("<<'PY'\n",1)[1]
+ prefix=source.split("\ncases=r'''",1)[0]
+ setup=source.split("\ncases=r'''\n",1)[1].split(' assert batch_calls,',1)[0]
++prefix+="\nmarker=' first=a.checkpoint_projection('\nassert pipeline.count(marker)==1, 'projection fixture checkpoint marker changed'\npipeline=pipeline.replace(marker, \" projection_parent=out('rev-parse',ref)\\n\"+marker,1)\n"
+ cases=r'''
+  # Real Git/bootstrap/stages/coverage above; no caller authenticated flag.
+  ds=importlib.util.spec_from_file_location('report_digest',scripts/'factory-digest.py');digest=importlib.util.module_from_spec(ds);ds.loader.exec_module(digest)
+@@ -59,7 +60,7 @@ cases=r'''
+  active=trust.read_bytes();revoked=json.loads(active);revoked['profiles'][0]['status']='revoked';trust.write_text(json.dumps(revoked))
+  retained=root/'retained-only.sqlite';assert a.reconstruct_interval(PipelineState(),policy,retained,trust,store,approval,stream,interval_end=end,history_head=context['history'],campaign=campaign)['projection_complete']
+  report=root/'report.sqlite';view=digest.Digest(report,'org/repo','C1','2026-10-15T00:00:00Z');view.receipt_mode='durable'
+- # Baseline renders genuine withdrawn retained proof as authenticated.
++ # Raw copied tables without a coverage marker cannot authorize a durable report.
+  with sqlite3.connect(retained) as src,sqlite3.connect(report) as dst:
+   for name,sql in src.execute("SELECT name,sql FROM sqlite_master WHERE type='table'"):
+    dst.execute(sql)
+@@ -91,6 +92,42 @@ cases=r'''
+   assert db.execute('SELECT status FROM delivery_trust').fetchall()==[('withdrawn',),('withdrawn',)]
+   assert db.execute('SELECT merged_at FROM delivery_times').fetchall()==[('2026-10-15T01:00:00.123456Z',)]*2
+  snapshot=target.read_bytes()
++ # AC-2: real projected withdrawn proof reaches the durable digest unchanged.
++ import shutil
++ withdrawn_copy=root/'withdrawn-digest.sqlite';shutil.copyfile(target,withdrawn_copy)
++ withdrawn_view=digest.Digest(withdrawn_copy,'org/repo','C1','2026-10-15T00:00:00Z',receipt_mode='durable')
++ withdrawn_entries=json.loads(withdrawn_view.prepare(Report(),end)['payload'])['merges']
++ assert len(withdrawn_entries)==2 and all(row['evidence_status']=='withdrawn' and row['delivery_evidence'] for row in withdrawn_entries),withdrawn_entries
++ print('PASS actual helper marker+withdrawn proof retains attribution through durable digest')
++ # AC-7: an independently validated earlier protected campaign cannot shrink cache coverage.
++ full_head=out('rev-parse',ref);saved_trust=trust.read_bytes();earlier='2026-10-15T22:00:00Z'
++ try:
++  git('update-ref',ref,projection_parent);trust.write_bytes(active)
++  for item in sources:item.expired=False
++  narrow_checkpoint=a.checkpoint_projection(PipelineState(),policy,trust,store,approval,stream,interval_end=earlier,limit=2)
++  assert narrow_checkpoint['frozen_complete']
++  narrow_history=out('rev-parse',ref)
++  narrow_stage=a.stage_projection(PipelineState(),policy,trust,store,approval,stream,interval_end=earlier,history_head=narrow_history,limit=2)
++  assert narrow_stage['status']=='staged' and narrow_stage['facts_count']==2
++  d.advance(runs,PipelineState(),policy,approval,stream,page_size=1)
++  for _ in range(3):d.backfill(runs,PipelineState(),policy,approval,stream,interval_end=earlier,page_size=1)
++  for _ in range(32):
++   d.reconcile(runs,PipelineState(),policy,trust,store,approval,stream,review_rows=4)
++   progress=json.loads(git('show',ref+':receipt-archive/progress/'+stream+'.json').stdout)
++   if progress['scan']['complete']:break
++  assert progress['scan']['complete']
++  trust.write_bytes(saved_trust)
++  for item in sources:item.expired=True
++  narrow_coverage=d.coverage(runs,ReadState(),policy,trust,store,approval,stream,interval_end=earlier,projection_end=earlier,history_head=narrow_history,campaign=narrow_stage['campaign'],page_size=1)
++  assert narrow_coverage['coverage_complete'],narrow_coverage
++  try:helper.project_reporting(runs,ReadState(),policy,target,trust,store,approval,stream,interval_end=earlier,history_head=narrow_history,campaign=narrow_stage['campaign'],page_size=1)
++  except ValueError as error:assert 'coverage regressed' in str(error),str(error)
++  else:raise AssertionError('actual earlier protected projection moved coverage backwards')
++  assert target.read_bytes()==snapshot
++ finally:
++  git('update-ref',ref,full_head);trust.write_bytes(saved_trust)
++  for item in sources:item.expired=True
++ print('PASS actual earlier protected projection rejects without changing reporting bytes')
+  # AC-7: an actual complete projection cannot authorize an unverified later cutoff.
+  wider=root/'unverified-cutoff.sqlite'
+  import shutil
+@@ -108,6 +145,7 @@ cases=r'''
+   'schema':"ALTER TABLE delivery_receipts ADD COLUMN extra TEXT",
+   'coverage-schema':"ALTER TABLE reporting_receipt_coverage ADD COLUMN extra TEXT",
+   'foreign-coverage':"UPDATE reporting_receipt_coverage SET repository='other/repo'",
++  'changed-origin':"UPDATE reporting_receipt_coverage SET coverage_from='2026-10-15T00:00:00.000001Z'",
+   'receipt-conflict':"UPDATE delivery_receipts SET revision='conflict'",
+   'provenance-conflict':"UPDATE delivery_provenance SET provenance='conflict'",
+   'time-conflict':"UPDATE delivery_times SET merged_at='conflict'",
+
+
+FULL .claude/scripts/factory-reporting-receipts.py
+1: #!/usr/bin/env python3
+2: """Reconstruct protected retained proof before a fixed typed reporting transfer."""
+3: from contextlib import closing
+4: import importlib.util
+5: import json
+6: from pathlib import Path
+7: import sqlite3
+8: import tempfile
+9: 
+10: 
+11: def load(name, filename):
+12:     spec = importlib.util.spec_from_file_location(name, Path(__file__).with_name(filename))
+13:     module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
+14:     return module
+15: 
+16: 
+17: archive = load('report_archive', 'factory-receipt-archive.py')
+18: discovery = load('report_discovery', 'factory-receipt-discovery.py')
+19: require = archive.require
+20: DEFINITIONS = {
+21:     'delivery_receipts': ('task TEXT PRIMARY KEY, revision TEXT NOT NULL, receipt TEXT NOT NULL', ('task', 'revision', 'receipt')),
+22:     'delivery_provenance': ('task TEXT PRIMARY KEY, provenance TEXT NOT NULL', ('task', 'provenance')),
+23:     'delivery_trust': ('task TEXT PRIMARY KEY, status TEXT NOT NULL', ('task', 'status')),
+24:     'delivery_times': ('task TEXT PRIMARY KEY, merged_at TEXT NOT NULL', ('task', 'merged_at')),
+25:     'delivery_interval': ('task TEXT PRIMARY KEY', ('task',)),
+26: }
+27: COVERAGE_SQL = 'CREATE TABLE reporting_receipt_coverage(repository TEXT PRIMARY KEY, coverage_from TEXT NOT NULL, verified_until TEXT NOT NULL)'
+28: 
+29: 
+30: class ReadOnly:
+31:     def __init__(self, api):
+32:         self.api = api; self.repo = api.repo
+33:         for name in ('read_blobs', 'read_pull_requests'):
+34:             method = getattr(api, name, None)
+35:             if callable(method):setattr(self, name, method)
+36: 
+37:     def request(self, path, method='GET', payload=None):
+38:         require(method == 'GET' and payload is None and
+39:                 (path == 'repos/'+self.repo or path.startswith('repos/'+self.repo+'/')),
+40:                 'reporting receipt transport must be same-repository read-only')
+41:         return self.api.request(path, method, payload)
+42: 
+43: 
+44: class Source:
+45:     def __init__(self, api):self.api = api; self.repo = api.repo
+46: 
+47:     def request(self, path):
+48:         require(path.startswith('repos/'+self.repo+'/actions/'), 'reporting receipt source must be same-repository Actions read')
+49:         return self.api.request(path)
+50: 
+51:     def get(self, path):
+52:         require(path.startswith('repos/'+self.repo+'/actions/'), 'reporting receipt source must be same-repository Actions read')
+53:         return self.api.get(path)
+54: 
+55: 
+56: def project_reporting(source_api, state_api, policy, report_path, trust_path, store,
+57:                       approval_path, stream, *, interval_end, history_head, campaign, page_size=100):
+58:     """No caller SQLite/projection result is accepted as authentication evidence.
+59: 
+60:     Both validators perform actual protected reads. The only destination writes
+61:     are fixed typed receipt rows, in one transaction, after complete coverage.
+62:     """
+63:     require(source_api.repo == state_api.repo == policy['repository'], 'reporting receipt repository differs')
+64:     report = Path(report_path)
+65:     require(report.is_absolute() and report.resolve() == report and report.is_file() and not report.is_symlink(),
+66:             'existing canonical report database required')
+67:     state = ReadOnly(state_api); source = Source(source_api)
+68:     before = archive.verify_bootstrap(state, approval_path)
+69:     approval_raw = Path(approval_path).read_bytes(); trust_raw = Path(trust_path).read_bytes()
+70:     with tempfile.TemporaryDirectory(prefix='factory-report-receipts-') as temporary:
+71:         receipt_db = Path(temporary)/'receipts.sqlite'
+72:         projection = archive.reconstruct_interval(state, policy, receipt_db, trust_path, store,
+73:                     approval_path, stream, interval_end=interval_end, history_head=history_head, campaign=campaign)
+74:         require(projection.get('projection_complete') is True, 'retained reporting projection incomplete')
+75:         coverage = discovery.coverage(source, state, policy, trust_path, store, approval_path, stream,
+76:                     interval_end=interval_end, projection_end=interval_end, history_head=history_head,
+77:                     campaign=campaign, page_size=page_size)
+78:         require(all(coverage.get(key) is True for key in ('coverage_complete', 'source_partition_complete', 'frozen_projection_complete')) and
+79:                 coverage.get('verified_until') == interval_end and coverage.get('gaps') == [] and
+80:                 coverage.get('task_credit') is False and coverage.get('all_history_complete') is False,
+81:                 'retained reporting coverage incomplete')
+82:         require(coverage.get('repository') == policy['repository'] and
+83:                 coverage.get('coverage_from') == before['coverage_from'] and
+84:                 archive.instant(coverage['coverage_from']) <= archive.instant(coverage['verified_until']),
+85:                 'retained reporting coverage binding differs')
+86:         rows = {}
+87:         with closing(sqlite3.connect(receipt_db)) as db:
+88:             objects = db.execute('SELECT type,name,sql FROM sqlite_master').fetchall()
+89:             expected = {(name, 'CREATE TABLE '+name+'('+definition+')') for name,(definition,_) in DEFINITIONS.items()}
+90:             require({(name,sql) for kind,name,sql in objects if kind == 'table'} == expected and
+91:                     all(kind == 'table' or (kind == 'index' and sql is None and name in {'sqlite_autoindex_'+table+'_1' for table in DEFINITIONS}) for kind,name,sql in objects),
+92:                     'retained reporting receipt schema differs')
+93:             for name,(_,columns) in DEFINITIONS.items():
+94:                 rows[name] = db.execute('SELECT '+','.join(columns)+' FROM '+name+' ORDER BY task').fetchall()
+95:                 require(all(all(type(value) is str and value for value in row) for row in rows[name]), 'retained reporting row types differ')
+96:         require(len(json.dumps(rows).encode()) <= 33554432, 'retained reporting transfer capacity gap')
+97:         tasks = {row[0] for row in rows['delivery_receipts']}
+98:         require(all({row[0] for row in rows[name]} == tasks for name in ('delivery_provenance','delivery_trust','delivery_times')) and
+99:                 {row[0] for row in rows['delivery_interval']} <= tasks, 'retained reporting task sets differ')
+100:         require(archive.verify_bootstrap(state, approval_path) == before and Path(approval_path).read_bytes() == approval_raw and
+101:                 Path(trust_path).read_bytes() == trust_raw, 'retained reporting origin or trust changed')
+102:         with closing(sqlite3.connect(report)) as db, db:
+103:             db.execute('BEGIN IMMEDIATE')
+104:             require(not db.execute("SELECT name FROM sqlite_master WHERE type='trigger'").fetchone(), 'reporting database triggers unsupported')
+105:             existing = db.execute("SELECT type,sql FROM sqlite_master WHERE name='reporting_receipt_coverage'").fetchall()
+106:             require(not existing or existing == [('table', COVERAGE_SQL)], 'reporting coverage destination schema differs')
+107:             if not existing:db.execute(COVERAGE_SQL)
+108:             require(all(row[0] == policy['repository'] for row in db.execute('SELECT repository FROM reporting_receipt_coverage')),
+109:                     'reporting coverage repository differs')
+110:             require(all(origin == coverage['coverage_from'] and archive.instant(until) <= archive.instant(coverage['verified_until'])
+111:                         for origin,until in db.execute('SELECT coverage_from,verified_until FROM reporting_receipt_coverage')),
+112:                     'reporting coverage regressed or origin differs')
+113:             for name,(definition,columns) in DEFINITIONS.items():
+114:                 existing = db.execute('SELECT type,sql FROM sqlite_master WHERE name=?', (name,)).fetchall()
+115:                 require(not existing or existing == [('table','CREATE TABLE '+name+'('+definition+')')], 'reporting receipt destination schema differs')
+116:                 db.execute('CREATE TABLE IF NOT EXISTS '+name+'('+definition+')')
+117:                 old = dict((row[0],tuple(row)) for row in db.execute('SELECT '+','.join(columns)+' FROM '+name))
+118:                 new = {row[0]:tuple(row) for row in rows[name]}
+119:                 if name not in ('delivery_trust','delivery_interval'):
+120:                     require(all(task in new and new[task] == row for task,row in old.items()), 'reporting retained fact conflicts or disappears')
+121:                 if old == new:
+122:                     continue
+123:                 db.execute('DELETE FROM '+name)
+124:                 db.executemany('INSERT INTO '+name+' VALUES('+','.join('?' for _ in columns)+')', rows[name])
+125:             marker = (coverage['repository'], coverage['coverage_from'], coverage['verified_until'])
+126:             if db.execute('SELECT * FROM reporting_receipt_coverage').fetchall() != [marker]:
+127:                 db.execute('DELETE FROM reporting_receipt_coverage')
+128:                 db.execute('INSERT INTO reporting_receipt_coverage VALUES(?,?,?)', marker)
+129:     return {'facts_count':len(tasks), 'coverage_complete':True, 'all_history_complete':False, 'task_credit':False}
+
+FULL .claude/scripts/test/factory-reporting-receipt-transfer.sh
+1: #!/usr/bin/env bash
+2: # Spec014 AC-2/6/7/8: real retained Git proof feeds typed reporting projection.
+3: set -euo pipefail
+4: cd "$(dirname "$0")/../../.."
+5: python3 - <<'PY'
+6: from pathlib import Path
+7: import importlib.util,json
+8: render_spec=importlib.util.spec_from_file_location('render_unit',Path('.claude/scripts/factory-slack-digest.py'));render_module=importlib.util.module_from_spec(render_spec);render_spec.loader.exec_module(render_module)
+9: render_fixture={'repository':'org/repo','display_from':'start','display_until':'end','merges':[{'pr':7,'title':'Feature','merge_sha':'b'*40,'delivery_evidence':[{'task':'T-1','spec':'001','producer_run':20}],'evidence_status':'authenticated'}]}
+10: legacy_text=render_module.render(json.dumps(render_fixture))
+11: assert legacy_text == 'Factory delivery — org/repo\nstart to end (Australia/Sydney)\nMerged PRs: 1; product acceptance remains separate.\n#7 Feature — T-1/spec 001\nhttps://github.com/org/repo/pull/7 — merge bbbbbbbbbbbb\nEvidence: https://github.com/org/repo/actions/runs/20\nMissing historical check records are not treated as a pass.'
+12: render_fixture['merges'][0]['evidence_status']='withdrawn'
+13: withdrawn_text=render_module.render(json.dumps(render_fixture))
+14: assert 'WITHDRAWN' in withdrawn_text and 'T-1/spec 001' in withdrawn_text and '/actions/runs/20' in withdrawn_text,withdrawn_text
+15: print('PASS actual renderer explicitly labels withdrawn evidence while preserving proof attribution')
+16: fixture_source=Path('.claude/scripts/test/factory-receipt-coverage-batch.sh').read_text()
+17: for marker in ("<<'PY'\n", "\ncases=r'''\n", ' assert batch_calls,'):
+18:  assert fixture_source.count(marker)==1, 'coverage fixture splice marker changed: '+repr(marker)
+19: # AC-2: fixed legacy bytes and pending immutability do not depend on durable mode.
+20: import tempfile,sqlite3
+21: unit_spec=importlib.util.spec_from_file_location('digest_unit',Path('.claude/scripts/factory-digest.py'));unit=importlib.util.module_from_spec(unit_spec);unit_spec.loader.exec_module(unit)
+22: with tempfile.TemporaryDirectory() as temporary:
+23:  path=Path(temporary)/'legacy.sqlite'
+24:  for mode in ('',None,'DURABLE',True,[]):
+25:   try:unit.Digest(path,'org/repo','C1','2026-10-15T00:00:00Z',receipt_mode=mode)
+26:   except ValueError:pass
+27:   else:raise AssertionError('invalid receipt mode accepted: '+repr(mode))
+28:  view=unit.Digest(path,'org/repo','C1','2026-10-15T00:00:00Z')
+29:  assert view.receipt_mode=='legacy'
+30:  with sqlite3.connect(path) as db:
+31:   db.execute('CREATE TABLE delivery_receipts(task TEXT PRIMARY KEY, revision TEXT NOT NULL, receipt TEXT NOT NULL)')
+32:   db.execute('CREATE TABLE delivery_provenance(task TEXT PRIMARY KEY, provenance TEXT NOT NULL)')
+33:   receipt={'repository':'org/repo','pr':7,'merge_sha':'b'*40}
+34:   proof={'run_id':20,'artifact_digest':'sha256:'+'d'*64,'receipt':{'repository':'org/repo','pull_request':7,'merged':True,'eligible':True,'merge_sha':'b'*40,'head_sha':'c'*40,'spec_sha256':'a'*64,'task_ids':['T-9'],'spec':'014'}}
+35:   db.execute('INSERT INTO delivery_receipts VALUES(?,?,?)',('T-9','a'*64,json.dumps(receipt)))
+36:   db.execute('INSERT INTO delivery_provenance VALUES(?,?)',('T-9',json.dumps(proof)))
+37:  class UnitAPI:
+38:   repo='org/repo'
+39:   def request(self,*args,**kw):return [[{'merged_at':'2026-10-15T01:00:00Z','number':7,'base':{'ref':'main','repo':{'full_name':'org/repo'}},'merge_commit_sha':'b'*40,'head':{'sha':'c'*40},'title':'Feature','html_url':'https://github.com/org/repo/pull/7'}]]
+40:  expected={'schema_version':1,'repository':'org/repo','destination':'C1','from':'2026-10-15T00:00:00+00:00','until':'2026-10-15T23:00:00+00:00','timezone':'Australia/Sydney','display_from':'2026-10-15T11:00:00+11:00','display_until':'2026-10-16T10:00:00+11:00','product_acceptance':'not inferred from merge','merges':[{'pr':7,'title':'Feature','url':'https://github.com/org/repo/pull/7','merge_sha':'b'*40,'merged_at':'2026-10-15T01:00:00+00:00','late_discovered':False,'delivery_evidence':[{'task':'T-9','spec':'014','revision':'a'*64,'producer_run':20,'artifact_digest':'sha256:'+'d'*64}],'evidence_status':'authenticated','merge_time_checks':'not independently recorded'}]}
+41:  row=view.prepare(UnitAPI(),'2026-10-15T23:00:00Z')
+42:  assert row['payload'].encode()==json.dumps(expected,sort_keys=True,separators=(',',':'),allow_nan=False).encode()
+43:  prior=path.read_bytes();durable=unit.Digest(path,'org/repo','C1','2026-10-15T00:00:00Z',receipt_mode='durable')
+44:  assert durable.prepare(UnitAPI(),'2026-10-16T00:00:00Z')==row
+45:  assert path.read_bytes()==prior,'pending batch changed during receipt mode switch'
+46: print('PASS invalid/default receipt modes, fixed byte-exact legacy payload and pending mode-switch immutability')
+47: 
+48: source=fixture_source.split("<<'PY'\n",1)[1]
+49: prefix=source.split("\ncases=r'''",1)[0]
+50: setup=source.split("\ncases=r'''\n",1)[1].split(' assert batch_calls,',1)[0]
+51: prefix+="\nmarker=' first=a.checkpoint_projection('\nassert pipeline.count(marker)==1, 'projection fixture checkpoint marker changed'\npipeline=pipeline.replace(marker, \" projection_parent=out('rev-parse',ref)\\n\"+marker,1)\n"
+52: cases=r'''
+53:  # Real Git/bootstrap/stages/coverage above; no caller authenticated flag.
+54:  ds=importlib.util.spec_from_file_location('report_digest',scripts/'factory-digest.py');digest=importlib.util.module_from_spec(ds);ds.loader.exec_module(digest)
+55:  class Report:
+56:   repo='org/repo'
+57:   def request(self,path,**kwargs):
+58:    assert path=='repos/org/repo/pulls?state=closed&per_page=100' and kwargs=={'paginate':True}
+59:    return [[dict(item.pr,merged_at='2026-10-15T01:00:00.123456Z',title='Feature',html_url='https://github.com/org/repo/pull/'+str(item.pr['number'])) for item in sources]]
+60:  active=trust.read_bytes();revoked=json.loads(active);revoked['profiles'][0]['status']='revoked';trust.write_text(json.dumps(revoked))
+61:  retained=root/'retained-only.sqlite';assert a.reconstruct_interval(PipelineState(),policy,retained,trust,store,approval,stream,interval_end=end,history_head=context['history'],campaign=campaign)['projection_complete']
+62:  report=root/'report.sqlite';view=digest.Digest(report,'org/repo','C1','2026-10-15T00:00:00Z');view.receipt_mode='durable'
+63:  # Raw copied tables without a coverage marker cannot authorize a durable report.
+64:  with sqlite3.connect(retained) as src,sqlite3.connect(report) as dst:
+65:   for name,sql in src.execute("SELECT name,sql FROM sqlite_master WHERE type='table'"):
+66:    dst.execute(sql)
+67:    for row in src.execute('SELECT * FROM '+name):dst.execute('INSERT INTO '+name+' VALUES('+','.join('?' for _ in row)+')',row)
+68:  try:view.prepare(Report(),end)
+69:  except ValueError as error:assert 'coverage marker missing' in str(error)
+70:  else:raise AssertionError('unbound receipt tables authorized durable report')
+71:  print('PASS raw receipt tables without validated coverage cannot authorize durable reporting')
+72: 
+73:  helper_spec=importlib.util.spec_from_file_location('report_receipts',scripts/'factory-reporting-receipts.py');helper=importlib.util.module_from_spec(helper_spec);helper_spec.loader.exec_module(helper)
+74:  # Actual artifacts expire; only retained origin/materials/source observations remain.
+75:  for item in sources:item.expired=True
+76:  target=(root/'import-target.sqlite').resolve();destination=digest.Digest(target,'org/repo','C1','2026-10-15T00:00:00Z',receipt_mode='durable')
+77:  with sqlite3.connect(target) as db:
+78:   db.execute('CREATE TABLE tasks(id TEXT PRIMARY KEY, state TEXT)');db.execute("INSERT INTO tasks VALUES('sentinel','unchanged')")
+79:   db.execute('CREATE TABLE opaque_feedback(value TEXT)');db.execute("INSERT INTO opaque_feedback VALUES('private unchanged')")
+80:  class ReadState(PipelineState):
+81:   def request(self,path,method='GET',payload=None):
+82:    assert method=='GET' and payload is None,'production transfer attempted Git writes'
+83:    return super().request(path,method,payload)
+84:  kwargs=dict(interval_end=end,history_head=context['history'],campaign=campaign,page_size=1)
+85:  before_head=out('rev-parse',ref)
+86:  outcome=helper.project_reporting(runs,ReadState(),policy,target,trust,store,approval,stream,**kwargs)
+87:  assert outcome=={'facts_count':2,'coverage_complete':True,'all_history_complete':False,'task_credit':False},outcome
+88:  assert out('rev-parse',ref)==before_head
+89:  with sqlite3.connect(target) as db:
+90:   assert db.execute('SELECT * FROM tasks').fetchall()==[('sentinel','unchanged')]
+91:   assert db.execute('SELECT * FROM opaque_feedback').fetchall()==[('private unchanged',)]
+92:   assert db.execute('SELECT status FROM delivery_trust').fetchall()==[('withdrawn',),('withdrawn',)]
+93:   assert db.execute('SELECT merged_at FROM delivery_times').fetchall()==[('2026-10-15T01:00:00.123456Z',)]*2
+94:  snapshot=target.read_bytes()
+95:  # AC-2: real projected withdrawn proof reaches the durable digest unchanged.
+96:  import shutil
+97:  withdrawn_copy=root/'withdrawn-digest.sqlite';shutil.copyfile(target,withdrawn_copy)
+98:  withdrawn_view=digest.Digest(withdrawn_copy,'org/repo','C1','2026-10-15T00:00:00Z',receipt_mode='durable')
+99:  withdrawn_entries=json.loads(withdrawn_view.prepare(Report(),end)['payload'])['merges']
+100:  assert len(withdrawn_entries)==2 and all(row['evidence_status']=='withdrawn' and row['delivery_evidence'] for row in withdrawn_entries),withdrawn_entries
+101:  print('PASS actual helper marker+withdrawn proof retains attribution through durable digest')
+102:  # AC-7: an independently validated earlier protected campaign cannot shrink cache coverage.
+103:  full_head=out('rev-parse',ref);saved_trust=trust.read_bytes();earlier='2026-10-15T22:00:00Z'
+104:  try:
+105:   git('update-ref',ref,projection_parent);trust.write_bytes(active)
+106:   for item in sources:item.expired=False
+107:   narrow_checkpoint=a.checkpoint_projection(PipelineState(),policy,trust,store,approval,stream,interval_end=earlier,limit=2)
+108:   assert narrow_checkpoint['frozen_complete']
+109:   narrow_history=out('rev-parse',ref)
+110:   narrow_stage=a.stage_projection(PipelineState(),policy,trust,store,approval,stream,interval_end=earlier,history_head=narrow_history,limit=2)
+111:   assert narrow_stage['status']=='staged' and narrow_stage['facts_count']==2
+112:   d.advance(runs,PipelineState(),policy,approval,stream,page_size=1)
+113:   for _ in range(3):d.backfill(runs,PipelineState(),policy,approval,stream,interval_end=earlier,page_size=1)
+114:   for _ in range(32):
+115:    d.reconcile(runs,PipelineState(),policy,trust,store,approval,stream,review_rows=4)
+116:    progress=json.loads(git('show',ref+':receipt-archive/progress/'+stream+'.json').stdout)
+117:    if progress['scan']['complete']:break
+118:   assert progress['scan']['complete']
+119:   trust.write_bytes(saved_trust)
+120:   for item in sources:item.expired=True
+121:   narrow_coverage=d.coverage(runs,ReadState(),policy,trust,store,approval,stream,interval_end=earlier,projection_end=earlier,history_head=narrow_history,campaign=narrow_stage['campaign'],page_size=1)
+122:   assert narrow_coverage['coverage_complete'],narrow_coverage
+123:   try:helper.project_reporting(runs,ReadState(),policy,target,trust,store,approval,stream,interval_end=earlier,history_head=narrow_history,campaign=narrow_stage['campaign'],page_size=1)
+124:   except ValueError as error:assert 'coverage regressed' in str(error),str(error)
+125:   else:raise AssertionError('actual earlier protected projection moved coverage backwards')
+126:   assert target.read_bytes()==snapshot
+127:  finally:
+128:   git('update-ref',ref,full_head);trust.write_bytes(saved_trust)
+129:   for item in sources:item.expired=True
+130:  print('PASS actual earlier protected projection rejects without changing reporting bytes')
+131:  # AC-7: an actual complete projection cannot authorize an unverified later cutoff.
+132:  wider=root/'unverified-cutoff.sqlite'
+133:  import shutil
+134:  shutil.copyfile(target,wider)
+135:  future_view=digest.Digest(wider,'org/repo','C1','2026-10-15T00:00:00Z',receipt_mode='durable')
+136:  before_wider=wider.read_bytes()
+137:  try:future_view.prepare(Report(),'2026-10-16T00:00:00Z')
+138:  except ValueError as error:assert 'coverage' in str(error),str(error)
+139:  else:raise AssertionError('actual narrower projection authorized later report cutoff')
+140:  assert wider.read_bytes()==before_wider
+141:  print('PASS actual projection coverage bounds new digest cutoff')
+142:  # AC-8: actual protected reads must not partially update hostile destinations.
+143:  mutations={
+144:   'trigger':"CREATE TRIGGER hostile AFTER INSERT ON delivery_receipts BEGIN SELECT 1; END",
+145:   'schema':"ALTER TABLE delivery_receipts ADD COLUMN extra TEXT",
+146:   'coverage-schema':"ALTER TABLE reporting_receipt_coverage ADD COLUMN extra TEXT",
+147:   'foreign-coverage':"UPDATE reporting_receipt_coverage SET repository='other/repo'",
+148:   'changed-origin':"UPDATE reporting_receipt_coverage SET coverage_from='2026-10-15T00:00:00.000001Z'",
+149:   'receipt-conflict':"UPDATE delivery_receipts SET revision='conflict'",
+150:   'provenance-conflict':"UPDATE delivery_provenance SET provenance='conflict'",
+151:   'time-conflict':"UPDATE delivery_times SET merged_at='conflict'",
+152:   'disappearing':"INSERT INTO delivery_times VALUES('not-retained','2026-10-15T01:00:00Z')",
+153:  }
+154:  for label,statement in mutations.items():
+155:   hostile=root/('hostile-'+label+'.sqlite');shutil.copyfile(target,hostile)
+156:   with sqlite3.connect(hostile) as db:db.execute(statement)
+157:   unchanged=hostile.read_bytes()
+158:   try:helper.project_reporting(runs,ReadState(),policy,hostile,trust,store,approval,stream,**kwargs)
+159:   except ValueError:pass
+160:   else:raise AssertionError('hostile destination accepted: '+label)
+161:   assert hostile.read_bytes()==unchanged,'destination partially changed: '+label
+162:  # A real SQLite authorizer fails the last insert after receipt writes execute.
+163:  rollback=(root/'rollback.sqlite').resolve();digest.Digest(rollback,'org/repo','C1','2026-10-15T00:00:00Z')
+164:  rollback_bytes=rollback.read_bytes();real_connect=helper.sqlite3.connect;writes=[]
+165:  def failing_connect(path,*args,**kw):
+166:   db=real_connect(path,*args,**kw)
+167:   if Path(path)==rollback:
+168:    def authorize(action,table,*rest):
+169:     if action==sqlite3.SQLITE_INSERT:
+170:      writes.append(table)
+171:      if table=='reporting_receipt_coverage':return sqlite3.SQLITE_DENY
+172:     return sqlite3.SQLITE_OK
+173:    db.set_authorizer(authorize)
+174:   return db
+175:  helper.sqlite3.connect=failing_connect
+176:  try:
+177:   try:helper.project_reporting(runs,ReadState(),policy,rollback,trust,store,approval,stream,**kwargs)
+178:   except sqlite3.DatabaseError as error:assert 'authorized' in str(error),str(error)
+179:   else:raise AssertionError('mid-transfer SQLite failure swallowed')
+180:  finally:helper.sqlite3.connect=real_connect
+181:  assert 'delivery_receipts' in writes and 'reporting_receipt_coverage' in writes,writes
+182:  assert rollback.read_bytes()==rollback_bytes,'failed transaction left partial projection or marker'
+183:  print('PASS destination triggers/schema/conflicting/disappearing facts and final-insert rollback preserve bytes')
+184:  # AC-7: missing, foreign or too-new origins cannot authorize a new batch.
+185:  for label,statement in {
+186:   'missing':"DELETE FROM reporting_receipt_coverage",
+187:   'foreign':"UPDATE reporting_receipt_coverage SET repository='other/repo'",
+188:   'origin':"UPDATE reporting_receipt_coverage SET coverage_from='2026-10-15T00:30:00Z'",
+189:  }.items():
+190:   invalid=root/('invalid-marker-'+label+'.sqlite');shutil.copyfile(target,invalid)
+191:   with sqlite3.connect(invalid) as db:db.execute(statement)
+192:   current=digest.Digest(invalid,'org/repo','C1','2026-10-15T00:00:00Z',receipt_mode='durable');unchanged=invalid.read_bytes()
+193:   try:current.prepare(Report(),end)
+194:   except ValueError as error:assert 'coverage' in str(error)
+195:   else:raise AssertionError('unbound coverage accepted: '+label)
+196:   assert invalid.read_bytes()==unchanged
+197:  print('PASS missing/foreign/origin coverage gaps reject new batch without state change')
+198:  # Actual changed source observations reject before any destination transaction.
+199:  class MissingRuns(Runs):
+200:   def request(self,path,**kwargs):
+201:    value=super().request(path,**kwargs)
+202:    if '/actions/workflows/' in path:return {'total_count':0,'workflow_runs':[]}
+203:    return value
+204:  try:helper.project_reporting(MissingRuns(),ReadState(),policy,target,trust,store,approval,stream,**kwargs)
+205:  except ValueError:pass
+206:  else:raise AssertionError('incomplete actual source observation imported proof')
+207:  assert target.read_bytes()==snapshot
+208:  try:helper.project_reporting(runs,ReadState(),policy,target,trust,store,approval,stream,receipt_db=retained,**kwargs)
+209:  except TypeError:pass
+210:  else:raise AssertionError('caller SQLite accepted as proof')
+211:  assert target.read_bytes()==snapshot
+212:  # Every call reconstructs internally from actual protected reads on a fresh DB.
+213:  second=helper.project_reporting(runs,ReadState(),policy,target,trust,store,approval,stream,**kwargs)
+214:  assert second==outcome and target.read_bytes()==snapshot
+215:  print('PASS actual protected reconstruction+coverage transfer: expiry/read-only/restart/private/task preservation')
+216:  import shutil
+217:  for field in ('delivery_trust','delivery_times','delivery_interval'):
+218:   clone=root/(field+'.sqlite');shutil.copyfile(target,clone)
+219:   with sqlite3.connect(clone) as db:db.execute('DELETE FROM '+field)
+220:   current=digest.Digest(clone,'org/repo','C1','2026-10-15T00:00:00Z',receipt_mode='durable')
+221:   entry=json.loads(current.prepare(Report(),end)['payload'])['merges']
+222:   assert all(item['evidence_status']=='missing' and item['delivery_evidence']==[] for item in entry),(field,entry)
+223:  mismatch=root/'timestamp-mismatch.sqlite';shutil.copyfile(target,mismatch)
+224:  with sqlite3.connect(mismatch) as db:db.execute("UPDATE delivery_times SET merged_at='2026-10-15T01:00:00.123457Z'")
+225:  current=digest.Digest(mismatch,'org/repo','C1','2026-10-15T00:00:00Z',receipt_mode='durable')
+226:  try:current.prepare(Report(),end)
+227:  except ValueError as error:assert 'timestamp differs' in str(error)
+228:  else:raise AssertionError('fractional timestamp mismatch authenticated')
+229:  clone=root/'legacy.sqlite';shutil.copyfile(target,clone)
+230:  current=digest.Digest(clone,'org/repo','C1','2026-10-15T00:00:00Z')
+231:  assert all(row['evidence_status']=='authenticated' and all('trust_status' not in proof for proof in row['delivery_evidence']) for row in json.loads(current.prepare(Report(),end)['payload'])['merges'])
+232:  print('PASS durable missing/withdrawn/fractional-time/interval facts fail closed; legacy default rendering unchanged')
+233: 
+234:  # Genuine current active profile re-evaluation, not a caller complete flag.
+235:  trust.write_bytes(active)
+236:  assert helper.project_reporting(runs,ReadState(),policy,target,trust,store,approval,stream,**kwargs)==outcome
+237:  actual=destination.prepare(Report(),end);active_entries=json.loads(actual['payload'])['merges']
+238:  assert all(row['evidence_status']=='authenticated' for row in active_entries),active_entries
+239:  class Transport:
+240:   sent=[]
+241:   def lookup(self,key):return {'receipt':None,'authoritative_absence':True}
+242:   def send(self,key,payload,channel):
+243:    self.sent.append(payload)
+244:    return {'key':key,'payload_sha256':hashlib.sha256(payload.encode()).hexdigest(),'destination':channel,'message_id':'fixture-message'}
+245:  transport=Transport();destination.deliver(actual['key'],transport)
+246:  confirmed=destination.batch(actual['key']);message=render_module.render(confirmed['payload'])
+247:  revoked=json.loads(active);revoked['profiles'][0]['status']='revoked';trust.write_text(json.dumps(revoked))
+248:  assert helper.project_reporting(runs,ReadState(),policy,target,trust,store,approval,stream,**kwargs)==outcome
+249:  assert destination.batch(actual['key'])==confirmed and transport.sent==[confirmed['payload']]
+250:  assert render_module.render(confirmed['payload'])==message and 'WITHDRAWN' not in message
+251:  with sqlite3.connect(target) as db:assert db.execute('SELECT status FROM delivery_trust').fetchall()==[('withdrawn',)]*2
+252:  print('PASS actual active/withdrawn reevaluation preserves already-delivered immutable payload and fixture message')
+253: '''
+254: exec(compile(prefix+'\nexec(compile(fixture+pipeline+'+repr(setup+cases)+',"real-retained-reporting-transfer","exec"))','retained-fixture-bootstrap','exec'))
+255: PY
+
+.claude/scripts/factory-digest.py Digest.__init__
+40:     def __init__(self, path, repository, destination, start, branch='main', *, receipt_mode='legacy'):
+41:         require(repository.count('/') == 1 and bool(destination) and bool(branch), 'report configuration required')
+42:         require(receipt_mode in ('legacy', 'durable'), 'explicit reporting receipt mode required')
+43:         self.receipt_mode = receipt_mode
+44:         self.path = str(Path(path).resolve())
+45:         self.repository = repository; self.destination = destination; self.branch = branch
+46:         self.stream = hashlib.sha256(canonical([repository, destination, branch]).encode()).hexdigest()
+47:         with self.transaction() as db:
+48:             db.execute('CREATE TABLE IF NOT EXISTS digest_cursors(stream TEXT PRIMARY KEY, cutoff TEXT NOT NULL)')
+49:             db.execute('CREATE TABLE IF NOT EXISTS digest_batches(key TEXT PRIMARY KEY,stream TEXT NOT NULL,cutoff TEXT NOT NULL,payload TEXT NOT NULL,status TEXT NOT NULL,receipt TEXT)')
+50:             db.execute('INSERT OR IGNORE INTO digest_cursors VALUES(?,?)', (self.stream, stamp(instant(start))))
+51:             db.execute('CREATE TABLE IF NOT EXISTS digest_origins(stream TEXT PRIMARY KEY, origin TEXT NOT NULL)')
+52:             if db.execute('SELECT origin FROM digest_origins WHERE stream=?', (self.stream,)).fetchone() is None:
+53:                 first = db.execute('SELECT payload FROM digest_batches WHERE stream=? ORDER BY cutoff LIMIT 1', (self.stream,)).fetchone()
+54:                 original = json.loads(first['payload'])['from'] if first else db.execute('SELECT cutoff FROM digest_cursors WHERE stream=?', (self.stream,)).fetchone()[0]
+55:                 db.execute('INSERT INTO digest_origins VALUES(?,?)', (self.stream, stamp(instant(original))))
+
+.claude/scripts/factory-digest.py Digest.prepare
+80:     def prepare(self, api, until):
+81:         require(api.repo == self.repository, 'foreign report source')
+82:         end = instant(until)
+83:         require(end <= datetime.now(timezone.utc), 'future cutoff cannot be delivered')
+84:         with self.transaction() as db:
+85:             pending = db.execute("SELECT * FROM digest_batches WHERE stream=? AND status!='confirmed'", (self.stream,)).fetchone()
+86:             if pending:
+87:                 return dict(pending)
+88:             start = instant(db.execute('SELECT cutoff FROM digest_cursors WHERE stream=?', (self.stream,)).fetchone()[0])
+89:             require(end > start, 'cutoff must advance')
+90:             origin = instant(db.execute('SELECT origin FROM digest_origins WHERE stream=?', (self.stream,)).fetchone()[0])
+91:             require(origin <= start, 'reporting origin exceeds cursor')
+92:             reported = {}
+93:             for previous in db.execute("SELECT key,payload,receipt FROM digest_batches WHERE stream=? AND status='confirmed'", (self.stream,)):
+94:                 remote = json.loads(previous['receipt'])
+95:                 require(remote['key'] == previous['key'] and remote['destination'] == self.destination and remote['payload_sha256'] == hashlib.sha256(previous['payload'].encode()).hexdigest(), 'historical report bytes differ from delivery receipt')
+96:                 document = json.loads(previous['payload'])
+97:                 require(document['repository'] == self.repository and document['destination'] == self.destination, 'foreign report history')
+98:                 for item in document['merges']:
+99:                     require(type(item['pr']) is int and item['pr'] > 0 and coordinator.contract.digest(item['merge_sha'], 40), 'invalid historical merge')
+100:                     require(item['pr'] not in reported or reported[item['pr']] == item['merge_sha'], 'contradictory report history')
+101:                     reported[item['pr']] = item['merge_sha']
+102:             # REST pagination is completed before any cursor/report state is committed.
+103:             pages = api.request(f'repos/{self.repository}/pulls?state=closed&per_page=100', paginate=True)
+104:             merged = {}
+105:             for page in pages:
+106:                 require(isinstance(page, list), 'invalid merge page')
+107:                 for pr in page:
+108:                     if not pr.get('merged_at') or pr['base']['ref'] != self.branch:
+109:                         continue
+110:                     at = instant(pr['merged_at'])
+111:                     if not origin < at <= end:
+112:                         continue
+113:                     require(pr['base']['repo']['full_name'] == self.repository and type(pr['number']) is int and pr['number'] > 0, 'foreign merge')
+114:                     require(coordinator.contract.digest(pr['merge_commit_sha'], 40), 'missing merge identity')
+115:                     if pr['number'] in reported:
+116:                         require(reported[pr['number']] == pr['merge_commit_sha'], 'actual merge contradicts delivered coverage')
+117:                         continue
+118:                     old = merged.get(pr['number'])
+119:                     require(old is None or old == pr, 'inconsistent merge pages')
+120:                     merged[pr['number']] = pr
+121:             tables = {r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+122:             proofs = []
+123:             durable = self.receipt_mode == 'durable'
+124:             if durable:
+125:                 require('reporting_receipt_coverage' in tables, 'retained reporting coverage marker missing')
+126:                 markers = db.execute('SELECT repository,coverage_from,verified_until FROM reporting_receipt_coverage').fetchall()
+127:                 require(len(markers) == 1 and markers[0]['repository'] == self.repository and
+128:                         instant(markers[0]['coverage_from']) <= origin <= start < end <= instant(markers[0]['verified_until']),
+129:                         'retained reporting coverage does not cover report interval')
+130:                 if {'delivery_receipts', 'delivery_provenance', 'delivery_trust', 'delivery_times', 'delivery_interval'} <= tables:
+131:                     proofs = db.execute('SELECT r.*,p.provenance,t.status AS trust_status,m.merged_at AS retained_time FROM delivery_receipts r JOIN delivery_provenance p ON r.task=p.task JOIN delivery_trust t ON r.task=t.task JOIN delivery_times m ON r.task=m.task JOIN delivery_interval i ON r.task=i.task').fetchall()
+132:             elif {'delivery_receipts', 'delivery_provenance'} <= tables:
+133:                 proofs = db.execute('SELECT r.*,p.provenance FROM delivery_receipts r JOIN delivery_provenance p ON r.task=p.task').fetchall()
+134:             entries = []
+135:             for pr in sorted(merged.values(), key=lambda p: (instant(p['merged_at']), p['number'])):
+136:                 matches = []; withdrawn = False
+137:                 for proof in proofs:
+138:                     delivered = json.loads(proof['receipt']); provenance = json.loads(proof['provenance'])
+139:                     receipt = provenance['receipt']
+140:                     if delivered.get('repository') == self.repository and delivered.get('pr') == pr['number']:
+141:                         require(receipt['repository'] == self.repository and receipt['pull_request'] == pr['number'] and receipt['merged'] is True and receipt['eligible'] is True, 'foreign delivery provenance')
+142:                         require(type(provenance['run_id']) is int and provenance['run_id'] > 0 and provenance['artifact_digest'].startswith('sha256:') and coordinator.contract.digest(provenance['artifact_digest'][7:], 64), 'invalid delivery provenance')
+143:                         require(delivered['merge_sha'] == pr['merge_commit_sha'] == receipt['merge_sha'], 'delivery merge conflicts')
+144:                         require(receipt['head_sha'] == pr['head']['sha'] and receipt['spec_sha256'] == proof['revision'] and proof['task'] in receipt['task_ids'], 'delivery provenance conflicts')
+145:                         if durable:
+146:                             require(proof['trust_status'] in ('active', 'withdrawn'), 'retained trust status invalid')
+147:                             withdrawn = withdrawn or proof['trust_status'] == 'withdrawn'
+148:                             require(instant(proof['retained_time']) == instant(pr['merged_at']), 'retained merge timestamp differs')
+149:                         match = {'task': proof['task'], 'spec': receipt['spec'], 'revision': proof['revision'],
+150:                                  'producer_run': provenance['run_id'], 'artifact_digest': provenance['artifact_digest']}
+151:                         matches.append(match)
+152:                 entries.append({'pr': pr['number'], 'title': pr['title'], 'url': pr['html_url'], 'merge_sha': pr['merge_commit_sha'],
+153:                                 'merged_at': stamp(instant(pr['merged_at'])), 'late_discovered': instant(pr['merged_at']) <= start, 'delivery_evidence': matches,
+154:                                 'evidence_status': ('withdrawn' if durable and withdrawn else 'authenticated') if matches else 'missing', 'merge_time_checks': 'not independently recorded'})
+155:             payload = canonical({'schema_version': 1, 'repository': self.repository, 'destination': self.destination,
+156:                                  'from': stamp(start), 'until': stamp(end), 'timezone': 'Australia/Sydney',
+157:                                  'display_from': start.astimezone(SYDNEY).isoformat(), 'display_until': end.astimezone(SYDNEY).isoformat(),
+158:                                  'merges': entries, 'product_acceptance': 'not inferred from merge'})
+159:             key = hashlib.sha256(canonical([self.stream, stamp(start), stamp(end)]).encode()).hexdigest()
+160:             db.execute('INSERT INTO digest_batches VALUES(?,?,?,?,?,NULL)', (key, self.stream, stamp(end), payload, 'pending'))
+161:             return dict(db.execute('SELECT * FROM digest_batches WHERE key=?', (key,)).fetchone())

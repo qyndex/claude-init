@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "<stdin>", line 72, in <module>
+  File "origin-no-write-real-git-fixture", line 90, in <module>
+AssertionError: completed exact-head origin redundantly writes

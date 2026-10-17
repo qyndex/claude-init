@@ -1,0 +1,2 @@
+real >1000-subtree protected prefix accepted without full namespace replay
+transient executable add/remove, merge, malformed parent, unavailable tree and current protection drift fail closed

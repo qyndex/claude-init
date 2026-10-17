@@ -1,0 +1,10 @@
+{
+  "candidate": "/private/tmp/t287-linear-candidate-20261016",
+  "files": {
+    ".claude/scripts/factory-receipt-archive.py": "aa828afa3e3fb901c05a08c05c75f2fbaa4cb7997cb4a35b5258d9cf2632f855",
+    ".claude/scripts/factory-state-paths.py": "0648487106251e765e7f0a4504d510606970c6bab1f2b4024dc21c4e6bc487dd",
+    ".claude/scripts/test/factory-receipt-history.sh": "9395ed4fd042ba5e49e8f1ec88c66a7332c4769ac8e883066b8c53c796306406"
+  },
+  "snapshot": "/private/tmp/t287-consumer-prefix-20261016",
+  "scratch_sha256": "be17002ed247f26375b48a6b134df41216b876cdd9b575e36f1a7111d8c94f08"
+}

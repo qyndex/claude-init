@@ -1,0 +1,3 @@
+Traceback (most recent call last):
+  File "<stdin>", line 47, in <module>
+AssertionError: QueueStore recharges immutable proof or aliases caller mutation

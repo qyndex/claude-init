@@ -1,0 +1,21 @@
+{
+  "base": "be54946bb978fa217ebb6924237f5e36bee46169",
+  "source_sha256": "0ecc83555eedaf2fec08d82debdfb17aadb33cc85d73ce5216c4e5f29e39f800",
+  "red": {
+    "campaign": 1,
+    "quiet": 1
+  },
+  "green": {
+    "focused_actual_pipeline": 0,
+    "actual_two_day_rollover": 0,
+    "compile": 0,
+    "shellcheck": 0,
+    "diff": 0,
+    "validate": 0
+  },
+  "existing_validation_warnings": 4,
+  "native_calls": false,
+  "model_calls": false,
+  "task_closed": false,
+  "global_bounds_changed": false
+}

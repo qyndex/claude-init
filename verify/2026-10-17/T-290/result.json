@@ -1,0 +1,61 @@
+{
+  "actual_acceptance": {
+    "source_commit": "802d921259c74ff21b4d26d45ccc242dc51ea756",
+    "task": "T-290",
+    "command": "bash .claude/scripts/test/factory-receipt-continuation.sh",
+    "maximum_seconds": 300,
+    "started_at": "2026-10-16T17:44:49.080270+00:00",
+    "sanctioned_tool": "tdd-ledger.sh green",
+    "native_or_cadence_claim": false,
+    "exit_code": 0,
+    "completed_at": "2026-10-16T17:48:41.400793+00:00"
+  },
+  "observed_commands": {
+    "all_history_complete": false,
+    "checks": [
+      {
+        "command": "bash .claude/scripts/test/factory-reporting-rollover.sh",
+        "exit_code": 0,
+        "test_sha256": "a9e6d2cd68384f05247c7823c72b1ba93eea042f831fca309062bc6433c5f381"
+      },
+      {
+        "command": "bash .claude/scripts/test/factory-receipt-readiness.sh",
+        "exit_code": 0,
+        "test_sha256": "92291ea3a62085868e5ca0daf129ae0cbceb967a3a5569d32101c08398c1fe2f"
+      },
+      {
+        "command": "bash .claude/scripts/test/factory-reporting-receipt-transfer.sh",
+        "exit_code": 0,
+        "test_sha256": "7c2918e268937339354d7ccbcf86993746109bf4a22fb2e250dede08a408ae3f"
+      },
+      {
+        "command": "bash .claude/scripts/test/factory-receipts-recovery.sh",
+        "exit_code": 0,
+        "test_sha256": "12288ad2a31e762b01131b7ad80c83a93991640f8c80d655e076c4a5c844b5a3"
+      },
+      {
+        "command": "bash .claude/scripts/test/factory-supervisor.sh",
+        "exit_code": 0,
+        "test_sha256": "1db32a0992f97dd676ccb1142fc0ed2dee6cd692fbf070e388f5c313e95ebb42"
+      }
+    ],
+    "elapsed_seconds": 232.278,
+    "native_app_private_cadence_cutover": "not_checked",
+    "runtime_reuse": {
+      ".claude/scripts/factory-runtime.py": "a69ec22bbd6fd9403cc70f93b3e2c38554603d97d99cdaf06df27f4470983f45",
+      ".claude/scripts/test/factory-runtime.sh": "0cee0f6056f2783ac0f66e47b1b67946d123a916c54945c674d5c9d924679c5d"
+    },
+    "scope": "local retained continuation and actual process recovery",
+    "task_credit": false
+  },
+  "input_manifest_sha256": "4272ed7080624e1455b41955e95eda029addafae99608498b91556c0b160646b",
+  "assertion_map_sha256": "3b5ca91a27ee3670c28e284b56b2d766512043e587c4f586fa772fcd9f9925d4",
+  "production_source_changed": false,
+  "structural_validation_exit": 0,
+  "shellcheck_exit": 0,
+  "diff_check_exit": 0,
+  "source_secret_scan_exit": 0,
+  "native_app_private_cadence_cutover": "not_checked",
+  "corrected_red_sha256": "0fbe115e00794ce6ff64c776bbbd32c3c6232ec40a4357cead695732e8be6880",
+  "corrected_green_sha256": "9e0c84d8368645733646ff59dc6ccf26988470b5f44d0b8082ce75e62c0e6541"
+}

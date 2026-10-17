@@ -1,0 +1,32 @@
+{
+  "base_source": "de769cf1696cbd3c2f567c5585c643f2666cea34",
+  "analyze": {
+    "verdict": "PASS",
+    "blockers": [],
+    "date": "2026-10-16T17:33:46.229711+00:00"
+  },
+  "before": {
+    ".claude/scripts/test/factory-receipt-projection-resume.sh": "5756b246ab6068154b2a3e6f277c0f3af59470f8734fa9ea89e7a85b1ebcdfc8",
+    ".claude/scripts/test/factory-receipt-projection-windows.sh": "efd69cab45f2107657b862ef2b18ad2230b578a3d2200422f8e7ee8ea015b6e7",
+    ".claude/scripts/test/factory-receipt-cas.sh": "0f9f6d0a575a4aeaef192a6a9440bb710248512fa440be2404951e43e9e3b9be",
+    ".claude/scripts/factory-receipt-archive.py": "bc024a261c4eb8a2dc709f5725fd26ca778d79781d0260ba16faf0045fff369c",
+    ".claude/scripts/factory-state-paths.py": "0648487106251e765e7f0a4504d510606970c6bab1f2b4024dc21c4e6bc487dd"
+  },
+  "after": {
+    ".claude/scripts/test/factory-receipt-projection-resume.sh": "97bd0249f98c2f71cded55613172db9ac66b7819a48271b1eb25c1d36f729ddb",
+    ".claude/scripts/test/factory-receipt-projection-windows.sh": "efd69cab45f2107657b862ef2b18ad2230b578a3d2200422f8e7ee8ea015b6e7",
+    ".claude/scripts/test/factory-receipt-cas.sh": "0f9f6d0a575a4aeaef192a6a9440bb710248512fa440be2404951e43e9e3b9be",
+    ".claude/scripts/factory-receipt-archive.py": "bc024a261c4eb8a2dc709f5725fd26ca778d79781d0260ba16faf0045fff369c",
+    ".claude/scripts/factory-state-paths.py": "0648487106251e765e7f0a4504d510606970c6bab1f2b4024dc21c4e6bc487dd"
+  },
+  "approved_inputs": {
+    "specs/active/014-authenticated-receipt-recovery.md": "7436e25ff7ae72ce5ca5c74f32918951c6260826d7a16cb9c23a8f4abc308815",
+    "plans/active/014-authenticated-receipt-recovery.md": "201b0270fd9c2fad5b0306e7dd2ee406762d896c139ba6835de76a6eec9392b6",
+    ".claude/state/analyze-014.json": "2cd6df0219288f97fb9adf42ad2ff571c8773e8363e669d3c2cbf50b9521c487"
+  },
+  "source_delta_sha256": "d11cf60cd66fd64775aa6a0cd51a85e0a92f977476154793427746610d711458",
+  "changed_source_files": [
+    ".claude/scripts/test/factory-receipt-projection-resume.sh"
+  ],
+  "ledger_changed": false
+}

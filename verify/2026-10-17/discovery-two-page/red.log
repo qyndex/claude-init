@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "<stdin>", line 163, in <module>
+  File "discovery-review-real-git", line 176, in <module>
+  File "discovery-review-real-git", line 166, in observation
+AssertionError: observation exceeds two distinct source pages

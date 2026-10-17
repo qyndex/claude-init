@@ -1,0 +1,62 @@
+{
+  "AC-1": {
+    "checks": [
+      "factory-receipt-readiness.sh",
+      "factory-reporting-receipt-transfer.sh",
+      "factory-receipts-recovery.sh"
+    ],
+    "assertions": "Actual retained/source authentication, expired artifact reconstruction, foreign/malformed proof refusal; no caller auth flag"
+  },
+  "AC-2": {
+    "checks": [
+      "factory-reporting-receipt-transfer.sh",
+      "factory-reporting-rollover.sh",
+      "factory-receipts-recovery.sh"
+    ],
+    "assertions": "Exact retained merge/task facts, withdrawal annotation, revised-task isolation and immutable delivery payload/receipt"
+  },
+  "AC-3": {
+    "checks": [
+      "factory-receipts-recovery.sh",
+      "factory-supervisor.sh"
+    ],
+    "assertions": "Inherited liveness death, descendant cleanup, fenced bounded retry, uncertainty and stale/cancelled recovery rejection"
+  },
+  "AC-4": {
+    "checks": [
+      "factory-receipts-recovery.sh",
+      "factory-supervisor.sh"
+    ],
+    "assertions": "Actual SIGKILL/process cleanup, duplicate exclusion and retry; supervisor cancellation/timeout/descriptor contracts; runtime exact-input regression reuse"
+  },
+  "AC-5": {
+    "checks": [
+      "factory-receipt-profiles.sh",
+      "factory-receipt-runtime-compatibility.sh"
+    ],
+    "result": "Parent actual exit0 on exact802d921 production; copied raw proof and original setup diagnostic",
+    "assertions": "Active/revoked source profiles, changed authority bytes and explicit historical/current runtime-family compatibility; no native proof"
+  },
+  "AC-6": {
+    "checks": [
+      "factory-receipt-readiness.sh",
+      "factory-reporting-receipt-transfer.sh"
+    ],
+    "assertions": "Actual authenticated origin and retained materials after detailed artifact expiration, no archive pruning"
+  },
+  "AC-7": {
+    "checks": [
+      "factory-reporting-rollover.sh",
+      "factory-receipt-readiness.sh"
+    ],
+    "assertions": "Restartable two-interval cadence, old partial interval first, late old manual merge and explicit incomplete/foreign coverage failure"
+  },
+  "AC-8": {
+    "checks": [
+      "factory-reporting-rollover.sh",
+      "factory-reporting-receipt-transfer.sh",
+      "factory-receipt-readiness.sh"
+    ],
+    "assertions": "Opaque feedback bytes unchanged, strict typed transfer/read-only proof, no task writes or new authority; private-store mismatch rejection, not native private capability"
+  }
+}

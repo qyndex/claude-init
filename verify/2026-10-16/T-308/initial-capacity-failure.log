@@ -1,0 +1,26 @@
+# TDD ledger — green — T-308
+ledger_format: 2
+timestamp: 2026-10-16T14:41:13+11:00
+command: bash .claude/scripts/test/factory-receipt-projection-stage.sh
+exit_code: 1
+---
+Traceback (most recent call last):
+  File "<stdin>", line 33, in <module>
+  File "real-git-projection-stage", line 104, in <module>
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 1086, in stage_projection
+    timed = retained_merge_time(api, policy, store, approval_path, stream, run_id, attempt)
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 1009, in retained_merge_time
+    anchor = verify_bootstrap(api, approval_path)
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 247, in verify_bootstrap
+    require(digest(canonical(read(root + '/rulesets/' + identity))) == approval['policies'][identity], 'archive protection changed during verification')
+                             ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 179, in read
+    value = api.request(path)
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 1003, in request
+    value = state_api.request(path, method, payload)
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 1061, in request
+    require(calls < 2048, 'projection stage API capacity gap'); calls += 1
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/validate-candidate-evidence.py", line 19, in require
+    raise ValueError(message)
+ValueError: projection stage API capacity gap

@@ -1,0 +1,5 @@
+actual stage acknowledgement fault recovered: stage-lost
+actual stage acknowledgement fault recovered: progress-race
+actual stage acknowledgement fault recovered: progress-lost
+actual stage acknowledgement fault recovered: concurrent-journal
+actual protected stage same-invocation acknowledgement, CAS/lostack/concurrent-journal preservation PASS

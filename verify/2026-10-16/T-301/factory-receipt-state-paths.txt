@@ -1,0 +1,3 @@
+35 state path/index/resumable tree cases passed; path/index suite performs no CAS writes
+
+exit_code: 0

@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "<stdin>", line 23, in <module>
+  File "stage-ack-real-git", line 142, in <module>
+AssertionError: successful stage publication was not acknowledged in same invocation

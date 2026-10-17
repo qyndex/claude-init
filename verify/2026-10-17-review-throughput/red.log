@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "<stdin>", line 67, in <module>
+  File "review-throughput-real-git", line 123, in <module>
+AssertionError: maintenance still dispatches4 instead of admitted16 rows

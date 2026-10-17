@@ -1,0 +1,11 @@
+{
+  "base_sha": "7f065bb09e2fd3f46ef9b0bc3807c4878a6c9a5d",
+  "files": {
+    ".claude/scripts/factory-receipt-archive.py": "fe621225fa9d1d2107825c83ec01d82d8af691ee4954476da9ba48d43b3cf7aa",
+    ".claude/scripts/test/factory-receipt-projection-resume.sh": "5a40ca605ea31c9266743d8dc1f321cbb8d2308b01b11397e7056030147d4c78"
+  },
+  "live_activation_verified": false,
+  "coverage_complete": false,
+  "current_task_credit": false,
+  "ancestor_limit": 256
+}

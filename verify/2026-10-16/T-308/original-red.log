@@ -1,0 +1,11 @@
+# TDD ledger — red — T-308
+ledger_format: 2
+timestamp: 2026-10-16T14:40:26+11:00
+command: bash .claude/scripts/test/factory-receipt-projection-stage.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 33, in <module>
+  File "real-git-projection-stage", line 104, in <module>
+AttributeError: module 'archive' has no attribute 'stage_projection'

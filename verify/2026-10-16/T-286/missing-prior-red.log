@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "/private/tmp/t286-missing-prior-replay.py", line 6, in <module>
+    exec(compile(fixture+setup+prior,'actual-shipped-prior-attempt-case','exec'))
+    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "actual-shipped-prior-attempt-case", line 100, in <module>
+AssertionError: {'source_partition_complete': True, 'frozen_projection_complete': True, 'coverage_complete': True, 'all_history_complete': False, 'task_credit': False, 'gaps': [], 'verified_until': '2026-10-15T23:00:00Z', 'repository': 'org/repo', 'observed_head': '76faf04c91f1fa8b7221a34b5c42ea7a912e35ce', 'coverage_from': '2026-10-15T00:00:00Z', 'source_epoch': 0, 'retained_attempts': 1, 'withdrawn_attempts': 0}

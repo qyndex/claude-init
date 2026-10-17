@@ -1,0 +1,6 @@
+$ bash .claude/scripts/test/factory-receipt-retained-proof.sh
+Traceback (most recent call last):
+  File "<stdin>", line 97, in <module>
+  File "real-git-retained-proof-fixture", line 138, in <module>
+TypeError: append_delivery() got an unexpected keyword argument 'trust_mode'
+exit: 1

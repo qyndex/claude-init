@@ -1,0 +1,34 @@
+command: bash .claude/scripts/test/factory-state-scan-cost.sh && bash .claude/scripts/test/factory-receipt-history.sh
+timeout_seconds: 300
+actual validated entries=737; validate_entry calls=885
+linear work preserves immediate and cross-subtree duplicate rejection
+actual authenticated retained appends=1/1001; real Git commits=5
+actual authenticated retained appends=25/1001; real Git commits=55
+actual authenticated retained appends=50/1001; real Git commits=107
+actual authenticated retained appends=75/1001; real Git commits=159
+actual authenticated retained appends=100/1001; real Git commits=211
+actual authenticated retained appends=125/1001; real Git commits=263
+actual authenticated retained appends=150/1001; real Git commits=315
+actual authenticated retained appends=175/1001; real Git commits=367
+actual authenticated retained appends=200/1001; real Git commits=428
+actual authenticated retained appends=225/1001; real Git commits=480
+actual authenticated retained appends=250/1001; real Git commits=532
+actual authenticated retained appends=275/1001; real Git commits=584
+actual authenticated retained appends=300/1001; real Git commits=636
+actual authenticated retained appends=325/1001; real Git commits=688
+actual authenticated retained appends=350/1001; real Git commits=740
+actual authenticated retained appends=375/1001; real Git commits=792
+actual authenticated retained appends=400/1001; real Git commits=853
+actual authenticated retained appends=425/1001; real Git commits=905
+actual authenticated retained appends=450/1001; real Git commits=957
+actual authenticated retained appends=475/1001; real Git commits=1009
+actual authenticated retained appends=500/1001; real Git commits=1061
+actual authenticated retained appends=525/1001; real Git commits=1113
+actual authenticated retained appends=550/1001; real Git commits=1165
+actual authenticated retained appends=575/1001; real Git commits=1217
+actual authenticated retained appends=600/1001; real Git commits=1278
+actual authenticated retained appends=625/1001; real Git commits=1330
+actual authenticated retained appends=650/1001; real Git commits=1382
+
+exit_code: 124
+elapsed_seconds: 300.004

@@ -1,0 +1,15 @@
+{
+  "source_commit": "83761689af4eee8d6ba64f438102fdcc02e2d050",
+  "command": [
+    "bash",
+    ".claude/scripts/test/factory-reporting-queue.sh"
+  ],
+  "inputs": {
+    ".claude/scripts/test/factory-workflow-baseline.sh": "4dc5473eb241ef42b933d53d67b2db32e9ee247497efba7b5411cdbca943597d",
+    ".claude/scripts/test/factory-reporting-queue.sh": "befb2e8ae7edf511d7b48452fff6e21fca0f47c7273ce345e6ca2c4e9c02306f",
+    ".github/workflows/factory-reporting-queue.yml": "0098aa17dd30b94d5351380ba7ef118cc6238ed5fbfc3399209885e84b22f7fd"
+  },
+  "maximum_seconds": 300,
+  "started_at": "2026-10-16T17:53:45.940976+00:00",
+  "native_or_cadence_claim": false
+}

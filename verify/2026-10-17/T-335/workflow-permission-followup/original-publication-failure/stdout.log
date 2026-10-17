@@ -1,0 +1,18 @@
+Local contract: factory-reporting-queue-journal
+60 queue journal identity/schema/state/budget cases passed; no IO or delivery
+Local contract: factory-reporting-queue-cas
+fresh process protected real Git read PASS
+20 real Git queue CAS/restart/lostack/opaque preservation cases passed
+Local contract: factory-reporting-queue-observation
+33 bounded protected queue observation cases passed; no Slack or state mutation
+Local contract: factory-reporting-queue-delivery
+39 queue intent/receipt/recovery/split/failure cases passed; no live Slack
+Local contract: factory-reporting-queue-actions
+64 protected queue workflow/config/credential boundary cases passed; no live calls
+Local contract: factory-reporting-queue-live-evidence
+11 explicit-live CLI composition cases passed via local gh stub; NOT live rollout evidence
+41 bounded reviewed-source/run/job/log observer cases passed; fixtures only, no live credit
+13 real Git protected journal/publication preservation cases passed; no live credit
+Offline queue evidence contract tests passed; live rollout remains unverified.
+Local contract: factory-workflow-baseline
+AC-5: shipped protected ingress defers malformed/foreign/duplicate/unknown JSON to coordinator without raw echo; read-only App and separate audit retained

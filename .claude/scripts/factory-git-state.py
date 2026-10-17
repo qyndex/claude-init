@@ -27,12 +27,26 @@ TABLES = {
     'digest_origins': ('stream', 'origin'),
     'digest_batches': ('key', 'stream', 'cutoff', 'payload', 'status', 'receipt'),
 }
+PR_TABLES = {
+    'reporting_pr_scans': ('stream','repository','branch','origin','until','phase','next_page'),
+    'reporting_pr_pages': ('stream','page','fingerprint','count','payload'),
+}
+PR_SQL = (
+ 'CREATE TABLE IF NOT EXISTS reporting_pr_scans(stream TEXT PRIMARY KEY,repository TEXT NOT NULL,branch TEXT NOT NULL,origin TEXT NOT NULL,until TEXT NOT NULL,phase TEXT NOT NULL,next_page INTEGER NOT NULL)',
+ 'CREATE TABLE IF NOT EXISTS reporting_pr_pages(stream TEXT NOT NULL,page INTEGER NOT NULL,fingerprint TEXT NOT NULL,count INTEGER NOT NULL,payload TEXT NOT NULL,PRIMARY KEY(stream,page))',
+)
 MAX_STATE = 8_000_000
 
+
+paths_spec = importlib.util.spec_from_file_location('state_paths', Path(__file__).with_name('factory-state-paths.py'))
+state_paths = importlib.util.module_from_spec(paths_spec); paths_spec.loader.exec_module(state_paths)
 
 def git_hash(blob):
     return hashlib.sha1(b'blob ' + str(len(blob)).encode() + b'\0' + blob).hexdigest()
 
+
+_batch_spec = importlib.util.spec_from_file_location('state_batch_process', Path(__file__).with_name('factory-bounded-process.py'))
+_batch_process = importlib.util.module_from_spec(_batch_spec); _batch_spec.loader.exec_module(_batch_process)
 
 class API:
     def __init__(self, repository, token):
@@ -51,6 +65,89 @@ class API:
         require(result.returncode == 0, 'state API failed; reconcile authoritative branch before retry')
         require(len(result.stdout) <= MAX_STATE * 2, 'state API response too large')
         return json.loads(result.stdout, object_pairs_hook=digest.coordinator.contract.no_duplicate_keys)
+
+
+    def read_blobs(self, repository_id, entries):
+        """Bounded fixed query for immutable archive JSON leaves; not origin proof."""
+        require(type(repository_id) is int and 0 < repository_id < 2**63, 'blob batch repository identity invalid')
+        require(type(entries) is list and 0 < len(entries) <= 32, 'blob batch selector bound invalid')
+        selected = {}; variables = {}; declarations = []; aliases = []
+        owner, name = self.repo.split('/')
+        variables.update(owner=owner, name=name)
+        for index, item in enumerate(entries):
+            require(type(item) is dict and set(item) == {'path', 'sha', 'size'} and type(item['path']) is str and len(item['path']) <= 512 and item['path'].startswith('receipt-archive/') and type(item['sha']) is str and len(item['sha']) == 40 and type(item['size']) is int and 0 < item['size'] <= 1048576, 'blob batch archive selector invalid')
+            state_paths.validate_entry(dict(item, type='blob', mode='100644'))
+            require(item['sha'] not in selected, 'blob batch selector duplicated')
+            selected[item['sha']] = item
+            declarations.append('$oid'+str(index)+':GitObjectID!'); variables['oid'+str(index)] = item['sha']
+            aliases.append('o'+str(index)+':object(oid:$oid'+str(index)+'){__typename ... on Blob{oid byteSize isBinary isTruncated text}}')
+        require(sum(item['size'] for item in entries) <= 1048576, 'blob batch declared bytes exceed bound')
+        query = 'query ReceiptBlobs($owner:String!,$name:String!,'+','.join(declarations)+'){repository(owner:$owner,name:$name,followRenames:false){databaseId nameWithOwner '+' '.join(aliases)+'}}'
+        payload = canonical({'query': query, 'variables': variables}).encode()
+        require(len(payload) <= 16384, 'blob batch request bytes exceed bound')
+        env = {key: os.environ[key] for key in ('PATH', 'HOME') if key in os.environ}
+        env.update(GH_TOKEN=self.token, GH_HOST='github.com', GH_PROMPT_DISABLED='1', GH_NO_UPDATE_NOTIFIER='1', LANG='C', LC_ALL='C')
+        with tempfile.TemporaryFile() as source:
+            source.write(payload); source.seek(0)
+            result = _batch_process.run(['gh', 'api', '--hostname', 'github.com', '--method', 'POST', 'graphql', '--input', '-'],
+                                        env=env, cwd=Path.cwd(), timeout=60, limit=2097152, aggregate_limit=2097152, stdin=source)
+        require(result.returncode == 0, 'blob batch API failed; no fallback')
+        try:
+            value = json.loads(result.stdout, object_pairs_hook=digest.coordinator.contract.no_duplicate_keys)
+        except (ValueError, UnicodeError, RecursionError) as error:
+            raise ValueError('blob batch response JSON invalid') from error
+        require(type(value) is dict and set(value) == {'data'} and type(value['data']) is dict and set(value['data']) == {'repository'}, 'blob batch partial/error response')
+        repository = value['data']['repository']; expected = {'databaseId', 'nameWithOwner'} | {'o'+str(i) for i in range(len(entries))}
+        require(type(repository) is dict and set(repository) == expected and type(repository['databaseId']) is int and repository['databaseId'] == repository_id and repository['nameWithOwner'] == self.repo, 'blob batch repository/aliases differ')
+        blobs = {}
+        for index, item in enumerate(entries):
+            blob = repository['o'+str(index)]
+            require(type(blob) is dict and set(blob) == {'__typename', 'oid', 'byteSize', 'isBinary', 'isTruncated', 'text'} and blob['__typename'] == 'Blob' and blob['oid'] == item['sha'] and type(blob['byteSize']) is int and blob['byteSize'] == item['size'] and blob['isBinary'] is False and blob['isTruncated'] is False and type(blob['text']) is str, 'blob batch object identity/shape differs')
+            try:
+                raw = blob['text'].encode('utf-8')
+            except UnicodeError as error:
+                raise ValueError('blob batch UTF8 invalid') from error
+            require(len(raw) == item['size'] and git_hash(raw) == item['sha'], 'blob batch bytes differ')
+            blobs[item['sha']] = {'sha': item['sha'], 'encoding': 'base64', 'size': len(raw), 'content': base64.b64encode(raw).decode('ascii')}
+        require(len(canonical(blobs).encode()) <= 2097152, 'blob batch normalized memory exceeds bound')
+        return {'blobs': blobs, 'calls': 1, 'raw_bytes': len(result.stdout)}
+
+
+    def read_pull_requests(self, repository_id, numbers):
+        """Fresh bounded merge observations; never an immutable/persistent cache."""
+        require(type(repository_id) is int and 0 < repository_id < 2**63, 'PR batch repository identity invalid')
+        require(type(numbers) is list and 0 < len(numbers) <= 32 and all(type(n) is int and 0 < n <= 2147483647 for n in numbers) and len(set(numbers)) == len(numbers), 'PR batch selectors invalid')
+        owner, name = self.repo.split('/'); variables = {'owner':owner,'name':name}; declarations = []; aliases = []
+        for index, number in enumerate(numbers):
+            declarations.append('$n'+str(index)+':Int!');variables['n'+str(index)]=number
+            aliases.append('p'+str(index)+':pullRequest(number:$n'+str(index)+'){number merged mergedAt mergeCommit{oid} baseRepository{databaseId nameWithOwner}}')
+        query='query ReceiptPullRequests($owner:String!,$name:String!,'+','.join(declarations)+'){repository(owner:$owner,name:$name,followRenames:false){databaseId nameWithOwner '+' '.join(aliases)+'}}'
+        payload=canonical({'query':query,'variables':variables}).encode();require(len(payload)<=16384,'PR batch request bytes exceed bound')
+        env={key:os.environ[key] for key in ('PATH','HOME') if key in os.environ}
+        env.update(GH_TOKEN=self.token,GH_HOST='github.com',GH_PROMPT_DISABLED='1',GH_NO_UPDATE_NOTIFIER='1',LANG='C',LC_ALL='C')
+        with tempfile.TemporaryFile() as source:
+            source.write(payload);source.seek(0)
+            result=_batch_process.run(['gh','api','--hostname','github.com','--method','POST','graphql','--input','-'],env=env,cwd=Path.cwd(),timeout=60,limit=2097152,aggregate_limit=2097152,stdin=source)
+        require(result.returncode==0,'PR batch API failed; no fallback')
+        try:value=json.loads(result.stdout,object_pairs_hook=digest.coordinator.contract.no_duplicate_keys)
+        except (ValueError,UnicodeError,RecursionError) as error:raise ValueError('PR batch response JSON invalid') from error
+        require(type(value) is dict and set(value)=={'data'} and type(value['data']) is dict and set(value['data'])=={'repository'},'PR batch partial/error response')
+        repository=value['data']['repository'];expected={'databaseId','nameWithOwner'}|{'p'+str(i) for i in range(len(numbers))}
+        require(type(repository) is dict and set(repository)==expected and type(repository['databaseId']) is int and repository['databaseId']==repository_id and repository['nameWithOwner']==self.repo,'PR batch repository/aliases differ')
+        observations={}
+        for index,number in enumerate(numbers):
+            pr=repository['p'+str(index)]
+            require(type(pr) is dict and set(pr)=={'number','merged','mergedAt','mergeCommit','baseRepository'} and type(pr['number']) is int and pr['number']==number and pr['merged'] is True,'PR batch merge identity differs')
+            commit=pr['mergeCommit'];base=pr['baseRepository'];time=pr['mergedAt']
+            require(type(commit) is dict and set(commit)=={'oid'} and state_paths.valid_hash(commit['oid'],40),'PR batch merge commit differs')
+            require(type(base) is dict and set(base)=={'databaseId','nameWithOwner'} and type(base['databaseId']) is int and base['databaseId']==repository_id and base['nameWithOwner']==self.repo,'PR batch base repository differs')
+            require(time is None or (type(time) is str and len(time)<=40 and re.fullmatch(r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})',time) is not None and (time.endswith('Z') or (int(time[-5:-3])<24 and int(time[-2:])<60))),'PR batch timestamp shape invalid')
+            if time is not None:
+                try:datetime.fromisoformat(time.replace('Z','+00:00'))
+                except (ValueError,OverflowError) as error:raise ValueError('PR batch timestamp invalid') from error
+            observations[number]={'number':number,'merged':True,'merged_at':time,'merge_commit_sha':commit['oid'],'base':{'repo':{'id':repository_id,'full_name':self.repo}}}
+        require(len(canonical(observations).encode())<=2097152,'PR batch normalized memory exceeds bound')
+        return {'pull_requests':observations,'calls':1,'raw_bytes':len(result.stdout)}
 
 
 POLICY_FIELDS = {'id', 'name', 'target', 'source_type', 'source', 'enforcement',
@@ -108,12 +205,62 @@ def verify_policy(policy, repository, identity, approvals=None, now=None):
             'state policy approval clock invalid')
 
 
+def state_view_config(value):
+    """Select an origin protocol, never accept caller checkpoint/coverage claims."""
+    if value is None:return None
+    require(type(value) is dict and set(value)=={'mode','approval_path'} and value['mode']=='archive'
+            and type(value['approval_path']) is str and 0<len(value['approval_path'])<=4096,
+            'protected state view configuration invalid')
+    path=Path(value['approval_path'])
+    require(path.is_absolute() and path.resolve()==path and not path.is_symlink(), 'protected state view path invalid')
+    return dict(value)
+
+
+class _ProtectedStateReader:
+    """One invocation, exact immutable cache only; mutable origin always reread."""
+    def __init__(self, api):
+        self.source=api;self.repo=api.repo;self.calls=self.consumed=0;self.cache={}
+    def request(self, path, method='GET', payload=None):
+        root='repos/'+self.repo
+        require(method=='GET' and payload is None and type(path) is str
+                and (path==root or path.startswith(root+'/')), 'protected state view must be read-only')
+        immutable=any(path.startswith(root+'/git/'+kind+'/') and state_paths.valid_hash(path.rsplit('/',1)[1],40)
+                      for kind in ('commits','trees','blobs'))
+        if immutable and path in self.cache:return json.loads(self.cache[path])
+        require(self.calls<2048,'protected state view capacity gap');self.calls+=1
+        value=self.source.request(path);raw=canonical(value).encode();self.consumed+=len(raw)
+        require(len(raw)<=2097152 and self.consumed<=33554432,'protected state view capacity gap')
+        if immutable:self.cache[path]=raw
+        return value
+
+
 class GitState:
-    def __init__(self, api, branch, stream, bootstrap_sha=None, policy_approvals=None, *, bootstrap_existing=False):
+    def __init__(self, api, branch, stream, bootstrap_sha=None, policy_approvals=None, *, bootstrap_existing=False, state_view=None):
         require(type(bootstrap_existing) is bool, "invalid checkpoint bootstrap mode")
         require(re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._/-]*', branch or '') and '..' not in branch and not branch.endswith('/'), 'state branch invalid')
         require(digest.coordinator.contract.digest(stream, 64), 'state stream invalid')
         self.api = api; self.root = f'repos/{api.repo}'; self.branch = branch
+        self.state_view = state_view_config(state_view)
+        if self.state_view is not None:
+            archive_spec=importlib.util.spec_from_file_location('reporting_archive_view',Path(__file__).with_name('factory-receipt-archive.py'))
+            self.archive=importlib.util.module_from_spec(archive_spec);archive_spec.loader.exec_module(self.archive)
+            self.reader=_ProtectedStateReader(api)
+            anchor=self._archive_anchor()
+            self.view_binding={key:value for key,value in anchor.items() if key not in ('head','tree')}
+            self.private=anchor['private'];self.head=anchor['head'];self.tree=anchor['tree']
+            self.path='reports/'+stream+'.json';item_at,_=self.archive.fixed_reader(self.reader,self.root)
+            item=item_at(self.tree,self.path);self.bytes=None
+            if item is not None:
+                require(item['type']=='blob' and 0<item['size']<=MAX_STATE,'checkpoint size invalid')
+                blob=self.reader.request(self.root+'/git/blobs/'+item['sha'])
+                require(blob['encoding']=='base64' and blob['sha']==item['sha'],'checkpoint encoding/identity differs')
+                self.bytes=base64.b64decode(''.join(blob['content'].split()),validate=True)
+                require(len(self.bytes)==blob['size']==item['size'] and git_hash(self.bytes)==item['sha'],'checkpoint bytes differ')
+            else:
+                require(bootstrap_sha==self.head and (bootstrap_existing or item_at(self.tree,'reports') is None),
+                        'missing checkpoint requires exact protected bootstrap revision; never reset silently')
+            require(self._archive_anchor()==anchor,'protected state view changed during load')
+            return
         repo = api.request(self.root)
         require(repo['full_name'] == api.repo and repo['archived'] is False and branch != repo['default_branch'], 'state cannot use default branch or archived repo')
         self.private = repo['private']
@@ -134,7 +281,7 @@ class GitState:
         require(tree.get('truncated') is False, 'state tree incomplete')
         self.path = 'reports/' + stream + '.json'
         # Data-only branch: no workflows, executables or source files can be imported.
-        require(all(item['type'] == 'tree' or (item['type'] == 'blob' and item['mode'] == '100644' and (item['path'] == 'README.md' or re.fullmatch(r'reports/[0-9a-f]{64}\.json', item['path']))) for item in tree['tree']), 'state branch contains unexpected paths or modes')
+        state_paths.validate_tree(tree['tree'])
         entries = [item for item in tree['tree'] if item['path'] == self.path]
         require(len(entries) <= 1, 'state path ambiguous')
         self.bytes = None
@@ -148,10 +295,24 @@ class GitState:
         else:
             require(bootstrap_sha == self.head and (bootstrap_existing or not any(item['path'].startswith('reports/') for item in tree['tree'])), 'missing checkpoint requires exact protected bootstrap revision; never reset silently')
 
+    def _archive_anchor(self):
+        try:anchor=self.archive.verify_bootstrap(self.reader,self.state_view['approval_path'])
+        except OSError as error:raise ValueError('protected state view approval unavailable') from error
+        require(anchor['branch']==self.branch,'protected state view branch differs')
+        require(not hasattr(self,'view_binding') or self.view_binding=={key:value for key,value in anchor.items() if key not in ('head','tree')},
+                'protected state view input changed; reload authoritative snapshot')
+        return anchor
+
+    def _unchanged_archive_view(self):
+        if self.state_view is not None:
+            anchor=self._archive_anchor()
+            require(anchor['head']==self.head and anchor['tree']==self.tree,'protected state view changed before checkpoint')
+
     def checkpoint(self, data):
         require(isinstance(data, bytes) and 0 < len(data) <= MAX_STATE, 'checkpoint too large')
         if data == self.bytes:
             return
+        self._unchanged_archive_view()
         blob = self.api.request(self.root + '/git/blobs', 'POST', {'encoding': 'base64', 'content': base64.b64encode(data).decode()})
         require(blob['sha'] == git_hash(data), 'uploaded checkpoint differs')
         tree = self.api.request(self.root + '/git/trees', 'POST', {'base_tree': self.tree, 'tree': [{'path': self.path, 'mode': '100644', 'type': 'blob', 'sha': blob['sha']}]})
@@ -159,6 +320,7 @@ class GitState:
         commit = self.api.request(self.root + '/git/commits', 'POST', {'message': 'factory: reporting checkpoint ' + uuid.uuid4().hex, 'tree': tree['sha'], 'parents': [self.head]})
         require(commit['tree']['sha'] == tree['sha'] and [p['sha'] for p in commit['parents']] == [self.head], 'checkpoint ancestry differs')
         require(digest.coordinator.contract.digest(commit['sha'], 40), 'checkpoint commit invalid')
+        self._unchanged_archive_view()
         result = self.api.request(self.root + '/git/refs/heads/' + quote(self.branch, safe=''), 'PATCH', {'sha': commit['sha'], 'force': False})
         require(result['ref'] == 'refs/heads/' + self.branch and result['object']['sha'] == commit['sha'], 'checkpoint reference differs')
         self.head = commit['sha']; self.tree = tree['sha']; self.bytes = data
@@ -167,7 +329,11 @@ class GitState:
 def snapshot(path, repository, stream, destination, branch, alerts=None):
     with sqlite3.connect(path) as db:
         db.row_factory = sqlite3.Row
-        tables = {table: [dict(row) for row in db.execute(f'SELECT {",".join(columns)} FROM {table} ORDER BY {columns[0]}')] for table, columns in TABLES.items()}
+        present={row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+        selected=dict(TABLES)
+        if set(PR_TABLES)&present:
+            require(set(PR_TABLES)<=present,'partial PR checkpoint tables');selected.update(PR_TABLES)
+        tables = {table: [dict(row) for row in db.execute(f'SELECT {",".join(columns)} FROM {table} ORDER BY '+('stream,page' if table=='reporting_pr_pages' else columns[0]))] for table, columns in selected.items()}
     document = {'schema_version': 1, 'repository': repository, 'stream': stream, 'destination': destination, 'branch': branch, 'tables': tables}
     if alerts is not None:
         document['alerts'] = alerts
@@ -178,7 +344,8 @@ def snapshot(path, repository, stream, destination, branch, alerts=None):
 def validate(document, repository, stream):
     require(set(document) in ({'schema_version', 'repository', 'stream', 'destination', 'branch', 'tables'}, {'schema_version', 'repository', 'stream', 'destination', 'branch', 'tables', 'alerts'}) and type(document['schema_version']) is int and document['schema_version'] == 1 and document['repository'] == repository and document['stream'] == stream, 'foreign checkpoint schema/identity')
     require(stream == hashlib.sha256(canonical([repository, document['destination'], document['branch']]).encode()).hexdigest(), 'checkpoint destination/branch differs')
-    require(set(document['tables']) == set(TABLES), 'unexpected checkpoint tables')
+    require(type(document['tables']) is dict and set(document['tables']) in (set(TABLES),set(TABLES)|set(PR_TABLES)), 'unexpected checkpoint tables')
+    if set(PR_TABLES)<=set(document['tables']):validate_pr_checkpoint(document,stream)
     for table, columns in TABLES.items():
         rows = document['tables'][table]
         require(isinstance(rows, list) and all(isinstance(row, dict) and set(row) == set(columns) and row['stream'] == stream for row in rows), 'malformed checkpoint rows')
@@ -213,6 +380,36 @@ def validate(document, repository, stream):
     require(pending <= 1, 'multiple pending reports')
     if 'alerts' in document:
         validate_alerts(document['alerts'], stream)
+
+
+def validate_pr_checkpoint(document,stream):
+    tables=document['tables'];rows=tables['reporting_pr_scans'];pages=tables['reporting_pr_pages']
+    require(type(rows) is list and len(rows)<=1 and type(pages) is list,'PR checkpoint rows invalid')
+    require(bool(rows) or not pages,'PR pages lack scan')
+    if not rows:return
+    row=rows[0]
+    require(type(row) is dict and set(row)==set(PR_TABLES['reporting_pr_scans']) and row['stream']==stream
+            and row['repository']==document['repository'] and row['branch']==document['branch']
+            and type(row['phase']) is str and row['phase'] in ('baseline','compare','ready')
+            and type(row['next_page']) is int and 0<row['next_page']<2**63,'PR checkpoint scan binding invalid')
+    origin=digest.instant(row['origin']);until=digest.instant(row['until'])
+    require(origin<until and row['origin']==tables['digest_origins'][0]['origin'],'PR checkpoint interval differs')
+    helper_spec=importlib.util.spec_from_file_location('checkpoint_pr_discovery',Path(__file__).with_name('factory-reporting-pr-discovery.py'))
+    helper=importlib.util.module_from_spec(helper_spec);helper_spec.loader.exec_module(helper)
+    seen=set()
+    for index,item in enumerate(pages,1):
+        require(type(item) is dict and set(item)==set(PR_TABLES['reporting_pr_pages']) and item['stream']==stream
+                and type(item['page']) is int and item['page']==index and type(item['count']) is int and 0<=item['count']<=100
+                and state_paths.valid_hash(item['fingerprint'],64) and type(item['payload']) is str,'PR checkpoint page invalid')
+        candidates=json.loads(item['payload'],object_pairs_hook=digest.coordinator.contract.no_duplicate_keys)
+        require(type(candidates) is list and len(candidates)<=item['count'] and canonical(candidates)==item['payload'],'PR checkpoint candidates invalid')
+        for candidate in candidates:
+            clean=helper.normalize(candidate,document['repository'])
+            require(canonical(clean)==canonical(candidate) and clean['merged_at'] is not None and clean['base']['ref']==document['branch']
+                    and origin<digest.instant(clean['merged_at'])<=until and clean['number'] not in seen,'PR checkpoint candidate binding differs')
+            seen.add(clean['number'])
+    require(any(helper.compatible_layout(pages,row['phase'],row['next_page'],size) for size in (25,100)),
+            'PR checkpoint cursor invalid')
 
 
 def alert_key(stream, kind, cutoff, run_id, incident, run_attempt=None):
@@ -254,11 +451,18 @@ class HostedDigest(digest.Digest):
             stream = hashlib.sha256(canonical([config['repository'], config['destination'], config['branch']]).encode()).hexdigest()
             validate(document, config['repository'], stream)
             with sqlite3.connect(path) as db:
-                for table, columns in TABLES.items():
+                present={row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+                if config.get('pr_discovery_mode','legacy')=='resumable' or set(PR_TABLES)&present:
+                    for sql in PR_SQL:db.execute(sql)
+                    for table in PR_TABLES:db.execute(f'DELETE FROM {table}')
+                if set(PR_TABLES)<=set(document['tables']):
+                    for sql in PR_SQL:db.execute(sql)
+                for table, columns in dict(TABLES,**PR_TABLES).items():
+                    if table not in document['tables']:continue
                     db.execute(f'DELETE FROM {table}')
                     for row in document['tables'][table]:
                         db.execute(f'INSERT INTO {table}({",".join(columns)}) VALUES({",".join("?" for _ in columns)})', [row[c] for c in columns])
-        super().__init__(path, config['repository'], config['destination'], config['start'], config['branch'])
+        super().__init__(path, config['repository'], config['destination'], config['start'], config['branch'], receipt_mode=config.get('receipt_mode','legacy'),pr_discovery_mode=config.get('pr_discovery_mode','legacy'))
 
     @contextmanager
     def transaction(self):
@@ -277,18 +481,98 @@ def run(config, report_api, state_api, slack_client, path, now):
     require(config.get('enabled') is True and report_api.repo == config['repository'], 'hosted reporting disabled/foreign')
     source = report_api.get(f'repos/{report_api.repo}')
     require(source['full_name'] == report_api.repo and source['default_branch'] == config['branch'], 'report repository/default branch differs')
+    target = slack.due(now)
     stream = hashlib.sha256(canonical([config['repository'], config['destination'], config['branch']]).encode()).hexdigest()
-    state = GitState(state_api, config['state_branch'], stream, config.get('bootstrap_sha'), config.get('policy_approvals'))
+    pending_snapshot = False
+    reporting_cursor = None
+    mode = config.get('receipt_mode', 'legacy')
+    require(type(mode) is str and mode in ('legacy', 'durable'), 'explicit reporting receipt mode required')
+    if mode == 'durable':
+        require(not Path(path).is_symlink(), 'reporting database symlink forbidden')
+        path = Path(path).resolve()
+        durable = config.get('receipt_archive')
+        require(type(durable) is dict and set(durable)=={'approval_path','trust_path','store','trust_mode'}
+                and config.get('receipt_policy') is not None, 'protected durable reporting configuration required')
+        maintenance_spec = importlib.util.spec_from_file_location('report_maintenance', Path(__file__).with_name('factory-reporting-maintenance.py'))
+        maintenance = importlib.util.module_from_spec(maintenance_spec); maintenance_spec.loader.exec_module(maintenance)
+        require(config.get('state_view')=={'mode':'archive','approval_path':str(Path(durable['approval_path']).resolve())},
+                'durable report requires protected archive state view')
+        origin = maintenance.archive.advance_origin(state_api, durable['approval_path'], commit_budget=16, tree_pages=4)
+        if not origin['frozen_complete']:
+            return {'status':'incomplete','phase':'origin','coverage_complete':False,'all_history_complete':False,'task_credit':False}
+        reader = _ProtectedStateReader(state_api)
+        prior_anchor = maintenance.archive.verify_bootstrap(reader, durable['approval_path'])
+        require(config['state_branch']==prior_anchor['branch'] and config['state_repository']==state_api.repo,
+                'durable reporting state binding differs')
+        _, prior_blob = maintenance.archive.fixed_reader(reader, 'repos/'+state_api.repo)
+        prior_raw = prior_blob(prior_anchor['tree'], 'reports/'+stream+'.json')
+        if prior_raw is not None:
+            prior = json.loads(prior_raw, object_pairs_hook=digest.coordinator.contract.no_duplicate_keys)
+            validate(prior, state_api.repo, stream)
+            pending_snapshot = any(row['status']!='confirmed' for row in prior['tables']['digest_batches'])
+            reporting_cursor = prior['tables']['digest_cursors'][0]['cutoff']
+        if not pending_snapshot:
+            scheduling=maintenance.select_reporting if config.get('pr_discovery_mode','legacy')=='resumable' else maintenance.prepare_reporting
+            progress = scheduling(report_api, state_api, config['receipt_policy'], durable['trust_path'],
+                        durable['store'], durable['approval_path'], interval_end=target, trust_mode=durable['trust_mode'], reporting_cursor=reporting_cursor)
+            if progress['status'] != 'projection-ready':return progress
+            target = progress['interval_end']
+    stream = hashlib.sha256(canonical([config['repository'], config['destination'], config['branch']]).encode()).hexdigest()
+    bootstrap = config.get('bootstrap_sha')
+    if mode == 'durable':
+        view = {'mode':'archive','approval_path':str(Path(durable['approval_path']).resolve())}
+        require(config.get('state_view') == view, 'durable report requires protected archive state view')
+        anchor = maintenance.archive.verify_bootstrap(state_api, durable['approval_path'])
+        require(config['state_branch']==anchor['branch'] and config['state_repository']==state_api.repo,
+                'durable reporting state binding differs')
+        item_at, _ = maintenance.archive.fixed_reader(state_api, 'repos/'+state_api.repo)
+        report_leaf = 'reports/'+stream+'.json'
+        if item_at(anchor['tree'], report_leaf) is None:
+            require(item_at(anchor['bootstrap_tree'], report_leaf) is None and
+                    state_api.request('repos/'+state_api.repo+'/commits?sha='+anchor['head']+'&path='+quote(report_leaf,safe='')+'&per_page=1') == [],
+                    'missing durable reporting checkpoint cannot reset historical state')
+            bootstrap = anchor['head']
+    state = GitState(state_api, config['state_branch'], stream, bootstrap, config.get('policy_approvals'),
+                     state_view=config.get('state_view'), bootstrap_existing=mode=='durable')
     require(not source['private'] or state.private, 'private repository cannot publish public checkpoints')
     store = HostedDigest(path, config, state)
-    target = slack.due(now)
-    if digest.instant(store.cursor()) >= digest.instant(target):
+    if not pending_snapshot and digest.instant(store.cursor()) >= digest.instant(target):
         return {'status': 'not-due'}
-    if config.get('receipt_policy') is not None:
+    if not pending_snapshot and store.pr_discovery_mode=='resumable':
+        discovered=store.discover(report_api,target)
+        if discovered['status']!='complete':return discovered
+        if mode=='durable':
+            progress=maintenance.prepare_reporting(report_api,state_api,config['receipt_policy'],durable['trust_path'],
+                        durable['store'],durable['approval_path'],interval_end=target,trust_mode=durable['trust_mode'],reporting_cursor=reporting_cursor)
+            if progress['status']!='projection-ready':return progress
+            require(progress['interval_end']==target,'PR observation interval changed during maintenance')
+            # Maintenance changes only its own role. Retain the private current
+            # PR observation while refreshing the authenticated report state.
+            fresh=GitState(state_api,config['state_branch'],stream,config.get('bootstrap_sha'),
+                           config.get('policy_approvals'),state_view=config.get('state_view'))
+            require(fresh.bytes==store.state.bytes,'reporting checkpoint changed during maintenance')
+            store.state=state=fresh
+    if not pending_snapshot and config.get('receipt_policy') is not None:
         receipts_spec = importlib.util.spec_from_file_location('report_receipts', Path(__file__).with_name('factory-receipts.py'))
         receipts = importlib.util.module_from_spec(receipts_spec); receipts_spec.loader.exec_module(receipts)
-        receipts.project(report_api, config['receipt_policy'], path)
+        projection = receipts.project(report_api, config['receipt_policy'], path, receipt_mode=mode, state_api=state_api,
+                         archive_config=config.get('receipt_archive'), selection=None if mode=='legacy' else
+                         {'interval_end':target,'history_head':progress['history_head'],'campaign':progress['campaign']})
+        if mode=='durable':
+            if projection.get('coverage_complete') is not True:
+                return dict(projection,status='incomplete',phase='projection-pending')
+            acknowledgement=maintenance.acknowledge_reporting(report_api,state_api,config['receipt_policy'],
+                        durable['trust_path'],durable['store'],durable['approval_path'],interval_end=target,
+                        trust_mode=durable['trust_mode'],history_head=progress['history_head'],campaign=progress['campaign'])
+            if acknowledgement['status']!='projection-acknowledged':return acknowledgement
+            # Journal acknowledgement advanced the shared branch. Reload the exact
+            # report role before any prepare/send; typed local receipt tables stay.
+            state=GitState(state_api,config['state_branch'],stream,config.get('bootstrap_sha'),
+                           config.get('policy_approvals'),state_view=config.get('state_view'))
+            require(state.bytes==store.state.bytes,'reporting checkpoint changed during projection acknowledgement')
+            store.state=state
     batch = store.prepare(report_api, target)
+    if batch.get('status')=='incomplete':return batch
     adapter = slack.transport(slack_client, config, batch)
     receipt = store.deliver(batch['key'], adapter)
     require(adapter.lookup(batch['key']).get('receipt') == receipt, 'Delivered receipt not visible in Slack history; preserve confirmed state')
@@ -301,9 +585,20 @@ def main():
     require(os.environ.get('GITHUB_SERVER_URL') == 'https://github.com', 'hosted state supports github.com only')
     require(os.environ.get('GITHUB_REPOSITORY') == config['repository'] and os.environ.get('GITHUB_REF') == 'refs/heads/' + config['branch'], 'hosted reporting requires target default branch')
     os.umask(0o077)
-    state_api = API(config['state_repository'], os.environ.get('FACTORY_REPORTING_STATE_TOKEN') or os.environ.get('GH_TOKEN'))
+    selected = os.environ.get('FACTORY_REPORTING_APP_WRITER_ENABLED', 'false')
+    require(selected in ('true', 'false'), 'reporting writer flag invalid')
+    if selected == 'true':
+        transport_spec = importlib.util.spec_from_file_location('hosted_reporting_transport', Path(__file__).with_name('factory-reporting-transport.py'))
+        transport = importlib.util.module_from_spec(transport_spec); transport_spec.loader.exec_module(transport)
+        require(config['state_repository'] == config['repository'], 'selected reporting state repository differs')
+        report_api = state_api = transport.create_api(os.environ)
+        require(state_api.repo == config['repository'], 'selected reporting repository differs')
+        config = transport.attach_reporting_context(config)
+    else:
+        state_api = API(config['state_repository'], os.environ.get('FACTORY_REPORTING_STATE_TOKEN') or os.environ.get('GH_TOKEN'))
+        report_api = digest.coordinator.GitHub(config['repository'])
     with tempfile.TemporaryDirectory(prefix='factory-reporting-') as tmp:
-        result = run(config, digest.coordinator.GitHub(config['repository']), state_api, slack.http_client(config), Path(tmp)/'reporting.sqlite', datetime.now(timezone.utc))
+        result = run(config, report_api, state_api, slack.http_client(config), Path(tmp)/'reporting.sqlite', datetime.now(timezone.utc))
     print(json.dumps(result))
 
 

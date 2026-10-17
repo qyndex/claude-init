@@ -5,7 +5,7 @@ cd "$ROOT"
 actionlint
 python3 - "$ROOT" <<'PYTEST'
 from pathlib import Path
-import json,os,re,subprocess,sys,tempfile
+import json,os,re,subprocess,sys,tempfile,yaml
 root=Path(sys.argv[1])
 def body(filename,name):
  text=(root/'.github/workflows'/filename).read_text().split('- name: '+name,1)[1]
@@ -52,7 +52,23 @@ os.execv(sys.executable,[sys.executable]+sys.argv[1:])
   assert not (base/'SHOULD_NOT_EXIST').exists()
  queue=(root/'.github/workflows/factory-reporting-queue.yml').read_text()
  assert 'group: factory-reporting-queue-${{ github.repository }}' in queue and 'cancel-in-progress: false' in queue
- assert 'environment: factory-reporting' in queue and 'administration:' not in queue and 'id-token:' not in queue
+ def queue_permissions_safe(text):
+  document=yaml.safe_load(text);jobs=document.get('jobs',{}).values()
+  scopes=[document.get('permissions',{}),*(job.get('permissions',{}) for job in jobs)]
+  app=[step['with']['permission-administration'] for job in jobs for step in job.get('steps',[])
+       if 'permission-administration' in step.get('with',{})]
+  return not any(isinstance(scope,dict) and {'administration','id-token'} & scope.keys() for scope in scopes) and all(value=='read' for value in app)
+ assert 'environment: factory-reporting' in queue and queue_permissions_safe(queue)
+ for forged in (
+  queue.replace('  actions: read','  actions: read\n  administration: read',1),
+  queue.replace('  actions: read','  actions: read\n  id-token: write',1),
+  queue.replace('    timeout-minutes: 15','    permissions:\n      administration: write\n    timeout-minutes: 15',1),
+  queue.replace('    timeout-minutes: 15','    permissions:\n      id-token: write\n    timeout-minutes: 15',1),
+  queue.replace('permission-administration: read','permission-administration: write',1),
+  re.sub(r'(?m)^permissions:\n(?:[ \t]+[^\n]*\n)+','permissions: {contents: write, actions: read, id-token: write}\n',queue,count=1),
+  queue.replace('    timeout-minutes: 15','    permissions: {administration: read}\n    timeout-minutes: 15',1),
+ ):
+  assert forged!=queue and not queue_permissions_safe(forged),'queue permission expansion accepted'
  print('AC-5: protected separately serialized queue shell passes only fixed CLI drill flag without interpolation')
 print('AC-1: actual full actionlint including ShellCheck passes all shipped workflows without warning waivers')
 with tempfile.TemporaryDirectory() as temporary:

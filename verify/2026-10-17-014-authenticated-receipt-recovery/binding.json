@@ -1,0 +1,22 @@
+{
+  "actual_acceptance": {
+    "source_commit": "802d921259c74ff21b4d26d45ccc242dc51ea756",
+    "task": "T-290",
+    "command": "bash .claude/scripts/test/factory-receipt-continuation.sh",
+    "maximum_seconds": 300,
+    "started_at": "2026-10-16T17:44:49.080270+00:00",
+    "sanctioned_tool": "tdd-ledger.sh green",
+    "native_or_cadence_claim": false,
+    "exit_code": 0,
+    "completed_at": "2026-10-16T17:48:41.400793+00:00"
+  },
+  "all_five_checks_passed": true,
+  "all_recorded_inputs_match_current": true,
+  "assertion_map_sha256": "3b5ca91a27ee3670c28e284b56b2d766512043e587c4f586fa772fcd9f9925d4",
+  "profile_actual_result": {
+    "exit_code": 0,
+    "completed_at": "2026-10-16T17:34:12.626925+00:00",
+    "stdout_sha256": "c952c46dbe7a11a9caef23f7b1e0b7c8d7409b3455c52b3261d203d5834836f8"
+  },
+  "capacity_scope": "Retained source-bound 1001 history/final public-tail proof remains separate; no new producer history executed"
+}

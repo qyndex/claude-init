@@ -1,0 +1,21 @@
+{"case": "scheduled-stalled", "result": {"notifications": 1, "reconciled": 0}, "calls": 298, "bytes": 64747, "roles": {"writer": 258, "source": 40}}
+{"case": "scheduled-stalled-restart", "result": {"notifications": 0, "reconciled": 0}, "calls": 134, "bytes": 28815, "roles": {"writer": 94, "source": 40}}
+{"case": "recovery-missing-remote-receipt", "error": "latest delivered report no longer verifiable", "type": "ValueError", "calls": 164, "bytes": 34827, "roles": {"writer": 126, "source": 38}}
+{"case": "scheduled-recovery", "error": "queue recovery metadata changed", "type": "ValueError", "calls": 264, "bytes": 58056, "roles": {"writer": 226, "source": 38}}
+Traceback (most recent call last):
+  File "<stdin>", line 102, in <module>
+  File "queue-scheduled-routed-real-git", line 175, in <module>
+  File "queue-scheduled-routed-real-git", line 161, in invoke
+  File "/private/tmp/factory-queue-scheduled-acceptance-20261017/.claude/scripts/factory-reporting-queue.py", line 622, in protected_entry
+    return run_queue(api, client, config, built['storage'], built['reporting'], now, drill_run=run_id if drill else None)
+  File "/private/tmp/factory-queue-scheduled-acceptance-20261017/.claude/scripts/factory-reporting-queue.py", line 519, in run_queue
+    return emit(pending, recheck)
+  File "/private/tmp/factory-queue-scheduled-acceptance-20261017/.claude/scripts/factory-reporting-queue.py", line 478, in emit
+    guard()
+    ~~~~~^^
+  File "/private/tmp/factory-queue-scheduled-acceptance-20261017/.claude/scripts/factory-reporting-queue.py", line 517, in recheck
+    require(observe_queue(source, config, storage, now)['status'] == 'metadata-current', 'queue recovery metadata changed')
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-queue-scheduled-acceptance-20261017/.claude/scripts/factory-reporting-queue.py", line 17, in require
+    raise ValueError(message)
+ValueError: queue recovery metadata changed

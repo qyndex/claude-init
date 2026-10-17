@@ -1,0 +1,11 @@
+{
+  "base_commit": "9f0ad1b870e7d9f22faea29d364bbeb267d0595e",
+  "command": "bash .claude/scripts/test/factory-receipt-backfill.sh",
+  "files": {
+    ".claude/scripts/factory-receipt-discovery.py": "559e9c4dfb2200426b2491ccf081e57029212dca01c72a3e3544c57bd3a744a9",
+    ".claude/scripts/factory-state-paths.py": "d2bb592fc2ac58d16659a4193c61cb976815b2251ebea3bee9f86cb5c4d0b748",
+    ".claude/scripts/test/factory-receipt-backfill.sh": "8ddc970bd785af405f9c38f58b112f5c4038658f4b070563a4295ce3f46b82e3"
+  },
+  "live_state_writes": false,
+  "delivery_coverage": false
+}

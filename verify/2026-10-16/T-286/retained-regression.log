@@ -1,0 +1,17 @@
+Traceback (most recent call last):
+  File "real-git-retained-proof-fixture", line 96, in reject
+  File "real-git-retained-proof-fixture", line 105, in <lambda>
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 626, in project_retained
+    require({row[0] for row in db.execute('SELECT task FROM delivery_receipts')} <= set(by_task), 'archive retained coverage missing existing reporting fact')
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/validate-candidate-evidence.py", line 19, in require
+    raise ValueError(message)
+ValueError: archive retained coverage missing existing reporting fact
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "<stdin>", line 97, in <module>
+  File "real-git-retained-proof-fixture", line 105, in <module>
+  File "real-git-retained-proof-fixture", line 97, in reject
+AssertionError: ('discovery missing', 'archive retained coverage missing existing reporting fact')

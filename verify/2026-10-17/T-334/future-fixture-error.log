@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "<stdin>", line 39, in <module>
+  File "actual-additive-intervals", line 101, in <module>
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 970, in checkpoint_projection
+    require(instant(anchor['coverage_from']) <= instant(interval_end) <= datetime.datetime.now(datetime.timezone.utc), 'projection checkpoint interval differs')
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/validate-candidate-evidence.py", line 19, in require
+    raise ValueError(message)
+ValueError: projection checkpoint interval differs

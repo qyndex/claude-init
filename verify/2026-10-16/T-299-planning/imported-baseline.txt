@@ -1,0 +1,5 @@
+Actual baseline after protected main import, before T299 implementation. Not a T299 TDD or PASS claim.
+Command: bash .claude/scripts/test/factory-receipt-archive.sh
+exit_code: 0
+---
+31 compact receipt archive cases passed; bootstrap/CAS origin not implemented

@@ -1,0 +1,1 @@
+fixed same-repository GraphQL Blob query returns exact Git bytes through actual bounded gh stub

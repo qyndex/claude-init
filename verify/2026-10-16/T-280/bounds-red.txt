@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "<stdin>", line 49, in <module>
+  File "<stdin>", line 38, in reject
+AssertionError: accepted response bound

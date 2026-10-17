@@ -1,0 +1,11 @@
+{
+  "head": "d965ac0c2e2b59cdc68f7f8f4f93ab8f62978c3c",
+  "prompt_sha256": "c537b1d916edf8aabd267b5c169ee3815e4e33dda861a9f3fc586ce5a1191e86",
+  "files": {
+    ".claude/scripts/factory-operational-proof.py": "82f051c273ab3cff5e484e902dbecf38b7c647b9c84390a7703255370fc5a0a1",
+    ".claude/scripts/factory-operational-replay.py": "bf3ae38739df7a0b17fbea15715cb5d5b9267a9b9af6a1ba49e8cd511c15a5f7",
+    "docs/activation/HISTORICAL-OPERATIONAL-PROOF.md": "e7fdafeb08eabe1d196d3f6a269ee30bd46002ef316c75d11a1cdc7b0e6bbc32"
+  },
+  "scope": "replay",
+  "native_attestation": false
+}

@@ -1,0 +1,8 @@
+# TDD ledger — green — T-338
+ledger_format: 2
+timestamp: 2026-10-17T12:03:43+11:00
+command: bash .claude/scripts/test/factory-operational-replay.sh
+exit_code: 0
+---
+fresh-process read-only replay PASS; synthetic API/certificate fixture, no native credit
+operational replay PASS; negatives=24; fresh-process and57-file realGit runtime families; synthetic signature/API fixtures only

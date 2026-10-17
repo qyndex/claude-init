@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "<stdin>", line 18, in <module>
+  File "compact-discovery-compare-real-git", line 112, in <module>
+AttributeError: module 'compact_discovery' has no attribute '_checkpoint_ancestor'

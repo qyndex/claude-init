@@ -1,0 +1,3 @@
+Traceback (most recent call last):
+  File "<stdin>", line 22, in <module>
+AssertionError: same immutable Git object fetched more than once in one invocation

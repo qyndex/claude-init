@@ -1,0 +1,10 @@
+# TDD ledger — red — T-337
+ledger_format: 2
+timestamp: 2026-10-17T11:03:57+11:00
+command: bash .claude/scripts/test/factory-operational-producer.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 3, in <module>
+AssertionError: protected historical producer and completed-run retainer missing

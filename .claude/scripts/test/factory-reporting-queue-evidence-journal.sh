@@ -7,6 +7,14 @@ from pathlib import Path
 import importlib.util
 spec=importlib.util.spec_from_file_location('evidence',Path('.claude/scripts/factory-reporting-queue-evidence.py'));e=importlib.util.module_from_spec(spec);spec.loader.exec_module(e)
 prefix=Path('.claude/scripts/test/factory-reporting-queue-cas.sh').read_text().split("python3 - <<'PY'\n",1)[1].split(' empty={',1)[0]
+assert " initial=out('rev-parse','HEAD')" in prefix
+prefix=prefix.replace(" initial=out('rev-parse','HEAD')", """
+ # 4,501 legal opaque archive leaves in real Git; no receipt/authentication claim.
+ archive=work/'receipt-archive/objects';archive.mkdir(parents=True)
+ for n in range(4501):
+  name=__import__('hashlib').sha256(str(n).encode()).hexdigest();directory=archive/name[:2];directory.mkdir(exist_ok=True);(directory/(name+'.json')).write_text('{}')
+ git('add','.');git('commit','-qm','large archive fixture')
+ initial=out('rev-parse','HEAD')""")
 suffix=r'''
  # Distinct real clean source checkout; state branch remains strictly inert.
  source_root=root/'source';source_root.mkdir();(source_root/'.github/workflows').mkdir(parents=True);(source_root/'.claude/scripts').mkdir(parents=True)
@@ -22,9 +30,17 @@ suffix=r'''
  selections={'drill':{'run_id':900,'attempt':2},'recovery':{'run_id':901,'attempt':1},'repeat':{'run_id':902,'attempt':1}}
  class API(BaseAPI):
   final_hook=None
-  def __init__(self):self.blobs=[];self.ref_reads=0;self.proof_writes=0
+  def __init__(self):self.blobs=[];self.ref_reads=0;self.proof_writes=0;self.tree_reads=[]
   def request(self,path,method='GET',payload=None,*,raw=False):
    if method!='GET':self.proof_writes+=1
+   if '/git/trees/' in path and method=='GET':
+    identity=path.rsplit('/',1)[1].split('?')[0];recursive='?recursive=1' in path;self.tree_reads.append((identity,recursive))
+    command=['ls-tree','-l']+(['-r'] if recursive else [])+[identity];entries=[]
+    for line in out(*command).splitlines():
+     header,name=line.split('\t');mode,kind,sha,size=header.split();entry={'path':name,'mode':mode,'type':kind,'sha':sha}
+     if kind=='blob':entry['size']=int(size)
+     entries.append(entry)
+    return {'sha':identity,'truncated':False,'tree':entries}
    if path=='repos/org/repo/git/ref/heads/main':return {'ref':'refs/heads/main','object':{'type':'commit','sha':source_sha}}
    if path.endswith('/workflows/factory-reporting-queue.yml'):return {'id':12,'path':e.WORKFLOW,'state':'active'}
    if '/attempts/' in path:
@@ -59,6 +75,10 @@ suffix=r'''
  proof_api=API();proof=e.observe_journal(proof_api,source_root,config,storage,selections,now)
  assert proof['mode']=='administrative-queue-observation' and proof['drill_key']==row['key'] and proof['recovery_key']==item['key'] and proof['publications']==5 and proof_api.proof_writes==0
  opaque_sha=out('rev-parse',good+':'+worker);assert opaque_sha not in proof_api.blobs
+ archive_sha=out('rev-parse',good+':receipt-archive')
+ assert all(identity!=archive_sha for identity,recursive in proof_api.tree_reads),'evidence traversed archive subtree'
+ # Recursive calls belong to existing QueueStore role loading, not history trees.
+ assert len(out('ls-tree','-r',archive_sha).splitlines())==4501
  count=2
  def rejects(fn):
   global count
@@ -68,15 +88,19 @@ suffix=r'''
  def reset():
   current=out('rev-parse',ref)
   if current!=good:git('update-ref',ref,good,current)
- def custom(raw=None,other=False,merge=False,date='2026-10-15T21:00:30Z'):
+ def custom(raw=None,other=False,archive=False,merge=False,date='2026-10-15T21:00:30Z'):
   global clock
   clock=date;base=out('rev-parse',ref);entries=[]
   if raw is not None:entries.append({'path':'reports/'+q.stream(config)+'.json','mode':'100644','type':'blob','sha':out_blob(raw)})
+  if archive:
+   archive_path='receipt-archive/'+out('ls-tree','-r',archive_sha).splitlines()[0].split('\t')[1]
+   entries.append({'path':archive_path,'mode':'100644','type':'blob','sha':out_blob(b'changed archive object')})
   if other:entries.append({'path':worker,'mode':'100644','type':'blob','sha':out_blob(b'private changed worker bytes')})
   tree=BaseAPI().request('repos/org/repo/git/trees','POST',{'base_tree':out('rev-parse',ref+'^{tree}'),'tree':entries})['sha']
   args=['commit-tree',tree,'-p',base]+(['-p',initial] if merge else [])
   changed=git(*args,input=b'actual negative fixture').stdout.decode().strip();git('update-ref',ref,changed,base)
  # Queue-path writes cannot also change opaque blobs, even with a valid journal.
+ custom(q.canonical(final)+b'\n',archive=True);rejects(lambda:e.observe_journal(API(),source_root,config,storage,selections,now));reset()
  custom(q.canonical(final)+b'\n',other=True);rejects(lambda:e.observe_journal(API(),source_root,config,storage,selections,now));reset()
  custom(merge=True);rejects(lambda:e.observe_journal(API(),source_root,config,storage,selections,now));reset()
  copied=dict(storage,bootstrap_sha=good);rejects(lambda:e.observe_journal(API(),source_root,config,copied,selections,now))

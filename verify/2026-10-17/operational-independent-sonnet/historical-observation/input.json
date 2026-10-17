@@ -1,0 +1,9 @@
+{
+  "head": "d965ac0c2e2b59cdc68f7f8f4f93ab8f62978c3c",
+  "prompt_sha256": "a552aab4257afde24ad5c7aeddd0934e9c703593ea4576a06508e4ccb3c986e0",
+  "scope": "historical-observation",
+  "files": {
+    ".claude/scripts/factory-operational-producer.py": "4b215adbb2e5abf99d793a8d12487596f13fae31188b531b739a1ed6208f2a2e",
+    ".claude/scripts/factory-operational-proof.py": "82f051c273ab3cff5e484e902dbecf38b7c647b9c84390a7703255370fc5a0a1"
+  }
+}

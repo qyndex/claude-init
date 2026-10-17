@@ -1,0 +1,19 @@
+{
+  "observed_at": "2026-10-16T13:33:35.411958+00:00",
+  "command": [
+    "python3",
+    ".claude/scripts/factory-preflight.py",
+    "--policy",
+    "factory/policy.json"
+  ],
+  "exit_code": 1,
+  "result": {
+    "ready": false,
+    "missing": [
+      "matching dedicated GitHub App ID",
+      "private key in protected factory-authority environment"
+    ]
+  },
+  "policy_sha256": "2be7860b78ada0433e0d0b42a40effeada4eed31d61535489fb3a9b534343ce1",
+  "meaning": "Disabled bootstrap policy is not live-ready. Protected environment metadata independently confirms names/App ID, not private-key validity or installation scope. No readiness PASS is inferred."
+}

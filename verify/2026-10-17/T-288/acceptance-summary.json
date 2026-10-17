@@ -1,0 +1,59 @@
+{
+  "scope": "Local implementation acceptance; not merged, native capability, cadence or activation proof",
+  "source_commit": "34f3f422c10cade29193787c4caf87a74b6cbf3a",
+  "canonical_tasks": {
+    "334": {
+      "source_commit": "34f3f422c10cade29193787c4caf87a74b6cbf3a",
+      "task": "T-334",
+      "command": "bash .claude/scripts/test/factory-reporting-maintenance.sh",
+      "maximum_seconds": 300,
+      "started_at": "2026-10-16T17:10:15.082679+00:00",
+      "sanctioned_tool": "tdd-ledger.sh green",
+      "native_or_cadence_claim": false,
+      "exit_code": 0,
+      "completed_at": "2026-10-16T17:11:44.149407+00:00"
+    },
+    "335": {
+      "source_commit": "34f3f422c10cade29193787c4caf87a74b6cbf3a",
+      "task": "T-335",
+      "command": "bash .claude/scripts/test/factory-receipt-reporting.sh",
+      "maximum_seconds": 300,
+      "started_at": "2026-10-16T17:12:14.270629+00:00",
+      "sanctioned_tool": "tdd-ledger.sh green",
+      "native_or_cadence_claim": false,
+      "exit_code": 0,
+      "completed_at": "2026-10-16T17:15:45.396208+00:00"
+    },
+    "288": {
+      "source_commit": "34f3f422c10cade29193787c4caf87a74b6cbf3a",
+      "task": "T-288",
+      "command": "bash .claude/scripts/test/factory-receipt-reporting.sh",
+      "maximum_seconds": 300,
+      "started_at": "2026-10-16T17:17:00.065941+00:00",
+      "sanctioned_tool": "tdd-ledger.sh green",
+      "native_or_cadence_claim": false,
+      "exit_code": 0,
+      "completed_at": "2026-10-16T17:20:29.042103+00:00"
+    }
+  },
+  "checks": {
+    "structural-validation": {
+      "path": "verify/2026-10-17/T-288/structural-validation.log",
+      "sha256": "f9c85bc7968d079fd3f71c63337e9a8c30157c165d8c223e9e66fe7df19c8b9a"
+    },
+    "health-check": {
+      "path": "verify/2026-10-17/T-288/health-check.json",
+      "sha256": "61d708ff55dc8fac657e44be160d4a691b90535eef2fda64a9efb2bb5d49b276"
+    },
+    "evidence-secret-scan": {
+      "path": "verify/2026-10-17/T-288/evidence-secret-scan.log",
+      "sha256": "04fdba9d59dd2038e53970c3a4ed40ed81f888caa175c0f05a76fd1a5ad7ec09"
+    }
+  },
+  "limitations": [
+    "Health check warns about local authentication, optional integrations and template settings; ignored local initiative/spec pointers absent in this clean clone.",
+    "Five scanner hits were inspected deterministic SHA-256 batch identifiers computed from stream/start/end, not credentials; exact file/line fingerprints documented in .gitleaksignore.",
+    "Historical baseline RED for T288 is explicitly a regression reproduction, not invented original test-first chronology.",
+    "Capacity proof uses retained real-Git history and synthetic external APIs/Slack, not native quota or morning cadence."
+  ]
+}

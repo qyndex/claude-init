@@ -65,7 +65,7 @@ jobs:
       - name: Verify trusted audit source
         run: |
           [ "$GITHUB_REF" = refs/heads/main ] || { echo "Audit policy requires main" >&2; exit 1; }
-          [ "$(git rev-parse HEAD)" = "$GITHUB_SHA" ] || { echo "Audit source SHA differs" >&2; exit 1; }
+          [ "$(git -c safe.directory="$GITHUB_WORKSPACE" rev-parse HEAD)" = "$GITHUB_SHA" ] || { echo "Audit source SHA differs" >&2; exit 1; }
           echo "Audit source SHA: $GITHUB_SHA"
 
       - name: Run Semgrep (CI ruleset)

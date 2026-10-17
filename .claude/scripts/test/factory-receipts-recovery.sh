@@ -36,7 +36,7 @@ def wait_for(fn):
 class API:
     def __init__(self,policy,receipt):
         self.repo=policy['repository']
-        self.run={'id':20,'run_attempt':1,'workflow_id':10,'repository':{'full_name':self.repo},'head_branch':'main','head_sha':'a'*40,'event':'workflow_dispatch','status':'completed','conclusion':'success'}
+        self.run={'id':20,'run_attempt':1,'workflow_id':10,'path':'.github/workflows/factory-merge.yml','repository':{'id':101,'full_name':self.repo},'head_branch':'main','head_sha':'a'*40,'event':'workflow_dispatch','status':'completed','conclusion':'success'}
         self.pr={'number':7,'merged':True,'merge_commit_sha':'b'*40,'head':{'sha':'c'*40,'repo':{'full_name':self.repo}},'base':{'ref':'main','repo':{'full_name':self.repo}}}
         self.receipt=receipt; self.sources={p:b'trusted' for p in r.RUNTIME_PATHS}
         self.sources['factory/policy.json']=json.dumps(policy).encode();self.sources['specs/active/001.md']=b'approved spec'
@@ -53,7 +53,7 @@ class API:
             if self.extra:z.writestr('../forged','bad')
         blob=buf.getvalue()
         if path.endswith('/artifacts'):
-            return [{'artifacts':[{'id':30,'name':'factory-receipt-20-1','expired':self.expired,'size_in_bytes':len(blob),'digest':'sha256:'+hashlib.sha256(blob).hexdigest()}]}]
+            return [{'artifacts':[{'id':30,'name':'factory-receipt-20-1','expired':self.expired,'size_in_bytes':len(blob),'workflow_run': (None if hasattr(self,'origin_override') and self.origin_override is None else dict({'id':20,'repository_id':101,'head_repository_id':101,'head_sha':self.run['head_sha']}, **getattr(self,'origin_override',{}))), 'digest':'sha256:'+hashlib.sha256(blob).hexdigest()}]}]
         return blob+b'altered' if self.tamper else blob
 
 with tempfile.TemporaryDirectory() as tmp:

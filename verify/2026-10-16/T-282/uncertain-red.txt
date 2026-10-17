@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "<stdin>", line 90, in <module>
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 310, in append_delivery
+    anchor = verify_bootstrap(api, approval_path)
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 181, in verify_bootstrap
+    repo = read(root)
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 175, in read
+    value = api.request(path)
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 272, in request
+    value = state_api.request(path, method=method, payload=payload)
+  File "<stdin>", line 29, in request
+RuntimeError: state API unavailable during reconciliation

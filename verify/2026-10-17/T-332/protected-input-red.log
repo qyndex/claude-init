@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "<stdin>", line 103, in <module>
+  File "bounded-report-state-fixture", line 117, in <module>
+  File "bounded-report-state-fixture", line 101, in reject
+AssertionError: accepted changed

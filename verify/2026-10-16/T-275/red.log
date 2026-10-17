@@ -1,0 +1,11 @@
+# TDD ledger — red — T-275
+ledger_format: 2
+timestamp: 2026-10-16T10:07:09+11:00
+command: bash .claude/scripts/test/factory-receipt-profiles.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 16, in <module>
+  File "<stdin>", line 10, in parse
+AttributeError: module 'receipts' has no attribute 'load_receipt_trust'

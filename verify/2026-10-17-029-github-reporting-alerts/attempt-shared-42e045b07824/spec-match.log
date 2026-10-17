@@ -1,0 +1,13 @@
+⚠ /private/tmp/factory-publication-acceptance-fix-20261017/verify/2026-10-17-029-github-reporting-alerts/attempt-shared-42e045b07824/results.json contains AC tags but no test could be confirmed PASSING — cannot prove any AC from it (gap-audit G51)
+# Spec-match: 029
+  ✗ AC-1 — UNPROVEN (no passing test tagged @AC-1)
+  ✗ AC-2 — UNPROVEN (no passing test tagged @AC-2)
+  ✗ AC-3 — UNPROVEN (no passing test tagged @AC-3)
+  ✗ AC-4 — UNPROVEN (no passing test tagged @AC-4)
+  ✗ AC-5 — UNPROVEN (no passing test tagged @AC-5)
+  ✗ AC-6 — UNPROVEN (no passing test tagged @AC-6)
+  ✗ AC-7 — UNPROVEN (no passing test tagged @AC-7)
+  ✗ AC-8 — UNPROVEN (no passing test tagged @AC-8)
+  ✗ AC-9 — UNPROVEN (no passing test tagged @AC-9)
+
+✗ spec-match FAIL: 9 acceptance criteria unproven

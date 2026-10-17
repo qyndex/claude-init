@@ -1,0 +1,14 @@
+{
+  "exit_code": 0,
+  "timeout": 60,
+  "scope": "tested foundation; cryptographic durable completion amendment still pending",
+  "files": {
+    ".claude/scripts/factory-operational-producer.py": "510c1a236907e3cf1244402a8f9a56e9e92155a2996c79a87efe15ec5e9ca91d",
+    ".claude/scripts/factory-operational-proof.py": "b7ccf4addf99e41e3d606438817c1c62987b29030c47d6b49786dc1485b4efa3",
+    ".claude/scripts/test/factory-operational-producer.sh": "89328a3249f11f3991009e1e64cbf01f77c1d69e5d4a502c51bb38698dbfce10",
+    ".claude/scripts/test/factory-operational-proof.sh": "39c60fcc40da00b94f5587abac6df9715d0412865712f5cbfcd5625beec65b9c",
+    ".github/workflows/factory-operational-proof.yml": "e90dea7f80564e1201dd28c4dde1ae07d919aa78bb4a46e4887194a5976f4682",
+    ".github/workflows/factory-operational-proof-retain.yml": "332825cf84c8b4dfd041affe0087ef85dfa19b34d89d9e05b083821819a4f334",
+    "factory/operational-proof-profiles.json": "daac983fae6606468c1d378506cfe3728044aa0dba1423652346a4bcaa550e9d"
+  }
+}

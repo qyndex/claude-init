@@ -1,0 +1,43 @@
+{
+  "verdict": "changes_requested",
+  "review_summary": "This is a static review of the supplied excerpts. I ran nothing and rely on no self-reported test results.\n\n**What holds up**\n- The helper reconstructs into an internally owned fresh temp DB, and the signature accepts no caller SQLite or complete flag.\n- It requires full coverage and an unchanged bootstrap, approval and trust before any destination write.\n- The destination write is one `BEGIN IMMEDIATE` transaction of fixed typed rows. It checks the schema and triggers, and it requires receipt, provenance and time facts to be monotonic.\n- Durable digest mode fails closed on missing trust, time or interval rows, on an invalid trust status, and on any merge-timestamp mismatch.\n- Withdrawn evidence is never labelled `authenticated`.\n- The legacy branch and the renderer's authenticated output look unchanged.\n\n**Changes requested**\n- `delivery_interval` is overwritten wholesale on every projection. Nothing in the report DB records which interval or coverage the data belongs to, so a narrower projection can later produce a permanent false \"evidence MISSING\" report. See the first finding.\n- Several security-relevant branches have no negative test. These are the destination guards, atomic rollback, rejection of an invalid mode, and byte-exact legacy output. The AC-8 atomicity and legacy-immutability claims are therefore unproven by the committed test. See the second finding.\n\nThe test harness is brittle and a connection is not closed; both are minor. Pass is withheld because of the two findings above.",
+  "findings": [
+    {
+      "severity": "medium",
+      "file": ".claude/scripts/factory-reporting-receipts.py",
+      "line": 105,
+      "title": "delivery_interval is replaced wholesale and is not bound to any interval or coverage, so a narrower rerun permanently mislabels later PRs as MISSING",
+      "reason": "The monotonic check at lines 105-106 is skipped for `delivery_trust` and `delivery_interval`. Lines 107-110 then `DELETE` and reinsert the whole table from the current call. `delivery_interval` holds only task ids, so the report DB records neither `interval_end` nor `verified_until`.\n\nRepro path:\n1. Run `project_reporting(..., interval_end=E2)`.\n2. Run it again with `interval_end=E1 < E2`, for example a retry or an older scheduled call.\n3. `delivery_interval` shrinks to the tasks within E1.\n4. Durable `Digest.prepare` (factory-digest.py:126) inner-joins `delivery_interval`, so every PR merged in (E1,E2] gets `evidence_status='missing'` even though its receipt, provenance, trust and time rows exist.\n5. That batch is confirmed and immutable, and the cursor advances past those PRs, so they are never re-reported with their proof.\n\nThis fails closed on authentication, but it is a silent, irreversible loss of evidence in a delivered report. Digest has no way to tell a stale or narrower projection from \"no proof exists\". A batch for an end the projection never verified is therefore not distinguishable from a verified-empty one, which cuts against AC-7's visible-gap requirement.\n\nFix: make interval membership monotonic or key it by (interval_end, task). Persist the verified-until value in the report DB. Have durable `prepare` refuse a batch whose `end` exceeds it."
+    },
+    {
+      "severity": "medium",
+      "file": ".claude/scripts/test/factory-reporting-receipt-transfer.sh",
+      "line": 71,
+      "title": "Destination guards, atomic rollback, invalid mode and byte-exact legacy output have no tests",
+      "reason": "No test exercises the following branches; each is reproducible by inspection of the committed test:\n- Helper lines 98, 101 and 106: a pre-existing trigger, a mismatched destination schema, and a conflicting or disappearing existing receipt, provenance or time fact.\n- Lines 96-110: a mid-transfer failure leaving the destination byte-identical. The \"atomic\" claim is only exercised on success and no-op paths.\n- The `receipt_mode` validation at factory-digest.py:42. The test sets `view.receipt_mode='durable'` after construction (test line 29), and no test passes an invalid or omitted mode.\n- Line 94: the legacy check asserts only that `evidence_status=='authenticated'` and that no `trust_status` key is present. It never compares the canonical legacy payload to a fixed pre-change expectation, so \"exact legacy-off output\" is not demonstrated for the digest. Only the renderer has an exact-text assertion, at line 11.\n- Line 112 covers an already-confirmed batch only. Nothing covers a batch still pending when `receipt_mode` changes.\n\nAC-8's atomic and no-partial-write claims and AC-2's legacy-immutability claim rest on untested code. Add negative cases that snapshot the destination bytes."
+    },
+    {
+      "severity": "low",
+      "file": ".claude/scripts/test/factory-reporting-receipt-transfer.sh",
+      "line": 18,
+      "title": "Test splices another test's source text via string splits and nested exec",
+      "reason": "Lines 16-18 and 117 read `factory-receipt-coverage-batch.sh`. They split it on the literal markers `\"<<'PY'\\n\"`, `\"\\ncases=r'''\"` and `' assert batch_calls,'`, then `exec` a `repr`-embedded concatenation. Any reformat or edit of that file's markers silently changes or breaks this test: it fails with an unhelpful `IndexError` or `NameError`, or worse, it runs a different fixture. It also makes the dependency on names such as `sources`, `runs`, `PipelineState`, `Runs`, `fixture` and `pipeline` invisible. Share the fixture via a common sourced helper or module, or at least assert the markers exist with clear messages."
+    },
+    {
+      "severity": "nit",
+      "file": ".claude/scripts/factory-reporting-receipts.py",
+      "line": 96,
+      "title": "Destination connection is never closed",
+      "reason": "`with sqlite3.connect(report) as db:` only commits or rolls back; it does not close the connection. The handle stays open until garbage collection, and the report DB file remains locked or held in long-lived callers. Wrap it in `contextlib.closing`, or close explicitly. `Digest.transaction` in factory-digest.py already closes in `finally`, so this would also match the surrounding idiom."
+    }
+  ],
+  "limitations": [
+    "Static review of the supplied diff and excerpts only. Nothing was executed, and nothing was verified against T287, T332 or any wiring.",
+    "`delivery_trust` is exempt from the immutability check, and the test (lines 97-99) deliberately flips withdrawn back to active when the trust file says active. This is a design choice, not a finding. Withdrawal is not monotonic in the report DB, so rolling back or replacing the local trust file would re-authenticate previously withdrawn proof in future digests. AC-2 says previously reported revoked facts remain annotated, so consider making withdrawal sticky or tying it to a protected trust epoch in a later task.",
+    "The helper rows come from its own `reconstruct_interval`, and `coverage()` runs a second, independent reconstruction. Nothing compares the two. Agreement relies on determinism of the frozen `history_head`/`campaign` plus the unchanged-bootstrap check at the end (helper lines 94-95). Coverage could expose a projection digest to bind them.",
+    "Real-world report DBs that already hold legacy coordinator `delivery_receipts` or `delivery_provenance` rows (the legacy digest reads those same tables) will be rejected by the schema, `disappears` or conflict guards if they differ from the retained set. This fails closed. Integration behaviour is for T332 and later to confirm.",
+    "Pending or uncertain batches are returned unchanged by `prepare` regardless of `receipt_mode` (factory-digest.py:85-87). This is pre-existing and consistent with immutability, but a batch prepared in legacy mode and still undelivered will not pick up durable withdrawn labelling.",
+    "The `ReadOnly` wrappers pass `read_blobs` and `read_pull_requests` straight through. Their read-only property depends on the transport implementation, which is not in the supplied excerpts.",
+    "`ReadOnly.request` uses a prefix check (`repos/<repo>/`) with no path normalization, the same pattern as the existing archive code. Paths are internally templated here, so no exploit path was shown."
+  ]
+}

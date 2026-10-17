@@ -1,0 +1,9 @@
+{
+  "base": "7d1238224017a77c5b4aff9ada4d09435de3c5c2",
+  "files": {
+    ".github/workflows/factory-hosted-digest.yml": "69f9ab5f8727df5d65734407866aca065e228782cec5b43c9881ebc9e9bdbc77",
+    ".github/workflows/factory-reporting-alerts.yml": "36404dc3e2eed276502704be556f0f80078e4d04bc9a4ba43e0065ab46b56669",
+    ".github/workflows/factory-reporting-queue.yml": "731767bf2c201f5df07a2dfa644f0ff5b290f49f4167ef245a1bd46bb1a61949",
+    ".github/workflows/factory-hosted-feedback.yml": "b32ad220a720a94b8bca72847ae1fb7b6e5182eeb00396d6d394a90b83efceb8"
+  }
+}

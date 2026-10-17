@@ -1,0 +1,11 @@
+# TDD ledger — red — T-306
+ledger_format: 2
+timestamp: 2026-10-16T12:43:01+11:00
+command: bash .claude/scripts/test/factory-receipt-projection-lineage.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 52, in <module>
+  File "real-git-projection-lineage", line 104, in <module>
+AttributeError: module 'archive' has no attribute 'projection_lineage'. Did you mean: 'projection_window'?

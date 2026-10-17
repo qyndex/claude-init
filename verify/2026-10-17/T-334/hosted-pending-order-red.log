@@ -1,0 +1,20 @@
+Traceback (most recent call last):
+  File "<stdin>", line 55, in <module>
+  File "hosted-maintenance-fixture", line 126, in <module>
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-git-state.py", line 445, in run
+    progress = maintenance.maintain(report_api, state_api, config['receipt_policy'], durable['trust_path'],
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-reporting-maintenance.py", line 192, in maintain
+    coverage=discovery.coverage(source,api,policy,trust_path,store,approval_path,stream,interval_end=end,
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-discovery.py", line 722, in coverage
+    response = observe(target)
+               ^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-discovery.py", line 669, in observe
+    value = charge(source_api.get(target) if detail else source_api.request(target))
+                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-reporting-maintenance.py", line 75, in request
+    return observe(source_api.request(path,**kwargs))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "hosted-maintenance-fixture", line 125, in request
+AssertionError: pending receipt reconciliation attempted new source maintenance

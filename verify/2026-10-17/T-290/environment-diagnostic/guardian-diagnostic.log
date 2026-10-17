@@ -1,0 +1,50 @@
+RECOVERY_ROW {'id': 'T-2', 'revision': 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff', 'deps': [], 'state': 'blocked', 'owner': None, 'fence': 2, 'expires': None, 'attempt': 1, 'repairs': 0}
+RECOVERY_ARTIFACT worker.log Traceback (most recent call last):
+  File "/private/tmp/factory-t290-continuation-20261017/.claude/scripts/factory-supervisor.py", line 266, in terminate
+    try:alive=group_exists(worker.pid)
+              ~~~~~~~~~~~~^^^^^^^^^^^^
+  File "/private/tmp/factory-t290-continuation-20261017/.claude/scripts/factory-supervisor.py", line 258, in group_exists
+    result = subprocess.run(['/bin/ps', '-axo', 'pgid=,stat='], capture_output=True, text=True, check=True,timeout=2,
+                            env={'PATH':'/usr/bin:/bin','HOME':'/nonexistent','LANG':'C','LC_ALL':'C'})
+  File "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py", line 555, in run
+    with Popen(*popenargs, **kwargs) as process:
+         ~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py", line 1039, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                        pass_fds, cwd, env,
+                        ^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+                        gid, gids, uid, umask,
+                        ^^^^^^^^^^^^^^^^^^^^^^
+                        start_new_session, process_group)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py", line 1990, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+PermissionError: [Errno 1] Operation not permitted: '/bin/ps'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/private/tmp/factory-t290-continuation-20261017/.claude/scripts/factory-worker-guard.py", line 203, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "/private/tmp/factory-t290-continuation-20261017/.claude/scripts/factory-worker-guard.py", line 183, in main
+    supervisor.terminate(worker, grace=.5)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-t290-continuation-20261017/.claude/scripts/factory-supervisor.py", line 271, in terminate
+    raise ValueError('worker cleanup status uncertain')
+ValueError: worker cleanup status uncertain
+
+RECOVERY_ARTIFACT guardian.json {
+  "reason": "supervisor-lost",
+  "exit_code": 1,
+  "worker_cleanup_confirmed": false,
+  "external_cleanup_confirmed": null,
+  "engineering_verified": false
+}
+
+Traceback (most recent call last):
+  File "<stdin>", line 103, in <module>
+  File "<stdin>", line 30, in wait_for
+AssertionError: recovery condition not reached

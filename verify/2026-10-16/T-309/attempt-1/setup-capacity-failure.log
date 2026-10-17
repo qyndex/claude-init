@@ -1,0 +1,22 @@
+# TDD ledger — red — T-309
+ledger_format: 2
+timestamp: 2026-10-16T14:51:39+11:00
+command: bash .claude/scripts/test/factory-receipt-projection-resume.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 72, in <module>
+  File "real-git-projection-resume", line 116, in <module>
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 1073, in stage_projection
+    anchor = verify_bootstrap(api, approval_path)
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 234, in verify_bootstrap
+    tree = state_paths.scan_tree(Reader(), root, tree_sha, cursor=cursor)
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-state-paths.py", line 89, in scan_tree
+    value = api.request(root + '/git/trees/' + node['sha'])
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 177, in read
+    require(calls < 2048, 'archive bootstrap API call bound reached; explicit coverage gap')
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/validate-candidate-evidence.py", line 19, in require
+    raise ValueError(message)
+ValueError: archive bootstrap API call bound reached; explicit coverage gap

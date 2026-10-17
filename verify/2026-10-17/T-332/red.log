@@ -1,0 +1,11 @@
+# TDD ledger — red — T-332
+ledger_format: 2
+timestamp: 2026-10-17T00:57:23+11:00
+command: bash .claude/scripts/test/factory-reporting-state-view.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 67, in <module>
+  File "bounded-report-state-fixture", line 94, in <module>
+TypeError: GitState.__init__() got an unexpected keyword argument 'state_view'

@@ -1,0 +1,32 @@
+Traceback (most recent call last):
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/test/factory-reporting-composition-probe.py", line 51, in <module>
+    exec(compile(fixture+pipeline+provider+case,'saved-real-history-composition','exec'))
+    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "saved-real-history-composition", line 130, in <module>
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-discovery.py", line 677, in coverage
+    anchor = archive.verify_bootstrap(api, approval_path)
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 299, in verify_bootstrap
+    verified_prefix = _completed_origin(api, context)
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 284, in _completed_origin
+    _origin_ancestor(read, root, approval['bootstrap_sha'], progress['frozen_head'])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 755, in _origin_ancestor
+    value = read(root+'/compare/'+base+'...'+head+'?per_page=1&page=2')
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 199, in read
+    value = api.request(path)
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-discovery.py", line 638, in request
+    value = charge(state_api.request(target))
+                   ~~~~~~~~~~~~~~~~~^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-reporting-transport.py", line 152, in request
+    if not paginate:return self._once(path,method,payload,raw)
+                           ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-reporting-transport.py", line 125, in _once
+    token = self._route(path, method, payload, raw)
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-reporting-transport.py", line 102, in _route
+    require('%' not in pathname.replace('%2F','') and '..' not in pathname and '//' not in pathname
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            and '%' not in query.replace('%2F','').replace('%3A',''), 'reporting encoded endpoint invalid')
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/validate-candidate-evidence.py", line 19, in require
+    raise ValueError(message)
+ValueError: reporting encoded endpoint invalid

@@ -1,0 +1,15 @@
+{
+  "reviewer": "separate harness_guard_fix agent",
+  "scope": "T330 reporting-policy helper and narrow archive schema2 integration",
+  "findings": [],
+  "static_only": true,
+  "tests_executed_by_reviewer": false,
+  "native_attestation": false,
+  "activation_approval": false,
+  "sha256": {
+    "factory-reporting-policy.py": "c3fa67569a08173af045227e3f4f78707c92cb8527642fc043b0368d5fd83d4a",
+    "factory-receipt-archive.py": "985e4ad2685ec39fd5c7e9616b61106a6bb163cd346767b47c97b36e05bea0e4",
+    "test/factory-reporting-policy.sh": "a0100f73d46682fbbabe5be835f3bc12ae1c537eecb078ab7baf59be37b24571",
+    "factory-policy-observation.py": "2fce0d7b6fda425dce97ee77cdccede155a16d93a2c2d4e588c7816e976a8dee"
+  }
+}

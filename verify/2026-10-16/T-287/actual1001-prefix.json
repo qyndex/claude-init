@@ -1,0 +1,12 @@
+{
+  "classification": "actual1001retained append prefix preserved before diagnostic interruption; notfullacceptance",
+  "snapshot": "/var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/t287-actual-retained-wg2pmtx_",
+  "head": "a897fd6ec37717e67f7bea9576f9a4b56e9093d8",
+  "commits": 2129,
+  "records_count": 1001,
+  "context_sha256": "82ece686a5d85d466e785bd71eaaed18f4521d744c048355040e16d36be0b612",
+  "context_base_source": "925b2d24dd5dbf16c3f7b49b43a9defac06f597e",
+  "loaded_source_inputs": "scale-optimized-source-input.json",
+  "source_phase_bindings": "source-phase-bindings.json",
+  "full_consumer_verified": false
+}

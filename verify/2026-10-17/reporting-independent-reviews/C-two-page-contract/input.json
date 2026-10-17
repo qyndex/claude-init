@@ -1,0 +1,27 @@
+{
+  "head": "5420fd47936e0801be4dc7fc1526bba66a5d1843",
+  "prompt_sha256": "a3ccb4b2a918b1a8070ab66505e499968fbdd9bde7920f31fa29995480b2bb77",
+  "review_files": [
+    {
+      "path": ".claude/scripts/factory-receipt-discovery.py",
+      "start": 480,
+      "end": 610,
+      "full_sha256": "7d35812cc68950a59b73dcea3dee8f31edf9845994ed9ef062fc907011fc1f5e",
+      "range_sha256": "233e498a33c004f954741f8c3004bd791c3618705727bff04b3c03ad32086d7d"
+    },
+    {
+      "path": ".claude/scripts/test/factory-receipt-discovery-review.sh",
+      "start": 1,
+      "end": 168,
+      "full_sha256": "077f9350605aea9b3e5d184d8a7018af82608017fa56446337a8d7002f739783",
+      "range_sha256": "077f9350605aea9b3e5d184d8a7018af82608017fa56446337a8d7002f739783"
+    },
+    {
+      "path": "verify/2026-10-17/discovery-two-page/README.md",
+      "start": 1,
+      "end": 37,
+      "full_sha256": "cf681e35cbfaca55de89b28eabd7c7ed9826dd8021184e351efb1e534bd81483",
+      "range_sha256": "cf681e35cbfaca55de89b28eabd7c7ed9826dd8021184e351efb1e534bd81483"
+    }
+  ]
+}

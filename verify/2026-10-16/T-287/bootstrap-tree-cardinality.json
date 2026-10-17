@@ -1,0 +1,10 @@
+{
+  "saved_git_dir": "/var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/t287-resumed-exact-phase-6qox4wr4/git",
+  "head": "6eaacc0e5702b390ac96b5a541e0856f6f94b097",
+  "tree_entries": 1002,
+  "blob_entries": 4503,
+  "tree_requests_for_full_scan": 1003,
+  "bootstrap_tree_window_capacity": 1000,
+  "full_tree_exceeds_capacity": true,
+  "result_scope": "read-only structural measurement; no acceptance or origin authority claim"
+}

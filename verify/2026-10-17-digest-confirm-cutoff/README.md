@@ -1,0 +1,7 @@
+# D2 MED4 standalone confirmation cutoff correction
+
+Base621a9d58a958b0c4685cb5be185b457e84643245. Only Digest.confirm changes: require supplied row cutoff equals the actual stored current batch cutoff; advance cursor from that stored value. Exact payload comparison, dispatched/confirmed status checks, remote receipt identity/hash validation and confirmed receipt equality remain intact. No interval/schema/hash/marker redesign or late_discovered semantic changes.
+
+Genuine RED: actual Digest prepares a batch, sends through an offline transport that records the exact receipt then loses its acknowledgement; altering only the caller row cutoff silently confirms/advances the cursor. GREEN rejects both backward and future cutoff variants without changing cursor/batch; a fresh actual Digest instance reconciles the existing remote receipt without another send, preserves payload bytes and advances to the stored cutoff. Altered already-confirmed rows reject; exact confirmed row remains idempotent.
+
+Existing factory-digest.sh passes pagination, equal timestamps, proof mapping, DST, outage catch-up, uncertain delivery and process exclusion. Python compile, shellcheck and diff checks pass. All I/O is local; no producer/capacity rebuild, native capability, cadence, live configuration or broader D2 closure claimed. This is a narrow standalone public-helper correctness fix; prior read-only hosted-boundary triage remains separate.

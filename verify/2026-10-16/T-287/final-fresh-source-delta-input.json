@@ -1,0 +1,21 @@
+{
+  "started_at": "2026-10-16T09:14:01.072910+00:00",
+  "base_source": "925b2d24dd5dbf16c3f7b49b43a9defac06f597e",
+  "actual_command": "bash .claude/scripts/test/factory-state-scan-cost.sh && bash .claude/scripts/test/factory-receipt-history.sh",
+  "fresh_history": true,
+  "synthetic_upstream_real_git": true,
+  "live_cloud_merges": false,
+  "files": {
+    ".claude/scripts/factory-receipt-archive.py": "61ffc11a6c547730fe887f84c7877e3bb820af976df87eb930f6c9ca3b605f24",
+    ".claude/scripts/factory-receipt-discovery.py": "081386f3a6665ba15b31aa6d4cd67ed1de9cac0acd97970fce87bfc48e10a91a",
+    ".claude/scripts/factory-state-paths.py": "0648487106251e765e7f0a4504d510606970c6bab1f2b4024dc21c4e6bc487dd",
+    ".claude/scripts/factory-git-state.py": "4c574d74bc707cb6c5b3f7f2fc275b0fadc2882b79538b57be32b32357626fc4",
+    ".claude/scripts/test/factory-receipt-history.sh": "4a4572eb94ff0d333e262850f6e4cca2627cb39b067707f77a769a37ad780635",
+    ".claude/scripts/test/factory-receipt-history-reader.py": "b9dc67a41ccb077b04466733c9a61839a85815d66196b4cfbab10d4fc71e4d47",
+    ".claude/scripts/test/factory-receipt-blob-provider.py": "8b227664d228a2d86c48abc137e2282346ac2bf5afefd27a19253487dcc990ed",
+    ".claude/scripts/test/factory-receipt-cas.sh": "0f9f6d0a575a4aeaef192a6a9440bb710248512fa440be2404951e43e9e3b9be",
+    ".claude/scripts/test/factory-receipt-projection-windows.sh": "efd69cab45f2107657b862ef2b18ad2230b578a3d2200422f8e7ee8ea015b6e7",
+    ".claude/scripts/test/factory-state-scan-cost.sh": "8614a2f41f009ca4e1923711a3e36d7e0029be82bfbe988c9e80516001dee2c2",
+    ".claude/scripts/tdd-ledger.sh": "1436db554742cf5148bcb2cd43e29666eac9ac37b96eee5764bfe05aa981b2f3"
+  }
+}

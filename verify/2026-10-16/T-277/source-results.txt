@@ -1,0 +1,1 @@
+24 immutable receipt source cases passed

@@ -1,0 +1,11 @@
+{
+  "base": "70b0d73525ac7085709720ab655a3a0cea8216c0",
+  "task_status_changed": false,
+  "native_or_live_proof": false,
+  "files": {
+    ".claude/scripts/factory-digest.py": "97fa3aa1075f8d3c578d0d61b6d679d68662795839440f61c8cd27d7372a7e41",
+    ".claude/scripts/factory-reporting-receipts.py": "8e51efa774fecf855575dfa6906d8916b044a81fe84e1935937370962bae6286",
+    ".claude/scripts/factory-slack-digest.py": "e0a88a41c59e95245e5a05d85daca8cc4fdc99822f0e388fe2ff6ac681a9ddd0",
+    ".claude/scripts/test/factory-reporting-receipt-transfer.sh": "da4defec0fb2fbbc25d12e08a1ef0ca126457b467923389866175eb4917d3b2b"
+  }
+}

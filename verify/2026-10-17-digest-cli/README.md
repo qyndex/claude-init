@@ -1,0 +1,9 @@
+# T335 digest CLI source preparation
+
+Actual factory-git-state.main was still constructing separate legacy source/state APIs even with the App flag true. Genuine focused RED rejects that exact behavior. The main-only patch accepts only lowercase true/false; OFF retains the original API/source constructors, state-token fallback, cross-repository legacy state configuration and native/default-branch/umask guards. It never imports the transport or requires fixed archive files when OFF.
+
+ON creates the existing same-repository RoutedAPI and passes that same object to both public run roles. It then invokes the existing fixed checkout context helper, supplying durable receipts, resumable general PR discovery and the protected fixed state view. Native origin/default branch/environment repository checks remain first. No run/validator/footer or workflow changes.
+
+18 focused cases invoke actual main, actual transport configuration/routing and actual fixed context helper. The test loader redirects only the fixed checkout root to a disposable fixture, and the bounded-process response seam is an offline synthetic gh provider; source Actions reads and writer Git reads assert the corresponding synthetic token. Public run is a boundary observer rather than a live report/Slack dispatch. Missing source/App tokens/AppID/fixed context, malformed/case-mismatched flags, native host/ref/repository mismatch and foreign selected state reject before public run. OFF absence/false/crossrepo/fallback/missing fixed files preserve legacy behavior. No real credentials, network or native provider capability claimed.
+
+Direct frozen RED/GREEN commands exit1/0. Existing legacy hosted regression, ShellCheck/bash syntax/Python compile/diff checks pass. T334/public-history integration and T335 task closure remain owner/root responsibility; no task/core/config/permission edits or whole-history rerun.

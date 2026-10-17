@@ -1,0 +1,11 @@
+# TDD ledger — red — T-307
+ledger_format: 2
+timestamp: 2026-10-16T12:47:45+11:00
+command: bash .claude/scripts/test/factory-receipt-projection-time.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 48, in <module>
+  File "real-git-projection-time", line 80, in <module>
+AttributeError: module 'archive' has no attribute 'retained_merge_time'

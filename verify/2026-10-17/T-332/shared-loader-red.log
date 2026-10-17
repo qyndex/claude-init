@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "<stdin>", line 85, in <module>
+  File "bounded-report-state-fixture", line 125, in <module>
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-reporting-queue.py", line 146, in __init__
+    require(type(storage) is dict and len(storage) == 4 and set(storage) == {'state_branch', 'bootstrap_sha', 'initialize', 'policy_approvals'}, 'queue storage fields differ')
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-reporting-queue.py", line 17, in require
+    raise ValueError(message)
+ValueError: queue storage fields differ

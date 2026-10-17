@@ -1,0 +1,7 @@
+# TDD ledger — red — T-309
+ledger_format: 2
+timestamp: 2026-10-16T14:54:31+11:00
+command: bash .claude/scripts/test/factory-receipt-projection-resume.sh
+exit_code: 143
+red_reason: assertion-failure
+---

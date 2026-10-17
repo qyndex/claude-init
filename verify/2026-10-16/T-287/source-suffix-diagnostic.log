@@ -1,0 +1,19 @@
+resumed actual captured1001 retained prefix=1cc14136be335387756ebba8503c25f7189d73fa; fresh synthetic current metadata matches original constructor; no new append claim
+before-source-call=0; head=fdd62ff85dd12005993d9283b25cd795df7d027d
+before-source-call=1; head=e41b01078d959fc89dc413ecf4df36001aaf23f9
+exact resumed phase preserved=/var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/t287-resumed-exact-phase-d60v6_x1
+Traceback (most recent call last):
+  File "/private/tmp/t287-source-suffix-diagnostic.py", line 39, in <module>
+    exec(compile(body,'resumed-actual1001-full-prefix','exec'),namespace)
+    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "resumed-actual1001-full-prefix", line 134, in <module>
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-discovery.py", line 605, in backfill
+    return _checkpoint(source_api, state_api, policy, approval_path, stream, mode='backfill', backfill_end=interval_end, page_size=page_size, tree_pages=tree_pages)
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-discovery.py", line 427, in _checkpoint
+    anchor = archive.verify_bootstrap(api, approval_path)
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 314, in verify_bootstrap
+    require(tree['complete'], 'archive bootstrap tree incomplete; authenticated cursor continuation required')
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/validate-candidate-evidence.py", line 19, in require
+    raise ValueError(message)
+ValueError: archive bootstrap tree incomplete; authenticated cursor continuation required

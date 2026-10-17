@@ -1,0 +1,5 @@
+# T334 supplemental PR-list route proof
+
+The actual RoutedAPI.get call to the exact same-repository `/pulls` collection used by Digest.prepare previously failed before subprocess launch. The added stub regression records the genuine RED. A one-line route addition admits that exact collection through the existing GET-only, no-payload, no-raw source branch. Query arguments remain literal argv; source token selection and one-call/two-response-byte budget accounting are asserted. Collection POST/PATCH/raw, foreign repository and `/pull` near-match remain rejected before launch; prior descendants/batch/limits remain covered.
+
+`green.log` preserves the first diagnostic run: existing oversized-output cleanup required `/bin/ps`, denied by the sandbox. The approved local-process rerun `green-local-process.log` passed; no native API/network/real credentials were used. ShellCheck, bash syntax, Python compilation, structural validation and diff checks passed. No tasks/specs/status/core files changed; integration/task files remain owner responsibility. No full1001 or live capability claim.

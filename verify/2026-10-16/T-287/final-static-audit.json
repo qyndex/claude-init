@@ -1,0 +1,80 @@
+{
+  "at": "2026-10-16T10:30:21.322584+00:00",
+  "frozen_input_hashes_match": true,
+  "structural": {
+    "session": 20350,
+    "exit_code": 0,
+    "initial_session": 37851,
+    "initial_exit_code": 1,
+    "repair": "seven exact new SH test executable modes only"
+  },
+  "ledger": {
+    "session": 80533,
+    "exit_code": 0,
+    "scope": "alreadycompletedtasks only; T287 pending full canonical GREEN"
+  },
+  "diff_check": {
+    "exit_code": 0
+  },
+  "semgrep": {
+    "session": 74148,
+    "exit_code": 0,
+    "rules": [
+      "p/ci",
+      "p/owasp-top-ten",
+      "p/secrets"
+    ],
+    "metrics": "off",
+    "sarif_findings": 154,
+    "high_critical_gate_exit_code": 0,
+    "sarif_sha256": "b85b9c57c4254f5da083ad98510d059bcff564960830dda007715807cb519cec",
+    "high_critical_gate_limitation": "Existing check-sarif ignores rule.defaultConfiguration.level when result.level absent. Gate exit0 alone does NOT prove overall high-free.",
+    "t287_findings": {
+      "count": 9,
+      "rule": "insecure-hash-algorithm-sha1",
+      "triage": "All nine are explicit Git blob identity encodings, protocol compatibility; not password/authentication signing choices."
+    },
+    "baseline_default_error_findings": [
+      {
+        "path": ".claude/scripts/factory-worker-guard.py",
+        "line": 155,
+        "triage": "Intentional argv worker execution using Popen without shell; production container policy enforced by caller/Container adapter. Guardian contract must remain tested in T290."
+      },
+      {
+        "path": ".claude/scripts/foreground-watchdog.py",
+        "line": 30,
+        "triage": "Intentional foreground argv watchdog, Popen without shell; no implicit shell interpolation."
+      },
+      {
+        "path": ".github/workflows/memory-rollup-weekly.yml",
+        "line": 33,
+        "triage": "Pre-existing direct workflow_dispatch week interpolation; potential shell injection outside T287 diff. Not marked resolved."
+      },
+      {
+        "path": "verify/2026-06-12-gap-fixes/staged/.github/workflows/adr-gate.yml",
+        "line": 24,
+        "triage": "Archived fixture under verify, not an executable workflow in .github/workflows."
+      }
+    ],
+    "overall_high_free_claim": false
+  },
+  "gitleaks": {
+    "directory_exit_code": 1,
+    "directory_findings": 8,
+    "all_finding_files_unchanged_from_T286": true,
+    "invalid_main_range": "mainrefabsent;zero scanned;NO credit",
+    "corrected_history_exit_code": 1,
+    "corrected_range": "91839087a769bd45670df5b84cb96993bcb97d42..HEAD",
+    "scanned_commits": 30,
+    "findings": 4,
+    "classification": "All4 are SHA256 public queue event IDs, exact recomputation matches public run metadata and exact T318 green JSON; three distinct fingerprints",
+    "exact_fingerprint_followup_pending": false,
+    "verified_history_exit_code": 0,
+    "verified_history_log": "/private/tmp/t287-final-gitleaks-history-verified.log",
+    "verified_history_scanned_commits": 30,
+    "scope": "committed candidate history after three exact deterministic event-id fingerprints; uncommitted source separately scanned directory mode and only baseline matches found"
+  },
+  "full_canonical_session": 11652,
+  "task287_complete": false,
+  "goal_complete": false
+}

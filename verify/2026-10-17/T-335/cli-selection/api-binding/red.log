@@ -1,0 +1,12 @@
+# TDD ledger — red — T-335/cli-selection/api-binding
+ledger_format: 2
+timestamp: 2026-10-17T02:23:33+11:00
+command: /Users/shravanjha/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3 verify/2026-10-17/T-335/cli-selection/test.py
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "/private/tmp/factory-t335-cli-selection-20261017/verify/2026-10-17/T-335/cli-selection/test.py", line 103, in <module>
+    assert not failures,failures
+           ^^^^^^^^^^^^
+AssertionError: ['factory-reporting-alerts.py accepted context selected-api', 'factory-reporting-alerts.py entered consumer with rejected context selected-api', 'factory-hosted-feedback.py accepted context selected-api', 'factory-hosted-feedback.py entered consumer with rejected context selected-api', 'factory-reporting-watchdog.py accepted context selected-api', 'factory-reporting-watchdog.py entered consumer with rejected context selected-api']

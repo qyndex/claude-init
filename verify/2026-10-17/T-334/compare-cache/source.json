@@ -1,0 +1,12 @@
+{
+  "base": "600e9ff36e4309a213c067f0d02ae31e6b1d2cc9",
+  "sha256": {
+    ".claude/scripts/factory-reporting-transport.py": "b91ec6d7f55477605812f80f415e6df8b1a02a1be1c92d1f02e85748cca61b7b",
+    ".claude/scripts/test/factory-reporting-compare-cache.sh": "cf55a695dd5bc5b37c4c9970375684597046ab94a88c10b3cf5f31dddde84d7d"
+  },
+  "focused_red_exit": 1,
+  "focused_green_exit": 0,
+  "transport_regression_exit": 0,
+  "transport_cases": 53,
+  "live": false
+}

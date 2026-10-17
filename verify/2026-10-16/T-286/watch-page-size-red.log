@@ -1,0 +1,18 @@
+# TDD ledger — red — T-286
+ledger_format: 2
+timestamp: 2026-10-16T15:58:59+11:00
+command: bash .claude/scripts/test/factory-receipt-coverage.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 44, in <module>
+  File "composed-coverage-real-git-fixture", line 136, in <module>
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-discovery.py", line 679, in coverage
+    progress = validate_checkpoint(progress,anchor,policy['receipts']['workflow_id'],10)
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-discovery.py", line 34, in validate_checkpoint
+    require(isinstance(pagination, dict) and set(pagination) == {'workflow_id', 'page_size', 'next_page', 'overlap_page', 'overlap_until'} and type(pagination['workflow_id']) is int and pagination['workflow_id'] == workflow and type(pagination['page_size']) is int and pagination['page_size'] == page_size and type(pagination['next_page']) is int and 0 < pagination['next_page'] <= 10**9, 'discovery pagination identity differs')
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/validate-candidate-evidence.py", line 19, in require
+    raise ValueError(message)
+ValueError: discovery pagination identity differs

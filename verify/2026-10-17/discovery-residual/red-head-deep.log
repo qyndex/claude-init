@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "<stdin>", line 123, in <module>
+  File "discovery-review-real-git", line 166, in <module>
+AssertionError: new deep-listing head run missed next bounded invocation

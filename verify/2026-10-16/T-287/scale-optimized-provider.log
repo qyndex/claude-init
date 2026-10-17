@@ -1,0 +1,70 @@
+actual authenticated retained appends=1/1001; real Git commits=5
+actual authenticated retained appends=25/1001; real Git commits=55
+actual authenticated retained appends=50/1001; real Git commits=107
+actual authenticated retained appends=75/1001; real Git commits=159
+actual authenticated retained appends=100/1001; real Git commits=211
+actual authenticated retained appends=125/1001; real Git commits=263
+actual authenticated retained appends=150/1001; real Git commits=315
+actual authenticated retained appends=175/1001; real Git commits=367
+actual authenticated retained appends=200/1001; real Git commits=428
+actual authenticated retained appends=225/1001; real Git commits=480
+actual authenticated retained appends=250/1001; real Git commits=532
+actual authenticated retained appends=275/1001; real Git commits=584
+actual authenticated retained appends=300/1001; real Git commits=636
+actual authenticated retained appends=325/1001; real Git commits=688
+actual authenticated retained appends=350/1001; real Git commits=740
+actual authenticated retained appends=375/1001; real Git commits=792
+actual authenticated retained appends=400/1001; real Git commits=853
+actual authenticated retained appends=425/1001; real Git commits=905
+actual authenticated retained appends=450/1001; real Git commits=957
+actual authenticated retained appends=475/1001; real Git commits=1009
+actual authenticated retained appends=500/1001; real Git commits=1061
+actual authenticated retained appends=525/1001; real Git commits=1113
+actual authenticated retained appends=550/1001; real Git commits=1165
+actual authenticated retained appends=575/1001; real Git commits=1217
+actual authenticated retained appends=600/1001; real Git commits=1278
+actual authenticated retained appends=625/1001; real Git commits=1330
+actual authenticated retained appends=650/1001; real Git commits=1382
+actual authenticated retained appends=675/1001; real Git commits=1434
+actual authenticated retained appends=700/1001; real Git commits=1486
+actual authenticated retained appends=725/1001; real Git commits=1538
+actual authenticated retained appends=750/1001; real Git commits=1590
+actual authenticated retained appends=775/1001; real Git commits=1642
+actual authenticated retained appends=800/1001; real Git commits=1703
+actual authenticated retained appends=825/1001; real Git commits=1755
+actual authenticated retained appends=850/1001; real Git commits=1807
+actual authenticated retained appends=875/1001; real Git commits=1859
+actual authenticated retained appends=900/1001; real Git commits=1911
+actual authenticated retained appends=925/1001; real Git commits=1963
+actual authenticated retained appends=950/1001; real Git commits=2015
+actual authenticated retained appends=975/1001; real Git commits=2067
+actual authenticated retained appends=1000/1001; real Git commits=2128
+actual retained diagnostic prefix saved=/var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/t287-actual-retained-wg2pmtx_
+Traceback (most recent call last):
+  File "<stdin>", line 77, in <module>
+  File "actual-large-retained-history", line 147, in <module>
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 913, in checkpoint_projection
+    anchor = verify_bootstrap(api, approval_path)
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 279, in verify_bootstrap
+    verified_prefix = _completed_origin(api, context)
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 254, in _completed_origin
+    history = read(root+'/commits?sha='+head+'&path='+quote(path, safe='')+'&per_page=1')
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 182, in read
+    value = api.request(path)
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 906, in request
+    value = state_api.request(path, method, payload)
+  File "actual-large-retained-history", line 97, in request
+  File "actual-large-retained-history", line 75, in request
+  File "actual-large-retained-history", line 18, in out
+  File "actual-large-retained-history", line 17, in git
+  File "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py", line 557, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py", line 1221, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py", line 2153, in _communicate
+    ready = selector.select(timeout)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/selectors.py", line 398, in select
+    fd_event_list = self._selector.poll(timeout)
+KeyboardInterrupt

@@ -1,0 +1,23 @@
+{
+  "core_commit": "7d1238224017a77c5b4aff9ada4d09435de3c5c2",
+  "reviewed_source_commit": "040711df83ba6b3601a3658acca81d71598f0dbc",
+  "files": {
+    ".claude/scripts/factory-reporting-receipts.py": {
+      "identical": true,
+      "sha256": "5e7ce876ceeb5135600abf974aa68742ac3cd6cbd1733dcfc97902859c9755df"
+    },
+    ".claude/scripts/factory-digest.py": {
+      "identical": true,
+      "sha256": "2408c969559eb1566dac604a54c1b1b95716137f98f454d3b92b395de2576157"
+    },
+    ".claude/scripts/factory-slack-digest.py": {
+      "identical": true,
+      "sha256": "e0a88a41c59e95245e5a05d85daca8cc4fdc99822f0e388fe2ff6ac681a9ddd0"
+    },
+    ".claude/scripts/test/factory-reporting-receipt-transfer.sh": {
+      "identical": true,
+      "sha256": "7c2918e268937339354d7ccbcf86993746109bf4a22fb2e250dede08a408ae3f"
+    }
+  },
+  "combined_acceptance": "Pending owner execution; source identity alone is not integration proof"
+}

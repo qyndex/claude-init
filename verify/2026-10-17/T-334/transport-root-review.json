@@ -1,0 +1,14 @@
+{
+  "reviewed_commit": "ed978e2fee249ff1f05eb219768f49a54ab553ff",
+  "reviewer": "root independent static review of isolated agent change",
+  "scope": "Exact /pulls collection source-token route only",
+  "findings": [],
+  "checks": "One-line equality extends only exact collection; existing GET/no-payload/no-raw/foreign restrictions retained. 53-case offline proof retained by author; no duplicate execution claimed.",
+  "source_sha256": {
+    ".claude/scripts/factory-reporting-transport.py": "b2bbbcfc7c9eb272219ffdd96f25b0d0b278e252a3abf5bc921086d344cfb8fe",
+    ".claude/scripts/test/factory-reporting-transport.sh": "c175d72d11900c3ae1ffc48833bc279cb46edced085a9f77fa50a241367446d5"
+  },
+  "native_attestation": false,
+  "live_capability": false,
+  "remaining": "Actual public loader integration under T334"
+}

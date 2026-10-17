@@ -1,0 +1,22 @@
+{
+  "status": "APPROVED by operator",
+  "kind": "one-off documentation/evidence workflow exception, not production gate or policy change",
+  "requirement_source": "/private/tmp/factory-publication-acceptance-fix-20261017/.claude/skills/pr-body/SKILL.md:14",
+  "requirement_quote": "Run bash .claude/scripts/collect-evidence.sh <spec-id> for each applicable spec.",
+  "problem": "All three collectors009/014/029 unconditionally execute the identical bash .claude/scripts/verify.sh with same actualbase. First attempt took9minutes and failed T287; repeating unchanged full acceptance three times duplicates expensive1001/recovery work.",
+  "recommended_action": "After final corrections are committed, freeze exact HEAD, actual protected base and all verifier input bytes. Run full unskipped verify.sh once. Bind real exit status, complete raw log digest and input manifest; reuse that SAME observation in each complete per-spec bundle. Keep per-spec AC result evidence distinct and honestly scoped.",
+  "safeguards": [
+    "Do not claim collector commands executed if bundles are assembled via approved shared-run workflow",
+    "No stale-head or changed-input reuse; abort on source/base/input drift",
+    "No candidate skip flags, substitutedbase, syntheticPASS or cached native producer/verifier/reviewer authorization",
+    "Failure remainsFAIL for every affected bundle; missing/nativeT339proof stays explicitlypending",
+    "All GitHub CI requirements and native factory gates unchanged; no merge/authority/production activation",
+    "Preserve prior timeout/failure records and individual observed commands",
+    "Public upload and exactheadmaintenance still need separate concrete approvals"
+  ],
+  "alternative": "Follow current skill literally: run all three collectors and repeat same full verifier three times after final correction.",
+  "scope": "This publication only; does not add a permanent cache or change harness code",
+  "operator_answer": "A \u2014 One full run, three honestly scoped bundles (Recommended)",
+  "approval_observed_at": "2026-10-17T05:37:48.395460+00:00",
+  "question_call": "call_2060f2d27e93404ca3c629a851d6ad2e"
+}

@@ -1,0 +1,7 @@
+# TDD ledger — green — T-309
+ledger_format: 2
+timestamp: 2026-10-16T15:00:43+11:00
+command: bash .claude/scripts/test/factory-receipt-projection-resume.sh
+exit_code: 0
+---
+2 fresh Python/fresh SQLite129-reference protected reconstruction cases passed; no global coverage or task credit

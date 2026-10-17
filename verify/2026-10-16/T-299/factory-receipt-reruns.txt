@@ -1,0 +1,3 @@
+20 coldwatch/rerun/retained-expiry/source-authenticated shadow/epoch scenarios passed
+
+exit_code: 0

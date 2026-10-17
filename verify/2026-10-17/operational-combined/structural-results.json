@@ -1,0 +1,23 @@
+{
+  "head": "d965ac0c2e2b59cdc68f7f8f4f93ab8f62978c3c",
+  "results": [
+    {
+      "command": [
+        "bash",
+        ".claude/scripts/check-tdd-ledger.sh"
+      ],
+      "exit_code": 0,
+      "seconds": 23.576,
+      "timeout_seconds": 60
+    },
+    {
+      "command": [
+        "bash",
+        ".claude/scripts/validate.sh"
+      ],
+      "exit_code": 0,
+      "seconds": 20.669,
+      "timeout_seconds": 60
+    }
+  ]
+}

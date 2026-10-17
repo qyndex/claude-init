@@ -1,0 +1,7 @@
+# TDD ledger — green — T-179
+ledger_format: 2
+timestamp: 2026-10-17T00:49:18+11:00
+command: gh pr view "${FACTORY_ACTIVATION_PR:?}" --json state,isDraft,mergeCommit | jq -e '.state == "MERGED" and .mergeCommit.oid == "148238ad8950681d352985cdb9c48ad0301e97d3"'
+exit_code: 0
+---
+true

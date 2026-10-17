@@ -1,0 +1,34 @@
+actual authenticated retained appends=1/1001; real Git commits=5
+Sat Oct 17 12:45:56 2026    /private/tmp/t287-baseline.profile
+
+         1364007 function calls (1339332 primitive calls) in 2.047 seconds
+
+   Ordered by: cumulative time
+   List reduced from 1251 to 25 due to restriction <25>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+    106/1    0.000    0.000    2.047    2.047 {built-in method builtins.exec}
+        1    0.000    0.000    2.047    2.047 small-history-driver:1(<module>)
+        1    0.003    0.003    2.038    2.038 small-actual-appends:1(<module>)
+     2995    0.010    0.000    1.493    0.000 small-actual-appends:104(request)
+      269    0.002    0.000    1.481    0.006 small-actual-appends:17(git)
+      269    0.005    0.000    1.479    0.005 /opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py:513(run)
+      492    0.002    0.000    1.470    0.003 small-actual-appends:89(git)
+      269    0.003    0.000    1.175    0.004 /opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py:1177(communicate)
+      269    0.011    0.000    1.172    0.004 /opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py:2093(_communicate)
+     1181    0.002    0.000    1.142    0.001 /opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/selectors.py:385(select)
+     1181    1.140    0.001    1.140    0.001 {method 'poll' of 'select.poll' objects}
+       16    0.003    0.000    1.102    0.069 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/factory-receipt-archive.py:428(append_delivery)
+      505    0.002    0.000    0.929    0.002 small-actual-appends:26(request)
+      534    0.001    0.000    0.884    0.002 small-actual-appends:73(request)
+     2371    0.003    0.000    0.855    0.000 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/factory-receipt-archive.py:467(request)
+       20    0.003    0.000    0.657    0.033 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/factory-receipt-archive.py:793(advance_origin)
+     1288    0.002    0.000    0.608    0.000 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/factory-receipt-archive.py:809(request)
+      270    0.016    0.000    0.298    0.001 /opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py:817(__init__)
+      270    0.016    0.000    0.272    0.001 /opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py:1826(_execute_child)
+     3548    0.005    0.000    0.155    0.000 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/factory-receipt-archive.py:192(read)
+       16    0.001    0.000    0.154    0.010 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/factory-receipt-archive.py:293(verify_bootstrap)
+      270    0.143    0.001    0.143    0.001 {built-in method _posixsubprocess.fork_exec}
+      227    0.004    0.000    0.142    0.001 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/factory-state-paths.py:117(scan_delta)
+     2146    0.008    0.000    0.135    0.000 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/factory-state-paths.py:141(children)
+       16    0.002    0.000    0.128    0.008 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/factory-receipt-archive.py:118(build_record)

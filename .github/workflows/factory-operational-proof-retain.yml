@@ -1,0 +1,69 @@
+name: Factory Historical Operational Proof Retention
+on:
+  workflow_run:
+    workflows: [Factory Historical Operational Proof]
+    types: [completed]
+permissions:
+  contents: read
+  actions: read
+  id-token: write
+  attestations: write
+concurrency:
+  group: factory-operational-proof-retention
+  cancel-in-progress: false
+jobs:
+  retain:
+    if: >-
+      vars.FACTORY_OPERATIONAL_PROOF_ENABLED == 'true' &&
+      github.ref == format('refs/heads/{0}', github.event.repository.default_branch) &&
+      github.event.workflow_run.head_repository.full_name == github.repository &&
+      github.event.workflow_run.head_branch == github.event.repository.default_branch &&
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    environment: factory-reporting
+    timeout-minutes: 10
+    steps:
+      - name: Check out protected main runtime only
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify completed upstream and prepare completion assertion
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FACTORY_OPERATIONAL_PROOF_ENABLED: ${{ vars.FACTORY_OPERATIONAL_PROOF_ENABLED || 'false' }}
+          PROFILE: ${{ vars.FACTORY_OPERATIONAL_PROOF_PROFILE }}
+        run: python3 .claude/scripts/factory-operational-producer.py prepare-completion --profile "$PROFILE"
+      - name: Sign already-completed upstream observation
+        id: completion_signature
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: operational-completion-output/completion.json
+      - name: Preserve bounded completion signature
+        env:
+          BUNDLE: ${{ steps.completion_signature.outputs.bundle-path }}
+        run: |
+          test -f "$BUNDLE"
+          test "$(wc -c < "$BUNDLE")" -le 1000000
+          cp "$BUNDLE" operational-completion-output/completion.sigstore.json
+      - name: Mint dedicated reporting writer
+        id: reporting_app
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          app-id: ${{ vars.FACTORY_REPORTING_APP_ID }}
+          private-key: ${{ secrets.FACTORY_REPORTING_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+          permission-contents: write
+          permission-administration: read
+      - name: Authenticate completed signer and retain opaque proof
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FACTORY_OPERATIONAL_PROOF_ENABLED: ${{ vars.FACTORY_OPERATIONAL_PROOF_ENABLED || 'false' }}
+          FACTORY_REPORTING_APP_WRITER_ENABLED: ${{ vars.FACTORY_REPORTING_APP_WRITER_ENABLED || 'false' }}
+          FACTORY_REPORTING_APP_ID: ${{ vars.FACTORY_REPORTING_APP_ID }}
+          FACTORY_REPORTING_APP_TOKEN: ${{ steps.reporting_app.outputs.token }}
+          FACTORY_REPORTING_STATE_REPOSITORY: ${{ github.repository }}
+          PROFILE: ${{ vars.FACTORY_OPERATIONAL_PROOF_PROFILE }}
+        run: python3 .claude/scripts/factory-operational-producer.py retain --profile "$PROFILE"

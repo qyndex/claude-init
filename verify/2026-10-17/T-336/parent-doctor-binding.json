@@ -1,0 +1,10 @@
+{
+  "source": "af02f5eebb044d4550c8a1f7b754e43f1065e973",
+  "command": "bash .claude/scripts/harness-doctor.sh --json",
+  "process_exit": 0,
+  "pass": 19,
+  "warn": 12,
+  "fail": 1,
+  "failure": "initiative/spec pointers present: run initiative-state.sh sync",
+  "scope": "Actual isolated-checkout diagnostic, not a full healthy or live-readiness claim; no runtime pointers generated to hide the failure"
+}

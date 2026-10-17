@@ -257,3 +257,42 @@ marker; malformed/extra/duplicate result JSON, arrays, unprefixed JSON and unkno
 bracket lines still reject. The first T317 collector attempt is retained as
 local contributions with changes requested, not source ready for merge. T317 now
 depends on this repair and fresh review/evidence; live T318 remains pending.
+
+## T318 actual bounded pilot acceptance — 2026-10-16
+
+Reviewed source91839087a769bd45670df5b84cb96993bcb97d42 is merged. The exact
+reviewed queue initialization was performed, then initialize=false restored.
+Actual protected drill38850566089a1 produced[1,0] across fresh CLI processes,
+recovery38850688638a1 produced[1], and repeat38850871872a1 produced[0]. The explicit
+--live checker reran successfully against actual GitHub metadata/logs and the
+protected role journal, with five publication parent/tree opaque-preservation
+checks. docs/activation/2026-10-16-queue-probe/README.md records safe source-bound
+observations. Earlier live-pending entries describe their historical checkpoints;
+T318 now closes the actual AC8 pilot portion without rewriting T317 local records.
+
+This is bounded administrative correlation, not native attestation, independent
+local Slack readback, actual stalled-worker proof or global-history certification.
+One isolated pair, ordered nonoverlap windows,24 commits and1024 tree entries
+remain explicit checker bounds. Per-adopter rollout, same-environment/GitHub/Slack
+outage limits remain; Healthchecks stays disabled. Factory authority/merge mode
+remain off. This documentary verification introduced no code/settings/credential
+changes, sends or dispatches.
+
+## Approved historical operational-proof replay — 2026-10-17
+
+The operator approved option A; public upload is separately pending. Preserve the original current-source live checker unchanged. Supporting work belongs to T318's publication acceptance repair; it does not redefine the original16-task objective.
+
+1. T336 (AC-9): implement a strict distinct historical-queue-completion record and native certificate/run/source authentication. Scope: .claude/scripts/factory-operational-proof.py and test/factory-operational-proof.sh. No writer, live workflow or delivery/task authority. Strict TDD, malformed/forged/source/profile/signature negatives; local injected verifier seams must be labelled fixtures.
+2. T337 (AC-9): protected-main historical observation producer and durable authenticated record/CAS storage, using existing reporting state and native signing architecture. Scope additionally permits .github/workflows/factory-operational-proof.yml, .github/workflows/factory-operational-proof-retain.yml, focused operational-producer/state tests, factory/operational-proof-profiles.json (empty/inactive until separately reviewed exact producer/source registration), and adopter/activation documentation. Independently re-read original native source/run/job/log and immutable journal lineage; no candidate-owned summary fallback. Preserve actual historical times, opaque feedback and non-forced state. Native signing/write permissions remain main-only and default-off until reviewed bootstrap.
+3. T338 (AC-9): bounded read-only PR replay consumer and acceptance integration. Scope additionally permits existing evidence-gate read permissions only as required, operational replay tests and TASKS acceptance declarations. Authenticate trusted producer/profile/revocation and exact purpose. No protected variables/secrets in PR execution. Reject operational records at delivery/current-task/merge/readiness boundaries. Preserve current-source live checks.
+4. T339 (AC-9/AC-8): reviewed bootstrap, genuine authenticated original-source record and real read-only PR acceptance. Defer T318 source-publication closure until this proof exists; retain the genuine original administrative observation. Existing exact-head maintenance/profile/cutover decisions remain in force. Full actual publication checks are required; never replace a source, bypass checks or fabricate a native pass.
+
+Dependencies: T336→T337→T338→T339→T318 publication closeout. T179's portable PR selector repair is already separately verified. No repeated1001-history producer is required for this typed operational-proof repair. The original T180 and T222 sequence remains unchanged.
+
+Operational trust integration: T336 accepts an explicitly expected profile only as an internal verification primitive. T338 must obtain the real active/revocation profile from independently authenticated protected-main configuration, never from a candidate record or candidate-owned registry. Retain a distinct registry rather than widening delivery producer roles in factory/policy.json. Use the existing domain-separated reports/<role-sha256>.json opaque sibling for retention where compatible; do not add a new state-root or change delivery archive schemas. PR access adds only demonstrated read requirements; a retained Sigstore bundle can be verified without forwarding the reporting/merge credential. No independent Slack readback or global-history claim is inferred from the original bounded administrative queue observation.
+
+Producer sequencing and durable completion constraint: a record cannot authenticate its own still-running workflow as a completed producer. The manual protected signing workflow finishes and uploads bounded record/bundle artifacts first. A separately protected `workflow_run: completed` retainer authenticates the successful source run, certificate/record and active profile. It then natively signs a distinct completion observation binding the exact upstream record/bundle digests, repository/profile, completed run/attempt/source/job/artifact identity and completion window before existing App-scoped CAS storage. Its certificate also binds the reviewed retainer source/workflow/execution. This assertion proves the already-completed upstream run; it does not claim the retainer itself has finished or recursively require another completion signer. Replay authenticates both retained signatures and current protected authorization/revocation without depending forever on native run metadata. Unsigned copied run JSON or raw Git commit author/ancestry is insufficient. This narrow completion-signing role requires explicit id-token/attestations write permissions in the reviewed retainer source and its later concrete activation package; both workflows remain default-off/main-only, and the initial signer has no state-write credential. Artifact, identity, signature, source/revocation or uncertain-write failures remain blocked.
+
+Profile registration must avoid commit self-reference: protected configuration pins the allowed operational workflow/runtime byte hashes and source/ref policy, not a guessed SHA of the commit containing its own registry. At retention time, the protected verifier resolves the exact completed producer SHA from authenticated GitHub attempt data, independently checks that SHA/ref/repository and its workflow/runtime bytes against the active protected profile, then supplies that exact resolved SHA to T336's primitive. Later replay authenticates this completion observation and both native signatures, checks the signed source identities/runtime against the independently fetched current protected profile and rejects applicable revocation. It does not require the original run API to remain available. A record's unverified claimed SHA or candidate registry cannot perform this resolution. Original historical source remains explicitly pinned. Use the existing stable-profile design principles; no new implicit source approval or wildcard runtime permission.
+
+Durability implementation rationale (2026-10-17): GitHub changed Actions retention on 2026-10-01 to delete checks, workflow runs and statuses along with artifacts/logs; public repository retention is at most90days. Source: https://github.blog/changelog/2026-10-01-actions-retention-now-covers-checks-runs-and-statuses/ . The operator-approved indefinite compact-proof retention therefore requires an authenticated completion observation, not a permanent fresh run-API prerequisite. This adjusts the local signing/retention implementation within the approved native-signing architecture; it grants no live permissions or activation. T337/T338 must test replay with original run metadata absent and reject unsigned completion substitutions.

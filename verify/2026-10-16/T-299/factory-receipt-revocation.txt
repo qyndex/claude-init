@@ -1,0 +1,3 @@
+18 revocation and current-task/history cases passed
+
+exit_code: 0

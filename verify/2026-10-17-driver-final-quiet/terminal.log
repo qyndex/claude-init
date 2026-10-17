@@ -1,0 +1,40 @@
+{
+  "status": "confirmed-driver-quiet-pass",
+  "children": [
+    {
+      "pid": 19093,
+      "calls": 143,
+      "bytes": 1282596,
+      "provider": {
+        "rest": 143,
+        "graphql": 0
+      },
+      "provider_response_bytes": 1282596,
+      "roles": {
+        "source": {
+          "calls": 0,
+          "bytes": 0,
+          "rest": 0,
+          "graphql": 0
+        },
+        "writer": {
+          "calls": 143,
+          "bytes": 1282596,
+          "rest": 143,
+          "graphql": 0
+        }
+      }
+    }
+  ],
+  "job": {
+    "status": "not-due",
+    "invocations": 1,
+    "elapsed_seconds": 1.735,
+    "source_sha": "6f53ed1f728f37f2ac529b629f74f84fbc426d87",
+    "child_api_counters_available": false,
+    "retry_policy": "later-job",
+    "observer_calls": 0,
+    "observer_bytes": 0
+  },
+  "output": "/private/tmp/factory-driver-quiet-final-result-20261017"
+}

@@ -1,0 +1,60 @@
+source_commit: 3889aa2d501076ce18c0121493d1d343d8c1d4ff
+started_at: 2026-10-17T05:28:17.810314+00:00
+command: bash .claude/scripts/test/factory-state-scan-cost.sh && bash .claude/scripts/test/factory-receipt-history.sh
+timeout_seconds: 300
+actual validated entries=737; validate_entry calls=885
+linear work preserves immediate and cross-subtree duplicate rejection
+persistent real Git object reads: exact binary/tree/commit equivalence, fresh mutable ref and missing-object recovery PASS
+actual authenticated retained appends=1/1001; real Git commits=5
+actual authenticated retained appends=25/1001; real Git commits=55
+actual authenticated retained appends=50/1001; real Git commits=107
+actual authenticated retained appends=75/1001; real Git commits=159
+actual authenticated retained appends=100/1001; real Git commits=211
+actual authenticated retained appends=125/1001; real Git commits=263
+actual authenticated retained appends=150/1001; real Git commits=315
+actual authenticated retained appends=175/1001; real Git commits=367
+actual authenticated retained appends=200/1001; real Git commits=428
+actual authenticated retained appends=225/1001; real Git commits=480
+actual authenticated retained appends=250/1001; real Git commits=532
+actual authenticated retained appends=275/1001; real Git commits=584
+actual authenticated retained appends=300/1001; real Git commits=636
+actual authenticated retained appends=325/1001; real Git commits=688
+actual authenticated retained appends=350/1001; real Git commits=740
+actual authenticated retained appends=375/1001; real Git commits=792
+actual authenticated retained appends=400/1001; real Git commits=853
+actual authenticated retained appends=425/1001; real Git commits=905
+actual authenticated retained appends=450/1001; real Git commits=957
+actual authenticated retained appends=475/1001; real Git commits=1009
+actual authenticated retained appends=500/1001; real Git commits=1061
+actual authenticated retained appends=525/1001; real Git commits=1113
+actual authenticated retained appends=550/1001; real Git commits=1165
+actual authenticated retained appends=575/1001; real Git commits=1217
+actual authenticated retained appends=600/1001; real Git commits=1278
+actual authenticated retained appends=625/1001; real Git commits=1330
+actual authenticated retained appends=650/1001; real Git commits=1382
+actual authenticated retained appends=675/1001; real Git commits=1434
+actual authenticated retained appends=700/1001; real Git commits=1486
+actual authenticated retained appends=725/1001; real Git commits=1538
+actual authenticated retained appends=750/1001; real Git commits=1590
+actual authenticated retained appends=775/1001; real Git commits=1642
+actual authenticated retained appends=800/1001; real Git commits=1703
+actual authenticated retained appends=825/1001; real Git commits=1755
+actual authenticated retained appends=850/1001; real Git commits=1807
+actual authenticated retained appends=875/1001; real Git commits=1859
+actual authenticated retained appends=900/1001; real Git commits=1911
+actual authenticated retained appends=925/1001; real Git commits=1963
+actual authenticated retained appends=950/1001; real Git commits=2015
+actual authenticated retained appends=975/1001; real Git commits=2067
+actual authenticated retained appends=1000/1001; real Git commits=2128
+actual retained diagnostic prefix saved=/var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/t287-actual-retained-o_1m8rzo
+actual1001source rows partitioned beyondclamped1000API; protectedwatch progress persisted
+actual protectedstage page=1; authenticatedfacts=105
+actual protectedstage page=2; authenticatedfacts=233
+actual protectedstage page=3; authenticatedfacts=361
+actual protectedstage page=4; authenticatedfacts=489
+actual protectedstage page=5; authenticatedfacts=617
+actual protectedstage page=6; authenticatedfacts=745
+
+exit_code: 124
+elapsed_seconds: 300.009
+sources_unchanged: True

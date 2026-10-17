@@ -1,0 +1,10 @@
+# TDD ledger — red — T-335/cli-selection/pr-mode
+ledger_format: 2
+timestamp: 2026-10-17T02:26:57+11:00
+command: FACTORY_TEST_PYTHON=/Users/shravanjha/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3 bash .claude/scripts/test/factory-reporting-cli-selection.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 75, in <module>
+AssertionError: selected CLI did not forward resumable PR discovery

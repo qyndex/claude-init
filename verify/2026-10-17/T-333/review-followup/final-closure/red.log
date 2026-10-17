@@ -1,0 +1,16 @@
+# TDD ledger — red — T-333
+ledger_format: 2
+timestamp: 2026-10-17T01:18:52+11:00
+command: bash .claude/scripts/test/factory-reporting-receipt-transfer.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+PASS actual renderer explicitly labels withdrawn evidence while preserving proof attribution
+PASS invalid/default receipt modes, fixed byte-exact legacy payload and pending mode-switch immutability
+PASS raw receipt tables without validated coverage cannot authorize durable reporting
+PASS actual helper marker+withdrawn proof retains attribution through durable digest
+Traceback (most recent call last):
+  File "<stdin>", line 248, in <module>
+  File "retained-fixture-bootstrap", line 10, in <module>
+  File "real-retained-reporting-transfer", line 222, in <module>
+AssertionError: actual earlier protected projection moved coverage backwards

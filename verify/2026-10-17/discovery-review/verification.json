@@ -1,0 +1,26 @@
+{
+  "base": "6954a7a1669ddab6e852162eae547bbd00ea14c1",
+  "source_sha256": "006de7e9c00e65de817ac6e17bb8ea7c90232b5336fb5d64d5854a1e5e7ce034",
+  "red": {
+    "backfill": 1,
+    "review": 1,
+    "head": 1
+  },
+  "green": {
+    "new_three_finding_suite": 0,
+    "backfill": 0,
+    "discovery": 0,
+    "reruns": 0,
+    "prior_attempts": 0,
+    "compile": 0,
+    "shellcheck": 0,
+    "diff_check": 0,
+    "validate": 0
+  },
+  "validation_existing_warnings": 4,
+  "native_calls": false,
+  "producer_regenerated": false,
+  "task_closed": false,
+  "model_calls": false,
+  "coverage_complete": false
+}

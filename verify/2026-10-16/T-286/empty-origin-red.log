@@ -1,0 +1,19 @@
+# TDD ledger — red — T-286
+ledger_format: 2
+timestamp: 2026-10-16T16:00:51+11:00
+command: bash .claude/scripts/test/factory-receipt-coverage.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+actual resolved cold-start partition/watch/protected-stage/fresh-SQLite requested coverage passed; no all-history or task credit
+Traceback (most recent call last):
+  File "<stdin>", line 67, in <module>
+  File "empty-coverage-real-git-fixture", line 91, in <module>
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 932, in checkpoint_projection
+    window = projection_window(api, policy, trust_path, store, approval_path, stream, interval_end=interval_end, start=start, limit=limit, frozen_head=frozen)
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 546, in projection_window
+    require(journal_raw is not None, 'archive discovery missing; cannot claim retained coverage')
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/validate-candidate-evidence.py", line 19, in require
+    raise ValueError(message)
+ValueError: archive discovery missing; cannot claim retained coverage

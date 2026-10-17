@@ -1,0 +1,3 @@
+actual cold-start/protected projection coverage passed: resolved interval, old-created rerun and same-count late swap/count/capacity/unavailable/mutable-source/missing-history gaps, current withdrawal, no cursor advance or state/task writes
+actual empty reviewed-origin/protected-checkpoint/fresh-SQLite initialization and known retained-suffix refusal passed; missing checkpoint never complete
+actual first-seen retained attempt2 keeps unknown merge-capable prior attempt1 as explicit history gap

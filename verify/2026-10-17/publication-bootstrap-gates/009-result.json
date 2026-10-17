@@ -1,0 +1,10 @@
+{
+  "command": "bash .claude/scripts/collect-evidence.sh 009",
+  "head": "d965ac0c2e2b59cdc68f7f8f4f93ab8f62978c3c",
+  "base": "b533a82f4b4b45712e26a33239ef269a6847aa92",
+  "started_at": "2026-10-17T01:19:21.188872+00:00",
+  "completed_at": "2026-10-17T01:28:23.023840+00:00",
+  "exit_code": 1,
+  "skip_flags": false,
+  "scope": "actual publication collector; absent native/AC proof must remain explicit"
+}

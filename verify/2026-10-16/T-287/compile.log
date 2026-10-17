@@ -1,0 +1,1 @@
+PASS: six changed Python sources compile without executing imports

@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "<stdin>", line 55, in <module>
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-state-paths.py", line 85, in scan_tree
+    require(isinstance(item.get('path'), str) and '/' not in item['path'] and item['path'] not in ('.', '..'), 'state subtree entry not immediate')
+                       ^^^^^^^^
+AttributeError: 'str' object has no attribute 'get'

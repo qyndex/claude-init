@@ -1,0 +1,3 @@
+Traceback (most recent call last):
+  File "<stdin>", line 48, in <module>
+AssertionError: foreign API root

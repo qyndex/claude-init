@@ -1,0 +1,1 @@
+17 protected frozen-window range/budget/revocation/privacy/read-only cases passed

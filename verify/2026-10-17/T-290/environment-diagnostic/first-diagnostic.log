@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "<stdin>", line 103, in <module>
+  File "<stdin>", line 30, in wait_for
+AssertionError: recovery condition not reached

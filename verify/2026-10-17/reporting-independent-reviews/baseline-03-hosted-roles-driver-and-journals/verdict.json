@@ -1,0 +1,27 @@
+{
+  "verdict": "changes_requested",
+  "review_summary": "Static review of section 03 only: git-state, transport, driver, alerts, queue, queue-evidence, watchdog and feedback, plus the four workflows and the supplied excerpts. I found two concrete defects, both on the queue monitor's App-writer (flag=true) path.\n\n**Defect 1.** `build_config` returns the output of `attach_reporting_context` as `reporting`. `run_queue` then rejects it because it requires exactly the 8 legacy fields. Every App-mode queue invocation therefore blocks before any effect.\n\n**Defect 2.** The queue bootstrap variable is forced to equal two incompatible values, so first-time queue initialization cannot succeed in App mode.\n\nI found no other concrete defect in the supplied text. Specifically:\n- Credential routing never falls back to another token.\n- Transport counters are shared within one invocation.\n- Pagination and size bounds fail closed.\n- The driver is finite and stops on errors, timeouts and missing state progress.\n- The workflows keep OFF mode on the direct CLI.\n- Digest, alerts, watchdog and feedback state mutations go through nonforced CAS.\n\nThis is a static pass over the stated scope only. It is not native provenance or operational acceptance.",
+  "findings": [
+    {
+      "severity": "high",
+      "file": ".claude/scripts/factory-reporting-queue.py",
+      "line": 379,
+      "title": "App-writer queue path always fails the strict reporting-context field check",
+      "reason": "With FACTORY_REPORTING_APP_WRITER_ENABLED=true, `build_config` (line 575) replaces `reporting` with `transport.attach_reporting_context(...)`. That function returns `dict(config, receipt_mode=..., pr_discovery_mode=..., receipt_policy=..., receipt_archive=..., state_view=...)`. The result also carries `state_branch` and `bootstrap_sha`, so it has about 15 keys. `protected_entry` passes it to `run_queue` as `built['reporting']`. `run_queue` line 379 requires `len(reporting)==len(fields) and set(reporting)==fields`, where `fields` has exactly 8 keys. This raises 'queue reporting context fields differ' on every App-mode invocation, scheduled or drill. The queue monitor can never observe, reconcile or notify while the App writer is selected. Legacy OFF is unaffected because it builds the 8-key dict directly. The check must accept the attached context, or the 8 base fields must be projected before this check."
+    },
+    {
+      "severity": "medium",
+      "file": ".claude/scripts/factory-reporting-queue.py",
+      "line": 575,
+      "title": "Queue bootstrap SHA is forced to equal the archive approval bootstrap, which makes App-mode queue initialization impossible",
+      "reason": "Line 575 passes `bootstrap_sha=storage['bootstrap_sha']` (FACTORY_REPORTING_QUEUE_BOOTSTRAP_SHA) into `attach_reporting_context`. That function (transport.py:246) requires it to equal the fixed archive approval's `bootstrap_sha`. The same value is later used as the GitState bootstrap in archive mode. In git-state.py:260, a missing queue leaf requires `bootstrap_sha==self.head`. `run_queue` also needs the report checkpoint to exist first, via `worker()` at queue.py:441 and 458. That checkpoint can only have been written by a later commit, because git-state.py:531 requires the report leaf to be absent from `bootstrap_tree`. So when the queue journal leaf is missing, the head has already moved past the approval bootstrap. One value cannot be both the approval bootstrap and the current head, so initialization fails with 'queue initialization drift; exact reviewed bootstrap required'. Use a separate queue-initialization head check in archive mode, or stop binding the queue bootstrap to the approval bootstrap."
+    }
+  ],
+  "limitations": [
+    "Static review of the supplied text only; no execution or tests, and no fresh review of unchanged dependencies (maintenance body, archive body, receipts, discovery, digest, slack, bounded-process, encrypted-feedback, slack-feedback).",
+    "Sections 01 and 02 were not reviewed here. Behavior of `advance_origin`, `verify_bootstrap`, `select_reporting`, `prepare_reporting`, `acknowledge_reporting` and `store.discover/prepare/deliver` was taken only from the supplied excerpts and call sites.",
+    "I could not confirm the possible status strings (and the `phase` format) that maintenance and discovery return to the driver. I did not raise a speculative finding on them.",
+    "Per-load call cost of archive verification against the 128-call QueueStore cap and the 2048-call shared budget could not be determined from the supplied text.",
+    "Slack adapter behavior and the live workflow and App activation are outside this static review; none of it is claimed."
+  ]
+}

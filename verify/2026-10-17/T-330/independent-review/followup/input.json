@@ -1,0 +1,29 @@
+{
+  "head": "63e8f37a62d19cdcedd746019152e21d5d9fb025",
+  "base": "43bb02fb78a5db0b71ec097a4d3a62aa1d7eb8d0",
+  "files": [
+    {
+      "path": ".claude/scripts/factory-reporting-policy.py",
+      "sha256": "a8d05f5225674462d990686c60ca96ca7fcf35c2007eed1ef2e22b3df9f79672",
+      "scope": "full source"
+    },
+    {
+      "path": ".claude/scripts/factory-receipt-archive.py",
+      "sha256": "7f47cfca34c8bc5181ee351f5dd0d86cf139bbb3ba102bffcd0ffb9071ed2095",
+      "scope": "module prefix/full functions _approved_policy_digest,append_delivery"
+    },
+    {
+      "path": ".claude/scripts/factory-receipt-discovery.py",
+      "sha256": "05c913199d8b5a29524f83e9138fefd5dc7542ef43f19ebe7028664a9643970c",
+      "scope": "module prefix/full functions advance"
+    },
+    {
+      "path": ".claude/scripts/test/factory-reporting-policy.sh",
+      "sha256": "8ccdef2ea213078bfb58736f77fc81f410b708a7604c3d58daa3b82bc3d2ab83",
+      "scope": "full source"
+    }
+  ],
+  "prompt_sha256": "3f004284a0183d8d72572d88013b90eb9987304303822f668397221aee7aeb7d",
+  "prompt_bytes": 65317,
+  "scope": "NarrowT330 clock and two final publication rechecks"
+}

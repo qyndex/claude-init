@@ -1,0 +1,4 @@
+AC-1: actual concurrent processes claim one owner, preserving revision/dependencies and monotonically fencing recovered ownership
+AC-2: matching unexpired heartbeat/transition ownership, reopened recovery, pause/cancel and bounded retries are enforced
+AC-3: transactional idempotent outbox preserves dispatch uncertainty, requires remote reconciliation and retains receipts after restart
+AC-4: invalid authority, state/action mutations and conflicting receipts reject without partial writes; no task ledger or live activation is modified

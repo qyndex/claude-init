@@ -1,0 +1,11 @@
+{
+  "timestamp": "2026-10-16T07:51:47.445729+00:00",
+  "candidate_checkout": "/private/tmp/t287-linear-candidate-20261016",
+  "actual_command": "bash .claude/scripts/test/factory-receipt-coverage-batch.sh",
+  "exit_code": 0,
+  "live_activation_verified": false,
+  "files": {
+    ".claude/scripts/factory-receipt-discovery.py": "df2abff7fa48d6c3bceb825eed7c282b753885b5ef82db1df4be290ea1438432",
+    ".claude/scripts/test/factory-receipt-coverage-batch.sh": "bde99353dcd2219c5f1a8d80402eb32ac600fcb2106b407421d0d0bc3368c41f"
+  }
+}

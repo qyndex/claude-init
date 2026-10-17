@@ -1,0 +1,7 @@
+# TDD ledger — green — T-278
+ledger_format: 2
+timestamp: 2026-10-16T10:11:14+11:00
+command: bash .claude/scripts/test/factory-receipt-revocation.sh
+exit_code: 0
+---
+18 revocation and current-task/history cases passed

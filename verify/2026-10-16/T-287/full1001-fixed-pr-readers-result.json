@@ -1,0 +1,91 @@
+{
+  "recorded_at": "2026-10-16T09:16:12.918965+00:00",
+  "log_sha256": "2e1cb0f71aed7dfb8b81431217a94302e7bdce4bd347648bb7b915434add0f0f",
+  "actual_saved_history_diagnostic": true,
+  "final_fresh_acceptance": false,
+  "live_cloud_proof": false,
+  "modes": {
+    "projection": {
+      "exit_code": 0,
+      "proof": {
+        "fresh_process": true,
+        "result": {
+          "projection_complete": true,
+          "coverage_complete": false,
+          "facts_count": 1001,
+          "interval_facts_count": 1001,
+          "frozen_head": "972214386da2bec733b928b4302b2e80c61185c4",
+          "suffix_pending": true
+        },
+        "sqlite_counts": {
+          "delivery_receipts": 1001,
+          "delivery_provenance": 1001,
+          "delivery_times": 1001,
+          "delivery_trust": 1001,
+          "delivery_interval": 1001
+        }
+      },
+      "accounting": {
+        "calls": 988,
+        "canonical_response_bytes": 1231817,
+        "categories": {
+          "other": 8,
+          "rules": 16,
+          "ref": 8,
+          "commits": 29,
+          "trees": 858,
+          "blobs": 10,
+          "history": 5,
+          "compare": 54
+        },
+        "blob_batches": 162,
+        "blob_raw_bytes": 7855282,
+        "pr_batches": 32,
+        "pr_raw_bytes": 214205,
+        "total_calls": 1182,
+        "total_response_bytes": 9301304
+      }
+    },
+    "coverage": {
+      "exit_code": 0,
+      "proof": {
+        "fresh_process": true,
+        "result": {
+          "source_partition_complete": true,
+          "frozen_projection_complete": true,
+          "coverage_complete": true,
+          "all_history_complete": false,
+          "task_credit": false,
+          "gaps": [],
+          "verified_until": "2026-10-15T23:00:00Z",
+          "repository": "org/repo",
+          "observed_head": "e5ad37d36496c9f1f36bb8432addbf58b27c39b1",
+          "coverage_from": "2026-10-15T00:00:00Z",
+          "source_epoch": 3,
+          "retained_attempts": 1001,
+          "withdrawn_attempts": 0
+        }
+      },
+      "accounting": {
+        "calls": 1067,
+        "canonical_response_bytes": 1681164,
+        "categories": {
+          "other": 12,
+          "rules": 24,
+          "ref": 12,
+          "commits": 29,
+          "trees": 881,
+          "blobs": 38,
+          "history": 7,
+          "compare": 64
+        },
+        "blob_batches": 162,
+        "blob_raw_bytes": 7855282,
+        "pr_batches": 32,
+        "pr_raw_bytes": 214205,
+        "total_calls": 1261,
+        "total_response_bytes": 9750651
+      }
+    }
+  }
+}
