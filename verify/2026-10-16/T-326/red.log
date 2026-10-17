@@ -1,0 +1,14 @@
+# TDD ledger — red — T-326
+ledger_format: 2
+timestamp: 2026-10-16T23:30:28+11:00
+command: bash .claude/scripts/test/sarif-effective-severity.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+SARIF effective severity: 90 passed; 2 failed
+FAIL unknown-index-structured-positive: expected exit1/'Invalid SARIF'; got0/'SARIF clean of high/critical findings\n'
+FAIL positive-index-structured-unknown: expected exit1/'Invalid SARIF'; got0/'SARIF clean of high/critical findings\n'
+Traceback (most recent call last):
+  File "<stdin>", line 88, in <module>
+AssertionError: unknown-index-structured-positive: expected exit1/'Invalid SARIF'; got0/'SARIF clean of high/critical findings\n'
+positive-index-structured-unknown: expected exit1/'Invalid SARIF'; got0/'SARIF clean of high/critical findings\n'

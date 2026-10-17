@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "exceptions": [
+    {
+      "rule": "python.lang.security.audit.dangerous-subprocess-use-tainted-env-args.dangerous-subprocess-use-tainted-env-args",
+      "path": ".claude/scripts/factory-worker-guard.py",
+      "line": 155,
+      "sha256": "adc3bf10d5c6172f844e7748d9cfdae4be1b7b9cf40777ae59c2bdf896d8844c",
+      "rationale": "Intentional legacy list-argv executor under supervisor environment filtering, fencing and guardian cleanup; protected intake branches to pinned descriptor launch. Tests factory-worker-environment.sh, factory-supervisor.sh and factory-container.sh; native same-user filesystem and actual Docker isolation remain unproven. See docs/security/exact-source-audit-policy.md.",
+      "approval_ref": "Proposed registry under operator design A (2026-10-16); live authorization requires separately reviewed protected registry digest."
+    },
+    {
+      "rule": "python.lang.security.audit.dangerous-subprocess-use-tainted-env-args.dangerous-subprocess-use-tainted-env-args",
+      "path": ".claude/scripts/foreground-watchdog.py",
+      "line": 30,
+      "sha256": "789a370d83f81a8aebde27bcfa5599f38afda8e9b8c328eda22e9e918b0c83ea",
+      "rationale": "Intentional operator list-argv lifetime wrapper used by local-overnight-build.sh. Tests factory-supervisor.sh plus exact-source argv triage; inherits operator environment and makes no credential or sandbox claim. See docs/security/exact-source-audit-policy.md.",
+      "approval_ref": "Proposed registry under operator design A (2026-10-16); live authorization requires separately reviewed protected registry digest."
+    }
+  ]
+}

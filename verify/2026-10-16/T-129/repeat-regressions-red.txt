@@ -1,0 +1,26 @@
+# TDD ledger — red — T-129
+ledger_format: 2
+timestamp: 2026-10-16T23:24:26+11:00
+command: bash .claude/scripts/test/pre-bash-guard-literals.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+FAIL here-string-single: expected=deny got=pass exit=0
+FAIL here-string-double: expected=deny got=pass exit=0
+FAIL shell-heredoc: expected=deny got=pass exit=0
+FAIL shell-heredoc-safe-js-adjacent: expected=deny got=pass exit=0
+FAIL write-script-then-execute: expected=deny got=pass exit=0
+FAIL heredoc-safe-prefix-unsafe-same-line: expected=deny got=pass exit=0
+FAIL heredoc-safe-after-unsafe: expected=deny got=pass exit=0
+FAIL heredoc-safe-before-unsafe: expected=deny got=pass exit=0
+FAIL heredoc-template-network-suffix: expected=deny got=pass exit=0
+FAIL heredoc-template-fetch-suffix: expected=deny got=pass exit=0
+FAIL heredoc-template-fetching-suffix: expected=deny got=pass exit=0
+FAIL heredoc-double-redirect-chain: expected=deny got=pass exit=0
+FAIL network-name-wget2: expected=deny got=pass exit=0
+FAIL network-name-curl-impersonate: expected=deny got=pass exit=0
+FAIL network-name-curlie: expected=deny got=pass exit=0
+FAIL network-name-customcurl: expected=deny got=pass exit=0
+FAIL network-name-prefetch: expected=deny got=pass exit=0
+FAIL network-name-fetch2: expected=deny got=pass exit=0
+guard literal cases: 70 passed, 18 failed

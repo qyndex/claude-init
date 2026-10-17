@@ -1,0 +1,13 @@
+# TDD ledger — red — T-130
+ledger_format: 2
+timestamp: 2026-10-17T00:05:53+11:00
+command: bash .claude/scripts/test/tdd-ledger-suite.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+PASS actual native unittest assertion diff: assertion-failure, gate enforced
+PASS actual native Node config-helper test assertion: assertion-failure, gate enforced
+PASS actual native Node config-load AssertionError: tooling-error, gate enforced
+Traceback (most recent call last):
+  File "<stdin>", line 89, in <module>
+AssertionError: ('config-erase-cursor-prefix', 'tooling-error', '# TDD ledger — red — T-900\nledger_format: 2\ntimestamp: 2026-10-17T00:05:53+11:00\ncommand: bash /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tdd-ledger-classification-dupud18o/config-erase-cursor-prefix.sh\nexit_code: 1\nred_reason: assertion-failure\n---\n\x1b[2K\x1b[1Gfailed to load config from /tmp/vitest.config.ts\nError: config exploded\n')

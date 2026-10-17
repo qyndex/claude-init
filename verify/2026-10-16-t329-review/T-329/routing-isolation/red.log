@@ -1,0 +1,11 @@
+# TDD ledger — red — T-329
+ledger_format: 2
+timestamp: 2026-10-16T23:58:47+11:00
+command: bash .claude/scripts/test/sarif-audit-policy.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+SARIF exact-source audit policy: 57 checks passed; 2 failed
+Traceback (most recent call last):
+  File "<stdin>", line 117, in <module>
+AssertionError: [('stdlib shadow isolation', 0, True, '', ''), ('actual job mode/ref routing', 'true', 'refs/pull/7/merge', (False, True), (True, False))]

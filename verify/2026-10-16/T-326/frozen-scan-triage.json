@@ -1,0 +1,112 @@
+{
+  "frozen_sarif": "/private/tmp/t287-final-semgrep.sarif",
+  "sha256": "b85b9c57c4254f5da083ad98510d059bcff564960830dda007715807cb519cec",
+  "results": 154,
+  "effective_level_counts": {
+    "warning": 150,
+    "error": 4
+  },
+  "error_findings": [
+    {
+      "rule_id": "python.lang.security.audit.dangerous-subprocess-use-tainted-env-args.dangerous-subprocess-use-tainted-env-args",
+      "effective_level": "error",
+      "source": "rule-default",
+      "message": {
+        "text": "Detected subprocess function 'Popen' with user controlled data. A malicious actor could leverage this to perform command injection. You may consider using 'shlex.quote()'."
+      },
+      "locations": [
+        {
+          "artifactLocation": {
+            "uri": ".claude/scripts/factory-worker-guard.py",
+            "uriBaseId": "%SRCROOT%"
+          },
+          "region": {
+            "endColumn": 42,
+            "endLine": 155,
+            "snippet": {
+              "text": "        worker = subprocess.Popen(command, start_new_session=True, pass_fds=tuple(inherited), env=environment, cwd=directory, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)"
+            },
+            "startColumn": 35,
+            "startLine": 155
+          }
+        }
+      ]
+    },
+    {
+      "rule_id": "python.lang.security.audit.dangerous-subprocess-use-tainted-env-args.dangerous-subprocess-use-tainted-env-args",
+      "effective_level": "error",
+      "source": "rule-default",
+      "message": {
+        "text": "Detected subprocess function 'Popen' with user controlled data. A malicious actor could leverage this to perform command injection. You may consider using 'shlex.quote()'."
+      },
+      "locations": [
+        {
+          "artifactLocation": {
+            "uri": ".claude/scripts/foreground-watchdog.py",
+            "uriBaseId": "%SRCROOT%"
+          },
+          "region": {
+            "endColumn": 42,
+            "endLine": 30,
+            "snippet": {
+              "text": "        worker = subprocess.Popen(command, start_new_session=True)"
+            },
+            "startColumn": 35,
+            "startLine": 30
+          }
+        }
+      ]
+    },
+    {
+      "rule_id": "yaml.github-actions.security.run-shell-injection.run-shell-injection",
+      "effective_level": "error",
+      "source": "rule-default",
+      "message": {
+        "text": "Using variable interpolation `${{...}}` with `github` context data in a `run:` step could allow an attacker to inject their own code into the runner. This would allow them to steal secrets and code. `github` context data can have arbitrary user input and should be treated as untrusted. Instead, use an intermediate environment variable with `env:` to store the data and use the environment variable in the `run:` script. Be sure to use double-quotes the environment variable, like this: \"$ENVVAR\"."
+      },
+      "locations": [
+        {
+          "artifactLocation": {
+            "uri": ".github/workflows/memory-rollup-weekly.yml",
+            "uriBaseId": "%SRCROOT%"
+          },
+          "region": {
+            "endColumn": 2,
+            "endLine": 39,
+            "snippet": {
+              "text": "        run: |\n          week=\"${{ github.event.inputs.week }}\"\n          # memory-rollup.sh weekly [YYYY-Www] \u2014 arg honored (M-18); empty = current week.\n          bash .claude/scripts/memory-rollup.sh weekly $week\n          # Emit which file changed for the PR step.\n          echo \"changed=$(git status --porcelain .claude/memory/rollups/ | head -1)\" >> \"$GITHUB_OUTPUT\""
+            },
+            "startColumn": 9,
+            "startLine": 33
+          }
+        }
+      ]
+    },
+    {
+      "rule_id": "yaml.github-actions.security.run-shell-injection.run-shell-injection",
+      "effective_level": "error",
+      "source": "rule-default",
+      "message": {
+        "text": "Using variable interpolation `${{...}}` with `github` context data in a `run:` step could allow an attacker to inject their own code into the runner. This would allow them to steal secrets and code. `github` context data can have arbitrary user input and should be treated as untrusted. Instead, use an intermediate environment variable with `env:` to store the data and use the environment variable in the `run:` script. Be sure to use double-quotes the environment variable, like this: \"$ENVVAR\"."
+      },
+      "locations": [
+        {
+          "artifactLocation": {
+            "uri": "verify/2026-06-12-gap-fixes/staged/.github/workflows/adr-gate.yml",
+            "uriBaseId": "%SRCROOT%"
+          },
+          "region": {
+            "endColumn": 18,
+            "endLine": 64,
+            "snippet": {
+              "text": "        run: |\n          set -uo pipefail\n          base=\"origin/${{ github.base_ref }}\"\n          git fetch origin \"${{ github.base_ref }}\" --depth=50 >/dev/null 2>&1 || true\n          changed=$(git diff --name-only \"$base\"...HEAD)\n          [ -z \"$changed\" ] && { echo \"no changes\"; exit 0; }\n\n          surfaces=\".claude/adr-surfaces.txt\"\n          [ -f \"$surfaces\" ] || { echo \"no $surfaces \u2014 gate skipped\"; exit 0; }\n\n          touched_arch=\"\"\n          while IFS= read -r glob; do\n            case \"$glob\" in ''|'#'*) continue ;; esac\n            # shell-glob match each changed path against the pattern\n            while IFS= read -r f; do\n              case \"$f\" in\n                $glob) touched_arch=\"$touched_arch $f\" ;;\n              esac\n            done <<< \"$changed\"\n          done < \"$surfaces\"\n\n          if [ -z \"$touched_arch\" ]; then\n            echo \"\u2713 no architectural surfaces touched\"\n            exit 0\n          fi\n\n          echo \"Architectural surfaces touched:$touched_arch\"\n\n          if echo \"$changed\" | grep -q '^\\.claude/memory/decisions/.*\\.md$'; then\n            echo \"\u2713 ADR added/updated in this PR\"\n            exit 0\n          fi\n          if git log \"$base\"...HEAD --format='%B' | grep -qiE 'ADR[-: ]?[0-9]{4}|\\.claude/memory/decisions/'; then\n            echo \"\u2713 commit references an ADR\"\n            exit 0\n          fi\n\n          echo \"\u2717 Architectural surfaces changed with no ADR.\"\n          echo \"  Create one: bash .claude/scripts/adr-new.sh \\\"<title>\\\" --by human --subsystem <key>\"\n          echo \"  (or cite an existing ADR-NNNN in the commit body; surfaces list: $surfaces)\"\n          exit 1"
+            },
+            "startColumn": 9,
+            "startLine": 24
+          }
+        }
+      ]
+    }
+  ],
+  "scope": "actual pre-existing frozen report; no suppression or fresh whole-repository scan claim"
+}

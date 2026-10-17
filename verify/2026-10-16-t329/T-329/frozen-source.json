@@ -1,0 +1,12 @@
+{
+  "scope": "Local source and tests bound to final GREEN; no live activation proof",
+  "source_base": "34bb962a07a001e8fa78a8d71c898886d2e78ef7",
+  "sha256": {
+    ".claude/scripts/check-sarif.sh": "062c7eb4e82bfb670ada319672c8b9a2ee1b0ee9fbe402518783760dfff4909b",
+    ".claude/scripts/check-sarif-audit-policy.py": "a8546c8bd99c686e1229ce0b56c975e3a5a4be9f32bef2df9b9c9d3747c3a94b",
+    ".claude/security-audit-exceptions.json": "707757b523be3bbc7fbf058d0f141262091b2a0b9626ec27f20779f9158116ab",
+    ".github/workflows/semgrep.yml": "47216e3d0fe74cca05b5401c432b6f7763e6e9b2d2738696b6e8d5e55707bf4c",
+    ".claude/scripts/test/sarif-audit-policy.sh": "aa5a388a991a4169b817c370b01a2bfae8129d8f4cc0f4a8c6eba7bc714fe065",
+    ".claude/scripts/test/sarif-effective-severity.sh": "8538a7fd6c20d08e466b0176be7373b8b0c1df2b159d0eb0cf07e4251940bda2"
+  }
+}

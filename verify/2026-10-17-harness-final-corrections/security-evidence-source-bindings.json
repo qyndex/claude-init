@@ -1,0 +1,164 @@
+{
+  "review_head": "90cafd0511d9df7e32f3d214f67e6b530d3d3f9b",
+  "current_head": "9156f4a49cca017979427ad8b72509da642fa440",
+  "all_reviewed_security_evidence_files_unchanged": true,
+  "files": [
+    {
+      "path": ".claude/scripts/check-sarif.sh",
+      "reviewed_sha256": "dfc6229932c48baadfaefbb0a4b7894b4d2dc00324170f175facba9367ebb572",
+      "current_sha256": "dfc6229932c48baadfaefbb0a4b7894b4d2dc00324170f175facba9367ebb572",
+      "unchanged": true
+    },
+    {
+      "path": ".claude/scripts/check-sarif-audit-policy.py",
+      "reviewed_sha256": "a8546c8bd99c686e1229ce0b56c975e3a5a4be9f32bef2df9b9c9d3747c3a94b",
+      "current_sha256": "a8546c8bd99c686e1229ce0b56c975e3a5a4be9f32bef2df9b9c9d3747c3a94b",
+      "unchanged": true
+    },
+    {
+      "path": ".claude/scripts/test/sarif-effective-severity.sh",
+      "reviewed_sha256": "94743fbfa59e077012c98719d35e913d4a0cf479232a8e4d4aed48dc7c765067",
+      "current_sha256": "94743fbfa59e077012c98719d35e913d4a0cf479232a8e4d4aed48dc7c765067",
+      "unchanged": true
+    },
+    {
+      "path": ".claude/scripts/test/sarif-audit-policy.sh",
+      "reviewed_sha256": "5175eee418d893d1709754729294caaf7629acde55e1bc87004ad13351eecb3a",
+      "current_sha256": "5175eee418d893d1709754729294caaf7629acde55e1bc87004ad13351eecb3a",
+      "unchanged": true
+    },
+    {
+      "path": ".claude/security-audit-exceptions.json",
+      "reviewed_sha256": "707757b523be3bbc7fbf058d0f141262091b2a0b9626ec27f20779f9158116ab",
+      "current_sha256": "707757b523be3bbc7fbf058d0f141262091b2a0b9626ec27f20779f9158116ab",
+      "unchanged": true
+    },
+    {
+      "path": ".github/workflows/semgrep.yml",
+      "reviewed_sha256": "d1bc50cadd9f6df514acbdc8029e50b1007996a7b8d3338e6ff3e2fc92a4340c",
+      "current_sha256": "d1bc50cadd9f6df514acbdc8029e50b1007996a7b8d3338e6ff3e2fc92a4340c",
+      "unchanged": true
+    },
+    {
+      "path": ".github/workflows/memory-rollup-weekly.yml",
+      "reviewed_sha256": "a163934247505492caa09cf2d034520014c7b61aafe2aea852992ddb526e6be9",
+      "current_sha256": "a163934247505492caa09cf2d034520014c7b61aafe2aea852992ddb526e6be9",
+      "unchanged": true
+    },
+    {
+      "path": "verify/2026-06-12-gap-fixes/staged/.github/workflows/adr-gate.yml",
+      "reviewed_sha256": "291f34ecd54508d07ef53b954fedcd6b2a00dd44a616e30497313fb921217ea6",
+      "current_sha256": "291f34ecd54508d07ef53b954fedcd6b2a00dd44a616e30497313fb921217ea6",
+      "unchanged": true
+    },
+    {
+      "path": ".claude/scripts/test/weekly-rollup-input.sh",
+      "reviewed_sha256": "f1b72835f78ee4f40a48664d5eb2b402c3da122432bbdfd0f91de290693f0533",
+      "current_sha256": "f1b72835f78ee4f40a48664d5eb2b402c3da122432bbdfd0f91de290693f0533",
+      "unchanged": true
+    },
+    {
+      "path": ".claude/scripts/test/staged-adr-input.sh",
+      "reviewed_sha256": "1c6eb3f094b032cc8376ce0cd7a62d4444bb6e1e434359e31f8457fee98b9300",
+      "current_sha256": "1c6eb3f094b032cc8376ce0cd7a62d4444bb6e1e434359e31f8457fee98b9300",
+      "unchanged": true
+    },
+    {
+      "path": ".claude/scripts/collect-evidence.sh",
+      "reviewed_sha256": "31bba750eb3086f8b59452e8b6066927e3e0c6cb3cbd68a20f843036e054b002",
+      "current_sha256": "31bba750eb3086f8b59452e8b6066927e3e0c6cb3cbd68a20f843036e054b002",
+      "unchanged": true
+    },
+    {
+      "path": ".claude/scripts/test/evidence-proof-preservation.sh",
+      "reviewed_sha256": "e0a287c0efedc3aeed45093e12536bedff3788fe7594f5befe3067baccf8f9a3",
+      "current_sha256": "e0a287c0efedc3aeed45093e12536bedff3788fe7594f5befe3067baccf8f9a3",
+      "unchanged": true
+    },
+    {
+      "path": ".claude/templates/evidence/playwright.config.ts",
+      "reviewed_sha256": "74c5d1170145ce5ab9aa2060f6b2a884e6c826fd838d419a6cf9685cadf2dc70",
+      "current_sha256": "74c5d1170145ce5ab9aa2060f6b2a884e6c826fd838d419a6cf9685cadf2dc70",
+      "unchanged": true
+    },
+    {
+      "path": ".claude/scripts/spec-match.sh",
+      "reviewed_sha256": "9f7eb23f2e75e68c07b2540d2fbb5d8d5d700680496106b2d4789d88e0e23904",
+      "current_sha256": "9f7eb23f2e75e68c07b2540d2fbb5d8d5d700680496106b2d4789d88e0e23904",
+      "unchanged": true
+    },
+    {
+      "path": ".claude/scripts/check-local-evidence.py",
+      "reviewed_sha256": "39ee5a666f28def9704051ad299e20ad2ea853f67f96f91363a1f679af7e9a16",
+      "current_sha256": "39ee5a666f28def9704051ad299e20ad2ea853f67f96f91363a1f679af7e9a16",
+      "unchanged": true
+    },
+    {
+      "path": ".claude/scripts/validate-candidate-evidence.py",
+      "reviewed_sha256": "ad0be5042d8dce5e0372159bbcbdbb84bc39b96e57435865eb62e7e5d4d0b52c",
+      "current_sha256": "ad0be5042d8dce5e0372159bbcbdbb84bc39b96e57435865eb62e7e5d4d0b52c",
+      "unchanged": true
+    },
+    {
+      "path": ".claude/scripts/lib/atomic-write.sh",
+      "reviewed_sha256": "7b9522d8baeaa3662a9cfdd7c4fd6db120cf82e738b5f0d8cc0b3034968a26ed",
+      "current_sha256": "7b9522d8baeaa3662a9cfdd7c4fd6db120cf82e738b5f0d8cc0b3034968a26ed",
+      "unchanged": true
+    },
+    {
+      "path": ".claude/scripts/factory-worker-guard.py",
+      "reviewed_sha256": "adc3bf10d5c6172f844e7748d9cfdae4be1b7b9cf40777ae59c2bdf896d8844c",
+      "current_sha256": "adc3bf10d5c6172f844e7748d9cfdae4be1b7b9cf40777ae59c2bdf896d8844c",
+      "unchanged": true
+    },
+    {
+      "path": ".claude/scripts/foreground-watchdog.py",
+      "reviewed_sha256": "789a370d83f81a8aebde27bcfa5599f38afda8e9b8c328eda22e9e918b0c83ea",
+      "current_sha256": "789a370d83f81a8aebde27bcfa5599f38afda8e9b8c328eda22e9e918b0c83ea",
+      "unchanged": true
+    },
+    {
+      "path": "docs/security/exact-source-audit-policy.md",
+      "reviewed_sha256": "64c183329753f4ca925b2af21d67cf7cd775357452d461e0be15a09cd1bacde7",
+      "current_sha256": "64c183329753f4ca925b2af21d67cf7cd775357452d461e0be15a09cd1bacde7",
+      "unchanged": true
+    },
+    {
+      "path": ".claude/memory/decisions/0010-authenticated-exact-source-scanner-audit-policy.md",
+      "reviewed_sha256": "78c6b304aa34dfe0ca2f7892041fe9588aa3bc58e519b676d3b67fba7b250a23",
+      "current_sha256": "78c6b304aa34dfe0ca2f7892041fe9588aa3bc58e519b676d3b67fba7b250a23",
+      "unchanged": true
+    },
+    {
+      "path": "specs/active/006-trustworthy-candidate-verification.md",
+      "reviewed_sha256": "f4a083fa085142d410d64ed27296bcb4ae0ee65cfc5a857c3d32739036737cab",
+      "current_sha256": "f4a083fa085142d410d64ed27296bcb4ae0ee65cfc5a857c3d32739036737cab",
+      "unchanged": true
+    },
+    {
+      "path": "plans/active/006-trustworthy-candidate-verification.md",
+      "reviewed_sha256": "02696bd48bec1382b8c39a5641591d1a9590fcae23e2cdf94c84fcaa828ef86f",
+      "current_sha256": "02696bd48bec1382b8c39a5641591d1a9590fcae23e2cdf94c84fcaa828ef86f",
+      "unchanged": true
+    },
+    {
+      "path": ".claude/state/analyze-006.json",
+      "reviewed_sha256": "18e11f90beb651e8dbbe793aeb6c6457d8aa3d6366ff078861f4d7894cd713b0",
+      "current_sha256": "18e11f90beb651e8dbbe793aeb6c6457d8aa3d6366ff078861f4d7894cd713b0",
+      "unchanged": true
+    },
+    {
+      "path": "verify/2026-10-16-t329-review/T-329/REPORT.md",
+      "reviewed_sha256": "4dae9b6138522227cf7d2828dd8462e36fdb824e34fe7296ef58248bfe58c983",
+      "current_sha256": "4dae9b6138522227cf7d2828dd8462e36fdb824e34fe7296ef58248bfe58c983",
+      "unchanged": true
+    },
+    {
+      "path": "verify/2026-10-16-t131-review/REPORT.md",
+      "reviewed_sha256": "48b2845764fa2bda1d60401f6d59b81ead4b7d40d2fd12eb6f75bf21a8136413",
+      "current_sha256": "48b2845764fa2bda1d60401f6d59b81ead4b7d40d2fd12eb6f75bf21a8136413",
+      "unchanged": true
+    }
+  ],
+  "note": "Source bindings preserve prior scoped static review; not native attestation or whole-head approval."
+}

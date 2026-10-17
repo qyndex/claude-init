@@ -30,10 +30,11 @@ jobs:
 
       - name: Generate weekly rollup
         id: rollup
+        env:
+          WEEK_INPUT: ${{ github.event.inputs.week }}
         run: |
-          week="${{ github.event.inputs.week }}"
           # memory-rollup.sh weekly [YYYY-Www] — arg honored (M-18); empty = current week.
-          bash .claude/scripts/memory-rollup.sh weekly $week
+          bash .claude/scripts/memory-rollup.sh weekly "$WEEK_INPUT"
           # Emit which file changed for the PR step.
           echo "changed=$(git status --porcelain .claude/memory/rollups/ | head -1)" >> "$GITHUB_OUTPUT"
 

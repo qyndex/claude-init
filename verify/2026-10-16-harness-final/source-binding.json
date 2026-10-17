@@ -1,0 +1,29 @@
+{
+  "source_head": "95d60b20f42ed7d1f1029cf89139c820892ddda8",
+  "base": "91839087a769bd45670df5b84cb96993bcb97d42",
+  "integrated_commands": 13,
+  "passed": 13,
+  "scope": "Local maintenance regressions, not full historical AC recertification or native authority receipts",
+  "source_sha256": {
+    ".claude/hooks/pre-bash-guard.sh": "55c02d5bd77730bff10b500f1ac8dc618d1585d4a16004b412dad808fefcf623",
+    ".claude/memory/decisions/0010-authenticated-exact-source-scanner-audit-policy.md": "78c6b304aa34dfe0ca2f7892041fe9588aa3bc58e519b676d3b67fba7b250a23",
+    ".claude/memory/index.jsonl": "70729a6bdc27633af8f777c3ca5ac19bedaeaab7cfa4ced3c72c3736e2db3235",
+    ".claude/scripts/check-sarif-audit-policy.py": "a8546c8bd99c686e1229ce0b56c975e3a5a4be9f32bef2df9b9c9d3747c3a94b",
+    ".claude/scripts/check-sarif.sh": "90a649c63cc06917787e4508205c69d92ec4cb15e346121b0177880a17ed253a",
+    ".claude/scripts/collect-evidence.sh": "c0362e6e6225dc17b4fdb3a82900562d58847775e4c9ffba8d0390f506b3b7a0",
+    ".claude/scripts/tdd-ledger.sh": "72c90edcd49352f10c9acc22615222ec3f7bf929dbdbc3fd61aa7016abb68801",
+    ".claude/scripts/test/evidence-proof-preservation.sh": "45033a769b58d7294c72325bbf6a72c8c10918e10af317ac01cb69bbc0eecc80",
+    ".claude/scripts/test/pre-bash-guard-literals.sh": "dc927087eac1032799cca479380d7b26763c2ea5fedbbfdd188e4d76345b981a",
+    ".claude/scripts/test/sarif-audit-policy.sh": "aa5a388a991a4169b817c370b01a2bfae8129d8f4cc0f4a8c6eba7bc714fe065",
+    ".claude/scripts/test/sarif-effective-severity.sh": "94743fbfa59e077012c98719d35e913d4a0cf479232a8e4d4aed48dc7c765067",
+    ".claude/scripts/test/staged-adr-input.sh": "1c6eb3f094b032cc8376ce0cd7a62d4444bb6e1e434359e31f8457fee98b9300",
+    ".claude/scripts/test/tdd-ledger-suite.sh": "dc0f02e799eb40aeb14917ae80e4cec019676f4f7010422d9a8e86beebbd7d89",
+    ".claude/scripts/test/weekly-rollup-input.sh": "f1b72835f78ee4f40a48664d5eb2b402c3da122432bbdfd0f91de290693f0533",
+    ".claude/security-audit-exceptions.json": "707757b523be3bbc7fbf058d0f141262091b2a0b9626ec27f20779f9158116ab",
+    ".claude/state/analyze-003.json": "cf30eb316ab5ce3f99aeb4c4fde888a9f7fb8c72980fd3033569a6f0ee5e10ba",
+    ".claude/state/analyze-006.json": "70a513e56496fac4259390b7664b4ecbc391b99a6a6ba67b1a18fd4b51797779",
+    ".claude/templates/evidence/playwright.config.ts": "74c5d1170145ce5ab9aa2060f6b2a884e6c826fd838d419a6cf9685cadf2dc70",
+    ".github/workflows/memory-rollup-weekly.yml": "a163934247505492caa09cf2d034520014c7b61aafe2aea852992ddb526e6be9",
+    ".github/workflows/semgrep.yml": "47216e3d0fe74cca05b5401c432b6f7763e6e9b2d2738696b6e8d5e55707bf4c"
+  }
+}

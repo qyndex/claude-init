@@ -1,0 +1,10 @@
+# TDD ledger — red — T-328
+ledger_format: 2
+timestamp: 2026-10-16T23:01:46+11:00
+command: bash .claude/scripts/test/staged-adr-input.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 74, in <module>
+AssertionError: ('supported', 'substitution', 'shell payload executed')

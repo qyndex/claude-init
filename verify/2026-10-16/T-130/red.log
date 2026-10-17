@@ -1,0 +1,11 @@
+# TDD ledger — red — T-130
+ledger_format: 2
+timestamp: 2026-10-16T23:23:56+11:00
+command: bash .claude/scripts/test/tdd-ledger-suite.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+PASS actual native Node config-load AssertionError: tooling-error, gate enforced
+Traceback (most recent call last):
+  File "<stdin>", line 48, in <module>
+AssertionError: [('unittest assertion diff', 1, ['red_reason: tooling-error'], 1), ('Node config-helper test assertion', 1, ['red_reason: tooling-error'], 1)]

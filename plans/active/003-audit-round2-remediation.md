@@ -4,7 +4,7 @@ slug: audit-round2-remediation
 status: approved
 spec: specs/active/003-audit-round2-remediation.md
 created: 2026-05-29
-updated: 2026-05-29
+updated: 2026-10-16
 ---
 
 # Plan 003: Audit Round-2 Remediation
@@ -29,6 +29,7 @@ Settings.json + constitution-class edits (Phase 2/3 permission/sandbox, CI workf
 - **Phase 4 — Supply-chain + config drift** (AC-11..AC-14): workflow model pins, model-consistency over workflows, worktree schema fix, ruleset↔job validate check. Operator-apply (workflows).
 - **Phase 5 — Lifecycle correctness** (AC-15..AC-17): ship 001/002, spec-status-sync, stale-spec tightening.
 - **Phase 6 — Verification + exit** (AC-18): validate clean + harness-doctor + REPORT.md.
+- **Phase 9 — Existing live-E2E followups** (AC-19..AC-21): T-129 repairs literal-text false positives while preserving dangerous command detection; T-130 rejects runner configuration failures as tooling; T-131 preserves AC proof across smoke reruns and corrects template guidance. These task-ledger requirements were already approved; this mapping restores artifact consistency without certifying historical AC evidence again. T-129 and T-130 are dependency-free parallel tasks, explicitly authorized for isolated execution on 2026-10-16. Integrate their verified commits sequentially. T-131 was additionally authorized for isolated parallel execution on 2026-10-16 while the frozen independent review runs; its task flag is updated under the shared lock. Integration remains sequential. Each repair uses current-production portable tests, an honest analysis gate, paired RED/GREEN evidence, and its own conventional commit. No permission-list, secret-access, or guard-override change is authorized by this phase.
 
 ## Data model / contracts
 
@@ -51,3 +52,7 @@ Settings.json + constitution-class edits (Phase 2/3 permission/sandbox, CI workf
 ## Acceptance command (whole plan)
 
 `SKIP_COVERAGE=1 SKIP_STORY_MAP=1 SKIP_INTEG_COV=1 bash .claude/scripts/validate.sh && test -f verify/2026-05-29-003/REPORT.md`
+
+## T-131 current-proof preservation continuation
+
+For AC21, snapshot explicitly prepared check-only results into a retained unique attempt directory before validation and smoke. Consume the snapshot afterward; a smoke overwrite of the date-root file cannot replace valid, failing, missing or malformed original proof. Preserve normal journey attempt isolation and correct only the evidence-template filename/command guidance. Portable controlled-runner tests invoke the current production collector and actual spec-match script; they make no installed Playwright/browser execution claim.

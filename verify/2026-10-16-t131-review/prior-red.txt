@@ -1,0 +1,12 @@
+# TDD ledger — red — T-131
+ledger_format: 2
+timestamp: 2026-10-16T23:17:28+11:00
+command: bash .claude/scripts/test/evidence-proof-preservation.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Evidence proof preservation: 18 passed; 1 failed
+FAIL non-json-number: invalid/missing/failing original became PASS
+Traceback (most recent call last):
+  File "<stdin>", line 107, in <module>
+AssertionError: non-json-number: invalid/missing/failing original became PASS

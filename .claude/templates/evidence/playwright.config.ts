@@ -1,12 +1,13 @@
-// Evidence-capture rig — Round 10 B. Copy to repo root as playwright.config.ts.
+// Evidence-capture rig — Round 10 B. Copy to repo root as playwright.evidence.config.ts.
 //
 // Turns on the four evidence artifacts the operator needs:
 //   video (full journey), trace.zip (DOM+network+console per step),
 //   HAR (full HTTP traces), screenshot-on-failure.
 // All routed to verify/<date>-<feature>/ so collect-evidence.sh can bundle them.
 //
+// Put journeys in e2e/<spec-id>/.
 // Set VERIFY_FEATURE (the spec slug) before running:
-//   VERIFY_FEATURE=042-checkout npx playwright test e2e/042
+//   VERIFY_FEATURE=042-checkout npx playwright test --config playwright.evidence.config.ts e2e/042
 
 import { defineConfig, devices } from "@playwright/test";
 import * as fs from "node:fs";

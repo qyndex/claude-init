@@ -1,0 +1,10 @@
+# TDD ledger — red — T-130
+ledger_format: 2
+timestamp: 2026-10-16T22:38:51+11:00
+command: bash .claude/scripts/test/tdd-ledger-suite.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 44, in <module>
+AssertionError: ('vitest-colored', 'tooling-error', '# TDD ledger — red — T-900\nledger_format: 2\ntimestamp: 2026-10-16T22:38:51+11:00\ncommand: bash /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tdd-ledger-classification-62y7dcs4/vitest-colored.sh\nexit_code: 1\nred_reason: assertion-failure\n---\n\x1b[31mfailed to load config from /tmp/vitest.config.ts\x1b[0m\nError: config exploded\n')

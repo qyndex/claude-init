@@ -1,0 +1,9 @@
+# T131 isolated verification
+
+Base: d735e07b9dda971509e89ce5f7069c87ca819735. Scope: Spec003 AC21 only.
+
+Actual same-command TDD acceptance runs production collector/spec-match/local consumer in temporary synthetic repositories. Initial full-suite RED demonstrated mutable proof clobber; final retained RED additionally demonstrates Python default non-JSON constant acceptance before explicit rejection. GREEN: 19 cases. Raw NUL/trailing garbage/NaN input is rejected before smoke; original proof bytes and trailing newlines survive canonical rewrites, snapshot tamper blocks publication, repeated/normal attempts remain isolated, failed runners/smoke stay failed. No actual browser or remote runner was used.
+
+Existing evidence-finalization: 5 passed; local-evidence-gate: 6 passed. ShellCheck warning/error severity passes; its informational SC2086 at pre-existing collect-evidence line35 remains unchanged. Full structural validation passes with four existing warnings (three unreferenced intake hooks and the historical T111/T114 no-op accept); ledger: zero failures, zero warnings, 70 pre-T111 legacy-incomplete tasks. A separately labeled post-implementation immutable-base replay records the broader original clobber regressions; the final canonical RED/GREEN pair records the last JSON-constant correction. No security suppression, independent merge authority, XML consumer repair, or same-user hostile concurrency isolation is claimed. XML parsing/acquisition remains existing behavior. Independent review and parent integration remain pending.
+
+The collector strictly parses raw UTF-8 JSON (including rejecting NaN/Infinity), hashes retained bytes before smoke, rejects replacement/deletion afterward, and atomically publishes those validated JSON bytes at the legacy consumer path. SHA256 binds integrity during collection, not trusted external provenance.

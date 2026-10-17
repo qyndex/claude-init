@@ -1,0 +1,38 @@
+{
+  "report": {
+    "version": "2.1.0",
+    "runs": [
+      {
+        "tool": {
+          "driver": {
+            "rules": [
+              {
+                "id": "x",
+                "defaultConfiguration": {
+                  "level": "warning"
+                }
+              }
+            ]
+          }
+        },
+        "results": [
+          {
+            "ruleId": "x",
+            "ruleIndex": -1,
+            "rule": {
+              "index": 0
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "actual_exit": 0,
+  "output": "SARIF clean of high/critical findings\n",
+  "expected": "Reject unequal explicit index fields before normalizing -1 sentinel",
+  "primary": "https://docs.oasis-open.org/sarif/sarif/v2.1.0/os/sarif-v2.1.0-os.html",
+  "primary_sections": [
+    "3.27.6",
+    "3.52.5"
+  ]
+}

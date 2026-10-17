@@ -1,0 +1,10 @@
+# TDD ledger — red — T-327
+ledger_format: 2
+timestamp: 2026-10-16T22:46:10+11:00
+command: bash .claude/scripts/test/weekly-rollup-input.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 56, in <module>
+AssertionError: ('workflow input executed a shell command', 0)

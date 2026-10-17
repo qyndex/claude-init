@@ -1,0 +1,79 @@
+{
+  "verdict": "changes_requested",
+  "review_summary": "Static review of the exact-source audit policy, covering the SARIF gate, the Python helper, the Semgrep workflow split, the registry, the tests and the docs. Plan mode was active, so I made no edits and ran nothing.\n\nThe authentication core holds up. The registry bytes are bound to an externally supplied SHA256 before any record is parsed. JSON parsing rejects duplicate keys and non-finite constants. Source and root symlinks are rejected, and the source walk uses O_NOFOLLOW directory descriptors. Numeric-high findings are never waived. Suppression metadata is never read. Duplicate findings, multi-location findings and findings with an unsupported artifactLocation are rejected. Option parsing fails closed. I found no way for a candidate registry, SARIF suppression, path trick or extra finding to gain approval in audit mode.\n\nThe issues are in the surrounding workflow design and hardening:\n- **Medium:** enabling the opt-in variable removes the strict PR-time scan. The strict job becomes a skipped job, which GitHub counts as passing for a required check. The audit job then fails on every non-main ref.\n- **Low:** the `# nosem` suppression gap, the helper launched without `python3 -I`, unpinned actions and image in the protected job, the retained raw SARIF, an early PASS state artifact and a positive-path test gap.\n\nThe default-off behaviour is preserved.",
+  "findings": [
+    {
+      "severity": "medium",
+      "file": ".github/workflows/semgrep.yml",
+      "line": 16,
+      "title": "Opting in drops the PR-time strict scan; the audit job cannot run on PRs",
+      "reason": "The strict job is gated by `vars.FACTORY_SECURITY_AUDIT_ENABLED != 'true'` (line 16). The audit job (line 54) is gated only on `== 'true'`, and its first step fails unless GITHUB_REF is refs/heads/main (line 67). Input: the variable is 'true' and this workflow is invoked via workflow_call from a PR context (refs/pull/N/merge). Then `semgrep` is skipped and `semgrep-audit` fails at 'Audit policy requires main'. A job skipped by `if` reports success and satisfies a required status check, so a required `semgrep` check silently becomes non-gating. Otherwise every PR is blocked by the audit job. Neither outcome is a documented or tested cutover property; the test only string-matches the two `if` expressions. Suggested fix: make the strict job `if: vars.FACTORY_SECURITY_AUDIT_ENABLED != 'true' || github.ref != 'refs/heads/main'` and the audit job `if: vars.FACTORY_SECURITY_AUDIT_ENABLED == 'true' && github.ref == 'refs/heads/main'`. Keep the jobs mutually exclusive, keep the in-job ref check, and document which job name branch protection requires."
+    },
+    {
+      "severity": "low",
+      "file": ".github/workflows/semgrep.yml",
+      "line": 73,
+      "title": "Inline `nosem` can hide findings from the audit gate",
+      "reason": "The ADR rejects candidate-owned inline suppressions because they could hide changed findings. The audit job runs Semgrep with default `nosem` handling, so a `# nosem` comment added on main can suppress or alter what Semgrep emits. The gate only sees results present in the SARIF. This predates the diff, but the new claim that any additional unapproved error blocks depends on it. Whether Semgrep drops such results or emits them with suppressions depends on its version, which I could not verify. Suggested fix: pass `--disable-nosem` in the audit job and add a negative control to the activation package."
+    },
+    {
+      "severity": "low",
+      "file": ".claude/scripts/check-sarif.sh",
+      "line": 121,
+      "title": "Policy helper is launched without Python isolated mode",
+      "reason": "`python3 \"$(dirname \"$0\")/check-sarif-audit-policy.py\"` puts the scripts directory first on sys.path, and `python3` is resolved from PATH. Input: a file such as `.claude/scripts/json.py`, `re.py` or `hashlib.py` in the checkout shadows the stdlib import in the process that makes the approval decision. This is only reachable if checkout content is untrusted, which the main-only design is meant to prevent, but it is cheap defense in depth. Suggested fix: `python3 -I`."
+    },
+    {
+      "severity": "low",
+      "file": ".github/workflows/semgrep.yml",
+      "line": 59,
+      "title": "Protected job uses mutable image and action tags",
+      "reason": "The job that reads the protected environment variable and makes the approval decision runs the mutable image `returntocorp/semgrep` and actions pinned only by tag (checkout@v7, upload-artifact@v7, upload-sarif@v4). A moved tag or image runs the gate, jq and python with the expected digest in its environment. Pin the image by digest and the actions by commit SHA, at least in `semgrep-audit`, and list the pins in the activation package."
+    },
+    {
+      "severity": "low",
+      "file": ".github/workflows/semgrep.yml",
+      "line": 83,
+      "title": "Raw SARIF retained 90 days may contain secret snippets",
+      "reason": "The audit job runs `p/secrets` and uploads the unredacted `semgrep.sarif`, which can include matched code snippets, as a 90-day artifact readable by anyone with repo read access. It is also uploaded to code scanning. Raw retention is a deliberate requirement, so consider a shorter retention, or state the exposure in the activation package."
+    },
+    {
+      "severity": "low",
+      "file": ".claude/state/analyze-006.json",
+      "line": 21,
+      "title": "State file records PASS with no blockers while review is pending",
+      "reason": "The file sets `verdict: PASS`, `blockers: []` and `tasks_done: 12`. Its own `scope` text says final combined tests and the independent review are still pending. If downstream readiness tooling consumes this file, it asserts a result that has not been established. Leave the verdict unset or `pending` until this review is resolved."
+    },
+    {
+      "severity": "low",
+      "file": ".claude/scripts/test/sarif-audit-policy.sh",
+      "line": 28,
+      "title": "No positive test for Semgrep's `%SRCROOT%` location shape",
+      "reason": "The only accepting case (line 28) uses an artifactLocation with just `uri`. The code deliberately allows `uriBaseId == '%SRCROOT%'`, which is what Semgrep emits, but no accepting case exercises it. Nothing proves a Semgrep-shaped report is accepted rather than failing closed because of an unsupported field. The workflow checks are string assertions. Add an accepting case with `uriBaseId: '%SRCROOT%'` and ideally a trimmed real retained Semgrep report. `import re` is also unused."
+    },
+    {
+      "severity": "nit",
+      "file": "docs/security/exact-source-audit-policy.md",
+      "line": 27,
+      "title": "Doc misdescribes job boundaries and has spacing typos",
+      "reason": "The doc says the raw report 'stays in its own job'. In the workflow the scan, the artifact upload and the enforcement all run in the same `semgrep-audit` job. It also has 'for90 days'. Similar missing spaces appear in the plan ('Existing88', 'operator's2026-10-16'). Correct the job wording so the activation reviewer does not assume a separation that does not exist."
+    },
+    {
+      "severity": "nit",
+      "file": ".claude/scripts/check-sarif.sh",
+      "line": 10,
+      "title": "Duplicate option exits silently",
+      "reason": "`--audit-policy`, `--expected-registry-sha256` and `--source-root` given twice hit `|| exit 1` with no message, unlike the other blocked paths. It still fails closed, but it is hard to diagnose in CI logs."
+    }
+  ],
+  "limitations": [
+    "Static review only. I executed nothing and make no claim that any test passed; the diff contains no proof logs.",
+    "I could not recompute the whole-file SHA256 values in `.claude/security-audit-exceptions.json`. The recorded lines do match the Popen calls: factory-worker-guard.py:155 and foreground-watchdog.py:30.",
+    "I did not verify whether real Semgrep SARIF fits the supported audit profile. Open points are whether it emits `originalUriBaseIds`, `workingDirectory` or rule `security-severity` >= 7 for the two audited rules. Any of these would make audit mode fail closed rather than approve, so there is no safety impact, but acceptance of the actual retained scan is unproven.",
+    "I could not confirm that the `isfinite` filter used in check-sarif.sh exists across jq versions. If a jq in the Semgrep container lacks it, the gate fails closed, so this is an availability risk only. The jq severity and identity logic was reviewed lightly because another review covers it.",
+    "GitHub environment protections, branch policy, variable scope and shadowing, and branch-protection required-check names are outside the diff and unobservable here. The documented fallback caveat for the `vars` context is accurate and is not enforced by the code.",
+    "The referenced T329 REPORT.md and retained scan evidence are not in the supplied source-only diff.",
+    "Unchanged files (factory-worker-guard.py, foreground-watchdog.py, memory-rollup.sh, factory-bounded-process.py) were read only as context for the registry records and the weekly-input fix. I made no security assessment of them.",
+    "I did not check whether the new test scripts are wired into any suite runner."
+  ]
+}

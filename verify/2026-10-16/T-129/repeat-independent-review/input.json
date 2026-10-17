@@ -1,0 +1,94 @@
+{
+  "head": "d735e07b9dda971509e89ce5f7069c87ca819735",
+  "base": "91839087a769bd45670df5b84cb96993bcb97d42",
+  "prompt_sha256": "67f2f8b6d46604f1ec706eb2dd8caaece04e8875d3b8afce640200cf140fc219",
+  "prompt_bytes": 443848,
+  "files": [
+    {
+      "path": ".claude/hooks/pre-bash-guard.sh",
+      "sha256": "1ca96efc5e320e496a8f2de33b13353c16fd2913d2d65cb054745323e05cda45"
+    },
+    {
+      "path": ".claude/scripts/check-sarif.sh",
+      "sha256": "104913571910cd693c411654a4392cb7f58b9679c7087c44f19e91a11e695869"
+    },
+    {
+      "path": ".claude/scripts/tdd-ledger.sh",
+      "sha256": "657b2aa65f9aade4169cf7b31ca44903b691aebb86d6b70536c4ca65fc899e9f"
+    },
+    {
+      "path": ".claude/scripts/test/pre-bash-guard-literals.sh",
+      "sha256": "638776f658a8d7e9812df0fd65f31d6422a5914a21fc25218d281c73fa401ec8"
+    },
+    {
+      "path": ".claude/scripts/test/sarif-effective-severity.sh",
+      "sha256": "8538a7fd6c20d08e466b0176be7373b8b0c1df2b159d0eb0cf07e4251940bda2"
+    },
+    {
+      "path": ".claude/scripts/test/staged-adr-input.sh",
+      "sha256": "1c6eb3f094b032cc8376ce0cd7a62d4444bb6e1e434359e31f8457fee98b9300"
+    },
+    {
+      "path": ".claude/scripts/test/tdd-ledger-suite.sh",
+      "sha256": "537b2c636c7d62c03b3df375ec02c10a471c812383cf302133dea4dc4d8000d7"
+    },
+    {
+      "path": ".claude/scripts/test/weekly-rollup-input.sh",
+      "sha256": "f1b72835f78ee4f40a48664d5eb2b402c3da122432bbdfd0f91de290693f0533"
+    },
+    {
+      "path": ".claude/state/analyze-003.json",
+      "sha256": "fe0dee1c4ce51accdd9d4089e78b930f4a396e55b10c0e578a81f0b9da507361"
+    },
+    {
+      "path": ".claude/state/analyze-006.json",
+      "sha256": "4be67a10ec3f1986569d990e1e614e153212ac76acfd7b9fbc80c51b8dfd395f"
+    },
+    {
+      "path": ".github/workflows/memory-rollup-weekly.yml",
+      "sha256": "a163934247505492caa09cf2d034520014c7b61aafe2aea852992ddb526e6be9"
+    },
+    {
+      "path": "plans/active/003-audit-round2-remediation.md",
+      "sha256": "9293f31ad13098379ab3fbcc09c3f72aa92f04f4f21b9515abed552cf533c5fa"
+    },
+    {
+      "path": "plans/active/006-trustworthy-candidate-verification.md",
+      "sha256": "31071be6a60af33fb87f3a0e26da4a626d553782ad9e45526b217aa926f64182"
+    },
+    {
+      "path": "specs/active/003-audit-round2-remediation.md",
+      "sha256": "609b475d51c475cf468baab58676f3b405f09dad9c6d4499034ccd5372ff6678"
+    },
+    {
+      "path": "specs/active/006-trustworthy-candidate-verification.md",
+      "sha256": "701f22df660846870dea564e8723d7ee82e8d7161ed78540cbbcc75ad1585ef5"
+    },
+    {
+      "path": "verify/2026-06-12-gap-fixes/staged/.github/workflows/adr-gate.yml",
+      "sha256": "291f34ecd54508d07ef53b954fedcd6b2a00dd44a616e30497313fb921217ea6"
+    },
+    {
+      "path": ".claude/scripts/check-tdd-ledger.sh",
+      "sha256": "730bd5e6a416bf671b61fafaa838b7c09742ca9bab6102b5dbc28334af995ca9"
+    },
+    {
+      "path": ".claude/scripts/memory-rollup.sh",
+      "sha256": "a1745a5eeb28a8f79f23a03975037174d76e5ecc701cca006d33537ab7522f6a"
+    },
+    {
+      "path": ".claude/scripts/factory-bounded-process.py",
+      "sha256": "91d077e6badb7c606a31cf85d8fbb8315b91d9d211b4fe1ab8fb970693207f47"
+    },
+    {
+      "path": ".claude/scripts/test/pre-bash-guard-bypass.sh",
+      "sha256": "a87a1e9e19928de3a9a1f1d5f64b4b3a58333731b5b37ca2243974040f7d51f8"
+    },
+    {
+      "path": ".claude/scripts/test/factory-workflows.sh",
+      "sha256": "54cea3b8e9234560c77ed95f6f95ef9d475558ea05d91dc34c98ba06a0a82eab"
+    }
+  ],
+  "created_at": "2026-10-16T12:09:12.909343+00:00",
+  "scope": "Static independent review; no test execution claim"
+}

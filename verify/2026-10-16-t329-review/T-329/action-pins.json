@@ -1,0 +1,9 @@
+{
+  "source": "Official GitHub API tag references resolved 2026-10-16/17, including annotated CodeQL tag dereference",
+  "actions/checkout@v7": "3d3c42e5aac5ba805825da76410c181273ba90b1",
+  "actions/upload-artifact@v7": "cf430e030ddbb5b0abf93d22962f4752f3646cd9",
+  "github/codeql-action@v4": {
+    "tag_object": "f051dc808ef3645eb0d08647ec751634ec2304ac",
+    "commit": "6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee"
+  }
+}

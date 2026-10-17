@@ -1,0 +1,21 @@
+{
+  "head": "90cafd0511d9df7e32f3d214f67e6b530d3d3f9b",
+  "raw_report_sha256": "7d6c19f8d1eae4df233bd9fe4d03e01333689360a1a36e1cdd26005f809f2b5f",
+  "findings": 144,
+  "registry_sha256": "707757b523be3bbc7fbf058d0f141262091b2a0b9626ec27f20779f9158116ab",
+  "gates": [
+    {
+      "name": "default",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "2 high/critical findings\n"
+    },
+    {
+      "name": "simulated-exact-policy",
+      "exit_code": 0,
+      "stdout": "SARIF accepted exact-source audit exceptions: 2; unapproved high/critical findings: 0; NOT a clean security scan\n",
+      "stderr": ""
+    }
+  ],
+  "live_approval": false
+}

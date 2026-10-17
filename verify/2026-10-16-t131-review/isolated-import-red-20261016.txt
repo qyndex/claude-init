@@ -1,0 +1,39 @@
+# TDD ledger — red — T-131
+ledger_format: 2
+timestamp: 2026-10-16T23:59:32+11:00
+command: bash .claude/scripts/test/evidence-proof-preservation.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Evidence proof preservation: 19 passed; 2 failed
+FAIL isolated-integrity-json: → Collecting evidence for spec 900 (900-fixture)
+a value: sys.exit("Invalid JSON constant: " + value)); sys.exit(0 if isinstance(value, dict) else 1)
+    ^^^^^^^^^^^^^^^^
+  File "/private/var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/evidence-proof-preservation-9emrjb1t/json.py", line 3, in <module>
+    raise RuntimeError("checkout module must not run in proof integrity path")
+RuntimeError: checkout module must not run in proof integrity path
+
+FAIL isolated-integrity-hashlib: → Collecting evidence for spec 900 (900-fixture)
+le>
+    import hashlib, sys; print(hashlib.sha256(open(sys.argv[1], "rb").read()).hexdigest())
+    ^^^^^^^^^^^^^^^^^^^
+  File "/private/var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/evidence-proof-preservation-it7nn2f8/hashlib.py", line 3, in <module>
+    raise RuntimeError("checkout module must not run in proof integrity path")
+RuntimeError: checkout module must not run in proof integrity path
+
+Traceback (most recent call last):
+  File "<stdin>", line 113, in <module>
+AssertionError: isolated-integrity-json: → Collecting evidence for spec 900 (900-fixture)
+a value: sys.exit("Invalid JSON constant: " + value)); sys.exit(0 if isinstance(value, dict) else 1)
+    ^^^^^^^^^^^^^^^^
+  File "/private/var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/evidence-proof-preservation-9emrjb1t/json.py", line 3, in <module>
+    raise RuntimeError("checkout module must not run in proof integrity path")
+RuntimeError: checkout module must not run in proof integrity path
+
+isolated-integrity-hashlib: → Collecting evidence for spec 900 (900-fixture)
+le>
+    import hashlib, sys; print(hashlib.sha256(open(sys.argv[1], "rb").read()).hexdigest())
+    ^^^^^^^^^^^^^^^^^^^
+  File "/private/var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/evidence-proof-preservation-it7nn2f8/hashlib.py", line 3, in <module>
+    raise RuntimeError("checkout module must not run in proof integrity path")
+RuntimeError: checkout module must not run in proof integrity path

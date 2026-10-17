@@ -1,0 +1,19 @@
+{
+  "scope": "Guard JSON only, supplied commands never executed.148 data cases preserve all133 prior denied controls plus5 new denials (138 total); ten bounded literal examples differ. Two tokenizer-failure injections pass separately in150-case suite.",
+  "observations": [
+    {
+      "guard": "original-main91839087",
+      "sha256": "0a79ac5987851fa8ad4aee8c9ad15e26f393ea72d1e9d0603585125e800ae2fa",
+      "exit": 1,
+      "stdout": "FAIL frontend-heredoc: expected=pass got=deny exit=2\nFAIL frontend-backtick-function: expected=pass got=deny exit=2\nFAIL prose: expected=pass got=deny exit=2\nFAIL template-fetch-function: expected=pass got=deny exit=2\nFAIL frontend-fetching-items: expected=pass got=deny exit=2\nFAIL frontend-fetching-one-record: expected=pass got=deny exit=2\nFAIL frontend-await: expected=pass got=deny exit=2\nFAIL frontend-return: expected=pass got=deny exit=2\nFAIL frontend-export: expected=pass got=deny exit=2\nFAIL frontend-async-function: expected=pass got=deny exit=2\nmatrix passed=138 failed=10\n",
+      "stderr": ""
+    },
+    {
+      "guard": "comment-boundary-repair",
+      "sha256": "b63c33edce6df1db527f585513ca196b9a304be6eb5be69fd344e9eb335cb969",
+      "exit": 0,
+      "stdout": "matrix passed=148 failed=0\n",
+      "stderr": ""
+    }
+  ]
+}

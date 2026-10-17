@@ -1,0 +1,9 @@
+# TDD ledger — red — T-129
+ledger_format: 2
+timestamp: 2026-10-16T23:02:30+11:00
+command: bash .claude/scripts/test/pre-bash-guard-literals.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+FAIL tokenizer-exit3: expected deny got exit=0
+guard literal cases: 67 passed, 1 failed

@@ -1,0 +1,57 @@
+# TDD ledger — red — T-326
+ledger_format: 2
+timestamp: 2026-10-16T22:48:15+11:00
+command: bash .claude/scripts/test/sarif-effective-severity.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+FAIL multiple-documents: expected exit1/'Invalid SARIF'; got0/'SARIF clean of high/critical findings\n/private/tmp/factory-sarif-severity-20261016/.claude/scripts/check-sarif.sh: line 19: [: 0\n0: integer expression expected\n'
+Traceback (most recent call last):
+  File "<stdin>", line 71, in <module>
+AssertionError: rule-id-default-error: expected exit1/'high/critical'; got0/'SARIF clean of high/critical findings\n'
+rule-index-default-error: expected exit1/'high/critical'; got0/'SARIF clean of high/critical findings\n'
+structured-index-default-error: expected exit1/'high/critical'; got0/'SARIF clean of high/critical findings\n'
+id-and-index-default-error: expected exit1/'high/critical'; got0/'SARIF clean of high/critical findings\n'
+pass-invalid-level: expected exit1/'Invalid SARIF'; got1/'1 high/critical findings\n'
+open-invalid-level: expected exit1/'Invalid SARIF'; got1/'1 high/critical findings\n'
+informational-invalid-level: expected exit1/'Invalid SARIF'; got1/'1 high/critical findings\n'
+notApplicable-invalid-level: expected exit1/'Invalid SARIF'; got1/'1 high/critical findings\n'
+review-invalid-level: expected exit1/'Invalid SARIF'; got1/'1 high/critical findings\n'
+rule-numeric-high-index: expected exit1/'high/critical'; got0/'SARIF clean of high/critical findings\n'
+nonfail-rule-high: expected exit0/'SARIF clean'; got1/'1 high/critical findings\n'
+hierarchical-id-index: expected exit1/'high/critical'; got0/'SARIF clean of high/critical findings\n'
+conflicting-id-index: expected exit1/'Invalid SARIF'; got0/'SARIF clean of high/critical findings\n'
+conflicting-structured-id: expected exit1/'Invalid SARIF'; got0/'SARIF clean of high/critical findings\n'
+conflicting-structured-index: expected exit1/'Invalid SARIF'; got0/'SARIF clean of high/critical findings\n'
+invalid-index--1: expected exit1/'Invalid SARIF'; got0/'SARIF clean of high/critical findings\n'
+invalid-index-1: expected exit1/'Invalid SARIF'; got0/'SARIF clean of high/critical findings\n'
+invalid-index-0.5: expected exit1/'Invalid SARIF'; got0/'SARIF clean of high/critical findings\n'
+invalid-index-True: expected exit1/'Invalid SARIF'; got0/'SARIF clean of high/critical findings\n'
+invalid-index-None: expected exit1/'Invalid SARIF'; got0/'SARIF clean of high/critical findings\n'
+invalid-index-0: expected exit1/'Invalid SARIF'; got0/'SARIF clean of high/critical findings\n'
+duplicate-id-ambiguous: expected exit1/'Invalid SARIF'; got0/'SARIF clean of high/critical findings\n'
+invalid-result-level-fatal: expected exit1/'Invalid SARIF'; got0/'SARIF clean of high/critical findings\n'
+invalid-result-level-None: expected exit1/'Invalid SARIF'; got0/'SARIF clean of high/critical findings\n'
+invalid-result-kind-bogus: expected exit1/'Invalid SARIF'; got0/'SARIF clean of high/critical findings\n'
+invalid-result-kind-None: expected exit1/'Invalid SARIF'; got0/'SARIF clean of high/critical findings\n'
+invalid-result-ruleId-None: expected exit1/'Invalid SARIF'; got0/'SARIF clean of high/critical findings\n'
+invalid-result-rule-None: expected exit1/'Invalid SARIF'; got0/'SARIF clean of high/critical findings\n'
+invalid-numeric-not numeric: expected exit1/'Invalid SARIF'; got5/"jq: error (at /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmpzg3weo7_/input.sarif:0): Invalid numeric literal at line 1, column 4 (while parsing 'not numeric')\n"
+invalid-numeric-NaN: expected exit1/'Invalid SARIF'; got0/'SARIF clean of high/critical findings\n'
+invalid-numeric-Infinity: expected exit1/'Invalid SARIF'; got1/'1 high/critical findings\n'
+invalid-numeric-True: expected exit1/'Invalid SARIF'; got5/'jq: error (at /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmpzg3weo7_/input.sarif:0): boolean (true) cannot be parsed as a number\n'
+invalid-numeric-None: expected exit1/'Invalid SARIF'; got0/'SARIF clean of high/critical findings\n'
+invalid-numeric-{}: expected exit1/'Invalid SARIF'; got5/'jq: error (at /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmpzg3weo7_/input.sarif:0): object ({}) cannot be parsed as a number\n'
+bad-default-level: expected exit1/'Invalid SARIF'; got0/'SARIF clean of high/critical findings\n'
+null-default: expected exit1/'Invalid SARIF'; got0/'SARIF clean of high/critical findings\n'
+invalid-tool-None: expected exit1/'Invalid SARIF'; got0/'SARIF clean of high/critical findings\n'
+invalid-tool-False: expected exit1/'Invalid SARIF'; got0/'SARIF clean of high/critical findings\n'
+invalid-tool-{'driver': None}: expected exit1/'Invalid SARIF'; got0/'SARIF clean of high/critical findings\n'
+invalid-tool-{'driver': False}: expected exit1/'Invalid SARIF'; got0/'SARIF clean of high/critical findings\n'
+unresolved-extension-only-id: expected exit1/'Invalid SARIF'; got0/'SARIF clean of high/critical findings\n'
+empty-rule-reference: expected exit1/'Invalid SARIF'; got0/'SARIF clean of high/critical findings\n'
+external-rule-file: expected exit1/'Invalid SARIF'; got0/'SARIF clean of high/critical findings\n'
+inline-external-results: expected exit1/'Invalid SARIF'; got0/'SARIF clean of high/critical findings\n'
+unavailable-extension: expected exit1/'Invalid SARIF'; got0/'SARIF clean of high/critical findings\n'
+unresolved-configuration-override: expected exit1/'Invalid SARIF'; got0/'SARIF clean of high/critical findings\n'
+multiple-documents: expected exit1/'Invalid SARIF'; got0/'SARIF clean of high/critical findings\n/private/tmp/factory-sarif-severity-20261016/.claude/scripts/check-sarif.sh: line 19: [: 0\n0: integer expression expected\n'

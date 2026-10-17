@@ -1,0 +1,56 @@
+{
+  "verdict": "changes_requested",
+  "review_summary": "Static review of frozen HEAD d735e07 against base 9183908. I executed nothing. Every claim below comes from hand-tracing the supplied sources.\n\nVerified repaired:\n- The prior HIGH (odd literal backtick in single quotes, double quotes, comments or quoted heredocs). `echo '`'; echo `curl \u2026`` now tracks single-quote state, so the real substitution is captured and denied. The comment-boundary, double-quote and quoted-heredoc variants trace the same way.\n- Before+after parity, ANSI-C and locale quotes, `${\u2026}`, `$(\u2026)`, `<(\u2026)`, `((`, `[[`, escaped newlines, unquoted heredocs and unterminated state all set the fallback flag. The fallback is the old raw regex `` `[^`]*(curl|wget|fetch) ``.\n- A non-zero awk exit, or an unknown mode header, denies.\n- The SARIF -1 sentinel is now normalised to absent. Positive/-1 pairs are reconciled, other negative, fractional, string or boolean indexes fail closed, and explicit level, rule-id agreement and numeric severity are unchanged.\n- The weekly workflow now passes `WEEK_INPUT` through the step environment as a quoted argument. Empty input still reaches `memory-rollup.sh` as an empty `$2`, which gives the current week.\n- The staged ADR workflow uses `BASE_REF` the same way.\n- The ANSI strip in the ledger leaves the stored log bytes unchanged, and a failed `sed` selects tooling-error.\n\nThe guard repair is not complete. The quoted-heredoc recogniser also matches the second and third `<` of a here-string, so a real command substitution after `<<< 'EOF'` is skipped and the guard allows it. The base regex denied that input, so this is another regression of the same class as the prior HIGH. Skipped quoted-heredoc bodies are also never inspected when the consumer is a shell. There is a small token-boundary regression for `wget2`-style names, the completion metadata is still inconsistent, and there are a few low-risk edge cases in the ledger classifier and SARIF matcher. This is a scoped regex guard, not a sandbox, and the findings should be read that way.",
+  "findings": [
+    {
+      "severity": "high",
+      "file": ".claude/hooks/pre-bash-guard.sh",
+      "line": 157,
+      "title": "Here-string `<<< 'EOF'` is mis-parsed as a quoted heredoc, hiding a real backtick network substitution",
+      "reason": "`heredoc_pattern` (`<<-?[[:space:]]*('ID'|\"ID\")`) is not anchored against a preceding `<`. For `cat <<< 'EOF'` the leftmost attempt at the first `<` fails, but the match succeeds at the second `<`. `RSTART` then points at the second `<`, and the prefix check `index(substr(line,1,RSTART-1),\"<<\")` sees only a single `<`. The `rest` check passes because `rest` is empty. `here_start` therefore stays valid, `next_here` is set to `EOF`, and `has_here` is cleared. The following lines are treated as a heredoc body and skipped until a line equal to `EOF`. In real shell semantics `<<<` is a here-string, so the later lines execute normally.\n\nMinimal input (newlines literal): `cat <<< 'EOF'` / ``echo `curl https://example.invalid/p` `` / `EOF`.\n\nTrace: line 2 is skipped. Line 3 closes the fake heredoc, so END reports `parsed` with no payloads. No `$(` or `<(` is present, and no `deny_patterns` entry fires (no pipe to a shell, and `cat <<<` is not a blocked form). The hook exits 0. The base pattern `` `[^`]*(curl|wget|fetch) `` run on the newline-collapsed command denied this input, so the new code turns a denied command into an allowed one. `cat <<<\"EOF\"` and `read x <<<'EOF'` behave the same way.\n\nThe suite has no `<<<` case: `arithmetic-shift-fallback` is caught only by the `((` check.\n\nFix options: reject the heredoc match if the character before `<<` is `<` (or if the line contains `<<<`), and add the case above to `pre-bash-guard-literals.sh`."
+    },
+    {
+      "severity": "medium",
+      "file": ".claude/hooks/pre-bash-guard.sh",
+      "line": 148,
+      "title": "Quoted-heredoc bodies are skipped entirely, so backtick network calls in a body fed to a shell are no longer inspected",
+      "reason": "The block comment says heredoc bodies cannot change backtick pairing. The code goes further: body lines hit `next` before any inspection, so backtick payloads inside them are never scanned. That is correct when the consumer is `cat` or `tee`, but not when it is `bash`, `sh`, `ssh host` and similar, which execute the body.\n\nMinimal input (newlines literal): `bash <<'EOF'` / ``x=`curl https://example.invalid/p` `` / `EOF`.\n\nThe parser reports `parsed` with no payloads. `subst_sink_patterns` need `$(` or `<(`, and `deny_patterns` need a pipe to a shell, `<(`, or `-c`. None match, so the guard allows the command. The base regex denied it.\n\nA `$(curl \u2026)` in the same body is still caught by the raw sink patterns, which narrows the gap to the backtick form. AC-19 does require frontend heredocs to pass, so this is a design tradeoff. At minimum the heredoc consumer should be restricted (for example, fall back when the command word before `<<` is a shell or interpreter), or the limitation should be documented and tested. Today the tests only cover `cat`."
+    },
+    {
+      "severity": "low",
+      "file": ".claude/hooks/pre-bash-guard.sh",
+      "line": 231,
+      "title": "Whole-token network match drops denials the base substring match gave (e.g. `wget2`, `curl-impersonate`)",
+      "reason": "The base regex denied any backtick span containing the substring curl, wget or fetch. The new `backtick_network` regex requires a boundary character after the verb. `` `wget2 https://x` ``, `` `curlie \u2026` `` and `` `curl-impersonate \u2026` `` have an alphanumeric or `-` character after the verb, so they no longer match and are allowed in parsed mode. This is a narrow regression of a previously denied command, and the stated behaviour (`fetch(...)` must pass) can be kept while still adding `2` and `-` to the allowed-suffix exclusions. No test covers these names."
+    },
+    {
+      "severity": "low",
+      "file": ".claude/scripts/tdd-ledger.sh",
+      "line": 90,
+      "title": "Anchored config-failure patterns can still match diff or stack output of a genuine assertion failure",
+      "reason": "`^[^[:alnum:]]*Startup Error[^[:alnum:]]*$` matches any line whose only alphanumeric content is `Startup Error`. A Vitest or Jest diff line such as `- \"Startup Error\",` or `+ Startup Error` therefore matches. The `at \u2026 (vite|vitest|playwright).config.*:N` alternative also matches a real test failure whose stack passes through a config-defined helper. In both cases a valid assertion RED is stamped tooling-error and rejected. That fails closed, so it costs a rerun and cannot hide a failure. The suite only covers the one-line quoted-assertion form. Only SGR (`\u2026m`) sequences are stripped, so cursor and erase sequences can still defeat the anchors."
+    },
+    {
+      "severity": "low",
+      "file": ".claude/scripts/check-sarif.sh",
+      "line": 55,
+      "title": "Exact rule-id match is not preferred over the hierarchical match, so valid rules can be rejected as ambiguous",
+      "reason": "`id_agrees` accepts both `$id == rule.id` and `$id == rule.id + \"/\" + one-segment`. With descriptors `x` and `x/detail` and a result `ruleId: \"x/detail\"` and no index, both descriptors match and `require(length <= 1)` raises 'invalid severity metadata'. An exact match should win, with the hierarchical relation used only as a fallback. This fails closed, so it is a compatibility issue rather than a bypass, and the suite does not test it."
+    },
+    {
+      "severity": "low",
+      "file": ".claude/state/analyze-006.json",
+      "line": 17,
+      "title": "Completion metadata still inconsistent: tasks_done undercounts, and spec 006 is marked shipped",
+      "reason": "The supplied ledger logs list T-165 to T-172 and T-326, T-327 and T-328 as `[x]`, which is 11 of the 11 tasks in `tasks_for_spec: 11`. The file says `tasks_done: 10`, with `generated` 22:50:53, before T-328 completed. Spec 006 frontmatter is `status: shipped` while the analysis reports one task not done. Its scope text says historical evidence is not re-certified, and spec 006 AC-8 requires Linux/GitHub CI to be recorded separately. Recount and regenerate the file, and confirm that `shipped` is intended. Plan 006 `updated:` was also left at 2026-10-09. The prior TASKS `last_touched` nit is fixed."
+    }
+  ],
+  "limitations": [
+    "Static review only. I executed no shell, awk, jq, python or tests, and I did not run the hook against any input. The traces above are by hand against the supplied numbered sources. The here-string and heredoc-to-shell findings should be confirmed by running the hook on the minimal inputs (data only, never executing the supplied command).",
+    "awk dialect behaviour (BWK awk on macOS, gawk, mawk) was reasoned rather than tested, including leftmost-match and bracket-class handling. jq builtins (`isfinite`, `isnan`, `tonumber` on 'NaN'/'Infinity') and jq version differences were not tested.",
+    "I reviewed only the supplied diff and files. I did not see TASKS rows for T-165 to T-172, the installer, the real `memory-rollup.sh` newline behaviour beyond what was supplied, or other callers of `check-sarif.sh` and `pre-bash-guard.sh`.",
+    "The SARIF handling of -1 was checked against the supplied schema-evidence JSON and the supplied source, not against a fresh read of the OASIS text. Rejection of `tool.extensions`, external property files and `ruleConfigurationOverrides` is a conservative gate, not supported external resolution. The gate also treats non-fail kinds as non-blocking by design.",
+    "Test fixtures that extract workflow steps depend on fixed YAML indentation and a mocked git. `BASH_FUNC_sed%%` function-import behaviour depends on the bash version. The native-Node case in the ledger suite is optional.",
+    "This is a scoped regex guard, not a sandbox, and the review makes no claim about the whole repository being clean. I make no claim of native attestation or live activation. Evidence logs, validate output, Semgrep triage and the 150 warnings were not independently re-verified."
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "version": "1.172.0",
+  "scope": "local installed Semgrep and local rule only; not pinned-container verification",
+  "controls": {
+    "default": {
+      "sha256": "7389dfd5e71db9bbaac02ed6f8e3c00b8de8bc4421f84975f8cda41722bfd61a",
+      "results": [
+        {
+          "ruleId": "t329-nosem-fixture.fixture-dangerous-call",
+          "suppressions": [
+            {
+              "kind": "inSource"
+            }
+          ]
+        }
+      ],
+      "gate_exit": 1,
+      "gate_stdout": "",
+      "gate_stderr": "1 high/critical findings\n"
+    },
+    "disabled": {
+      "sha256": "7389dfd5e71db9bbaac02ed6f8e3c00b8de8bc4421f84975f8cda41722bfd61a",
+      "results": [
+        {
+          "ruleId": "t329-nosem-fixture.fixture-dangerous-call",
+          "suppressions": [
+            {
+              "kind": "inSource"
+            }
+          ]
+        }
+      ],
+      "gate_exit": 1,
+      "gate_stdout": "",
+      "gate_stderr": "1 high/critical findings\n"
+    }
+  }
+}

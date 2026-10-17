@@ -1,0 +1,7 @@
+# TDD ledger — green — T-326
+ledger_format: 2
+timestamp: 2026-10-16T23:30:36+11:00
+command: bash .claude/scripts/test/sarif-effective-severity.sh
+exit_code: 0
+---
+SARIF effective severity: 92 passed; 0 failed

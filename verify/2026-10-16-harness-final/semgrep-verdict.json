@@ -1,0 +1,18 @@
+{
+  "report_sha256": "e46a1aa979d12382064d4ac142199fc3f21d451a0e3a9dae463a2fd766d015be",
+  "results": [
+    {
+      "name": "default",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "2 high/critical findings\n"
+    },
+    {
+      "name": "simulated-approved-exact-source",
+      "exit_code": 0,
+      "stdout": "SARIF accepted exact-source audit exceptions: 2; unapproved high/critical findings: 0; NOT a clean security scan\n",
+      "stderr": ""
+    }
+  ],
+  "live_approval": false
+}

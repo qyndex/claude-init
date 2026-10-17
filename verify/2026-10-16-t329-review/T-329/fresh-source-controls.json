@@ -1,0 +1,39 @@
+{
+  "head": "045f9c0f5de832e5d8c5d807c1a1804fb5b7d8d0",
+  "raw_report_sha256": "e46a1aa979d12382064d4ac142199fc3f21d451a0e3a9dae463a2fd766d015be",
+  "registry_sha256": "707757b523be3bbc7fbf058d0f141262091b2a0b9626ec27f20779f9158116ab",
+  "controls": [
+    {
+      "name": "exact-source-simulated-approval",
+      "exit_code": 0,
+      "stdout": "SARIF accepted exact-source audit exceptions: 2; unapproved high/critical findings: 0; NOT a clean security scan\n",
+      "stderr": ""
+    },
+    {
+      "name": "wrong-protected-digest",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Audit policy blocked: invalid approval, registry, source or gated facts\n"
+    },
+    {
+      "name": "numeric-high-unwaivable",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "1 unapproved high/critical findings; accepted exact-source audit exceptions: 1\n"
+    },
+    {
+      "name": "additional-error",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "1 unapproved high/critical findings; accepted exact-source audit exceptions: 2\n"
+    },
+    {
+      "name": "source-mutation",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Audit policy blocked: invalid approval, registry, source or gated facts\n"
+    }
+  ],
+  "live_approval": false,
+  "scope": "Fresh actual scanner report controls; simulated external digest only"
+}

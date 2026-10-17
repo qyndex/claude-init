@@ -1,0 +1,6 @@
+rules:
+  - id: fixture-dangerous-call
+    languages: [python]
+    message: fixture
+    severity: ERROR
+    pattern: danger(...)

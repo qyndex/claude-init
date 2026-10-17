@@ -1,0 +1,5 @@
+# Independent review3 — changes requested
+
+Actual tool-free Sonnet5.5 returned explicit verdicts for both complementary scopes at045f9c0.20 findings total. The confirmed HIGH escaped-character/comment guard regression and wrapper parity regression block publication/merge. T129 and review followups for T131/T329 are reopened in isolated branches. The current PR is draft; no review approval or activation is claimed. Two prior larger review attempts timed out; native CI jobs reported success but posted no verdict and are not approval evidence.
+
+The T131 original snapshot/consumer repair and T130 classification were assessed positively, with integrity hardening/limitations identified. Root is re-verifying all remaining findings before implementation; this record is not an assertion that every static finding is valid. No FORCE_CONSTITUTION_EDIT or bypass log is fabricated: explicit user authorization covers the approved hook repair, and deployment/merge authority remains independently gated.

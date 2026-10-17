@@ -1,0 +1,30 @@
+# TDD ledger — red — T-326
+ledger_format: 2
+timestamp: 2026-10-16T22:58:21+11:00
+command: bash .claude/scripts/test/sarif-effective-severity.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+SARIF effective severity: 78 passed; 10 failed
+FAIL unknown-rule-index-warning: expected exit0/'SARIF clean'; got1/'jq: error (at /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmpwa1rfbqd/input.sarif:0): invalid severity metadata\nInvalid SARIF scan output or unsupported severity metadata\n'
+FAIL unknown-reference-index-warning: expected exit0/'SARIF clean'; got1/'jq: error (at /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmpwa1rfbqd/input.sarif:0): invalid severity metadata\nInvalid SARIF scan output or unsupported severity metadata\n'
+FAIL unknown-rule-index-inherits-error: expected exit1/'high/critical'; got1/'jq: error (at /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmpwa1rfbqd/input.sarif:0): invalid severity metadata\nInvalid SARIF scan output or unsupported severity metadata\n'
+FAIL unknown-reference-index-inherits-error: expected exit1/'high/critical'; got1/'jq: error (at /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmpwa1rfbqd/input.sarif:0): invalid severity metadata\nInvalid SARIF scan output or unsupported severity metadata\n'
+FAIL unknown-index-no-id-default: expected exit0/'SARIF clean'; got1/'jq: error (at /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmpwa1rfbqd/input.sarif:0): invalid severity metadata\nInvalid SARIF scan output or unsupported severity metadata\n'
+FAIL unknown-reference-no-id-default: expected exit0/'SARIF clean'; got1/'jq: error (at /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmpwa1rfbqd/input.sarif:0): invalid severity metadata\nInvalid SARIF scan output or unsupported severity metadata\n'
+FAIL unknown-index-numeric-high: expected exit1/'high/critical'; got1/'jq: error (at /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmpwa1rfbqd/input.sarif:0): invalid severity metadata\nInvalid SARIF scan output or unsupported severity metadata\n'
+FAIL unknown-index-explicit-warning-wins: expected exit0/'SARIF clean'; got1/'jq: error (at /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmpwa1rfbqd/input.sarif:0): invalid severity metadata\nInvalid SARIF scan output or unsupported severity metadata\n'
+FAIL unknown-index-structured-positive: expected exit1/'high/critical'; got1/'jq: error (at /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmpwa1rfbqd/input.sarif:0): invalid severity metadata\nInvalid SARIF scan output or unsupported severity metadata\n'
+FAIL positive-index-structured-unknown: expected exit1/'high/critical'; got1/'jq: error (at /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmpwa1rfbqd/input.sarif:0): invalid severity metadata\nInvalid SARIF scan output or unsupported severity metadata\n'
+Traceback (most recent call last):
+  File "<stdin>", line 84, in <module>
+AssertionError: unknown-rule-index-warning: expected exit0/'SARIF clean'; got1/'jq: error (at /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmpwa1rfbqd/input.sarif:0): invalid severity metadata\nInvalid SARIF scan output or unsupported severity metadata\n'
+unknown-reference-index-warning: expected exit0/'SARIF clean'; got1/'jq: error (at /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmpwa1rfbqd/input.sarif:0): invalid severity metadata\nInvalid SARIF scan output or unsupported severity metadata\n'
+unknown-rule-index-inherits-error: expected exit1/'high/critical'; got1/'jq: error (at /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmpwa1rfbqd/input.sarif:0): invalid severity metadata\nInvalid SARIF scan output or unsupported severity metadata\n'
+unknown-reference-index-inherits-error: expected exit1/'high/critical'; got1/'jq: error (at /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmpwa1rfbqd/input.sarif:0): invalid severity metadata\nInvalid SARIF scan output or unsupported severity metadata\n'
+unknown-index-no-id-default: expected exit0/'SARIF clean'; got1/'jq: error (at /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmpwa1rfbqd/input.sarif:0): invalid severity metadata\nInvalid SARIF scan output or unsupported severity metadata\n'
+unknown-reference-no-id-default: expected exit0/'SARIF clean'; got1/'jq: error (at /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmpwa1rfbqd/input.sarif:0): invalid severity metadata\nInvalid SARIF scan output or unsupported severity metadata\n'
+unknown-index-numeric-high: expected exit1/'high/critical'; got1/'jq: error (at /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmpwa1rfbqd/input.sarif:0): invalid severity metadata\nInvalid SARIF scan output or unsupported severity metadata\n'
+unknown-index-explicit-warning-wins: expected exit0/'SARIF clean'; got1/'jq: error (at /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmpwa1rfbqd/input.sarif:0): invalid severity metadata\nInvalid SARIF scan output or unsupported severity metadata\n'
+unknown-index-structured-positive: expected exit1/'high/critical'; got1/'jq: error (at /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmpwa1rfbqd/input.sarif:0): invalid severity metadata\nInvalid SARIF scan output or unsupported severity metadata\n'
+positive-index-structured-unknown: expected exit1/'high/critical'; got1/'jq: error (at /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmpwa1rfbqd/input.sarif:0): invalid severity metadata\nInvalid SARIF scan output or unsupported severity metadata\n'
