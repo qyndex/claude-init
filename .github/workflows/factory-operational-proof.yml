@@ -1,0 +1,49 @@
+name: Factory Historical Operational Proof
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+  id-token: write
+  attestations: write
+concurrency:
+  group: factory-operational-proof
+  cancel-in-progress: false
+jobs:
+  sign:
+    if: vars.FACTORY_OPERATIONAL_PROOF_ENABLED == 'true' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: ubuntu-latest
+    environment: factory-operational-proof
+    timeout-minutes: 10
+    steps:
+      - name: Check out protected current main only
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Re-read historical native observations
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FACTORY_OPERATIONAL_PROOF_ENABLED: ${{ vars.FACTORY_OPERATIONAL_PROOF_ENABLED || 'false' }}
+          PROFILE: ${{ vars.FACTORY_OPERATIONAL_PROOF_PROFILE }}
+        run: python3 .claude/scripts/factory-operational-producer.py produce --profile "$PROFILE"
+      - name: Sign exact historical record
+        id: signature
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: operational-output/evidence.json
+      - name: Preserve bounded signature bundle
+        env:
+          BUNDLE: ${{ steps.signature.outputs.bundle-path }}
+        run: |
+          test -f "$BUNDLE"
+          test "$(wc -c < "$BUNDLE")" -le 1000000
+          cp "$BUNDLE" operational-output/provenance.sigstore.json
+      - name: Upload exact two-file artifact
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: factory-operational-proof-${{ vars.FACTORY_OPERATIONAL_PROOF_PROFILE }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: operational-output/
+          if-no-files-found: error
+          retention-days: 90

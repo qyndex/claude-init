@@ -49,8 +49,9 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
   accept: bash .claude/scripts/test/factory-operational-proof.sh
   owner: codex
 
-- [ ] T-337  | spec:029  | phase:5  | priority: security  | created: 2026-10-17  | deps: T-336  | parallel: no  | est: 5m
+- [~] T-337  | spec:029  | phase:5  | priority: security  | created: 2026-10-17  | deps: T-336  | parallel: no  | est: 5m
   summary: Produce and retain protected signed historical operational proof
+  files: .claude/scripts/factory-operational-producer.py, .claude/scripts/factory-operational-proof.py, .claude/scripts/test/factory-operational-producer.sh, .claude/scripts/test/factory-operational-proof.sh, .github/workflows/factory-operational-proof.yml, .github/workflows/factory-operational-proof-retain.yml, factory/operational-proof-profiles.json
   progress: Supporting repair for original T318; approved amendment2026-10-17, not new original-goal scope
   accept: bash .claude/scripts/test/factory-operational-producer.sh
   owner: codex

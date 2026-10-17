@@ -1,0 +1,4 @@
+focused historical producer contracts: negative assertions=10; real Git CAS/opaque preservation; native API and verifier fixtures only
+Traceback (most recent call last):
+  File "<stdin>", line 136, in <module>
+AssertionError: patched gh prerequisite missing

@@ -112,9 +112,10 @@ def source(value):
 
 
 def profile(value):
-    fields(value, 'schema_version profile_id status repository branch original producer')
+    fields(value, 'schema_version profile_id profile_sha256 status repository branch original producer')
     require(type(value['schema_version']) is int and value['schema_version'] == 1, 'profile version invalid')
     text(value['profile_id'], r'[A-Za-z0-9][A-Za-z0-9_.-]{0,99}')
+    hexstr(value['profile_sha256'],64)
     require(value['status'] == 'active', 'historical profile inactive')
     repository(value['repository']); branch(value['branch'])
     for key in ('original', 'producer'):
@@ -124,10 +125,11 @@ def profile(value):
 def validate_record(raw, trusted_profile, *, now=None):
     profile(trusted_profile)
     value = decode(raw, 262144, True)
-    fields(value, 'schema_version type purpose profile_id repository original verification')
+    fields(value, 'schema_version type purpose profile_id profile_sha256 repository original verification')
     require(type(value['schema_version']) is int and value['schema_version'] == 1, 'historical version invalid')
     require(value['type'] == 'historical-queue-completion' and value['purpose'] == 'historical-operational-acceptance', 'historical purpose differs')
-    repository(value['repository'])
+    repository(value['repository']); hexstr(value['profile_sha256'],64)
+    require(value['profile_sha256'] == trusted_profile['profile_sha256'], 'historical full profile digest differs')
     require(value['repository'] == trusted_profile['repository'] and value['profile_id'] == trusted_profile['profile_id'], 'historical profile binding differs')
     original = value['original']; verification = value['verification']
     fields(original, 'source_sha workflow_path workflow_id runtime runs state')
@@ -160,6 +162,15 @@ def validate_record(raw, trusted_profile, *, now=None):
     return value
 
 
+def require_cli_version(runner, env, cwd):
+    """GHSA-8xvp-7hj6-mcj9 is fixed in gh2.93.0; no native older verification."""
+    result = runner(['gh', '--version'], env=env, cwd=cwd, timeout=10, limit=4096)
+    require(result.returncode == 0 and type(result.stdout) is bytes, 'gh toolchain unavailable')
+    match = re.match(rb'^gh version ([0-9]+)\.([0-9]+)\.([0-9]+)(?:[ \n]|$)', result.stdout)
+    require(match is not None and tuple(int(part) for part in match.groups()) >= (2, 93, 0),
+            'gh >=2.93.0 required before native attestation verification')
+
+
 def verify(raw, bundle, trusted_profile, actual_completed_run, *, runner=None, now=None):
     value = validate_record(raw, trusted_profile, now=now)
     require(type(bundle) is bytes and 0 < len(bundle) <= 1000000, 'signature bundle bound exceeded')
@@ -178,11 +189,13 @@ def verify(raw, bundle, trusted_profile, actual_completed_run, *, runner=None, n
         root = Path(folder); subject = root / 'historical.json'; signature = root / 'bundle.json'
         subject.write_bytes(raw); signature.write_bytes(bundle)
         command = ['gh', 'attestation', 'verify', str(subject), '--bundle', str(signature), '--repo', repo, '--cert-identity', uri, '--cert-oidc-issuer', 'https://token.actions.githubusercontent.com', '--source-ref', ref, '--source-digest', v['source_sha'], '--signer-digest', v['source_sha'], '--deny-self-hosted-runners', '--format', 'json']
-        if runner is None:
+        native_runner = runner is None
+        if native_runner:
             spec = importlib.util.spec_from_file_location('operational_bounded', Path(__file__).with_name('factory-bounded-process.py'))
             bounded = importlib.util.module_from_spec(spec); spec.loader.exec_module(bounded)
             runner = bounded.run
         env = {key: os.environ[key] for key in ('PATH', 'HOME', 'LANG', 'LC_ALL') if key in os.environ}
+        if native_runner:require_cli_version(runner, env, root)
         result = runner(command, cwd=root, env=env, timeout=60, limit=2000000)
         require(result.returncode == 0, 'native signature verification failed')
         results = decode(result.stdout, 2000000)

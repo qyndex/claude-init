@@ -1,0 +1,2 @@
+✓ GREEN captured: verify/2026-10-17/T-337/green.log (exit 0 — passing)
+⚠ tdd-ledger: no timeout/gtimeout found — accept command runs UNBOUNDED. brew install coreutils to fix.

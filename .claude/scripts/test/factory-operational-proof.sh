@@ -14,11 +14,11 @@ original={'source_sha':old,'workflow_path':'.github/workflows/factory-reporting-
  'runtime':{'.github/workflows/factory-reporting-queue.yml':'1'*64,'.claude/scripts/factory-reporting-queue-evidence.py':'2'*64}}
 producer={'source_sha':new,'workflow_path':'.github/workflows/factory-operational-proof.yml','workflow_id':11,
  'runtime':{'.github/workflows/factory-operational-proof.yml':'3'*64,'.claude/scripts/factory-operational-proof.py':'4'*64,'.claude/scripts/factory-bounded-process.py':'5'*64}}
-profile={'schema_version':1,'profile_id':'historical-test','status':'active','repository':repo,'branch':'main','original':original,'producer':producer}
+profile={'schema_version':1,'profile_id':'historical-test','profile_sha256':'9'*64,'status':'active','repository':repo,'branch':'main','original':original,'producer':producer}
 runs=[{'role':role,'run_id':20+i,'attempt':1,'job_id':30+i,'started_at':f'2026-10-16T01:0{i}:00Z','ended_at':f'2026-10-16T01:0{i}:10Z','log_sha256':str(i+6)*64,'notifications':counts}
       for i,(role,counts) in enumerate((('drill',[1,0]),('recovery',[1]),('repeat',[0])))]
 state={'branch':'state','head_sha':'c'*40,'tree_sha':'d'*40,'journal_path':'reports/'+'e'*64+'.json','journal_sha256':'f'*64,'lineage_sha256':'0'*64,'drill_key':'1'*64,'recovery_key':'2'*64,'publication_count':5}
-record={'schema_version':1,'type':'historical-queue-completion','purpose':'historical-operational-acceptance','profile_id':'historical-test','repository':repo,
+record={'schema_version':1,'type':'historical-queue-completion','purpose':'historical-operational-acceptance','profile_id':'historical-test','profile_sha256':'9'*64,'repository':repo,
  'original':dict(original,runs=runs,state=state),'verification':dict(producer,run_id=40,attempt=2,started_at='2026-10-17T02:00:00Z',verified_at='2026-10-17T02:00:00.100000Z')}
 now=datetime(2026,10,17,3,tzinfo=timezone.utc)
 native={'id':40,'run_attempt':2,'workflow_id':11,'path':producer['workflow_path'],'head_sha':new,'head_branch':'main','event':'workflow_dispatch','status':'completed','conclusion':'success',
