@@ -1,7 +1,7 @@
 ## Evidence Bundle — Spec 029 (029-github-reporting-alerts)
-Spec: `specs/active/029-github-reporting-alerts.md` · Commit: `31c2a67`
+Spec: `specs/active/029-github-reporting-alerts.md` · Commit: `fa402b9`
 
-Retained results: [verify/2026-10-17-029-github-reporting-alerts/attempt-WO44rJuF/results.json](verify/2026-10-17-029-github-reporting-alerts/attempt-WO44rJuF/results.json)
+Retained results: [verify/2026-10-17-029-github-reporting-alerts/attempt-7O2ACl1L/results.json](verify/2026-10-17-029-github-reporting-alerts/attempt-7O2ACl1L/results.json)
 
 ### Acceptance criteria (0/9 proven)
 | AC | Proven by | Result |
@@ -18,7 +18,7 @@ Retained results: [verify/2026-10-17-029-github-reporting-alerts/attempt-WO44rJu
 
 ### Smoke test (exit codes are load-bearing)
 ```
-# Smoke test — 2026-10-17T22:34:48+11:00
+# Smoke test — 2026-10-17T23:11:38+11:00
 $ bash .claude/scripts/verify.sh
 
 → Integration coverage gate

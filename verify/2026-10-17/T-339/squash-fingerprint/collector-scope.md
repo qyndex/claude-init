@@ -1,0 +1,3 @@
+# Updated collector observation
+
+Both collectors actually ran separately at fixed source fa402b933ae84b5ad5f21300abf278b5803a1704 after the three exact squash fingerprints were added. VERIFY_BASE was actual protected main1defb2898993c164929c1643aefcedfa55714966; no skip overrides. Both structural smoke verifiers passed. Both complete acceptance bundles remain FAIL,0/9 because native proof is not yet available. Earlier31c2 observations and the failed initial missing-base observation remain separately scoped in the earlier proof directory/history; no observation is relabeled to a later proof commit. Gitleaks full-history results and unchanged-byte equivalence are in this directory. No protection/activation writes or native proof are claimed.

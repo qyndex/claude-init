@@ -1,7 +1,7 @@
 ## Evidence Bundle — Spec 014 (014-authenticated-receipt-recovery)
-Spec: `specs/active/014-authenticated-receipt-recovery.md` · Commit: `31c2a67`
+Spec: `specs/active/014-authenticated-receipt-recovery.md` · Commit: `fa402b9`
 
-Retained results: [verify/2026-10-17-014-authenticated-receipt-recovery/attempt-OHZpwWWP/results.json](verify/2026-10-17-014-authenticated-receipt-recovery/attempt-OHZpwWWP/results.json)
+Retained results: [verify/2026-10-17-014-authenticated-receipt-recovery/attempt-jHzJzPNe/results.json](verify/2026-10-17-014-authenticated-receipt-recovery/attempt-jHzJzPNe/results.json)
 
 ### Acceptance criteria (0/9 proven)
 | AC | Proven by | Result |
@@ -18,7 +18,7 @@ Retained results: [verify/2026-10-17-014-authenticated-receipt-recovery/attempt-
 
 ### Smoke test (exit codes are load-bearing)
 ```
-# Smoke test — 2026-10-17T22:34:12+11:00
+# Smoke test — 2026-10-17T23:10:57+11:00
 $ bash .claude/scripts/verify.sh
 
 → Integration coverage gate
