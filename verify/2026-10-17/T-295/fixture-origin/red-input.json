@@ -1,0 +1,14 @@
+{
+  "source_commit": "de769cf1696cbd3c2f567c5585c643f2666cea34",
+  "started_at": "2026-10-17T06:04:26.432320+00:00",
+  "command": "bash .claude/scripts/test/factory-receipt-projection-resume.sh",
+  "source_hashes": {
+    ".claude/scripts/test/factory-receipt-projection-resume.sh": "5756b246ab6068154b2a3e6f277c0f3af59470f8734fa9ea89e7a85b1ebcdfc8",
+    ".claude/scripts/test/factory-receipt-projection-windows.sh": "efd69cab45f2107657b862ef2b18ad2230b578a3d2200422f8e7ee8ea015b6e7",
+    ".claude/scripts/test/factory-receipt-cas.sh": "0f9f6d0a575a4aeaef192a6a9440bb710248512fa440be2404951e43e9e3b9be",
+    ".claude/scripts/factory-receipt-archive.py": "bc024a261c4eb8a2dc709f5725fd26ca778d79781d0260ba16faf0045fff369c",
+    ".claude/scripts/factory-state-paths.py": "0648487106251e765e7f0a4504d510606970c6bab1f2b4024dc21c4e6bc487dd"
+  },
+  "exit_code": 1,
+  "elapsed_seconds": 8.520878750015981
+}

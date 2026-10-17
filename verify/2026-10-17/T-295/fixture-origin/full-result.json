@@ -1,0 +1,21 @@
+{
+  "started_at": "2026-10-17T06:09:00.740612+00:00",
+  "command": "bash .claude/scripts/test/factory-receipt-projection-windows.sh",
+  "timeout_seconds": 600,
+  "configuration": {
+    "TDD_LEDGER_TIMEOUT": "600"
+  },
+  "base_source": "de769cf1696cbd3c2f567c5585c643f2666cea34",
+  "source_hashes": {
+    ".claude/scripts/test/factory-receipt-projection-resume.sh": "97bd0249f98c2f71cded55613172db9ac66b7819a48271b1eb25c1d36f729ddb",
+    ".claude/scripts/test/factory-receipt-projection-windows.sh": "efd69cab45f2107657b862ef2b18ad2230b578a3d2200422f8e7ee8ea015b6e7",
+    ".claude/scripts/test/factory-receipt-cas.sh": "0f9f6d0a575a4aeaef192a6a9440bb710248512fa440be2404951e43e9e3b9be",
+    ".claude/scripts/factory-receipt-archive.py": "bc024a261c4eb8a2dc709f5725fd26ca778d79781d0260ba16faf0045fff369c",
+    ".claude/scripts/factory-state-paths.py": "0648487106251e765e7f0a4504d510606970c6bab1f2b4024dc21c4e6bc487dd"
+  },
+  "exit_code": 0,
+  "elapsed_seconds": 187.335375708004,
+  "finished_at": "2026-10-17T06:12:08.077302+00:00",
+  "sources_unchanged": true,
+  "log_sha256": "5b0b26c953490b1fc0e5dc5a36f3eb6bfbbffd3de06ea5a3c94ccdb7c7e6af5c"
+}

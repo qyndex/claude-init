@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "<stdin>", line 143, in <module>
+  File "real-git-projection-resume", line 133, in <module>
+  File "/private/tmp/t295-projection-fixture-fix-20261017/.claude/scripts/factory-receipt-archive.py", line 334, in verify_bootstrap
+    require(tree['complete'], 'archive bootstrap tree incomplete; authenticated cursor continuation required')
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/t295-projection-fixture-fix-20261017/.claude/scripts/validate-candidate-evidence.py", line 19, in require
+    raise ValueError(message)
+ValueError: archive bootstrap tree incomplete; authenticated cursor continuation required

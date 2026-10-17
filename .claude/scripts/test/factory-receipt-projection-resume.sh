@@ -68,6 +68,14 @@ cases=r'''
     stage_changes[stagepath(kind,identity)]=a.canonical({'schema_version':1,'campaign':campaign,'kind':kind,'identity':identity,'run_id':n+1000,'attempt':1,'record_sha256':reference['record_sha256']})
   stage_changes[stagepath('window',[publication,0,8])]=a.canonical({'schema_version':1,'binding':stage_binding,'publication_sha':publication,'checkpoint_blob':blob,'offset':0,'stop':len(facts),'facts':facts})
  publish(stage_changes)
+ # Large batched fixture publication needs the same bounded origin continuation
+ # as ordinary retained writers before a fresh consumer can trust its prefix.
+ for continuation in range(256):
+  origin=a.advance_origin(CachedState(),approval)
+  assert origin['coverage_complete'] is False
+  if origin['frozen_complete']:break
+ assert origin['frozen_complete'],'bounded fixture origin continuation did not complete'
+ assert continuation>0,'large fixture did not exercise persisted origin continuation'
  assert a.verify_bootstrap(CachedState(),approval)['head']==out('rev-parse',ref)
  # Separate interpreter imports actual production code and real Git fixture API.
  context={'work':str(work),'root':str(root),'ref':ref,'branch':branch,'policies':policies,'policy':policy,'trust':str(trust),'approval':str(approval),'stream':stream,'store':store,'end':end,'history':history,'campaign':campaign}
