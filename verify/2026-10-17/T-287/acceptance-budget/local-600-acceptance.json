@@ -1,0 +1,21 @@
+{
+  "source_commit": "5e89730422323c32fafd39b21082cf1e4f0ed9aa",
+  "command": "bash .claude/scripts/test/factory-state-scan-cost.sh && bash .claude/scripts/test/factory-receipt-history.sh",
+  "timeout_seconds": 600,
+  "configuration": {
+    "TDD_LEDGER_TIMEOUT": "600"
+  },
+  "executing_source_baseline": "3889aa2d501076ce18c0121493d1d343d8c1d4ff",
+  "ci_default_300_proven": false,
+  "started_at": "2026-10-17T05:34:35.144337+00:00",
+  "source_hashes": {
+    ".claude/scripts/test/factory-receipt-history.sh": "9434576e1a703585e4e9b0b998fe4acafc0e77758bad5801843f9756e8a2a074",
+    ".claude/scripts/test/factory-receipt-git-objects.py": "efe505805e32080ad6e75dbafe8769076a6776960bc3807ac3ddfbd54fc77884",
+    ".claude/scripts/test/factory-receipt-git-objects.sh": "f5a44af31379cbeeaecd1fdd7282abb71b9a02a38de75716c33a13500871472d"
+  },
+  "exit_code": 0,
+  "elapsed_seconds": 381.9105704590038,
+  "finished_at": "2026-10-17T05:40:57.057440+00:00",
+  "sources_unchanged": true,
+  "log_sha256": "6d991264fde94df2ad1a38accafb0b905c5d1d4d1974c75a52f37cc9b9f849a7"
+}
