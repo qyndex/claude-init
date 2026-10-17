@@ -1,0 +1,17 @@
+{
+  "task": "T-339",
+  "accept_command": "python3 .claude/scripts/factory-operational-replay.py --live --repository qyndex/claude-init --profile queue-pilot-20261016",
+  "red_source": "460b687318b41f152761f3198dc31f8f6d5cafa6",
+  "red_timestamp": "2026-10-18T00:10:24+11:00",
+  "green_source": "94e40be14af35b11bbd81d355a723141c4383299",
+  "green_timestamp": "2026-10-18T02:57:25+11:00",
+  "hashes": {
+    "red.log": "b0f9cdeb07c40872008ff9bf2ac623febf13ccbec7f9f3a90745f8062db96592",
+    "green.log": "00a55ba0106b93add04280f73d9403965e149a5ed48b8d3062a929e6f3538d47"
+  },
+  "profile_sha256": "886e0c7a5f4e27f7eb0b721d52dd3fe0e993c00930f275a5a3311183abe147b6",
+  "signer_run": 39047027502,
+  "retainer_run": 39047076487,
+  "authority": "historical operational acceptance only; all replay authority flags false",
+  "ledger_warning": "GREEN capture warned RED absent in checkout; older genuine RED was retained externally and copied byte-exact afterward, no relabel/backdate"
+}

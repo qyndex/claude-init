@@ -63,7 +63,7 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
   accept: bash .claude/scripts/test/factory-operational-replay.sh
   owner: codex
 
-- [ ] T-339  | spec:029  | phase:5  | priority: security  | created: 2026-10-17  | deps: T-338  | parallel: no  | est: 5m
+- [x] T-339  | spec:029  | phase:5  | priority: security  | created: 2026-10-17  | deps: T-338  | parallel: no  | est: 5m
   summary: Bootstrap genuine historical queue proof and verify native read-only replay
   progress: Supporting repair for original T318; approved amendment2026-10-17, not new original-goal scope
   accept: python3 .claude/scripts/factory-operational-replay.py --live --repository qyndex/claude-init --profile queue-pilot-20261016
