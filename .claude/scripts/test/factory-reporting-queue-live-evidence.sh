@@ -37,11 +37,15 @@ finish=r'''
    return value
  capture=Capture();e.observe_journal(capture,source_root,config,storage,selections,now)
  data=root/'responses.json';data.write_text(json.dumps(capture.responses));tools=root/'cli-tools';tools.mkdir();calls=root/'cli-calls.json'
- gh=tools/'gh';gh.write_text('#!'+sys.executable+'\n'+f'DATA={str(data)!r}\nCALLS={str(calls)!r}\n'+r"""import base64,json,sys
+ gh=tools/'gh';gh.write_text('#!'+sys.executable+'\n'+f'DATA={str(data)!r}\nCALLS={str(calls)!r}\n'+r"""import base64,json,re,sys
 from pathlib import Path
-assert sys.argv[1:6]==['api','--hostname','github.com','--method','GET']
-path=sys.argv[6];seen=json.loads(Path(CALLS).read_text()) if Path(CALLS).exists() else [];seen.append(path);Path(CALLS).write_text(json.dumps(seen))
-item=json.loads(Path(DATA).read_text())[path]
+prefix=['api','--hostname','github.com','--method','GET'];arguments=sys.argv[1:]
+assert arguments[:5]==prefix and len(arguments) in (6,7), 'unexpected bounded gh argument shape'
+path=arguments[-1];item=json.loads(Path(DATA).read_text())[path]
+raw='raw' in item
+assert arguments==prefix+(['--allow-escape-sequences'] if raw else [])+[path], 'JSON/log escape selection differs'
+assert not raw or re.fullmatch(r'repos/org/repo/actions/jobs/[1-9][0-9]*/logs',path), 'raw endpoint differs'
+seen=json.loads(Path(CALLS).read_text()) if Path(CALLS).exists() else [];seen.append(path);Path(CALLS).write_text(json.dumps(seen))
 sys.stdout.buffer.write(base64.b64decode(item['raw']) if 'raw' in item else json.dumps(item['json']).encode())
 """);gh.chmod(0o755)
  env=dict(os.environ,PATH=str(tools)+':'+os.environ['PATH'],GITHUB_REPOSITORY='org/repo',FACTORY_REPORTING_ENABLED='true',FACTORY_REPORTING_QUEUE_ENABLED='true',FACTORY_REPORTING_PROFILE='github-hosted',FACTORY_REPORTING_BRANCH='main',FACTORY_REPORTING_STATE_REPOSITORY='org/repo',FACTORY_REPORTING_CHANNEL='C1',FACTORY_REPORTING_TEAM_ID='T1',FACTORY_REPORTING_QUEUE_GRACE_MINUTES='60',FACTORY_REPORTING_STATE_BRANCH=storage['state_branch'],FACTORY_REPORTING_QUEUE_BOOTSTRAP_SHA=storage['bootstrap_sha'],FACTORY_REPORTING_QUEUE_INITIALIZE='false',FACTORY_REPORTING_POLICY_APPROVALS='{}',FACTORY_REPORTING_START='2026-10-01T00:00:00Z',FACTORY_REPORTING_ATTACHMENTS_ENABLED='false')
@@ -49,6 +53,11 @@ sys.stdout.buffer.write(base64.b64decode(item['raw']) if 'raw' in item else json
  cli=source_root/'.claude/scripts/factory-reporting-queue-evidence.py'
  args=['--live','--drill-run','900','--drill-attempt','2','--recovery-run','901','--recovery-attempt','1','--repeat-run','902','--repeat-attempt','1']
  def run_cli(arguments=args,environment=env):return subprocess.run([sys.executable,str(cli),*arguments],env=environment,capture_output=True,text=True)
+ # The fixture validates exact CLI protocol, not permissive option stripping.
+ prefix=['api','--hostname','github.com','--method','GET']
+ for invalid in (prefix+['repos/org/repo/actions/jobs/1000/logs'],prefix+['--allow-escape-sequences','repos/org/repo'],prefix+['--unknown','repos/org/repo']):
+  rejected=subprocess.run([str(gh),*invalid],capture_output=True,text=True)
+  assert rejected.returncode!=0,'stub accepted an invalid JSON/raw argument selection'
  result=run_cli();assert result.returncode==0,result.stderr
  proof=json.loads(result.stdout);assert proof['verification_mode']=='live-read-only' and proof['mode']=='administrative-queue-observation' and proof['source_sha']==source_sha and proof['publications']==5
  assert all(word not in result.stdout for word in ('private changed','opaque encrypted','shell setup','SLACK_SENTINEL'));count=1
