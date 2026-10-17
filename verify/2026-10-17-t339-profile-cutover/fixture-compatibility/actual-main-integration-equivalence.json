@@ -1,0 +1,9 @@
+{
+  "actual_test_observation_commit": "a6c797bdfa45dfb39170b7eadced7ff36855130a",
+  "future_configuration_branch_commit": "2baf4c989e0e8a3449e26d814e4153f910d554ff",
+  "tree": "ddfe0ee81b4a2a871071aca0b77d5317c3c819d1",
+  "actual_main_base": "1defb2898993c164929c1643aefcedfa55714966",
+  "source_bytes_identical": true,
+  "native_acceptance_claim": false,
+  "note": "Cherry-pick onto actual squash main; exact full source tree equals tested fixture commit. Old RED/GREEN observations remain unchanged."
+}

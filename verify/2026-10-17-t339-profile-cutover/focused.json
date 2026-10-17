@@ -1,0 +1,18 @@
+{
+  "factory-operational-producer": {
+    "exit": 0,
+    "seconds": 2.249367499956861
+  },
+  "factory-operational-replay": {
+    "exit": 0,
+    "seconds": 4.953876999963541
+  },
+  "factory-reporting-policy": {
+    "exit": 0,
+    "seconds": 1.1445651249960065
+  },
+  "factory-receipt-bootstrap": {
+    "exit": 0,
+    "seconds": 0.19799145800061524
+  }
+}

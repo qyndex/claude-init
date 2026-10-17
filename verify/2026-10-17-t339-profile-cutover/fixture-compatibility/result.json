@@ -1,0 +1,26 @@
+{
+  "base": "265a6b376c9bdd5d0fea7ff6b5c1fb812fdc80a1",
+  "controlled_candidate": "temporary nonempty invalid profile_id-only registry; explicitly untrusted, not claimed valid active configuration",
+  "red": {
+    "producer": 1,
+    "replay": 1
+  },
+  "green_same_nonempty": {
+    "producer": 0,
+    "replay": 0
+  },
+  "green_restored_default": {
+    "producer": 0,
+    "replay": 0
+  },
+  "shellcheck": 0,
+  "diff_check": 0,
+  "files": {
+    ".claude/scripts/test/factory-operational-producer.sh": "1687e061a215494477928f6f48ddc66b93cd105ada558513c82c7241597fbf67",
+    ".claude/scripts/test/factory-operational-replay.sh": "aa99b56c17f560e5a1bb170554736804ade2201d235a11e3f8de44ed9b8d0ba6",
+    "factory/operational-proof-profiles.json": "daac983fae6606468c1d378506cfe3728044aa0dba1423652346a4bcaa550e9d"
+  },
+  "production_changes": false,
+  "actual_registry_restored": true,
+  "native_claim": false
+}
