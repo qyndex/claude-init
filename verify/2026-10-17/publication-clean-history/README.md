@@ -1,0 +1,5 @@
+# Clean publication history — no new verification claim
+
+PR114 CI rejected older commit messages in its 132-commit history. This replacement starts at the same protected base and commits the exact same complete Git tree in one compliant commit. The original branch, source bindings, failures and proof outputs remain unchanged. `equivalence.json` checks the full tree identity and every non-proof input against the actual shared verification manifest.
+
+The 34m34s full run observed original source 8a764ac; it did not observe this replacement commit. Its observation fields have not been rewritten. The old observed commit is not an ancestor of this clean publication, so any ancestry/current-head acceptance claim remains pending. Existing complete native acceptance is still UNPROVEN; the source-first maintenance decision must explicitly accept the hash-bound retained local observation. Fresh ordinary CI and Sonnet 5.5 review must run on the replacement head. No check or policy is weakened here.
