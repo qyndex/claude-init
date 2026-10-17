@@ -167,7 +167,7 @@ with tempfile.TemporaryDirectory() as folder:
    return super().request(path,method,payload,raw=raw)
  record_raw=raw;artifact_source=ArtifactSource();uri='https://github.com/org/repo/'+entry['producer']['workflow_path']+'@refs/heads/main'
  observer=copy.deepcopy(native);observer.update(id=50,run_attempt=1,workflow_id=12,path=m.RETAINER,event='workflow_run',run_started_at='2026-10-17T02:30:00Z',updated_at='2026-10-17T02:30:00Z')
- cert={'issuer':'https://token.actions.githubusercontent.com','subjectAlternativeName':uri,'buildSignerURI':uri,'buildSignerDigest':new,'sourceRepositoryURI':'https://github.com/org/repo','sourceRepositoryDigest':new,'sourceRepositoryRef':'refs/heads/main','buildTrigger':'workflow_dispatch','runnerEnvironment':'github-hosted','runInvocationURI':'https://github.com/org/repo/actions/runs/40/attempts/2'}
+ cert={'issuer':'https://token.actions.githubusercontent.com','subjectAlternativeName':uri,'buildSignerURI':uri,'buildSignerDigest':new,'sourceRepositoryURI':'https://github.com/org/repo','sourceRepositoryIdentifier':'101','sourceRepositoryDigest':new,'sourceRepositoryRef':'refs/heads/main','buildTrigger':'workflow_dispatch','runnerEnvironment':'github-hosted','runInvocationURI':'https://github.com/org/repo/actions/runs/40/attempts/2'}
  completion_cert_bad=False
  def verified_runner(command,**kwargs):
   assert command[:3]==['gh','attestation','verify'] and kwargs['timeout']==60
@@ -282,6 +282,17 @@ with tempfile.TemporaryDirectory() as folder:
  file=context/'.claude/scripts/probe.py';saved=file.read_bytes();file.unlink();file.symlink_to(context/m.REGISTRY)
  reject(lambda:m.protected_execution(context_api,context,environment,m.SIGNER,'workflow_dispatch'));file.unlink();file.write_bytes(saved)
  context_api.refsha='0'*40;reject(lambda:m.protected_execution(context_api,context,environment,m.SIGNER,'workflow_dispatch'))
+# @AC-9: real Git quoted names must not silently escape the closed runtime family.
+with tempfile.TemporaryDirectory() as folder:
+ inventory_root=Path(folder).resolve();(inventory_root/'.claude/scripts').mkdir(parents=True)
+ def inventory_git(*args):return subprocess.run(['git','-C',str(inventory_root),*args],capture_output=True,check=True).stdout.decode().strip()
+ inventory_git('init','-q');inventory_git('config','user.name','Fixture');inventory_git('config','user.email','fixture@example.invalid')
+ (inventory_root/'.claude/scripts/ordinary.py').write_text('ordinary fixture')
+ for unusual in ('é.py','quote".py','line\nname.py'):
+  unusual_path=inventory_root/'.claude/scripts'/unusual;unusual_path.write_text('unsupported filename fixture')
+  inventory_git('add','.');inventory_git('commit','-qm','quoted inventory fixture');inventory_sha=inventory_git('rev-parse','HEAD')
+  reject(lambda:m.runtime_inventory(None,inventory_sha,inventory_root))
+  unusual_path.unlink()
 # Actual CLI path must reject the vulnerable toolchain before signature verification.
 assert hasattr(m.proof,'require_cli_version'), 'patched gh prerequisite missing'
 def version_runner(version):

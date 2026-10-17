@@ -1,0 +1,8 @@
+{
+  "shellcheck": 0,
+  "compile": 0,
+  "validate": 0,
+  "silent": 0,
+  "ledger": 0,
+  "diff": 0
+}

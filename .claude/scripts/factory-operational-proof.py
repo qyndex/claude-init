@@ -209,7 +209,7 @@ def _signature(raw, bundle, trusted_profile, v, event, low, high, *, runner=None
     try:
         require(type(results) is list and len(results) == 1, 'verified result ambiguous')
         verified = results[0]['verificationResult']; cert = verified['signature']['certificate']
-        expected = {'issuer': 'https://token.actions.githubusercontent.com', 'subjectAlternativeName': uri, 'buildSignerURI': uri, 'buildSignerDigest': v['source_sha'], 'sourceRepositoryURI': 'https://github.com/' + repo, 'sourceRepositoryDigest': v['source_sha'], 'sourceRepositoryRef': ref, 'buildTrigger': event, 'runnerEnvironment': 'github-hosted', 'runInvocationURI': f'https://github.com/{repo}/actions/runs/{v["run_id"]}/attempts/{v["attempt"]}'}
+        expected = {'issuer': 'https://token.actions.githubusercontent.com', 'subjectAlternativeName': uri, 'buildSignerURI': uri, 'buildSignerDigest': v['source_sha'], 'sourceRepositoryURI': 'https://github.com/' + repo, 'sourceRepositoryIdentifier': str(trusted_profile['repository']['id']), 'sourceRepositoryDigest': v['source_sha'], 'sourceRepositoryRef': ref, 'buildTrigger': event, 'runnerEnvironment': 'github-hosted', 'runInvocationURI': f'https://github.com/{repo}/actions/runs/{v["run_id"]}/attempts/{v["attempt"]}'}
         require(type(cert) is dict and all(cert.get(key) == expected_value for key, expected_value in expected.items()), 'verified certificate binding differs')
         statement = verified['statement']; subjects = statement.get('subject')
         require(statement.get('_type') == 'https://in-toto.io/Statement/v1' and statement.get('predicateType') == 'https://slsa.dev/provenance/v1', 'signed statement type differs')

@@ -24,7 +24,7 @@ now=datetime(2026,10,17,3,tzinfo=timezone.utc)
 native={'id':40,'run_attempt':2,'workflow_id':11,'path':producer['workflow_path'],'head_sha':new,'head_branch':'main','event':'workflow_dispatch','status':'completed','conclusion':'success',
  'repository':{'id':101,'full_name':'org/repo'},'head_repository':{'id':101,'full_name':'org/repo'},'run_started_at':'2026-10-17T02:00:00Z','updated_at':'2026-10-17T02:00:01Z'}
 uri='https://github.com/org/repo/'+producer['workflow_path']+'@refs/heads/main'
-cert={'issuer':'https://token.actions.githubusercontent.com','subjectAlternativeName':uri,'buildSignerURI':uri,'buildSignerDigest':new,'sourceRepositoryURI':'https://github.com/org/repo','sourceRepositoryDigest':new,'sourceRepositoryRef':'refs/heads/main','buildTrigger':'workflow_dispatch','runnerEnvironment':'github-hosted','runInvocationURI':'https://github.com/org/repo/actions/runs/40/attempts/2'}
+cert={'issuer':'https://token.actions.githubusercontent.com','subjectAlternativeName':uri,'buildSignerURI':uri,'buildSignerDigest':new,'sourceRepositoryURI':'https://github.com/org/repo','sourceRepositoryIdentifier':'101','sourceRepositoryDigest':new,'sourceRepositoryRef':'refs/heads/main','buildTrigger':'workflow_dispatch','runnerEnvironment':'github-hosted','runInvocationURI':'https://github.com/org/repo/actions/runs/40/attempts/2'}
 raw=m.canonical(record)
 verified=[{'verificationResult':{'signature':{'certificate':cert},'verifiedTimestamps':[{'type':'Tlog','uri':'https://rekor.example.test','timestamp':'2026-10-17T02:00:01.900000001Z'}],
  'statement':{'_type':'https://in-toto.io/Statement/v1','predicateType':'https://slsa.dev/provenance/v1','subject':[{'name':'operational-proof.json','digest':{'sha256':hashlib.sha256(raw).hexdigest()}}], 'predicate':{'current_readiness':True}}}}]
@@ -59,6 +59,9 @@ for encoded in (raw+b' ',b'{"schema_version":1,"schema_version":1}',b'{"value":N
 bad=copy.deepcopy(record);bad['merge_authorized']=True;reject(lambda:m.validate_record(m.canonical(bad),profile,now=now))
 for field in cert:
  saved=cert[field];cert[field]='forged';reject(lambda:m.verify(raw,b'fixture',profile,native,runner=runner,now=now));cert[field]=saved
+saved_id=cert.pop('sourceRepositoryIdentifier')
+reject(lambda:m.verify(raw,b'fixture',profile,native,runner=runner,now=now))
+cert['sourceRepositoryIdentifier']=saved_id
 for field,value in [('workflow_id',12),('id',False),('run_attempt',3),('event','pull_request_target'),('head_sha',old),('conclusion','failure')]:
  bad=copy.deepcopy(native);bad[field]=value;reject(lambda:m.verify(raw,b'fixture',profile,bad,runner=runner,now=now))
 timestamps=verified[0]['verificationResult']['verifiedTimestamps'];saved=copy.deepcopy(timestamps)

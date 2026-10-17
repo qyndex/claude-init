@@ -112,9 +112,10 @@ def runtime_inventory(api, source, root=None):
     """Closed exact-source family: every top-level Python file, plus workflow."""
     result = set()
     if root is not None:
-        raw = git_bytes(root,'ls-tree',source+':.claude/scripts',limit=262144)
-        for line in raw.decode().splitlines():
-            metadata, name = line.split('\t')
+        raw = git_bytes(root,'ls-tree','-z',source+':.claude/scripts',limit=262144)
+        for line in raw.decode('utf-8').split('\0'):
+            if not line:continue
+            metadata, name = line.split('\t',1)
             if name.endswith('.py'):
                 require(metadata.split()[:2] in (['100644','blob'],['100755','blob']), 'runtime member not regular')
                 proof.text(name,r'[A-Za-z0-9_.-]+\.py');result.add('.claude/scripts/'+name)
