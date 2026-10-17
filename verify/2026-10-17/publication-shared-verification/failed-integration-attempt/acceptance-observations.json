@@ -1,0 +1,197 @@
+{
+  "source": "de769cf1696cbd3c2f567c5585c643f2666cea34",
+  "base": "b533a82f4b4b45712e26a33239ef269a6847aa92",
+  "observed": [
+    {
+      "task": "T-336",
+      "command": "bash .claude/scripts/test/factory-operational-proof.sh",
+      "observed_status": "PASS"
+    },
+    {
+      "task": "T-337",
+      "command": "bash .claude/scripts/test/factory-operational-producer.sh",
+      "observed_status": "PASS"
+    },
+    {
+      "task": "T-338",
+      "command": "bash .claude/scripts/test/factory-operational-replay.sh",
+      "observed_status": "PASS"
+    },
+    {
+      "task": "T-179",
+      "command": "gh pr view \"${FACTORY_ACTIVATION_PR:-https://github.com/qyndex/claude-init/pull/50}\" --json state,isDraft,mergeCommit | jq -e '.state == \"MERGED\" and .mergeCommit.oid == \"148238ad8950681d352985cdb9c48ad0301e97d3\"'",
+      "observed_status": "PASS"
+    },
+    {
+      "task": "T-275",
+      "command": "bash .claude/scripts/test/factory-receipt-profiles.sh",
+      "observed_status": "PASS"
+    },
+    {
+      "task": "T-276",
+      "command": "bash .claude/scripts/test/factory-receipt-source.sh",
+      "observed_status": "PASS"
+    },
+    {
+      "task": "T-277",
+      "command": "bash .claude/scripts/test/factory-receipt-equivalence.sh",
+      "observed_status": "PASS"
+    },
+    {
+      "task": "T-278",
+      "command": "bash .claude/scripts/test/factory-receipt-revocation.sh",
+      "observed_status": "PASS"
+    },
+    {
+      "task": "T-279",
+      "command": "bash .claude/scripts/test/factory-receipt-archive.sh",
+      "observed_status": "PASS"
+    },
+    {
+      "task": "T-280",
+      "command": "bash .claude/scripts/test/factory-receipt-bootstrap.sh",
+      "observed_status": "PASS"
+    },
+    {
+      "task": "T-281",
+      "command": "bash .claude/scripts/test/factory-receipt-state-paths.sh",
+      "observed_status": "PASS"
+    },
+    {
+      "task": "T-282",
+      "command": "bash .claude/scripts/test/factory-receipt-cas.sh",
+      "observed_status": "PASS"
+    },
+    {
+      "task": "T-283",
+      "command": "bash .claude/scripts/test/factory-receipt-retained-proof.sh",
+      "observed_status": "PASS"
+    },
+    {
+      "task": "T-284",
+      "command": "bash .claude/scripts/test/factory-receipt-discovery.sh",
+      "observed_status": "PASS"
+    },
+    {
+      "task": "T-285",
+      "command": "bash .claude/scripts/test/factory-receipt-reruns.sh",
+      "observed_status": "PASS"
+    },
+    {
+      "task": "T-286",
+      "command": "bash .claude/scripts/test/factory-receipt-coverage.sh",
+      "observed_status": "PASS"
+    },
+    {
+      "task": "T-287",
+      "command": "bash .claude/scripts/test/factory-state-scan-cost.sh && bash .claude/scripts/test/factory-receipt-history.sh",
+      "observed_status": "PASS"
+    },
+    {
+      "task": "T-288",
+      "command": "bash .claude/scripts/test/factory-receipt-reporting.sh",
+      "observed_status": "PASS"
+    },
+    {
+      "task": "T-289",
+      "command": "bash .claude/scripts/test/factory-receipt-readiness.sh",
+      "observed_status": "PASS"
+    },
+    {
+      "task": "T-290",
+      "command": "bash .claude/scripts/test/factory-receipt-continuation.sh",
+      "observed_status": "PASS"
+    },
+    {
+      "task": "T-293",
+      "command": "bash .claude/scripts/test/factory-receipt-origin-windows.sh",
+      "observed_status": "PASS"
+    },
+    {
+      "task": "T-294",
+      "command": "bash .claude/scripts/test/factory-receipt-backfill.sh",
+      "observed_status": "PASS"
+    },
+    {
+      "task": "T-295",
+      "command": "bash .claude/scripts/test/factory-receipt-projection-windows.sh",
+      "observed_status": "FAIL"
+    },
+    {
+      "task": "T-299",
+      "command": "bash .claude/scripts/test/factory-receipt-runtime-compatibility.sh",
+      "observed_status": "NOT_RUN_AFTER_FAILURE"
+    },
+    {
+      "task": "T-300",
+      "command": "bash .claude/scripts/test/factory-receipt-projection-window.sh",
+      "observed_status": "NOT_RUN_AFTER_FAILURE"
+    },
+    {
+      "task": "T-301",
+      "command": "bash .claude/scripts/test/factory-receipt-projection-checkpoint.sh",
+      "observed_status": "NOT_RUN_AFTER_FAILURE"
+    },
+    {
+      "task": "T-302",
+      "command": "bash .claude/scripts/test/factory-receipt-projection-resume.sh",
+      "observed_status": "NOT_RUN_AFTER_FAILURE"
+    },
+    {
+      "task": "T-306",
+      "command": "bash .claude/scripts/test/factory-receipt-projection-lineage.sh",
+      "observed_status": "NOT_RUN_AFTER_FAILURE"
+    },
+    {
+      "task": "T-307",
+      "command": "bash .claude/scripts/test/factory-receipt-projection-time.sh",
+      "observed_status": "NOT_RUN_AFTER_FAILURE"
+    },
+    {
+      "task": "T-308",
+      "command": "bash .claude/scripts/test/factory-receipt-projection-stage.sh",
+      "observed_status": "NOT_RUN_AFTER_FAILURE"
+    },
+    {
+      "task": "T-309",
+      "command": "bash .claude/scripts/test/factory-receipt-projection-resume.sh",
+      "observed_status": "NOT_RUN_AFTER_FAILURE"
+    },
+    {
+      "task": "T-310",
+      "command": "bash .claude/scripts/test/factory-receipt-completed-origin.sh",
+      "observed_status": "NOT_RUN_AFTER_FAILURE"
+    },
+    {
+      "task": "T-330",
+      "command": "bash .claude/scripts/test/factory-reporting-policy.sh",
+      "observed_status": "NOT_RUN_AFTER_FAILURE"
+    },
+    {
+      "task": "T-331",
+      "command": "bash .claude/scripts/test/factory-reporting-transport.sh",
+      "observed_status": "NOT_RUN_AFTER_FAILURE"
+    },
+    {
+      "task": "T-332",
+      "command": "bash .claude/scripts/test/factory-reporting-state-view.sh",
+      "observed_status": "NOT_RUN_AFTER_FAILURE"
+    },
+    {
+      "task": "T-333",
+      "command": "bash .claude/scripts/test/factory-reporting-receipt-transfer.sh",
+      "observed_status": "NOT_RUN_AFTER_FAILURE"
+    },
+    {
+      "task": "T-334",
+      "command": "bash .claude/scripts/test/factory-reporting-maintenance.sh",
+      "observed_status": "NOT_RUN_AFTER_FAILURE"
+    },
+    {
+      "task": "T-335",
+      "command": "bash .claude/scripts/test/factory-receipt-reporting.sh",
+      "observed_status": "NOT_RUN_AFTER_FAILURE"
+    }
+  ],
+  "note": "Actual full run failed; these are local acceptance observations, never native authority. Generated story-coverage timestamp was the only tracked output drift."
+}

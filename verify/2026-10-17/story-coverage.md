@@ -2,7 +2,7 @@
 
 Round 8 D — every approved spec's user story must have a Playwright E2E test.
 
-Generated: 2026-10-17T12:28:08+11:00
+Generated: 2026-10-17T17:00:58+11:00
 
 
 ## Summary
