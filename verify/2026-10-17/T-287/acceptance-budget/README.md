@@ -19,6 +19,10 @@ Targeted measurements are diagnostics, not acceptance substitutes:
 - Two current actual stage writes on a clone of the newly generated genuine prefix: 1.018 seconds versus 1.709 seconds before native tree batching. The current measurement includes a one-time 0.445-second cold path-history load.
 - Current fresh-process consumers against the unchanged preserved genuine fixture: projection 18.443 seconds, coverage 25.108 seconds; both exit 0. Their actual SQL counts and coverage outputs are retained separately.
 
-No existing genuine fixture was modified, no fixture binary was published, and no 1,001-entry history was regenerated for targeted diagnosis. Only the two explicitly authorized bounded acceptances regenerated history. The new genuine prefix is preserved at the path printed in the second timeout log. No production receipt algorithm, native provider, cloud policy, acceptance threshold or 300-second budget was changed.
+No existing genuine fixture was modified, no fixture binary was published, and no 1,001-entry history was regenerated for targeted diagnosis. Only the explicitly authorized bounded acceptances regenerated history. The new genuine prefix is preserved at the path printed in the second timeout log. No production receipt algorithm, native provider, cloud policy, acceptance threshold or 300-second budget was changed.
 
 The declared T287 acceptance command uses the same separate-process-group 300-second timeout contract as the required acceptance runner. Only a terminal successful result from a final reviewed candidate permits restoring T287 closure. Full publication validation remains the parent task's responsibility.
+
+## Final 300-second invocation
+
+The explicitly authorized final invocation at frozen executing source `3889aa2d501076ce18c0121493d1d343d8c1d4ff` **failed with exit124 at300.009seconds**. It completed all1,001 actual appends and protected discovery/watch, then reached six stage pages (745 facts). The fresh SQLite and coverage consumers were not reached. `final-acceptance.json` records exact UTC timestamps, the unchanged command, source hashes, timeout and output digest; `final-acceptance.log` preserves the complete terminal output. All recorded executing hashes remained unchanged. No300-second pass or task closure is claimed.
