@@ -1,0 +1,4 @@
+Same frozen1001-entrypolicy;16actualappends plus realoriginprogress
+Baseline:8.481seconds,1509Git subprocesses
+Persistent objects/immutable comparison plus batchupdate-index:2.634seconds,315Git subprocesses
+No production receipt implementation changes.

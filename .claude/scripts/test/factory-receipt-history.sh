@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "$0")/../../.."
+bash .claude/scripts/test/factory-receipt-git-objects.sh
 python3 -u - <<'PYTEST'
 """AC-6/AC-7/AC-8: >1000 actual retained appends, not synthetic stage facts."""
 from pathlib import Path
@@ -13,18 +14,50 @@ fixture=Path('.claude/scripts/test/factory-receipt-cas.sh').read_text().split("<
 pipeline=Path('.claude/scripts/test/factory-receipt-projection-windows.sh').read_text().split("cases=r'''\n",1)[1].split(' # Two distinct approved tasks',1)[0]
 cases=r'''
  from collections import OrderedDict
+ import atexit
+ object_spec=importlib.util.spec_from_file_location('history_git_objects',scripts/'test/factory-receipt-git-objects.py');go=importlib.util.module_from_spec(object_spec);object_spec.loader.exec_module(go)
+ objects=go.GitObjects(work);atexit.register(objects.close)
+ original_git=git
+ def git(*args,input=None,env=None,check=True):
+  if len(args)==2 and args[0]=='show' and input is None and env is None and check:
+   return subprocess.CompletedProcess(args,0,objects.read(args[1])[2],b'')
+  if len(args)==2 and args[0]=='rev-parse' and input is None and env is None and check:
+   return subprocess.CompletedProcess(args,0,(objects.read(args[1])[0]+'\n').encode(),b'')
+  if len(args)==5 and args[:2]==('log','--format=%H') and args[3]=='--' and a.state_paths.valid_hash(args[2],40) and input is None and env is None and check:
+   rows=objects.path_history(args[2],args[4])
+   if rows is not None:return subprocess.CompletedProcess(args,0,(''.join(sha+'\n' for sha in rows)).encode(),b'')
+  if len(args)==4 and args[:2]==('merge-base','--is-ancestor') and input is None and env is None:
+   code=0 if objects.compare(args[2],args[3]) is not None else 1
+   if check and code:raise subprocess.CalledProcessError(code,args)
+   return subprocess.CompletedProcess(args,code,b'',b'')
+  result=original_git(*args,input=input,env=env,check=check)
+  if args and args[0]=='fetch':objects.reset_writer()
+  return result
  provider_cache=OrderedDict();provider_bytes=0
  class HistoryState(PipelineState):
   def request(self,target,method='GET',payload=None):
    global provider_bytes
    immutable=method=='GET' and any(target.startswith('repos/org/repo/git/'+kind+'/') for kind in ('trees','commits','blobs')) and a.state_paths.valid_hash(target.rsplit('/',1)[1],40)
+   if method=='GET' and target.startswith('repos/org/repo/compare/'):
+    selectors=target.split('?',1)[0].rsplit('/',1)[1].split('...')
+    immutable=len(selectors)==2 and all(a.state_paths.valid_hash(sha,40) for sha in selectors)
+   if method=='GET' and target.startswith('repos/org/repo/commits?'):
+    selected=parse_qs(urlparse(target).query).get('sha',[])
+    immutable=len(selected)==1 and a.state_paths.valid_hash(selected[0],40)
    if immutable and target in provider_cache:
     raw=provider_cache.pop(target);provider_cache[target]=raw;return json.loads(raw)
+   if method=='POST' and target=='repos/org/repo/git/trees':
+    return {'sha':objects.write_tree(payload['base_tree'],payload['tree'])}
    if method=='GET' and '/git/trees/' in target:
-    sha=target.rsplit('/',1)[1];rows=[]
-    for line in out('ls-tree','-l',sha).splitlines():
-     meta,name=line.split('\t',1);mode,kind,blob,size=meta.split();rows.append({'path':name,'mode':mode,'type':kind,'sha':blob,**({'size':int(size)} if kind=='blob' else {})})
-    value={'sha':sha,'truncated':False,'tree':rows}
+    sha=target.rsplit('/',1)[1];value={'sha':sha,'truncated':False,'tree':objects.tree(sha)}
+   elif method=='GET' and '/git/commits/' in target:
+    value=objects.commit(target.rsplit('/',1)[1])
+   elif method=='GET' and '/git/blobs/' in target:
+    sha,kind,raw=objects.read(target.rsplit('/',1)[1]);assert kind=='blob'
+    value={'sha':sha,'encoding':'base64','size':len(raw),'content':base64.b64encode(raw).decode()}
+   elif immutable and '/compare/' in target:
+    value=objects.compare(*selectors)
+    if value is None:value=super().request(target,method,payload)
    elif method=='GET' and '/pulls/' in target:
     number=int(target.rsplit('/',1)[1]);n=number-6;assert 1<=n<=1001
     return {'number':number,'merged':True,'merge_commit_sha':f'{n:040x}','merged_at':'2026-10-15T01:00:00Z','base':{'repo':{'id':101,'full_name':'org/repo'}}}
@@ -36,14 +69,24 @@ cases=r'''
     if len(raw)<=33554432:provider_cache[target]=raw;provider_bytes+=len(raw)
    return copy.deepcopy(value)
  blob_spec=importlib.util.spec_from_file_location('history_blob_provider',scripts/'test/factory-receipt-blob-provider.py');bp=importlib.util.module_from_spec(blob_spec);blob_spec.loader.exec_module(bp);bp.attach(HistoryState,work,root,pull_requests={n+6:{'number':n+6,'merged':True,'merge_commit_sha':f'{n:040x}','merged_at':'2026-10-15T01:00:00Z','base':{'repo':{'id':101,'full_name':'org/repo'}}} for n in range(1,1002)})
+ # Prove persistent native tree writes match the original index adapter, including a stale base.
+ probe_blob=git('hash-object','-w','--stdin',input=b'index equivalence').stdout.decode().strip()
+ probe_base=tree;probes=[]
+ for name in ('index-a','index-b'):
+  payload={'base_tree':probe_base,'tree':[{'path':name,'mode':'100644','type':'blob','sha':probe_blob}]}
+  probe_base=HistoryState().request('repos/org/repo/git/trees','POST',payload)['sha'];probes.append((payload,probe_base))
+ probes.append(({'base_tree':tree,'tree':[{'path':'index-a','mode':'100644','type':'blob','sha':probe_blob}]},probes[0][1]))
+ for payload,expected in probes:
+  assert HistoryState().request('repos/org/repo/git/trees','POST',payload)['sha']==expected
+  assert State().request('repos/org/repo/git/trees','POST',payload)['sha']==expected
  total=1001;end='2026-10-15T23:00:00Z';store={'repository':'org/repo','visibility':'public'};stream=a.archive_stream('org/repo')
  policy['specs']={str(n):{'path':f'specs/active/{n}.md','sha256':revision,'task_ids':[f'T-{n}']} for n in range(1,total+1)}
  receipt['policy_sha256']=r.coordinator.policy_hash(policy)
  document=json.loads(trust.read_bytes());document['profiles'][0]['policy_sha256']=receipt['policy_sha256'];trust.write_text(json.dumps(document))
  for sha in (tree,out('rev-parse',ref+'^{tree}')):
   assert HistoryState().request('repos/org/repo/git/trees/'+sha)==State().request('repos/org/repo/git/trees/'+sha)
- # All responses still cross the production budget wrappers on every request;
- # the bounded provider cache only avoids repeated local subprocess decoding.
+ # Every response still crosses production budget wrappers. Persistent cat-file
+ # reads and exact-object caches replace subprocess overhead, never authority.
  # The exact reviewed origin has no archive data. Only the real scanner publishes
  # prefix credit; an ancestry comparison or test-provided complete flag never does.
  completed=0;metadata=[]

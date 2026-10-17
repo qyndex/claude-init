@@ -1,0 +1,39 @@
+prepared genuine1001 clone; no appends regenerated
+Counter({'hash-object': 0.1670365410973318, 'commit-tree': 0.010489250009413809, 'update-ref': 0.010391249001258984}) Counter({'hash-object': 34, 'commit-tree': 2, 'update-ref': 2})
+{'status': 'staged', 'campaign': '68a6cec6786fcfe4d3c891524147a2d996686b2b3b98476f6e23ba3246003d01', 'stage_path': 'receipt-archive/stages/68a6cec6786fcfe4d3c891524147a2d996686b2b3b98476f6e23ba3246003d01/fa/faeb137e555b5a3f41a5a881d187a66bdc620e8bf7c892bc3f68dc3d98c8a2e1.json', 'facts_count': 8, 'coverage_complete': False, 'uncertain_write_reconciled': False}
+         1786401 function calls (1772239 primitive calls) in 1.018 seconds
+
+   Ordered by: cumulative time
+   List reduced from 449 to 30 due to restriction <30>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        2    0.002    0.001    1.018    0.509 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/factory-receipt-archive.py:1194(stage_projection)
+     2477    0.003    0.000    0.831    0.000 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/factory-receipt-archive.py:1207(request)
+      568    0.002    0.000    0.745    0.001 genuine1001-stage-command-timing:106(request)
+      113    0.000    0.000    0.636    0.006 genuine1001-stage-command-timing:73(request)
+       65    0.000    0.000    0.636    0.010 genuine1001-stage-command-timing:89(git)
+       25    0.000    0.000    0.447    0.018 genuine1001-stage-command-timing:18(out)
+        3    0.013    0.004    0.445    0.148 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/test/factory-receipt-git-objects.py:109(path_history)
+     9542    0.050    0.000    0.429    0.000 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/test/factory-receipt-git-objects.py:92(path_oid)
+    24274    0.050    0.000    0.363    0.000 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/test/factory-receipt-git-objects.py:38(read)
+    24444    0.297    0.000    0.297    0.000 {method 'readline' of '_io.BufferedReader' objects}
+        8    0.000    0.000    0.286    0.036 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/factory-receipt-archive.py:293(verify_bootstrap)
+      444    0.001    0.000    0.279    0.001 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/factory-receipt-archive.py:192(read)
+        8    0.000    0.000    0.274    0.034 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/factory-receipt-archive.py:239(_completed_origin)
+       32    0.002    0.000    0.226    0.007 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/factory-receipt-archive.py:708(retained_execution)
+        2    0.000    0.000    0.196    0.098 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/factory-receipt-archive.py:1071(projection_lineage)
+      110    0.000    0.000    0.191    0.002 genuine1001-stage-command-timing:26(request)
+       38    0.001    0.000    0.188    0.005 genuine1001-stage-command-timing:189(original_git)
+       38    0.000    0.000    0.187    0.005 genuine1001-stage-command-timing:17(git)
+       38    0.001    0.000    0.187    0.005 /opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py:513(run)
+      214    0.000    0.000    0.185    0.001 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/factory-receipt-archive.py:1088(request)
+     2956    0.003    0.000    0.143    0.000 /opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/json/__init__.py:304(loads)
+     2697    0.001    0.000    0.142    0.000 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/factory-receipt-archive.py:45(document)
+       38    0.001    0.000    0.136    0.004 /opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py:1177(communicate)
+       38    0.002    0.000    0.136    0.004 /opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py:2093(_communicate)
+     2956    0.002    0.000    0.134    0.000 /opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/json/decoder.py:340(decode)
+      122    0.001    0.000    0.131    0.001 /opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/selectors.py:385(select)
+      122    0.131    0.001    0.131    0.001 {method 'poll' of 'select.poll' objects}
+     2956    0.056    0.000    0.131    0.000 /opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/json/decoder.py:351(raw_decode)
+       16    0.001    0.000    0.113    0.007 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/factory-receipt-archive.py:1305(_retained_time_from_anchor)
+      566    0.002    0.000    0.111    0.000 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/factory-receipt-archive.py:414(blob_at)

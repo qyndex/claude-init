@@ -1,0 +1,9 @@
+{
+  "timestamp": "2026-10-17T02:04:13.066487+00:00",
+  "status": "mktree+pack refresh candidate; no full bounded acceptance yet",
+  "sources": {
+    ".claude/scripts/test/factory-receipt-git-objects.py": "efe505805e32080ad6e75dbafe8769076a6776960bc3807ac3ddfbd54fc77884",
+    ".claude/scripts/test/factory-receipt-git-objects.sh": "f5a44af31379cbeeaecd1fdd7282abb71b9a02a38de75716c33a13500871472d",
+    ".claude/scripts/test/factory-receipt-history.sh": "9434576e1a703585e4e9b0b998fe4acafc0e77758bad5801843f9756e8a2a074"
+  }
+}

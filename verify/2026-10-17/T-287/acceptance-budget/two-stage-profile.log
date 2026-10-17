@@ -1,0 +1,38 @@
+prepared genuine1001 clone; no appends regenerated
+{'status': 'staged', 'campaign': '0725e5e7980961cd6d19dba4d94a71b816dfe880378d1d79a03822358b67d2bd', 'stage_path': 'receipt-archive/stages/0725e5e7980961cd6d19dba4d94a71b816dfe880378d1d79a03822358b67d2bd/1b/1b93ac968bee9930660814b0cb46662bfb1e71a413baafe3be813dd0abb35e6d.json', 'facts_count': 8, 'coverage_complete': False, 'uncertain_write_reconciled': False}
+         1863715 function calls (1849709 primitive calls) in 1.497 seconds
+
+   Ordered by: cumulative time
+   List reduced from 449 to 30 due to restriction <30>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        2    0.002    0.001    1.497    0.749 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/factory-receipt-archive.py:1194(stage_projection)
+     2478    0.005    0.000    1.302    0.001 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/factory-receipt-archive.py:1207(request)
+      568    0.004    0.000    1.210    0.002 genuine1001-two-stage-profile:104(request)
+      133    0.001    0.000    1.172    0.009 genuine1001-two-stage-profile:89(git)
+      106    0.001    0.000    0.707    0.007 genuine1001-two-stage-profile:17(git)
+      106    0.004    0.000    0.706    0.007 /opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py:513(run)
+      113    0.000    0.000    0.666    0.006 genuine1001-two-stage-profile:73(request)
+      106    0.002    0.000    0.557    0.005 /opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py:1177(communicate)
+      106    0.003    0.000    0.556    0.005 /opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py:2093(_communicate)
+      258    0.002    0.000    0.546    0.002 /opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/selectors.py:385(select)
+      258    0.544    0.002    0.544    0.002 {method 'poll' of 'select.poll' objects}
+       25    0.000    0.000    0.465    0.019 genuine1001-two-stage-profile:18(out)
+        3    0.013    0.004    0.462    0.154 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/test/factory-receipt-git-objects.py:99(path_history)
+     9542    0.052    0.000    0.446    0.000 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/test/factory-receipt-git-objects.py:82(path_oid)
+    24138    0.051    0.000    0.374    0.000 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/test/factory-receipt-git-objects.py:28(read)
+        8    0.000    0.000    0.299    0.037 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/factory-receipt-archive.py:293(verify_bootstrap)
+      444    0.001    0.000    0.291    0.001 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/factory-receipt-archive.py:192(read)
+        8    0.000    0.000    0.287    0.036 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/factory-receipt-archive.py:239(_completed_origin)
+       32    0.002    0.000    0.233    0.007 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/factory-receipt-archive.py:708(retained_execution)
+    24138    0.230    0.000    0.230    0.000 {method 'readline' of '_io.BufferedReader' objects}
+      110    0.000    0.000    0.203    0.002 genuine1001-two-stage-profile:26(request)
+        2    0.000    0.000    0.202    0.101 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/factory-receipt-archive.py:1071(projection_lineage)
+      214    0.000    0.000    0.191    0.001 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/factory-receipt-archive.py:1088(request)
+     2957    0.003    0.000    0.148    0.000 /opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/json/__init__.py:304(loads)
+     2698    0.001    0.000    0.147    0.000 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/factory-receipt-archive.py:45(document)
+      106    0.006    0.000    0.145    0.001 /opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py:817(__init__)
+     2957    0.002    0.000    0.138    0.000 /opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/json/decoder.py:340(decode)
+      106    0.007    0.000    0.135    0.001 /opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py:1826(_execute_child)
+     2957    0.057    0.000    0.135    0.000 /opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/json/decoder.py:351(raw_decode)
+       16    0.001    0.000    0.116    0.007 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/factory-receipt-archive.py:1305(_retained_time_from_anchor)
