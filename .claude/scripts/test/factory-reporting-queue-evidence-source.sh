@@ -84,6 +84,11 @@ with tempfile.TemporaryDirectory() as directory:
   captured=e.GitHub('org/repo').request('repos/org/repo/actions/jobs/100/logs',raw=True)
   assert b'\x1b[32m' in captured and e.results(captured)==[{'notifications':0,'reconciled':0}];count+=1
   rejects(lambda:e.GitHub('org/repo').request('repos/org/repo',raw=True))
+  # AC-9: the retainer's exact artifact ZIP uses the same real bounded transport.
+  stub.write_text('#!'+__import__('sys').executable+'\nimport sys\nassert sys.argv[1:]==["api","--hostname","github.com","--method","GET","--allow-escape-sequences","repos/org/repo/actions/artifacts/501/zip"]\nsys.stdout.buffer.write(b"PK\\x03\\x04\\x00\\xff\\x1b")\n');stub.chmod(0o755)
+  assert e.GitHub('org/repo').request('repos/org/repo/actions/artifacts/501/zip',raw=True)==b'PK\x03\x04\x00\xff\x1b';count+=1
+  for endpoint in ('repos/org/repo/actions/artifacts/0/zip','repos/org/repo/actions/artifacts/501/zip?x=1','repos/org/repo/actions/artifacts/501','repos/foreign/repo/actions/artifacts/501/zip'):
+   rejects(lambda endpoint=endpoint:e.GitHub('org/repo').request(endpoint,raw=True))
   stub.write_text('#!'+__import__('sys').executable+'\nimport sys\nsys.stdout.write("x"*2097153)\n');stub.chmod(0o755)
   try:e.GitHub('org/repo').request('repos/org/repo/actions/jobs/100/logs',raw=True)
   except ValueError as error:assert 'output limit' in str(error);count+=1
