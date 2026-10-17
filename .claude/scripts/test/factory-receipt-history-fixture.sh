@@ -8,11 +8,13 @@ from unittest.mock import patch
 script=pathlib.Path('.claude/scripts/test/factory-receipt-history.sh')
 with tempfile.TemporaryDirectory() as tmp:
  root=pathlib.Path(tmp);bin=root/'bin';bin.mkdir();real_git=shutil.which('git')
- (bin/'git').write_text('#!/usr/bin/env python3\nimport os,sys\nif "hash-object" in sys.argv and "-w" in sys.argv:\n sys.stderr.write("controlled fixture object write failure\\n");sys.exit(128)\nos.execv('+repr(real_git)+',["git",*sys.argv[1:]])\n')
+ # Let prerequisite Git-object equivalence finish; fail only the history fixture.
+ (bin/'git').write_text('#!/usr/bin/env python3\nimport os,sys\nif "hash-object" in sys.argv and "-w" in sys.argv and "-C" in sys.argv and os.path.isfile(os.path.join(sys.argv[sys.argv.index("-C")+1],"reports","0"*64+".json")):\n sys.stderr.write("controlled fixture object write failure\\n");sys.exit(128)\nos.execv('+repr(real_git)+',["git",*sys.argv[1:]])\n')
  (bin/'git').chmod(0o755)
  result=subprocess.run(['bash',str(script)],env={**os.environ,'PATH':str(bin)+os.pathsep+os.environ['PATH']},capture_output=True,text=True)
  assert result.returncode==1,(result.returncode,result.stdout[-500:],result.stderr[-500:])
  output=result.stdout+result.stderr
+ assert 'persistent real Git object reads: exact binary/tree/commit equivalence, fresh mutable ref and missing-object recovery PASS' in output,'prerequisite object equivalence did not finish'
  assert 'controlled fixture object write failure' in output,'actual local Git stderr was lost'
  matches=re.findall(r'^failure fixture preserved=(.+)$',output,re.M)
  assert len(matches)==1,'actual failed fixture was not preserved exactly once'
