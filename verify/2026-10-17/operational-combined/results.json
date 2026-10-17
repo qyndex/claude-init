@@ -1,0 +1,34 @@
+{
+  "head": "d965ac0c2e2b59cdc68f7f8f4f93ab8f62978c3c",
+  "base": "b533a82f4b4b45712e26a33239ef269a6847aa92",
+  "results": [
+    {
+      "command": [
+        "bash",
+        ".claude/scripts/test/factory-operational-proof.sh"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.052,
+      "timeout_seconds": 60
+    },
+    {
+      "command": [
+        "bash",
+        ".claude/scripts/test/factory-operational-producer.sh"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 2.388,
+      "timeout_seconds": 60
+    },
+    {
+      "command": [
+        "bash",
+        ".claude/scripts/test/factory-operational-replay.sh"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 5.579,
+      "timeout_seconds": 60
+    }
+  ],
+  "native_proof": false
+}

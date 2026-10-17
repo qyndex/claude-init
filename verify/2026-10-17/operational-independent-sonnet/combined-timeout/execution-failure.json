@@ -1,0 +1,10 @@
+{
+  "requested_model": "claude-sonnet-5-5",
+  "observed_model": null,
+  "runner_exit_code": 1,
+  "timeout_seconds": 300,
+  "failure": "ValueError: trusted subprocess timeout",
+  "valid_verdict": false,
+  "source_head": "d965ac0c2e2b59cdc68f7f8f4f93ab8f62978c3c",
+  "next": "Two smaller scopes, unchanged300secondbound"
+}

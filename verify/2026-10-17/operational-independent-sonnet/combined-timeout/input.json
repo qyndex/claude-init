@@ -1,0 +1,18 @@
+{
+  "head": "d965ac0c2e2b59cdc68f7f8f4f93ab8f62978c3c",
+  "prompt_sha256": "032fc7aa64974ce1a94b7fd785cf4c9d1e40fb1f97c40f5ac5c325d8ff1f3eb3",
+  "files": {
+    ".claude/scripts/factory-operational-proof.py": "82f051c273ab3cff5e484e902dbecf38b7c647b9c84390a7703255370fc5a0a1",
+    ".claude/scripts/factory-operational-producer.py": "4b215adbb2e5abf99d793a8d12487596f13fae31188b531b739a1ed6208f2a2e",
+    ".claude/scripts/factory-operational-replay.py": "bf3ae38739df7a0b17fbea15715cb5d5b9267a9b9af6a1ba49e8cd511c15a5f7",
+    ".github/workflows/factory-operational-proof.yml": "e90dea7f80564e1201dd28c4dde1ae07d919aa78bb4a46e4887194a5976f4682",
+    ".github/workflows/factory-operational-proof-retain.yml": "6f905164ec9519ed72b78e21f87780c64466a30c29ddc0b147e49b77d99024b0",
+    "factory/operational-proof-profiles.json": "daac983fae6606468c1d378506cfe3728044aa0dba1423652346a4bcaa550e9d",
+    ".claude/scripts/test/factory-operational-proof.sh": "39c60fcc40da00b94f5587abac6df9715d0412865712f5cbfcd5625beec65b9c",
+    ".claude/scripts/test/factory-operational-producer.sh": "374d5f6f0c30db37c508ac3037b9112414e7d06adb9382a8106c65de41b30842",
+    ".claude/scripts/test/factory-operational-replay.sh": "d9b07e5d32411c9a9c61378ee34b0497c90e49ae5542bcf2066f234777205f35",
+    "docs/activation/HISTORICAL-OPERATIONAL-PROOF.md": "e7fdafeb08eabe1d196d3f6a269ee30bd46002ef316c75d11a1cdc7b0e6bbc32"
+  },
+  "base": "b533a82f4b4b45712e26a33239ef269a6847aa92",
+  "scope": "operational proof final static review only; no native approval"
+}

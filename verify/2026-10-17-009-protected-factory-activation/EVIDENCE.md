@@ -1,18 +1,20 @@
 ## Evidence Bundle — Spec 009 (009-protected-factory-activation)
-Spec: `specs/active/009-protected-factory-activation.md` · Commit: `b2fe148`
+Spec: `specs/active/009-protected-factory-activation.md` · Commit: `d965ac0`
 
-### Acceptance criteria (5/5 proven)
+Retained results: [verify/2026-10-17-009-protected-factory-activation/attempt-jTUAhyjP/results.json](verify/2026-10-17-009-protected-factory-activation/attempt-jTUAhyjP/results.json)
+
+### Acceptance criteria (0/5 proven)
 | AC | Proven by | Result |
 |----|-----------|--------|
-| AC-1 | tagged test | ✓ PASS |
-| AC-2 | tagged test | ✓ PASS |
-| AC-3 | tagged test | ✓ PASS |
-| AC-4 | tagged test | ✓ PASS |
-| AC-5 | tagged test | ✓ PASS |
+| AC-1 | — | ✗ UNPROVEN |
+| AC-2 | — | ✗ UNPROVEN |
+| AC-3 | — | ✗ UNPROVEN |
+| AC-4 | — | ✗ UNPROVEN |
+| AC-5 | — | ✗ UNPROVEN |
 
 ### Smoke test (exit codes are load-bearing)
 ```
-# Smoke test — 2026-10-17T04:59:39+11:00
+# Smoke test — 2026-10-17T12:19:21+11:00
 $ bash .claude/scripts/verify.sh
 
 → Integration coverage gate

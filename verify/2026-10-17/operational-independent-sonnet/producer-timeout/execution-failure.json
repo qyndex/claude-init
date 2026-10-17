@@ -1,0 +1,9 @@
+{
+  "requested_model": "claude-sonnet-5-5",
+  "observed_model": null,
+  "runner_exit_code": 1,
+  "timeout_seconds": 300,
+  "failure": "trusted subprocess timeout",
+  "valid_verdict": false,
+  "head": "d965ac0c2e2b59cdc68f7f8f4f93ab8f62978c3c"
+}
