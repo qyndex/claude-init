@@ -1,0 +1,12 @@
+# Spec-match: 014
+  ✗ AC-1 — UNPROVEN (no passing test tagged @AC-1)
+  ✗ AC-2 — UNPROVEN (no passing test tagged @AC-2)
+  ✓ AC-3 — proven by a passing tagged test
+  ✓ AC-4 — proven by a passing tagged test
+  ✗ AC-5 — UNPROVEN (no passing test tagged @AC-5)
+  ✗ AC-6 — UNPROVEN (no passing test tagged @AC-6)
+  ✗ AC-7 — UNPROVEN (no passing test tagged @AC-7)
+  ✗ AC-8 — UNPROVEN (no passing test tagged @AC-8)
+  ✗ AC-9 — UNPROVEN (no passing test tagged @AC-9)
+
+✗ spec-match FAIL: 7 acceptance criteria unproven
