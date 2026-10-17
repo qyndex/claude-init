@@ -1972,7 +1972,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-reporting-queue.sh
   owner: implementer
 
-- [b] T-318  | spec:029  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-317,T-339  | parallel: no  | est: 5m
+- [x] T-318  | spec:029  | phase:3  | priority: security  | created: 2026-10-16  | deps: T-317,T-339  | parallel: no  | est: 5m
   summary: Verify labelled live queue drill recovery and unchanged worker state
   progress: Original native administrative observation retained; publication closure deferred until genuine authenticated replay T339
   files: docs/activation/2026-10-16-queue-probe/README.md, plans/active/029-github-reporting-alerts.md, docs/FACTORY-DIGEST.md, docs/FACTORY-ADOPTER-SETUP.md

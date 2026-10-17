@@ -1,0 +1,8 @@
+# TDD ledger — red — T-318
+ledger_format: 2
+timestamp: 2026-10-18T00:10:28+11:00
+command: python3 .claude/scripts/factory-operational-replay.py --live --repository qyndex/claude-init --profile queue-pilot-20261016
+exit_code: 1
+red_reason: assertion-failure
+---
+Historical completion replay unavailable; no current-readiness or merge credit

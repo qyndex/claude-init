@@ -1,0 +1,32 @@
+{
+  "task": "T-318",
+  "scope": "separate actual native historical acceptance, not current delivery/readiness authority",
+  "red_source": "460b687318b41f152761f3198dc31f8f6d5cafa6",
+  "red_time": "2026-10-18T00:10:28+11:00",
+  "green_source": "94e40be14af35b11bbd81d355a723141c4383299",
+  "green_started_at": "2026-10-17T15:59:41.913515+00:00",
+  "green_ended_at": "2026-10-17T15:59:57.013136+00:00",
+  "capture_to_retention": {
+    "verify/2026-10-18/T-318/red.log": {
+      "retained_path": "verify/2026-10-18/T-318/native-replay/red.log",
+      "sha256": "d96da1902785ab5e735128aa9065a768f4001419cfb941494a64c67dc99b32d5"
+    },
+    "verify/2026-10-18/T-318/green.log": {
+      "retained_path": "verify/2026-10-18/T-318/native-replay/green.log",
+      "sha256": "72d3d89160173894c55fda9bf6975b04e18f6facbc9ea77706a1377970501a0d"
+    }
+  },
+  "hashes": {
+    "red.log": "d96da1902785ab5e735128aa9065a768f4001419cfb941494a64c67dc99b32d5",
+    "green.log": "72d3d89160173894c55fda9bf6975b04e18f6facbc9ea77706a1377970501a0d"
+  },
+  "historical_2026_10_16_entire_directory_unchanged": {
+    "verify/2026-10-16/T-318/characterization": "32d057d44f17decc9749cb9a3eaf4b745906bf739cf5819d013d79a869a57996",
+    "verify/2026-10-16/T-318/green.log": "598b91e284794af5328eda7776f425ea98f47c9f45a431e97e50dd69fadbdaf3",
+    "verify/2026-10-16/T-318/proof-index.json": "de4e397c00a7d70937f463cb7a09224b23231378284125fe234df740834847f9",
+    "verify/2026-10-16/T-318/validate.log": "3b26799060f4c03356db5e83bba4336b443b52d25d9205b76ccb500155d573ee",
+    "verify/2026-10-16/T-318/README.md": "c588f87682f97fec28b12d7e780bb341f02810d4e3526dd14bee832e8e188f06",
+    "verify/2026-10-16/T-318/check-tdd-ledger.log": "96451ff143fe799360ef477f0de7d0cdfb3f9ecaf6b64bb7148273aa95b35c9c"
+  },
+  "checker_scope": "existing checker validates historical characterization; current native replay command/bindings independently validated before sanctioned closure"
+}
