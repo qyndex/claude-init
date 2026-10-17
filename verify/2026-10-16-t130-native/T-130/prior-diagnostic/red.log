@@ -1,0 +1,25 @@
+# TDD ledger — red — T-130
+ledger_format: 2
+timestamp: 2026-10-16T22:43:41+11:00
+command: bash .claude/scripts/test/tdd-ledger-suite.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+PASS vitest-colored: tooling-error, gate enforced
+PASS startup-colored: tooling-error, gate enforced
+PASS stack-colored: tooling-error, gate enforced
+PASS assertion-colored: assertion-failure, gate enforced
+PASS vitest-load: tooling-error, gate enforced
+PASS vite-load: tooling-error, gate enforced
+PASS playwright-stack: tooling-error, gate enforced
+PASS playwright-esm: tooling-error, gate enforced
+PASS vitest-startup: tooling-error, gate enforced
+PASS missing-command: tooling-error, gate enforced
+PASS no-tests: tooling-error, gate enforced
+PASS assertion: assertion-failure, gate enforced
+PASS config-in-assertion: assertion-failure, gate enforced
+PASS load-in-assertion: assertion-failure, gate enforced
+PASS startup-in-assertion: assertion-failure, gate enforced
+Traceback (most recent call last):
+  File "<stdin>", line 60, in <module>
+AssertionError: "# TDD ledger — red — T-970\nledger_format: 2\ntimestamp: 2026-10-16T22:43:42+11:00\ncommand: printf '%s\\n' 'failed to load config from /tmp/vitest.config.ts'; exit 1\nexit_code: 1\nred_reason: assertion-failure\n---\nfailed to load config from /tmp/vitest.config.ts\n"

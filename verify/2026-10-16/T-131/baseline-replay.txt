@@ -1,0 +1,73 @@
+Post-implementation diagnostic replay against immutable d735e07 production source, current acceptance suite. Not a replacement for pre-change TDD RED.
+exit_code: 1
+Evidence proof preservation: 5 passed; 14 failed
+FAIL smoke-FAIL: → Collecting evidence for spec 900 (900-fixture)
+
+✓ Evidence bundle: verify/2026-10-16-900-fixture/
+  Verdict: FAIL | ACs: 0/1 proven | smoke exit: 0
+  PR body: verify/2026-10-16-900-fixture/pr-body.md
+
+FAIL smoke-malformed: → Collecting evidence for spec 900 (900-fixture)
+
+✓ Evidence bundle: verify/2026-10-16-900-fixture/
+  Verdict: FAIL | ACs: 0/1 proven | smoke exit: 0
+  PR body: verify/2026-10-16-900-fixture/pr-body.md
+
+FAIL smoke-other-PASS: 'results_file'
+FAIL smoke-deletes-root: → Collecting evidence for spec 900 (900-fixture)
+
+✓ Evidence bundle: verify/2026-10-16-900-fixture/
+  Verdict: FAIL | ACs: 0/1 proven | smoke exit: 0
+  PR body: verify/2026-10-16-900-fixture/pr-body.md
+
+FAIL failed-original: invalid/missing/failing original became PASS
+FAIL missing-original: invalid/missing/failing original became PASS
+FAIL non-json-number: invalid/missing/failing original became PASS
+FAIL nul-trailing: invalid/missing/failing original became PASS
+FAIL nul-junk: invalid/missing/failing original became PASS
+FAIL normal-isolation-and-consumer: 'results_file'
+FAIL normal-failed-runner-remains-failure: 'results_file'
+FAIL snapshot-tamper-blocks: smoke replaced failing snapshot with PASS
+FAIL repeated-attempts-do-not-reuse-proof: → Collecting evidence for spec 900 (900-fixture)
+
+✓ Evidence bundle: verify/2026-10-16-900-fixture/
+  Verdict: FAIL | ACs: 0/1 proven | smoke exit: 0
+  PR body: verify/2026-10-16-900-fixture/pr-body.md
+
+FAIL template guidance does not match evidence config/journey directory contract
+Traceback (most recent call last):
+  File "<stdin>", line 107, in <module>
+AssertionError: smoke-FAIL: → Collecting evidence for spec 900 (900-fixture)
+
+✓ Evidence bundle: verify/2026-10-16-900-fixture/
+  Verdict: FAIL | ACs: 0/1 proven | smoke exit: 0
+  PR body: verify/2026-10-16-900-fixture/pr-body.md
+
+smoke-malformed: → Collecting evidence for spec 900 (900-fixture)
+
+✓ Evidence bundle: verify/2026-10-16-900-fixture/
+  Verdict: FAIL | ACs: 0/1 proven | smoke exit: 0
+  PR body: verify/2026-10-16-900-fixture/pr-body.md
+
+smoke-other-PASS: 'results_file'
+smoke-deletes-root: → Collecting evidence for spec 900 (900-fixture)
+
+✓ Evidence bundle: verify/2026-10-16-900-fixture/
+  Verdict: FAIL | ACs: 0/1 proven | smoke exit: 0
+  PR body: verify/2026-10-16-900-fixture/pr-body.md
+
+failed-original: invalid/missing/failing original became PASS
+missing-original: invalid/missing/failing original became PASS
+non-json-number: invalid/missing/failing original became PASS
+nul-trailing: invalid/missing/failing original became PASS
+nul-junk: invalid/missing/failing original became PASS
+normal-isolation-and-consumer: 'results_file'
+normal-failed-runner-remains-failure: 'results_file'
+snapshot-tamper-blocks: smoke replaced failing snapshot with PASS
+repeated-attempts-do-not-reuse-proof: → Collecting evidence for spec 900 (900-fixture)
+
+✓ Evidence bundle: verify/2026-10-16-900-fixture/
+  Verdict: FAIL | ACs: 0/1 proven | smoke exit: 0
+  PR body: verify/2026-10-16-900-fixture/pr-body.md
+
+template guidance does not match evidence config/journey directory contract

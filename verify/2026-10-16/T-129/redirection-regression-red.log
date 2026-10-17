@@ -1,0 +1,10 @@
+# TDD ledger — red — T-129
+ledger_format: 2
+timestamp: 2026-10-16T22:38:12+11:00
+command: bash .claude/scripts/test/pre-bash-guard-literals.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+FAIL backtick-input-redirection: expected=deny got=pass exit=0
+FAIL backtick-output-redirection: expected=deny got=pass exit=0
+guard literal cases: 41 passed, 2 failed

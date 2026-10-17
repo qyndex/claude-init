@@ -1,0 +1,36 @@
+[
+  {
+    "label": "native_unittest_assertion_diff",
+    "native_runner_exit": 1,
+    "native_runner_output": "F\n======================================================================\nFAIL: test_value (__main__.Case.test_value)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/t130-repeat-review-pj8cn6ca/assertion_diff.py\", line 3, in test_value\n    def test_value(self):self.assertMultiLineEqual('Startup Error\\nx','ready\\nx')\n                         ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 'Startup Error\\nx' != 'ready\\nx'\n- Startup Error\n+ ready\n  x\n\n\n----------------------------------------------------------------------\nRan 1 test in 0.000s\n\nFAILED (failures=1)\n",
+    "observations": [
+      {
+        "revision": "91839087a769bd45670df5b84cb96993bcb97d42",
+        "writer_exit": 0,
+        "red_reason": "assertion-failure"
+      },
+      {
+        "revision": "d735e07",
+        "writer_exit": 1,
+        "red_reason": "tooling-error"
+      }
+    ]
+  },
+  {
+    "label": "native_node_assertion_config_helper",
+    "native_runner_exit": 1,
+    "native_runner_output": "node:assert:152\n  throw new AssertionError(obj);\n  ^\n\nAssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'actual'\n- 'expected'\n\n    at exports.helper (/private/var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/t130-repeat-review-pj8cn6ca/vitest.config.js:1:43)\n    at Object.<anonymous> (/private/var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/t130-repeat-review-pj8cn6ca/assertion.test.cjs:1:31)\n    at Module._compile (node:internal/modules/cjs/loader:1804:14)\n    at Object..js (node:internal/modules/cjs/loader:1936:10)\n    at Module.load (node:internal/modules/cjs/loader:1525:32)\n    at Module._load (node:internal/modules/cjs/loader:1327:12)\n    at TracingChannel.traceSync (node:diagnostics_channel:328:14)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\n    at node:internal/main/run_main_module:33:47 {\n  generatedMessage: true,\n  code: 'ERR_ASSERTION',\n  actual: 'actual',\n  expected: 'expected',\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\nNode.js v24.13.1\n",
+    "observations": [
+      {
+        "revision": "91839087a769bd45670df5b84cb96993bcb97d42",
+        "writer_exit": 0,
+        "red_reason": "assertion-failure"
+      },
+      {
+        "revision": "d735e07",
+        "writer_exit": 1,
+        "red_reason": "tooling-error"
+      }
+    ]
+  }
+]

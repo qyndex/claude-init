@@ -1,0 +1,42 @@
+# TDD ledger — red — T-129
+ledger_format: 2
+timestamp: 2026-10-16T23:59:23+11:00
+command: bash .claude/scripts/test/pre-bash-guard-literals.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+FAIL frontend-await: expected=pass got=deny exit=2
+FAIL frontend-return: expected=pass got=deny exit=2
+FAIL frontend-export: expected=pass got=deny exit=2
+FAIL frontend-async-function: expected=pass got=deny exit=2
+FAIL escaped-separator-comment- : expected=deny got=pass exit=0
+FAIL escaped-separator-comment-;: expected=deny got=pass exit=0
+FAIL escaped-separator-comment-|: expected=deny got=pass exit=0
+FAIL escaped-separator-comment-&: expected=deny got=pass exit=0
+FAIL escaped-separator-comment-(: expected=deny got=pass exit=0
+FAIL escaped-separator-comment-): expected=deny got=pass exit=0
+FAIL escaped-separator-comment-	: expected=deny got=pass exit=0
+FAIL wrapped-code-nohup bash-curl: expected=deny got=pass exit=0
+FAIL wrapped-code-nohup bash-wget: expected=deny got=pass exit=0
+FAIL wrapped-code-nohup bash-fetch: expected=deny got=pass exit=0
+FAIL wrapped-code-timeout 5 sh-curl: expected=deny got=pass exit=0
+FAIL wrapped-code-timeout 5 sh-wget: expected=deny got=pass exit=0
+FAIL wrapped-code-timeout 5 sh-fetch: expected=deny got=pass exit=0
+FAIL wrapped-code-env -i FLAG=1 bash-curl: expected=deny got=pass exit=0
+FAIL wrapped-code-env -i FLAG=1 bash-wget: expected=deny got=pass exit=0
+FAIL wrapped-code-env -i FLAG=1 bash-fetch: expected=deny got=pass exit=0
+FAIL wrapped-code-nice -n 5 zsh-curl: expected=deny got=pass exit=0
+FAIL wrapped-code-nice -n 5 zsh-wget: expected=deny got=pass exit=0
+FAIL wrapped-code-nice -n 5 zsh-fetch: expected=deny got=pass exit=0
+FAIL wrapped-code-command bash-curl: expected=deny got=pass exit=0
+FAIL wrapped-code-command bash-wget: expected=deny got=pass exit=0
+FAIL wrapped-code-command bash-fetch: expected=deny got=pass exit=0
+FAIL wrapped-code-unknown-wrapper /bin/bash-curl: expected=deny got=pass exit=0
+FAIL wrapped-code-unknown-wrapper /bin/bash-wget: expected=deny got=pass exit=0
+FAIL wrapped-code-unknown-wrapper /bin/bash-fetch: expected=deny got=pass exit=0
+FAIL wrapped-shell-option-cluster: expected=deny got=pass exit=0
+FAIL wrapped-shell-long-options: expected=deny got=pass exit=0
+FAIL wrapped-quoted-shell-option: expected=deny got=pass exit=0
+FAIL wrapped-mixed-quoted-shell: expected=deny got=pass exit=0
+FAIL wrapped-dash-shell: expected=deny got=pass exit=0
+guard literal cases: 103 passed, 34 failed

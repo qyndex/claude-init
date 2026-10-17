@@ -1,0 +1,17 @@
+PASS supported actual ADR step: substitution
+PASS supported actual ADR step: backtick
+PASS supported actual ADR step: quote
+PASS supported actual ADR step: newline
+PASS supported actual ADR step: no-architecture
+PASS supported actual ADR step: architecture-missing-ADR
+PASS supported actual ADR step: ADR-file
+PASS supported actual ADR step: ADR-commit
+PASS installed actual ADR step: substitution
+PASS installed actual ADR step: backtick
+PASS installed actual ADR step: quote
+PASS installed actual ADR step: newline
+PASS installed actual ADR step: no-architecture
+PASS installed actual ADR step: architecture-missing-ADR
+PASS installed actual ADR step: ADR-file
+PASS installed actual ADR step: ADR-commit
+PASS actual full-payload installer preserves maintained workflow identity

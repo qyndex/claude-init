@@ -1,0 +1,29 @@
+{
+  "live_activation": false,
+  "raw_sarif_sha256": "3c195ea8d046d6ce3978e89a90cdb3e808d4ebd3f7c74d993fe1bb2d92a8d727",
+  "base_head": "9fb7ccf7f427b9f57265bcbbcbc7f4202fdee83c",
+  "registry_sha256": "707757b523be3bbc7fbf058d0f141262091b2a0b9626ec27f20779f9158116ab",
+  "controls": {
+    "default_off_actual": {
+      "exit": 1,
+      "stdout": "",
+      "stderr": "2 high/critical findings\n"
+    },
+    "simulated_external_hash_actual": {
+      "exit": 0,
+      "stdout": "SARIF accepted exact-source audit exceptions: 2; unapproved high/critical findings: 0; NOT a clean security scan\n",
+      "stderr": ""
+    },
+    "controlled_numeric_high_unwaivable": {
+      "exit": 1,
+      "stdout": "",
+      "stderr": "1 unapproved high/critical findings; accepted exact-source audit exceptions: 2\n"
+    }
+  },
+  "raw_sarif_unchanged": true,
+  "registry_source_identities_match": true,
+  "source_sha256": {
+    ".claude/scripts/check-sarif.sh": "90a649c63cc06917787e4508205c69d92ec4cb15e346121b0177880a17ed253a",
+    ".claude/scripts/test/sarif-effective-severity.sh": "94743fbfa59e077012c98719d35e913d4a0cf479232a8e4d4aed48dc7c765067"
+  }
+}

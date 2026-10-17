@@ -1,0 +1,23 @@
+# TDD ledger — red — T-129
+ledger_format: 2
+timestamp: 2026-10-17T00:19:33+11:00
+command: bash .claude/scripts/test/pre-bash-guard-literals.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+FAIL extglob-@-boundary-1: expected=deny got=pass exit=0
+FAIL extglob-@-boundary-2: expected=deny got=pass exit=0
+FAIL extglob-@-boundary-3: expected=deny got=pass exit=0
+FAIL extglob-!-boundary-1: expected=deny got=pass exit=0
+FAIL extglob-!-boundary-2: expected=deny got=pass exit=0
+FAIL extglob-!-boundary-3: expected=deny got=pass exit=0
+FAIL extglob-?-boundary-1: expected=deny got=pass exit=0
+FAIL extglob-?-boundary-2: expected=deny got=pass exit=0
+FAIL extglob-?-boundary-3: expected=deny got=pass exit=0
+FAIL extglob-+-boundary-1: expected=deny got=pass exit=0
+FAIL extglob-+-boundary-2: expected=deny got=pass exit=0
+FAIL extglob-+-boundary-3: expected=deny got=pass exit=0
+FAIL extglob-*-boundary-1: expected=deny got=pass exit=0
+FAIL extglob-*-boundary-2: expected=deny got=pass exit=0
+FAIL extglob-*-boundary-3: expected=deny got=pass exit=0
+guard literal cases: 151 passed, 15 failed

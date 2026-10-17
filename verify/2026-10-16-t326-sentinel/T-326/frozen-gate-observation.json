@@ -1,0 +1,6 @@
+{
+  "scope": "Recheck actual frozen integrated scan; no rescanning or waiver",
+  "sarif_sha256": "f495b282d7084af4cea4928a6f12418bf4b0d00a1466ccc209845c4dda7a4e32",
+  "gate_exit": 1,
+  "high_critical_findings": 3
+}

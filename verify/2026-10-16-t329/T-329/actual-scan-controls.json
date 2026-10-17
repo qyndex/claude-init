@@ -1,0 +1,66 @@
+{
+  "default_off_actual_report": {
+    "exit": 1,
+    "stdout": "",
+    "stderr": "2 high/critical findings",
+    "input_sha256": "3c195ea8d046d6ce3978e89a90cdb3e808d4ebd3f7c74d993fe1bb2d92a8d727",
+    "input_scope": "actual frozen report"
+  },
+  "simulated_external_approval_actual_report": {
+    "exit": 0,
+    "stdout": "SARIF accepted exact-source audit exceptions: 2; unapproved high/critical findings: 0; NOT a clean security scan",
+    "stderr": "",
+    "input_sha256": "3c195ea8d046d6ce3978e89a90cdb3e808d4ebd3f7c74d993fe1bb2d92a8d727",
+    "input_scope": "actual frozen report"
+  },
+  "wrong_approval_actual_report": {
+    "exit": 1,
+    "stdout": "",
+    "stderr": "Audit policy blocked: invalid approval, registry, source or gated facts",
+    "input_sha256": "3c195ea8d046d6ce3978e89a90cdb3e808d4ebd3f7c74d993fe1bb2d92a8d727",
+    "input_scope": "actual frozen report"
+  },
+  "mutated_actual_source_copy": {
+    "exit": 1,
+    "stdout": "",
+    "stderr": "Audit policy blocked: invalid approval, registry, source or gated facts",
+    "input_sha256": "3c195ea8d046d6ce3978e89a90cdb3e808d4ebd3f7c74d993fe1bb2d92a8d727",
+    "input_scope": "actual frozen report"
+  },
+  "scope": "Actual frozen post-T328 scanner output, local simulated approval only; no protected environment or live authority",
+  "source_head": "34bb962a07a001e8fa78a8d71c898886d2e78ef7",
+  "sarif_sha256": "3c195ea8d046d6ce3978e89a90cdb3e808d4ebd3f7c74d993fe1bb2d92a8d727",
+  "registry_sha256": "707757b523be3bbc7fbf058d0f141262091b2a0b9626ec27f20779f9158116ab",
+  "gate_sha256": "062c7eb4e82bfb670ada319672c8b9a2ee1b0ee9fbe402518783760dfff4909b",
+  "helper_sha256": "a8546c8bd99c686e1229ce0b56c975e3a5a4be9f32bef2df9b9c9d3747c3a94b",
+  "live_activation": false,
+  "raw_sarif_unchanged": true,
+  "extra_unapproved_error": {
+    "exit": 1,
+    "stdout": "",
+    "stderr": "1 unapproved high/critical findings; accepted exact-source audit exceptions: 2",
+    "input_sha256": "fd1d626d49d5041083cd5c714f47bf98faba1bcb29dc252fb8eb18a77ac35551",
+    "input_scope": "controlled derivative, not a new scanner result"
+  },
+  "foreign_uri_base": {
+    "exit": 1,
+    "stdout": "",
+    "stderr": "jq: error (at /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmpwx3bqb4e.sarif:0): invalid severity metadata\nInvalid SARIF scan output or unsupported severity metadata",
+    "input_sha256": "6528706d00eb172ebc241f408cd712c23ae80350e89d49a112882a6bfb823f3e",
+    "input_scope": "controlled derivative, not a new scanner result"
+  },
+  "foreign_working_directory": {
+    "exit": 1,
+    "stdout": "",
+    "stderr": "jq: error (at /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmpqx414beh.sarif:0): invalid severity metadata\nInvalid SARIF scan output or unsupported severity metadata",
+    "input_sha256": "df323dcd2171d3945407ea926bb2813a34cb6ad6b0ac5f92dfcb44615d9f57b0",
+    "input_scope": "controlled derivative, not a new scanner result"
+  },
+  "numeric_high_approved_location": {
+    "exit": 1,
+    "stdout": "",
+    "stderr": "1 unapproved high/critical findings; accepted exact-source audit exceptions: 1",
+    "input_sha256": "31e759814418ea2fe81ca48cb28af126f0c40e5e8230780331547d2b100ad5c1",
+    "input_scope": "controlled derivative, not a new scanner result"
+  }
+}

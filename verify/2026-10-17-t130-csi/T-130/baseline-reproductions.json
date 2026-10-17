@@ -1,0 +1,12 @@
+[
+  {
+    "fixture": "'\\x1b[2K\\x1b[1Gfailed to load config from /tmp/vitest.config.ts\\nError: config exploded'",
+    "writer_exit": 0,
+    "log": "# TDD ledger \u2014 red \u2014 T-980\nledger_format: 2\ntimestamp: 2026-10-17T00:05:31+11:00\ncommand: bash /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmpw0_5nk6z/case0.sh\nexit_code: 1\nred_reason: assertion-failure\n---\n\u001b[2K\u001b[1Gfailed to load config from /tmp/vitest.config.ts\nError: config exploded\n"
+  },
+  {
+    "fixture": "'\\x1b[1A\\x1b[2K\u23af\u23af\u23af Startup Error \u23af\u23af\u23af\\nError: config exploded'",
+    "writer_exit": 0,
+    "log": "# TDD ledger \u2014 red \u2014 T-981\nledger_format: 2\ntimestamp: 2026-10-17T00:05:31+11:00\ncommand: bash /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmpw0_5nk6z/case1.sh\nexit_code: 1\nred_reason: assertion-failure\n---\n\u001b[1A\u001b[2K\u23af\u23af\u23af Startup Error \u23af\u23af\u23af\nError: config exploded\n"
+  }
+]

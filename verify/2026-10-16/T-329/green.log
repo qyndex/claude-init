@@ -1,0 +1,8 @@
+# TDD ledger — green — T-329
+ledger_format: 2
+timestamp: 2026-10-16T23:18:51+11:00
+command: bash .claude/scripts/test/sarif-audit-policy.sh && bash .claude/scripts/test/sarif-effective-severity.sh
+exit_code: 0
+---
+SARIF exact-source audit policy: 53 checks passed; 0 failed
+SARIF effective severity: 88 passed; 0 failed

@@ -1,0 +1,4 @@
+../t328-baseline-adr-gate.yml:24:9: shellcheck reported issue in this script: SC2254:warning:16:7: Quote expansions in case patterns to match literally rather than as a glob [shellcheck]
+   |
+24 |         run: |
+   |         ^~~~

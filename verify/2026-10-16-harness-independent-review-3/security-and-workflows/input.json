@@ -1,0 +1,89 @@
+{
+  "head": "045f9c0f5de832e5d8c5d807c1a1804fb5b7d8d0",
+  "base": "91839087a769bd45670df5b84cb96993bcb97d42",
+  "prompt_sha256": "b2e821ffc0dca2029ea7e488ed646c978b072cdd7090aa406860ec6dc14c234e",
+  "prompt_bytes": 184349,
+  "files": [
+    {
+      "path": ".claude/memory/decisions/0010-authenticated-exact-source-scanner-audit-policy.md",
+      "sha256": "78c6b304aa34dfe0ca2f7892041fe9588aa3bc58e519b676d3b67fba7b250a23"
+    },
+    {
+      "path": ".claude/scripts/check-sarif-audit-policy.py",
+      "sha256": "a8546c8bd99c686e1229ce0b56c975e3a5a4be9f32bef2df9b9c9d3747c3a94b"
+    },
+    {
+      "path": ".claude/scripts/check-sarif.sh",
+      "sha256": "90a649c63cc06917787e4508205c69d92ec4cb15e346121b0177880a17ed253a"
+    },
+    {
+      "path": ".claude/scripts/test/sarif-audit-policy.sh",
+      "sha256": "aa5a388a991a4169b817c370b01a2bfae8129d8f4cc0f4a8c6eba7bc714fe065"
+    },
+    {
+      "path": ".claude/scripts/test/sarif-effective-severity.sh",
+      "sha256": "94743fbfa59e077012c98719d35e913d4a0cf479232a8e4d4aed48dc7c765067"
+    },
+    {
+      "path": ".claude/scripts/test/staged-adr-input.sh",
+      "sha256": "1c6eb3f094b032cc8376ce0cd7a62d4444bb6e1e434359e31f8457fee98b9300"
+    },
+    {
+      "path": ".claude/scripts/test/weekly-rollup-input.sh",
+      "sha256": "f1b72835f78ee4f40a48664d5eb2b402c3da122432bbdfd0f91de290693f0533"
+    },
+    {
+      "path": ".claude/security-audit-exceptions.json",
+      "sha256": "707757b523be3bbc7fbf058d0f141262091b2a0b9626ec27f20779f9158116ab"
+    },
+    {
+      "path": ".claude/state/analyze-006.json",
+      "sha256": "70a513e56496fac4259390b7664b4ecbc391b99a6a6ba67b1a18fd4b51797779"
+    },
+    {
+      "path": ".github/workflows/memory-rollup-weekly.yml",
+      "sha256": "a163934247505492caa09cf2d034520014c7b61aafe2aea852992ddb526e6be9"
+    },
+    {
+      "path": ".github/workflows/semgrep.yml",
+      "sha256": "47216e3d0fe74cca05b5401c432b6f7763e6e9b2d2738696b6e8d5e55707bf4c"
+    },
+    {
+      "path": "docs/security/exact-source-audit-policy.md",
+      "sha256": "177019da780dd9fa7ba51ded77cf6183f0fdbd29f908687faf0874010be8c2d4"
+    },
+    {
+      "path": "plans/active/006-trustworthy-candidate-verification.md",
+      "sha256": "02696bd48bec1382b8c39a5641591d1a9590fcae23e2cdf94c84fcaa828ef86f"
+    },
+    {
+      "path": "specs/active/006-trustworthy-candidate-verification.md",
+      "sha256": "f4a083fa085142d410d64ed27296bcb4ae0ee65cfc5a857c3d32739036737cab"
+    },
+    {
+      "path": "verify/2026-06-12-gap-fixes/staged/.github/workflows/adr-gate.yml",
+      "sha256": "291f34ecd54508d07ef53b954fedcd6b2a00dd44a616e30497313fb921217ea6"
+    },
+    {
+      "path": ".claude/scripts/memory-rollup.sh",
+      "sha256": "a1745a5eeb28a8f79f23a03975037174d76e5ecc701cca006d33537ab7522f6a"
+    },
+    {
+      "path": ".claude/scripts/factory-bounded-process.py",
+      "sha256": "91d077e6badb7c606a31cf85d8fbb8315b91d9d211b4fe1ab8fb970693207f47"
+    },
+    {
+      "path": ".claude/scripts/test/factory-workflows.sh",
+      "sha256": "54cea3b8e9234560c77ed95f6f95ef9d475558ea05d91dc34c98ba06a0a82eab"
+    },
+    {
+      "path": ".claude/scripts/factory-worker-guard.py",
+      "sha256": "adc3bf10d5c6172f844e7748d9cfdae4be1b7b9cf40777ae59c2bdf896d8844c"
+    },
+    {
+      "path": ".claude/scripts/foreground-watchdog.py",
+      "sha256": "789a370d83f81a8aebde27bcfa5599f38afda8e9b8c328eda22e9e918b0c83ea"
+    }
+  ],
+  "scope": "security-and-workflows"
+}

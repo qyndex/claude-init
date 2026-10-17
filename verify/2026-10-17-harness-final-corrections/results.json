@@ -1,0 +1,110 @@
+{
+  "head": "90cafd0511d9df7e32f3d214f67e6b530d3d3f9b",
+  "commands": [
+    {
+      "command": [
+        "bash",
+        ".claude/scripts/test/pre-bash-guard-literals.sh"
+      ],
+      "exit_code": 0,
+      "log": "pre-bash-guard-literals.txt"
+    },
+    {
+      "command": [
+        "bash",
+        ".claude/scripts/test/pre-bash-guard-bypass.sh"
+      ],
+      "exit_code": 0,
+      "log": "pre-bash-guard-bypass.txt"
+    },
+    {
+      "command": [
+        "bash",
+        ".claude/scripts/test/tdd-ledger-suite.sh"
+      ],
+      "exit_code": 0,
+      "log": "tdd-ledger-suite.txt"
+    },
+    {
+      "command": [
+        "bash",
+        ".claude/scripts/test/evidence-proof-preservation.sh"
+      ],
+      "exit_code": 0,
+      "log": "evidence-proof-preservation.txt"
+    },
+    {
+      "command": [
+        "bash",
+        ".claude/scripts/test/evidence-finalization.sh"
+      ],
+      "exit_code": 0,
+      "log": "evidence-finalization.txt"
+    },
+    {
+      "command": [
+        "bash",
+        ".claude/scripts/test/local-evidence-gate.sh"
+      ],
+      "exit_code": 0,
+      "log": "local-evidence-gate.txt"
+    },
+    {
+      "command": [
+        "bash",
+        ".claude/scripts/test/sarif-effective-severity.sh"
+      ],
+      "exit_code": 0,
+      "log": "sarif-effective-severity.txt"
+    },
+    {
+      "command": [
+        "bash",
+        ".claude/scripts/test/sarif-audit-policy.sh"
+      ],
+      "exit_code": 0,
+      "log": "sarif-audit-policy.txt"
+    },
+    {
+      "command": [
+        "bash",
+        ".claude/scripts/test/weekly-rollup-input.sh"
+      ],
+      "exit_code": 0,
+      "log": "weekly-rollup-input.txt"
+    },
+    {
+      "command": [
+        "bash",
+        ".claude/scripts/test/staged-adr-input.sh"
+      ],
+      "exit_code": 0,
+      "log": "staged-adr-input.txt"
+    },
+    {
+      "command": [
+        "bash",
+        ".claude/scripts/check-tdd-ledger.sh"
+      ],
+      "exit_code": 0,
+      "log": "check-tdd-ledger.txt"
+    },
+    {
+      "command": [
+        "bash",
+        ".claude/scripts/validate.sh"
+      ],
+      "exit_code": 0,
+      "log": "validate.txt"
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "log": "diff.txt"
+    }
+  ]
+}

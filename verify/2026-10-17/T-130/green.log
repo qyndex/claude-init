@@ -1,0 +1,38 @@
+# TDD ledger — green — T-130
+ledger_format: 2
+timestamp: 2026-10-17T00:06:02+11:00
+command: bash .claude/scripts/test/tdd-ledger-suite.sh
+exit_code: 0
+---
+PASS actual native unittest assertion diff: assertion-failure, gate enforced
+PASS actual native Node config-helper test assertion: assertion-failure, gate enforced
+PASS actual native Node config-load AssertionError: tooling-error, gate enforced
+PASS config-erase-cursor-prefix: tooling-error, gate enforced
+PASS startup-cursor-prefix: tooling-error, gate enforced
+PASS config-private-csi-prefix: tooling-error, gate enforced
+PASS config-intermediate-csi-prefix: tooling-error, gate enforced
+PASS assertion-csi-prefix: assertion-failure, gate enforced
+PASS expect-config-frame-unsupported: tooling-error, gate enforced
+PASS vitest-colored: tooling-error, gate enforced
+PASS startup-colored: tooling-error, gate enforced
+PASS stack-colored: tooling-error, gate enforced
+PASS assertion-colored: assertion-failure, gate enforced
+PASS vitest-load: tooling-error, gate enforced
+PASS vite-load: tooling-error, gate enforced
+PASS playwright-stack: tooling-error, gate enforced
+PASS playwright-esm: tooling-error, gate enforced
+PASS vitest-startup: tooling-error, gate enforced
+PASS missing-command: tooling-error, gate enforced
+PASS no-tests: tooling-error, gate enforced
+PASS assertion: assertion-failure, gate enforced
+PASS config-in-assertion: assertion-failure, gate enforced
+PASS load-in-assertion: assertion-failure, gate enforced
+PASS startup-in-assertion: assertion-failure, gate enforced
+PASS jest-diff-startup: assertion-failure, gate enforced
+PASS vitest-config-helper-test: assertion-failure, gate enforced
+PASS config-assertion-no-test-frame: tooling-error, gate enforced
+PASS startup-precedes-test-frame: tooling-error, gate enforced
+PASS load-precedes-test-frame: tooling-error, gate enforced
+PASS failed diagnostic normalization rejected as tooling, raw output preserved, gate enforced
+PASS native Node config-module throw classified as tooling (no installed framework claim)
+PASS passing command cannot create RED evidence

@@ -1,0 +1,5 @@
+# T326 semantic consistency analysis
+
+Existing Spec006 AC1..8 map to T165..172; no historical completion is recertified. Current AC5 explicitly clarifies the existing scanner error/malformed-output contract and maps SARIF correction to T326 phase 2. Plan's inline driver reference resolution, kind defaults, numeric thresholds and frozen-scan triage all appear in the task's portable production-gate acceptance and evidence. No new package/service, cyclic dependency, paid model, permission or authority change. Task 326 absent and next ID 326 verified inside with_tasks_lock; T327 reserved for distinct weekly workflow correction. T326 is dependency-free parallel yes under explicit operator authorization; root integrates only after T287 terminal. No open scope questions. Verdict PASS before implementation.
+
+Primary SARIF 2.1.0 source: https://docs.oasis-open.org/sarif/sarif/v2.1.0/os/sarif-v2.1.0-os.html sections 3.27.5..10, 3.50.3, 3.52.3..7. Explicit result level wins; absent fail level uses descriptor default then warning; nonfail kinds default none. Resolution outside the inline driver profile must block rather than be ignored.

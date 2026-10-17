@@ -1,0 +1,1 @@
+{"watchdog_literal_argv": true, "actual_guardian_literal_argv": true, "payloads": 4, "injected_command_executed": false, "task_state": "verifying", "engineering_verified": false, "isolation_scope": "temporary local native fixture; no shell program was requested and no container claim"}

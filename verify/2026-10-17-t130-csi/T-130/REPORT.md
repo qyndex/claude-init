@@ -1,0 +1,13 @@
+# T130 CSI diagnostic normalization correction
+
+Isolated base a8af6c369306810634da069b0f06ca3e496f7117. Approved Spec003 AC20 already covers classification-only normalization of known config/startup diagnostics. This followup stays within that scope and changes no analysis metadata, other task, source policy, runtime model, timeout or unknown-output behavior. Task status was reopened/completed via sanctioned tasks-lib with_tasks_lock.
+
+Actual baseline invocations of the unchanged ledger accepted erase/cursor-prefixed failed-config-load and startup-banner errors as assertion RED. baseline-reproductions.json records both actual writer exit 0/assertion-failure results. After correcting a test-source escaping mistake, canonical RED shows actual native Python/Node assertion cases ran and the new erase/cursor loader case failed for the expected classification mismatch. The earlier syntax-broken fixture output is retained only as invalid-fixture-diagnostic.log and grants no RED credit.
+
+One sed expression now strips complete seven-bit ESC[ CSI sequences using ECMA-48 parameter bytes 0x30–0x3f, intermediate bytes 0x20–0x2f and final bytes 0x40–0x7e. This removes standard erase/cursor/private-mode/style prefixes before anchored classification; raw output is unchanged. Failed normalization still rejects as tooling; no command/timeout behavior changes. Existing SGR support remains included. GREEN passes 32 cases, including loader/banner cursor sequences, private parameter/intermediate forms, assertion controls and every previous native/assertion/config/normalizer/ledger rejection case.
+
+This is not a terminal emulator. It does not interpret cursor overwrites, OSC, eight-bit C1 CSI or arbitrary unknown output. The existing config-frame exception requires actual AssertionError plus a test/spec/__tests__ frame. Error: expect-style output with a config-helper frame remains conservatively tooling in this supported profile; a labeled transcript records that boundary. No installed Playwright/Vitest run was performed and no assertion heuristic was widened on the reviewer's name/format alone. Native Python unittest and Node controls ran, as recorded in canonical evidence.
+
+Original October 16 T130 proof remains unchanged and copied under prior-diagnostic. Actual October 17 canonical RED/GREEN is separate. Independent review and integration remain pending. timeout/gtimeout is unavailable on this Mac; commands warned they were unbounded and completed normally.
+
+Final local checks: 32 suite cases passed; Spec004 reconciliation 6 passed/0 failed; ledger 0 failures/0 warnings with 70 legacy-incomplete; structural validation exited 0 with 4 existing warnings. ShellCheck and whitespace checks passed.

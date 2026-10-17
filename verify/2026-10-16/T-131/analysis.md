@@ -1,0 +1,5 @@
+# T-131 semantic consistency analysis — 2026-10-16
+
+Source d735e07 contains shared approved Spec003 phase9 AC19/20/21 mapping. AC21 directly covers current check-only proof preservation and the evidence-config template guidance. T131 depends on no task, and the operator additionally authorized an isolated parallel clone today; parallel/accept/files/date amendments were serialized via with_tasks_lock. Existing historical AC1..18 and other followup evidence are not recertified.
+
+The portable acceptance will run copied current collector, spec-match and atomic writer in private temporary fixtures. It must prove original valid input survives smoke overwrites with FAIL, malformed data or another PASS; failed/missing/malformed original proof cannot become valid from later PASS. Consumed proof must be preserved as an attempt artifact, normal runner isolation unchanged, and the template must use playwright.evidence.config.ts/e2e/<spec-id>. No new dependency/service, cyclic dependency, browser run, permission or live mutation. No unresolved scope question. Verdict PASS before production changes.

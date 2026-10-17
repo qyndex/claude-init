@@ -1,0 +1,1 @@
+{"kind":"harness-maintenance","reason":"Portable behavioral evidence for existing production Bash guard task T-129; no application feature or browser acceptance criteria.","maintains":[".claude/hooks/pre-bash-guard.sh",".claude/scripts/test/pre-bash-guard-literals.sh"],"date":"2026-10-16"}

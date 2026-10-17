@@ -1,0 +1,13 @@
+{
+  "task": "T-326",
+  "base": "925b2d24dd5dbf16c3f7b49b43a9defac06f597e",
+  "sha256": {
+    ".claude/scripts/check-sarif.sh": "61801bb818e88843b0b8d29133830a12a843bc5d41e7e294884b78083eadd608",
+    ".claude/scripts/test/sarif-effective-severity.sh": "3625f2d379b82a2edfc369657f166260d63d066fa3082bd5a9c0d46da294db7f",
+    "specs/active/006-trustworthy-candidate-verification.md": "2dbfcf44b2aee152f58cbfc8914d92bf2f48787ae4f3f024cbdf51ae36eef170",
+    "plans/active/006-trustworthy-candidate-verification.md": "90e13a54fc1245eda98f136e3b7cd7b8c73cf9e095cb48f47a735033f8be273f"
+  },
+  "frozen_gate_expected_exit": 1,
+  "frozen_gate_findings": 4,
+  "scope": "local portable gate repair; no whole-repository clean claim"
+}

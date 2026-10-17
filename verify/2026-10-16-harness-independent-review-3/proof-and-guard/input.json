@@ -1,0 +1,61 @@
+{
+  "head": "045f9c0f5de832e5d8c5d807c1a1804fb5b7d8d0",
+  "base": "91839087a769bd45670df5b84cb96993bcb97d42",
+  "prompt_sha256": "85db8c19178e98caa556dc857f1bf72e73259c5c9c84712fe0ff5f94f836fc11",
+  "prompt_bytes": 173118,
+  "files": [
+    {
+      "path": ".claude/hooks/pre-bash-guard.sh",
+      "sha256": "55c02d5bd77730bff10b500f1ac8dc618d1585d4a16004b412dad808fefcf623"
+    },
+    {
+      "path": ".claude/scripts/collect-evidence.sh",
+      "sha256": "c0362e6e6225dc17b4fdb3a82900562d58847775e4c9ffba8d0390f506b3b7a0"
+    },
+    {
+      "path": ".claude/scripts/tdd-ledger.sh",
+      "sha256": "72c90edcd49352f10c9acc22615222ec3f7bf929dbdbc3fd61aa7016abb68801"
+    },
+    {
+      "path": ".claude/scripts/test/evidence-proof-preservation.sh",
+      "sha256": "45033a769b58d7294c72325bbf6a72c8c10918e10af317ac01cb69bbc0eecc80"
+    },
+    {
+      "path": ".claude/scripts/test/pre-bash-guard-literals.sh",
+      "sha256": "205cf96db92e5126ecb841ff9a26d64eb3b5affc66b7607cbb5f2bd26778e31e"
+    },
+    {
+      "path": ".claude/scripts/test/tdd-ledger-suite.sh",
+      "sha256": "dc0f02e799eb40aeb14917ae80e4cec019676f4f7010422d9a8e86beebbd7d89"
+    },
+    {
+      "path": ".claude/state/analyze-003.json",
+      "sha256": "cf30eb316ab5ce3f99aeb4c4fde888a9f7fb8c72980fd3033569a6f0ee5e10ba"
+    },
+    {
+      "path": ".claude/templates/evidence/playwright.config.ts",
+      "sha256": "74c5d1170145ce5ab9aa2060f6b2a884e6c826fd838d419a6cf9685cadf2dc70"
+    },
+    {
+      "path": "plans/active/003-audit-round2-remediation.md",
+      "sha256": "81235bae0d1b27e24bda0e25ea31e27a061be7fc731cf06bbe083d88f8e7cd7f"
+    },
+    {
+      "path": "specs/active/003-audit-round2-remediation.md",
+      "sha256": "609b475d51c475cf468baab58676f3b405f09dad9c6d4499034ccd5372ff6678"
+    },
+    {
+      "path": ".claude/scripts/check-tdd-ledger.sh",
+      "sha256": "730bd5e6a416bf671b61fafaa838b7c09742ca9bab6102b5dbc28334af995ca9"
+    },
+    {
+      "path": ".claude/scripts/test/pre-bash-guard-bypass.sh",
+      "sha256": "a87a1e9e19928de3a9a1f1d5f64b4b3a58333731b5b37ca2243974040f7d51f8"
+    },
+    {
+      "path": ".claude/scripts/factory-bounded-process.py",
+      "sha256": "91d077e6badb7c606a31cf85d8fbb8315b91d9d211b4fe1ab8fb970693207f47"
+    }
+  ],
+  "scope": "proof-and-guard"
+}

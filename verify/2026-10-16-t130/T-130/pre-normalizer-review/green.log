@@ -1,0 +1,23 @@
+# TDD ledger — green — T-130
+ledger_format: 2
+timestamp: 2026-10-16T22:38:57+11:00
+command: bash .claude/scripts/test/tdd-ledger-suite.sh
+exit_code: 0
+---
+PASS vitest-colored: tooling-error, gate enforced
+PASS startup-colored: tooling-error, gate enforced
+PASS stack-colored: tooling-error, gate enforced
+PASS assertion-colored: assertion-failure, gate enforced
+PASS vitest-load: tooling-error, gate enforced
+PASS vite-load: tooling-error, gate enforced
+PASS playwright-stack: tooling-error, gate enforced
+PASS playwright-esm: tooling-error, gate enforced
+PASS vitest-startup: tooling-error, gate enforced
+PASS missing-command: tooling-error, gate enforced
+PASS no-tests: tooling-error, gate enforced
+PASS assertion: assertion-failure, gate enforced
+PASS config-in-assertion: assertion-failure, gate enforced
+PASS load-in-assertion: assertion-failure, gate enforced
+PASS startup-in-assertion: assertion-failure, gate enforced
+PASS native Node config-module throw classified as tooling (no installed framework claim)
+PASS passing command cannot create RED evidence

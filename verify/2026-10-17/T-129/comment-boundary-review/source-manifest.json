@@ -1,0 +1,8 @@
+{
+  "base": "90cafd0511d9df7e32f3d214f67e6b530d3d3f9b",
+  "timestamp": "2026-10-16T13:20:50.534320+00:00",
+  "files": {
+    ".claude/hooks/pre-bash-guard.sh": "25ded02568cad022514eb6d2a2516a1bceb53173e5ab0d75b3cb37fd2a4d8bc2",
+    ".claude/scripts/test/pre-bash-guard-literals.sh": "d56efd6487d2c0779288aaafd499355f06ea87807aa29018188348248389d93f"
+  }
+}
