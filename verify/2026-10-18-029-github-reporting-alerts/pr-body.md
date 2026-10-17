@@ -1,7 +1,7 @@
 ## Evidence Bundle — Spec 029 (029-github-reporting-alerts)
-Spec: `specs/active/029-github-reporting-alerts.md` · Commit: `5f0f61b`
+Spec: `specs/active/029-github-reporting-alerts.md` · Commit: `1054916`
 
-Retained results: [verify/2026-10-18-029-github-reporting-alerts/attempt-rzvKMEPW/results.json](verify/2026-10-18-029-github-reporting-alerts/attempt-rzvKMEPW/results.json)
+Retained results: [verify/2026-10-18-029-github-reporting-alerts/attempt-nP5w8rRn/results.json](verify/2026-10-18-029-github-reporting-alerts/attempt-nP5w8rRn/results.json)
 
 ### Acceptance criteria (0/9 proven)
 | AC | Proven by | Result |
@@ -18,14 +18,14 @@ Retained results: [verify/2026-10-18-029-github-reporting-alerts/attempt-rzvKMEP
 
 ### Smoke test (exit codes are load-bearing)
 ```
-# Smoke test — 2026-10-18T00:00:48+11:00
+# Smoke test — 2026-10-18T10:48:21+11:00
 $ bash .claude/scripts/verify.sh
 
 → Integration coverage gate
   ✓ changed API/DB files have integration tests
 
-verify: PASS
-exit: 0
+verify: FAIL (1 check(s) failed)
+exit: 1
 ---
 ```
 

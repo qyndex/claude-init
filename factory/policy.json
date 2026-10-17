@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "enabled": true,
-  "merge_enabled": false,
+  "merge_enabled": true,
   "repository": "qyndex/claude-init",
   "base_branch": "main",
   "app_id": 5251754,

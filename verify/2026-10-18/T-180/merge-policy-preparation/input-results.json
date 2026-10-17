@@ -1,0 +1,22 @@
+{
+  "scope": "local proposedpolicy only; no livecutover/taskcompletion",
+  "source_configuration_sha256": {
+    "factory/policy.json": "2d1945832ac63f25c36d323f8be3f12b5734289a33a5d144432967f65f045ad6",
+    "factory/receipt-trust.json": "3c76d99ed38a43464da76e33ed9091936a7660dbe865ea3e52cb6b2a4553ff46"
+  },
+  "proof_sha256": {
+    "README.md": "992a637736d5c96c600a70b47974f99a617234d01f3f230256f49de2eccba921",
+    "check-cutover.py": "b9b8e8f4b0a53dcd9bad4643a1bbf022dce845b7997607987e40c48e97410129",
+    "collector009.log": "edb03e292bd2ddaefed9fc706e2038842f78683aac3a9145d365173daa1d75d9",
+    "collector014.log": "499b167ee77314867a3f67704d596ac6e2c987bfd70677f7757134dab0db49b2",
+    "collector029-full-smoke.log": "1e8e815c9ab2521abe6a7c6ba26ad68fe8211ed37ffe064e384ebf62b5125773",
+    "collector029.log": "9a6473ffbbc60039aa7087b0d01d28833ec828bfc5e13f34f31eb3fa11c71bec",
+    "coordinator.log": "b96bf98937043bbf2f029fd8e5b2d9e55374d2a5f91979cef83f41d187df38b0",
+    "green.log": "070ede69c56e0a904c83fb2aadcbaf706790e80a7221672091c81e7edbdbf528",
+    "profiles.log": "e65ff2291637aeb6e876411c5bc3e33e68c5b2c44e5a0a3d22e11f7237c7c6bf",
+    "red.log": "fda75b9374485746b1166cbf00a545cd38c0359b44b963b52c68000d8c54a4a0",
+    "standalone-verify.log": "ce9d853d0b6326b223feeab7aba05ea60dbc931688faeeb821df5f865def6dde",
+    "validate.log": "cae0d258a23eb51bc5cfb50fa38f70f572ff09b366b0892e29fe5a942744c547",
+    "directory-scan.log": "0216d9a25c4fbca2f3e2c5c8164c1a847b457e9647bf3dcb850d8648d0e72368"
+  }
+}

@@ -1,0 +1,7 @@
+→ Collecting evidence for spec 014 (014-authenticated-receipt-recovery)
+  ⚠ No playwright.evidence.config.ts or e2e/014/ — run: bash .claude/scripts/rig-bootstrap.sh (web apps) or rely on the stack-runner AC proof below
+  ⚠ No results at verify/2026-10-18-014-authenticated-receipt-recovery/attempt-U5shjBIa/results.json — every AC will read UNPROVEN. Install the rig: bash .claude/scripts/rig-bootstrap.sh, or emit AC-tagged junit/jest output to that path.
+
+✓ Evidence bundle: verify/2026-10-18-014-authenticated-receipt-recovery/
+  Verdict: FAIL | ACs: 0/9 proven | smoke exit: 1
+  PR body: verify/2026-10-18-014-authenticated-receipt-recovery/pr-body.md

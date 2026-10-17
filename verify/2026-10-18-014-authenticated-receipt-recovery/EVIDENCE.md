@@ -1,7 +1,7 @@
 ## Evidence Bundle — Spec 014 (014-authenticated-receipt-recovery)
-Spec: `specs/active/014-authenticated-receipt-recovery.md` · Commit: `5f0f61b`
+Spec: `specs/active/014-authenticated-receipt-recovery.md` · Commit: `1054916`
 
-Retained results: [verify/2026-10-17-014-authenticated-receipt-recovery/attempt-B2cpRvJZ/results.json](verify/2026-10-17-014-authenticated-receipt-recovery/attempt-B2cpRvJZ/results.json)
+Retained results: [verify/2026-10-18-014-authenticated-receipt-recovery/attempt-U5shjBIa/results.json](verify/2026-10-18-014-authenticated-receipt-recovery/attempt-U5shjBIa/results.json)
 
 ### Acceptance criteria (0/9 proven)
 | AC | Proven by | Result |
@@ -18,22 +18,22 @@ Retained results: [verify/2026-10-17-014-authenticated-receipt-recovery/attempt-
 
 ### Smoke test (exit codes are load-bearing)
 ```
-# Smoke test — 2026-10-17T23:59:57+11:00
+# Smoke test — 2026-10-18T10:47:44+11:00
 $ bash .claude/scripts/verify.sh
 
 → Integration coverage gate
   ✓ changed API/DB files have integration tests
 
-verify: PASS
-exit: 0
+verify: FAIL (1 check(s) failed)
+exit: 1
 ---
 ```
 
 ### Visual proof
-0 screenshot(s) captured under `verify/2026-10-17-014-authenticated-receipt-recovery/screenshots/` (named by AC).
+0 screenshot(s) captured under `verify/2026-10-18-014-authenticated-receipt-recovery/screenshots/` (named by AC).
 
 ### API traces
-0 API trace file(s) under `verify/2026-10-17-014-authenticated-receipt-recovery/traces/`; full HAR at `verify/2026-10-17-014-authenticated-receipt-recovery/network.har`.
+0 API trace file(s) under `verify/2026-10-18-014-authenticated-receipt-recovery/traces/`; full HAR at `verify/2026-10-18-014-authenticated-receipt-recovery/network.har`.
 
 ### Coverage
 line ?% · branch ?% (gate: line≥90 branch≥85)
@@ -41,15 +41,8 @@ line ?% · branch ?% (gate: line≥90 branch≥85)
 ### Verdict: **FAIL**
 
 ## Artifact index
-- verify/2026-10-17-014-authenticated-receipt-recovery/evidence.json
-- verify/2026-10-17-014-authenticated-receipt-recovery/binding.json
-- verify/2026-10-17-014-authenticated-receipt-recovery/pr-body.md
-- verify/2026-10-17-014-authenticated-receipt-recovery/EVIDENCE.md
-- verify/2026-10-17-014-authenticated-receipt-recovery/results.json
-- verify/2026-10-17-014-authenticated-receipt-recovery/smoke.log
-- verify/2026-10-17-014-authenticated-receipt-recovery/attempt-shared-f5ef2f4f7bca/spec-match.log
-- verify/2026-10-17-014-authenticated-receipt-recovery/attempt-shared-f5ef2f4f7bca/results.json
-- verify/2026-10-17-014-authenticated-receipt-recovery/attempt-shared-f5ef2f4f7bca/prior-canonical/evidence.json
-- verify/2026-10-17-014-authenticated-receipt-recovery/attempt-shared-f5ef2f4f7bca/prior-canonical/pr-body.md
-- verify/2026-10-17-014-authenticated-receipt-recovery/attempt-shared-f5ef2f4f7bca/prior-canonical/EVIDENCE.md
-- verify/2026-10-17-014-authenticated-receipt-recovery/attempt-shared-f5ef2f4f7bca/prior-canonical/results.json
+- verify/2026-10-18-014-authenticated-receipt-recovery/evidence.json
+- verify/2026-10-18-014-authenticated-receipt-recovery/pr-body.md
+- verify/2026-10-18-014-authenticated-receipt-recovery/EVIDENCE.md
+- verify/2026-10-18-014-authenticated-receipt-recovery/smoke.log
+- verify/2026-10-18-014-authenticated-receipt-recovery/collector-path-observation.json
