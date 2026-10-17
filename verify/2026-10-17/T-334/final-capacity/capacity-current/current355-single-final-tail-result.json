@@ -1,0 +1,140 @@
+{
+  "exit": 0,
+  "source_sha": "355bac1c81977397aa7b13fcd2f724781c806efa",
+  "actual_public_invocations": 1,
+  "final": {
+    "sqlite_counts": {
+      "delivery_receipts": 1001,
+      "delivery_provenance": 1001,
+      "delivery_times": 1001,
+      "delivery_trust": 1001,
+      "delivery_interval": 1001
+    },
+    "invocation": 0,
+    "result": {
+      "status": "delivered",
+      "receipt": {
+        "key": "1b48887224aaf93e627b81701e4ab7edd1f6655d3eb91d36b6428db47589810c",
+        "payload_sha256": "61cff9698da139b5d698ba928f8a149145fe095ad667127cf218d4fd391de52e",
+        "destination": "C1",
+        "message_id": "1"
+      },
+      "checkpoint_sha": "e61e35aa4159148daa77fddac17df398d70f4907"
+    },
+    "calls": 1904,
+    "bytes": 20093346,
+    "provider": {
+      "rest": 1516,
+      "graphql": 388
+    },
+    "elapsed_seconds": 50.801,
+    "fresh_os_process": true,
+    "actual_sql_counts_after_return_or_error": {
+      "delivery_receipts": 1001,
+      "delivery_provenance": 1001,
+      "delivery_times": 1001,
+      "delivery_trust": 1001,
+      "delivery_interval": 1001
+    },
+    "role_counts": {
+      "writer": 1790,
+      "source": 114
+    },
+    "method_counts": {
+      "GET": 1480,
+      "POST": 415,
+      "PATCH": 9
+    },
+    "path_counts": {
+      "repos/org/repo": 47,
+      "repos/org/repo/rules/branches/factory-reporting-state": 46,
+      "repos/org/repo/rulesets/1": 91,
+      "repos/org/repo/rulesets/2": 91,
+      "repos/org/repo/git/ref": 94,
+      "repos/org/repo/git/commits": 40,
+      "compare": 55,
+      "repos/org/repo/git/trees": 887,
+      "repos/org/repo/git/blobs": 55,
+      "repos/org/repo/commits": 51,
+      "repos/org/repo/git/refs": 9,
+      "pulls": 2,
+      "graphql": 388,
+      "actions": 48
+    },
+    "exact_compare_counts": {
+      "repos/org/repo/compare/fa2aa8bc875f015ca435486a86da1a80200ffb27...9f73af16c8d70eb271a7f0756a1cd62e3ef89873?per_page=1&page=2": 1,
+      "repos/org/repo/compare/fa2aa8bc875f015ca435486a86da1a80200ffb27...73e19b56a5d46d3b5e6807b7b10bebf456e0a887?per_page=1&page=2": 1,
+      "repos/org/repo/compare/73e19b56a5d46d3b5e6807b7b10bebf456e0a887...9f73af16c8d70eb271a7f0756a1cd62e3ef89873?per_page=1&page=2": 1,
+      "repos/org/repo/compare/fa2aa8bc875f015ca435486a86da1a80200ffb27...e30c4a9b427601ec7f276a07dcc6014aa081a92c?per_page=1&page=2": 1,
+      "repos/org/repo/compare/fa2aa8bc875f015ca435486a86da1a80200ffb27...7804c5c4228a449e6d5fdd28b1f692f4cacc1506?per_page=1&page=2": 1,
+      "repos/org/repo/compare/7804c5c4228a449e6d5fdd28b1f692f4cacc1506...e30c4a9b427601ec7f276a07dcc6014aa081a92c?per_page=1&page=2": 1,
+      "repos/org/repo/compare/9f73af16c8d70eb271a7f0756a1cd62e3ef89873...9f73af16c8d70eb271a7f0756a1cd62e3ef89873?per_page=1&page=2": 1,
+      "repos/org/repo/compare/11e3297e28ed1b9d21bce274517d4cb1bf2893f0...11e3297e28ed1b9d21bce274517d4cb1bf2893f0?per_page=1&page=2": 1,
+      "repos/org/repo/compare/e30c4a9b427601ec7f276a07dcc6014aa081a92c...9f73af16c8d70eb271a7f0756a1cd62e3ef89873?per_page=1&page=2": 1,
+      "repos/org/repo/compare/fa2aa8bc875f015ca435486a86da1a80200ffb27...11e3297e28ed1b9d21bce274517d4cb1bf2893f0?per_page=1&page=2": 1,
+      "repos/org/repo/compare/fa2aa8bc875f015ca435486a86da1a80200ffb27...7b26ba1ac785e5094bf7844392286b4fc5d86a3f?per_page=1&page=2": 1,
+      "repos/org/repo/compare/7b26ba1ac785e5094bf7844392286b4fc5d86a3f...11e3297e28ed1b9d21bce274517d4cb1bf2893f0?per_page=1&page=2": 1,
+      "repos/org/repo/compare/fa2aa8bc875f015ca435486a86da1a80200ffb27...749845ce90914f750a23eb185dc01a613c078d39?per_page=1&page=2": 1,
+      "repos/org/repo/compare/11e3297e28ed1b9d21bce274517d4cb1bf2893f0...749845ce90914f750a23eb185dc01a613c078d39?per_page=1&page=2": 1,
+      "repos/org/repo/compare/749845ce90914f750a23eb185dc01a613c078d39...749845ce90914f750a23eb185dc01a613c078d39?per_page=1&page=2": 1,
+      "repos/org/repo/compare/1e68adebc374fd0c3f47b20d2ba1f40261a9568c...1e68adebc374fd0c3f47b20d2ba1f40261a9568c?per_page=1&page=2": 1,
+      "repos/org/repo/compare/9f73af16c8d70eb271a7f0756a1cd62e3ef89873...749845ce90914f750a23eb185dc01a613c078d39?per_page=1&page=2": 1,
+      "repos/org/repo/compare/7b26ba1ac785e5094bf7844392286b4fc5d86a3f...1e68adebc374fd0c3f47b20d2ba1f40261a9568c?per_page=1&page=2": 1,
+      "repos/org/repo/compare/1e68adebc374fd0c3f47b20d2ba1f40261a9568c...7868c7fc6e70415ec64495cdf23c3cedf79bb828?per_page=1&page=2": 1,
+      "repos/org/repo/compare/fa2aa8bc875f015ca435486a86da1a80200ffb27...d661d63104ae3479f3707e435413a284392a32e5?per_page=1&page=2": 1,
+      "repos/org/repo/compare/d661d63104ae3479f3707e435413a284392a32e5...7868c7fc6e70415ec64495cdf23c3cedf79bb828?per_page=1&page=2": 1,
+      "repos/org/repo/compare/fa2aa8bc875f015ca435486a86da1a80200ffb27...69886e712f0b808a23317152438df53aadd3653b?per_page=1&page=2": 1,
+      "repos/org/repo/compare/69886e712f0b808a23317152438df53aadd3653b...d661d63104ae3479f3707e435413a284392a32e5?per_page=1&page=2": 1,
+      "repos/org/repo/compare/fa2aa8bc875f015ca435486a86da1a80200ffb27...dd52032df996ad7311249e1158c08586117f60c1?per_page=1&page=2": 1,
+      "repos/org/repo/compare/dd52032df996ad7311249e1158c08586117f60c1...77d433786ee944aa3b854a3950909b39618b3113?per_page=1&page=2": 1,
+      "repos/org/repo/compare/fa2aa8bc875f015ca435486a86da1a80200ffb27...085af948e3691b0dd9f15ee4c8401c6b1bbc79f6?per_page=1&page=2": 1,
+      "repos/org/repo/compare/085af948e3691b0dd9f15ee4c8401c6b1bbc79f6...d661d63104ae3479f3707e435413a284392a32e5?per_page=1&page=2": 1,
+      "repos/org/repo/compare/dd52032df996ad7311249e1158c08586117f60c1...f402120d0ebc0f6499ddc71ffdd1d0d46e7a330a?per_page=1&page=2": 1,
+      "repos/org/repo/compare/fa2aa8bc875f015ca435486a86da1a80200ffb27...785127622aad6247761b0c3498ec2ba3ab19e369?per_page=1&page=2": 1,
+      "repos/org/repo/compare/785127622aad6247761b0c3498ec2ba3ab19e369...d661d63104ae3479f3707e435413a284392a32e5?per_page=1&page=2": 1,
+      "repos/org/repo/compare/dd52032df996ad7311249e1158c08586117f60c1...92c1916c46a32a112fc4bbb521921dd58ff37c1c?per_page=1&page=2": 1,
+      "repos/org/repo/compare/fa2aa8bc875f015ca435486a86da1a80200ffb27...e82fe1fc7be4bf5afee8bcef782651a56fdd5022?per_page=1&page=2": 1,
+      "repos/org/repo/compare/e82fe1fc7be4bf5afee8bcef782651a56fdd5022...d661d63104ae3479f3707e435413a284392a32e5?per_page=1&page=2": 1,
+      "repos/org/repo/compare/dd52032df996ad7311249e1158c08586117f60c1...fe9e8ba7c7e22e9d56da1839020b6710b33deac4?per_page=1&page=2": 1,
+      "repos/org/repo/compare/fa2aa8bc875f015ca435486a86da1a80200ffb27...fdec01f0cb468009b647adf9abb64b946be32245?per_page=1&page=2": 1,
+      "repos/org/repo/compare/fdec01f0cb468009b647adf9abb64b946be32245...d661d63104ae3479f3707e435413a284392a32e5?per_page=1&page=2": 1,
+      "repos/org/repo/compare/dd52032df996ad7311249e1158c08586117f60c1...8c09692a7064f63018aaa25152d4e0b080bc8f85?per_page=1&page=2": 1,
+      "repos/org/repo/compare/fa2aa8bc875f015ca435486a86da1a80200ffb27...f61d39bc89fc3e2c6ee6ba0c635399d2011dcd1f?per_page=1&page=2": 1,
+      "repos/org/repo/compare/f61d39bc89fc3e2c6ee6ba0c635399d2011dcd1f...d661d63104ae3479f3707e435413a284392a32e5?per_page=1&page=2": 1,
+      "repos/org/repo/compare/dd52032df996ad7311249e1158c08586117f60c1...56403765091b94f397c4accd65525b83d317ecf7?per_page=1&page=2": 1,
+      "repos/org/repo/compare/fa2aa8bc875f015ca435486a86da1a80200ffb27...758dfcbe463a0590b611be8ee80ea32f3c54c1b4?per_page=1&page=2": 1,
+      "repos/org/repo/compare/758dfcbe463a0590b611be8ee80ea32f3c54c1b4...d661d63104ae3479f3707e435413a284392a32e5?per_page=1&page=2": 1,
+      "repos/org/repo/compare/dd52032df996ad7311249e1158c08586117f60c1...6b2eeff827ce185657391395400051531efcf295?per_page=1&page=2": 1,
+      "repos/org/repo/compare/fa2aa8bc875f015ca435486a86da1a80200ffb27...dfc0893c5992b2ba470b6c311a80c75258ca3305?per_page=1&page=2": 1,
+      "repos/org/repo/compare/dfc0893c5992b2ba470b6c311a80c75258ca3305...d661d63104ae3479f3707e435413a284392a32e5?per_page=1&page=2": 1,
+      "repos/org/repo/compare/dd52032df996ad7311249e1158c08586117f60c1...dd52032df996ad7311249e1158c08586117f60c1?per_page=1&page=2": 1,
+      "repos/org/repo/compare/fa2aa8bc875f015ca435486a86da1a80200ffb27...7868c7fc6e70415ec64495cdf23c3cedf79bb828?per_page=1&page=2": 1,
+      "repos/org/repo/compare/fa2aa8bc875f015ca435486a86da1a80200ffb27...1e68adebc374fd0c3f47b20d2ba1f40261a9568c?per_page=1&page=2": 1,
+      "repos/org/repo/compare/7868c7fc6e70415ec64495cdf23c3cedf79bb828...7868c7fc6e70415ec64495cdf23c3cedf79bb828?per_page=1&page=2": 1,
+      "repos/org/repo/compare/85269db2b4ce47e6be91ae5f401eedc48d6357b3...85269db2b4ce47e6be91ae5f401eedc48d6357b3?per_page=1&page=2": 1,
+      "repos/org/repo/compare/749845ce90914f750a23eb185dc01a613c078d39...7868c7fc6e70415ec64495cdf23c3cedf79bb828?per_page=1&page=2": 1,
+      "repos/org/repo/compare/7868c7fc6e70415ec64495cdf23c3cedf79bb828...85269db2b4ce47e6be91ae5f401eedc48d6357b3?per_page=1&page=2": 1,
+      "repos/org/repo/compare/85269db2b4ce47e6be91ae5f401eedc48d6357b3...624cc9eacb0cf103d7f710f40542200d5b84d239?per_page=1&page=2": 1,
+      "repos/org/repo/compare/85269db2b4ce47e6be91ae5f401eedc48d6357b3...26e716097efb92aaf2465c85f370bba7fee9b4fb?per_page=1&page=2": 1,
+      "repos/org/repo/compare/85269db2b4ce47e6be91ae5f401eedc48d6357b3...875b3a90d000d40d9ea407a89e9ea508c6d354a5?per_page=1&page=2": 1
+    }
+  },
+  "end": [
+    {
+      "phase": "public-full-tail-complete",
+      "actual_retained_facts": 1001,
+      "manual_merge_preserved": true,
+      "one_delivery": true,
+      "producer_regenerated": false,
+      "live": false,
+      "last_invocation_native_calls": 1904,
+      "last_invocation_native_bytes": 20093346
+    },
+    {
+      "preserved_actual_result": "/Volumes/M/sourcecode/qyndex/factory-validation-tmp-20261016/t334-public-tail-result-k422yyco",
+      "head": "e61e35aa4159148daa77fddac17df398d70f4907"
+    }
+  ],
+  "log_sha256": "3ec66066c762f5d9e0930f8be6c428e6b39dc70cad9986af0195e4b4d3a20802",
+  "native_or_timely_delivery_verified": false
+}

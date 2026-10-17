@@ -1,0 +1,7 @@
+# TDD ledger — green — T-331
+ledger_format: 2
+timestamp: 2026-10-17T00:54:37+11:00
+command: bash .claude/scripts/test/factory-reporting-transport.sh
+exit_code: 0
+---
+47 protected reporting transport cases passed; offline subprocess fixtures only

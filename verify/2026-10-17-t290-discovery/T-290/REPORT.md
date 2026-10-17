@@ -1,0 +1,19 @@
+# Existing discovery fixture origin-cadence repair
+
+Isolated base fd19fef182186642d42e9083692128c369bee460. This is narrowly scoped T290 legacy-continuation source preparation, not T290 completion. No production, task/spec/plan/status/analysis, live configuration, credentials or original checkout were changed. Only test/factory-receipt-discovery.sh and this proof directory are in scope.
+
+Actual unchanged suite failed at large-watch discovery with "archive bootstrap tree incomplete; authenticated cursor continuation required". The fixture publishes 100-row pending/watch namespaces repeatedly but never advances the actual protected origin before the next origin-dependent consumer. T287's bounded bootstrap correctly refuses that shortcut. No production defect or weakened trust boundary was needed.
+
+The repair calls actual advance_origin with unchanged default per-invocation bounds of 16 commits and 4 tree pages after each broad 100-observation publication and the concurrent inner publication. A new LargeState object and fresh production function call model separate bounded invocations over persisted real Git state; the fixture loop is not permission to reset one production invocation's shared budget. Each group has a 32-call bounded ceiling; no exhaustion was observed, and no ceiling/budget was raised. The first passing run required 121 actual origin windows total.
+
+The fixture's original State adapter lacked the required latest-origin-path commit-history endpoint. A narrow subclass answers only the exact expected sha/path/per_page=1 query from real git log. It supplies no fake complete flag, trusted tree, ancestor shortcut or bootstrap reset. Actual production validators still authenticate and publish progress through real Git object/ref operations.
+
+Original 400/500 observations, 400 unique source identities, page counts, segment bounds, CAS retries/conflict/coalescing/uncertain acknowledgement, foreign source/policy/cursor rejection and unsafe-import denial remain. Added 500 unique identities with all first 400 retained and explicit final opaque encrypted-envelope byte preservation. The unsafe bootstrap import is still denied without ref mutation; a genuine origin now triggers the earlier precise origin-pre-bootstrap rejection, so the test requires that exact cause rather than its former later discovery-checkpoint wording.
+
+The final run also reads every immutable origin publication and its actual parent origin blob, compares the scanner core (frozen_head,next_sha,tree_cursor,checked_commits,complete), and requires a real change. The journal's publication parent and returned checked count/completion must agree. Output retains before/after scanner-core hashes for each actual transition and the invocation count. A new commit alone does not satisfy this assertion. No helper cache, scanner bypass, test skip, assertion weakening, full 1,001 run or native GitHub/App readiness claim is introduced.
+
+Baseline failure, missing-history-adapter diagnostic, earlier precise unsafe-import rejection and first passing result are retained separately. Final output/timing and source fingerprints accompany the final handoff. Independent review/integration remain root-owned; production files must remain byte-identical to base.
+
+One diagnostic run completed all Python scenario/transition assertions but its shell wrapper failed after an ill-timed comment edit shifted the open script read offset. That run is retained only as mutated-open-script-diagnostic.log. The final acceptance rerun freezes source until terminal and must exit 0; no success is inferred from the diagnostic.
+
+Frozen final suite exited 0; all 121 scanner transitions and original 11 scenarios passed. Measured wall time: 78.81 seconds. ShellCheck, bash syntax and whitespace checks passed; structural validation exited 0 with 4 existing warnings. No task status was changed.

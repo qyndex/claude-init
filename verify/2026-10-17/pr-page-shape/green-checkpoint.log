@@ -1,0 +1,2 @@
+legacy baseline/compare/ready migration and malformed layout rejection PASS
+typed PR scratch fresh SQLite restoration, same-instance prepare, malformed checkpoint rejection PASS

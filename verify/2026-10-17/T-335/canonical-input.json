@@ -1,0 +1,9 @@
+{
+  "source_commit": "34f3f422c10cade29193787c4caf87a74b6cbf3a",
+  "task": "T-335",
+  "command": "bash .claude/scripts/test/factory-receipt-reporting.sh",
+  "maximum_seconds": 300,
+  "started_at": "2026-10-16T17:12:14.270629+00:00",
+  "sanctioned_tool": "tdd-ledger.sh green",
+  "native_or_cadence_claim": false
+}

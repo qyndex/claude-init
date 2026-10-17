@@ -1,0 +1,21 @@
+Source: actual required collector009, frozen parent d965ac0c2e2b59cdc68f7f8f4f93ab8f62978c3c
+Budget: unchanged300seconds
+actual validated entries=737; validate_entry calls=885
+linear work preserves immediate and cross-subtree duplicate rejection
+actual authenticated retained appends=1/1001; real Git commits=5
+actual authenticated retained appends=25/1001; real Git commits=55
+actual authenticated retained appends=50/1001; real Git commits=107
+actual authenticated retained appends=75/1001; real Git commits=159
+actual authenticated retained appends=100/1001; real Git commits=211
+actual authenticated retained appends=125/1001; real Git commits=263
+actual authenticated retained appends=150/1001; real Git commits=315
+actual authenticated retained appends=175/1001; real Git commits=367
+actual authenticated retained appends=200/1001; real Git commits=428
+actual authenticated retained appends=225/1001; real Git commits=480
+actual authenticated retained appends=250/1001; real Git commits=532
+actual authenticated retained appends=275/1001; real Git commits=584
+actual authenticated retained appends=300/1001; real Git commits=636
+actual authenticated retained appends=325/1001; real Git commits=688
+actual authenticated retained appends=350/1001; real Git commits=740
+actual authenticated retained appends=375/1001; real Git commits=792
+acceptance: FAIL: T-287: acceptance timed out

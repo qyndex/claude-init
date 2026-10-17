@@ -1,0 +1,27 @@
+{
+  "head": "355bac1c81977397aa7b13fcd2f724781c806efa",
+  "prompt_sha256": "c601213985c81059de1469abd1934f4af018a75258b7c3bce3fac001f93038b8",
+  "review_files": [
+    {
+      "path": ".claude/scripts/factory-reporting-transport.py",
+      "start": 1,
+      "end": 213,
+      "full_sha256": "b91ec6d7f55477605812f80f415e6df8b1a02a1be1c92d1f02e85748cca61b7b",
+      "range_sha256": "f869358ebe173bf7c84b632b0a869d46f48fd460ce3e1fedf7dbc9d5a65d91e5"
+    },
+    {
+      "path": ".claude/scripts/factory-receipt-archive.py",
+      "start": 752,
+      "end": 762,
+      "full_sha256": "bc024a261c4eb8a2dc709f5725fd26ca778d79781d0260ba16faf0045fff369c",
+      "range_sha256": "fe1fc331b4ff39edd042231cf0517b68d63b76d81e88fb420f57ff4b505ed64e"
+    },
+    {
+      "path": ".claude/scripts/test/factory-reporting-compare-cache.sh",
+      "start": 1,
+      "end": 45,
+      "full_sha256": "cf55a695dd5bc5b37c4c9970375684597046ab94a88c10b3cf5f31dddde84d7d",
+      "range_sha256": "cf55a695dd5bc5b37c4c9970375684597046ab94a88c10b3cf5f31dddde84d7d"
+    }
+  ]
+}

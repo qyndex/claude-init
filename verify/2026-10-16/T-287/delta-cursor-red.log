@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "<stdin>", line 41, in <module>
+  File "actual-state-delta-real-git", line 88, in <module>
+AssertionError: untyped delta cursor prefix accepted

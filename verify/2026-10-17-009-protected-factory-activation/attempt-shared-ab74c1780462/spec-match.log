@@ -1,0 +1,9 @@
+⚠ /private/tmp/factory-publication-acceptance-fix-20261017/verify/2026-10-17-009-protected-factory-activation/attempt-shared-ab74c1780462/results.json contains AC tags but no test could be confirmed PASSING — cannot prove any AC from it (gap-audit G51)
+# Spec-match: 009
+  ✗ AC-1 — UNPROVEN (no passing test tagged @AC-1)
+  ✗ AC-2 — UNPROVEN (no passing test tagged @AC-2)
+  ✗ AC-3 — UNPROVEN (no passing test tagged @AC-3)
+  ✗ AC-4 — UNPROVEN (no passing test tagged @AC-4)
+  ✗ AC-5 — UNPROVEN (no passing test tagged @AC-5)
+
+✗ spec-match FAIL: 5 acceptance criteria unproven

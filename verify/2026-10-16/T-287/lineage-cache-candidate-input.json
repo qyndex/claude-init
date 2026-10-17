@@ -1,0 +1,8 @@
+{
+  "candidate": "/private/tmp/t287-linear-candidate-20261016",
+  "archive_sha256": "ed0aa30b2fd3222bfe98871cac91ff1d4f88efad8e5ff0a24edd111d6a3dc8b2",
+  "actual_command": "python3 -u /private/tmp/t287-targeted36-diagnostic.py",
+  "scratch_sha256": "6ee28e2f770af786668c7a857a4281515d43859864cc1c20dff29a9a8b0e1123",
+  "snapshot": "/private/tmp/t287-timecache-consumer-result-20261016",
+  "observed_stage_publications": 35
+}

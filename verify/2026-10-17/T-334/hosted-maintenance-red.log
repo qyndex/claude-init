@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "<stdin>", line 26, in <module>
+  File "hosted-maintenance-fixture", line 99, in <module>
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-git-state.py", line 435, in run
+    state = GitState(state_api, config['state_branch'], stream, config.get('bootstrap_sha'), config.get('policy_approvals'), state_view=config.get('state_view'))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-git-state.py", line 252, in __init__
+    require(bootstrap_sha==self.head and (bootstrap_existing or item_at(self.tree,'reports') is None),
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/validate-candidate-evidence.py", line 19, in require
+    raise ValueError(message)
+ValueError: missing checkpoint requires exact protected bootstrap revision; never reset silently

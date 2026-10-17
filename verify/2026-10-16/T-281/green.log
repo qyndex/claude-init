@@ -1,0 +1,7 @@
+# TDD ledger — green — T-281
+ledger_format: 2
+timestamp: 2026-10-16T10:29:08+11:00
+command: bash .claude/scripts/test/factory-receipt-state-paths.sh
+exit_code: 0
+---
+27 state path/index/resumable tree cases passed; CAS archive writes remain pending

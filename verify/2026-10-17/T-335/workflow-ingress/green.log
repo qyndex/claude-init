@@ -1,0 +1,7 @@
+# TDD ledger — green — T-335/workflow-ingress
+ledger_format: 2
+timestamp: 2026-10-17T01:29:51+11:00
+command: python3 verify/2026-10-17/T-335/workflow-ingress/test.py
+exit_code: 0
+---
+PASS four workflow boundaries and 24 actual no-network credential selection scenarios

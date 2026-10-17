@@ -1,0 +1,11 @@
+# TDD ledger — red — T-334/review-followup
+ledger_format: 2
+timestamp: 2026-10-17T01:43:27+11:00
+command: bash .claude/scripts/test/factory-reporting-maintenance.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 159, in <module>
+  File "reporting-maintenance-fixture", line 153, in <module>
+AssertionError: ['future cutoff accepted', 'future cutoff wrote protected progress', 'unvalidated reread trust bytes accepted', 'calls dispatched 2049 expected 2048', 'bytes dispatched 17 expected 16', 'batch-bytes dispatched 17 expected 16', 'journal invariant accepted review-pair', 'journal invariant accepted cursor-segment', 'journal invariant accepted zero-segments', 'journal invariant accepted stage-selectors', 'journal invariant accepted ready-selectors', 'journal invariant accepted previous-pair', 'journal invariant accepted remaining-count']

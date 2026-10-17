@@ -1,0 +1,10 @@
+{
+  "base": "621a9d58a958b0c4685cb5be185b457e84643245",
+  "sha256": {
+    ".claude/scripts/factory-digest.py": "bafeb74adf1a58965aa74fec6066c899f2308cbf701fa218ae6e074d694df59f",
+    ".claude/scripts/test/factory-digest-confirm.sh": "4470d4c4ed0df450ea0763c0b6a2613c259df7a1c9b36673cc0b4b34e72763e2"
+  },
+  "red_exit": 1,
+  "green_exit": 0,
+  "digest_regression_exit": 0
+}

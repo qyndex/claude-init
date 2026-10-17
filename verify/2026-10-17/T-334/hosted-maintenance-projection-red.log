@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "<stdin>", line 39, in <module>
+  File "hosted-maintenance-fixture", line 109, in <module>
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-git-state.py", line 471, in run
+    receipts.project(report_api, config['receipt_policy'], path)
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipts.py", line 234, in project
+    pages = api.request(f'repos/{api.repo}/actions/workflows/{workflow}/runs?status=success&per_page=100', paginate=True)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "hosted-maintenance-fixture", line 92, in request
+AssertionError: durable loader fell back to legacy successful-artifact discovery: repos/org/repo/actions/workflows/10/runs?status=success&per_page=100

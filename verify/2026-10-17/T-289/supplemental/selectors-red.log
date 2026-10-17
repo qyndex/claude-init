@@ -1,0 +1,3 @@
+Traceback (most recent call last):
+  File "<stdin>", line 17, in <module>
+AssertionError: CompletedProcess(args=['/opt/homebrew/opt/python@3.14/bin/python3.14', '/private/tmp/factory-t289-readiness-20261017/.claude/scripts/factory-preflight.py', '--reporting-config', '/var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmpd7i41ouz/policy.json', '--interval-end', '2026-10-15T23:00:00Z'], returncode=1, stdout='{\n  "scope": "reporting-readiness",\n  "checks": {\n    "configuration": {\n      "status": "failed",\n      "reason": "selected reporting configuration unavailable or invalid"\n    }\n  }\n}\n', stderr='')

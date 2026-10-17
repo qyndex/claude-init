@@ -1,0 +1,12 @@
+# TDD ledger — red — T-300
+ledger_format: 2
+timestamp: 2026-10-16T12:07:38+11:00
+command: bash .claude/scripts/test/factory-receipt-projection-window.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 48, in <module>
+  File "protected-projection-window-fixture", line 74, in <module>
+  File "protected-projection-window-fixture", line 73, in window
+AttributeError: module 'archive' has no attribute 'projection_window'

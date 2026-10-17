@@ -1,0 +1,7 @@
+# TDD ledger — green — T-277
+ledger_format: 2
+timestamp: 2026-10-16T10:10:01+11:00
+command: bash .claude/scripts/test/factory-receipt-equivalence.sh
+exit_code: 0
+---
+9 real-Git source equivalence cases passed; two ordinary SHAs, seven authority changes

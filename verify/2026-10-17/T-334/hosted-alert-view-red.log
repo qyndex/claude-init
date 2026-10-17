@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "<stdin>", line 59, in <module>
+  File "hosted-maintenance-fixture", line 132, in <module>
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-reporting-alerts.py", line 100, in run
+    checkpoint = state.GitState(api,config['state_branch'],stream,config.get('bootstrap_sha'),config.get('policy_approvals'))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-git-state.py", line 265, in __init__
+    verify_policy(policy, api.repo, identity, policy_approvals)
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-git-state.py", line 177, in verify_policy
+    require(policy['bypass_actors'] == [], 'state protection disabled or bypassable')
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/validate-candidate-evidence.py", line 19, in require
+    raise ValueError(message)
+ValueError: state protection disabled or bypassable

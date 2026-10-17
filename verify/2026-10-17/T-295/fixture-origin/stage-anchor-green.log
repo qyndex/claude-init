@@ -1,0 +1,2 @@
+{"bootstrap_verifications": 4, "calls": 239, "bytes": 140593, "roles": {"source": 8, "writer": 231}, "methods": {"GET": 203, "POST": 35, "PATCH": 1}, "facts": 8}
+eight-fact anchored stage, late/foreign facts and trust/approval/policy/head races PASS; fixture transport only

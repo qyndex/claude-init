@@ -1,0 +1,192 @@
+{
+  "scope": "Full-file identity is not whole-file review coverage: supplied excerpt ranges remain explicit. False identity requires follow-up delta or root review; no blanket current-head approval.",
+  "bindings": [
+    {
+      "review": "C-two-page-contract",
+      "path": ".claude/scripts/factory-receipt-discovery.py",
+      "reviewed_sha256": "7d35812cc68950a59b73dcea3dee8f31edf9845994ed9ef062fc907011fc1f5e",
+      "current_sha256": "7d35812cc68950a59b73dcea3dee8f31edf9845994ed9ef062fc907011fc1f5e",
+      "current_full_file_identical": true,
+      "range": {
+        "start": 480,
+        "end": 610
+      }
+    },
+    {
+      "review": "C-two-page-contract",
+      "path": ".claude/scripts/test/factory-receipt-discovery-review.sh",
+      "reviewed_sha256": "077f9350605aea9b3e5d184d8a7018af82608017fa56446337a8d7002f739783",
+      "current_sha256": "077f9350605aea9b3e5d184d8a7018af82608017fa56446337a8d7002f739783",
+      "current_full_file_identical": true,
+      "range": {
+        "start": 1,
+        "end": 168
+      }
+    },
+    {
+      "review": "C-two-page-contract",
+      "path": "verify/2026-10-17/discovery-two-page/README.md",
+      "reviewed_sha256": "cf681e35cbfaca55de89b28eabd7c7ed9826dd8021184e351efb1e534bd81483",
+      "current_sha256": "cf681e35cbfaca55de89b28eabd7c7ed9826dd8021184e351efb1e534bd81483",
+      "current_full_file_identical": true,
+      "range": {
+        "start": 1,
+        "end": 37
+      }
+    },
+    {
+      "review": "D-selected-repairs-followup",
+      "path": ".claude/scripts/factory-reporting-maintenance.py",
+      "reviewed_sha256": "0ecc83555eedaf2fec08d82debdfb17aadb33cc85d73ce5216c4e5f29e39f800",
+      "current_sha256": "0ecc83555eedaf2fec08d82debdfb17aadb33cc85d73ce5216c4e5f29e39f800",
+      "current_full_file_identical": true,
+      "range": {
+        "start": 1,
+        "end": 284
+      }
+    },
+    {
+      "review": "D-selected-repairs-followup",
+      "path": ".claude/scripts/factory-digest.py",
+      "reviewed_sha256": "bafeb74adf1a58965aa74fec6066c899f2308cbf701fa218ae6e074d694df59f",
+      "current_sha256": "bafeb74adf1a58965aa74fec6066c899f2308cbf701fa218ae6e074d694df59f",
+      "current_full_file_identical": true,
+      "range": {
+        "start": 227,
+        "end": 244
+      }
+    },
+    {
+      "review": "D-selected-repairs-followup",
+      "path": ".claude/scripts/test/factory-reporting-maintenance-liveness.sh",
+      "reviewed_sha256": "93c8b4892cf0d08782025ad14adf160f5705a4c96e84bfd5eaadff9cd54483a1",
+      "current_sha256": "93c8b4892cf0d08782025ad14adf160f5705a4c96e84bfd5eaadff9cd54483a1",
+      "current_full_file_identical": true,
+      "range": {
+        "start": 1,
+        "end": 77
+      }
+    },
+    {
+      "review": "D-selected-repairs-followup",
+      "path": ".claude/scripts/test/factory-digest-confirm.sh",
+      "reviewed_sha256": "4470d4c4ed0df450ea0763c0b6a2613c259df7a1c9b36673cc0b4b34e72763e2",
+      "current_sha256": "4470d4c4ed0df450ea0763c0b6a2613c259df7a1c9b36673cc0b4b34e72763e2",
+      "current_full_file_identical": true,
+      "range": {
+        "start": 1,
+        "end": 41
+      }
+    },
+    {
+      "review": "transport-ancestry-cache",
+      "path": ".claude/scripts/factory-reporting-transport.py",
+      "reviewed_sha256": "b91ec6d7f55477605812f80f415e6df8b1a02a1be1c92d1f02e85748cca61b7b",
+      "current_sha256": "b91ec6d7f55477605812f80f415e6df8b1a02a1be1c92d1f02e85748cca61b7b",
+      "current_full_file_identical": true,
+      "range": {
+        "start": 1,
+        "end": 213
+      }
+    },
+    {
+      "review": "transport-ancestry-cache",
+      "path": ".claude/scripts/factory-receipt-archive.py",
+      "reviewed_sha256": "bc024a261c4eb8a2dc709f5725fd26ca778d79781d0260ba16faf0045fff369c",
+      "current_sha256": "bc024a261c4eb8a2dc709f5725fd26ca778d79781d0260ba16faf0045fff369c",
+      "current_full_file_identical": true,
+      "range": {
+        "start": 752,
+        "end": 762
+      }
+    },
+    {
+      "review": "transport-ancestry-cache",
+      "path": ".claude/scripts/test/factory-reporting-compare-cache.sh",
+      "reviewed_sha256": "cf55a695dd5bc5b37c4c9970375684597046ab94a88c10b3cf5f31dddde84d7d",
+      "current_sha256": "cf55a695dd5bc5b37c4c9970375684597046ab94a88c10b3cf5f31dddde84d7d",
+      "current_full_file_identical": true,
+      "range": {
+        "start": 1,
+        "end": 45
+      }
+    },
+    {
+      "review": "D2-hosted-boundary-followup",
+      "path": ".claude/scripts/factory-git-state.py",
+      "reviewed_sha256": "0324019d96a8e7a956621f5865b442bc12d194e0ad828e76162cbd658058cf80",
+      "current_sha256": "0324019d96a8e7a956621f5865b442bc12d194e0ad828e76162cbd658058cf80",
+      "current_full_file_identical": true,
+      "range": {
+        "start": 285,
+        "end": 380
+      }
+    },
+    {
+      "review": "D2-hosted-boundary-followup",
+      "path": ".claude/scripts/factory-git-state.py",
+      "reviewed_sha256": "0324019d96a8e7a956621f5865b442bc12d194e0ad828e76162cbd658058cf80",
+      "current_sha256": "0324019d96a8e7a956621f5865b442bc12d194e0ad828e76162cbd658058cf80",
+      "current_full_file_identical": true,
+      "range": {
+        "start": 444,
+        "end": 580
+      }
+    },
+    {
+      "review": "D2-hosted-boundary-followup",
+      "path": ".claude/scripts/factory-receipts.py",
+      "reviewed_sha256": "276573a80730be1fd246de4939e5fd8594d439724083f88037af96b8ce9e1255",
+      "current_sha256": "276573a80730be1fd246de4939e5fd8594d439724083f88037af96b8ce9e1255",
+      "current_full_file_identical": true,
+      "range": {
+        "start": 220,
+        "end": 240
+      }
+    },
+    {
+      "review": "D2-hosted-boundary-followup",
+      "path": ".claude/scripts/factory-reporting-receipts.py",
+      "reviewed_sha256": "53d882ffda39652eb06300aa77b99c3fe96acc23128e8578925cc6d76ba0fef9",
+      "current_sha256": "53d882ffda39652eb06300aa77b99c3fe96acc23128e8578925cc6d76ba0fef9",
+      "current_full_file_identical": true,
+      "range": {
+        "start": 1,
+        "end": 134
+      }
+    },
+    {
+      "review": "D2-hosted-boundary-followup",
+      "path": ".claude/scripts/factory-receipt-archive.py",
+      "reviewed_sha256": "bc024a261c4eb8a2dc709f5725fd26ca778d79781d0260ba16faf0045fff369c",
+      "current_sha256": "bc024a261c4eb8a2dc709f5725fd26ca778d79781d0260ba16faf0045fff369c",
+      "current_full_file_identical": true,
+      "range": {
+        "start": 1540,
+        "end": 1584
+      }
+    },
+    {
+      "review": "D2-hosted-boundary-followup",
+      "path": ".claude/scripts/factory-digest.py",
+      "reviewed_sha256": "5dc5641c8326f6774667539f27667bc2f408854c6cf2df4328d0ccd5ebf57289",
+      "current_sha256": "bafeb74adf1a58965aa74fec6066c899f2308cbf701fa218ae6e074d694df59f",
+      "current_full_file_identical": false,
+      "range": {
+        "start": 84,
+        "end": 243
+      }
+    },
+    {
+      "review": "D2-hosted-boundary-followup",
+      "path": ".claude/scripts/factory-reporting-pr-discovery.py",
+      "reviewed_sha256": "d688a392d87d8d391251a6b49e09bd5356ac3798fcfd119c301765c79951fbaa",
+      "current_sha256": "d688a392d87d8d391251a6b49e09bd5356ac3798fcfd119c301765c79951fbaa",
+      "current_full_file_identical": true,
+      "range": {
+        "start": 80,
+        "end": 107
+      }
+    }
+  ]
+}

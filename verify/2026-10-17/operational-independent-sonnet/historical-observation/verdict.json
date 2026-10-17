@@ -1,0 +1,19 @@
+{
+  "verdict": "changes_requested",
+  "review_summary": "I found one low-severity defect in the supplied scope. In the Git (`root`) path, the closed runtime inventory silently skips top-level `.py` files whose names git quotes. The API path rejects the same files, so the two modes disagree. Everything else I traced held up. That covers registry loading and validation, native run and repository bindings, exact-attempt selection, job/step/log checks, run-window ordering, the lineage walk and its 24-commit bound, ancestor and compare checks, blob identity, `produce()` self-validation, and ZIP unpacking. This was a static read only. The `evidence`, `queue` and `state` helpers, `GitState`, and the unseen parts of `factory-operational-proof.py` are outside the supplied lines, so I assumed their contracts.",
+  "findings": [
+    {
+      "severity": "low",
+      "file": ".claude/scripts/factory-operational-producer.py",
+      "line": 118,
+      "title": "Root-mode runtime inventory silently skips Python files whose names git quotes, unlike API mode",
+      "reason": "`runtime_inventory(..., root=...)` parses plain `git ls-tree` output without `-z`. By default git quotes names containing non-ASCII bytes, control characters, `\"` or `\\`, so a file such as `.claude/scripts/\u00e9.py` is printed as `\"\\303\\251.py\"`. The string ends in `\"`, so `name.endswith('.py')` is false and the entry is dropped. The API branch (lines 126-127) sees the raw name, matches `.py`, and `proof.text(...)` rejects it. Scenario: a producer or original source tree contains an unreviewed top-level Python file with an unusual name. The production Git path ignores it and `runtime_bytes` still passes, because the profile's runtime map cannot contain such a path anyway. The API path would fail closed. This breaks the stated 'closed exact-source family: every top-level Python file' guarantee, and the signed profile no longer pins that file. Impact is limited, since pinned code does not load files by glob. Fix: use `ls-tree -z` and split on NUL, or reject any quoted name (one starting with `\"`) instead of skipping it."
+    }
+  ],
+  "limitations": [
+    "Static review of the supplied lines only, with no execution. The `proof.fields/text/integer/hexstr/stamp/decode/canonical` helpers, `evidence.*`, `queue.*`, `state.GitState` and `transport.process` are used per their apparent contracts, since their source was not supplied.",
+    "Lines 1-87 and 163 onward of `factory-operational-proof.py` were not supplied, so I could not check `stamp` and `clock` semantics against `now.isoformat()` and the mixed int/time comparison in `validate_record`.",
+    "Native attestation, protected-registry fetch, reader-side verification, the workflows and the `gh` version gate are outside the supplied scope. I did not infer authenticity from record contents.",
+    "I did not check the journal schema (`cutoff`, `run_id` on recovery events). I could not tell whether the recovery event is bound to the selected recovery run beyond the timing-window check."
+  ]
+}

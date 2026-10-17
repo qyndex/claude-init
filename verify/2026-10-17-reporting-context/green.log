@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "<stdin>", line 13, in <module>
+  File "/private/tmp/factory-reporting-context-20261017/.claude/scripts/factory-reporting-transport.py", line 221, in attach_reporting_context
+    require(root.is_absolute() and root.resolve()==root and root.is_dir() and not root.is_symlink(), 'reporting context checkout invalid')
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-reporting-context-20261017/.claude/scripts/validate-candidate-evidence.py", line 19, in require
+    raise ValueError(message)
+ValueError: reporting context checkout invalid

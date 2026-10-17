@@ -1,0 +1,63 @@
+{
+  "source_sha": "355bac1c81977397aa7b13fcd2f724781c806efa",
+  "actual_start": "9f73af16c8d70eb271a7f0756a1cd62e3ef89873",
+  "actual_end": "e61e35aa4159148daa77fddac17df398d70f4907",
+  "actual_publications": [
+    {
+      "sha": "11e3297e28ed1b9d21bce274517d4cb1bf2893f0",
+      "changed_paths": [
+        "receipt-archive/origin/50f841c69ae796fe707c5f9b3083e7cb74168b1df2d5ff0fd77ee75ba53f9b84.json"
+      ]
+    },
+    {
+      "sha": "749845ce90914f750a23eb185dc01a613c078d39",
+      "changed_paths": [
+        "reports/abb95e7d724088fec0d0e29d153b5820fe5eb9f54461106275a9dc955634f9be.json"
+      ]
+    },
+    {
+      "sha": "1e68adebc374fd0c3f47b20d2ba1f40261a9568c",
+      "changed_paths": [
+        "receipt-archive/origin/50f841c69ae796fe707c5f9b3083e7cb74168b1df2d5ff0fd77ee75ba53f9b84.json"
+      ]
+    },
+    {
+      "sha": "7868c7fc6e70415ec64495cdf23c3cedf79bb828",
+      "changed_paths": [
+        "reports/dd854414bcc09cdc45a1e41f4a982e4c305d61c7f009eb1220fe5b10569b522a.json"
+      ]
+    },
+    {
+      "sha": "85269db2b4ce47e6be91ae5f401eedc48d6357b3",
+      "changed_paths": [
+        "receipt-archive/origin/50f841c69ae796fe707c5f9b3083e7cb74168b1df2d5ff0fd77ee75ba53f9b84.json"
+      ]
+    },
+    {
+      "sha": "624cc9eacb0cf103d7f710f40542200d5b84d239",
+      "changed_paths": [
+        "reports/dd854414bcc09cdc45a1e41f4a982e4c305d61c7f009eb1220fe5b10569b522a.json"
+      ]
+    },
+    {
+      "sha": "26e716097efb92aaf2465c85f370bba7fee9b4fb",
+      "changed_paths": [
+        "reports/abb95e7d724088fec0d0e29d153b5820fe5eb9f54461106275a9dc955634f9be.json"
+      ]
+    },
+    {
+      "sha": "875b3a90d000d40d9ea407a89e9ea508c6d354a5",
+      "changed_paths": [
+        "reports/abb95e7d724088fec0d0e29d153b5820fe5eb9f54461106275a9dc955634f9be.json"
+      ]
+    },
+    {
+      "sha": "e61e35aa4159148daa77fddac17df398d70f4907",
+      "changed_paths": [
+        "reports/abb95e7d724088fec0d0e29d153b5820fe5eb9f54461106275a9dc955634f9be.json"
+      ]
+    }
+  ],
+  "no_producer_checkpoint_or_discovery_progress_path_publications": true,
+  "scope": "actualGitpublicationdelta; supports selectedready-phase branch audit, not retrospective dynamic function instrumentation"
+}

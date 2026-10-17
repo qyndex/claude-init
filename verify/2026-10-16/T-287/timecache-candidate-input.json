@@ -1,0 +1,10 @@
+{
+  "candidate": "/private/tmp/t287-linear-candidate-20261016",
+  "files": {
+    ".claude/scripts/factory-receipt-archive.py": "7bb4ade32bbf84630adcda867b78b56aedfb06196af5a2802935ed8d6b8cec01",
+    ".claude/scripts/factory-state-paths.py": "0648487106251e765e7f0a4504d510606970c6bab1f2b4024dc21c4e6bc487dd"
+  },
+  "actual_command": "python3 -u /private/tmp/t287-timecache-consumer-diagnostic.py",
+  "scratch_sha256": "c0910bf23381c99a90f47364d7959d420056f17888337c56921d27b838b586fc",
+  "snapshot": "/private/tmp/t287-linear-consumer-result-2-20261016"
+}

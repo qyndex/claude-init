@@ -1,0 +1,6 @@
+MEDIUM reporting context bootstrap differs
+ENTRY reporting context bootstrap differs
+Traceback (most recent call last):
+  File "<stdin>", line 73, in <module>
+  File "queue-context-real-git", line 135, in <module>
+AssertionError: ['MEDIUM reporting context bootstrap differs', 'ENTRY reporting context bootstrap differs']

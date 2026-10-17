@@ -1,0 +1,16 @@
+{
+  "source_commit": "802d921259c74ff21b4d26d45ccc242dc51ea756",
+  "commands": [
+    "bash .claude/scripts/test/factory-coordinator.sh",
+    "bash .claude/scripts/test/local-evidence-gate.sh",
+    "bash .claude/scripts/test/autonomous-ship.sh"
+  ],
+  "inputs": {
+    ".claude/scripts/factory-coordinator.py": "2598e434b9058ff56ae8781b8337653655c8e99de43a71b346fff86cea36fa00",
+    ".claude/scripts/factory-preflight.py": "c3997120ee8d7064738b26fa1c30e318db02ebf411c46baa3aa67d521d1dad56",
+    ".claude/scripts/test/factory-coordinator.sh": "8ee46f2e1685ed0224381db0c0356ea9d0e0ffb2f2c33d270d19b3f6c85f454c",
+    ".claude/scripts/test/local-evidence-gate.sh": "b90103d3105c5d4671e5e41587ab21b63c9a39406220458271cf9977697276dc",
+    ".claude/scripts/test/autonomous-ship.sh": "70a5f8b56387e853c15d038ba410a131d96d1b4c4af89fa60da8d40b10d6c596"
+  },
+  "scope": "Current local Spec009 AC1/2/3/5 compatibility; no native activation or engineering authority"
+}

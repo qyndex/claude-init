@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "<stdin>", line 39, in <module>
+  File "actual-prior-attempt-real-git", line 97, in <module>
+AssertionError: available prior-attempt endpoint was never queried

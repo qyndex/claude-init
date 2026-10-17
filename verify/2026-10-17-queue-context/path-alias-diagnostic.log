@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "<stdin>", line 78, in <module>
+  File "queue-context-real-git", line 99, in <module>
+  File "/private/tmp/factory-queue-context-fix-20261017/.claude/scripts/factory-git-state.py", line 243, in __init__
+    self.state_view = state_view_config(state_view)
+                      ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "/private/tmp/factory-queue-context-fix-20261017/.claude/scripts/factory-git-state.py", line 215, in state_view_config
+    require(path.is_absolute() and path.resolve()==path and not path.is_symlink(), 'protected state view path invalid')
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-queue-context-fix-20261017/.claude/scripts/validate-candidate-evidence.py", line 19, in require
+    raise ValueError(message)
+ValueError: protected state view path invalid

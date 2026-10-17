@@ -1,0 +1,19 @@
+# TDD ledger — red — T-330
+ledger_format: 2
+timestamp: 2026-10-17T00:44:20+11:00
+command: bash .claude/scripts/test/factory-reporting-policy.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+existing exact full-metadata real-Git bootstrap passes before new feature
+Traceback (most recent call last):
+  File "<stdin>", line 88, in <module>
+  File "reporting-positive-policy-fixture", line 93, in <module>
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 275, in verify_bootstrap
+    context = _bootstrap_context(api, approval_path, now=now)
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 165, in _bootstrap_context
+    require(isinstance(approval, dict) and set(approval) == expected and type(approval['schema_version']) is int and approval['schema_version'] == 1, 'archive bootstrap schema differs')
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/validate-candidate-evidence.py", line 19, in require
+    raise ValueError(message)
+ValueError: archive bootstrap schema differs

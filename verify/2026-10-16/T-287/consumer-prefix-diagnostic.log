@@ -1,0 +1,31 @@
+consumer diagnostic actual retained history=380; cloned immutable history, not injected facts
+actual checkpoint next_segment=8
+actual checkpoint next_segment=72
+actual checkpoint next_segment=136
+actual checkpoint next_segment=200
+actual checkpoint next_segment=264
+actual checkpoint next_segment=328
+actual consumer diagnostic history preserved=/private/tmp/t287-consumer-prefix-20261016
+Traceback (most recent call last):
+  File "/private/tmp/t287-consumer-diagnostic.py", line 42, in <module>
+    exec(compile(fixture+pipeline+provider+cases,'actual-retained-consumer-diagnostic','exec'))
+    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "actual-retained-consumer-diagnostic", line 125, in <module>
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 1141, in stage_projection
+    timed = retained_merge_time(api, policy, store, approval_path, stream, run_id, attempt)
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 1085, in retained_merge_time
+    anchor = verify_bootstrap(api, approval_path)
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 294, in verify_bootstrap
+    tree = state_paths.scan_tree(Reader(), root, tree_sha, cursor=cursor)
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-state-paths.py", line 100, in scan_tree
+    validate_tree(entries)
+    ~~~~~~~~~~~~~^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-state-paths.py", line 46, in validate_tree
+    validate_entry(entry)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-state-paths.py", line 28, in validate_entry
+    identity = re.fullmatch(r'receipt-archive/index/[0-9a-f]{64}/identities/([0-9a-f]{2})/([0-9a-f]{64})\.json', checked_path)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/re/__init__.py", line 172, in fullmatch
+    return _compile(pattern, flags).fullmatch(string)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+KeyboardInterrupt

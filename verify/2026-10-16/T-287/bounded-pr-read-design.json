@@ -1,0 +1,40 @@
+{
+  "task": "T-287",
+  "status": "parent reviewed proposed equivalent read transport; actual category measurement pending",
+  "observed_failure": "All1001facts staged; fresh-process reconstruction exhausted2048 actual calls while reading PR merge metadata",
+  "chosen_design": "Fixed same-repository read_pull_requests(repository_id,numbers) query, at most32 positive distinct GraphQL Int PR numbers per request, no generic GraphQL endpoint access",
+  "fixed_fields": [
+    "repository.databaseId",
+    "repository.nameWithOwner",
+    "pullRequest.number",
+    "pullRequest.merged",
+    "pullRequest.mergedAt",
+    "pullRequest.mergeCommit.oid",
+    "pullRequest.baseRepository.databaseId",
+    "pullRequest.baseRepository.nameWithOwner"
+  ],
+  "bounds": [
+    "Same sanitized environment, bounded subprocess, timeout60seconds,2MiB total/raw response as existing fixedBlob adapter",
+    "Request bytes16384 and up to32selectors, numbers strict int1..2147483647, no duplicates",
+    "Reject duplicate JSON keys, errors/partial/missing/extraaliases, nullforeignrepository, malformedfields, wrongnumber/baseidentity",
+    "One actual request and actual raw response byte accounting in shared2048call/32MiB budget; normalized invocation observation bound32MiB",
+    "Existing REST transport remains only when capability absent for legacy small callers; malformed batch never falls back"
+  ],
+  "evidence_invariants": [
+    "Every retained receipt still independently authenticates identity/material/profile/revocation/origin before projection",
+    "Batch provides fresh as-observed merge metadata for this invocation; never immutable Gitobjectcache or persistent authority",
+    "No permissions increase; fresh PR query uses workflow-token reader in T288; reportingApp state/blob scope unchanged",
+    "Final ref/rules/trust rechecks unchanged; no PR state mutation",
+    "Public CLI probe validates field equivalence only, not App/private capability"
+  ],
+  "required_tests": [
+    "Genuine focused failure before repair and saved1001 measuredcapacityRED",
+    "Concrete fixedquery adapter boundary, malicious/partial/null/wrongrepo/number/mergeSHA/time/process/bytebound/env negatives",
+    "Consumer fresh batch accounting and no persistent/mutable metadata reuse; identity and time driftreject",
+    "Saved1001 freshSQL5tables1001 and coverage within unchangedbounds",
+    "Final exact fresh cost&&history acceptance still required"
+  ],
+  "public_probe": "/private/tmp/t287-pr-batch-public-probe.json",
+  "official_reference": "https://docs.github.com/en/graphql/reference/pulls",
+  "approval_scope": "Routine equivalent read optimization under approved source work; no live writer/policy/credential cutover"
+}

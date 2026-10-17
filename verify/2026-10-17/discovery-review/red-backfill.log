@@ -1,0 +1,22 @@
+Traceback (most recent call last):
+  File "<stdin>", line 85, in <module>
+  File "discovery-review-real-git", line 91, in <module>
+  File "/private/tmp/factory-discovery-review-fix-20261017/.claude/scripts/factory-receipt-discovery.py", line 608, in backfill
+    return _checkpoint(source_api, state_api, policy, approval_path, stream, mode='backfill', backfill_end=interval_end, page_size=page_size, tree_pages=tree_pages, interval_scoped=interval_scoped)
+  File "/private/tmp/factory-discovery-review-fix-20261017/.claude/scripts/factory-receipt-discovery.py", line 465, in _checkpoint
+    rows, observations, _ = backfill_page(source_api, anchor, policy, stream, backfill_end, source_page_size, blob_at, interval_scoped=interval_scoped)
+                            ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-discovery-review-fix-20261017/.claude/scripts/factory-receipt-discovery.py", line 264, in backfill_page
+    require(type(fact) is dict and fact.keys() == {'page', 'total_count', 'rows_sha256', 'rows_count'}
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            and type(fact['page']) is int and fact['page'] == number
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            and type(fact['total_count']) is int and 0 <= fact['total_count'] < 10**12
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            and type(fact['rows_count']) is int and 0 <= fact['rows_count'] <= page_size
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            and archive.state_paths.valid_hash(fact['rows_sha256'], 64), 'backfill page facts malformed')
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-discovery-review-fix-20261017/.claude/scripts/validate-candidate-evidence.py", line 19, in require
+    raise ValueError(message)
+ValueError: backfill page facts malformed

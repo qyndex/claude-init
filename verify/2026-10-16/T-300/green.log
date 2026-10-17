@@ -1,0 +1,7 @@
+# TDD ledger — green — T-300
+ledger_format: 2
+timestamp: 2026-10-16T12:09:20+11:00
+command: bash .claude/scripts/test/factory-receipt-projection-window.sh
+exit_code: 0
+---
+17 protected frozen-window range/budget/revocation/privacy/read-only cases passed

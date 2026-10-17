@@ -1,0 +1,2 @@
+fixed same-repository GraphQL Blob query returns exact Git bytes through actual bounded gh stub
+47 strict bounded Blob transport cases passed; no live API or extra permission

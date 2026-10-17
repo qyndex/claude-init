@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "<stdin>", line 19, in <module>
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-digest.py", line 87, in discover
+    require(self.pr_discovery_mode == 'resumable' and api.repo == self.repository, 'resumable PR source required')
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/validate-candidate-evidence.py", line 19, in require
+    raise ValueError(message)
+ValueError: resumable PR source required

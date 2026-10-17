@@ -1,0 +1,28 @@
+{
+  "verdict": "changes_requested",
+  "findings": [
+    {
+      "severity": "medium",
+      "file": ".github/workflows/factory-hosted-digest.yml",
+      "line": 42,
+      "title": "Unconditional validator makes the default-off path fail for any non-identical state repository",
+      "reason": "The 'Validate selected reporting credentials' step has no `if:` on the writer flag. It runs `transport.create_api`, and `build_config` (transport:69) requires `FACTORY_REPORTING_STATE_REPOSITORY == GITHUB_REPOSITORY` before it reads the writer flag. With the flag off, a legacy deployment that sets `vars.FACTORY_REPORTING_STATE_REPOSITORY` to another repository (the workflows still support this: the config step uses `state_repository` plus `FACTORY_REPORTING_STATE_TOKEN`) now fails before any delivery. A case-only difference from `github.repository` fails the same way. That contradicts 'defaultoff, other steps unchanged'. The same defect is in factory-hosted-feedback.yml:40, factory-reporting-alerts.yml:49 (when monitoring is enabled) and factory-reporting-queue.yml:48. Fix: either gate the step on `env.FACTORY_REPORTING_APP_WRITER_ENABLED == 'true'`, or make the same-repo check app-mode only in `build_config` and add a flag-off test for a cross-repo state repository. If cross-repo legacy state is deliberately unsupported, state that and add it to the fixture as an intended break. Also, in legacy mode the step never receives `FACTORY_REPORTING_STATE_TOKEN`, so it validates only `GH_TOKEN` and not the credential the consumer will actually use."
+    },
+    {
+      "severity": "low",
+      "file": ".github/workflows/factory-hosted-digest.yml",
+      "line": 105,
+      "title": "Legacy state secret is still delivered to consumer steps when App mode is enabled",
+      "reason": "With the flag on, the consumer steps still receive `secrets.FACTORY_REPORTING_STATE_TOKEN` next to `FACTORY_REPORTING_APP_TOKEN` (digest lines 105 and 116). The same applies at feedback:89, alerts:92 and queue:76. The validator correctly ignores the legacy secret in app mode, but nothing in the ingress stops a consumer from reading it. 'No enabled-mode legacy fallback' therefore depends entirely on the pending consumer wiring, and the legacy secret stays in the process environment. Hardening: map it as `${{ env.FACTORY_REPORTING_APP_WRITER_ENABLED == 'true' && '' || secrets.FACTORY_REPORTING_STATE_TOKEN }}` in the consumer steps, or add a fixture assertion that enabled-mode consumers cannot read it. This is defence in depth, not an exploitable defect in this delta."
+    }
+  ],
+  "limitations": [
+    "Static review of the supplied diff, full workflow files and the two transport functions only. I could not run actionlint, the fixture, or any native App mint.",
+    "I could not confirm that `.claude/scripts/factory-reporting-transport.py` (`create_api`, `RoutedAPI`) exists at the merge base. The validator step is unconditional, so landing these workflows before the T334 transport would break all four workflows, including with the flag off. I treated this as the known T334 dependency, not a finding.",
+    "I did not see `factory-reporting-queue.py`, so I could not confirm that the queue's `vars || github.repository` default matches how it previously handled an empty value.",
+    "Job-level `env` now exports `FACTORY_REPORTING_STATE_REPOSITORY`, `FACTORY_REPORTING_APP_ID` and the writer flag to every step. Steps that did not get the state repository before now inherit it (digest deliver and watchdog, alerts monitor, feedback capture). The values are non-secret and the config steps still override them. I could not check whether those consumer scripts read these names from the environment.",
+    "Checked and found as intended: events, permissions, concurrency groups, `environment`, default-branch guards, the existing watchdog/heartbeat `if` and the pinned action SHA are unchanged or match factory-merge.yml. The token request is current-repo only with contents:write and administration:read. The merge App key is not referenced. The private key is mapped only into the mint step. The validator prints nothing, and the App token is masked by the action. The monitor-disabled alerts path skips both mint and validate. A flag value such as 'TRUE' would mint (Actions string equality ignores case) and then fail closed in the validator.",
+    "This is static review only. It is not native App capability, attestation or live policy approval, and nothing was run or changed."
+  ],
+  "review_summary": "The ingress is mostly faithful to the stated constraints. Guards, events, permissions, concurrency and the heartbeat condition are untouched. The mint step reuses the existing pinned action with current-repo, contents:write and administration:read scope only, using the separate reporting App ID and key. It is conditional on the writer flag, which defaults to false. The validator makes no network calls, never logs credentials, and rejects an enabled flag with a missing App token even when a legacy token is present. Source `GH_TOKEN` stays the workflow token. The queue's `|| github.repository` default is equivalent to the other workflows' `or` fallback. One medium defect: the validator runs unconditionally, and `build_config` hard-requires state repository == repository before it checks the flag. The default-off path therefore now fails for any legacy configuration with a different state repository, in all four workflows. One low hardening note: the legacy state secret is still mapped into consumer steps when App mode is on. Change the validator gating (or the same-repo check) and add a flag-off cross-repo test before accepting."
+}

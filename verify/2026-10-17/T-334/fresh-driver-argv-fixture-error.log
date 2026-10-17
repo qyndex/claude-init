@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "<stdin>", line 93, in <module>
+  File "reporting-maintenance-fixture", line 148, in <module>
+  File "reporting-maintenance-fixture", line 143, in ready
+  File "reporting-maintenance-fixture", line 137, in step
+AssertionError: Traceback (most recent call last):
+  File "/var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/tmp1cx9yhg_/fresh-step.py", line 79, in <module>
+    mode=sys.argv[2]
+         ~~~~~~~~^^^
+IndexError: list index out of range
+

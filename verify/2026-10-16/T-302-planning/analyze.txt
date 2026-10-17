@@ -1,0 +1,11 @@
+PASS — planning consistency only,2026-10-16
+IDs306–310 unused before append,305 reserved diagnostic,311 reserved later review fix.
+All IDs unique/dependencies exist/DAG acyclic.
+306dep301;307dep306;308dep307;309dep308;302deps301,309;310deps293,302.
+286 additionally depends310,so287 requires completed-origin integration rather than later288.
+301 done;302/295/286/287/288/306–310 pending;180blocked/222pending preserved.
+AC1/2 report-only retained facts and current trust:306–309.
+AC3/4 guardian unchanged. AC5–8 bounded origin/completeness/restart:310 before286/287 plus final288integration.
+Schema1 has no merged_at: derived same-repo PR GET must bind number/merged/mergeSHA/baseRepoID; unavailabletime explicitgap.
+No invented time/schema2/new permission or signature boundary.
+No implementation or actual archive readiness inferred.

@@ -89,6 +89,10 @@ def render(payload, *, limit=35000):
     for pr in data['merges']:
         proof = pr['delivery_evidence']
         attribution = ', '.join(f"{safe(p['task'])}/spec {safe(p['spec'])}" for p in proof) if proof else 'authenticated evidence MISSING'
+        if pr.get('evidence_status') == 'withdrawn':
+            attribution += ' [trust WITHDRAWN; not authenticated]'
+        elif proof and pr.get('evidence_status') not in (None, 'authenticated'):
+            attribution += ' [NOT AUTHENTICATED]'
         late = ' [late discovery]' if pr.get('late_discovered') else ''
         lines.append(f"#{pr['pr']}{late} {safe(pr['title'])[:160]} — {attribution}")
         lines.append(f"https://github.com/{data['repository']}/pull/{pr['pr']} — merge {pr['merge_sha'][:12]}")

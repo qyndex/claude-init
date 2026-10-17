@@ -1,0 +1,12 @@
+{
+  "recorded_at": "2026-10-16T15:07:46.885742+00:00",
+  "session": 58320,
+  "previous_actual_red": 57916,
+  "files": {
+    ".claude/scripts/factory-reporting-maintenance.py": "18e70c63961488662bca26d568e92dd1d438f3fe95c1b690eb5b42bad73658c8",
+    ".claude/scripts/factory-git-state.py": "e47d21bce06910e9daa759ac17d4eca41324591f24f84695b96bedd9b49e1fbe",
+    ".claude/scripts/factory-receipts.py": "276573a80730be1fd246de4939e5fd8594d439724083f88037af96b8ce9e1255",
+    ".claude/scripts/factory-reporting-receipts.py": "53d882ffda39652eb06300aa77b99c3fe96acc23128e8578925cc6d76ba0fef9",
+    ".claude/scripts/test/factory-reporting-hosted-maintenance.sh": "e9e7cb6f3e9e28ce9af4afe66574cc6e1bd9490218a16c3bd5664b6f72f0511d"
+  }
+}

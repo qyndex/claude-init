@@ -1,0 +1,15 @@
+# TDD ledger — red — T-310
+ledger_format: 2
+timestamp: 2026-10-16T15:41:28+11:00
+command: bash .claude/scripts/test/factory-receipt-completed-origin.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 16, in <module>
+  File "completed-origin-real-git-fixture", line 107, in <module>
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 367, in append_delivery
+    anchor = verify_bootstrap(api, approval_path)
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 250, in verify_bootstrap
+    raise ValueError('archive bootstrap ancestry bound reached; explicit coverage gap')
+ValueError: archive bootstrap ancestry bound reached; explicit coverage gap

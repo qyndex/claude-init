@@ -1,0 +1,18 @@
+{
+  "base": "b4c70bcdc5da25a6434d44806a47463a1837391a",
+  "red_exit": 1,
+  "green_exit": 0,
+  "green_public_invocations": 23,
+  "first_delivery": 11,
+  "second_delivery": 22,
+  "same_day_no_resend": 23,
+  "legacy_hosted_exit": 0,
+  "source_sha256": {
+    ".claude/scripts/factory-git-state.py": "0fa7670c05a3d7e42b1b0975881f60e1b0e92bdbef285bb98cb36a748c7a94f2",
+    ".claude/scripts/factory-reporting-maintenance.py": "e78d9df4db292bff4eda381fe93e5d379463982aaf24be2797e9166192cbdb04",
+    ".claude/scripts/test/factory-reporting-rollover.sh": "a9e6d2cd68384f05247c7823c72b1ba93eea042f831fca309062bc6433c5f381"
+  },
+  "live_calls": false,
+  "coordinator_history": "empty actual fixture namespace; general manual merges independently enumerated",
+  "task_closed": false
+}

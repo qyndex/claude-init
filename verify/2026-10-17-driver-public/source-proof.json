@@ -1,0 +1,23 @@
+{
+  "production_source": "600e9ff36e4309a213c067f0d02ae31e6b1d2cc9",
+  "production_files_byte_identical": {
+    ".claude/scripts/factory-reporting-driver.py": "17b2cc988c24c07ada552b7ed76bd404c4243d71686ef744910821a47c03a609",
+    ".claude/scripts/factory-git-state.py": "0324019d96a8e7a956621f5865b442bc12d194e0ad828e76162cbd658058cf80",
+    ".claude/scripts/factory-reporting-transport.py": "3c4794b2fea7784f9f7c2d642377c75d72e3e054bc4555a4a2c5d28c83e485cb",
+    ".claude/scripts/factory-digest.py": "5dc5641c8326f6774667539f27667bc2f408854c6cf2df4328d0ccd5ebf57289",
+    ".claude/scripts/factory-reporting-pr-discovery.py": "d688a392d87d8d391251a6b49e09bd5356ac3798fcfd119c301765c79951fbaa",
+    ".claude/scripts/factory-reporting-maintenance.py": "0800170ba71d1daa4274a5ab65878815b42f00471483c1ffcdfe331cc869526e",
+    ".claude/scripts/factory-reporting-receipts.py": "53d882ffda39652eb06300aa77b99c3fe96acc23128e8578925cc6d76ba0fef9",
+    ".claude/scripts/factory-receipts.py": "276573a80730be1fd246de4939e5fd8594d439724083f88037af96b8ce9e1255",
+    ".claude/scripts/factory-receipt-archive.py": "476101c28acdc679ac77e28b02100ba97a884a6396834171c55bbd218df203b4",
+    ".claude/scripts/factory-receipt-discovery.py": "ab174f17cba018cd518d017af8ab34a6c9ce5dd271c27382d4d744887329d1b8",
+    ".claude/scripts/factory-state-paths.py": "0648487106251e765e7f0a4504d510606970c6bab1f2b4024dc21c4e6bc487dd",
+    ".claude/scripts/factory-bounded-process.py": "91d077e6badb7c606a31cf85d8fbb8315b91d9d211b4fe1ab8fb970693207f47",
+    ".claude/scripts/factory-slack-digest.py": "e0a88a41c59e95245e5a05d85daca8cc4fdc99822f0e388fe2ff6ac681a9ddd0"
+  },
+  "test_sha256": "c2ad9aa0ad85066ad88a4ff6210e84f546a67dbf692c2987313b553ae3ece823",
+  "first_dispatch_exit": 0,
+  "role_dispatch_exit": 0,
+  "confirmed_quiet_check": "pending actual owner complete-state copy",
+  "full_cadence_accepted": false
+}

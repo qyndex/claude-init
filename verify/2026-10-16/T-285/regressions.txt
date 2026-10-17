@@ -1,0 +1,42 @@
+$ bash .claude/scripts/test/factory-receipt-profiles.sh
+33 strict receipt profile cases passed; no runtime integration or activation
+exit: 0
+
+$ bash .claude/scripts/test/factory-receipt-source.sh
+24 immutable receipt source cases passed
+exit: 0
+
+$ bash .claude/scripts/test/factory-receipt-equivalence.sh
+9 real-Git source equivalence cases passed; two ordinary SHAs, seven authority changes
+exit: 0
+
+$ bash .claude/scripts/test/factory-receipt-revocation.sh
+18 revocation and current-task/history cases passed
+exit: 0
+
+$ bash .claude/scripts/test/factory-receipt-projection.sh
+AC-1: fresh disks, exact digest bindings and historical revisions passed
+AC-2: authentication negatives and atomic failure preservation passed
+AC-3: complete pagination, disabled authority, bounds and read-only API passed
+AC-4: actual hosted proof, public checkpoint, blocked send and unchanged repeat passed
+exit: 0
+
+$ bash .claude/scripts/test/factory-receipt-archive.sh
+31 compact receipt archive cases passed; bootstrap/CAS origin not implemented
+exit: 0
+
+$ bash .claude/scripts/test/factory-receipt-retained-proof.sh
+20 retained proof expiry/restart/revocation/privacy/origin/atomic-conflict scenarios passed
+exit: 0
+
+$ bash .claude/scripts/test/factory-receipt-discovery.sh
+11 bounded protected discovery/CAS/restart/origin scenarios passed; complete coverage remains false
+exit: 0
+
+$ bash .claude/scripts/test/factory-receipt-state-paths.sh
+35 state path/index/resumable tree cases passed; path/index suite performs no CAS writes
+exit: 0
+
+$ bash .claude/scripts/test/factory-coordinator.sh
+passed: 63; failed: 0
+exit: 0

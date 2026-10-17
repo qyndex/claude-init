@@ -1,0 +1,9 @@
+PASS — planning consistency only, 2026-10-16
+Actual imported main: 6a004bc6d926e16f9b09efe949fbb8b50a843eac
+Task IDs unique; all dependencies exist; DAG acyclic.
+Statuses preserved: T180 blocked; T222 pending; T275–285,291–294,296–298 done; T286–290,295,299 pending.
+Order: T299 (294,292) → T295 (294,299) → T286 aggregate → T287 → T288 → T289/T290 as existing DAG.
+ADR index original prefix byte-identical; ADR0007/0008 exactly once.
+AC1/2 source authentication and historical reporting: T275–285 complete locally; T299 compatibility pending.
+AC3/4 guardian unchanged. AC5–8 origin/discovery/projection/readiness: T293/294 local foundations; T295/286–290 integration pending.
+No implementation or live readiness inferred by this PASS.

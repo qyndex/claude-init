@@ -1,0 +1,13 @@
+# TDD ledger — red — T-330
+ledger_format: 2
+timestamp: 2026-10-17T00:56:54+11:00
+command: bash .claude/scripts/test/factory-reporting-policy.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+existing exact full-metadata real-Git bootstrap passes before new feature
+Traceback (most recent call last):
+  File "<stdin>", line 138, in <module>
+  File "reporting-positive-policy-fixture", line 114, in <module>
+  File "reporting-positive-policy-fixture", line 102, in reject
+AssertionError: accepted future

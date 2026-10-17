@@ -1,0 +1,7 @@
+# TDD ledger — green — T-336
+ledger_format: 2
+timestamp: 2026-10-17T10:55:50+11:00
+command: bash .claude/scripts/test/factory-operational-proof.sh
+exit_code: 0
+---
+operational proof PASS; negative assertions=55; synthetic gh-verified certificate fixture seam only; no actual Sigstore/native/live proof

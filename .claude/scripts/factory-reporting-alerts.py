@@ -97,7 +97,7 @@ def run(config, api, client, now, *, failed_run=None, drill_run=None):
     if drill_run is not None: require(type(drill_run) is int and drill_run > 0, 'drill identity invalid')
     health = w.inspect(config, api, client, now)
     stream = state.hashlib.sha256(state.canonical([config['repository'],config['destination'],config['branch']]).encode()).hexdigest()
-    checkpoint = state.GitState(api,config['state_branch'],stream,config.get('bootstrap_sha'),config.get('policy_approvals'))
+    checkpoint = state.GitState(api,config['state_branch'],stream,config.get('bootstrap_sha'),config.get('policy_approvals'),state_view=config.get('state_view'))
     require(checkpoint.head == health['checkpoint_sha'], 'health checkpoint changed; recheck before alert')
     document = json.loads(checkpoint.bytes, object_pairs_hook=state.digest.coordinator.contract.no_duplicate_keys)
     state.validate(document,config['repository'],stream)
@@ -141,7 +141,16 @@ def run(config, api, client, now, *, failed_run=None, drill_run=None):
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--config',required=True);parser.add_argument('--failed-run',type=int);parser.add_argument('--drill-run',type=int)
     args=parser.parse_args();config=state.digest.coordinator.contract.load(Path(args.config))
-    api=state.API(config['repository'],os.environ.get('FACTORY_REPORTING_STATE_TOKEN') or os.environ.get('GH_TOKEN'))
+    flag=os.environ.get('FACTORY_REPORTING_APP_WRITER_ENABLED','false')
+    require(flag in ('true','false'),'reporting writer flag invalid')
+    if flag=='true':
+        spec=importlib.util.spec_from_file_location('alerts_transport',Path(__file__).with_name('factory-reporting-transport.py'))
+        transport=importlib.util.module_from_spec(spec);spec.loader.exec_module(transport)
+        api=transport.create_api(os.environ)
+        require(api.repo==config['repository']==config['state_repository'],'reporting selected API repository differs')
+        config=transport.attach_reporting_context(config)
+    else:
+        api=state.API(config['repository'],os.environ.get('FACTORY_REPORTING_STATE_TOKEN') or os.environ.get('GH_TOKEN'))
     result=run(config,api,state.slack.http_client(config),datetime.now(timezone.utc),failed_run=args.failed_run,drill_run=args.drill_run)
     print(state.canonical(result));return 0
 

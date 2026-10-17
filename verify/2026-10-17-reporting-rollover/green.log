@@ -1,0 +1,24 @@
+public step 1 incomplete backfill
+public step 2 incomplete backfill
+public step 3 incomplete origin
+public step 4 incomplete backfill
+public step 5 incomplete origin
+public step 6 incomplete review
+public step 7 incomplete checkpoint
+public step 8 incomplete checkpoint
+public step 9 incomplete stage
+public step 10 incomplete ready
+public step 11 delivered None
+public step 12 incomplete backfill
+public step 13 incomplete backfill
+public step 14 incomplete origin
+public step 15 incomplete backfill
+public step 16 incomplete origin
+public step 17 incomplete review
+public step 18 incomplete checkpoint
+public step 19 incomplete checkpoint
+public step 20 incomplete stage
+public step 21 incomplete ready
+public step 22 delivered None
+public step 23 not-due None
+actual public partial-old-first then next-day rollover, late manual merge, immutable prior receipt/payload and no resend PASS

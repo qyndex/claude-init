@@ -1,0 +1,10 @@
+{
+  "classification": "fixture assertion, not production RED",
+  "actual_exit_code": 1,
+  "source": "first linear candidate consumer3538",
+  "reason": "scratch expected staged only; existing authenticated stage correctly returned already-staged",
+  "history_preserved": "/private/tmp/t287-linear-consumer-result-20261016",
+  "original_stdout_log_preserved": false,
+  "preservation_error": "relative cp from candidate CWD missed log before corrected rerun truncated it; tool output retains original failure",
+  "corrected_scratch_sha256": "8c8853324f2e458cab92112b4e8a7e4179654543146df9fde2709ed838811f2b"
+}

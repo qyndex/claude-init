@@ -1,0 +1,11 @@
+{
+  "base_commit": "1081737f2e17e1b96e8e2873677c5ed3690760fa",
+  "command": "bash .claude/scripts/test/factory-receipt-origin-windows.sh",
+  "files": {
+    ".claude/scripts/factory-receipt-archive.py": "ab63a4b1fdd5d442d7f93f190809d836a57957325bf83d6b50ff9fb465950f9c",
+    ".claude/scripts/factory-state-paths.py": "59b58f2a68f0eec25461b4bf4ecd42c2581a381ace6a64356b1d14e5b86d5fa8",
+    ".claude/scripts/test/factory-receipt-origin-windows.sh": "a89cee23bbb10a6fc5fb97e71d171e1f5d00baabd740dc15f74df160f87565a4"
+  },
+  "live_state_writes": false,
+  "engineering_authority": false
+}

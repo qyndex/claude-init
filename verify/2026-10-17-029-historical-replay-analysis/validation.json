@@ -1,0 +1,14 @@
+{
+  "source": "e0b4dc2b116d19673407887c96f78fa3ba5138b6",
+  "command": "bash .claude/scripts/validate.sh",
+  "exit_code": 0,
+  "warnings": 4,
+  "scope": "Structural validation of approved amendment/task declarations; not implementation or native proof",
+  "inputs": {
+    "specs/active/029-github-reporting-alerts.md": "8553606a87585191d6be3b254b9c7bf5396eee7c8d6c71fea385d77a0589c119",
+    "specs/active/014-authenticated-receipt-recovery.md": "7436e25ff7ae72ce5ca5c74f32918951c6260826d7a16cb9c23a8f4abc308815",
+    "plans/active/029-github-reporting-alerts.md": "a68cb5cc68c20619cc7181fb5db13b3052a4e80acfe3f554d6b195a81f0fb04a",
+    "plans/active/014-authenticated-receipt-recovery.md": "201b0270fd9c2fad5b0306e7dd2ee406762d896c139ba6835de76a6eec9392b6",
+    "tasks/TASKS.md": "8c1def7fec756773b2f4d7ba258e7205276092fdff8f9cdd2c5a79302d374e8f"
+  }
+}

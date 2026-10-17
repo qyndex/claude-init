@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "<stdin>", line 46, in <module>
+  File "<stdin>", line 23, in reject
+AssertionError: accepted provenance schema

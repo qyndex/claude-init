@@ -1,0 +1,9 @@
+{
+  "owned_base": "e1b6af201f09f22240f3b53c9ee4226a5c4c1909",
+  "prerequisite_original": "f5eaf725a5c2772fdc736f697f95861d2924fd2d",
+  "prerequisite_local": "4a35020",
+  "files": {
+    ".claude/scripts/test/factory-reporting-cli-selection.sh": "6c9355036df2efcfccb1b09f8c3a91062052267e6e4a9743f00015ecb6f2d5e9",
+    "verify/2026-10-17/T-335/cli-selection/test.py": "41f6132a270f8a6aff15906ac2c1c76db8d4bcf4186f7c13dd2d2c65a1d12188"
+  }
+}

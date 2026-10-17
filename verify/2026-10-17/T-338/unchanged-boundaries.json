@@ -1,0 +1,9 @@
+{
+  ".claude/scripts/factory-reporting-queue-evidence.py": "e49cf34478d74b904c5cbcc210485f462550a756270a2cf75ac313bb076e6c9d",
+  ".claude/scripts/factory-provenance.py": "0b169e5fefa78ee683ecf3aaf13bfce975929b113ff3d1052a59a95cc3077b01",
+  ".claude/scripts/factory-coordinator.py": "2598e434b9058ff56ae8781b8337653655c8e99de43a71b346fff86cea36fa00",
+  ".claude/scripts/factory-receipts.py": "276573a80730be1fd246de4939e5fd8594d439724083f88037af96b8ce9e1255",
+  ".claude/scripts/factory-ledger.py": "d403fb95cd87e31bc009c9ac3b055b23ba18a4accf2c7ab08d4f8d41b40c22ef",
+  ".claude/scripts/factory-preflight.py": "c3997120ee8d7064738b26fa1c30e318db02ebf411c46baa3aa67d521d1dad56",
+  ".github/workflows/evidence-gate.yml": "25b7198baedf699f3441cb059ae89833fb4fe2d2cd8b108a5609d83b729cce44"
+}

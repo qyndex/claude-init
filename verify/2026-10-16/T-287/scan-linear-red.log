@@ -1,0 +1,5 @@
+actual validated entries=737; validate_entry calls=47072
+Traceback (most recent call last):
+  File "<stdin>", line 25, in <module>
+  File "linear-state-scan-real-git", line 86, in <module>
+AssertionError: immutable subtree scan repeatedly revalidates accumulated entries instead of linear checked work

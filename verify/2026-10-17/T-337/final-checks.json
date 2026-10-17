@@ -1,0 +1,13 @@
+{
+  "shellcheck": 0,
+  "py_compile": 0,
+  "validate": 0,
+  "validate_existing_warnings": 4,
+  "silent_failure_lint": 0,
+  "tdd_ledger": 0,
+  "scoped_gitleaks": 0,
+  "diff_check": 0,
+  "source_frozen_manifest": "final-input.json",
+  "native_proof": "not_checked",
+  "activation": "disabled"
+}

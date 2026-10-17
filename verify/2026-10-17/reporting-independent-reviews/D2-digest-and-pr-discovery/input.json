@@ -1,0 +1,71 @@
+{
+  "head": "6954a7a1669ddab6e852162eae547bbd00ea14c1",
+  "prompt_sha256": "6373d2a8e550e520129acaba7ab324c3b633e472415b85ac29e33acf72ab6fe7",
+  "prompt_bytes": 65278,
+  "review_files": [
+    {
+      "path": ".claude/scripts/factory-digest.py",
+      "start": 1,
+      "end": 258,
+      "sha256": "5dc5641c8326f6774667539f27667bc2f408854c6cf2df4328d0ccd5ebf57289",
+      "range_sha256": "5dc5641c8326f6774667539f27667bc2f408854c6cf2df4328d0ccd5ebf57289"
+    },
+    {
+      "path": ".claude/scripts/factory-reporting-pr-discovery.py",
+      "start": 1,
+      "end": 107,
+      "sha256": "d688a392d87d8d391251a6b49e09bd5356ac3798fcfd119c301765c79951fbaa",
+      "range_sha256": "d688a392d87d8d391251a6b49e09bd5356ac3798fcfd119c301765c79951fbaa"
+    },
+    {
+      "path": ".claude/scripts/factory-receipt-archive.py",
+      "start": 968,
+      "end": 1068,
+      "sha256": "bc024a261c4eb8a2dc709f5725fd26ca778d79781d0260ba16faf0045fff369c",
+      "range_sha256": "ef91aca44a8c00ac4f670bd296cbcecddf3bdd340e64e3c4f922304f08553bf6"
+    },
+    {
+      "path": ".claude/scripts/factory-receipt-archive.py",
+      "start": 1194,
+      "end": 1302,
+      "sha256": "bc024a261c4eb8a2dc709f5725fd26ca778d79781d0260ba16faf0045fff369c",
+      "range_sha256": "2345b896b0b6b4f7bdcbd4b0a78e6d6b70ad78aecec69d77ecb341377f9d7ca5"
+    },
+    {
+      "path": ".claude/scripts/factory-receipt-archive.py",
+      "start": 383,
+      "end": 388,
+      "sha256": "bc024a261c4eb8a2dc709f5725fd26ca778d79781d0260ba16faf0045fff369c",
+      "range_sha256": "d4bf934f0607ac32a3e29d24f404dbc215e7116243df1539cb2da385a163a299"
+    },
+    {
+      "path": ".claude/scripts/factory-receipt-archive.py",
+      "start": 348,
+      "end": 357,
+      "sha256": "bc024a261c4eb8a2dc709f5725fd26ca778d79781d0260ba16faf0045fff369c",
+      "range_sha256": "9535aeae5bf4b05ed6145c215b0d865f54be0ce83e31c3223fd8912fd36b3b3c"
+    },
+    {
+      "path": ".claude/scripts/factory-receipt-archive.py",
+      "start": 360,
+      "end": 380,
+      "sha256": "bc024a261c4eb8a2dc709f5725fd26ca778d79781d0260ba16faf0045fff369c",
+      "range_sha256": "d647e22c7b81bdb4f98c7cedf5d7840b2c12730324679b2bd9cbd04d6cc48188"
+    },
+    {
+      "path": ".claude/scripts/factory-receipt-archive.py",
+      "start": 1541,
+      "end": 1584,
+      "sha256": "bc024a261c4eb8a2dc709f5725fd26ca778d79781d0260ba16faf0045fff369c",
+      "range_sha256": "42b46ee8b664f2389d383091be647b82c38212087885d938b76cac8e7044afd3"
+    },
+    {
+      "path": ".claude/scripts/factory-git-state.py",
+      "start": 480,
+      "end": 579,
+      "sha256": "0324019d96a8e7a956621f5865b442bc12d194e0ad828e76162cbd658058cf80",
+      "range_sha256": "1b58f4b13c684248c875250c7a92b6d4ca4eb40493488c7894ce007142f88e60"
+    }
+  ],
+  "static_only": true
+}

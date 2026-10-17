@@ -1,0 +1,23 @@
+{
+  "timestamp": "2026-10-17T01:46:52.978948+00:00",
+  "base_source": "d965ac0c2e2b59cdc68f7f8f4f93ab8f62978c3c",
+  "timeout_seconds": 300,
+  "first_optimized_independent_review_sources": {
+    "git_objects": "4844c3cbe7e56bc21d13a31c840ecafb46bc3e867f2bee6076a280c567e082c5",
+    "equivalence": "5c0055952e4d950e42b81c75b004d23011fd2dc2ce12fe571c8bd5bcc0a41082",
+    "history": "a9e8add695386bbd1a5b5c1dac1cb2bd59f734b0a0dbbaf5682a75ca7afdfd26"
+  },
+  "limits": "Review hashes identify the first optimized reviewed files; first full timeout never counted as GREEN.",
+  "second_bounded_sources": {
+    ".claude/scripts/test/factory-receipt-history.sh": "4f1620b54a4406af801ba9bd80be73fd37cf47f0f709eac36874a3a29f2be60f",
+    ".claude/scripts/test/factory-receipt-git-objects.py": "ae62ce1c88ae96e56279bf37ac55855feac57f9ab664edcdd0650b9462e056a2",
+    ".claude/scripts/test/factory-receipt-git-objects.sh": "38133cc049c697222226b19cc1331c3bf1886ec0953deb8f87e6f4ce6e3db633"
+  },
+  "mode_followup_timestamp": "2026-10-17T01:54:13.572635+00:00",
+  "mode_followup_sources": {
+    ".claude/scripts/test/factory-receipt-history.sh": "4f1620b54a4406af801ba9bd80be73fd37cf47f0f709eac36874a3a29f2be60f",
+    ".claude/scripts/test/factory-receipt-git-objects.py": "b64544e8aa3dc566fa84e9f02a35193318c7bafd1237a732959168beb0fab28f",
+    ".claude/scripts/test/factory-receipt-git-objects.sh": "5a12c858fe8870b7b2f588df9c3cd3b31b9877df1443fcd71ad7301313b9d111"
+  },
+  "status": "T287 incomplete; both full optimized acceptances timed out; only focused helper regression GREEN"
+}

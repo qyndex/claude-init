@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "<stdin>", line 67, in <module>
+  File "bounded-report-state-fixture", line 94, in <module>
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-git-state.py", line 235, in __init__
+    self.state_view = state_view_config(state_view)
+                      ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-git-state.py", line 207, in state_view_config
+    require(path.is_absolute() and path.resolve()==path and not path.is_symlink(), 'protected state view path invalid')
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/validate-candidate-evidence.py", line 19, in require
+    raise ValueError(message)
+ValueError: protected state view path invalid

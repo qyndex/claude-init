@@ -1,0 +1,11 @@
+# Shared immutable transport composition
+
+`factory-reporting-transport-cache.sh` failed against the existing transport because the same exact immutable object caused two subprocess calls (`transport-cache-red.log`). Invocation-only storage now covers only same-repository GET/None/nonraw bare40SHA Git commits/trees/blobs. Route checks precede cache hits, canonical bytes are bounded independently to32MiB, and every return is freshly decoded. Mutable refs/rules/repository/PR/run observations and all fixed Blob/PR batches remain fresh. Only actual fetched responses count toward the unchanged2048calls/32MiB wire budget.
+
+The saved real1001-record probe exposed a separate exact compare endpoint rejection. The original failure and focused positive/hostile-path RED are retained. Only the exact40SHA...40SHA pathname bypasses the general double-dot rejection; traversal, foreign paths and malformed selectors still reject.
+
+`transport-cache-green.log` and the53-case existing transport suite (`transport-cache-regression.log`) exited0. `saved1001-composition.log` exited0 in owner96311, using the precise inputs in `saved1001-composition-input.json`: one shared RoutedAPI observed ready coverage and then the typed helper's actual reconstruction plus coverage. The saved source was the genuine T287 completed1001append/stage history; this probe did not repeat issuance, reset origin, publish stages, or claim a fresh producer test. The offline HTTP provider serves actual Git REST metadata, actual fixed-query blob subprocess responses and the original synthetic upstream source/PR facts. There are no cloud calls or real credentials.
+
+Measured final totals:1983actual calls (1401REST+582fresh fixed-query batches),28,353,493wire bytes,1,657,110normalized cache bytes; all5typed transferred tables contain1001records. Ref and opaque encrypted worker bytes remain unchanged. Requested interval coverage is proven as observed; global/all-history coverage and task credit remainfalse.
+
+This is a three-validator composition result, not a full1001hosted maintenance/report/send acceptance. It leaves65calls for surrounding orchestration and is explicitly not a claim of unbounded lifetime capacity or live reporting-App capability. T334 remains pending combined maintenance review closure and full consumer validation.

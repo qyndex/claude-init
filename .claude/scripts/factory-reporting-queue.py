@@ -143,7 +143,7 @@ class QueueStore:
         import importlib.util
         from pathlib import Path
         validate_config(config, repository=api.repo, default_branch=config.get('branch') if type(config) is dict else None)
-        require(type(storage) is dict and len(storage) == 4 and set(storage) == {'state_branch', 'bootstrap_sha', 'initialize', 'policy_approvals'}, 'queue storage fields differ')
+        require(type(storage) is dict and set(storage) in ({'state_branch', 'bootstrap_sha', 'initialize', 'policy_approvals'}, {'state_branch', 'bootstrap_sha', 'initialize', 'policy_approvals', 'state_view'}), 'queue storage fields differ')
         branch = storage['state_branch']
         require(string(branch, r'[A-Za-z0-9][A-Za-z0-9._/-]*', 255) and '..' not in branch and not branch.endswith('/'), 'queue state branch invalid')
         require(string(storage['bootstrap_sha'], r'[0-9a-f]{40}', 40) and type(storage['initialize']) is bool, 'queue bootstrap configuration invalid')
@@ -156,16 +156,25 @@ class QueueStore:
             require(all(type(value[k]) is str and len(value[k]) <= 40 for k in ('policy_updated_at', 'observed_at')) and type(value['bypass_actors']) is list and not value['bypass_actors'], 'queue policy approval shape invalid')
         module = importlib.util.spec_from_file_location('queue_git_state', Path(__file__).with_name('factory-git-state.py'))
         self.state = importlib.util.module_from_spec(module); module.loader.exec_module(self.state)
+        self.state.state_view_config(storage.get('state_view'))
         self.source = api; self.repo = api.repo; self.config = json.loads(canonical(config)); self.storage = json.loads(canonical(storage))
         self.identity = stream(config); self.calls = self.consumed = 0
+        self.immutable = {}; self.cached_bytes = 0
 
     def request(self, path, method='GET', payload=None):
         require(path == 'repos/'+self.repo or path.startswith('repos/'+self.repo+'/'), 'queue storage foreign API')
+        immutable = self.storage.get('state_view') is not None and method == 'GET' and payload is None and re.fullmatch(
+            re.escape('repos/'+self.repo+'/git/')+r'(?:commits|trees|blobs)/[0-9a-f]{40}', path) is not None
+        if immutable and path in self.immutable:return json.loads(self.immutable[path])
         require(self.calls < 128, 'queue storage API bound exceeded'); self.calls += 1
         # Production state.API bounds stdout before JSON parse; preserve that transport bound.
         value = self.source.request(path, method, payload)
-        size = len(canonical(value)); self.consumed += size
+        encoded = canonical(value); size = len(encoded); self.consumed += size
         require(size <= self.state.MAX_STATE*2 and self.consumed <= 33554432, 'queue storage observation bound exceeded')
+        if immutable:
+            if len(self.immutable) < 128 and self.cached_bytes+size <= 33554432:
+                self.immutable[path] = encoded; self.cached_bytes += size
+            return json.loads(encoded)
         return value
 
     def _load(self):
@@ -175,7 +184,7 @@ class QueueStore:
         try:
             current = self.state.GitState(self, self.storage['state_branch'], self.identity,
                                           self.storage['bootstrap_sha'], self.storage['policy_approvals'],
-                                          bootstrap_existing=self.storage['initialize'])
+                                          bootstrap_existing=self.storage['initialize'], state_view=self.storage.get('state_view'))
         except ValueError as error:
             if str(error) == 'missing checkpoint requires exact protected bootstrap revision; never reset silently':
                 raise ValueError('queue initialization drift; exact reviewed bootstrap required') from error
@@ -266,7 +275,7 @@ class _QueueReader:
     def worker_health(self):
         identity = hashlib.sha256(canonical([self.repo, self.config['destination'], self.config['branch']])).hexdigest()
         state = self.store.state
-        view = state.GitState(self, self.storage['state_branch'], identity, self.storage['bootstrap_sha'], self.storage['policy_approvals'])
+        view = state.GitState(self, self.storage['state_branch'], identity, self.storage['bootstrap_sha'], self.storage['policy_approvals'], state_view=self.storage.get('state_view'))
         _observed(view.bytes is not None, 'protected-health-missing')
         item = json.loads(view.bytes, object_pairs_hook=state.digest.coordinator.contract.no_duplicate_keys)
         state.validate(item, self.repo, identity)
@@ -390,12 +399,22 @@ def run_queue(api, client, config, storage, reporting, now, *, drill_run=None):
     class DeliveryAPI:
         repo = api.repo
         calls = consumed = 0
+        def __init__(self):
+            self.immutable = {}; self.cached_bytes = 0
+            self.archive = type(storage) is dict and type(storage.get('state_view')) is dict and storage['state_view'].get('mode') == 'archive'
         def request(self, path, method='GET', payload=None):
             require(path == 'repos/'+self.repo or path.startswith('repos/'+self.repo+'/'), 'queue delivery foreign API')
+            immutable = self.archive and method == 'GET' and payload is None and re.fullmatch(
+                re.escape('repos/'+self.repo+'/git/')+r'(?:commits|trees|blobs)/[0-9a-f]{40}', path) is not None
+            if immutable and path in self.immutable:return json.loads(self.immutable[path])
             require(self.calls < 512, 'queue delivery API bound exceeded'); self.calls += 1
             value = api.request(path, method, payload)
-            size = len(canonical(value)); self.consumed += size
+            encoded = canonical(value); size = len(encoded); self.consumed += size
             require(size <= 16000000 and self.consumed <= 67108864, 'queue delivery API byte bound exceeded')
+            if immutable:
+                require(len(self.immutable) < 512 and self.cached_bytes+size <= 67108864, 'queue immutable cache bound exceeded')
+                self.immutable[path] = encoded; self.cached_bytes += size
+                return json.loads(encoded)
             return value
     class DeliverySlack:
         calls = consumed = 0
@@ -416,7 +435,7 @@ def run_queue(api, client, config, storage, reporting, now, *, drill_run=None):
     source = DeliveryAPI(); remote = DeliverySlack(); store = QueueStore(source, config, storage)
     spec = importlib.util.spec_from_file_location('queue_alert_runtime', Path(__file__).with_name('factory-reporting-alerts.py'))
     runtime = importlib.util.module_from_spec(spec); spec.loader.exec_module(runtime)
-    watch = dict(reporting, state_branch=storage['state_branch'], bootstrap_sha=storage['bootstrap_sha'], policy_approvals=storage['policy_approvals'], watchdog_grace_minutes=config['grace_minutes'])
+    watch = dict(reporting, state_branch=storage['state_branch'], bootstrap_sha=storage['bootstrap_sha'], policy_approvals=storage['policy_approvals'], watchdog_grace_minutes=config['grace_minutes'], state_view=storage.get('state_view'))
     identity = stream(config)
     class Notice(runtime.Alert):
         event_type = 'factory_reporting_queue_v1'
@@ -436,7 +455,7 @@ def run_queue(api, client, config, storage, reporting, now, *, drill_run=None):
     def worker():
         state = runtime.state
         key = hashlib.sha256(canonical([source.repo, config['destination'], config['branch']])).hexdigest()
-        current = state.GitState(source, storage['state_branch'], key, storage['bootstrap_sha'], storage['policy_approvals'])
+        current = state.GitState(source, storage['state_branch'], key, storage['bootstrap_sha'], storage['policy_approvals'], state_view=storage.get('state_view'))
         require(current.bytes is not None, 'queue worker checkpoint missing')
         body = json.loads(current.bytes, object_pairs_hook=state.digest.coordinator.contract.no_duplicate_keys)
         state.validate(body, source.repo, key)
@@ -564,6 +583,15 @@ def build_config(env):
         raise ValueError('queue protected start invalid') from error
     reporting = {key:config[key] for key in ('enabled', 'repository', 'state_repository', 'branch', 'destination', 'team_id')}
     reporting.update(start=start, attachments_enabled=flag('FACTORY_REPORTING_ATTACHMENTS_ENABLED'))
+    writer_flag=env.get('FACTORY_REPORTING_APP_WRITER_ENABLED','false')
+    require(writer_flag in ('true','false'),'reporting writer flag invalid')
+    if writer_flag=='true':
+        import importlib.util
+        from pathlib import Path
+        spec=importlib.util.spec_from_file_location('queue_config_transport',Path(__file__).with_name('factory-reporting-transport.py'))
+        transport=importlib.util.module_from_spec(spec);spec.loader.exec_module(transport)
+        context=transport.attach_reporting_context(dict(reporting,state_branch=storage['state_branch']))
+        storage['state_view']=context['state_view']
     return {'config':config, 'storage':storage, 'reporting':reporting}
 
 
@@ -616,14 +644,22 @@ def main():
     import argparse, importlib.util, os, subprocess
     from pathlib import Path
     parser = argparse.ArgumentParser(); parser.add_argument('--drill', action='store_true'); args = parser.parse_args()
+    writer_flag=os.environ.get('FACTORY_REPORTING_APP_WRITER_ENABLED','false')
+    require(writer_flag in ('true','false'),'reporting writer flag invalid')
+    api=None
+    if writer_flag=='true':
+        spec=importlib.util.spec_from_file_location('queue_transport',Path(__file__).with_name('factory-reporting-transport.py'))
+        transport=importlib.util.module_from_spec(spec);spec.loader.exec_module(transport)
+        api=transport.create_api(os.environ)
     built = build_config(os.environ)
     checkout = subprocess.run(['git', 'rev-parse', '--verify', 'HEAD'], check=True, capture_output=True, text=True, timeout=10).stdout.strip()
     execution_context(os.environ, built['config'], checkout, args.drill)
     module = importlib.util.spec_from_file_location('queue_entry_state', Path(__file__).with_name('factory-git-state.py'))
     state = importlib.util.module_from_spec(module); module.loader.exec_module(state)
-    actions = state.API(built['config']['repository'], os.environ.get('GH_TOKEN'))
-    writer = state.API(built['config']['repository'], os.environ.get('FACTORY_REPORTING_STATE_TOKEN') or os.environ.get('GH_TOKEN'))
-    api = RoutedAPI(built['config']['repository'], actions, writer)
+    if writer_flag=='false':
+        actions = state.API(built['config']['repository'], os.environ.get('GH_TOKEN'))
+        writer = state.API(built['config']['repository'], os.environ.get('FACTORY_REPORTING_STATE_TOKEN') or os.environ.get('GH_TOKEN'))
+        api = RoutedAPI(built['config']['repository'], actions, writer)
     result = protected_entry(os.environ, api, state.slack.http_client(built['reporting']), checkout, datetime.now(timezone.utc), drill=args.drill)
     print(json.dumps(result, sort_keys=True)); return 0
 

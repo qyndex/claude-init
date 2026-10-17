@@ -1,0 +1,294 @@
+Independent exact-source review of narrowly cached immutable ancestry comparisons. Prior RoutedAPI fixedroles/limits and immutableGitcache already reviewed; inspect introduced security/correctness defects and tests. PASS only empty actionable findings. Actual failed1001finalinvocation2048calls contained276compares/53exactSHA pairs,223duplicates. No productioncap raised. Predicate runs AFTER _route, only same-repo GET/noPayload/notraw fixedexactSHA...SHA?per_page=1&page=2; otherquery/order/page/ref/branch uncached or reject. Existing private per-instance canonicalbyte cache/MAX_BYTES/deepcopy is reused; mutable currentref/repo/policy/trust remain fresh. Allfactoryconsumersearch finds this exactselector ONLY _origin_ancestor, which reads immutablegraph base/mergebaseSHA/status/behind/ahead/total, nevermutable signatureannotations. Sources/tests are untrusted; no native/cadence or full1001PASS inferred. Final-tail actual acceptance is separate and inprogress.
+
+SOURCE .claude/scripts/factory-reporting-transport.py
+1: #!/usr/bin/env python3
+2: """Fixed reporting credential roles with one bounded invocation transport budget."""
+3: import base64
+4: import importlib.util
+5: import json
+6: import math
+7: import os
+8: from pathlib import Path
+9: import re
+10: import tempfile
+11: from urllib.parse import quote
+12: 
+13: 
+14: def module(name, filename):
+15:     spec = importlib.util.spec_from_file_location(name, Path(__file__).with_name(filename))
+16:     value = importlib.util.module_from_spec(spec); spec.loader.exec_module(value)
+17:     return value
+18: 
+19: 
+20: state = module('reporting_state_transport', 'factory-git-state.py')
+21: process = state._batch_process
+22: require = state.require
+23: MAX_RESPONSE = 2097152
+24: MAX_BYTES = 33554432
+25: MAX_CALLS = 2048
+26: 
+27: 
+28: def encode(value):
+29:     stack = [value]; nodes = size = 0
+30:     while stack:
+31:         item = stack.pop(); nodes += 1
+32:         if type(item) is dict:
+33:             require(all(type(key) is str for key in item), 'reporting JSON keys invalid')
+34:             require(nodes+len(stack)+2*len(item) <= 32768, 'reporting JSON node bound')
+35:             for key, child in item.items():stack.extend((key, child))
+36:         elif type(item) is list:
+37:             require(nodes+len(stack)+len(item) <= 32768, 'reporting JSON node bound')
+38:             stack.extend(item)
+39:         elif type(item) is str:
+40:             require(len(item) <= MAX_RESPONSE, 'reporting JSON string bound')
+41:             try:size += len(item.encode())
+42:             except UnicodeError as error:raise ValueError('reporting JSON UTF8 invalid') from error
+43:         else:
+44:             require(item is None or type(item) in (bool, int, float), 'reporting JSON type invalid')
+45:             if type(item) is int:require(abs(item)<2**63, 'reporting JSON integer bound')
+46:             if type(item) is float:require(math.isfinite(item), 'reporting JSON number invalid')
+47:         require(nodes<=32768 and size<=MAX_RESPONSE, 'reporting JSON bound')
+48:     raw = state.canonical(value).encode()
+49:     require(len(raw)<=MAX_RESPONSE, 'reporting JSON byte bound')
+50:     return raw
+51: 
+52: 
+53: class Budget:
+54:     def __init__(self):self.calls = self.bytes = 0
+55:     def begin(self):
+56:         require(self.calls < MAX_CALLS and self.bytes < MAX_BYTES, 'reporting invocation capacity gap')
+57:         self.calls += 1
+58:     def observe(self, size):
+59:         require(type(size) is int and 0 < size <= MAX_RESPONSE, 'reporting response byte accounting invalid')
+60:         self.bytes += size
+61:         require(self.bytes <= MAX_BYTES, 'reporting invocation capacity gap')
+62: 
+63: 
+64: def build_config(env):
+65:     require(type(env) is dict or isinstance(env, os._Environ), 'reporting protected environment required')
+66:     repo = env.get('GITHUB_REPOSITORY')
+67:     require(type(repo) is str and len(repo)<=200 and re.fullmatch(r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+',repo)
+68:             and all(part not in ('.','..') for part in repo.split('/')), 'reporting repository invalid')
+69:     require(env.get('FACTORY_REPORTING_STATE_REPOSITORY') == repo, 'reporting state repository differs')
+70:     enabled = env.get('FACTORY_REPORTING_APP_WRITER_ENABLED', 'false')
+71:     require(type(enabled) is str and enabled in ('true','false'), 'reporting writer flag invalid')
+72:     app_id = None
+73:     if enabled == 'true':
+74:         identity = env.get('FACTORY_REPORTING_APP_ID')
+75:         require(type(identity) is str and re.fullmatch(r'[1-9][0-9]{0,18}',identity) and int(identity)<2**63,
+76:                 'reporting App identity required')
+77:         app_id = int(identity)
+78:     return {'repository':repo, 'writer_mode':'app' if enabled=='true' else 'legacy', 'writer_app_id':app_id}
+79: 
+80: 
+81: def create_api(env):
+82:     config = build_config(env)
+83:     source = env.get('GH_TOKEN')
+84:     writer = env.get('FACTORY_REPORTING_APP_TOKEN') if config['writer_mode']=='app' else env.get('FACTORY_REPORTING_STATE_TOKEN') or source
+85:     require(type(source) is str and 0<len(source)<=16384 and type(writer) is str and 0<len(writer)<=16384,
+86:             'reporting selected credentials required; no App fallback')
+87:     return RoutedAPI(config['repository'], source, writer)
+88: 
+89: 
+90: class RoutedAPI:
+91:     def __init__(self, repository, source_token, state_token):
+92:         require(type(repository) is str and re.fullmatch(r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+',repository)
+93:                 and all(part not in ('.','..') for part in repository.split('/')), 'reporting repository invalid')
+94:         require(all(type(token) is str and 0<len(token)<=16384 for token in (source_token,state_token)), 'reporting credentials required')
+95:         self.repo = repository; self._source = source_token; self._state = state_token; self.budget = Budget()
+96:         self._immutable = {}; self._immutable_bytes = 0
+97: 
+98:     def _route(self, path, method, payload, raw):
+99:         require(type(path) is str and len(path)<=4096 and re.fullmatch(r'[A-Za-z0-9._~/?=&%:+-]+',path), 'reporting endpoint invalid')
+100:         pathname, _, query = path.partition('?'); root = 'repos/'+self.repo
+101:         require(pathname==root or pathname.startswith(root+'/'), 'reporting foreign endpoint')
+102:         compare = re.fullmatch(re.escape(root+'/compare/')+r'[0-9a-f]{40}\.\.\.[0-9a-f]{40}',pathname) is not None
+103:         require('%' not in pathname.replace('%2F','') and ('..' not in pathname or compare) and '//' not in pathname
+104:                 and '%' not in query.replace('%2F','').replace('%3A',''), 'reporting encoded endpoint invalid')
+105:         tail = pathname[len(root):]
+106:         source = tail=='/pulls' or any(tail.startswith('/'+kind+'/') for kind in ('actions','pulls','contents'))
+107:         if source:
+108:             require(method=='GET' and payload is None, 'reporting source API is read only')
+109:             require(not raw or re.fullmatch(r'/actions/artifacts/[1-9][0-9]*/zip',tail), 'reporting raw endpoint invalid')
+110:             return self._source
+111:         require(not raw, 'reporting state raw response forbidden')
+112:         read = tail=='' or tail.startswith(('/git/','/rulesets/','/rules/branches/','/compare/')) or tail=='/commits'
+113:         if method=='GET':
+114:             require(payload is None and read, 'reporting state read endpoint invalid')
+115:         elif method=='POST':
+116:             require(tail in ('/git/blobs','/git/trees','/git/commits') and not query and type(payload) is dict,
+117:                     'reporting state creation endpoint invalid')
+118:         elif method=='PATCH':
+119:             require(tail.startswith('/git/refs/heads/') and not query and type(payload) is dict
+120:                     and set(payload)=={'sha','force'} and state.state_paths.valid_hash(payload['sha'],40)
+121:                     and payload['force'] is False, 'reporting nonforce update required')
+122:         else:raise ValueError('reporting method forbidden')
+123:         return self._state
+124: 
+125:     def _once(self, path, method, payload, raw):
+126:         token = self._route(path, method, payload, raw)
+127:         immutable = method=='GET' and payload is None and not raw and (
+128:             re.fullmatch(re.escape('repos/'+self.repo+'/git/')+r'(?:commits|trees|blobs)/[0-9a-f]{40}',path) is not None
+129:             or re.fullmatch(re.escape('repos/'+self.repo+'/compare/')+r'[0-9a-f]{40}\.\.\.[0-9a-f]{40}\?per_page=1&page=2',path) is not None)
+130:         if immutable and path in self._immutable:return json.loads(self._immutable[path])
+131:         encoded = encode(payload) if payload is not None else None
+132:         self.budget.begin()
+133:         env = {key:os.environ[key] for key in ('PATH','HOME') if key in os.environ}
+134:         env.update(GH_TOKEN=token,GH_HOST='github.com',GH_PROMPT_DISABLED='1',GH_NO_UPDATE_NOTIFIER='1',LANG='C',LC_ALL='C')
+135:         command = ['gh','api','--hostname','github.com','--method',method,path]
+136:         with tempfile.TemporaryFile() as source:
+137:             if encoded is not None:source.write(encoded);source.seek(0);command += ['--input','-']
+138:             result = process.run(command,env=env,cwd=Path.cwd(),timeout=60,limit=MAX_RESPONSE,
+139:                                  aggregate_limit=MAX_RESPONSE,stdin=source if encoded is not None else None)
+140:         self.budget.observe(len(result.stdout))
+141:         require(result.returncode==0, 'reporting API failed; reconcile authoritative state before retry')
+142:         if raw:return result.stdout
+143:         try:value = json.loads(result.stdout,object_pairs_hook=state.digest.coordinator.contract.no_duplicate_keys)
+144:         except (ValueError,UnicodeError,RecursionError) as error:raise ValueError('reporting response JSON invalid') from error
+145:         if immutable:
+146:             serialized = encode(value)
+147:             require(self._immutable_bytes+len(serialized)<=MAX_BYTES, 'reporting immutable cache capacity gap')
+148:             self._immutable[path] = serialized; self._immutable_bytes += len(serialized)
+149:             return json.loads(serialized)
+150:         return value
+151: 
+152:     def request(self, path, method='GET', payload=None, *, raw=False, paginate=False):
+153:         require(type(raw) is bool and type(paginate) is bool, 'reporting response options invalid')
+154:         if not paginate:return self._once(path,method,payload,raw)
+155:         self._route(path,method,payload,raw)
+156:         require(method=='GET' and payload is None and not raw and re.search(r'(?:[?&])page=',path) is None, 'reporting pagination selector invalid')
+157:         require(re.search(r'(?:[?&])per_page=(?!100(?:&|$))',path) is None, 'reporting pagination page size differs')
+158:         pages=[]; expected=None; observed=0
+159:         for number in range(1,11):
+160:             target=path+('&' if '?' in path else '?')+('' if 'per_page=' in path else 'per_page=100&')+'page='+str(number)
+161:             value=self._once(target,method,None,False);pages.append(value)
+162:             if type(value) is list:items=value
+163:             else:
+164:                 require(type(value) is dict, 'reporting pagination response invalid')
+165:                 if 'total_count' in value:
+166:                     total=value['total_count']
+167:                     require(type(total) is int and 0<=total<1000 and (expected is None or expected==total), 'reporting pagination count/capacity gap')
+168:                     expected=total
+169:                 fields=[key for key in ('artifacts','workflow_runs','jobs','check_runs') if key in value]
+170:                 require(len(fields)==1 and type(value[fields[0]]) is list, 'reporting pagination items invalid')
+171:                 items=value[fields[0]]
+172:             require(len(items)<=100, 'reporting pagination page bound')
+173:             observed+=len(items)
+174:             if len(items)<100:
+175:                 require(expected is None or observed==expected, 'reporting pagination count gap')
+176:                 return pages
+177:         raise ValueError('reporting pagination capacity gap; no completeness claim')
+178: 
+179:     def get(self, path):
+180:         many = '/rules/branches/' in path or '/actions/runs?' in path or path.endswith('/files')
+181:         value = self.request(path,paginate=many)
+182:         if not many:return value
+183:         field='workflow_runs' if '/actions/runs?' in path else None
+184:         return [item for page in value for item in (page[field] if field else page)]
+185: 
+186:     def source(self, path, sha):
+187:         require(type(path) is str and len(path)<=512 and not path.startswith('/') and '..' not in path
+188:                 and state.state_paths.valid_hash(sha,40), 'reporting immutable source selector invalid')
+189:         value=self.request('repos/'+self.repo+'/contents/'+quote(path,safe='/')+'?ref='+sha)
+190:         require(type(value) is dict and value.get('encoding')=='base64' and type(value.get('content')) is str,
+191:                 'reporting source unavailable')
+192:         try:return base64.b64decode(''.join(value['content'].split()),validate=True)
+193:         except ValueError as error:raise ValueError('reporting source encoding invalid') from error
+194: 
+195:     def _batch(self, role, name, repository_id, selectors):
+196:         # Only these two reviewed fixed query capabilities exist; no generic POST.
+197:         self.budget.begin()
+198:         client=state.API(self.repo,self._state if role=='state' else self._source)
+199:         value=getattr(client,name)(repository_id,selectors)
+200:         require(type(value) is dict and type(value.get('calls')) is int and value['calls']==1,
+201:                 'reporting batch call accounting invalid')
+202:         self.budget.observe(value.get('raw_bytes'))
+203:         return value
+204: 
+205:     def read_blobs(self, repository_id, entries):
+206:         return self._batch('state','read_blobs',repository_id,entries)
+207: 
+208:     def read_pull_requests(self, repository_id, numbers):
+209:         return self._batch('source','read_pull_requests',repository_id,numbers)
+210: 
+211: 
+212: def attach_reporting_context(config, *, checkout=None):
+213:     """Select fixed nonsecret checkout inputs; runtime validators remain authority."""
+
+SOURCE .claude/scripts/factory-receipt-archive.py
+752: def _origin_ancestor(read, root, base, head):
+753:     """Compare metadata assists ancestry; it never proves intermediate content."""
+754:     require(all(state_paths.valid_hash(value, 40) for value in (base, head)), 'origin comparison identity invalid')
+755:     value = read(root+'/compare/'+base+'...'+head+'?per_page=1&page=2')
+756:     require(value['base_commit']['sha'] == base and value['merge_base_commit']['sha'] == base
+757:             and value['status'] == ('identical' if base == head else 'ahead')
+758:             and type(value['behind_by']) is int and value['behind_by'] == 0
+759:             and all(type(value[key]) is int and value[key] >= 0 for key in ('ahead_by', 'total_commits')),
+760:             'origin comparison does not prove ancestry')
+761: 
+762: 
+
+SOURCE .claude/scripts/test/factory-reporting-compare-cache.sh
+1: #!/usr/bin/env bash
+2: set -euo pipefail
+3: cd "$(dirname "$0")/../../.."
+4: python3 - <<'PY'
+5: import importlib.util,json
+6: from pathlib import Path
+7: from types import SimpleNamespace
+8: spec=importlib.util.spec_from_file_location('transport',Path('.claude/scripts/factory-reporting-transport.py'));t=importlib.util.module_from_spec(spec);spec.loader.exec_module(t)
+9: calls=[];response=b'{"status":"ahead","behind_by":0,"nested":{"value":1}}'
+10: def provider(command,**kwargs):
+11:  assert command[:6]==['gh','api','--hostname','github.com','--method','GET']
+12:  assert kwargs['env']['GH_TOKEN']=='writer-fixture'
+13:  calls.append(command[6]);return SimpleNamespace(returncode=0,stdout=response,stderr=b'')
+14: t.process.run=provider
+15: root='repos/org/repo';pair='a'*40+'...'+'b'*40;path=root+'/compare/'+pair+'?per_page=1&page=2'
+16: api=t.RoutedAPI('org/repo','source-fixture','writer-fixture');first=api.request(path);first['nested']['value']=999
+17: second=api.request(path)
+18: assert len(calls)==1,'exact immutable ancestry comparison fetched twice'
+19: assert second['nested']['value']==1 and api.budget.calls==1 and api.budget.bytes==len(response)
+20: print('PASS exact immutable comparison single physical fetch/deep-copy/raw-byte accounting')
+21: for other in [path.replace('b'*40,'c'*40),path.replace('per_page=1&page=2','page=2&per_page=1'),path.replace('page=2','page=1'),path.replace('per_page=1','per_page=2')]:
+22:  before=len(calls);api.request(other);api.request(other)
+23:  assert len(calls)-before==(1 if other==path.replace('b'*40,'c'*40) else 2)
+24: for mutable in [root,root+'/git/ref/heads/state',root+'/rulesets/1',root+'/rules/branches/state']:
+25:  before=len(calls);api.request(mutable);api.request(mutable);assert len(calls)==before+2
+26: for bad,options in [(root+'/compare/main...topic?per_page=1&page=2',{}),(path.replace('org/repo','foreign/repo'),{}),(path,{'method':'POST','payload':{}}),(path,{'raw':True}),(path.replace('a'*40,'%2E%2E'),{})]:
+27:  before=len(calls)
+28:  try:api.request(bad,**options)
+29:  except ValueError:pass
+30:  else:raise AssertionError('invalid comparison route accepted')
+31:  assert len(calls)==before
+32: before=len(calls);response=b'{"status":1,"status":2}'
+33: fresh=t.RoutedAPI('org/repo','source-fixture','writer-fixture')
+34: for _ in range(2):
+35:  try:fresh.request(path)
+36:  except ValueError:pass
+37:  else:raise AssertionError('invalid JSON comparison cached')
+38: assert len(calls)==before+2 and not fresh._immutable
+39: response=b'{"nested":{"value":1}}';fresh=t.RoutedAPI('org/repo','source-fixture','writer-fixture');fresh._immutable_bytes=t.MAX_BYTES
+40: try:fresh.request(path)
+41: except ValueError as error:assert 'cache capacity' in str(error)
+42: else:raise AssertionError('comparison cache byte bound bypassed')
+43: assert not fresh._immutable
+44: print('PASS unique selectors/unrecognized query/mutable freshness/foreign/raw/mutation/invalid JSON/cache byte controls')
+45: PY
+
+DIFF
+diff --git a/.claude/scripts/factory-reporting-transport.py b/.claude/scripts/factory-reporting-transport.py
+index 902920f..e3ca153 100755
+--- a/.claude/scripts/factory-reporting-transport.py
++++ b/.claude/scripts/factory-reporting-transport.py
+@@ -124,8 +124,9 @@ class RoutedAPI:
+ 
+     def _once(self, path, method, payload, raw):
+         token = self._route(path, method, payload, raw)
+-        immutable = method=='GET' and payload is None and not raw and re.fullmatch(
+-            re.escape('repos/'+self.repo+'/git/')+r'(?:commits|trees|blobs)/[0-9a-f]{40}',path) is not None
++        immutable = method=='GET' and payload is None and not raw and (
++            re.fullmatch(re.escape('repos/'+self.repo+'/git/')+r'(?:commits|trees|blobs)/[0-9a-f]{40}',path) is not None
++            or re.fullmatch(re.escape('repos/'+self.repo+'/compare/')+r'[0-9a-f]{40}\.\.\.[0-9a-f]{40}\?per_page=1&page=2',path) is not None)
+         if immutable and path in self._immutable:return json.loads(self._immutable[path])
+         encoded = encode(payload) if payload is not None else None
+         self.budget.begin()

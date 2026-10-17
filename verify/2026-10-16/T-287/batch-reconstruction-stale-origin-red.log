@@ -1,0 +1,15 @@
+Traceback (most recent call last):
+  File "/private/tmp/t287-batch-reconstruct-diagnostic.py", line 19, in <module>
+    exec(compile(fixture+pipeline+provider+cases,'actual380-batched-reconstruction','exec'))
+    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "actual380-batched-reconstruction", line 114, in <module>
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 1405, in reconstruct_interval
+    timed = _retained_time_from_anchor(api, anchor, store, stream, *execution)
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 1226, in _retained_time_from_anchor
+    pr = api.request(root+'/pulls/'+str(receipt['pull_request']))
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 1271, in request
+    require(calls < 2048, 'reconstruction API capacity gap'); calls += 1
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/validate-candidate-evidence.py", line 19, in require
+    raise ValueError(message)
+ValueError: reconstruction API capacity gap

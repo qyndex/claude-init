@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "<stdin>", line 41, in <module>
+  File "<stdin>", line 13, in reject
+  File "<stdin>", line 10, in parse
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipts.py", line 35, in load_receipt_trust
+    require(mode in {'profile', 'legacy'}, 'explicit receipt trust mode required')
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: cannot use 'list' as a set element (unhashable type: 'list')

@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "<stdin>", line 25, in <module>
+  File "actual-state-delta-real-git", line 81, in <module>
+AssertionError: bounded changed-subtree scanner is missing

@@ -1,0 +1,1 @@
+immutable actual subprocess reuse/deepcopy/accounting, fresh mutable reads, route guards, invocation isolation and normalized memory bound passed

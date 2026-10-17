@@ -1,0 +1,27 @@
+{
+  "spec": "009",
+  "commit": "8a764ac3c7786a2d9036d60d7709843e3e725eeb",
+  "generated_at": "2026-10-17T06:50:50.477432+00:00",
+  "results_file": "verify/2026-10-17-009-protected-factory-activation/attempt-shared-ab74c1780462/results.json",
+  "results_sha256": "fdfb1a54a9090a7b726f55c6870cf6aa6e09a64056521f9fea17bfa2c30956c4",
+  "ac_total": 5,
+  "ac_proven": 0,
+  "ac_unproven": [
+    "AC-1",
+    "AC-2",
+    "AC-3",
+    "AC-4",
+    "AC-5"
+  ],
+  "smoke_exit_max": 0,
+  "runner_exit": 1,
+  "runner_command": "bash .claude/scripts/spec-match.sh 009 verify/2026-10-17-009-protected-factory-activation/attempt-shared-ab74c1780462/results.json",
+  "coverage": {
+    "line": "not measured; shell/docs harness",
+    "branch": "not measured; shell/docs harness"
+  },
+  "verdict": "FAIL",
+  "assembly": "operator-approved shared observation; collector commands not claimed",
+  "native_acceptance_pending": true,
+  "shared_result": "verify/2026-10-17/publication-shared-verification/result.json"
+}

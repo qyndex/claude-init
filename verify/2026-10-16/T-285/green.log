@@ -1,0 +1,7 @@
+# TDD ledger — green — T-285
+ledger_format: 2
+timestamp: 2026-10-16T11:09:40+11:00
+command: bash .claude/scripts/test/factory-receipt-reruns.sh
+exit_code: 0
+---
+20 coldwatch/rerun/retained-expiry/source-authenticated shadow/epoch scenarios passed

@@ -1,0 +1,87 @@
+{
+  "production_source": "600e9ff36e4309a213c067f0d02ae31e6b1d2cc9",
+  "fixture_source": "c91792d0332af933ef6caf22a0964002d160618a",
+  "fixture_changes": [
+    "factory/policy.json",
+    "factory/receipt-archive-bootstrap.json",
+    "factory/receipt-store.json",
+    "factory/receipt-trust.json"
+  ],
+  "jobs": [
+    {
+      "status": "incomplete",
+      "invocations": 1,
+      "elapsed_seconds": 13.519,
+      "source_sha": "c91792d0332af933ef6caf22a0964002d160618a",
+      "child_api_counters_available": false,
+      "retry_policy": "later-job",
+      "observer_calls": 1,
+      "observer_bytes": 126,
+      "reason": "job-invocation-limit",
+      "job": 0,
+      "before": "27c7833ff4901cf8ab91dcc1ffc366f8f1bf4ac6",
+      "after": "3a3a15c768cc81442f753446382551f601a6c2bd"
+    },
+    {
+      "status": "incomplete",
+      "invocations": 1,
+      "elapsed_seconds": 0.808,
+      "source_sha": "c91792d0332af933ef6caf22a0964002d160618a",
+      "child_api_counters_available": false,
+      "retry_policy": "later-job",
+      "observer_calls": 1,
+      "observer_bytes": 126,
+      "reason": "job-invocation-limit",
+      "job": 1,
+      "before": "3a3a15c768cc81442f753446382551f601a6c2bd",
+      "after": "c1e76fee7d03ce4733b8bd66fca48621b312a450"
+    }
+  ],
+  "children": [
+    {
+      "pid": 88025,
+      "calls": 734,
+      "bytes": 951362,
+      "provider": {
+        "rest": 734,
+        "graphql": 0
+      },
+      "provider_response_bytes": 951362
+    },
+    {
+      "pid": 90313,
+      "calls": 46,
+      "bytes": 39478,
+      "provider": {
+        "rest": 46,
+        "graphql": 0
+      },
+      "provider_response_bytes": 39478
+    }
+  ],
+  "fixed_launches": [
+    [
+      "/opt/homebrew/opt/python@3.14/bin/python3.14",
+      "-I",
+      "/private/tmp/factory-driver-public-case-20261017/checkout/.claude/scripts/factory-git-state.py",
+      "--config",
+      "/private/tmp/factory-driver-public-case-20261017/config.json"
+    ],
+    [
+      "/opt/homebrew/opt/python@3.14/bin/python3.14",
+      "-I",
+      "/private/tmp/factory-driver-public-case-20261017/checkout/.claude/scripts/factory-git-state.py",
+      "--config",
+      "/private/tmp/factory-driver-public-case-20261017/config.json"
+    ]
+  ],
+  "dispatch_seam": "fixed child command redirected only to fresh Python-I bootstrap running actual byte-identical CLI __main__; exact gh boundary uses existing synthetic REST/real fixture GraphQL provider",
+  "producer_regenerated": false,
+  "seeded_ready": false,
+  "confirmed_no_send": "pending owner complete-state copy",
+  "full_cadence_proven": false,
+  "observer_provider": {
+    "rest": 2,
+    "graphql": 0
+  }
+}

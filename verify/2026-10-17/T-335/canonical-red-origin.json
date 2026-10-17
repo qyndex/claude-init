@@ -1,0 +1,7 @@
+{
+  "source": "/private/tmp/factory-t335-canonical-red-20261017/verify/2026-10-17/T-335/red.log",
+  "sha256": "c27a07140c5101df1f895c5546de3bd4c0f2cb419b08764240f2523c348abb7f",
+  "original_source_baseline": "1d5648d",
+  "description": "Byte-identical genuine sanctioned-tool baseline RED; original timestamp and command unchanged. Canonical command retained; later test suites add scoped regressions with their own original failure records.",
+  "header_fabricated": false
+}

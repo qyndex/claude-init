@@ -1,0 +1,45 @@
+{
+  "repository": "qyndex/claude-init",
+  "query_suffix": "?per_page=1&page=2",
+  "purpose": "Read-only actualAPI ancestry metadata response shape; compare alone does not grant origin or validate history content.",
+  "cases": [
+    {
+      "case": "identical",
+      "base": "91839087a769bd45670df5b84cb96993bcb97d42",
+      "head": "91839087a769bd45670df5b84cb96993bcb97d42",
+      "actual_response_bytes": 26171,
+      "status": "identical",
+      "behind_by": 0,
+      "ahead_by": 0,
+      "total_commits": 0,
+      "commits_returned": 0,
+      "files_field_present": false
+    },
+    {
+      "case": "one-commit",
+      "base": "2fd54dbc6912af3f2ddfe445793152ba2b8b533e",
+      "head": "91839087a769bd45670df5b84cb96993bcb97d42",
+      "actual_response_bytes": 28799,
+      "status": "ahead",
+      "behind_by": 0,
+      "ahead_by": 1,
+      "total_commits": 1,
+      "commits_returned": 0,
+      "files_field_present": false
+    },
+    {
+      "case": "historical",
+      "base": "148238ad8950681d352985cdb9c48ad0301e97d3",
+      "head": "91839087a769bd45670df5b84cb96993bcb97d42",
+      "actual_response_bytes": 25636,
+      "status": "ahead",
+      "behind_by": 0,
+      "ahead_by": 58,
+      "total_commits": 58,
+      "commits_returned": 1,
+      "files_field_present": false
+    }
+  ],
+  "raw_responses_saved": false,
+  "secret_values_read": false
+}

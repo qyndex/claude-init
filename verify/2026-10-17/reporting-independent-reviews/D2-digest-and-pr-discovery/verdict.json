@@ -1,0 +1,78 @@
+{
+  "verdict": "changes_requested",
+  "findings": [
+    {
+      "severity": "high",
+      "file": ".claude/scripts/factory-digest.py",
+      "line": 165,
+      "title": "Durable mode silently degrades to empty proofs when the five-table set is absent or only partly joinable",
+      "reason": "In durable mode a single `reporting_receipt_coverage` marker (lines 160-164) is enough to pass. If any of the five tables is missing, line 165 just skips the proof query and `proofs` stays `[]`. Every PR is then emitted with `delivery_evidence: []` and `evidence_status: 'missing'`. The batch is persisted pending and later delivered. Because confirmed PRs go into `reported` and are never re-reported, a false 'missing' label cannot be corrected afterwards. The line 166 query uses INNER JOINs across five tables, so a receipt with no provenance, trust, time or interval row is also dropped without error. Durable mode should require all five tables. It should also check that the key sets of the five tables are consistent, i.e. that every `delivery_receipts` task has a row in each of the others, before it trusts the coverage marker. Otherwise it should return a gap/incomplete status instead of building a payload."
+    },
+    {
+      "severity": "medium",
+      "file": ".claude/scripts/factory-digest.py",
+      "line": 166,
+      "title": "Coverage marker and `delivery_interval` are not bound to the reported interval or to table contents",
+      "reason": "The marker check (161-163) only compares dates against `verified_until`. The proof query joins `delivery_interval` but never reads it. This file does not check that the interval membership was built for an `interval_end` at or after `end`, and the marker holds no digest or count of the receipt tables. `delivery_interval` is only a filter. A stale or narrower interval, or a marker written for a different reconstruction, would silently remove proofs for PRs in (origin, end]. The result is again a false 'missing'. Verify that interval membership covers `end`, or compare every PR-matching `delivery_receipts` row against the joined result and fail on any row dropped by the join."
+    },
+    {
+      "severity": "medium",
+      "file": ".claude/scripts/factory-digest.py",
+      "line": 108,
+      "title": "Pending/uncertain payload is returned and sent without revalidation; payload immutability is not enforced",
+      "reason": "A pending or uncertain row is returned at 108-110 and later sent at line 224 as `row['payload']`. Nothing checks that the payload is canonical JSON or has the expected schema. Nothing checks that `repository` and `destination` equal `self`. Nothing checks that `key == sha256([stream, payload.from, payload.until])` or that the `cutoff` column equals `payload.until`. No payload hash is recorded when the row is inserted (195). The `confirm` check at 233 compares the database with a copy read from the same database a moment earlier. It only catches a change between that read and the confirm. It does not catch any change made after the row was created. The only integrity anchor is the remote receipt's `payload_sha256`, and the transport computes that from the payload it was given. Recompute and validate all of these fields from the stored row before `deliver` sends it. Do the same for the payload on a confirmed row."
+    },
+    {
+      "severity": "medium",
+      "file": ".claude/scripts/factory-digest.py",
+      "line": 239,
+      "title": "`confirm` advances the cursor from the caller-supplied row, with no monotonic or payload binding",
+      "reason": "`confirm(row, receipt)` is public. It checks only `current['payload'] == row['payload']`, then writes `row['cutoff']` from the caller's dict to `digest_cursors` (239). It should use `current['cutoff']`. It also does not check that this value equals `payload['until']`, that it is greater than the existing cursor, or that `payload['from']` equals the current cursor. A mismatched row can move the cursor backwards or skip an interval, which changes `from` and `late_discovered` in later batches."
+    },
+    {
+      "severity": "low",
+      "file": ".claude/scripts/factory-digest.py",
+      "line": 116,
+      "title": "Confirmed-history validation is incomplete and can fail with non-validation exceptions",
+      "reason": "Confirmed history is accepted after only a receipt/payload hash check (118) and a repository/destination check (120). The code does not check `schema_version`, the batch interval chain (`from`/`until` against `cutoff`), or that each merge's `merged_at` lies inside the batch interval. A confirmed row with a NULL receipt raises TypeError from `json.loads(None)`. A missing `merges` or `merge_sha` key raises KeyError. Both bypass the `require` error path. The hash check is also self-attested, because the receipt is stored in the same database."
+    },
+    {
+      "severity": "low",
+      "file": ".claude/scripts/factory-digest.py",
+      "line": 166,
+      "title": "`delivery_evidence` order depends on SQLite row order",
+      "reason": "The proof query has no ORDER BY, and `matches` (186) keeps iteration order. `canonical` sorts dict keys but not lists. The same evidence can therefore produce different payload bytes on different runs or after VACUUM. Order is persisted once the batch is pending, so this does not break resume. It still makes the payload non-reproducible, which hurts review and replay. Sort by task before inserting into the payload."
+    },
+    {
+      "severity": "low",
+      "file": ".claude/scripts/factory-digest.py",
+      "line": 128,
+      "title": "Private PR-observation handoff relies on convention, and the token check is vacuous",
+      "reason": "`observation[0] is self._pr_token` (128) can never fail, because the token is created in `__init__` (45) and stored by `discover`. The only real checks are API-object identity and the binding tuple. The handoff rows are plain mutable attributes that are not re-normalized in `prepare`. A subclass or collaborator that assigns `_pr_observation` can inject rows. Rows from `discover` can also be arbitrarily old, since the binding contains no database or scan state. Consider re-reading and validating scan 'ready' state in `prepare`, or storing a scan-generation value in the binding."
+    },
+    {
+      "severity": "low",
+      "file": "factory-reporting-pr-discovery.py",
+      "line": 84,
+      "title": "Scan progress is lost whenever a later step in the same transaction raises",
+      "reason": "Scan state (pages and cursor) is written inside the caller's single transaction (digest 90-99 and 107-133). An API failure or `require` failure on any of the eight pages rolls back every page checkpoint from that call. In the `prepare` fallback path, a later durable-proof or history `require` failure also rolls back a completed scan. A repeating transient failure can keep the scan from ever finishing. The 8-page bound should stay as is. Instead, commit completed-page progress before re-raising, or make the scan state transaction independent of later steps. Separately, the legacy `paginate=True` fetch at digest line 138 also runs inside the write lock."
+    },
+    {
+      "severity": "nit",
+      "file": ".claude/scripts/factory-digest.py",
+      "line": 65,
+      "title": "`BEGIN IMMEDIATE` runs outside the try block",
+      "reason": "If `BEGIN IMMEDIATE` fails (for example a lock timeout), the connection opened at line 63 is not closed until it is garbage-collected. Move the `BEGIN` into the try block so `finally` closes the connection."
+    }
+  ],
+  "limitations": [
+    "Static review of the supplied lines only. Nothing was executed, so there is no evidence of runtime behaviour, SQLite locking, or API shapes.",
+    "`factory-coordinator.py` (`require`, `contract.digest`, `GitHub.request` pagination), `factory-receipts.py`, `maintenance`, `HostedDigest` and Slack transport were not supplied. Their correctness is not inferred.",
+    "Only fragments of the receipt archive were supplied. I could not verify that reconstruction, acknowledgement or the coverage-marker writer produce `reporting_receipt_coverage` and `delivery_interval` consistently with the digest's checks. Line 1562 of `factory-receipt-archive.py` rejects any SQLite table outside the five `definitions` tables. If the receipt reconstruction targets the same database file as `Digest` (the `path` passed to `HostedDigest` and `receipts.project` in `run`), the digest, scan and coverage tables would conflict with it. This needs checking in the receipt-archive review. I did not count it as a finding here.",
+    "Only the 25-row layout and the historical 100-row layout were checked in the discovery scratch compatibility logic. I found no defect in the two-observation compare path, but I could not test it against changing GitHub pagination.",
+    "The `factory-git-state.py` `run` function was read only to see how `discover` and `prepare` are called. It is not reviewed.",
+    "Existing bounds (8 pages of 25 rows per call, 100-row compatibility, 30s timeout) were left unchanged. Recommendations do not alter them.",
+    "A pass on this code would cover only the supplied code. It would not establish native authority, cadence or activation."
+  ],
+  "review_summary": "The PR-discovery scan is sound for the cases I could check by reading it. It covers the manual, missing and late PR cases through origin-based coverage plus the `reported` dedupe in `prepare`. The scan's normalization is strict, and its checks of saved scratch state look correct. Scratch tables are separate from the receipt tables. Verdict is changes_requested because of the durable receipt ingestion and the batch-integrity checks in `factory-digest.py`. In durable mode, missing or partly joinable receipt tables degrade silently into 'missing' evidence that is then delivered and permanently recorded. The coverage marker and `delivery_interval` are not tied to the reported interval or to table contents. Pending payloads are sent without checking their key, cutoff, destination or schema against the stored row, so payload immutability is not enforced. `confirm` writes the cursor from caller-supplied data. The remaining items are low-severity hardening: history validation, non-deterministic evidence order, the vacuous handoff token, progress loss on rollback, and the connection leak.\""
+}

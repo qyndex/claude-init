@@ -1,0 +1,3 @@
+Traceback (most recent call last):
+  File "<stdin>", line 34, in <module>
+AssertionError: local scratch survived authoritative legacy restore

@@ -1,0 +1,9 @@
+# T-278 revocation and current authority separation
+
+Actual RED demonstrated that explicit legacy revision pins accepted the same source after its matching external profile was revoked. GREEN passes 18 behavioral cases: both profile/legacy and current/historical modes reject revoked exact policy/runtime; existing reported proof is unchanged and gets a withdrawn annotation; current revised spec/task mapping rejects runtime ingestion while historical merge-time reporting remains distinct; actual successful authentication retains selected profile ID, canonical trust-document hash and exact checked policy/runtime digests.
+
+The annotation helper is reporting-only and cannot authenticate arbitrary copied JSON. Later archive integration must establish retained proof identity/material and protected writer origin before calling it. Its withdrawn label changes neither original facts nor task state. Profile document parsing has an explicit reporting-only mode to inspect revoked/all-inactive documents without authorizing execution; authenticate still accepts only profile/legacy modes.
+
+Material transitional risk: old pre-profile callers can still omit the external document and retain reviewed legacy compatibility. No profile is activated. T-288 must require a fixed protected external document plus explicit mode at CLI/ingest/project/report loaders, eliminating omission and automatic fallback before end-to-end revocation readiness. This task does not claim that integration complete. The plan records the gate explicitly. Empty shipped profiles stay disabled.
+
+Regressions: profile parser 33 cases, immutable source 24 cases, real-Git equivalence 9 cases, existing projection AC-1–4 and real guardian recovery AC-1–4 all pass. Recovery used required process-inspection escalation. Structural validation passes with four existing warnings. No live settings, profile enablement, merge authority or hosted proof changed. T-279 onward remain pending.

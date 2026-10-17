@@ -1,0 +1,4 @@
+{
+  "error": "bounded.run required explicit env; initial orchestration failed before tests launched",
+  "test_execution": false
+}

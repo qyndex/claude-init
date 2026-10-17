@@ -1,0 +1,49 @@
+{
+  "runner": "explicit full-acceptance status; local proof is not native approval",
+  "source_sha": "8a764ac3c7786a2d9036d60d7709843e3e725eeb",
+  "scope": "source-first bootstrap with incomplete live acceptance",
+  "independent_attestation": false,
+  "live_activation_verified": false,
+  "testResults": [
+    {
+      "assertionResults": [
+        {
+          "fullName": "AC-1: full acceptance not claimed; local contributions and remaining prerequisites are recorded separately",
+          "status": "pending"
+        },
+        {
+          "fullName": "AC-2: full acceptance not claimed; local contributions and remaining prerequisites are recorded separately",
+          "status": "pending"
+        },
+        {
+          "fullName": "AC-3: full acceptance not claimed; local contributions and remaining prerequisites are recorded separately",
+          "status": "pending"
+        },
+        {
+          "fullName": "AC-4: full acceptance not claimed; local contributions and remaining prerequisites are recorded separately",
+          "status": "pending"
+        },
+        {
+          "fullName": "AC-5: full acceptance not claimed; local contributions and remaining prerequisites are recorded separately",
+          "status": "pending"
+        },
+        {
+          "fullName": "AC-6: full acceptance not claimed; local contributions and remaining prerequisites are recorded separately",
+          "status": "pending"
+        },
+        {
+          "fullName": "AC-7: full acceptance not claimed; local contributions and remaining prerequisites are recorded separately",
+          "status": "pending"
+        },
+        {
+          "fullName": "AC-8: full acceptance not claimed; local contributions and remaining prerequisites are recorded separately",
+          "status": "pending"
+        },
+        {
+          "fullName": "AC-9: full acceptance not claimed; local contributions and remaining prerequisites are recorded separately",
+          "status": "pending"
+        }
+      ]
+    }
+  ]
+}

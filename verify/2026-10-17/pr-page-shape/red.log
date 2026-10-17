@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "<stdin>", line 40, in <module>
+  File "/private/tmp/factory-pr-page-shape-fix-20261017/.claude/scripts/factory-digest.py", line 94, in discover
+    result = discovery.scan(db, api, self.stream, self.repository, self.branch, origin, stamp(end))
+  File "/private/tmp/factory-pr-page-shape-fix-20261017/.claude/scripts/factory-reporting-pr-discovery.py", line 76, in scan
+    raw=api.request(endpoint)
+  File "/private/tmp/factory-pr-page-shape-fix-20261017/.claude/scripts/factory-reporting-transport.py", line 153, in request
+    if not paginate:return self._once(path,method,payload,raw)
+                           ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-pr-page-shape-fix-20261017/.claude/scripts/factory-reporting-transport.py", line 137, in _once
+    result = process.run(command,env=env,cwd=Path.cwd(),timeout=60,limit=MAX_RESPONSE,
+                         aggregate_limit=MAX_RESPONSE,stdin=source if encoded is not None else None)
+  File "<stdin>", line 31, in run
+AssertionError

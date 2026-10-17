@@ -1,0 +1,17 @@
+resumed actual captured1001 retained prefix=9c5c643ca0d52419ff9bf713a0451663ab302d69; fresh synthetic current metadata matches original constructor; no new append claim
+actual1001source rows partitioned beyondclamped1000API; protectedwatch progress persisted
+actual protectedstage page=1; authenticatedfacts=105
+exact resumed phase preserved=/var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/t287-resumed-exact-phase-6qox4wr4
+Traceback (most recent call last):
+  File "/private/tmp/t287-resume-full-prefix.py", line 37, in <module>
+    exec(compile(body,'resumed-actual1001-full-prefix','exec'),namespace)
+    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "resumed-actual1001-full-prefix", line 152, in <module>
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 1136, in stage_projection
+    anchor = verify_bootstrap(api, approval_path)
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 298, in verify_bootstrap
+    require(tree['complete'], 'archive bootstrap tree incomplete; authenticated cursor continuation required')
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/validate-candidate-evidence.py", line 19, in require
+    raise ValueError(message)
+ValueError: archive bootstrap tree incomplete; authenticated cursor continuation required

@@ -1,0 +1,130 @@
+{
+  "production_source": "600e9ff36e4309a213c067f0d02ae31e6b1d2cc9",
+  "fixture_source": "85c91797c065dfabfa9847d93af35100f15bf6da",
+  "fixture_changes": [
+    "factory/policy.json",
+    "factory/receipt-archive-bootstrap.json",
+    "factory/receipt-store.json",
+    "factory/receipt-trust.json"
+  ],
+  "jobs": [
+    {
+      "status": "incomplete",
+      "invocations": 1,
+      "elapsed_seconds": 13.912,
+      "source_sha": "85c91797c065dfabfa9847d93af35100f15bf6da",
+      "child_api_counters_available": false,
+      "retry_policy": "later-job",
+      "observer_calls": 1,
+      "observer_bytes": 126,
+      "reason": "job-invocation-limit",
+      "job": 0,
+      "before": "27c7833ff4901cf8ab91dcc1ffc366f8f1bf4ac6",
+      "after": "278a48eb6598470479dd387202b6e72f4a815742"
+    },
+    {
+      "status": "incomplete",
+      "invocations": 1,
+      "elapsed_seconds": 0.74,
+      "source_sha": "85c91797c065dfabfa9847d93af35100f15bf6da",
+      "child_api_counters_available": false,
+      "retry_policy": "later-job",
+      "observer_calls": 1,
+      "observer_bytes": 126,
+      "reason": "job-invocation-limit",
+      "job": 1,
+      "before": "278a48eb6598470479dd387202b6e72f4a815742",
+      "after": "2f82fb9ec4775f7d2b5802a4c0d30b8f5bd3a51e"
+    }
+  ],
+  "children": [
+    {
+      "pid": 97793,
+      "calls": 734,
+      "bytes": 951362,
+      "provider": {
+        "rest": 734,
+        "graphql": 0
+      },
+      "provider_response_bytes": 951362,
+      "roles": {
+        "source": {
+          "calls": 8,
+          "bytes": 1504,
+          "rest": 8,
+          "graphql": 0
+        },
+        "writer": {
+          "calls": 726,
+          "bytes": 949858,
+          "rest": 726,
+          "graphql": 0
+        }
+      }
+    },
+    {
+      "pid": 137,
+      "calls": 46,
+      "bytes": 39478,
+      "provider": {
+        "rest": 46,
+        "graphql": 0
+      },
+      "provider_response_bytes": 39478,
+      "roles": {
+        "source": {
+          "calls": 0,
+          "bytes": 0,
+          "rest": 0,
+          "graphql": 0
+        },
+        "writer": {
+          "calls": 46,
+          "bytes": 39478,
+          "rest": 46,
+          "graphql": 0
+        }
+      }
+    }
+  ],
+  "fixed_launches": [
+    [
+      "/opt/homebrew/opt/python@3.14/bin/python3.14",
+      "-I",
+      "/private/tmp/factory-driver-public-roles-case-20261017/checkout/.claude/scripts/factory-git-state.py",
+      "--config",
+      "/private/tmp/factory-driver-public-roles-case-20261017/config.json"
+    ],
+    [
+      "/opt/homebrew/opt/python@3.14/bin/python3.14",
+      "-I",
+      "/private/tmp/factory-driver-public-roles-case-20261017/checkout/.claude/scripts/factory-git-state.py",
+      "--config",
+      "/private/tmp/factory-driver-public-roles-case-20261017/config.json"
+    ]
+  ],
+  "dispatch_seam": "fixed child command redirected only to fresh Python-I bootstrap running actual byte-identical CLI __main__; exact gh boundary uses existing synthetic REST/real fixture GraphQL provider",
+  "producer_regenerated": false,
+  "seeded_ready": false,
+  "confirmed_no_send": "pending owner complete-state copy",
+  "full_cadence_proven": false,
+  "observer_provider": {
+    "rest": 2,
+    "graphql": 0
+  },
+  "observer_roles": {
+    "source": {
+      "calls": 0,
+      "bytes": 0,
+      "rest": 0,
+      "graphql": 0
+    },
+    "writer": {
+      "calls": 2,
+      "bytes": 252,
+      "rest": 2,
+      "graphql": 0
+    }
+  },
+  "provider_fixture_sha256": "a7e6a8dddcef70cc49d4816a8c7b410c883066d2b47406278bee9bba8dbf4b00"
+}

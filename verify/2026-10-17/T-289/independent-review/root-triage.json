@@ -1,0 +1,16 @@
+{
+  "review": "Actual Sonnet5.5 static review57447",
+  "source_snapshot_matches_integrated_commit": true,
+  "findings": [
+    {
+      "title": "interval ordering",
+      "status": "disproved by actual invoked coverage validator",
+      "evidence": "factory-receipt-discovery.py:722 requires low <= high <= current time; immutable context excerpt retained. No added duplicate check or schema change."
+    },
+    {
+      "title": "unstructured RuntimeError/sqlite failures",
+      "status": "accepted; minimal follow-up implementation and actual regression pending"
+    }
+  ],
+  "completion": "T289 remains under review until accepted finding fixed and verified; no native claim"
+}

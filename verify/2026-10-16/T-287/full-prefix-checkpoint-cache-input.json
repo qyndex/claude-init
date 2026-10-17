@@ -1,0 +1,18 @@
+{
+  "timestamp": "2026-10-16T08:13:45.363957+00:00",
+  "actual_command": "python3 -u /private/tmp/t287-resume-full-prefix.py",
+  "resumed_actual_prefix": "actual source-complete snapshot /var/folders/40/pjsx1gg17p91kdvfrzgjc2_00000gn/T/t287-resumed-exact-phase-2hawtljd",
+  "new_append_claim": false,
+  "driver_sha256": "461822ee24e26f2f4b8a28afdb12bddcbcb392b7f58e55b7c70a4160aff7f404",
+  "files": {
+    ".claude/scripts/factory-receipt-archive.py": "bab6961592bb742e4f1cff1b1effc1f50eea45d882e33e90d6d650b236ec5a3b",
+    ".claude/scripts/factory-receipt-discovery.py": "df2abff7fa48d6c3bceb825eed7c282b753885b5ef82db1df4be290ea1438432",
+    ".claude/scripts/factory-state-paths.py": "0648487106251e765e7f0a4504d510606970c6bab1f2b4024dc21c4e6bc487dd",
+    ".claude/scripts/factory-git-state.py": "a6277a1a849c913e5a295f369c9b6da4238001c43f38fbe1463dd23213078e33",
+    ".claude/scripts/test/factory-receipt-history.sh": "9602dd839d5fd42adcaa9f0a719679a9b209cec32d49e0ad0c71c4fa48f31fac",
+    ".claude/scripts/test/factory-receipt-history-reader.py": "b9dc67a41ccb077b04466733c9a61839a85815d66196b4cfbab10d4fc71e4d47",
+    ".claude/scripts/test/factory-receipt-blob-provider.py": "c9ff59bd49e49164e96f3405f1d0f5c7d6147f3019a4a476cbd52d3a23160dfc",
+    ".claude/scripts/test/factory-receipt-cas.sh": "0f9f6d0a575a4aeaef192a6a9440bb710248512fa440be2404951e43e9e3b9be",
+    ".claude/scripts/test/factory-receipt-projection-windows.sh": "efd69cab45f2107657b862ef2b18ad2230b578a3d2200422f8e7ee8ea015b6e7"
+  }
+}

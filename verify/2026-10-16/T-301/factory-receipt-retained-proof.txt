@@ -1,0 +1,3 @@
+20 retained proof expiry/restart/revocation/privacy/origin/atomic-conflict scenarios passed
+
+exit_code: 0

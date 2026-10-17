@@ -1,0 +1,8 @@
+{
+  "head": "d965ac0c2e2b59cdc68f7f8f4f93ab8f62978c3c",
+  "prompt_sha256": "f1110ba1ef78d1213508d70cc014660ae8a5cc8cefdaf8e328a0d49e40f585d2",
+  "scope": "signature-contract",
+  "files": {
+    ".claude/scripts/factory-operational-proof.py": "82f051c273ab3cff5e484e902dbecf38b7c647b9c84390a7703255370fc5a0a1"
+  }
+}

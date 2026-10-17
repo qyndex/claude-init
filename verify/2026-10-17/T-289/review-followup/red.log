@@ -1,0 +1,18 @@
+Traceback (most recent call last):
+  File "<stdin>", line 77, in <module>
+  File "readiness-wrapper", line 107, in <module>
+  File "readiness-real-git", line 163, in <module>
+  File "readiness-real-git", line 158, in check
+  File "/private/tmp/factory-t289-readiness-20261017/.claude/scripts/factory-preflight.py", line 34, in reporting_readiness
+    anchor = archive.verify_bootstrap(state, approval)
+  File "/private/tmp/factory-t289-readiness-20261017/.claude/scripts/factory-receipt-archive.py", line 295, in verify_bootstrap
+    context = _bootstrap_context(api, approval_path, now=now)
+  File "/private/tmp/factory-t289-readiness-20261017/.claude/scripts/factory-receipt-archive.py", line 207, in _bootstrap_context
+    repo = read(root)
+  File "/private/tmp/factory-t289-readiness-20261017/.claude/scripts/factory-receipt-archive.py", line 199, in read
+    value = api.request(path)
+  File "/private/tmp/factory-t289-readiness-20261017/.claude/scripts/factory-reporting-receipts.py", line 45, in request
+    return self.api.request(path, method, payload)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "readiness-real-git", line 162, in request
+RuntimeError: private provider diagnostic must not reach JSON

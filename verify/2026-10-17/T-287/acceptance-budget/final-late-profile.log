@@ -1,0 +1,33 @@
+Counter({'hash-object': 0.4912005899241194, 'write-tree': 0.46335853994241916, 'update-index': 0.34312845722888596, 'commit-tree': 0.21941791410790756, 'update-ref': 0.1985122099868022, 'read-tree': 0.021842250018380582}) Counter({'hash-object': 82, 'update-index': 34, 'write-tree': 34, 'commit-tree': 34, 'update-ref': 34, 'read-tree': 1})
+late-size16 actualappends+origin with immutablewarmDAG:  {'status': 'appended', 'head': '0c7ac790734b83b20115dcef2a4704b861ae35e8', 'record_sha256': '25c4d9fbd6ea14bdd84f61a1ea57729bd919879e13547fcc108b922f410ef72b'}
+         5424313 function calls (5312987 primitive calls) in 3.274 seconds
+
+   Ordered by: cumulative time
+   List reduced from 578 to 25 due to restriction <25>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+     3330    0.012    0.000    2.360    0.001 late-command-timing:104(request)
+       16    0.004    0.000    2.265    0.142 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/factory-receipt-archive.py:428(append_delivery)
+      407    0.003    0.000    2.196    0.005 late-command-timing:89(git)
+      219    0.006    0.000    1.739    0.008 late-command-timing:170(original_git)
+      219    0.002    0.000    1.732    0.008 late-command-timing:17(git)
+      219    0.007    0.000    1.730    0.008 /opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py:513(run)
+     2775    0.004    0.000    1.588    0.001 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/factory-receipt-archive.py:467(request)
+      506    0.001    0.000    1.373    0.003 late-command-timing:73(request)
+      219    0.001    0.000    1.366    0.006 /opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py:1177(communicate)
+      219    0.011    0.000    1.365    0.006 /opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py:2093(_communicate)
+      714    0.004    0.000    1.338    0.002 /opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/selectors.py:385(select)
+      714    1.333    0.002    1.333    0.002 {method 'poll' of 'select.poll' objects}
+       16    0.001    0.000    1.069    0.067 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/factory-receipt-archive.py:293(verify_bootstrap)
+       18    0.003    0.000    1.002    0.056 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/factory-receipt-archive.py:793(advance_origin)
+      472    0.002    0.000    0.931    0.002 late-command-timing:26(request)
+     1275    0.002    0.000    0.834    0.001 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/factory-receipt-archive.py:809(request)
+      270    0.011    0.000    0.767    0.003 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/factory-state-paths.py:117(scan_delta)
+     2412    0.052    0.000    0.751    0.000 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/factory-state-paths.py:141(children)
+     4024    0.006    0.000    0.741    0.000 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/factory-receipt-archive.py:192(read)
+      154    0.000    0.000    0.452    0.003 late-command-timing:18(out)
+       16    0.000    0.000    0.449    0.028 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/factory-receipt-archive.py:239(_completed_origin)
+    84076    0.121    0.000    0.441    0.000 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/factory-state-paths.py:16(validate_entry)
+       34    0.027    0.001    0.424    0.012 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/test/factory-receipt-git-objects.py:98(path_history)
+    10717    0.054    0.000    0.394    0.000 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/test/factory-receipt-git-objects.py:82(path_oid)
+    33147    0.059    0.000    0.364    0.000 /private/tmp/t287-fixture-performance-20261017/.claude/scripts/test/factory-receipt-git-objects.py:28(read)

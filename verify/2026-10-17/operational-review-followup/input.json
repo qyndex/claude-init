@@ -1,0 +1,25 @@
+{
+  "base": "d965ac0c2e2b59cdc68f7f8f4f93ab8f62978c3c",
+  "files": {
+    ".claude/scripts/factory-operational-proof.py": "18bc8ca9b40bfbde55c3640caf712d5aa7c4274e2398b023e150fbdc2e5901aa",
+    ".claude/scripts/factory-operational-producer.py": "80747df33abeb660f615669ae32c44bb41e9a2171e14600d314b471b1394d41b",
+    ".claude/scripts/test/factory-operational-proof.sh": "e53ee1493adf79cf97cab5c6c420583fd1aa2b7caa40f912afd36a1cc4e2036e",
+    ".claude/scripts/test/factory-operational-producer.sh": "7508fd91801ee5b0971114699553a9b5a7932604fe1cd40e403c49da638230bf",
+    ".claude/scripts/factory-operational-replay.py": "bf3ae38739df7a0b17fbea15715cb5d5b9267a9b9af6a1ba49e8cd511c15a5f7",
+    ".claude/scripts/test/factory-operational-replay.sh": "d9b07e5d32411c9a9c61378ee34b0497c90e49ae5542bcf2066f234777205f35"
+  },
+  "commands": {
+    "proof": "bash .claude/scripts/test/factory-operational-proof.sh",
+    "producer": "bash .claude/scripts/test/factory-operational-producer.sh",
+    "replay": "bash .claude/scripts/test/factory-operational-replay.sh"
+  },
+  "results": {
+    "signature_red": 1,
+    "inventory_red": 1,
+    "signature_green": 0,
+    "inventory_green": 0,
+    "replay_green": 0
+  },
+  "python_path": "/Users/shravanjha/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin",
+  "scope": "synthetic verifier/native API fixtures; real Git inventory/CAS; not native activation"
+}

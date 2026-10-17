@@ -1,0 +1,51 @@
+# TDD ledger — green — T-290
+ledger_format: 2
+timestamp: 2026-10-17T04:44:49+11:00
+command: bash .claude/scripts/test/factory-receipt-continuation.sh
+exit_code: 0
+---
+public step 1 incomplete backfill
+public step 2 incomplete backfill
+public step 3 incomplete origin
+public step 4 incomplete backfill
+public step 5 incomplete origin
+public step 6 incomplete review
+public step 7 incomplete checkpoint
+public step 8 incomplete checkpoint
+public step 9 incomplete stage
+public step 10 incomplete ready
+public step 11 delivered None
+public step 12 incomplete backfill
+public step 13 incomplete backfill
+public step 14 incomplete origin
+public step 15 incomplete backfill
+public step 16 incomplete origin
+public step 17 incomplete review
+public step 18 incomplete checkpoint
+public step 19 incomplete checkpoint
+public step 20 incomplete stage
+public step 21 incomplete ready
+public step 22 delivered None
+public step 23 not-due None
+actual public partial-old-first then next-day rollover, late manual merge, immutable prior receipt/payload and no resend PASS
+PASS actual expired-artifact retained proof, withdrawn annotations, foreign/private/race negatives; GET-only state
+PASS actual renderer explicitly labels withdrawn evidence while preserving proof attribution
+PASS invalid/default receipt modes, fixed byte-exact legacy payload and pending mode-switch immutability
+PASS raw receipt tables without validated coverage cannot authorize durable reporting
+PASS actual helper marker+withdrawn proof retains attribution through durable digest
+PASS actual earlier protected projection rejects without changing reporting bytes
+PASS actual projection coverage bounds new digest cutoff
+PASS destination triggers/schema/conflicting/disappearing facts and final-insert rollback preserve bytes
+PASS missing/foreign/origin coverage gaps reject new batch without state change
+PASS actual protected reconstruction+coverage transfer: expiry/read-only/restart/private/task preservation
+PASS durable missing/withdrawn/fractional-time/interval facts fail closed; legacy default rendering unchanged
+PASS actual active/withdrawn reevaluation preserves already-delivered immutable payload and fixture message
+AC-1: authenticated artifact metadata, policy pins, source and archive integrity negatives reject forged delivery receipts
+AC-2: actual receipt ingestion binds merged PR, current approved task revision and immutable authenticated provenance
+AC-3: actual liveness guardian cleanup fences interrupted attempts and preserves uncertain external effects
+AC-4: real SIGKILL, cleanup, bounded fenced retry and stale guardian drills grant no engineering or merge verdict
+AC-1: actual shared OS writer and nested-lock races preserve single-owner mutations
+AC-2: actual foreground claim, heartbeat and worker exit advance only to verifying or blocked
+AC-3: timeout, cancellation, lease loss, background rejection and active-claim fencing preserve bounded worker lifetime
+AC-4: detached supervisor and actual nightly foreground launcher fixtures retain lock ownership and terminate on timeout
+{"all_history_complete": false, "checks": [{"command": "bash .claude/scripts/test/factory-reporting-rollover.sh", "exit_code": 0, "test_sha256": "a9e6d2cd68384f05247c7823c72b1ba93eea042f831fca309062bc6433c5f381"}, {"command": "bash .claude/scripts/test/factory-receipt-readiness.sh", "exit_code": 0, "test_sha256": "92291ea3a62085868e5ca0daf129ae0cbceb967a3a5569d32101c08398c1fe2f"}, {"command": "bash .claude/scripts/test/factory-reporting-receipt-transfer.sh", "exit_code": 0, "test_sha256": "7c2918e268937339354d7ccbcf86993746109bf4a22fb2e250dede08a408ae3f"}, {"command": "bash .claude/scripts/test/factory-receipts-recovery.sh", "exit_code": 0, "test_sha256": "12288ad2a31e762b01131b7ad80c83a93991640f8c80d655e076c4a5c844b5a3"}, {"command": "bash .claude/scripts/test/factory-supervisor.sh", "exit_code": 0, "test_sha256": "1db32a0992f97dd676ccb1142fc0ed2dee6cd692fbf070e388f5c313e95ebb42"}], "elapsed_seconds": 232.278, "native_app_private_cadence_cutover": "not_checked", "runtime_reuse": {".claude/scripts/factory-runtime.py": "a69ec22bbd6fd9403cc70f93b3e2c38554603d97d99cdaf06df27f4470983f45", ".claude/scripts/test/factory-runtime.sh": "0cee0f6056f2783ac0f66e47b1b67946d123a916c54945c674d5c9d924679c5d"}, "scope": "local retained continuation and actual process recovery", "task_credit": false}

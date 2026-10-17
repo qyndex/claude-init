@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "/private/tmp/t286-partition-count-replay.py", line 24, in <module>
+    exec(compile(fixture+pipeline+setup+extra,'actual-partition-count-inconsistency','exec'))
+    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "actual-partition-count-inconsistency", line 160, in <module>
+AssertionError: {'source_partition_complete': True, 'frozen_projection_complete': True, 'coverage_complete': True, 'all_history_complete': False, 'task_credit': False, 'gaps': [], 'verified_until': '2026-10-15T23:00:00Z', 'repository': 'org/repo', 'observed_head': '41c6b68b8e30ae93e33833e11caa034770684542', 'coverage_from': '2026-10-15T00:00:00Z', 'source_epoch': 1, 'retained_attempts': 2, 'withdrawn_attempts': 0}

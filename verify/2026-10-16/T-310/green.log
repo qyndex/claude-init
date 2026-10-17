@@ -1,0 +1,7 @@
+# TDD ledger — green — T-310
+ledger_format: 2
+timestamp: 2026-10-16T15:45:16+11:00
+command: bash .claude/scripts/test/factory-receipt-completed-origin.sh
+exit_code: 0
+---
+completed-origin: PASS; real300-history completed-origin append/discovery/projection/retained/fresh-process and strict partial/copy/schema/delta/bootstrap/merge/inert-tree/mutable-policy/App-writer/suffix-bound checks passed

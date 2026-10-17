@@ -1,0 +1,10 @@
+{
+  "parent": "30ef054fb4f00abd4d1bc70b1799ac4670acb718",
+  "sha256": {
+    ".claude/scripts/factory-reporting-queue.py": "048a681426ec707e7a2f49c433dab55de41c703fac04cf90fba0baa1f8d6ffea",
+    ".claude/scripts/test/factory-reporting-queue-immutable.sh": "5bbdcfbfb6f3b29b97938482bc2a732464acf8b860d7dedb40362dfaeb62c2dc"
+  },
+  "red_exit": 1,
+  "green_exit": 0,
+  "scheduled_exit": 0
+}

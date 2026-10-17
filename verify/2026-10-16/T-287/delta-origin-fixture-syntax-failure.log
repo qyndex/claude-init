@@ -1,0 +1,4 @@
+  File "<stdin>", line 25
+    pipeline=Path('.claude/scripts/test/factory-receipt-projection-windows.sh').read_text().split("cases=r'''\n",1)[1].split(' # Two distinct approved tasks',1)[0]
+                                                                                                                                                                   ^
+SyntaxError: unexpected character after line continuation character

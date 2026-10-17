@@ -1,0 +1,12 @@
+# TDD ledger — red — T-330
+ledger_format: 2
+timestamp: 2026-10-17T00:59:40+11:00
+command: bash .claude/scripts/test/factory-reporting-policy.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+existing exact full-metadata real-Git bootstrap passes before new feature
+Traceback (most recent call last):
+  File "<stdin>", line 185, in <module>
+  File "reporting-positive-policy-fixture", line 232, in <module>
+AssertionError: schema2 publications rejected: ['append/State: archive writer protection changed before append', 'append/HiddenWriter: archive writer protection changed before append', 'checkpoint/State: discovery protection changed before checkpoint', 'checkpoint/HiddenWriter: discovery protection changed before checkpoint']

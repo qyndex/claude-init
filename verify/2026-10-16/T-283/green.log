@@ -1,0 +1,7 @@
+# TDD ledger — green — T-283
+ledger_format: 2
+timestamp: 2026-10-16T10:47:06+11:00
+command: bash .claude/scripts/test/factory-receipt-retained-proof.sh
+exit_code: 0
+---
+20 retained proof expiry/restart/revocation/privacy/origin/atomic-conflict scenarios passed

@@ -1,0 +1,7 @@
+# TDD ledger — green — T-301
+ledger_format: 2
+timestamp: 2026-10-16T12:19:49+11:00
+command: bash .claude/scripts/test/factory-receipt-projection-checkpoint.sh
+exit_code: 0
+---
+20 protected projection checkpoint/CAS/lostack/history/origin/preservation cases passed

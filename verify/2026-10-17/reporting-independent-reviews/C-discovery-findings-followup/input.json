@@ -1,0 +1,22 @@
+{
+  "head": "4ae9ee214d41734a8f58fbeca237203c4627ce58",
+  "prompt_sha256": "3dc1ad90fd19371e819f2cb31d9ed7f0ae96a3a9de33d7c1fa47050dd047e534",
+  "prompt_bytes": 95729,
+  "review_files": [
+    {
+      "path": ".claude/scripts/factory-receipt-discovery.py",
+      "start": 1,
+      "end": 843,
+      "sha256": "006de7e9c00e65de817ac6e17bb8ea7c90232b5336fb5d64d5854a1e5e7ce034",
+      "range_sha256": "006de7e9c00e65de817ac6e17bb8ea7c90232b5336fb5d64d5854a1e5e7ce034"
+    },
+    {
+      "path": ".claude/scripts/test/factory-receipt-discovery-review.sh",
+      "start": 1,
+      "end": 90,
+      "sha256": "974edf32c61b33dcab00be5ce70e554abba25d0e2783dfc6bfb2bd2743c5091b",
+      "range_sha256": "974edf32c61b33dcab00be5ce70e554abba25d0e2783dfc6bfb2bd2743c5091b"
+    }
+  ],
+  "static_only": true
+}

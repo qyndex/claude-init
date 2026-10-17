@@ -1,0 +1,9 @@
+{
+  "base": "db582b0092bc5374a6166e9d35138387b2c9f2b7",
+  "red_exit": 1,
+  "green_exit": 0,
+  "green_log": "green-local-process.log",
+  "offline_stub_only": true,
+  "source_change": "exact /pulls collection uses existing readonly source route",
+  "task_closed": false
+}

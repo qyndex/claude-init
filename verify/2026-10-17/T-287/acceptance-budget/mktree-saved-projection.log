@@ -1,0 +1,1 @@
+{"fresh_process": true, "result": {"projection_complete": true, "coverage_complete": false, "facts_count": 1001, "interval_facts_count": 1001, "frozen_head": "19fc88c77cb47243fac1ca5a8fc0071b504319ef", "suffix_pending": true}, "sqlite_counts": {"delivery_receipts": 1001, "delivery_provenance": 1001, "delivery_times": 1001, "delivery_trust": 1001, "delivery_interval": 1001}}

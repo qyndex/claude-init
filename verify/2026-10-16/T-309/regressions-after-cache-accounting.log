@@ -1,0 +1,8 @@
+Suite: factory-receipt-origin-windows
+origin windows: PASS; real300-commit history, fresh Python process restarts, strict frozen coverage, concurrency/tamper/merge/intermediate executable negatives, encrypted bytes, checkpoint-only publication, copied bootstrap, partial tree and global byte-budget negatives
+Suite: factory-receipt-projection-time
+20 protected retained PR merge-time cases passed; no inferred dates or task credit
+Suite: factory-receipt-projection-stage
+17 real Git protected stage/CAS/lostack/restart/global conflict/gap/namespace/mutable-origin cases passed; no task credit
+Suite: factory-receipt-retained-proof
+20 retained proof expiry/restart/revocation/privacy/origin/atomic-conflict scenarios passed

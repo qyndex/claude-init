@@ -1,0 +1,10 @@
+# TDD ledger — red — T-290
+ledger_format: 2
+timestamp: 2026-10-17T04:33:46+11:00
+command: cd /private/tmp/factory-t290-regression-baseline-20261017 && bash .claude/scripts/test/factory-receipt-continuation.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 8, in <module>
+AssertionError: retained continuation lacks actual read-only readiness composition

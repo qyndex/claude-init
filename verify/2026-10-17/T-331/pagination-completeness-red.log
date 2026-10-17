@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "<stdin>", line 54, in <module>
+  File "<stdin>", line 24, in reject
+AssertionError: accepted pagination

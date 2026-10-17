@@ -1,0 +1,428 @@
+Independent scoped review of committed T334 interval namespace boundary. Review correctness/security and actionable regressions of THIS DIFF only. Parent maintenance orchestration remains pending and is not claimed complete. Default interval_scoped=False must preserve legacy behavior. True mode must derive immutable namespace from authenticated origin, requested interval, actual selected discovery count and policy; permit new days and same-period late facts while retaining historical readers and rechecking current revocations. Do not request optional new policies or whole-factory live proof. SourceAPI and existing validators retain their baseline contracts. Flag concrete flaws with path/line and exploit/failure condition; pass if none. This is static review only, not execution or native attestation.
+
+commit 108d0f447fbc7719099dab318e842ca18097f942
+Author: Shravan Jha <shravan.jha@gmail.com>
+Date:   Sat Oct 17 01:18:36 2026 +1100
+
+    feat(factory): retain additive reporting interval snapshots
+    
+    Derive interval namespaces from protected origin and selected retained state so
+    new days and late appends preserve previous checked snapshots.
+    
+    Confidence: high
+    Scope-risk: localized
+    Not-tested: maintenance orchestration and live activation remain pending
+    Spec: 014
+    Plan: plans/active/014-authenticated-receipt-recovery.md
+    Task: T-334
+
+diff --git a/.claude/scripts/factory-receipt-archive.py b/.claude/scripts/factory-receipt-archive.py
+index c810619..9760289 100755
+--- a/.claude/scripts/factory-receipt-archive.py
++++ b/.claude/scripts/factory-receipt-archive.py
+@@ -345,6 +345,41 @@ def verify_bootstrap(api, approval_path, *, now=None):
+             'writer_app_id': approval['writer_app_id'], 'policies': approval['policies'], 'approval_sha256': digest(canonical(approval))}
+ 
+ 
++def interval_scope(anchor, stream, interval_end, interval_scoped):
++    """Namespace selector only; the caller must independently authenticate anchor."""
++    require(type(interval_scoped) is bool and stream==archive_stream(anchor['repository'])
++            and state_paths.valid_hash(anchor['approval_sha256'],64), 'interval scope binding invalid')
++    if not interval_scoped:return stream
++    require(type(interval_end) is str and len(interval_end)<=40, 'interval scope cutoff invalid')
++    cutoff=instant(interval_end)
++    require(cutoff.microsecond==0, 'interval scope requires exact seconds')
++    return digest(canonical(['reporting-receipt-interval-v1',anchor['repository'],stream,
++                             anchor['approval_sha256'],cutoff.isoformat()]))
++
++
++def projection_scope(api, anchor, policy, stream, interval_end, interval_scoped, *, tree_sha=None):
++    """Derive a revision from authenticated snapshot contents, never a caller count."""
++    base=interval_scope(anchor,stream,interval_end,interval_scoped)
++    if not interval_scoped:return base
++    tree=anchor['tree'] if tree_sha is None else tree_sha
++    require(state_paths.valid_hash(tree,40), 'projection interval tree identity invalid')
++    _,blob_at=fixed_reader(api,'repos/'+api.repo)
++    raw=blob_at(tree,'receipt-archive/discovery/'+stream+'.json')
++    count=0
++    if raw is not None:
++        journal=document(raw)
++        require(type(journal) is dict and set(journal)=={'schema_version','repository','stream','coverage_from','next_segment','records_count'}
++                and type(journal['schema_version']) is int and journal['schema_version']==1
++                and journal['repository']==api.repo and journal['stream']==stream and journal['coverage_from']==anchor['coverage_from']
++                and type(journal['next_segment']) is int and 0<=journal['next_segment']<10**12
++                and type(journal['records_count']) is int and journal['records_count']==journal['next_segment'],
++                'projection interval retained counter differs')
++        count=journal['records_count']
++    # Missing journal is only a namespace hint. The window still independently
++    # proves empty archive namespaces before it can publish an empty snapshot.
++    return digest(canonical([base,count,receipts.coordinator.policy_hash(policy)]))
++
++
+ def coverage_status(bootstrap, timestamp, *, available):
+     """Classify proof availability without resetting origin or authorizing delivery."""
+     require(type(available) is bool, 'archive availability must be explicit')
+@@ -914,7 +949,7 @@ def _projection_checkpoint(value, binding):
+     return value
+ 
+ 
+-def checkpoint_projection(state_api, policy, trust_path, store, approval_path, stream, *, interval_end, limit=32):
++def checkpoint_projection(state_api, policy, trust_path, store, approval_path, stream, *, interval_end, limit=32, interval_scoped=False):
+     """Publish one checked window; no caller cursor or facts are accepted.
+ 
+     A fixed bounded file links previous immutable Git blobs. Each publication
+@@ -947,10 +982,11 @@ def checkpoint_projection(state_api, policy, trust_path, store, approval_path, s
+                 immutable[path] = encoded; cached_bytes += size
+             return value
+ 
+-    api = Bounded(); path = 'receipt-archive/projection/'+stream+'.json'; uncertain = False
++    api = Bounded(); uncertain = False
+     for attempt in range(3):
+         anchor = verify_bootstrap(api, approval_path)
+         require(store == {'repository': api.repo, 'visibility': 'private' if anchor['private'] else 'public'}, 'projection checkpoint visibility differs')
++        path = 'receipt-archive/projection/'+projection_scope(api,anchor,policy,stream,interval_end,interval_scoped)+'.json'
+         approval = document(Path(approval_path).read_bytes())
+         binding = {key: approval[key] for key in ('repository', 'repository_id', 'private', 'branch', 'bootstrap_sha', 'bootstrap_tree', 'coverage_from', 'writer_app_id', 'policies')}
+         binding.update(stream=stream, approval_sha256=digest(canonical(approval)), policy_sha256=receipts.coordinator.policy_hash(policy), interval_end=interval_end)
+@@ -1016,7 +1052,7 @@ def checkpoint_projection(state_api, policy, trust_path, store, approval_path, s
+     raise ValueError('projection checkpoint three CAS attempts exhausted; progress incomplete')
+ 
+ 
+-def projection_lineage(state_api, policy, trust_path, store, approval_path, stream, *, interval_end, page=1, limit=32, history_head=None):
++def projection_lineage(state_api, policy, trust_path, store, approval_path, stream, *, interval_end, page=1, limit=32, history_head=None, interval_scoped=False):
+     """Read a bounded page of actual protected checkpoint publications.
+ 
+     A caller page/SHA identifies requested work, never origin. Current protected
+@@ -1062,7 +1098,7 @@ def projection_lineage(state_api, policy, trust_path, store, approval_path, stre
+     _origin_ancestor(api.request, root, selected, anchor['head'])
+     selected_commit = api.request(root+'/git/commits/'+selected)
+     require(selected_commit['sha'] == selected, 'projection lineage history identity differs')
+-    path = 'receipt-archive/projection/'+stream+'.json'; item_at, blob_at = fixed_reader(api, root)
++    path = 'receipt-archive/projection/'+projection_scope(api,anchor,policy,stream,interval_end,interval_scoped,tree_sha=selected_commit['tree']['sha'])+'.json'; item_at, blob_at = fixed_reader(api, root)
+     require(item_at(anchor['bootstrap_tree'], path) is None, 'projection lineage pre-bootstrap requires explicit reviewed import')
+     rows = api.request(root+'/commits?sha='+selected+'&path='+quote(path, safe='')+'&per_page='+str(limit)+'&page='+str(page))
+     require(type(rows) is list and len(rows) <= limit, 'projection lineage publication list differs')
+@@ -1139,7 +1175,7 @@ def retained_merge_time(state_api, policy, store, approval_path, stream, run_id,
+     return result
+ 
+ 
+-def stage_projection(state_api, policy, trust_path, store, approval_path, stream, *, interval_end, page=1, offset=0, limit=8, history_head=None):
++def stage_projection(state_api, policy, trust_path, store, approval_path, stream, *, interval_end, page=1, offset=0, limit=8, history_head=None, interval_scoped=False):
+     """Derive one protected bounded slice; no supplied facts/cursors are authority.
+ 
+     Conflict indices cover this frozen interval/trust campaign, not all history.
+@@ -1169,7 +1205,7 @@ def stage_projection(state_api, policy, trust_path, store, approval_path, stream
+     for retry in range(3):
+         anchor = verify_bootstrap(api, approval_path)
+         approval_raw = Path(approval_path).read_bytes(); trust_hash = digest(Path(trust_path).read_bytes())
+-        lineage = projection_lineage(api, policy, trust_path, store, approval_path, stream, interval_end=interval_end, page=page, limit=1, history_head=selected)
++        lineage = projection_lineage(api, policy, trust_path, store, approval_path, stream, interval_end=interval_end, page=page, limit=1, history_head=selected, interval_scoped=interval_scoped)
+         selected = lineage['history_head']
+         require(len(lineage['windows']) == 1, 'projection stage required window missing')
+         window = lineage['windows'][0]; checkpoint = window['checkpoint']
+@@ -1288,7 +1324,7 @@ def _retained_time_from_anchor(api, anchor, store, stream, run_id, attempt):
+     return result
+ 
+ 
+-def reconstruct_interval(state_api, policy, db_path, trust_path, store, approval_path, stream, *, interval_end, history_head, campaign):
++def reconstruct_interval(state_api, policy, db_path, trust_path, store, approval_path, stream, *, interval_end, history_head, campaign, interval_scoped=False):
+     """Rebuild a bounded frozen interval from protected stages, never SQLite cursors.
+ 
+     Every retained proof and current trust annotation is checked before SQL writes.
+@@ -1382,7 +1418,7 @@ def reconstruct_interval(state_api, policy, db_path, trust_path, store, approval
+     approval_raw = Path(approval_path).read_bytes(); trust_hash = digest(Path(trust_path).read_bytes())
+     windows = {}; page = 1; previous_blob = None
+     while True:
+-        lineage = projection_lineage(api, policy, trust_path, store, approval_path, stream, interval_end=interval_end, history_head=history_head, page=page, limit=32)
++        lineage = projection_lineage(api, policy, trust_path, store, approval_path, stream, interval_end=interval_end, history_head=history_head, page=page, limit=32, interval_scoped=interval_scoped)
+         for window in lineage['windows']:
+             require(window['publication_sha'] not in windows, 'reconstruction duplicate publication')
+             if windows:
+diff --git a/.claude/scripts/factory-receipt-discovery.py b/.claude/scripts/factory-receipt-discovery.py
+index da4e060..b2bda79 100755
+--- a/.claude/scripts/factory-receipt-discovery.py
++++ b/.claude/scripts/factory-receipt-discovery.py
+@@ -195,7 +195,7 @@ def assess(source_api, api, anchor, policy, trust_path, trust_mode, store, strea
+     raise ArchiveAdvanced()  # Re-read the actual archive head, then use its retained index first.
+ 
+ 
+-def backfill_page(source_api, anchor, policy, stream, interval_end, page_size, blob_at):
++def backfill_page(source_api, anchor, policy, stream, interval_end, page_size, blob_at, *, interval_scoped=False):
+     """Pure bounded partition step; caller must authenticate protected blob origin.
+ 
+     Only _checkpoint publishes changes. Listing facts alone never prove delivery
+@@ -214,7 +214,8 @@ def backfill_page(source_api, anchor, policy, stream, interval_end, page_size, b
+     workflow = policy['receipts']['workflow_id']; root = 'repos/'+anchor['repository']
+     require(source_api.repo == anchor['repository'] == policy['repository']
+             and stream == archive.archive_stream(anchor['repository']), 'backfill repository/stream differs')
+-    path = 'receipt-archive/backfill/'+stream+'.json'
++    scope=archive.interval_scope(anchor,stream,interval_end,interval_scoped)
++    path = 'receipt-archive/backfill/'+scope+'.json'
+     require(blob_at(anchor['bootstrap_tree'], path) is None, 'backfill pre-bootstrap manifest requires explicit reviewed import')
+     raw = blob_at(anchor['tree'], path)
+     expected = {'schema_version': 1, 'repository': anchor['repository'], 'stream': stream,
+@@ -234,7 +235,7 @@ def backfill_page(source_api, anchor, policy, stream, interval_end, page_size, b
+                         and low <= part[0] <= part[1] <= high for part in manifest['stack']), 'backfill frontier malformed')
+     lo, hi = manifest['stack'][-1]
+     identity = archive.digest(archive.canonical([expected, lo, hi]))
+-    part_path = f'receipt-archive/backfill/{stream}/{identity[:2]}/{identity}.json'
++    part_path = f'receipt-archive/backfill/{scope}/{identity[:2]}/{identity}.json'
+     require(blob_at(anchor['bootstrap_tree'], part_path) is None, 'backfill pre-bootstrap partition requires explicit reviewed import')
+     raw = blob_at(anchor['tree'], part_path)
+     part_binding = {'schema_version': 1, 'campaign_sha256': archive.digest(archive.canonical(expected)), 'lo': lo, 'hi': hi}
+@@ -354,7 +355,7 @@ def backfill_page(source_api, anchor, policy, stream, interval_end, page_size, b
+                            'last_round_gaps': manifest['last_round_gaps'], 'partition_phase': node['phase'], 'coverage_complete': False}
+ 
+ 
+-def _checkpoint(source_api, state_api, policy, approval_path, stream, *, page_size=10, tree_pages=1, review_rows=4, mode='discover', trust_path=None, trust_mode='profile', store=None, backfill_end=None):
++def _checkpoint(source_api, state_api, policy, approval_path, stream, *, page_size=10, tree_pages=1, review_rows=4, mode='discover', trust_path=None, trust_mode='profile', store=None, backfill_end=None, interval_scoped=False):
+     """Read actual protected progress, advance one bounded page/scan and CAS atomically.
+ 
+     Only checked scanner output is persisted. No caller checkpoint/cursor input is
+@@ -461,7 +462,7 @@ def _checkpoint(source_api, state_api, policy, approval_path, stream, *, page_si
+             progress['scan'].update(cursor=scan['cursor'], complete=scan['complete'])
+         page = progress['pagination']['next_page']; changes = {}
+         if mode == 'backfill':
+-            rows, observations, _ = backfill_page(source_api, anchor, policy, stream, backfill_end, source_page_size, blob_at)
++            rows, observations, _ = backfill_page(source_api, anchor, policy, stream, backfill_end, source_page_size, blob_at, interval_scoped=interval_scoped)
+             changes.update(observations)
+             response = {'workflow_runs': rows}
+         elif mode == 'discover':
+@@ -603,11 +604,11 @@ def reconcile(source_api, state_api, policy, trust_path, store, approval_path, s
+     return _checkpoint(source_api, state_api, policy, approval_path, stream, mode='review', trust_path=trust_path, trust_mode=trust_mode, store=store, review_rows=review_rows)
+ 
+ 
+-def backfill(source_api, state_api, policy, approval_path, stream, *, interval_end, page_size=100, tree_pages=1):
+-    return _checkpoint(source_api, state_api, policy, approval_path, stream, mode='backfill', backfill_end=interval_end, page_size=page_size, tree_pages=tree_pages)
++def backfill(source_api, state_api, policy, approval_path, stream, *, interval_end, page_size=100, tree_pages=1, interval_scoped=False):
++    return _checkpoint(source_api, state_api, policy, approval_path, stream, mode='backfill', backfill_end=interval_end, page_size=page_size, tree_pages=tree_pages, interval_scoped=interval_scoped)
+ 
+ 
+-def coverage(source_api, state_api, policy, trust_path, store, approval_path, stream, *, interval_end, projection_end, history_head, campaign, page_size=100):
++def coverage(source_api, state_api, policy, trust_path, store, approval_path, stream, *, interval_end, projection_end, history_head, campaign, page_size=100, interval_scoped=False):
+     """Bounded as-observed requested coverage, never future/all-history authority.
+ 
+     Durable partition/watch progress is the resume authority. This read-only
+@@ -691,7 +692,8 @@ def coverage(source_api, state_api, policy, trust_path, store, approval_path, st
+         low, high = second(anchor['coverage_from']), second(interval_end)
+         require(low <= high <= int(datetime.datetime.now(datetime.timezone.utc).timestamp()), 'coverage interval clock invalid')
+         expected = {'schema_version':1,'repository':api.repo,'stream':stream,'binding':binding(anchor),'workflow_id':policy['receipts']['workflow_id'],'source_branch':policy['base_branch'],'page_size':page_size,'interval_start':stamp(low),'interval_end':stamp(high)}
+-        manifest = protected('receipt-archive/backfill/'+stream+'.json')
++        scope=archive.interval_scope(anchor,stream,interval_end,interval_scoped)
++        manifest = protected('receipt-archive/backfill/'+scope+'.json')
+         if manifest is None:return gap('required-source-history-missing')
+         require(type(manifest) is dict and set(manifest) == set(expected)|{'stack','epoch','rounds_observed','round_gaps','last_round_gaps','coverage_complete'} and all(archive.canonical(manifest[key]) == archive.canonical(value) for key,value in expected.items()) and manifest['coverage_complete'] is False, 'coverage source campaign differs')
+         require(all(type(manifest[key]) is int and 0 <= manifest[key] < 10**12 for key in ('epoch','rounds_observed','round_gaps','last_round_gaps')), 'coverage source round malformed')
+@@ -702,7 +704,7 @@ def coverage(source_api, state_api, policy, trust_path, store, approval_path, st
+             nodes += 1
+             if nodes > 128:return gap('source-partition-capacity')
+             lo,hi = frontier.pop(); identity = archive.digest(archive.canonical([expected,lo,hi]))
+-            node = protected(f'receipt-archive/backfill/{stream}/{identity[:2]}/{identity}.json')
++            node = protected(f'receipt-archive/backfill/{scope}/{identity[:2]}/{identity}.json')
+             if node is None:return gap('required-partition-missing')
+             keys = {'schema_version','campaign_sha256','lo','hi','epoch','phase','page','expected_count','seen','facts','reason','observation'}
+             require(type(node) is dict and set(node) == keys and type(node['schema_version']) is int and node['schema_version'] == 1 and node['campaign_sha256'] == archive.digest(archive.canonical(expected)) and type(node['lo']) is int and type(node['hi']) is int and (node['lo'],node['hi']) == (lo,hi) and type(node['epoch']) is int, 'coverage partition binding differs')
+@@ -764,7 +766,7 @@ def coverage(source_api, state_api, policy, trust_path, store, approval_path, st
+                 return gap('required-prior-attempt-history-missing')
+         with tempfile.TemporaryDirectory() as tmp:
+             db=Path(tmp)/'projection.sqlite'
+-            projection=archive.reconstruct_interval(api,policy,db,trust_path,store,approval_path,stream,interval_end=projection_end,history_head=history_head,campaign=campaign)
++            projection=archive.reconstruct_interval(api,policy,db,trust_path,store,approval_path,stream,interval_end=projection_end,history_head=history_head,campaign=campaign,interval_scoped=interval_scoped)
+             result['frozen_projection_complete']=projection['projection_complete']
+             if not projection['projection_complete']:return gap('required-projection-gap')
+             with sqlite3.connect(db) as sql:
+
+
+.claude/scripts/factory-receipt-archive.py verify_bootstrap
+293: def verify_bootstrap(api, approval_path, *, now=None):
+294:     from urllib.parse import quote
+295:     context = _bootstrap_context(api, approval_path, now=now)
+296:     approval, root, repo, read, ref = (context[key] for key in ('approval', 'root', 'repo', 'read', 'ref'))
+297:     ids = set(approval['policies'])
+298:     branch = approval['branch']
+299:     verified_prefix = _completed_origin(api, context)
+300:     head = ref['object']['sha']; sha = head; seen = set(); head_tree = None
+301:     for _ in range(256):
+302:         require(receipts.coordinator.contract.digest(sha, 40) and sha not in seen, 'archive bootstrap ancestry invalid')
+303:         seen.add(sha)
+304:         commit = read(root + '/git/commits/' + sha)
+305:         require(commit['sha'] == sha and receipts.coordinator.contract.digest(commit['tree']['sha'], 40), 'archive bootstrap commit/tree differs')
+306:         tree_sha = commit['tree']['sha']
+307:         if head_tree is None:
+308:             head_tree = tree_sha
+309:         if sha == verified_prefix and sha != approval['bootstrap_sha']:
+310:             break  # Actual protected completed publication already certifies this tree.
+311:         bootstrap = sha == approval['bootstrap_sha']
+312:         if bootstrap:
+313:             require(tree_sha == approval['bootstrap_tree'], 'archive bootstrap tree differs')
+314:         else:
+315:             require(type(commit.get('parents')) is list and len(commit['parents']) == 1
+316:                     and type(commit['parents'][0]) is dict and state_paths.valid_hash(commit['parents'][0].get('sha'), 40),
+317:                     'archive bootstrap ancestry missing or merged')
+318:             parent_sha = commit['parents'][0]['sha']
+319:             parent = read(root+'/git/commits/'+parent_sha)
+320:             require(parent.get('sha') == parent_sha and type(parent.get('tree')) is dict
+321:                     and state_paths.valid_hash(parent['tree'].get('sha'), 40), 'archive bootstrap parent identity/tree differs')
+322:         class Reader:
+323:             repo = api.repo
+324:             request = staticmethod(read)
+325:         cursor = None
+326:         for tree_window in range(10):
+327:             # Conditional deltas gain authority only after EVERY single-parent edge
+328:             # reaches the checked bootstrap or authenticated completed prefix below.
+329:             tree = (state_paths.scan_tree(Reader(), root, tree_sha, cursor=cursor) if bootstrap
+330:                     else state_paths.scan_delta(Reader(), root, tree_sha, parent['tree']['sha'], cursor=cursor))
+331:             if tree['complete']:
+332:                 break
+333:             cursor = tree['cursor']  # Checked in-memory continuation; never external input.
+334:         require(tree['complete'], 'archive bootstrap tree incomplete; authenticated cursor continuation required')
+335:         if bootstrap:
+336:             break
+337:         sha = parent_sha
+338:     else:
+339:         raise ValueError('archive bootstrap ancestry bound reached; explicit coverage gap')
+340:     for identity in sorted(ids):
+341:         require(_approved_policy_digest(read(root + '/rulesets/' + identity), approval, approval_path, now=now) == approval['policies'][identity], 'archive protection changed during verification')
+342:     require(read(root + '/git/ref/heads/' + quote(branch, safe='')) == ref, 'archive state changed during bootstrap verification')
+343:     return {'repository': api.repo, 'repository_id': repo['id'], 'private': repo['private'], 'branch': branch, 'head': head, 'tree': head_tree,
+344:             'bootstrap_sha': approval['bootstrap_sha'], 'bootstrap_tree': approval['bootstrap_tree'], 'coverage_from': approval['coverage_from'],
+345:             'writer_app_id': approval['writer_app_id'], 'policies': approval['policies'], 'approval_sha256': digest(canonical(approval))}
+
+.claude/scripts/factory-receipt-archive.py interval_scope
+348: def interval_scope(anchor, stream, interval_end, interval_scoped):
+349:     """Namespace selector only; the caller must independently authenticate anchor."""
+350:     require(type(interval_scoped) is bool and stream==archive_stream(anchor['repository'])
+351:             and state_paths.valid_hash(anchor['approval_sha256'],64), 'interval scope binding invalid')
+352:     if not interval_scoped:return stream
+353:     require(type(interval_end) is str and len(interval_end)<=40, 'interval scope cutoff invalid')
+354:     cutoff=instant(interval_end)
+355:     require(cutoff.microsecond==0, 'interval scope requires exact seconds')
+356:     return digest(canonical(['reporting-receipt-interval-v1',anchor['repository'],stream,
+357:                              anchor['approval_sha256'],cutoff.isoformat()]))
+
+.claude/scripts/factory-receipt-archive.py projection_scope
+360: def projection_scope(api, anchor, policy, stream, interval_end, interval_scoped, *, tree_sha=None):
+361:     """Derive a revision from authenticated snapshot contents, never a caller count."""
+362:     base=interval_scope(anchor,stream,interval_end,interval_scoped)
+363:     if not interval_scoped:return base
+364:     tree=anchor['tree'] if tree_sha is None else tree_sha
+365:     require(state_paths.valid_hash(tree,40), 'projection interval tree identity invalid')
+366:     _,blob_at=fixed_reader(api,'repos/'+api.repo)
+367:     raw=blob_at(tree,'receipt-archive/discovery/'+stream+'.json')
+368:     count=0
+369:     if raw is not None:
+370:         journal=document(raw)
+371:         require(type(journal) is dict and set(journal)=={'schema_version','repository','stream','coverage_from','next_segment','records_count'}
+372:                 and type(journal['schema_version']) is int and journal['schema_version']==1
+373:                 and journal['repository']==api.repo and journal['stream']==stream and journal['coverage_from']==anchor['coverage_from']
+374:                 and type(journal['next_segment']) is int and 0<=journal['next_segment']<10**12
+375:                 and type(journal['records_count']) is int and journal['records_count']==journal['next_segment'],
+376:                 'projection interval retained counter differs')
+377:         count=journal['records_count']
+378:     # Missing journal is only a namespace hint. The window still independently
+379:     # proves empty archive namespaces before it can publish an empty snapshot.
+380:     return digest(canonical([base,count,receipts.coordinator.policy_hash(policy)]))
+
+.claude/scripts/factory-receipt-archive.py _projection_checkpoint
+934: def _projection_checkpoint(value, binding):
+935:     """Shape/continuity checks only; actual protected publication grants origin."""
+936:     require(type(value) is dict and set(value) == {'schema_version', 'binding', 'frozen_head', 'frozen_tree', 'records_count', 'next_segment', 'window', 'previous_blob', 'publication_parent'}, 'projection checkpoint schema differs')
+937:     require(type(value['schema_version']) is int and value['schema_version'] == 1 and value['binding'] == binding, 'projection checkpoint binding differs')
+938:     require(all(state_paths.valid_hash(value[k], 40) for k in ('frozen_head', 'frozen_tree', 'publication_parent')) and (value['previous_blob'] is None or state_paths.valid_hash(value['previous_blob'], 40)), 'projection checkpoint revision differs')
+939:     require(type(value['records_count']) is int and type(value['next_segment']) is int and 0 <= value['next_segment'] <= value['records_count'] < 10**12, 'projection checkpoint progress differs')
+940:     window = value['window']
+941:     require(type(window) is dict and set(window) == {'start', 'stop', 'references', 'trust_sha256'} and type(window['start']) is int and type(window['stop']) is int and 0 <= window['start'] <= window['stop'] == value['next_segment'] and window['stop']-window['start'] <= 128 and state_paths.valid_hash(window['trust_sha256'], 64), 'projection checkpoint window differs')
+942:     require((window['start'] == 0) == (value['previous_blob'] is None) and type(window['references']) is list and len(window['references']) == window['stop']-window['start'], 'projection checkpoint reference count differs')
+943:     seen = set()
+944:     for number, item in enumerate(window['references'], window['start']):
+945:         require(type(item) is dict and set(item) == {'run_id', 'attempt', 'artifact_id', 'record_sha256', 'segment'} and all(type(item[k]) is int and item[k] > 0 for k in ('run_id', 'attempt', 'artifact_id')) and type(item['segment']) is int and item['segment'] == number and state_paths.valid_hash(item['record_sha256'], 64), 'projection checkpoint reference differs')
+946:         identity = (item['run_id'], item['attempt'])
+947:         require(identity not in seen, 'projection checkpoint duplicate execution')
+948:         seen.add(identity)
+949:     return value
+
+.claude/scripts/test/factory-reporting-intervals.sh
+1: #!/usr/bin/env bash
+2: set -euo pipefail
+3: cd "$(dirname "$0")/../../.."
+4: python3 - <<'PY'
+5: """AC-6/AC-8: two additive actual Git intervals and late retained snapshot revision."""
+6: from pathlib import Path
+7: fixture=Path('.claude/scripts/test/factory-receipt-cas.sh').read_text().split("<<'PY'\n",1)[1].split(" store={'repository'",1)[0]
+8: prefix=Path('.claude/scripts/test/factory-receipt-projection-windows.sh').read_text().split("cases=r'''\n",1)[1].split(' first=a.checkpoint_projection',1)[0]
+9: prefix=prefix.replace('for n in (1,2)}','for n in (1,2,3)}')
+10: cases=r'''
+11:  class TimedState(PipelineState):
+12:   def request(self,target,method='GET',payload=None):
+13:    if method=='GET' and '/pulls/' in target:
+14:     number=int(target.rsplit('/',1)[1]);assert number in (7,8,9)
+15:     return {'number':number,'merged':True,'merge_commit_sha':{7:'b',8:'c',9:'d'}[number]*40,'merged_at':'2026-10-16T00:30:00Z' if number==9 else '2026-10-15T01:00:00.123456Z','base':{'repo':{'id':101,'full_name':'org/repo'}}}
+16:    return super().request(target,method,payload)
+17:  ends=('2026-10-15T23:00:00Z','2026-10-16T01:00:00Z');saved=[]
+18:  for n,end in enumerate(ends):
+19:   result=a.checkpoint_projection(TimedState(),policy,trust,store,approval,stream,interval_end=end,limit=128,interval_scoped=True)
+20:   assert result['frozen_complete'] and result['next_segment']==2
+21:   history=result['head'];name=out('diff-tree','--no-commit-id','--name-only','-r',history);raw=git('show',history+':'+name).stdout
+22:   staged=a.stage_projection(TimedState(),policy,trust,store,approval,stream,interval_end=end,history_head=history,interval_scoped=True)
+23:   database=root/('day'+str(n)+'.sqlite');projected=a.reconstruct_interval(TimedState(),policy,database,trust,store,approval,stream,interval_end=end,history_head=history,campaign=staged['campaign'],interval_scoped=True)
+24:   assert projected['projection_complete'] and projected['facts_count']==2 and projected['coverage_complete'] is False
+25:   saved.append((name,raw,history,staged['campaign']))
+26:  assert saved[0][0]!=saved[1][0] and git('show',ref+':'+saved[0][0]).stdout==saved[0][1]
+27:  # Actual later append cannot be trapped behind an earlier complete same-cutoff snapshot.
+28:  rc=copy.deepcopy(receipt);rc.update(spec='003',task_ids=['T-3'],pull_request=9,merge_sha='d'*40)
+29:  third=Source(policy,rc);third.run['id']=22;third.pr.update(number=9,merge_commit_sha=rc['merge_sha']);third.sources[policy['specs']['003']['path']]=b'approved spec'
+30:  assert a.append_delivery(third,TimedState(),policy,22,trust,store,approval,stream)['status']=='appended'
+31:  revised=a.checkpoint_projection(TimedState(),policy,trust,store,approval,stream,interval_end=ends[0],limit=128,interval_scoped=True)
+32:  assert revised['frozen_complete'] and revised['next_segment']==3,'late append reused stale complete projection namespace'
+33:  assert git('show',ref+':'+saved[0][0]).stdout==saved[0][1],'prior interval snapshot overwritten'
+34:  stage=a.stage_projection(TimedState(),policy,trust,store,approval,stream,interval_end=ends[0],history_head=revised['head'],interval_scoped=True)
+35:  result=a.reconstruct_interval(TimedState(),policy,root/'revised.sqlite',trust,store,approval,stream,interval_end=ends[0],history_head=revised['head'],campaign=stage['campaign'],interval_scoped=True)
+36:  assert result['projection_complete'] and result['facts_count']==3 and result['interval_facts_count']==2
+37:  # The original selected historical snapshot remains independently reconstructable.
+38:  old=a.reconstruct_interval(TimedState(),policy,root/'historical.sqlite',trust,store,approval,stream,interval_end=ends[0],history_head=saved[0][2],campaign=saved[0][3],interval_scoped=True)
+39:  assert old['projection_complete'] and old['facts_count']==2
+40:  active=trust.read_bytes();revoked=json.loads(active);revoked['profiles'][0]['status']='revoked';trust.write_text(json.dumps(revoked))
+41:  withdrawn=a.reconstruct_interval(TimedState(),policy,root/'withdrawn.sqlite',trust,store,approval,stream,interval_end=ends[0],history_head=saved[0][2],campaign=saved[0][3],interval_scoped=True)
+42:  assert withdrawn['projection_complete']
+43:  with sqlite3.connect(root/'withdrawn.sqlite') as db:assert db.execute('SELECT status FROM delivery_trust').fetchall()==[('withdrawn',),('withdrawn',)]
+44:  trust.write_bytes(active)
+45:  before=out('rev-parse',ref)
+46:  try:a.checkpoint_projection(TimedState(),policy,trust,store,approval,stream,interval_end=ends[0],interval_scoped=1)
+47:  except ValueError as error:assert 'scope' in str(error)
+48:  else:raise AssertionError('integer accepted as interval scope flag')
+49:  assert out('rev-parse',ref)==before
+50:  assert git('show',ref+':'+oldpath).stdout==b'opaque existing encrypted feedback envelope'
+51:  print('two additive real-Git interval checkpoints/stages/readers and same-cutoff late retained revision passed; no coverage/task credit')
+52: '''
+53: exec(compile(fixture+prefix+cases,'actual-additive-intervals','exec'))
+54: PY
+
+verify/2026-10-17/T-334/INTERVALS.md
+1: # T334 boundary 1 — additive interval namespaces (task remains pending)
+2: 
+3: Actual RED first verified disposable Git bootstrap, then rejected the missing
+4: maintenance helper. The next canonical RED demanded the absent interval-scoped
+5: backfill API. A separate real three-record producer case then demonstrated the
+6: same-cutoff completed snapshot trap (`late append reused stale complete projection
+7: namespace`). `future-fixture-error.log` is an earlier invalid future cutoff fixture,
+8: not production RED; it remains preserved.
+9: 
+10: The optional strict boolean `interval_scoped` defaults false, preserving legacy
+11: fixed paths. True derives source partition names from repository/approved-origin/
+12: cutoff. Projection names additionally use the authenticated selected tree's exact
+13: retained counter and current policy hash. These are namespace selectors, not
+14: source-origin or coverage claims. All existing bootstrap, publication, material,
+15: source-identity and final consistency checks still run with unchanged bounds.
+16: Existing exact 64-hex inert paths are reused; no path allowlist expansion is needed.
+17: 
+18: Actual two-day append/checkpoint/stage/reconstruction tests pass. A late third
+19: retained append creates an additive same-cutoff snapshot; the previous selected
+20: history still reconstructs its original two facts, the old path bytes remain, and
+21: the revised view validates all three with two within the requested interval. Current
+22: trust revocation revalidates and labels the historical facts withdrawn. Opaque
+23: feedback bytes remain unchanged. No global coverage, native proof or task credit
+24: is claimed by these component tests.
+25: 
+26: The maintenance phase journal, restart/CAS/late-source behavior, report ordering,
+27: reviewed T333 helper forwarding and full parent acceptance remain unfinished. No
+28: T334 completion or live activation is claimed by this staged commit.

@@ -1,0 +1,10 @@
+# TDD ledger — green — T-286
+ledger_format: 2
+timestamp: 2026-10-16T15:57:10+11:00
+command: bash .claude/scripts/test/factory-receipt-coverage.sh
+exit_code: 1
+---
+Traceback (most recent call last):
+  File "<stdin>", line 36, in <module>
+  File "composed-coverage-real-git-fixture", line 136, in <module>
+AssertionError: {'source_partition_complete': True, 'frozen_projection_complete': False, 'coverage_complete': False, 'all_history_complete': False, 'task_credit': False, 'gaps': ['protected-scan-incomplete'], 'verified_until': None, 'repository': 'org/repo', 'observed_head': '116e30934e37eb9a766955e2561568d2b4fe1e9f', 'coverage_from': '2026-10-15T00:00:00Z', 'source_epoch': 0}

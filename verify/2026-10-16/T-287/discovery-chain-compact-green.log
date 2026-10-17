@@ -1,0 +1,7 @@
+actual protected source checkpoints=50
+actual protected source checkpoints=100
+actual protected source checkpoints=150
+actual protected source checkpoints=200
+actual protected source checkpoints=250
+actual protected source checkpoints=300
+actual300source-checkpoint history remains resumable under current origin without erasing retained discovery state

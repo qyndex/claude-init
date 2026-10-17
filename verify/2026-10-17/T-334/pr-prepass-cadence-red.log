@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "<stdin>", line 33, in <module>
+  File "public-pr-prepass", line 141, in <module>
+AssertionError: PR enumeration delayed bounded receipt maintenance: {'status': 'incomplete', 'phase': 'pull-requests', 'reason': 'PR source scan in progress'}

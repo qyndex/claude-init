@@ -1,0 +1,12 @@
+# TDD ledger — red — T-287
+ledger_format: 2
+timestamp: 2026-10-16T17:59:20+11:00
+command: bash .claude/scripts/test/factory-state-scan-cost.sh && bash .claude/scripts/test/factory-receipt-history.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+actual validated entries=737; validate_entry calls=47072
+Traceback (most recent call last):
+  File "<stdin>", line 41, in <module>
+  File "linear-state-scan-real-git", line 86, in <module>
+AssertionError: immutable subtree scan repeatedly revalidates accumulated entries instead of linear checked work

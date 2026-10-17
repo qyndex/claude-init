@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "<stdin>", line 108, in <module>
+  File "real-git-discovery-fixture", line 152, in <module>
+  File "real-git-discovery-fixture", line 146, in checked_origin
+  File "/private/tmp/factory-t290-discovery-fixture-20261017/.claude/scripts/factory-receipt-archive.py", line 811, in advance_origin
+    history = read(root+'/commits?sha='+head+'&path='+quote(path, safe='')+'&per_page=1')
+  File "/private/tmp/factory-t290-discovery-fixture-20261017/.claude/scripts/factory-receipt-archive.py", line 199, in read
+    value = api.request(path)
+  File "/private/tmp/factory-t290-discovery-fixture-20261017/.claude/scripts/factory-receipt-archive.py", line 776, in request
+    result = state_api.request(path, method, payload)
+  File "real-git-discovery-fixture", line 67, in request
+AssertionError: ('repos/org/repo/commits?sha=1ea86864a693abea3a2dfb27e884294f81f8cab5&path=receipt-archive%2Forigin%2F50f841c69ae796fe707c5f9b3083e7cb74168b1df2d5ff0fd77ee75ba53f9b84.json&per_page=1', 'GET')

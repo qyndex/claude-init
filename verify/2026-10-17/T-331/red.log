@@ -1,0 +1,10 @@
+# TDD ledger — red — T-331
+ledger_format: 2
+timestamp: 2026-10-17T00:52:27+11:00
+command: bash .claude/scripts/test/factory-reporting-transport.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 6, in <module>
+AssertionError: missing protected reporting role transport

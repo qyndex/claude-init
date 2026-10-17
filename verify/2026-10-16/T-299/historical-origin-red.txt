@@ -1,0 +1,15 @@
+Actual pre-T299 source HEAD9cb6f9a, unchanged new historical-origin test, T299_HISTORY_ONLY=1. Replay after initial implementation; no historical issuance claim.
+Traceback (most recent call last):
+  File "<stdin>", line 39, in <module>
+  File "historical-six-protected-origin-fixture", line 85, in <module>
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 494, in project_retained
+    validate_record(record, materials, state_api.repo, store['visibility'])
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 82, in validate_record
+    require(set(links) == {'factory/policy.json', 'factory/receipt-trust.json', *receipts.RUNTIME_PATHS, 'spec'}, 'archive material paths differ')
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/validate-candidate-evidence.py", line 19, in require
+    raise ValueError(message)
+ValueError: archive material paths differ
+
+exit_code: 1

@@ -1,0 +1,17 @@
+Traceback (most recent call last):
+  File "<stdin>", line 142, in <module>
+  File "backfill-real-git-fixture", line 89, in <module>
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-discovery.py", line 573, in backfill
+    return _checkpoint(source_api, state_api, policy, approval_path, stream, mode='backfill', backfill_end=interval_end, page_size=page_size, tree_pages=tree_pages)
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-discovery.py", line 458, in _checkpoint
+    rows, observations, backfill_status = backfill_page(source_api, anchor, policy, stream, backfill_end, source_page_size, blob_at)
+                                          ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-discovery.py", line 286, in backfill_page
+    response = source_api.request(target)
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-discovery.py", line 414, in request
+    return source_read(original_source.request, target, **kwargs)
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-discovery.py", line 402, in source_read
+    return charge(fn(*args, **kwargs))
+                  ~~^^^^^^^^^^^^^^^^^
+  File "backfill-real-git-fixture", line 77, in request
+AssertionError: source query is not bound to protected default branch

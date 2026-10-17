@@ -1,0 +1,1 @@
+{"calls": 1886, "canonical_response_bytes": 1388549, "categories": {"other": 6, "rules": 12, "ref": 6, "commits": 29, "trees": 858, "blobs": 10, "history": 4, "compare": 49, "pulls": 912}, "blob_batches": 162, "blob_raw_bytes": 7855282, "total_calls": 2048, "total_response_bytes": 9243831, "sqlite_exists": false}

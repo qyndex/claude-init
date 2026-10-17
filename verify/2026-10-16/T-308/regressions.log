@@ -1,0 +1,8 @@
+Suite: factory-receipt-state-paths
+35 state path/index/resumable tree cases passed; path/index suite performs no CAS writes
+Suite: factory-receipt-projection-time
+20 protected retained PR merge-time cases passed; no inferred dates or task credit
+Suite: factory-receipt-projection-lineage
+16 protected projection lineage cases passed; partial windows never grant coverage
+Suite: factory-receipt-cas
+11 real Git CAS/restart/conflict/preservation scenarios passed; no live state writes

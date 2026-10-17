@@ -1,0 +1,36 @@
+{
+  "review_scope": "bootstrap conditional-delta repair and focused fixture; not full T287 independent review",
+  "source_sha256": {
+    ".claude/scripts/factory-receipt-archive.py": "bb04170097ad744e37a16222f6a06ebbf66de41e9be9a90584385dd8e0f75cd7",
+    ".claude/scripts/factory-state-paths.py": "0648487106251e765e7f0a4504d510606970c6bab1f2b4024dc21c4e6bc487dd",
+    ".claude/scripts/test/factory-receipt-bootstrap-delta.sh": "c30e8ee54c6335298ad724409889cc58fd42cb7412d4419cbd8711d125aa3006"
+  },
+  "findings": [],
+  "observations": [
+    "Every unchecked suffix commit has exactly one typed actual parent and checked tree identity",
+    "Completed prefix shortcut depends on unchanged _completed_origin authenticated protected publication",
+    "Actual bootstrap remains fully scanned and exact tree bound",
+    "No call/byte/ancestry/window limits increased",
+    "Transient invalid added and removed paths both checked through scan_delta",
+    "Fixture positive inert suffix and wrong actual parent SHA/tree negatives reach repaired suffix path",
+    "Focused real protected incomplete-origin publication rejects before completing; checked actual fixture"
+  ],
+  "pending": [
+    "original origin/completed-origin terminal results",
+    "actual1001 saved diagnostic",
+    "exact fresh full acceptance",
+    "full independent review and publication"
+  ],
+  "goal_complete": false,
+  "verified_tests": {
+    "focused_bootstrap_delta": {
+      "session": 28721,
+      "exit_code": 0,
+      "log": "verify/2026-10-16/T-287/bootstrap-delta-green.log"
+    },
+    "original_bootstrap": {
+      "exit_code": 0,
+      "log": "verify/2026-10-16/T-287/bootstrap-delta-bootstrap-regression.log"
+    }
+  }
+}

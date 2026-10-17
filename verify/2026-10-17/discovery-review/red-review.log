@@ -1,0 +1,18 @@
+Traceback (most recent call last):
+  File "<stdin>", line 84, in <module>
+  File "discovery-review-real-git", line 117, in <module>
+  File "/private/tmp/factory-discovery-review-fix-20261017/.claude/scripts/factory-receipt-discovery.py", line 604, in reconcile
+    return _checkpoint(source_api, state_api, policy, approval_path, stream, mode='review', trust_path=trust_path, trust_mode=trust_mode, store=store, review_rows=review_rows)
+  File "/private/tmp/factory-discovery-review-fix-20261017/.claude/scripts/factory-receipt-discovery.py", line 500, in _checkpoint
+    outcome, observed = assess(source_api, api, anchor, policy, trust_path, trust_mode, store, stream, row, epoch, blob_at, approval_path)
+                        ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-discovery-review-fix-20261017/.claude/scripts/factory-receipt-discovery.py", line 163, in assess
+    run = latest if latest['run_attempt'] == row['attempt'] else run_identity(source_api.get(f'repos/{api.repo}/actions/runs/{row["run_id"]}/attempts/{row["attempt"]}'), anchor, policy)
+                                                                              ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-discovery-review-fix-20261017/.claude/scripts/factory-receipt-discovery.py", line 419, in get
+    return source_read(original_source.get, target)
+  File "/private/tmp/factory-discovery-review-fix-20261017/.claude/scripts/factory-receipt-discovery.py", line 412, in source_read
+    return charge(fn(*args, **kwargs))
+                  ~~^^^^^^^^^^^^^^^^^
+  File "discovery-review-real-git", line 108, in get
+ValueError: GitHub API request failed: fixture

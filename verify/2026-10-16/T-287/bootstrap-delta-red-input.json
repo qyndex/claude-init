@@ -1,0 +1,7 @@
+{
+  "timestamp": "2026-10-16T08:28:31.960332+00:00",
+  "actual_command": "bash .claude/scripts/test/factory-receipt-bootstrap-delta.sh",
+  "test_sha256": "65133faf96266af6f8c5d68e15fc3f3d5443cca98bb4b32d35600eb523044f1e",
+  "runtime_sha256": "bab6961592bb742e4f1cff1b1effc1f50eea45d882e33e90d6d650b236ec5a3b",
+  "exit_code": 1
+}

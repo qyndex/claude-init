@@ -1,0 +1,32 @@
+{
+  "baseline": "34f3f422c10cade29193787c4caf87a74b6cbf3a",
+  "source_sha256": {
+    ".claude/scripts/factory-preflight.py": "c3997120ee8d7064738b26fa1c30e318db02ebf411c46baa3aa67d521d1dad56",
+    ".claude/scripts/test/factory-receipt-readiness.sh": "92291ea3a62085868e5ca0daf129ae0cbceb967a3a5569d32101c08398c1fe2f",
+    "docs/FACTORY-DIGEST.md": "caa6779a88403db1fee1021d6a2678c11b61a6414ca1da73ab2ed8306a108d65",
+    "docs/FACTORY-ADOPTER-SETUP.md": "868a2f06beb189d1f87162948165e78b959eea1fc405d74e86ead52b28e2bcda"
+  },
+  "tests": {
+    "canonical_red": 1,
+    "canonical_green": 0,
+    "selectors_red": 1,
+    "profile_red": 1,
+    "structural_validation": 0,
+    "shellcheck": 0,
+    "py_compile": 0,
+    "diff_check": 0,
+    "source_gitleaks": 0,
+    "silent_failure_lint": 0
+  },
+  "native_app_private_cadence_cutover": "not_checked",
+  "settings_changed": false,
+  "manual_analysis_recorded_at": "2026-10-16T17:28:42.110319+00:00",
+  "review_followup": {
+    "red_exit": 1,
+    "canonical_green_exit": 0,
+    "review_verdict": "pass",
+    "review_findings": 0,
+    "review_verdict_sha256": "9289826aa1c267e449321550129b67c717baaa0bd0504bfd62d0c47ae931d9d2",
+    "static_review_only": true
+  }
+}

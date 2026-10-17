@@ -1,0 +1,480 @@
+{
+  "scope": "Actual local static Claude Sonnet 5.5 reviews; not native authenticated producer approvals. Original findings and follow-ups retained separately.",
+  "reviews": [
+    {
+      "name": "C-discovery-findings-followup",
+      "files": [
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/C-discovery-findings-followup/input.json",
+          "sha256": "ddb0ba105dc58b799a1694a130ef815707abe82b12344cc9a9cb0c87a1ea161e"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/C-discovery-findings-followup/execution.json",
+          "sha256": "082dc682235dfc7654fa5ff60b3226fa38d2447d145aa586bac43ce789ccd5ec"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/C-discovery-findings-followup/execution-start.json",
+          "sha256": "39b11f203a8ab26cce0e3546d7a937cf95de7348645eed3e964ac58d05378e20"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/C-discovery-findings-followup/stdout.json",
+          "sha256": "cfa2daeda8bd18b09ed3ff4876340ad8347e286c22dacb3544e535e11ac99198"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/C-discovery-findings-followup/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/C-discovery-findings-followup/prompt.txt",
+          "sha256": "3dc1ad90fd19371e819f2cb31d9ed7f0ae96a3a9de33d7c1fa47050dd047e534"
+        }
+      ]
+    },
+    {
+      "name": "C-residual-followup",
+      "files": [
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/C-residual-followup/input.json",
+          "sha256": "01d467ec29eb8326863453f13b14792ed460d474bfd7df412349fe48594c1eb2"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/C-residual-followup/execution.json",
+          "sha256": "d66dc26c1bba3c1e7a6c4e6da012f01208229cb7c284e7c2904bb6563017e1ff"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/C-residual-followup/execution-start.json",
+          "sha256": "b6024a9724415207478fd51a9711c88f1fa5590a4ca324017b09fbbfbaf2da68"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/C-residual-followup/verdict.json",
+          "sha256": "0b9da4f0b3f478b70fd33d9d71f40db406b6a2f75ed8137fffe06eb8e2aeb3a8"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/C-residual-followup/stdout.json",
+          "sha256": "951736fdcc3d25a70a91d4991c9bf11e643edf3233461130010e83a0607f7860"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/C-residual-followup/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/C-residual-followup/prompt.txt",
+          "sha256": "075d0e0f88a8569d1578acc0a7c71a96b8ba1d74f1504789fbdbedcefe173fd1"
+        }
+      ]
+    },
+    {
+      "name": "C-two-page-contract",
+      "files": [
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/C-two-page-contract/input.json",
+          "sha256": "186bbf993ad62159a5147f80f2cd4610d52b94311b4d535e8b41da10b2fa6826"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/C-two-page-contract/execution.json",
+          "sha256": "f9bd49bc83714de3ad0d4a0089abf8b28f2128e1d22d01b3d431791f55382774"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/C-two-page-contract/execution-start.json",
+          "sha256": "d7bc8edf7e47f9a7d4456bf7e5570c70522805a9c01951ea1bf3dba04dec2b9d"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/C-two-page-contract/verdict.json",
+          "sha256": "4166d9d139b0589bfcc176cf24ee5bc32306aacc93b2deb53d259577e6153886"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/C-two-page-contract/stdout.json",
+          "sha256": "d308d7b854c1b0d1af152e9dd3c5d455311d5be5f1bb3d9f14c816fc42a36469"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/C-two-page-contract/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/C-two-page-contract/prompt.txt",
+          "sha256": "a3ccb4b2a918b1a8070ab66505e499968fbdd9bde7920f31fa29995480b2bb77"
+        }
+      ]
+    },
+    {
+      "name": "D-selected-repairs-followup",
+      "files": [
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/D-selected-repairs-followup/input.json",
+          "sha256": "504940465b218af73bdc0be41d1586109e08d529f68617aae9d76986b19caca1"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/D-selected-repairs-followup/execution.json",
+          "sha256": "69a419b390ec7d33a2fc1a87322c1a4b41429962fbc8324ef65eba4b4931ca69"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/D-selected-repairs-followup/execution-start.json",
+          "sha256": "8ab8a3a50637c845885b1a9420dbf060d93d0e590f11c5c30e38b525152a9ef7"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/D-selected-repairs-followup/verdict.json",
+          "sha256": "1084a3efa27504ef2ef919fac933dc5f6d9b71a8ce85503464b3181ec908433f"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/D-selected-repairs-followup/stdout.json",
+          "sha256": "3a5122de8d9e303eb1101d0ed64730c2850e16b6e718b02c063293450fae34d7"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/D-selected-repairs-followup/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/D-selected-repairs-followup/prompt.txt",
+          "sha256": "1456c640759e9b96bc3bdc9a81023ae79151b20f9421d21a296ac9b750f35975"
+        }
+      ]
+    },
+    {
+      "name": "D1-maintenance-and-transfer",
+      "files": [
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/D1-maintenance-and-transfer/input.json",
+          "sha256": "d8b66f2e37bcbef448d5cf149e296fdd12709a938169fb671f21be4943585eb1"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/D1-maintenance-and-transfer/execution.json",
+          "sha256": "88999a21cc5dfd6660256d0e65ed20c2d4fabea436b973263c6c6dbd861bc2be"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/D1-maintenance-and-transfer/execution-start.json",
+          "sha256": "9de1524ecd2921feb77bd281a9a38d7999b4cb2201907c8aab9fe06674eb886d"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/D1-maintenance-and-transfer/verdict.json",
+          "sha256": "6b0c4654589d3bc36bae4dd7e7a4c1b8099dffec34886cde47efcd09a178e55b"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/D1-maintenance-and-transfer/stdout.json",
+          "sha256": "50ac505e33798088c6888f30d2f8d8d8392b4d20de5f3a7d3a2158804ad698d5"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/D1-maintenance-and-transfer/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/D1-maintenance-and-transfer/prompt.txt",
+          "sha256": "025e67db396012c9c81022659302397a6f618f06feec411eaf01a3a7f3b236c4"
+        }
+      ]
+    },
+    {
+      "name": "D2-digest-and-pr-discovery",
+      "files": [
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/D2-digest-and-pr-discovery/input.json",
+          "sha256": "a5f99d84e74f451c34e68a7bf6d3f422cd0e5ed230beaa218057423b240c2ce0"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/D2-digest-and-pr-discovery/execution.json",
+          "sha256": "b45a049e2ab2ec504a052962e7d101f9b9c775c56f308fa09d8c8205f42a976c"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/D2-digest-and-pr-discovery/execution-start.json",
+          "sha256": "9d16481320554a24cbdc9ba572b2193bae0f9e4a4ce176a1b3e32d5cf13a76da"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/D2-digest-and-pr-discovery/verdict.json",
+          "sha256": "f03f696f127a590c37359aac009097b010cac662de1c49d52fcdd514abb97a74"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/D2-digest-and-pr-discovery/stdout.json",
+          "sha256": "f2a8cbb41f605ceee6abec2be01707245fa98ddd1f820bc7a63aae3013029bd8"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/D2-digest-and-pr-discovery/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/D2-digest-and-pr-discovery/prompt.txt",
+          "sha256": "6373d2a8e550e520129acaba7ab324c3b633e472415b85ac29e33acf72ab6fe7"
+        }
+      ]
+    },
+    {
+      "name": "D2-hosted-boundary-followup",
+      "files": [
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/D2-hosted-boundary-followup/input.json",
+          "sha256": "bf8ed01474e3819b3609896ea55ec0ea7632e014aa8190265c4a398b086c30b4"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/D2-hosted-boundary-followup/execution.json",
+          "sha256": "2b65d0a825be4bc79dae9832d50f3680bdafddbf73448c05331ac2bc4997d27e"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/D2-hosted-boundary-followup/execution-start.json",
+          "sha256": "c1ff9354ce6c434474081ca166330725d4fb56bb4d8dca8f1a0500b91f0b5098"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/D2-hosted-boundary-followup/verdict.json",
+          "sha256": "bb4f31c94007609d83a29fa657edeaa4fb344cd7c3770f7ebb43d7fe7f9acb96"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/D2-hosted-boundary-followup/stdout.json",
+          "sha256": "70f7e7a7ed21afffc3dee599aeb5ebdd7023cfcffa6978e6f84570dac6d83408"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/D2-hosted-boundary-followup/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/D2-hosted-boundary-followup/prompt.txt",
+          "sha256": "da0ac01bd552455cb2387e149790119da5f91aae6f71bbaebc45e94e76decb0f"
+        }
+      ]
+    },
+    {
+      "name": "Q-cache-admission-followup",
+      "files": [
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/Q-cache-admission-followup/input.json",
+          "sha256": "ebc2e86fff1d9cc7c3de78c09f25b332e59015ab97bcc80a6d34f5cd7640c8b2"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/Q-cache-admission-followup/execution.json",
+          "sha256": "1e3a7a4fa608fc03d3371b6f506179069557e096804c09398cb870df31876f61"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/Q-cache-admission-followup/execution-start.json",
+          "sha256": "f57a1a7625a3a897fd6ba69025a7d5a081d2878f3e9b4c12c3b5c3bb0412c7f0"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/Q-cache-admission-followup/verdict.json",
+          "sha256": "5134797908eba5ed585a40e0ff6324198591c440376c3cfcab876e764426f463"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/Q-cache-admission-followup/stdout.json",
+          "sha256": "dba187ca9e20a67bd52ecf4116303faaffff521206316a19a71a6a96b613e737"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/Q-cache-admission-followup/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/Q-cache-admission-followup/prompt.txt",
+          "sha256": "8f2f6466a3820f4fb3adcfcb4f06f5ea1d9a98bf862050853fc48563ed55bebe"
+        }
+      ]
+    },
+    {
+      "name": "Q-immutable-queue-followup",
+      "files": [
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/Q-immutable-queue-followup/input.json",
+          "sha256": "b93e3abed2e9dcfc21c77a2442464f6c0b24494ec6c5282ea3811c44da4c9444"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/Q-immutable-queue-followup/execution.json",
+          "sha256": "d1a1cf00e384ce2f5efa2d543de96a4ba6971fb61cc998ced8f6356bdefcc0b7"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/Q-immutable-queue-followup/execution-start.json",
+          "sha256": "22d97323548b32d1a50e0b9b3adda071b005386e0de3a47adb2a83d93f8b62aa"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/Q-immutable-queue-followup/verdict.json",
+          "sha256": "aaf8ce711ccfcd88b8af2162f42e4c7cffb96091c0fa58e2922cb0a068c1318f"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/Q-immutable-queue-followup/stdout.json",
+          "sha256": "e2b1a876d80ae2a1620347aca6bafcf40e0d85e16bb080b89f7c1dc73e8be4ec"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/Q-immutable-queue-followup/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/Q-immutable-queue-followup/prompt.txt",
+          "sha256": "4fd03c56d363f6f85c9411eb9f90cc74ac0414a643e00c24332f5cf4806c0f6c"
+        }
+      ]
+    },
+    {
+      "name": "transport-ancestry-cache",
+      "files": [
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/transport-ancestry-cache/input.json",
+          "sha256": "79e49a41cf39e2c2e81faa16d83c588fd614bbfed354e52cda09c2747a18e111"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/transport-ancestry-cache/execution.json",
+          "sha256": "712b953b09e4feef183ad4bbc975f2e0ab9a79413c8db1d9f041d3556920e3e7"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/transport-ancestry-cache/execution-start.json",
+          "sha256": "2ccb280d56b752276287acb5fde81c62ee5f75610d5c964edad87c510400f3cf"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/transport-ancestry-cache/verdict.json",
+          "sha256": "3d5e683ac85cc50973d02d22382448d6bc9791f624959b341056df3aa0544f75"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/transport-ancestry-cache/stdout.json",
+          "sha256": "98cc5d3c946617b2adf085fdb81d392b36f3b3af236418b2b2fe99d94e02b8f5"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/transport-ancestry-cache/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/transport-ancestry-cache/prompt.txt",
+          "sha256": "c601213985c81059de1469abd1934f4af018a75258b7c3bce3fac001f93038b8"
+        }
+      ]
+    },
+    {
+      "name": "baseline-A-archive-bootstrap-policy-paths",
+      "files": [
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/baseline-A-archive-bootstrap-policy-paths/input.json",
+          "sha256": "aecb272d467b12c26d0012ebca5e367ba1577058e6cd673ba9c68778be7af464"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/baseline-A-archive-bootstrap-policy-paths/execution.json",
+          "sha256": "6649c316ac428d29fc11337dfe9bc14879f37351c8b2da02512d9e133298be09"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/baseline-A-archive-bootstrap-policy-paths/execution-start.json",
+          "sha256": "c205cbb64fc7fd890598daadcf6a6f0b9d8795c68e28b3e25493bd1eb9da2458"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/baseline-A-archive-bootstrap-policy-paths/verdict.json",
+          "sha256": "1e7a74c74e807c7e28ec8676f8d514162a2aebbc63eadaa0659feffdbb79f709"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/baseline-A-archive-bootstrap-policy-paths/stdout.json",
+          "sha256": "73517863680e0f26bc32cf1414bad5dbcffa945d5b8145a2083bb308343e80cf"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/baseline-A-archive-bootstrap-policy-paths/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/baseline-A-archive-bootstrap-policy-paths/prompt.txt",
+          "sha256": "4d0aab8b864990a3d6f35d870a1ea3fc8dd50a7060ba2799769cb7730620641a"
+        }
+      ]
+    },
+    {
+      "name": "baseline-B-archive-origin-projection-staging",
+      "files": [
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/baseline-B-archive-origin-projection-staging/input.json",
+          "sha256": "77e8a07d729a9fff2c2b1c4b59e35af8a268168d9c0604354f1ef064b5bc4eb5"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/baseline-B-archive-origin-projection-staging/execution.json",
+          "sha256": "059c59dca278b17e306edb3fdbd660ac6d26764e27fb0357d0ba7ad754a744e9"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/baseline-B-archive-origin-projection-staging/execution-start.json",
+          "sha256": "57cc8b2d1bfe4c3e080d461617bcd13cfc5a6ce10eca083ce4311900c5301531"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/baseline-B-archive-origin-projection-staging/verdict.json",
+          "sha256": "3e02cc55f6045f95244e4815ac59c685ae510ed5ee2cca8b3e59116f8e536143"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/baseline-B-archive-origin-projection-staging/stdout.json",
+          "sha256": "0e2a368bc3ca2af880b79d9c421572bdf42d3163383716000b64b91d98f3b4a3"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/baseline-B-archive-origin-projection-staging/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/baseline-B-archive-origin-projection-staging/prompt.txt",
+          "sha256": "fb8daa0e7d3979877ccf119ed98a7158e598856264aef1ca2751aa9f60eec38a"
+        }
+      ]
+    },
+    {
+      "name": "baseline-C-source-discovery-and-receipt-authentication",
+      "files": [
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/baseline-C-source-discovery-and-receipt-authentication/input.json",
+          "sha256": "47a400477faf7e044fdec3f1180c35ce84c61349d4bcddcf53362b6cc31a232a"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/baseline-C-source-discovery-and-receipt-authentication/execution.json",
+          "sha256": "862c7ceb777c7b57fbc5a3f16cf5238bef0cdd42112613f3c86496586ab9cec1"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/baseline-C-source-discovery-and-receipt-authentication/execution-start.json",
+          "sha256": "0994c27de4deafa408686895168e97dd406f72bdc67ae2ab9875c1cbd1d30e26"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/baseline-C-source-discovery-and-receipt-authentication/verdict.json",
+          "sha256": "610bd8917cd75a04b1251d45243ddadf9ce98af7abc84bbbbf7b57d43e113952"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/baseline-C-source-discovery-and-receipt-authentication/stdout.json",
+          "sha256": "dde00306f303cae83d886991c510c3841adede4111d22d40c8ab941ef43c4cfb"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/baseline-C-source-discovery-and-receipt-authentication/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/baseline-C-source-discovery-and-receipt-authentication/prompt.txt",
+          "sha256": "6defd09886531480832e271b142b82fa28ef2914c23015e095918ce77832b5fe"
+        }
+      ]
+    },
+    {
+      "name": "baseline-D-maintenance-transfer-digest-pr-discovery",
+      "files": [
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/baseline-D-maintenance-transfer-digest-pr-discovery/input.json",
+          "sha256": "c59b73ead4870f902818e13f77236245928eb94befe26bdb3dd26f7e2ac5cd15"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/baseline-D-maintenance-transfer-digest-pr-discovery/execution-start.json",
+          "sha256": "02404aeca6df502c85741a96f5675ac05f527661c301e6735cfbf0e0874c8863"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/baseline-D-maintenance-transfer-digest-pr-discovery/prompt.txt",
+          "sha256": "d6df436c5c0b5228a353fb2f97e3ad9466480aec13db872ef2e06747f28484e2"
+        }
+      ]
+    },
+    {
+      "name": "baseline-03-hosted-roles-driver-and-journals",
+      "files": [
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/baseline-03-hosted-roles-driver-and-journals/input.json",
+          "sha256": "c4ddfe2fa37fac0828c99cb2d803e6e721f277b8f3f9fe9de805c56f98d255b4"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/baseline-03-hosted-roles-driver-and-journals/execution.json",
+          "sha256": "82d8d03f1e152a0e8512b0f37518ed19257612da5bbebb0d0e97df767bb9dbd2"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/baseline-03-hosted-roles-driver-and-journals/execution-start.json",
+          "sha256": "630eaca2709548fe3c1e20450512f200894e29a6a3e3d675e0d77e6f234058f8"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/baseline-03-hosted-roles-driver-and-journals/verdict.json",
+          "sha256": "59f9514eb9dbdea6f5fc91671df5090862e158ee4669b81cc88d42422212e4ab"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/baseline-03-hosted-roles-driver-and-journals/stdout.json",
+          "sha256": "147bb8cee29767e3161a885c4d79c010eec0285c44bbe4d9cfb56d05b2d5c380"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/baseline-03-hosted-roles-driver-and-journals/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "verify/2026-10-17/reporting-independent-reviews/baseline-03-hosted-roles-driver-and-journals/prompt.txt",
+          "sha256": "fd1c4fa83d0e959638d5e263c4c1d02e8875e025ba097c035bdc9cdbb0dab01c"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+focused historical producer contracts: negative assertions=42; real Git CAS/opaque preservation; native API and verifier fixtures only
+Traceback (most recent call last):
+  File "<stdin>", line 289, in <module>
+  File "<stdin>", line 27, in reject
+AssertionError: invalid operational input accepted

@@ -1,0 +1,9 @@
+{
+  "baseline_commit": "34f3f422c10cade29193787c4caf87a74b6cbf3a",
+  "baseline_preflight_sha256": "55cd25fbf70bc3aba912feb77dd8714f3ddd08f6332b1e90e3feac46cf8151c7",
+  "copied_continuation_sha256": "5d29ba9a7a95f6fb1d81b5dd1425851cd5cd98c92bdf9c7990241ebe8eabdaa5",
+  "current_continuation_sha256": "5d29ba9a7a95f6fb1d81b5dd1425851cd5cd98c92bdf9c7990241ebe8eabdaa5",
+  "command": "bash .claude/scripts/test/factory-receipt-continuation.sh",
+  "red_sha256": "0fbe115e00794ce6ff64c776bbbd32c3c6232ec40a4357cead695732e8be6880",
+  "chronology": "Historical regression-baseline reproduction after T289 implementation; not original development chronology"
+}

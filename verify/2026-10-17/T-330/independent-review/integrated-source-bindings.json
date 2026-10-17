@@ -1,0 +1,30 @@
+{
+  "head": "3ab5f798d1352adcc0df86675d31933381592015",
+  "files": [
+    {
+      "path": ".claude/scripts/factory-reporting-policy.py",
+      "reviewed_sha256": "a8d05f5225674462d990686c60ca96ca7fcf35c2007eed1ef2e22b3df9f79672",
+      "current_sha256": "a8d05f5225674462d990686c60ca96ca7fcf35c2007eed1ef2e22b3df9f79672",
+      "unchanged": true
+    },
+    {
+      "path": ".claude/scripts/factory-receipt-archive.py",
+      "reviewed_sha256": "7f47cfca34c8bc5181ee351f5dd0d86cf139bbb3ba102bffcd0ffb9071ed2095",
+      "current_sha256": "7f47cfca34c8bc5181ee351f5dd0d86cf139bbb3ba102bffcd0ffb9071ed2095",
+      "unchanged": true
+    },
+    {
+      "path": ".claude/scripts/factory-receipt-discovery.py",
+      "reviewed_sha256": "05c913199d8b5a29524f83e9138fefd5dc7542ef43f19ebe7028664a9643970c",
+      "current_sha256": "05c913199d8b5a29524f83e9138fefd5dc7542ef43f19ebe7028664a9643970c",
+      "unchanged": true
+    },
+    {
+      "path": ".claude/scripts/test/factory-reporting-policy.sh",
+      "reviewed_sha256": "8ccdef2ea213078bfb58736f77fc81f410b708a7604c3d58daa3b82bc3d2ab83",
+      "current_sha256": "8ccdef2ea213078bfb58736f77fc81f410b708a7604c3d58daa3b82bc3d2ab83",
+      "unchanged": true
+    }
+  ],
+  "scope": "Actual scoped static review closure, not whole Spec014 or native factory attestation"
+}

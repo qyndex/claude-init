@@ -1,0 +1,13 @@
+{
+  "recorded_at": "2026-10-16T15:12:13.786886+00:00",
+  "session": 51279,
+  "previous_actual_red": 57916,
+  "files": {
+    ".claude/scripts/factory-reporting-maintenance.py": "18e70c63961488662bca26d568e92dd1d438f3fe95c1b690eb5b42bad73658c8",
+    ".claude/scripts/factory-git-state.py": "b83e1f29800946a1a6ae62e6f1c6a82db56a069a9f222b8cb5aba3559a373e5e",
+    ".claude/scripts/factory-receipts.py": "276573a80730be1fd246de4939e5fd8594d439724083f88037af96b8ce9e1255",
+    ".claude/scripts/factory-reporting-receipts.py": "53d882ffda39652eb06300aa77b99c3fe96acc23128e8578925cc6d76ba0fef9",
+    ".claude/scripts/test/factory-reporting-hosted-maintenance.sh": "6eef49c2cf964dc516e484bbf8f95adfe1732a299e92425531d5124b17f5f7d0"
+  },
+  "description": "acknowledgement race/lostack/reload-no-send regression with same-instance state refresh"
+}

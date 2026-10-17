@@ -1,0 +1,19 @@
+{"calls": 1886, "canonical_response_bytes": 1388549, "categories": {"other": 6, "rules": 12, "ref": 6, "commits": 29, "trees": 858, "blobs": 10, "history": 4, "compare": 49, "pulls": 912}, "blob_batches": 162, "blob_raw_bytes": 7855282, "total_calls": 2048, "total_response_bytes": 9243831, "sqlite_exists": false}
+Traceback (most recent call last):
+  File "/private/tmp/t287-instrumented-history-reader.py", line 82, in <module>
+    main()
+    ~~~~^^
+  File "/private/tmp/t287-instrumented-history-reader.py", line 78, in main
+    exec(compile(fixture+pipeline+provider+case,'fresh1001-retained-history-reader','exec'),namespace)
+    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "fresh1001-retained-history-reader", line 129, in <module>
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 1422, in reconstruct_interval
+    timed = _retained_time_from_anchor(api, anchor, store, stream, *execution)
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 1243, in _retained_time_from_anchor
+    pr = api.request(root+'/pulls/'+str(receipt['pull_request']))
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 1288, in request
+    require(calls < 2048, 'reconstruction API capacity gap'); calls += 1
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/validate-candidate-evidence.py", line 19, in require
+    raise ValueError(message)
+ValueError: reconstruction API capacity gap

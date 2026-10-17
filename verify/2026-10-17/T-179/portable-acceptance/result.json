@@ -1,0 +1,9 @@
+{
+  "started_at": "2026-10-16T18:04:54.655545+00:00",
+  "ended_at": "2026-10-16T18:04:55.171484+00:00",
+  "command": "gh pr view \"${FACTORY_ACTIVATION_PR:-https://github.com/qyndex/claude-init/pull/50}\" --json state,isDraft,mergeCommit | jq -e '.state == \"MERGED\" and .mergeCommit.oid == \"148238ad8950681d352985cdb9c48ad0301e97d3\"'",
+  "FACTORY_ACTIVATION_PR": "unset",
+  "exit_code": 0,
+  "scope": "T179 bootstrap publication acceptance only; no full verifier or live activation claim",
+  "tasks_sha256": "832498f0f857156a85361709d248b3799b1675e7e4973bea6ef78f0577fab16b"
+}

@@ -1,0 +1,11 @@
+# TDD ledger — red — T-280
+ledger_format: 2
+timestamp: 2026-10-16T10:16:49+11:00
+command: bash .claude/scripts/test/factory-receipt-bootstrap.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 33, in <module>
+  File "<stdin>", line 32, in run
+AttributeError: module 'archive' has no attribute 'verify_bootstrap'

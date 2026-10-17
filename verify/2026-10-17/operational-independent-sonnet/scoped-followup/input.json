@@ -1,0 +1,12 @@
+{
+  "head": "e1524d943cf3fcc53a498c7c7834c10239228376",
+  "prompt_sha256": "33ff4dbc4e05981f7bd1ed966092a00b89614d8a6a5e3347da8ff41851066016",
+  "requested_effort": "medium",
+  "scope": "Four prior findings closure only",
+  "files": {
+    ".claude/scripts/factory-operational-proof.py": "18bc8ca9b40bfbde55c3640caf712d5aa7c4274e2398b023e150fbdc2e5901aa",
+    ".claude/scripts/factory-operational-producer.py": "80747df33abeb660f615669ae32c44bb41e9a2171e14600d314b471b1394d41b",
+    ".claude/scripts/factory-operational-replay.py": "bf3ae38739df7a0b17fbea15715cb5d5b9267a9b9af6a1ba49e8cd511c15a5f7",
+    "verify/2026-10-17/operational-review-followup/README.md": "f0008af8013aa4f3530b7cf1b6d4eebc434d2cd411221a48d3aad23b5445067c"
+  }
+}

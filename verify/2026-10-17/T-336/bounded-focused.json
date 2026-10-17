@@ -1,0 +1,7 @@
+{
+  "exit_code": 0,
+  "timeout_seconds": 60,
+  "python": "/Users/shravanjha/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+  "source_sha256": "fae98014d789235ee654a938ea32a67498c198a4a8b7ee260256af6300726151",
+  "test_sha256": "ae149d622e25d69f50b37a38154ee37d769aa750333cf3ab70c3c6ccb6278378"
+}

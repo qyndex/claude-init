@@ -1,0 +1,1 @@
+fixed protected checkout context selection, missing/symlink/foreign/duplicate/oversize rejection PASS

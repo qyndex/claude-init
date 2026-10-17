@@ -1,0 +1,8 @@
+# TDD ledger — green — T-286
+ledger_format: 2
+timestamp: 2026-10-16T16:02:05+11:00
+command: bash .claude/scripts/test/factory-receipt-coverage.sh
+exit_code: 0
+---
+actual resolved cold-start partition/watch/protected-stage/fresh-SQLite requested coverage passed; no all-history or task credit
+actual empty reviewed-origin source round and protected empty-checkpoint/stage/fresh-SQLite initialization passed; missing checkpoint never complete

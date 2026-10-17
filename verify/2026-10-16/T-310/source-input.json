@@ -1,0 +1,13 @@
+{
+  "base_sha": "829be3632d48a7fc056c9990111cd8758e0e5761",
+  "files": {
+    ".claude/scripts/factory-receipt-archive.py": "716541420ec95c1e9720c8e4aae07b46c1b8c5f1005182780cc9d24c3347b2ca",
+    ".claude/scripts/factory-receipt-discovery.py": "1579350250cbe7d8a7e4d534c54890d929cc7371df838f3b7f181491fd9f554d",
+    ".claude/scripts/test/factory-receipt-completed-origin.sh": "4303974dea61ae666b5a80515b805b3e983bb7a23598eda28029624e55bb7bec"
+  },
+  "live_activation_verified": false,
+  "coverage_complete": false,
+  "suffix_ancestry_limit": 256,
+  "bootstrap_API_call_limit": 2048,
+  "bootstrap_byte_limit": 33554432
+}

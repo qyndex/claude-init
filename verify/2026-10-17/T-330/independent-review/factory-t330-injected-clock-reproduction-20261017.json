@@ -1,0 +1,7 @@
+{
+  "caller_clock": "2026-10-16T00:00:00+00:00",
+  "sidecar_observed_at": "2026-10-16T01:00:00+00:00",
+  "future_relative_to_caller_accepted": true,
+  "network_calls": 0,
+  "severity": "low deterministic clock bug; no actor authority bypass claim"
+}

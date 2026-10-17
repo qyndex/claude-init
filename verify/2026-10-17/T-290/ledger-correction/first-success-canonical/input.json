@@ -1,0 +1,9 @@
+{
+  "source_commit": "802d921259c74ff21b4d26d45ccc242dc51ea756",
+  "task": "T-290",
+  "command": "bash .claude/scripts/test/factory-receipt-continuation.sh",
+  "maximum_seconds": 300,
+  "started_at": "2026-10-16T17:39:34.894524+00:00",
+  "sanctioned_tool": "tdd-ledger.sh green",
+  "native_or_cadence_claim": false
+}

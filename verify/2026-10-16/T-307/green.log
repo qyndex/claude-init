@@ -1,0 +1,7 @@
+# TDD ledger — green — T-307
+ledger_format: 2
+timestamp: 2026-10-16T12:49:28+11:00
+command: bash .claude/scripts/test/factory-receipt-projection-time.sh
+exit_code: 0
+---
+20 protected retained PR merge-time cases passed; no inferred dates or task credit

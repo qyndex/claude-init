@@ -1,0 +1,18 @@
+# TDD ledger — red — T-299
+ledger_format: 2
+timestamp: 2026-10-16T12:03:00+11:00
+command: bash .claude/scripts/test/factory-receipt-runtime-compatibility.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 23, in <module>
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 134, in build_record
+    return validate_record(record, materials, api.repo, store['visibility']), materials
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 76, in validate_record
+    require(len(materials) <= 9, 'archive material count exceeds bound')
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/validate-candidate-evidence.py", line 19, in require
+    raise ValueError(message)
+ValueError: archive material count exceeds bound

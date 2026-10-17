@@ -1,0 +1,15 @@
+{
+  "base": "b4c70bcdc5da25a6434d44806a47463a1837391a",
+  "red_exit": 1,
+  "green_exit": 0,
+  "actual_old_pending_rows": 4,
+  "actual_new_lookup_rows": 16,
+  "task_credit": false,
+  "coverage_complete": false,
+  "source_sha256": {
+    ".claude/scripts/factory-reporting-maintenance.py": "ade308e82586b2bb71326468ac9a853aaa6b775bbd3d7ba1c43afb1a7acfe746",
+    ".claude/scripts/test/factory-reporting-review-throughput.sh": "ab9679bc19139091d364240518b4993fbb039f717cc93b0d4ddc73ec668fcf76"
+  },
+  "live_api": false,
+  "task_closed": false
+}

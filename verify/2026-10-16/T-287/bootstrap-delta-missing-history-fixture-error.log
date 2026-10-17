@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "<stdin>", line 50, in <module>
+  File "large-authenticated-prefix-delta", line 103, in <module>
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 779, in advance_origin
+    history = read(root+'/commits?sha='+head+'&path='+quote(path, safe='')+'&per_page=1')
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 182, in read
+    value = api.request(path)
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 744, in request
+    result = state_api.request(path, method, payload)
+  File "large-authenticated-prefix-delta", line 87, in request
+  File "large-authenticated-prefix-delta", line 67, in request
+AssertionError: ('repos/org/repo/commits?sha=bcd065570abb866ceb526bc7aceccaed45a6b3bf&path=receipt-archive%2Forigin%2F50f841c69ae796fe707c5f9b3083e7cb74168b1df2d5ff0fd77ee75ba53f9b84.json&per_page=1', 'GET')

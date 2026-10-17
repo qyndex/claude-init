@@ -1,0 +1,16 @@
+# TDD ledger — red — T-301
+ledger_format: 2
+timestamp: 2026-10-16T12:16:21+11:00
+command: bash .claude/scripts/test/factory-receipt-projection-checkpoint.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 64, in <module>
+  File "real-git-projection-checkpoint-fixture", line 82, in <module>
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 468, in projection_window
+    require(frozen_head is None or frozen_head == anchor['head'], 'archive projection frozen view differs')
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/validate-candidate-evidence.py", line 19, in require
+    raise ValueError(message)
+ValueError: archive projection frozen view differs

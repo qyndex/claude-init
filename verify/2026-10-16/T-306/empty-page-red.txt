@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "<stdin>", line 71, in <module>
+  File "real-git-projection-lineage", line 138, in <module>
+AssertionError
+
+exit_code: 1

@@ -1,0 +1,7 @@
+# TDD ledger — green — T-335/cli-selection/pr-mode
+ledger_format: 2
+timestamp: 2026-10-17T02:29:22+11:00
+command: FACTORY_TEST_PYTHON=/Users/shravanjha/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3 bash .claude/scripts/test/factory-reporting-cli-selection.sh
+exit_code: 0
+---
+47 actual CLI credential-selection cases passed; no native effects

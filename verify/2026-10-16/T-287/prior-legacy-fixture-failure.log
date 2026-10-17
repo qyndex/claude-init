@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "/private/tmp/factory-receipt-planning-20261016/verify/2026-10-16/T-286/t286-missing-prior-replay.py", line 6, in <module>
+    exec(compile(fixture+setup+prior,'actual-shipped-prior-attempt-case','exec'))
+    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "actual-shipped-prior-attempt-case", line 94, in <module>
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-discovery.py", line 599, in reconcile
+    return _checkpoint(source_api, state_api, policy, approval_path, stream, mode='review', trust_path=trust_path, trust_mode=trust_mode, store=store, review_rows=review_rows)
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-discovery.py", line 525, in _checkpoint
+    require((previous['id'], previous['run_attempt'], previous['head_sha']) == (row['run_id'], prior, row['source_sha']), 'prior attempt immutable identity changed')
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/validate-candidate-evidence.py", line 19, in require
+    raise ValueError(message)
+ValueError: prior attempt immutable identity changed

@@ -1,0 +1,2 @@
+silent-failure audit: 399 unjustified of 1267 (report: /private/tmp/factory-t334-maintenance-review-fix-20261017/.claude/state/silent-failure-audit.json)
+silent-failure: 399 within baseline of 459 (no new swallows)

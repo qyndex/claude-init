@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "<stdin>", line 4, in <module>
+  File "old-writer-retained-across-pack-fetch", line 64, in <module>
+  File "/private/tmp/t287-fixture-performance-20261017/.claude/scripts/test/factory-receipt-git-objects.py", line 186, in write_tree
+    base, unused = update(base, parts, change)
+                   ~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/t287-fixture-performance-20261017/.claude/scripts/test/factory-receipt-git-objects.py", line 182, in update
+    return self.write_entries(entries.values()), not entries
+           ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/t287-fixture-performance-20261017/.claude/scripts/test/factory-receipt-git-objects.py", line 161, in write_entries
+    assert len(identity) == 40 and all(char in '0123456789abcdef' for char in identity), 'native tree write failed'
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: native tree write failed

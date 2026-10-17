@@ -1,0 +1,9 @@
+One shared verifier execution, reused under explicit operator approval.
+Command: bash .claude/scripts/verify.sh
+Source: 8a764ac3c7786a2d9036d60d7709843e3e725eeb
+Base: b533a82f4b4b45712e26a33239ef269a6847aa92
+TDD_LEDGER_TIMEOUT=600; no skip flags
+Actual exit: 0
+Shared verdict: PASS
+Log SHA256: 7daedc9c479c1dcd8aa8389c51634c69849fafff65d921b60efbcfa5b771fb17
+Full log: verify/2026-10-17/publication-shared-verification/verify.log

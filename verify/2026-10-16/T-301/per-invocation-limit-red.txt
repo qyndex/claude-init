@@ -1,0 +1,14 @@
+Supplemental actual RED: invocation limit must be adjustable without resetting retained prefix.
+Traceback (most recent call last):
+  File "<stdin>", line 97, in <module>
+  File "real-git-projection-checkpoint-fixture", line 98, in <module>
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 847, in checkpoint_projection
+    progress = _projection_checkpoint(document(old), binding)
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 792, in _projection_checkpoint
+    require(type(value['schema_version']) is int and value['schema_version'] == 1 and value['binding'] == binding, 'projection checkpoint binding differs')
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/validate-candidate-evidence.py", line 19, in require
+    raise ValueError(message)
+ValueError: projection checkpoint binding differs
+
+exit_code: 1

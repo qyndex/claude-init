@@ -1,0 +1,12 @@
+# TDD ledger — red — T-287
+ledger_format: 2
+timestamp: 2026-10-16T16:24:59+11:00
+command: bash .claude/scripts/test/factory-receipt-history.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+actual authenticated retained appends=1/1001; real Git commits=5
+Traceback (most recent call last):
+  File "<stdin>", line 44, in <module>
+  File "actual-large-retained-history", line 106, in <module>
+AssertionError: actual origin progress did not complete

@@ -1,0 +1,12 @@
+{
+  "requested_model": "claude-sonnet-5-5",
+  "started_at": "2026-10-16T16:40:25.774052+00:00",
+  "runner_pid": 54595,
+  "tools": [],
+  "permission_mode": "plan",
+  "mcp_servers": [],
+  "hooks_disabled": false,
+  "security_bypass": false,
+  "api_key_environment_supplied": false,
+  "cwd_scope": "neutral review temporary directory"
+}

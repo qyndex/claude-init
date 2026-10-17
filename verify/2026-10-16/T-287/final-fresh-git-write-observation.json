@@ -1,0 +1,14 @@
+{
+  "recorded_at": "2026-10-16T11:59:29.590740+00:00",
+  "canonical_session": 11652,
+  "exit_code": 1,
+  "phase": "after1001staged facts, final origin publication Git object write",
+  "git_exit_code": 128,
+  "exact_stderr_available": false,
+  "ENOSPC_confirmed": false,
+  "disk_full_correlated_only": true,
+  "df": "Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on\n/dev/disk3s5   460Gi   427Gi   338Mi   100%    5.3M  3.5M   61%   /System/Volumes/Data\n",
+  "watcher_session": 69799,
+  "watcher_exit_code": 0,
+  "proof_credit": false
+}

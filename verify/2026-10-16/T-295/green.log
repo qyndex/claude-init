@@ -1,0 +1,10 @@
+# TDD ledger — green — T-295
+ledger_format: 2
+timestamp: 2026-10-16T15:48:08+11:00
+command: bash .claude/scripts/test/factory-receipt-projection-windows.sh
+exit_code: 0
+---
+actual two-task append/checkpoint/lineage/stage/fresh-SQLite chain passed: partial→complete, expired source, current revocation and atomic privacy/conflicting-stage rejection; no global coverage/task credit
+11 real Git fresh-process/fresh-SQLite129-reference interval/revocation/gap/material/privacy/SQL/idempotent-overlap cases passed; no global coverage or task credit
+11 runtime compatibility cases passed; integrity only, writer origin remains mandatory
+6 historical-six/current-seven real-Git expiry/restart/withdrawal/origin/privacy cases passed

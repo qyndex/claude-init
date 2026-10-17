@@ -1,0 +1,16 @@
+Traceback (most recent call last):
+  File "<stdin>", line 21, in reject
+  File "<stdin>", line 33, in <lambda>
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/factory-receipt-archive.py", line 44, in validate_record
+    require(isinstance(record, dict) and set(record) == {'schema_version', 'repository', 'visibility', 'run', 'artifact', 'proof', 'receipt_zip', 'materials'}, 'archive record schema differs')
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-receipt-planning-20261016/.claude/scripts/validate-candidate-evidence.py", line 19, in require
+    raise ValueError(message)
+ValueError: archive record schema differs
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "<stdin>", line 33, in <module>
+  File "<stdin>", line 22, in reject
+AssertionError: ('private', 'archive record schema differs')

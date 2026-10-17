@@ -1,0 +1,8 @@
+{
+  "source_commit": "21c99106d3b3c1d8761d8d525e8e5eccae061938",
+  "files": {
+    ".claude/scripts/factory-runtime.py": "a69ec22bbd6fd9403cc70f93b3e2c38554603d97d99cdaf06df27f4470983f45",
+    ".claude/scripts/test/factory-runtime.sh": "0cee0f6056f2783ac0f66e47b1b67946d123a916c54945c674d5c9d924679c5d"
+  },
+  "scope": "Required unchanged runtime regression preparation only; not T290 dependency closure"
+}

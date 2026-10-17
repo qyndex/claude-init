@@ -1,0 +1,12 @@
+# TDD ledger — red — T-333
+ledger_format: 2
+timestamp: 2026-10-17T00:48:12+11:00
+command: bash .claude/scripts/test/factory-reporting-receipt-transfer.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 25, in <module>
+  File "retained-fixture-bootstrap", line 6, in <module>
+  File "real-retained-reporting-transfer", line 165, in <module>
+AssertionError: [{'delivery_evidence': [{'artifact_digest': 'sha256:eb5bbb58f0832d6c78f248cd907f7f8169c952547f7ce70801c3d2dc27669e42', 'producer_run': 20, 'revision': 'be4648bd78013141e097acdd36443d1fac79f3258be0a6fa83e5ecde142ef30b', 'spec': '001', 'task': 'T-1'}], 'evidence_status': 'authenticated', 'late_discovered': False, 'merge_sha': 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', 'merge_time_checks': 'not independently recorded', 'merged_at': '2026-10-15T01:00:00.123456+00:00', 'pr': 7, 'title': 'Feature', 'url': 'https://github.com/org/repo/pull/7'}, {'delivery_evidence': [{'artifact_digest': 'sha256:ff06937e2d351d8b9b33b1a710f6a172f2ed0fbf7fa0f828819a0db3f2c71180', 'producer_run': 21, 'revision': 'be4648bd78013141e097acdd36443d1fac79f3258be0a6fa83e5ecde142ef30b', 'spec': '002', 'task': 'T-2'}], 'evidence_status': 'authenticated', 'late_discovered': False, 'merge_sha': 'cccccccccccccccccccccccccccccccccccccccc', 'merge_time_checks': 'not independently recorded', 'merged_at': '2026-10-15T01:00:00.123456+00:00', 'pr': 8, 'title': 'Feature', 'url': 'https://github.com/org/repo/pull/8'}]

@@ -1,0 +1,39 @@
+{
+  "head": "43bb02fb78a5db0b71ec097a4d3a62aa1d7eb8d0",
+  "base": "70b0d73525ac7085709720ab655a3a0cea8216c0",
+  "scope": "T330 only; archive excerpts explicitly scoped",
+  "prompt_sha256": "d72b0b58bd4e7215244ba2f5c92ebf4db745aa8b2c0a4168334a031f86e349b9",
+  "prompt_bytes": 141063,
+  "files": [
+    {
+      "path": ".claude/scripts/factory-reporting-policy.py",
+      "sha256": "7fa41d700f63931831c5a8cd0da06d8b80d1d84fcbd2241b12e20e339e9ee36e",
+      "review_scope": "full source"
+    },
+    {
+      "path": ".claude/scripts/factory-receipt-archive.py",
+      "sha256": "985e4ad2685ec39fd5c7e9616b61106a6bb163cd346767b47c97b36e05bea0e4",
+      "review_scope": "module prefix and full seven named functions; other functions not reviewed"
+    },
+    {
+      "path": ".claude/scripts/factory-policy-observation.py",
+      "sha256": "2fce0d7b6fda425dce97ee77cdccede155a16d93a2c2d4e588c7816e976a8dee",
+      "review_scope": "full source"
+    },
+    {
+      "path": ".claude/scripts/test/factory-reporting-policy.sh",
+      "sha256": "798813de96b2d24752a4f2e5c1aeb25a0a309930ac76aa0a67358e92bf0cd446",
+      "review_scope": "full source"
+    },
+    {
+      "path": ".claude/scripts/test/factory-receipt-cas.sh",
+      "sha256": "0f9f6d0a575a4aeaef192a6a9440bb710248512fa440be2404951e43e9e3b9be",
+      "review_scope": "full source"
+    },
+    {
+      "path": "specs/active/014-authenticated-receipt-recovery.md",
+      "sha256": "c738226551455502a91cfb9bb000f6c139ef1b91e3543d00fdde079e3ffbf8f6",
+      "review_scope": "full source"
+    }
+  ]
+}

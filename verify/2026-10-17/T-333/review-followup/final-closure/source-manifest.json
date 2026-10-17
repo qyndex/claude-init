@@ -1,0 +1,7 @@
+{
+  "base": "6a468aec0381f2ba628ec038ce5c39c41abab58e",
+  "files": {
+    ".claude/scripts/factory-reporting-receipts.py": "5e7ce876ceeb5135600abf974aa68742ac3cd6cbd1733dcfc97902859c9755df",
+    ".claude/scripts/test/factory-reporting-receipt-transfer.sh": "7c2918e268937339354d7ccbcf86993746109bf4a22fb2e250dede08a408ae3f"
+  }
+}

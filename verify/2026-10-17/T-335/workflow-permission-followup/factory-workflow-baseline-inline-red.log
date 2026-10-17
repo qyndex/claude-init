@@ -1,0 +1,4 @@
+AC-5: shipped protected ingress defers malformed/foreign/duplicate/unknown JSON to coordinator without raw echo; read-only App and separate audit retained
+Traceback (most recent call last):
+  File "<stdin>", line 64, in <module>
+AssertionError: queue permission expansion accepted

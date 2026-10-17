@@ -1,0 +1,11 @@
+# TDD ledger — red — T-284
+ledger_format: 2
+timestamp: 2026-10-16T10:50:30+11:00
+command: bash .claude/scripts/test/factory-receipt-discovery.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 60, in <module>
+  File "real-git-discovery-fixture", line 70, in <module>
+AssertionError: no protected restartable discovery checkpoint exists

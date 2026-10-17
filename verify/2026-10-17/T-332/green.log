@@ -1,0 +1,7 @@
+# TDD ledger — green — T-332
+ledger_format: 2
+timestamp: 2026-10-17T01:04:02+11:00
+command: bash .claude/scripts/test/factory-reporting-state-view.sh
+exit_code: 0
+---
+20 bounded authenticated real-Git report-view cases passed; no live/bootstrap capability claim

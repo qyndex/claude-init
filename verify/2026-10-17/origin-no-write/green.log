@@ -1,0 +1,2 @@
+unchanged exact-head origin: GET-only calls 45 repeated 45
+origin no-write real Git exact-head/repeat, opaque suffix, forged binding, dangerous intermediate, policy/head race, CAS/lost-ack PASS; no native credit

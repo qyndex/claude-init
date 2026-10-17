@@ -1,0 +1,1 @@
+33 strict receipt profile cases passed; no runtime integration or activation

@@ -1,0 +1,20 @@
+{
+  "checked_at": "2026-10-16T17:27:01.429111+00:00",
+  "publication_head": "529f80a",
+  "checks": [
+    {
+      "path": ".claude/scripts/factory-runtime.py",
+      "expected_sha256": "a69ec22bbd6fd9403cc70f93b3e2c38554603d97d99cdaf06df27f4470983f45",
+      "actual_sha256": "a69ec22bbd6fd9403cc70f93b3e2c38554603d97d99cdaf06df27f4470983f45",
+      "unchanged": true
+    },
+    {
+      "path": ".claude/scripts/test/factory-runtime.sh",
+      "expected_sha256": "0cee0f6056f2783ac0f66e47b1b67946d123a916c54945c674d5c9d924679c5d",
+      "actual_sha256": "0cee0f6056f2783ac0f66e47b1b67946d123a916c54945c674d5c9d924679c5d",
+      "unchanged": true
+    }
+  ],
+  "previous_actual_run": "/private/tmp/factory-runtime-regression-20261017/result.json",
+  "scope": "Only runtime regression reuse; T290 not complete. Final source must retain these exact hashes."
+}

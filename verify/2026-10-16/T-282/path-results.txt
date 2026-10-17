@@ -1,0 +1,1 @@
+29 state path/index/resumable tree cases passed; path/index suite performs no CAS writes
