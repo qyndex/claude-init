@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "repository": "qyndex/claude-init",
+  "repository_id": 1252326101,
+  "branch": "factory-reporting-state",
+  "writer_app_id": 5340785,
+  "policies": {
+    "24826406": {
+      "schema_version": 1,
+      "repository": "qyndex/claude-init",
+      "repository_id": 1252326101,
+      "ruleset_id": 24826406,
+      "metadata_sha256": "12bf72e328e3a52e761d9234848aa1a4dace39c09c74934f088a7fc97bb148dd",
+      "updated_at": "2026-10-10T12:45:05.410+11:00",
+      "observed_at": "2026-10-17T11:31:31.685765+00:00",
+      "bypass_actors": [],
+      "branch": "factory-reporting-state",
+      "writer_app_id": 5340785,
+      "role": "protection"
+    },
+    "25300846": {
+      "schema_version": 1,
+      "repository": "qyndex/claude-init",
+      "repository_id": 1252326101,
+      "ruleset_id": 25300846,
+      "metadata_sha256": "2ac86b6bf2ccca12afc4de2558e6a9887c4eab35a04fee3ba3a462eba372da10",
+      "updated_at": "2026-10-17T22:30:20.353+11:00",
+      "observed_at": "2026-10-17T11:31:31.685765+00:00",
+      "bypass_actors": [
+        {
+          "actor_id": 5340785,
+          "actor_type": "Integration",
+          "bypass_mode": "always"
+        }
+      ],
+      "branch": "factory-reporting-state",
+      "writer_app_id": 5340785,
+      "role": "update"
+    }
+  }
+}

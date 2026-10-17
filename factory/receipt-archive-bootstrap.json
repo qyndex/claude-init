@@ -1,0 +1,16 @@
+{
+  "schema_version": 2,
+  "repository": "qyndex/claude-init",
+  "repository_id": 1252326101,
+  "private": false,
+  "branch": "factory-reporting-state",
+  "bootstrap_sha": "0ad45bd7b1c5771c4063ae15646fdd5c779eb522",
+  "bootstrap_tree": "fd4d3744ef72f4836b66a77f8ff1928cd159d656",
+  "coverage_from": "2026-10-16T21:01:32Z",
+  "observed_at": "2026-10-17T11:31:31.685765+00:00",
+  "writer_app_id": 5340785,
+  "policies": {
+    "24826406": "12bf72e328e3a52e761d9234848aa1a4dace39c09c74934f088a7fc97bb148dd",
+    "25300846": "2ac86b6bf2ccca12afc4de2558e6a9887c4eab35a04fee3ba3a462eba372da10"
+  }
+}
