@@ -138,9 +138,14 @@ def run(config, api, client, now, *, failed_run=None, drill_run=None):
     return {'schema_version':1,'health':health['status'],'notifications':sent,'checkpoint_sha':checkpoint.head}
 
 
+_failure_stage = 'startup'
+
 def main():
+    global _failure_stage
+    _failure_stage = 'config'
     parser=argparse.ArgumentParser();parser.add_argument('--config',required=True);parser.add_argument('--failed-run',type=int);parser.add_argument('--drill-run',type=int)
     args=parser.parse_args();config=state.digest.coordinator.contract.load(Path(args.config))
+    _failure_stage = 'transport'
     flag=os.environ.get('FACTORY_REPORTING_APP_WRITER_ENABLED','false')
     require(flag in ('true','false'),'reporting writer flag invalid')
     if flag=='true':
@@ -148,14 +153,23 @@ def main():
         transport=importlib.util.module_from_spec(spec);spec.loader.exec_module(transport)
         api=transport.create_api(os.environ)
         require(api.repo==config['repository']==config['state_repository'],'reporting selected API repository differs')
+        _failure_stage = 'protected-context'
         config=transport.attach_reporting_context(config)
     else:
         api=state.API(config['repository'],os.environ.get('FACTORY_REPORTING_STATE_TOKEN') or os.environ.get('GH_TOKEN'))
+    _failure_stage = 'checkpoint-or-delivery'
     result=run(config,api,state.slack.http_client(config),datetime.now(timezone.utc),failed_run=args.failed_run,drill_run=args.drill_run)
     print(state.canonical(result));return 0
 
 
 if __name__=='__main__':
     try:sys.exit(main())
-    except (ValueError,KeyError,TypeError,OSError,sqlite3.Error,subprocess.SubprocessError):
-        print('Reporting alert blocked; preserve state and inspect GitHub run before retry.',file=sys.stderr);sys.exit(2)
+    except (ValueError,KeyError,TypeError,OSError,sqlite3.Error,subprocess.SubprocessError) as error:
+        print('Reporting alert blocked; preserve state and inspect GitHub run before retry.',file=sys.stderr)
+        try:
+            spec=importlib.util.spec_from_file_location('alerts_safe_diagnostic',Path(__file__).with_name('factory-reporting-transport.py'))
+            diagnostic=importlib.util.module_from_spec(spec);spec.loader.exec_module(diagnostic)
+            print(json.dumps(diagnostic.safe_diagnostic(_failure_stage,error),sort_keys=True),file=sys.stderr)
+        except Exception:
+            print('{"error_class":"Exception","http_status":null,"stage":"diagnostic-unavailable"}',file=sys.stderr)
+        sys.exit(2)
