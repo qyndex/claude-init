@@ -261,7 +261,7 @@ bash .claude/scripts/requeue-failed.sh --reset T-42   # re-open it deliberately
 
 ### A production incident
 ```
-# Automatic: a Sentry/SLO alert auto-creates a top-of-queue `priority: hotfix` task; an
+# Automatic: a Sentry/SLO alert auto-creates a top-of-queue `priority: hotfix` task;
 # a configured session reproduces → fixes → opens a PR with a regression test; protected scope and evidence still govern merge.
 # Manual:
 /incident-start    # opens an incident, pulls prior similar incidents from memory

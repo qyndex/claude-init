@@ -10,7 +10,7 @@ def criteria(raw):
     if not isinstance(raw, bytes) or not 0 < len(raw) <= MAX_BYTES:
         raise ValueError('specification size invalid')
     try:
-        lines = raw.decode('utf-8-sig').splitlines()
+        lines = re.split(r'\r\n|\r|\n', raw.decode('utf-8-sig'))
     except UnicodeError:
         raise ValueError('specification encoding invalid') from None
     sections = 0
@@ -23,6 +23,8 @@ def criteria(raw):
             if marker and marker[1][0] == fence[0] and len(marker[1]) >= fence[1] and not marker[2].strip():
                 fence = None
             continue
+        if marker and marker[1][0] == '`' and '`' in marker[2]:
+            raise ValueError('invalid backtick fence opener')
         if marker:
             fence = (marker[1][0], len(marker[1]))
             continue
@@ -34,6 +36,8 @@ def criteria(raw):
                 sections += 1
             active = acceptance
             continue
+        if not active and re.match(r'^ {0,3}(?:(?:[-+*]|[0-9]+[.)])[ \t]+)?(?:\*\*|__)?AC-[0-9]+\b', line):
+            raise ValueError('acceptance definition outside acceptance section')
         if active:
             for value in re.findall(r'\bAC-([0-9]+)\b', line):
                 if len(value) > 6 or int(value) == 0:

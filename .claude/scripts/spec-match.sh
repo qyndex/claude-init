@@ -36,7 +36,7 @@ fi
 # 1. Extract AC ids from the spec (AC-1, AC-2, AC-01 …), normalized to
 #    unpadded AC-N — e2e-audit e2e-rig-3: specs write AC-01 while tests tag
 #    @AC-1; the comparison must happen in ONE canonical form.
-if ! ac_ids=$(python3 "$ROOT/.claude/scripts/acceptance-criteria.py" "$spec"); then
+if ! ac_ids=$(python3 -I "$ROOT/.claude/scripts/acceptance-criteria.py" "$spec"); then
   exit 1
 fi
 
