@@ -1,0 +1,1 @@
+PASS exact merge-only policy delta; old profile preserved; new canonical policy and seven immutable runtime pins validated

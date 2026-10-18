@@ -1,7 +1,7 @@
 ---
 id: 029
 slug: github-reporting-alerts
-status: approved
+status: shipped
 owner: "@codex"
 created: 2029-10-10
 updated: 2026-10-17

@@ -1,0 +1,42 @@
+{
+  "run_id": 39080135984,
+  "attempt": 1,
+  "source": "94e40be14af35b11bbd81d355a723141c4383299",
+  "artifact": {
+    "id": 12118333657,
+    "node_id": "MDg6QXJ0aWZhY3QxMjExODMzMzY1Nw==",
+    "name": "factory-receipt-39080135984-1",
+    "size_in_bytes": 445,
+    "url": "https://api.github.com/repos/qyndex/claude-init/actions/artifacts/12118333657",
+    "archive_download_url": "https://api.github.com/repos/qyndex/claude-init/actions/artifacts/12118333657/zip",
+    "expired": false,
+    "digest": "sha256:a2531bc4adeca83ad5a2202b4d6ea9ed33a0797a18b8e54ac470ed6dad05aea1",
+    "created_at": "2026-10-17T23:44:33Z",
+    "updated_at": "2026-10-17T23:44:33Z",
+    "expires_at": "2027-01-15T23:43:55Z",
+    "workflow_run": {
+      "id": 39080135984,
+      "repository_id": 1252326101,
+      "head_repository_id": 1252326101,
+      "head_branch": "main",
+      "head_sha": "94e40be14af35b11bbd81d355a723141c4383299"
+    }
+  },
+  "receipt": {
+    "schema_version": 1,
+    "repository": "qyndex/claude-init",
+    "pull_request": 119,
+    "head_sha": "d4ca65fbaaf083116350bca2183adfb9fe0eec8b",
+    "base_sha": "94e40be14af35b11bbd81d355a723141c4383299",
+    "spec": "048",
+    "spec_sha256": "b1d8c41cd3213f264237e3308244f561b43777a0630aa5dee98cb9891a7e9458",
+    "policy_sha256": "bc4d9155d093cb245dcba78d57291f4c946043b120361769d7101528ee1aedb9",
+    "verifier_run": 39048165753,
+    "reviewer_run": 39048165747,
+    "eligible": true,
+    "merged": false
+  },
+  "profile": "reporting-main-e095a23",
+  "delivery_credit": false,
+  "positive_app_check_claim": false
+}

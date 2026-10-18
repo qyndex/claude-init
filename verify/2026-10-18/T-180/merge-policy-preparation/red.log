@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/private/tmp/factory-merge-cutover-proof-20261018/check-cutover.py", line 4, in <module>
+    assert policy['merge_enabled'] is True, 'reviewed cutover must enable merge in source policy'
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: reviewed cutover must enable merge in source policy
