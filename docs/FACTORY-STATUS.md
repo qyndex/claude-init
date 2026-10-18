@@ -1,6 +1,6 @@
 # Factory status and adoption readiness
 
-Snapshot: 2026-10-18. Audited protected source: `6399f35c6de9d67a2fb9cb1506945319d69c691e`.
+Snapshot: 2026-10-19. Published source: `6e89cc6f3d8e368fd078f5652c928225bec10f03`. This documentation refresh is a candidate until its PR is merged.
 
 The approved factory implementation is complete, and the source repository has a working controlled merge pilot. The harness is ready to install and evaluate in a new or existing repository. Unattended operation in that repository requires its own activation evidence; production readiness is not inherited from this pilot.
 
@@ -26,6 +26,7 @@ The last four implementation tasks are closed:
 - Two subsequent runs were reconciled as unstarted skipped job placeholders, with no steps, runner allocation or artifacts. They receive no delivery credit. Persistent activation followed a separately reviewed reconciliation; the original safe-off stop remains recorded.
 - [PR123](https://github.com/qyndex/claude-init/pull/123) published the completion records as `edd33825d5191f3ad82fc8c9892cebff2dc69686`. Its nine ordinary contexts passed, including the [full harness](https://github.com/qyndex/claude-init/actions/runs/39091778158), Claude code/security review and ADR. Its three factory contexts correctly blocked out-of-scope bookkeeping; the operator approved a separate maintenance window. All twelve strict protection requirements, empty bypass actors, settled protected policy observations and enabled authority were independently read back afterward.
 - [PR125](https://github.com/qyndex/claude-init/pull/125) merged the authenticated prior-origin reuse repair and bounded error diagnostics as `6399f35c6de9d67a2fb9cb1506945319d69c691e`. Its full harness and ordinary Claude code/security reviews passed; the separately approved source-first maintenance restored all twelve strict checks, no bypass actors and existing narrow authority. This is not current reporting acceptance.
+- [PR126](https://github.com/qyndex/claude-init/pull/126) merged the pinned tool-free OAuth ordinary review/evidence repair as `6e89cc6f3d8e368fd078f5652c928225bec10f03`. Eight ordinary required contexts passed, including the full native harness and retained exact-head Sonnet5.5 code/security reports. Four evidence/factory requirements used the separately approved maintenance exception; they are not passing acceptance. All twelve strict requirements and the previous narrow authority were restored and independently verified. Security retained two low hardening suggestions, no high/critical findings.
 - A fresh read during this audit confirmed `FACTORY_AUTHORITY_ENABLED=true`. The policy registers **only Spec048 and its nine approved paths**. This is not approval for arbitrary feature, dependency, release or authority changes.
 
 These are dated observations. Recheck current source, configuration, producer capacity and protections before another activation or delivery; documentation is not an authority token.
@@ -34,7 +35,7 @@ These are dated observations. Recheck current source, configuration, producer ca
 
 | Area | Current boundary / next evidence |
 | --- | --- |
-| Reporting freshness | Historical catch-up remains pending until the authenticated delivered cutoff is current. [Digest39102649987](https://github.com/qyndex/claude-init/actions/runs/39102649987) succeeded as a workflow but returned `incomplete` in review at its job deadline. New-source feedback and alert runs also reported HTTP403; its cause remains unverified. Preserve the existing cursor and intent; neither workflow success nor diagnostics prove delivery. |
+| Reporting freshness | Latest completed observation checked here: [digest39174752936](https://github.com/qyndex/claude-init/actions/runs/39174752936) had workflow success but actual `incomplete`, phase `review`, reason `job-deadline`, after11 child invocations. That is not confirmed delivery or current cutoff. Preserve the cursor and intent; observe the next serialized continuation rather than duplicating sends. Earlier403 causes remain unestablished until protected diagnostics supply evidence. |
 | Complete pilot loop | Observe the next due digest containing the genuine delivery, then authentic operator feedback and a separately approved amendment delivered through the same chain. Do not invent feedback or preapprove its scope. |
 | Broader autonomy | Accumulate twenty useful consecutive eligible deliveries with complete receipts and the planned recovery/reporting evidence before expanding policy. One pilot delivery is not that sample. |
 | Scout/native entry | Spec050's implementation and offline acceptance are complete. Mandatory intake needs a separately provisioned protected console/worker installation and actual native ordering/failure observations. Bare Claude/IDE paths remain advisory or unsupported; general native conversation delivery is unavailable. |
@@ -43,6 +44,18 @@ These are dated observations. Recheck current source, configuration, producer ca
 | Production | The source pilot has no production target. Each adopter must configure and prove deployment, health/SLO and rollback adapters and separately enable releases. |
 
 There are **zero pending implementation entries in the approved factory ledger range**, but these rollout observations and adopter prerequisites are not all complete. Do not describe the system as universally production-certified or the full operating loop as accepted yet.
+
+## Five readiness workstreams
+
+| Workstream | Completion evidence required | Current disposition |
+| --- | --- | --- |
+| Documentation/runtime follow-up | Reviewed PR124 source integrated with the repaired reviewer runtime, fresh native checks and actual merge. | Candidate preparation; PR126 is merged, PR124 remains separate. |
+| Current reporting | Confirmed remote receipt and authenticated delivered cutoff covering the due Sydney digest; workflow success alone is insufficient. | Catch-up/continuation remains under verification. |
+| Feedback cycle | Genuine allowlisted operator feedback referring to a confirmed report, reviewed scope amendment, independent verification, actual delivery and authenticated acceptance. | Await a confirmed report and actual operator decision; no synthetic feedback or self-approval. |
+| Twenty-delivery expansion sample | Twenty useful consecutive eligible deliveries with complete authenticated receipts, no bypass/duplicate effects and the planned recovery/reporting proof. | Accumulate naturally under existing approved scope; one pilot delivery and maintenance merges cannot certify the sample. |
+| Real greenfield/brownfield adopters | Execute the repository-specific checklist, native proofs and any requested production health/rollback gates for named applications. | Target repository URLs/configuration are required; generic fixture success is not real target activation. |
+
+These rows are acceptance boundaries, not new completed task claims. See [the adopter checklist](FACTORY-ADOPTER-SETUP.md#greenfield-and-brownfield-verification). Keep each unproved capability disabled or within its existing approved scope.
 
 ## Use it in another repository
 

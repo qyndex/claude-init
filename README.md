@@ -78,6 +78,15 @@ A complete agentic harness for Claude Code that includes:
 - **CI/CD** — `.github/workflows/` with claude-code-action, claude-code-security-review, CI matrix, E2E on preview, auto-merge Dependabot, release-please
 - **Templates** — `specs/templates/`, `plans/templates/` (Spec Kit-style)
 
+## Greenfield and brownfield starting points
+
+| Repository | Start here | Required baseline |
+| --- | --- | --- |
+| Greenfield application | Create its own Git repository, then dry-run the pinned harness installation and use `/kickoff` to draft the product specification. | Approve the initial scope, choose the real stack/test commands, and establish application CI before enabling autonomous delivery. |
+| Brownfield application | Create an adoption branch in the existing repository, preserve its working baseline, then follow `/adopt start`. | Inventory architecture, tests, migrations and custom instructions; resolve ownership conflicts explicitly and record existing failures before implementation. |
+
+Both paths use [the adopter setup guide](docs/FACTORY-ADOPTER-SETUP.md#greenfield-and-brownfield-verification). Each target owns its App, approved specs, protection, secrets and reporting store. Run the protected preflight and genuine verifier/reviewer/shadow checks before enabling its merge authority. Production additionally needs that application's deployment, health and rollback proof. See [current readiness](docs/FACTORY-STATUS.md); installation is not an activation certificate.
+
 ## Step-by-step adoption
 
 ### 1. Install (one line)
