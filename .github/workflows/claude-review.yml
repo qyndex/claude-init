@@ -76,7 +76,7 @@ jobs:
             --model claude-sonnet-5-5 --max-turns 40
             --tools Read
             --allowedTools 'Read(/${{ runner.temp }}/claude-review-input.txt)'
-            --setting-sources '' --strict-mcp-config --mcp-config '{"mcpServers":{}}'
+            --setting-sources user --strict-mcp-config --mcp-config '{"mcpServers":{}}'
             --json-schema '{"type":"object","additionalProperties":false,"required":["repository","pr","head","role","summary","findings","suppressed"],"properties":{"repository":{"type":"string"},"pr":{"type":"integer"},"head":{"type":"string"},"role":{"enum":["code","security"]},"summary":{"type":"string"},"suppressed":{"type":"integer"},"findings":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["severity","path","line","description"],"properties":{"severity":{"enum":["critical","high","medium","low","info"]},"path":{"type":"string"},"line":{"type":"integer"},"description":{"type":"string"}}}}}}'
           prompt: |
             Perform an independent code review. Read ONLY the prepared immutable

@@ -86,6 +86,7 @@ class Evidence(unittest.TestCase):
    self.assertNotIn('no review body yet',text)
    self.assertIn('id: claude_review',text);self.assertIn('--json-schema',text)
    self.assertIn('retain-claude-review.py',text);self.assertIn('if: always()',text)
+   self.assertIn('--setting-sources user',text);self.assertNotIn("--setting-sources ''",text)
    self.assertIn('actions/upload-artifact@',text)
    self.assertIn('steps.claude_review.outputs.execution_file',text)
    self.assertIn('REVIEW_ACTION_OUTCOME: ${{ steps.claude_review.outcome }}',text)
