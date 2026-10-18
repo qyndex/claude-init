@@ -77,8 +77,8 @@ jobs:
 
       - name: Prepare exact-head review context and validator
         run: |
-          python3 -I .claude/scripts/prepare-claude-review.py
           cp .claude/scripts/retain-claude-review.py "$RUNNER_TEMP/retain-claude-review.py"
+          python3 -I .claude/scripts/prepare-claude-review.py
 
       - name: Run Claude security review (structured output)
         id: claude_review

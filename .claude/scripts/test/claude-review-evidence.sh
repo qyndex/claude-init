@@ -92,6 +92,17 @@ class Evidence(unittest.TestCase):
    (temp/'claude-review-input.txt').unlink()
    process=subprocess.run([sys.executable,'-I',str(preparer)],cwd=repo,env=env,capture_output=True,text=True)
    self.assertNotEqual(process.returncode,0);self.assertFalse((temp/'claude-review-input.txt').exists())
+ def test_preparation_failure_keeps_validator_available_for_blocked_report(self):
+  text=Path('.github/workflows/claude-review.yml').read_text()
+  block=text.split('      - name: Prepare exact-head review context and validator',1)[1].split('      - name:',1)[0].split('        run: |\n',1)[1]
+  import textwrap
+  with tempfile.TemporaryDirectory() as folder:
+   root=Path(folder);event=root/'event.json';event.write_text('{}')
+   env={**os.environ,'RUNNER_TEMP':str(root),'GITHUB_EVENT_PATH':str(event),'REVIEW_ACTION_OUTCOME':'skipped'}
+   failed=subprocess.run(['bash','-e','-c',textwrap.dedent(block)],env=env,capture_output=True,text=True)
+   self.assertNotEqual(failed.returncode,0);self.assertTrue((root/'retain-claude-review.py').is_file())
+   retained=subprocess.run([sys.executable,'-I',str(root/'retain-claude-review.py'),'--role','code','--output',str(root/'blocked')],env=env,capture_output=True,text=True)
+   self.assertEqual(retained.returncode,1);self.assertEqual(json.loads((root/'blocked/review.json').read_text())['status'],'blocked')
  def test_manual_security_dispatch_is_explicit_scan_not_unbound_review(self):
   text=Path('.github/workflows/claude-security.yml').read_text()
   self.assertIn("github.event_name == 'pull_request' &&",text)
