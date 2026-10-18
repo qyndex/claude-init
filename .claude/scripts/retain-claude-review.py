@@ -65,6 +65,27 @@ def validate(messages, expected):
     return review
 
 
+def validate_access(messages, context):
+    """AllowedTools is an additive permission, so audit actual accesses too."""
+    reads = 0
+    for row in messages:
+        message = row.get('message', {})
+        if row.get('type') != 'assistant' or not isinstance(message, dict):
+            continue
+        content = message.get('content', [])
+        require(isinstance(content, list), 'assistant content malformed')
+        for block in content:
+            if not isinstance(block, dict) or block.get('type') != 'tool_use':
+                continue
+            if block.get('name') == 'StructuredOutput':
+                continue
+            require(block.get('name') == 'Read', 'unexpected reviewer tool')
+            args = block.get('input')
+            require(isinstance(args, dict) and isinstance(args.get('file_path'), str) and Path(args['file_path']).resolve(strict=True) == context.resolve(strict=True), 'read outside prepared context')
+            reads += 1
+    require(reads > 0, 'prepared context read not evidenced')
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--role', choices=('code', 'security'), required=True)
@@ -85,13 +106,18 @@ def main():
         require(execution.is_relative_to(temp), 'execution file outside runner temp')
         messages = load(execution)
         review = validate(messages, expected)
+        context = temp / 'claude-review-input.txt'
+        validate_access(messages, context)
+        with context.open('rb') as source:
+            context_raw = source.read(1024 * 1024 + 1)
+        require(0 < len(context_raw) <= 1024 * 1024, 'prepared context unavailable or oversized')
         digest = hashlib.sha256(execution.read_bytes()).hexdigest()
         blocked = any(row['severity'] in ('critical', 'high') for row in review['findings'])
         for name in ('GITHUB_RUN_ID', 'GITHUB_RUN_ATTEMPT'):
             require(re.fullmatch('[1-9][0-9]*', os.environ.get(name, '')) is not None, 'workflow attempt binding missing')
         status.update(expected, status='changes-required' if blocked else 'reviewed', model=MODEL,
                       run_id=os.environ['GITHUB_RUN_ID'], run_attempt=os.environ['GITHUB_RUN_ATTEMPT'],
-                      execution_sha256=digest, review=review)
+                      execution_sha256=digest, context_sha256=hashlib.sha256(context_raw).hexdigest(), review=review)
         exit_code = int(blocked)
     except (ValueError, KeyError, OSError, TypeError, RecursionError):
         # Never copy raw execution, exception strings, tokens or tool transcripts.

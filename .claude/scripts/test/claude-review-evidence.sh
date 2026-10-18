@@ -40,8 +40,10 @@ class Evidence(unittest.TestCase):
    root=Path(folder);event=root/'event.json';execution=root/'execution.json'
    event.write_text(json.dumps({'repository':{'full_name':binding['repository']},'pull_request':{'number':12,'head':{'sha':'a'*40}}}))
    env={**os.environ,'GITHUB_EVENT_PATH':str(event),'RUNNER_TEMP':str(root),'REVIEW_EXECUTION_FILE':str(execution),'REVIEW_ACTION_OUTCOME':'success','GITHUB_RUN_ID':'123','GITHUB_RUN_ATTEMPT':'2'}
+   (root/'claude-review-input.txt').write_text('Fixture public context only')
+   access={'type':'assistant','message':{'content':[{'type':'tool_use','name':'Read','input':{'file_path':str(root/'claude-review-input.txt')}}]}}
    def run(name,rows):
-    execution.write_text(json.dumps(rows));dest=root/name
+    execution.write_text(json.dumps([access]+rows));dest=root/name
     process=subprocess.run([sys.executable,'-I',str(script),'--role','code','--output',str(dest)],env=env,capture_output=True,text=True)
     return process,json.loads((dest/'review.json').read_text())
    process,saved=run('good',[result]);self.assertEqual(process.returncode,0);self.assertEqual(saved['head'],'a'*40)
@@ -50,6 +52,9 @@ class Evidence(unittest.TestCase):
    process,saved=run('denied',[denied]);self.assertEqual(process.returncode,1);self.assertNotIn('CANARY',json.dumps(saved)+process.stdout+process.stderr)
    high=copy.deepcopy(result);high['structured_output']['findings']=[{'severity':'high','path':'source.py','line':1,'description':'Defect.'}]
    process,saved=run('high',[high]);self.assertEqual(process.returncode,1);self.assertEqual(saved['status'],'changes-required')
+   original=access['message']['content'][0]['input']['file_path'];access['message']['content'][0]['input']['file_path']='/outside/CANARY-PRIVATE'
+   process,saved=run('outside',[result]);self.assertEqual(process.returncode,1);self.assertNotIn('CANARY',json.dumps(saved)+process.stdout+process.stderr)
+   access['message']['content'][0]['input']['file_path']=original
    execution.write_text('{"type":1,"type":2}')
    process=subprocess.run([sys.executable,'-I',str(script),'--role','code','--output',str(root/'duplicate')],env=env,capture_output=True)
    self.assertEqual(process.returncode,1)
