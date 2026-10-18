@@ -1,0 +1,10 @@
+{
+  "scope": "test-only metadata-readiness compatibility, not nativecutover/T180 completion",
+  "native_failed_run": 39080898648,
+  "native_failed_job": 117537432656,
+  "published_head": "f9057cf0c96fdebafa7a69172a674bf314ed8e14",
+  "test_sha256": "f2de35029554cfb7c8b31a1ad2479071efcb8048f8868f32f08b86618e717418",
+  "red_sha256": "86206729f418acb8d5edc84a0878fbc0dbf6a00d2e4744952e10fdf28298730b",
+  "green_sha256": "6271b7dbe8659aaa5765e77d4af1bfb79d5dcea2b54e0dc24164b77c664209d5",
+  "production_policy_unchanged": true
+}
