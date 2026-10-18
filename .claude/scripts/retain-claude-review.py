@@ -1,15 +1,13 @@
 #!/usr/bin/env python3
-"""Retain bounded exact-head model review output; never grants factory authority."""
-import argparse
-import hashlib
+"""Validate bounded exact-head tool-free review output; no merge authority."""
 import json
-import os
 from pathlib import Path
 import re
-import sys
 
 MODEL = 'claude-sonnet-5-5'
-LIMIT = 16 * 1024 * 1024
+LIMIT = 4_000_000
+CLI_VERSION = '2.1.295'
+SCHEMA = {'type': 'object', 'additionalProperties': False, 'required': ['repository', 'pr', 'head', 'role', 'summary', 'findings', 'suppressed'], 'properties': {'repository': {'type': 'string'}, 'pr': {'type': 'integer'}, 'head': {'type': 'string'}, 'role': {'enum': ['code', 'security']}, 'summary': {'type': 'string'}, 'suppressed': {'type': 'integer'}, 'findings': {'type': 'array', 'items': {'type': 'object', 'additionalProperties': False, 'required': ['severity', 'path', 'line', 'description'], 'properties': {'severity': {'enum': ['critical', 'high', 'medium', 'low', 'info']}, 'path': {'type': 'string'}, 'line': {'type': 'integer'}, 'description': {'type': 'string'}}}}}}
 
 
 def require(ok, message):
@@ -46,7 +44,7 @@ def validate(messages, expected):
     for field in ('inputTokens', 'outputTokens', 'cacheReadInputTokens', 'cacheCreationInputTokens'):
         count = usage[MODEL].get(field)
         require((count is None and field.startswith('cache')) or (type(count) is int and 0 <= count <= 1000000000), 'observed token count invalid')
-    require(type(result.get('num_turns')) is int and 0 < result['num_turns'] <= 40, 'review turn bound invalid')
+    require(type(result.get('num_turns')) is int and 0 < result['num_turns'] <= 3, 'review turn bound invalid')
     review = result.get('structured_output')
     require(isinstance(review, dict) and set(review) == {'repository', 'pr', 'head', 'role', 'summary', 'findings', 'suppressed'}, 'structured review missing or malformed')
     for name in ('repository', 'pr', 'head', 'role'):
@@ -63,103 +61,3 @@ def validate(messages, expected):
         require(type(finding['line']) is int and 0 < finding['line'] <= 1000000, 'finding line invalid')
         require(isinstance(finding['description'], str) and 0 < len(finding['description'].strip()) <= 8000, 'finding description invalid')
     return review
-
-
-def validate_access(messages, context):
-    """Require actual, visible, byte-matching Read results covering every line."""
-    with context.open('rb') as source:
-        raw = source.read(1024 * 1024 + 1)
-    require(0 < len(raw) <= 1024 * 1024, 'prepared context unavailable or oversized')
-    lines = raw.decode('utf-8').split('\n')
-    require(all(len(line.encode()) <= 1600 for line in lines), 'overlong context line')
-    calls, complete, covered = {}, set(), set()
-    for row in messages:
-        message = row.get('message', {})
-        if not isinstance(message, dict):
-            continue
-        content = message.get('content', [])
-        require(isinstance(content, list), 'message content malformed')
-        for block in content:
-            if not isinstance(block, dict):
-                continue
-            if row.get('type') == 'assistant' and block.get('type') == 'tool_use':
-                if block.get('name') == 'StructuredOutput':
-                    continue
-                require(block.get('name') == 'Read', 'unexpected reviewer tool')
-                args, identity = block.get('input'), block.get('id')
-                require(isinstance(identity, str) and identity and identity not in calls, 'read identity invalid')
-                require(isinstance(args, dict) and isinstance(args.get('file_path'), str) and Path(args['file_path']).resolve(strict=True) == context.resolve(strict=True), 'read outside prepared context')
-                offset, limit = args.get('offset', 1), args.get('limit')
-                require(type(offset) is int and 1 <= offset <= len(lines) and type(limit) is int and 1 <= limit <= 20, 'read page bounds invalid')
-                calls[identity] = (offset, limit)
-            if row.get('type') == 'user' and block.get('type') == 'tool_result' and block.get('tool_use_id') in calls:
-                identity = block['tool_use_id']
-                require(identity not in complete and not block.get('is_error', False), 'read result failed or duplicated')
-                meta = row.get('tool_use_result')
-                require(isinstance(meta, dict) and meta.get('type') == 'text' and isinstance(meta.get('file'), dict), 'read result metadata missing')
-                file = meta['file']
-                require(isinstance(file.get('filePath'), str) and Path(file['filePath']).resolve(strict=True) == context.resolve(strict=True), 'read result path mismatch')
-                start, limit = calls[identity]
-                count = min(limit, len(lines) - start + 1)
-                require(type(file.get('startLine')) is int and file['startLine'] == start and type(file.get('numLines')) is int and file['numLines'] == count and type(file.get('totalLines')) is int and file['totalLines'] == len(lines), 'read result range mismatch')
-                expected = '\n'.join(lines[start - 1:start - 1 + count])
-                require(file.get('content') == expected, 'read result content truncated or changed')
-                visible = block.get('content')
-                require(isinstance(visible, str), 'visible read text missing')
-                numbered = {}
-                for line in visible.split('\n'):
-                    match = re.match(r'^ *([1-9][0-9]*)(?:\t|→)(.*)$', line)
-                    if match:
-                        number = int(match[1])
-                        require(number not in numbered, 'visible read line duplicated')
-                        numbered[number] = match[2]
-                require(numbered == {n: lines[n - 1] for n in range(start, start + count)}, 'visible read content incomplete')
-                complete.add(identity)
-                covered.update(range(start, start + count))
-    require(calls and complete == set(calls) and covered == set(range(1, len(lines) + 1)), 'prepared context not fully read')
-    return {'context_lines': len(lines), 'covered_lines': len(covered), 'read_calls': len(calls)}
-
-
-def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--role', choices=('code', 'security'), required=True)
-    parser.add_argument('--output', type=Path, required=True)
-    args = parser.parse_args()
-    # A fresh destination prevents an old passing report surviving a failed attempt.
-    args.output.mkdir(parents=True, exist_ok=False)
-    status = {'schema_version': 1, 'status': 'blocked', 'role': args.role}
-    exit_code = 1
-    try:
-        require(os.environ.get('REVIEW_ACTION_OUTCOME') == 'success', 'review action did not succeed')
-        event = load(Path(os.environ['GITHUB_EVENT_PATH']))
-        pr = event['pull_request']
-        expected = {'repository': event['repository']['full_name'], 'pr': pr['number'], 'head': pr['head']['sha'], 'role': args.role}
-        require(re.fullmatch(r'[0-9a-f]{40}', expected['head']) is not None and type(expected['pr']) is int and expected['pr'] > 0, 'event binding invalid')
-        execution = Path(os.environ['REVIEW_EXECUTION_FILE']).resolve(strict=True)
-        temp = Path(os.environ['RUNNER_TEMP']).resolve(strict=True)
-        require(execution.is_relative_to(temp), 'execution file outside runner temp')
-        messages = load(execution)
-        review = validate(messages, expected)
-        context = temp / 'claude-review-input.txt'
-        coverage = validate_access(messages, context)
-        with context.open('rb') as source:
-            context_raw = source.read(1024 * 1024 + 1)
-        require(0 < len(context_raw) <= 1024 * 1024, 'prepared context unavailable or oversized')
-        digest = hashlib.sha256(execution.read_bytes()).hexdigest()
-        blocked = any(row['severity'] in ('critical', 'high') for row in review['findings'])
-        for name in ('GITHUB_RUN_ID', 'GITHUB_RUN_ATTEMPT'):
-            require(re.fullmatch('[1-9][0-9]*', os.environ.get(name, '')) is not None, 'workflow attempt binding missing')
-        status.update(expected, status='changes-required' if blocked else 'reviewed', model=MODEL,
-                      run_id=os.environ['GITHUB_RUN_ID'], run_attempt=os.environ['GITHUB_RUN_ATTEMPT'],
-                      execution_sha256=digest, context_sha256=hashlib.sha256(context_raw).hexdigest(), coverage=coverage, review=review)
-        exit_code = int(blocked)
-    except (ValueError, KeyError, OSError, TypeError, RecursionError):
-        # Never copy raw execution, exception strings, tokens or tool transcripts.
-        status['reason'] = 'missing-invalid-or-unsuccessful-review-evidence'
-    (args.output / 'review.json').write_text(json.dumps(status, sort_keys=True, indent=2) + '\n')
-    print('Retained review: ' + status['status'])
-    return exit_code
-
-
-if __name__ == '__main__':
-    sys.exit(main())

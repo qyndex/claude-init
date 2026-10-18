@@ -35,44 +35,6 @@ class Evidence(unittest.TestCase):
   row=copy.deepcopy(result);row['structured_output']['findings']=[finding];self.assertEqual(len(m.validate([row],binding)['findings']),1)
   for field,value in [('severity','unknown'),('path','../outside'),('path','a\nTOKEN'),('line',True),('line',0),('description','')]:
    row=copy.deepcopy(result);row['structured_output']['findings']=[{**finding,field:value}];self.rejects([row])
- def test_cli_retains_blocked_without_raw_error_and_handles_findings(self):
-  with tempfile.TemporaryDirectory() as folder:
-   root=Path(folder);event=root/'event.json';execution=root/'execution.json'
-   event.write_text(json.dumps({'repository':{'full_name':binding['repository']},'pull_request':{'number':12,'head':{'sha':'a'*40}}}))
-   env={**os.environ,'GITHUB_EVENT_PATH':str(event),'RUNNER_TEMP':str(root),'REVIEW_EXECUTION_FILE':str(execution),'REVIEW_ACTION_OUTCOME':'success','GITHUB_RUN_ID':'123','GITHUB_RUN_ATTEMPT':'2'}
-   (root/'claude-review-input.txt').write_text('Fixture public context only')
-   access={'type':'assistant','message':{'content':[{'type':'tool_use','id':'fixture-read','name':'Read','input':{'file_path':str(root/'claude-review-input.txt'),'offset':1,'limit':20}}]}}
-   response={'type':'user','message':{'content':[{'type':'tool_result','tool_use_id':'fixture-read','content':'1\tFixture public context only'}]},'tool_use_result':{'type':'text','file':{'filePath':str(root/'claude-review-input.txt'),'startLine':1,'numLines':1,'totalLines':1,'content':'Fixture public context only'}}}
-   def run(name,rows):
-    execution.write_text(json.dumps([access,response]+rows));dest=root/name
-    process=subprocess.run([sys.executable,'-I',str(script),'--role','code','--output',str(dest)],env=env,capture_output=True,text=True)
-    return process,json.loads((dest/'review.json').read_text())
-   process,saved=run('good',[result]);self.assertEqual(process.returncode,0);self.assertEqual(saved['head'],'a'*40)
-   process,saved=run('missing',[]);self.assertEqual(process.returncode,1);self.assertEqual(saved['status'],'blocked')
-   denied=copy.deepcopy(result);denied['permission_denials']=[{'input':'CANARY-PRIVATE-TOOL'}]
-   process,saved=run('denied',[denied]);self.assertEqual(process.returncode,1);self.assertNotIn('CANARY',json.dumps(saved)+process.stdout+process.stderr)
-   high=copy.deepcopy(result);high['structured_output']['findings']=[{'severity':'high','path':'source.py','line':1,'description':'Defect.'}]
-   process,saved=run('high',[high]);self.assertEqual(process.returncode,1);self.assertEqual(saved['status'],'changes-required')
-   original=access['message']['content'][0]['input']['file_path'];access['message']['content'][0]['input']['file_path']='/outside/CANARY-PRIVATE'
-   process,saved=run('outside',[result]);self.assertEqual(process.returncode,1);self.assertNotIn('CANARY',json.dumps(saved)+process.stdout+process.stderr)
-   access['message']['content'][0]['input']['file_path']=original
-   execution.write_text('{"type":1,"type":2}')
-   process=subprocess.run([sys.executable,'-I',str(script),'--role','code','--output',str(root/'duplicate')],env=env,capture_output=True)
-   self.assertEqual(process.returncode,1)
-   execution.write_text('['*2000+'0'+']'*2000)
-   process=subprocess.run([sys.executable,'-I',str(script),'--role','code','--output',str(root/'deep')],env=env,capture_output=True,text=True)
-   self.assertEqual(process.returncode,1);self.assertEqual(json.loads((root/'deep/review.json').read_text())['status'],'blocked');self.assertNotIn('Traceback',process.stderr)
- def test_access_requires_complete_untruncated_read_results(self):
-  with tempfile.TemporaryDirectory() as folder:
-   context=Path(folder)/'context.txt';context.write_text('first line\ncritical tail')
-   call={'type':'assistant','message':{'content':[{'type':'tool_use','id':'read1','name':'Read','input':{'file_path':str(context),'offset':1,'limit':20}}]}}
-   partial={'type':'user','message':{'content':[{'type':'tool_result','tool_use_id':'read1','content':'1\tfirst line'}]},'tool_use_result':{'type':'text','file':{'filePath':str(context),'startLine':1,'numLines':1,'totalLines':2,'content':'first line'}}}
-   for rows in [[call],[call,partial]]:
-    with self.assertRaises(ValueError):m.validate_access(rows,context)
-   complete=copy.deepcopy(partial);complete['message']['content'][0]['content']='1\tfirst line\n2\tcritical tail';complete['tool_use_result']['file'].update(numLines=2,content='first line\ncritical tail')
-   m.validate_access([call,complete],context)
-   truncated=copy.deepcopy(complete);truncated['message']['content'][0]['content']='1\tfirst line\n2\tcritical...'
-   with self.assertRaises(ValueError):m.validate_access([call,truncated],context)
  def test_prepared_context_binds_actual_git_objects_and_preserves_deletion(self):
   with tempfile.TemporaryDirectory() as folder:
    root=Path(folder);repo=root/'repo';repo.mkdir();temp=root/'temp';temp.mkdir()
@@ -92,17 +54,6 @@ class Evidence(unittest.TestCase):
    (temp/'claude-review-input.txt').unlink()
    process=subprocess.run([sys.executable,'-I',str(preparer)],cwd=repo,env=env,capture_output=True,text=True)
    self.assertNotEqual(process.returncode,0);self.assertFalse((temp/'claude-review-input.txt').exists())
- def test_preparation_failure_keeps_validator_available_for_blocked_report(self):
-  text=Path('.github/workflows/claude-review.yml').read_text()
-  block=text.split('      - name: Prepare exact-head review context and validator',1)[1].split('      - name:',1)[0].split('        run: |\n',1)[1]
-  import textwrap
-  with tempfile.TemporaryDirectory() as folder:
-   root=Path(folder);event=root/'event.json';event.write_text('{}')
-   env={**os.environ,'RUNNER_TEMP':str(root),'GITHUB_EVENT_PATH':str(event),'REVIEW_ACTION_OUTCOME':'skipped'}
-   failed=subprocess.run(['bash','-e','-c',textwrap.dedent(block)],env=env,capture_output=True,text=True)
-   self.assertNotEqual(failed.returncode,0);self.assertTrue((root/'retain-claude-review.py').is_file())
-   retained=subprocess.run([sys.executable,'-I',str(root/'retain-claude-review.py'),'--role','code','--output',str(root/'blocked')],env=env,capture_output=True,text=True)
-   self.assertEqual(retained.returncode,1);self.assertEqual(json.loads((root/'blocked/review.json').read_text())['status'],'blocked')
  def test_manual_security_dispatch_is_explicit_scan_not_unbound_review(self):
   text=Path('.github/workflows/claude-security.yml').read_text()
   self.assertIn("github.event_name == 'pull_request' &&",text)
@@ -116,11 +67,13 @@ class Evidence(unittest.TestCase):
   for name in ['claude-review.yml','claude-security.yml']:
    text=(Path('.github/workflows')/name).read_text()
    self.assertNotIn('no review body yet',text)
-   self.assertIn('id: claude_review',text);self.assertIn('--json-schema',text)
-   self.assertIn('retain-claude-review.py',text);self.assertIn('if: always()',text)
-   self.assertIn('--setting-sources user',text);self.assertNotIn("--setting-sources ''",text)
+   self.assertIn('id: claude_review',text)
+   self.assertIn('run-claude-review.py',text);self.assertIn('if: always()',text)
+   self.assertIn('@anthropic-ai/claude-code@2.1.295',text)
+   self.assertIn('persist-credentials: false',text)
+   self.assertNotIn('anthropics/claude-code-action',text);self.assertNotIn('ANTHROPIC_API_KEY',text)
+   self.assertNotIn('id-token: write',text);self.assertNotIn('pull-requests: write',text)
    self.assertIn('actions/upload-artifact@',text)
-   self.assertIn('steps.claude_review.outputs.execution_file',text)
-   self.assertIn('REVIEW_ACTION_OUTCOME: ${{ steps.claude_review.outcome }}',text)
 unittest.main(verbosity=2)
 PY
+python3 -I .claude/scripts/test/claude-review-runner.py
