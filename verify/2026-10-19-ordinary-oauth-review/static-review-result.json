@@ -1,0 +1,33 @@
+{
+  "source": "82a2b85e34499b136c3ec6b53edd0dcd53202b9e",
+  "exit": 0,
+  "scope": "local pinned CLI static source review with existing local authentication; not neutral OAuth CI or native evidence",
+  "prompt_sha256": "20945949f800d7cbc41d3cd5742f687d8b0f8fe3adabd09ff3141e71f10c8086",
+  "review": {
+    "repository": "qyndex/claude-init",
+    "pr": 126,
+    "head": "82a2b85e34499b136c3ec6b53edd0dcd53202b9e",
+    "role": "code",
+    "summary": "I reviewed the whole diff. It replaces the claude-code-action Read-based flow with a direct, tool-free CLI runner that reads the prompt from file-backed stdin, plus the workflow, test and doc changes. I found no substantiated correctness or security defects on the changed lines. The runner's failure paths fail closed: setup, input, runtime, execution and evidence failures each produce a blocked report with a fixed reason category. The input binding checks (repository, PR, head, base, line count) and the validator's exact-model and turn bounds look consistent with the tests. I could not see factory-bounded-process.py, so I could not check the exact keyword arguments the runner passes to it. I also could not check that the CLI accepts `--safe-mode`. Both rest on code outside this diff. I did not run anything, so this is a source review only and no test result is claimed.",
+    "findings": [],
+    "suppressed": 3
+  },
+  "modelUsage": {
+    "claude-sonnet-5-5": {
+      "inputTokens": 2,
+      "outputTokens": 2432,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 29843,
+      "webSearchRequests": 0,
+      "costUSD": 0.14369600000000002,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 128000,
+      "thinkingTokens": 1934,
+      "canonicalModel": "claude-sonnet-5-5",
+      "provider": "firstParty",
+      "costBasis": "list"
+    }
+  },
+  "num_turns": 2,
+  "status": "reviewed"
+}
