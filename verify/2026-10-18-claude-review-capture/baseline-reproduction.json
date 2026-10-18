@@ -1,0 +1,16 @@
+[
+  {
+    "workflow": "claude-review.yml",
+    "fixture": "actual baseline step with empty gh review response; no network",
+    "exit": 0,
+    "stdout": "no review body yet \u2014 skipping format lint",
+    "interpretation": "Old gate accepts missing review; defect reproduced, not passing acceptance."
+  },
+  {
+    "workflow": "claude-security.yml",
+    "fixture": "actual baseline step with empty gh review response; no network",
+    "exit": 0,
+    "stdout": "no review body yet \u2014 skipping format lint",
+    "interpretation": "Old gate accepts missing review; defect reproduced, not passing acceptance."
+  }
+]

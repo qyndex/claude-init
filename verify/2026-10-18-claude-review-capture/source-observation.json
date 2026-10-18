@@ -1,0 +1,38 @@
+{
+  "source": "aa83605c4398d93cfd7c95e369eacf0eba31465f",
+  "base": "6399f35c6de9d67a2fb9cb1506945319d69c691e",
+  "source_hashes": {
+    ".claude/scripts/prepare-claude-review.py": "effafa0cb634e96f399344f7b076a05e867d7fa7c697b02876abe09797e8e737",
+    ".claude/scripts/retain-claude-review.py": "afbc3af92dc7fa2caa3a165540956d715f0f6b62dd13bc4034177af1f0331326",
+    ".claude/scripts/test/claude-review-evidence.sh": "e5ba5b004e9325c6c0ac75c84be43805212c6a739bb7c3a973ec3f73f9b6f749",
+    ".github/workflows/claude-review.yml": "7c2ab5710bde320fad11cf1934630c1124caf0f6d5bbbd8ae22b33d7063dc9cb",
+    ".github/workflows/claude-security.yml": "b4e05254a99a7384ca6d15deda6da8081c52d8b18dee1bead00cc7f3677c3a3f",
+    "docs/FACTORY-PRODUCERS.md": "520e5aeaf1c7242dd146aeef205077dc0ff830a78db0f93f9929f08493f2d0d1"
+  },
+  "fixture_probe": {
+    "model": "claude-sonnet-5-5",
+    "status": "success",
+    "permission_denials": 0,
+    "actual_read_and_structured_output": true,
+    "stream_sha256": "ab3f1d6a80d99d2b0118cfc6951cb33057fbc160077482f314e5c466209aa62d",
+    "scope": "Tiny public static fixture on local subscription. Untouched stream validates access/result. CLI used empty settings sources; GitHub action uses explicit user settings because its parser drops empty arguments. Not native GitHub review or full acceptance."
+  },
+  "final_collectors": [
+    {
+      "spec": "006",
+      "commit": "aa83605c4398d93cfd7c95e369eacf0eba31465f",
+      "ac_total": 11,
+      "ac_proven": 0,
+      "verdict": "FAIL",
+      "smoke_exit_max": 0
+    },
+    {
+      "spec": "045",
+      "commit": "aa83605c4398d93cfd7c95e369eacf0eba31465f",
+      "ac_total": 4,
+      "ac_proven": 0,
+      "verdict": "FAIL",
+      "smoke_exit_max": 0
+    }
+  ]
+}
