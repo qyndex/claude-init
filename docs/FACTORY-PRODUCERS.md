@@ -74,3 +74,11 @@ explicit-empty observation format. Its protected bootstrap metadata model and
 caller-field projection require separate reviewed integration and activation;
 never inject an actor list into a live API response. Existing reporting/feedback
 operation is not migrated by this source change.
+
+## Ordinary Claude review evidence
+
+The ordinary `Claude PR Review` and `Claude Security Review` jobs are separate from the protected factory proof producers. They prepare the exact PR base/head diff and full changed-file context before model execution. Review context is bounded to1MiB and300 files; unsupported binary/oversized context fails visibly instead of truncating. The reviewer may only read the prepared context file; project settings and MCP servers are excluded, and source instructions are untrusted data.
+
+Each role must return a structured report. A deterministic validator requires one successful terminal execution result, the selected observed Sonnet5.5 model and bounded token usage, no permission denials, exact repository/PR/head/role bindings, a nonempty summary and valid finding locations/severities. Critical/high findings fail the job. Missing or malformed evidence fails even if the action itself completed successfully. The fresh attempt report is uploaded for90 days under a role/head/run/attempt artifact name; raw execution/tool transcripts are not uploaded. A blocked report contains fixed diagnostic metadata rather than raw error text. A green job requires both report validation and artifact retention.
+
+This report is inspectable source-review evidence, not a signed factory producer receipt, proof that acceptance tests passed, or permission to merge. Existing protected registration, acceptance, CI and merge gates still apply. Workflow changes cannot authorize their own protected-source rollout; live verification and any protection maintenance require their separate reviewed decisions.
