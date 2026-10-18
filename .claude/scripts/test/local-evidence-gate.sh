@@ -10,7 +10,7 @@ with tempfile.TemporaryDirectory() as tmp:
  subprocess.run(['git','-C',tmp,'-c','user.name=Fixture','-c','user.email=fixture@example.invalid','commit','--allow-empty','-qm','base'],check=True)
  commit=subprocess.check_output(['git','-C',tmp,'rev-parse','HEAD'],text=True).strip()
  (folder/'specs/active').mkdir(parents=True);(folder/'.claude/scripts').mkdir(parents=True)
- for file in ('spec-match.sh',): (folder/'.claude/scripts'/file).write_bytes((root/'.claude/scripts'/file).read_bytes())
+ for file in ('spec-match.sh','acceptance-criteria.py'): (folder/'.claude/scripts'/file).write_bytes((root/'.claude/scripts'/file).read_bytes())
  paths=[];base={'commit':commit,'ac_total':1,'ac_proven':1,'ac_unproven':[],'verdict':'PASS','smoke_exit_max':0,'runner_exit':0}
  for sid in ('001','002'):
   (folder/f'specs/active/{sid}-example.md').write_text('## Acceptance criteria\n1. **AC-1**: proved\n')

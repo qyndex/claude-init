@@ -1,7 +1,9 @@
 # AI software factory improvement plan
 
 Date: 2026-10-09
-Status: implementation authorized by the operator on 2026-10-09; live merge/security authority changes require a decision on the concrete activation PR.
+Status as of 2026-10-18: approved implementation tasks complete; controlled pilot merge authority active. Operational rollout acceptance and per-adopter activation remain separate. Live merge/security authority changes still require a concrete operator decision.
+
+Current record: [Factory status](../docs/FACTORY-STATUS.md). All 173 ledger entries for specs006–050 are done, including T180/T222 published by PR123. The dated progress entries below are historical observations, not current enablement instructions. The pilot digest/feedback amendment cycle and twenty-delivery expansion sample are not claimed complete.
 
 ## Objective and recommendation
 
@@ -13,9 +15,9 @@ Operator clarification (2026-10-10): this is a reusable harness for new and exis
 
 This plan uses the referenced conversation “AI Model Routing Coding” and the [2026-10-09 repository audit](../docs/audits/2026-10-09-repository-audit.md). The audit inventories all 1,099 tracked files, reviews maintained delivery/security/state paths, runs all 53 shell test suites in a disposable copy (42 pass, 11 fail), and checks live GitHub rules and deployment environments. Historical artifacts received inventory/structural coverage rather than individual semantic certification. The separate Arentic blueprint attachment was unavailable; this plan covers the harness, not that platform's full product scope.
 
-The current harness is not ready for unattended evidence-gated delivery. Three injected failures returned success: scanner exit 42, unknown contract type, and zero-byte evidence JSON. Repair these and candidate-root verification before expanding autonomy. Existing user modifications to initiative STATE files are outside this plan change.
+At the original 2026-10-09 audit, the harness was not ready for unattended evidence-gated delivery. Three injected failures returned success: scanner exit 42, unknown contract type, and zero-byte evidence JSON. Repair these and candidate-root verification before expanding autonomy. Existing user modifications to initiative STATE files are outside this plan change.
 
-## Current foundation and verified gaps
+## Baseline foundation and verified gaps (2026-10-09)
 
 | Area | Existing implementation | Required improvement |
 | --- | --- | --- |
@@ -82,7 +84,7 @@ Group by delivered feature: observable user outcome, complete/partial AC coverag
 
 Reporting monitoring decision (2026-10-10, approved): GitHub-only alerts are the baseline for the claude-init pilot. Keep `FACTORY_REPORTING_WATCHDOG_ENABLED=false` in the protected `factory-reporting` environment; do not configure or activate Healthchecks. Implement a protected failure notification path and a separate scheduled overdue-digest check, using the confirmed delivery checkpoint and the 08:00 Australia/Sydney cutoff with DST and a configurable grace period (default 60 minutes). Send alerts and recovery notices to the configured reporting destination, `qyndex-alerts` for the pilot. Each adopting repository supplies its own destination.
 
-Persist alert intent before sending, reconcile uncertain Slack effects before retrying, suppress duplicate incident alerts across runs, and issue one recovery notice after delivery is current and verified. Prove failed-run, missed-schedule, repeated-check, uncertain-send and recovery scenarios before declaring live alert readiness. These alerts remain to be implemented; existing reporting and the health probe alone do not establish notification delivery.
+Persist alert intent before sending, reconcile uncertain Slack effects before retrying, suppress duplicate incident alerts across runs, and issue one recovery notice after delivery is current and verified. Prove failed-run, missed-schedule, repeated-check, uncertain-send and recovery scenarios before declaring live alert readiness. This was an implementation requirement in the original plan. GitHub-only alerts are now implemented and actual delivery evidence is recorded in the current status; reporting freshness still requires its own observation.
 
 GitHub-only monitoring shares Actions availability with reporting and cannot guarantee an alert during an Actions-wide outage. A broken Slack credential or Slack outage can also prevent same-channel alerts; preserve failures in GitHub. Independently operated timers remain optional adopter capabilities for outage coverage, not pilot readiness prerequisites. Any future external integration requires a separate operator decision and verified activation.
 
@@ -126,7 +128,7 @@ Measure first-pass independent verification, escaped defects/reverts, repair att
 
 Implement F-00 as the first repair specification: “Trustworthy candidate verification and clean harness baseline.” Reproduce the audit failures first, then demonstrate that healthy coordinator/broken candidate, scanner crash, stale output, unsupported contract and malformed evidence cannot pass. Replace obsolete patch-promotion tests with current behavior assertions rather than making them advisory. Follow with F-01/F-02: “Independent, exact-candidate verification evidence.” Its demonstration should include a valid candidate that passes and invalid candidates that fail for missing ACs, self-review, stale head, changed base, forged verdict, untrusted producer and policy self-exemption. Then connect that proof to the unified merge gate before permitting autonomous delivery.
 
-Open configuration decisions for implementation: morning delivery channel/time, approved high-risk change policy, where trusted verifier/merge identities run, artifact retention, and whether another model runtime is needed now. These decisions do not prevent beginning the evidence contract and shadow evaluator.
+The initial configuration questions were resolved through the dated operator decisions below. Use the current status and adopter setup for the active decisions; do not reopen historical questions or copy source-pilot settings into another repository.
 
 ## Implementation progress
 
@@ -380,3 +382,10 @@ by preparation. T-180 remains blocked on genuine signed producers/shadow proof a
 reviewed authority cutover; T-222 remains pending. After source review/CI and merge,
 refresh the exact pilot and obtain real signed independent artifacts before the
 reviewed shadow cutover. Merge mode still requires a separate operator decision.
+
+
+### Implementation closure and controlled activation — 2026-10-18
+
+All 173 task entries for factory specs006–050 are marked done in the canonical ledger. T339/T318 historical operational proof was accepted and published through PR120. PR122 delivered the approved quickstart through genuine signed verifier/reviewer evidence and the protected coordinator; its actual merge is `924c20b87222069a6d51ef9933772dd24f9f2891`, coordinator run39091116896 and receipt artifact12122193638. A separately reviewed reconciliation established persistent authority after accounting for two unstarted skipped jobs. PR123 published T180/T222 completion records at `edd33825d5191f3ad82fc8c9892cebff2dc69686`; all twelve strict requirements, no bypass actors and fresh protected policy observations were independently verified.
+
+This closes implementation and those recorded effects, not every rollout exit criterion. Continue historical reporting reconciliation and observe the next due digest, obtain authentic product feedback and separately approve/deliver its amendment, then accumulate twenty useful authenticated deliveries before widening autonomy. Adopters still need their own protected runtime/capability, identity, proof, state and deployment configuration. Optional online workers and attachments remain gated; Healthchecks and source production remain disabled. See [current readiness](../docs/FACTORY-STATUS.md).

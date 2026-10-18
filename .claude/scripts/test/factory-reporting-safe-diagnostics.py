@@ -14,7 +14,7 @@ class SafeDiagnostics(unittest.TestCase):
   self.assertEqual(api.budget.calls,1);self.assertEqual(api.budget.bytes,0)
   self.assertEqual(getattr(caught.exception,'http_status',None),403)
   diagnostic=t.safe_diagnostic('checkpoint-or-delivery',caught.exception)
-  self.assertEqual(diagnostic,{'stage':'checkpoint-or-delivery','error_class':'ReportingAPIError','http_status':403})
+  self.assertEqual(diagnostic,{'stage':'checkpoint-or-delivery','error_class':'ReportingAPIError','http_status':403,'credential_role':'state'})
   self.assertNotIn('PRIVATE',json.dumps(diagnostic));self.assertNotIn('fake-token',str(caught.exception))
  def test_failed_output_is_charged_without_disclosure(self):
   api=t.RoutedAPI('org/repo','offline-source','offline-state');reply=SimpleNamespace(returncode=1,stdout=b'private',stderr=b'private (HTTP 429)')
@@ -27,6 +27,22 @@ class SafeDiagnostics(unittest.TestCase):
  def test_unknown_error_stage_and_status_do_not_escape(self):
   error=type('PRIVATE_TOKEN_CLASS',(Exception,),{} )('private feedback text');error.http_status='private'
   self.assertEqual(t.safe_diagnostic('private-stage-text',error),{'stage':'unknown','error_class':'Exception','http_status':None})
+ def test_provider_failure_kind_is_bounded_and_diagnostic_only(self):
+  samples=[(b'gh: API rate limit exceeded for installation ID PRIVATE_ID (HTTP 403)','primary_api_rate_limit'),(b'gh: You have exceeded a secondary rate limit PRIVATE (HTTP 403)','secondary_api_rate_limit'),(b'gh: Resource not accessible by integration PRIVATE (HTTP 403)','integration_permission')]
+  for raw,kind in samples:
+   with self.subTest(kind=kind):
+    record=t.safe_diagnostic('transport',t.ReportingAPIError(raw))
+    self.assertEqual(record.get('api_failure_kind'),kind);self.assertNotIn('PRIVATE',json.dumps(record))
+  unknown=t.ReportingAPIError(b'x'*2048+b'API rate limit exceeded (HTTP 403)')
+  self.assertNotIn('api_failure_kind',t.safe_diagnostic('transport',unknown))
+  unknown.api_failure_kind='PRIVATE_PAYLOAD';self.assertNotIn('api_failure_kind',t.safe_diagnostic('transport',unknown))
+ def test_failure_role_does_not_expose_credentials_or_paths(self):
+  for path,role in [('repos/org/repo','state'),('repos/org/repo/contents/private-path?ref=private','source')]:
+   api=t.RoutedAPI('org/repo','PRIVATE_SOURCE_TOKEN','PRIVATE_STATE_TOKEN')
+   with patch.object(t.process,'run',return_value=SimpleNamespace(returncode=1,stdout=b'',stderr=b'PRIVATE (HTTP 403)')):
+    with self.assertRaises(ValueError) as caught:api.request(path)
+   record=t.safe_diagnostic('transport',caught.exception);self.assertEqual(record.get('credential_role'),role)
+   self.assertNotIn('PRIVATE',json.dumps(record));self.assertNotIn('private-path',json.dumps(record))
  def test_diagnostic_import_or_helper_failure_keeps_original_private(self):
   fixture = r"""
 import importlib.util,json,runpy,sys,tempfile

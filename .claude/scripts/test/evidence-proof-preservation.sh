@@ -11,7 +11,7 @@ PASS=proof();FAIL=proof('failed');OTHER=proof('passed','replacement')
 class Fixture:
  def __init__(self,path):
   self.path=path;self.scripts=path/'.claude/scripts';(self.scripts/'lib').mkdir(parents=True);(path/'specs/active').mkdir(parents=True);(path/'bin').mkdir()
-  for name in ['collect-evidence.sh','spec-match.sh','check-local-evidence.py','validate-candidate-evidence.py']:shutil.copy2(root/'.claude/scripts'/name,self.scripts/name)
+  for name in ['acceptance-criteria.py','collect-evidence.sh','spec-match.sh','check-local-evidence.py','validate-candidate-evidence.py']:shutil.copy2(root/'.claude/scripts'/name,self.scripts/name)
   shutil.copy2(root/'.claude/scripts/lib/atomic-write.sh',self.scripts/'lib/atomic-write.sh')
   (path/'specs/active/900-fixture.md').write_text('# Fixture\n## Acceptance criteria\n- AC-1: original behavior\n## Notes\n')
   (path/'playwright.config.ts').write_text('// adopter configuration must remain unchanged\n')

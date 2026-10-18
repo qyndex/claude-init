@@ -2,6 +2,8 @@
 
 Installation distributes immutable process scripts, pinned encryption requirements and disabled neutral examples. Review and commit the resulting files. Each repository supplies its own approved specifications, tasks, protected policies, GitHub App installation, Slack identity, private runtime storage and deployment adapter. Examples are references, not enabled profiles. The distribution repository's pilot is a separate installation.
 
+Read [current source-pilot status](FACTORY-STATUS.md) for completed implementation and remaining rollout observations. Its active merge authority does not activate this adopter.
+
 ## Pinned encryption dependencies
 
 Provision an isolated Python environment outside the candidate repository and implementation access. For example, on the trusted controller choose an owner-only private root and run:

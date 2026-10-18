@@ -18,6 +18,16 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](CONTRIBUTING.md)
 
+## Factory readiness
+
+The approved factory implementation is complete: all **173 task entries for specs006–050** are done as of 2026-10-18. The source-repository pilot has delivered one independently verified candidate and activated merge authority under its narrow approved Spec048 policy. This is readiness for **controlled adoption**, not automatic certification of another repository or production deployment.
+
+Start with [Factory adopter quickstart](docs/FACTORY-ADOPTER-QUICKSTART.md), then [per-repository setup](docs/FACTORY-ADOPTER-SETUP.md). Installation leaves factory capabilities disabled and supplies no source-pilot credentials, workflows or approvals. Each adopter must prove its own protected configuration, independent evidence and shadow/merge sequence.
+
+For Scout-first requests, use the separately configured [guarded factory console](docs/FACTORY-REQUEST-INTAKE.md). Bare `claude` sessions and IDE edits remain advisory; installation does not establish universal prompt interception or a certified native worker.
+
+See [current status and remaining rollout evidence](docs/FACTORY-STATUS.md): reporting catch-up, the next pilot digest and feedback/amendment cycle, and the twenty-delivery expansion threshold remain distinct from completed implementation. Production, optional online workers and oversized Slack attachments require their own readiness decisions.
+
 ## Install in one line
 
 From the **root of the repo you want to harness**:
@@ -37,7 +47,7 @@ curl -fsSLO https://raw.githubusercontent.com/qyndex/claude-init/main/scripts/in
 less install.sh && bash install.sh
 ```
 
-**Then** finish the [Manual setup](#manual-setup-what-the-installer-cant-do) (GitHub ruleset,
+**Then** finish the [Manual setup](#manual-setup) (GitHub ruleset,
 Actions secret, optional deploy). See [full step-by-step](#step-by-step-adoption) below.
 
 <details>
@@ -108,7 +118,9 @@ can't (and shouldn't) change:
 Full operator runbook: [docs/OPERATOR-MANUAL.md](docs/OPERATOR-MANUAL.md). Bringing in a legacy
 repo: [docs/ADOPTION.md](docs/ADOPTION.md) (`/adopt start`).
 
-### 4. Open Claude Code and go
+### 4. Choose the entry point
+
+For the interactive development workflow, open Claude Code below. This mode does not provide mandatory Scout intake. For governed request routing, first provision and validate the protected console installation described in [Factory request intake](docs/FACTORY-REQUEST-INTAKE.md).
 
 ```bash
 claude

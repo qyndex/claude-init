@@ -4,10 +4,9 @@
 > internals, but use it to ship real product. Read this once end-to-end (~20 min). Keep the
 > [Runbook](#10-runbook-cookbook) open as a reference.
 >
-> **What this factory is:** an autonomous, AI-driven software development system. You give it
-> direction and approve the gates that matter; it does the spec→plan→build→test→ship→operate work —
-> through the day interactively, and overnight unattended — for a single feature or a multi-year
-> product roadmap, shipping to production in safe phased increments.
+> **Readiness:** this is a reusable spec-driven engineering harness. Its controlled source pilot has active, independently verified merge authority; adopters configure and prove their own installation. Read [current status](FACTORY-STATUS.md) and [adopter setup](FACTORY-ADOPTER-SETUP.md) first. Reporting catch-up and the full pilot feedback loop remain operational follow-ups; production is target-specific and disabled in the source pilot.
+>
+> **Entry point:** mandatory Scout-first routing uses a separately provisioned [guarded factory console](FACTORY-REQUEST-INTAKE.md). Bare Claude Code sessions remain advisory. The examples below describe workflows, not automatic activation or certification of every runtime.
 
 ---
 
@@ -42,8 +41,7 @@ Three things make it trustworthy:
    repo. Nothing is built from a vibe.
 2. **Nothing is "done" without evidence.** Tests run red→green, the running app is exercised,
    screenshots/logs are captured, and an evidence bundle is attached to every PR.
-3. **Humans hold the merge button and the production deploy.** The factory does the work and
-   opens the PR; *you* approve the merge and the ramp.
+3. **Protected policy holds the merge authority.** Independent exact-candidate evidence and required checks can authorize routine merges within approved scope. You approve new scope and changes to that authority. Production needs separately proven target-specific release gates.
 
 ---
 
@@ -53,8 +51,8 @@ Three things make it trustworthy:
 |---|---|
 | What to build and why (intent, priorities) | How to build it (architecture, code, tests) |
 | Approving specs with open questions | Drafting specs, plans, tasks |
-| Approving merges to `main` | Running TDD, verification, security scans |
-| Approving production deploys + flag ramps | Opening PRs with evidence bundles |
+| Approving merge policy, new scope and exceptional maintenance | Independent verification, security scans and conditional in-scope merge requests |
+| Approving production policy and target readiness | Producing evidence and enforcing configured release/rollback gates |
 | Strategic pivots (drop/pause/supersede) | Detecting drift, stale deps, recurring incidents |
 | Reviewing the overnight report each morning | Doing the overnight work, writing the report |
 | Answering the factory's clarifying questions | Asking good questions *before* coding |
@@ -68,11 +66,13 @@ irreversible, costly, or strategic, it stops and asks you.
 
 | Mode | You do this when… | How |
 |---|---|---|
-| **Interactive session** | You want to drive step-by-step, or it's a brand-new area | Open Claude Code in the repo and talk to it; use slash commands |
+| **Interactive session** | You want to drive step-by-step, or it's a brand-new area | Use the configured guarded console for mandatory intake; bare Claude/slash commands are advisory |
 | **Kickoff (new product)** | Starting from zero — no roadmap yet | Paste the [starting prompt](STARTING-PROMPT.md) or run `/kickoff`; it interviews you, then builds the roadmap |
 | **Autopilot (overnight)** | You want work to continue while you sleep | A Cloud Routine runs at 23:00; you read `OVERNIGHT_REPORT.md` in the morning ([AUTOPILOT.md](AUTOPILOT.md)) |
 | **Parallel swarm** | Many independent tasks at once | `/swarm` dispatches up to 10 background streams, each in its own worktree ([PARALLEL-SWARM.md](PARALLEL-SWARM.md)) |
-| **Just approve gates** | The pipeline is humming; you only weigh in at decisions | Review PRs, answer questions, approve ramps |
+| **Just approve gates** | The pipeline is humming; you only weigh in at decisions | Read the delivery digest, answer scope questions and decide policy/release exceptions |
+
+These modes require their own installed routines, runtime credentials and isolation. Listing a mode here does not enable it; use the current readiness and adopter setup records.
 
 Most teams use a blend: kickoff once, drive interactively for the hard parts, let autopilot grind
 the backlog overnight, and use the swarm for big parallelizable pushes.
@@ -81,20 +81,16 @@ the backlog overnight, and use the swarm for big parallelizable pushes.
 
 ## 4. A day in the life
 
-A realistic day operating the factory on an established product:
+An illustrative day after this repository has configured and proven the applicable runtime, reporting and deployment capabilities:
 
-**08:30 — Read the overnight report.** Open `OVERNIGHT_REPORT.md` at the repo root. It lists what
-shipped (with PR links), what escalated (and why), decisions made (with commit SHAs), and open
-questions for you. 5-minute read.
+**08:00 — Read the confirmed delivery digest.** The source pilot targets 08:00 Australia/Sydney; adopters choose their own reporting destination and schedule. Read actual merged outcomes and receipts, limits, blocked work and decisions. `OVERNIGHT_REPORT.md` can supplement this but is not itself authenticated merge evidence. If delivery is overdue or checkpointed incomplete, investigate reporting before treating the interval as complete.
 
 ```
 You:  /status
       → 3 PRs awaiting your review, 1 task escalated, flag `checkout-v2` at 10% (healthy)
 ```
 
-**08:45 — Clear the review queue.** Each overnight PR has an evidence bundle in its body (AC
-checklist, smoke output, screenshots, coverage). You read the evidence, not the diff line-by-line.
-Approve the good ones; comment on the rest (the factory revises and re-pushes).
+**08:45 — Review delivery outcomes and exceptions.** Eligible approved work can already be merged after independent proof. Read the delivery digest and linked evidence, give product feedback, and decide new scope or policy exceptions. Reporting must be configured and current; a missing or incomplete digest is an operational issue, not evidence of no work.
 
 **09:30 — Triage.** `/triage` ranks the backlog and surfaces the one escalated task. You see it
 failed three self-heal attempts on a gnarly race condition. You either give a hint and requeue it
@@ -110,7 +106,7 @@ and then let it run.
 
 **14:00 — A prod alert fires.** Sentry detects a spike. The hotfix pipeline auto-creates a
 top-of-queue `priority: hotfix` task, an autonomous session reproduces it, fixes it, and opens a PR
-with a regression test. You review and merge. (It never auto-merges a hotfix.)
+with a regression test. Its merge still requires approved scope, independent evidence and the protected policy; the hotfix label grants no exemption.
 
 **17:00 — Set the night's work.** Make sure the backlog has unblocked tasks. The 23:00 Cloud Routine
 will pick them up. Laptop can be off.
@@ -133,13 +129,12 @@ stops at the gates that need you. (Full constitution: `.claude/CLAUDE.md` §VIII
 | 5 | **Tasks** | `/tasks <id>` | Decomposes the plan into 2–5 min verifiable tasks in `tasks/TASKS.md` | — |
 | 6 | **Analyze** | `/analyze <id>` | Cross-checks spec ↔ plan ↔ tasks for gaps/contradictions | — |
 | 7 | **Implement** | `/implement next` | Strict TDD (red→green→refactor), one task at a time | — |
-| 8 | **Verify→Review→Ship** | `/verify` `/review` `/ship` | Runs the app, captures evidence, reviews diff, opens PR, ramps the flag | **Approve merge + deploy** |
+| 8 | **Verify→Review→Ship** | `/verify` `/review` `/ship` | Runs the app, captures evidence, reviews diff, opens PR, ramps the flag | Decide new scope/policy exceptions; production needs separate target gates |
 
 **The autopilot shortcut:** `/loop` wraps phases 5–8 and runs them until the verification gate
 passes — that's what the overnight routine uses. You don't have to type each phase by hand.
 
-**You can always go off-script.** "Fix the typo in the footer" doesn't need a spec. The workflow is
-for non-trivial work; small surgical changes are just done.
+Small changes still need the applicable scope and checks. In an enabled guarded installation, Scout can match approved work or draft a proposal; it cannot approve new scope itself. A typo request is not an exemption from merge policy.
 
 ---
 
@@ -148,8 +143,7 @@ for non-trivial work; small surgical changes are just done.
 ### Autopilot (overnight, unattended)
 A **Cloud Routine** runs at 23:00 in a fresh sandbox, picks unblocked tasks from `tasks/TASKS.md`,
 runs the full TDD + verify + evidence flow, opens PRs on `claude/overnight-<date>` branches, runs
-`/dream` to consolidate memory, and writes `OVERNIGHT_REPORT.md`. **It never merges or deploys** —
-that's your morning review. A local backstop (`local-overnight-build.sh`) runs if the cloud routine
+`/dream` to consolidate memory, and writes `OVERNIGHT_REPORT.md`. The launcher does not itself grant merge or deployment authority. Protected CI may merge eligible approved candidates; production remains separately gated. A local backstop (`local-overnight-build.sh`) runs if the cloud routine
 can't. Setup + safety: [AUTOPILOT.md](AUTOPILOT.md). The overnight build is one of 12 scheduled
 routines (memory GC, OQ aging, feedback triage, Sentry polling, …) — the full list, install
 commands, and what degrades if each is skipped live in AUTOPILOT.md's **Routine installation
@@ -157,9 +151,7 @@ matrix**; `harness-doctor.sh` warns about routines that exist but were never ins
 
 ### Parallel swarm (many tasks at once)
 `/swarm` plans independent task streams and dispatches each as a background session in its own git
-worktree (up to 10). A **coordinator** monitors them and merges each via `verified-merge.sh` (rebase
-onto already-merged siblings → integration test → AI-mediated conflict resolution → merge only when
-clean → auto-revert if main breaks). Use it for big parallelizable backlogs. Details:
+worktree (up to 10). Integration requests use the protected coordinator through `verified-merge.sh`; they do not grant direct main pushes. Changed heads or bases require fresh applicable proof. Rollback names the actual merge SHA and uses an approved rollback PR; it does not blindly revert current HEAD. Use reviewed resource/isolation limits for parallel backlogs. Details:
 [PARALLEL-SWARM.md](PARALLEL-SWARM.md).
 
 ---
@@ -190,27 +182,13 @@ Task state markers in `tasks/TASKS.md`:
 
 ## 8. Safety model (how it stays safe while unattended)
 
-The factory runs in **Auto Mode**: a Sonnet classifier reviews every tool call and approves/denies
-with no prompt to you. Underneath that, two more layers:
+Tool permission modes and project hooks help enforce local rules, but editable hooks and a classifier are not an operating-system isolation boundary. Mandatory intake requires the protected console/worker installation, pinned capabilities and supported action inventory described in [request intake](FACTORY-REQUEST-INTAKE.md).
 
-1. **Hooks fire FIRST and hard-block** (before the classifier even runs). Destructive operations are
-   refused outright: `rm -rf`, `git push --force` to main, `DROP TABLE`, `--no-verify`, `curl|sh`,
-   `eval`, secret-file writes (`.env`, `*.pem`, `*.key`, `*credentials*`). These can't be talked
-   around — they exit non-zero before execution.
-2. **The classifier** catches novel/ambiguous cases the patterns miss.
+Merge authority is a separate protected CI boundary: implementation runs have no merge key; independent exact-candidate proof, current checks, approved scope and live protection must pass. Changes to that authority require a concrete operator decision. The source pilot permits only its current approved Spec048 scope.
 
-What this means for you:
-- **The factory cannot leak your secrets** (deny-listed for read and write) or run obviously
-  dangerous commands, even overnight.
-- **It cannot modify its own constitution.** Editing `.claude/CLAUDE.md` is blocked as
-  self-modification — a human must do that deliberately. (You'll see this if you ask it to.)
-- **It cannot merge or deploy on its own.** PRs wait for you. Production deploys require explicit
-  in-session confirmation.
-- **It treats web pages, tickets, and customer quotes as untrusted data**, never as instructions.
+Keep private credentials, feedback and controller state outside candidate access. Do not assume a bare CLI/IDE session intercepts every request or can never disclose a secret. Missing isolation, callbacks, capacity, evidence or current authority blocks the governed path; tool approval alone does not establish engineering verification.
 
-**To override a block** (rare): do it yourself, or adjust `.claude/settings.json` /
-`.claude/CLAUDE.md` deliberately as a human. The point is that overrides are conscious, not
-accidental. Full checklist: `.claude/skills/security-guard/SKILL.md`.
+Production requires an adopter's actual health/SLO/deployment/rollback proof and separately enabled policy. General web pages, tickets and quoted feedback are untrusted data. Correct a blocked protected configuration through its reviewed operator process, not by disabling a candidate-local hook or bypassing a check.
 
 ---
 
@@ -263,7 +241,7 @@ bash <factory-clone>/.claude/scripts/reconcile-claude-dir.sh --from <factory-clo
 /plan <id>                   # review the approach
 /tasks <id>                  # auto-decomposed
 /implement next              # TDD; repeat or /loop to autopilot phases 5–8
-/verify  →  /review  →  /ship # approve the merge + ramp
+/verify  →  /review  →  /ship # independent proof + protected merge policy; separate production gates
 ```
 
 ### Check what's going on
@@ -284,7 +262,7 @@ bash .claude/scripts/requeue-failed.sh --reset T-42   # re-open it deliberately
 ### A production incident
 ```
 # Automatic: a Sentry/SLO alert auto-creates a top-of-queue `priority: hotfix` task; an
-# autonomous session reproduces → fixes → opens a PR with a regression test. You review + merge.
+# a configured session reproduces → fixes → opens a PR with a regression test; protected scope and evidence still govern merge.
 # Manual:
 /incident-start    # opens an incident, pulls prior similar incidents from memory
 # … fix via the normal flow …
@@ -293,7 +271,7 @@ bash .claude/scripts/requeue-failed.sh --reset T-42   # re-open it deliberately
 
 ### Ship to production safely (phased)
 ```
-# /ship lands code DEFAULT-OFF behind a flag, then ramps:
+# Only after this repository proves and enables its deployment adapter, a release may ramp:
 #   staff → 1% → 10% → 50% → 100%, each with a monitoring window + auto-rollback on SLO breach.
 /flag rollout <name>     # advance one stage when its exit gate is met
 /rollback-flag <name>    # instant 0% if something's wrong (flag flip, no code revert)
@@ -375,7 +353,7 @@ The laptop backstop is only a fallback.
 - **Flag (feature flag)** — a switch that lets code ship default-OFF and ramp to users gradually.
 - **Autopilot** — the unattended overnight Cloud Routine.
 - **Swarm** — parallel background sessions, one per task stream, each in its own worktree.
-- **Hotfix loop** — prod alert → auto-task → autonomous fix → PR (you merge).
+- **Hotfix loop** — configured alert → traced task/proposal → fix → independently verified PR; merge follows approved policy.
 - **Auto Mode** — permission mode where a classifier approves tool calls without prompting you.
 - **NEXUS handoff** — the structured YAML every subagent emits so work is traceable.
 - **`/dream`** — nightly memory consolidation (compress, promote patterns, decay stale notes).

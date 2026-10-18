@@ -1,6 +1,8 @@
 # Factory activation
 
-The operator authorized preparing the private **qyndex-factory** App for **qyndex**. The bootstrap policy and merge mode are intentionally disabled: an App installation alone cannot authorize merging. The activation PR changes merge/security authority and therefore needs the operator's decision before merging it.
+As of 2026-10-18, the qyndex/claude-init controlled pilot has active merge authority under the exact approved Spec048 scope. PR122 delivered its independently verified quickstart; PR123 published activation/delivery records and restored all twelve strict requirements with fresh protected policy observations. Production remains disabled. See [current status](FACTORY-STATUS.md) for evidence and outstanding rollout observations.
+
+The setup below describes the reviewed activation process. New adopters begin disabled and supply their own App, policy, environments and evidence. An App installation alone never authorizes merging; changes to merge/security authority require an operator decision. Source-pilot identities are historical examples, not adopter defaults.
 
 ## Account setup
 
@@ -13,7 +15,7 @@ The operator authorized preparing the private **qyndex-factory** App for **qynde
 
 ## Protected policy and proof producers
 
-`factory/policy.json` lives on the protected default branch. Its initial state has `enabled: false` and `merge_enabled: false`, no App ID, no approved specs and no verifier/reviewer runtime hashes. Check producer defaults use the observed GitHub Actions App ID **15368**. Confirm those pins against the actual PR before applying them.
+`factory/policy.json` lives on the protected default branch. Its original bootstrap state had `enabled: false` and `merge_enabled: false`, no App ID, no approved specs and no verifier/reviewer runtime hashes. The current source-pilot policy is enabled for Spec048 only; adopters use their own reviewed disabled starting configuration. Check producer defaults use the observed GitHub Actions App ID **15368**. Confirm those pins against the actual PR before applying them.
 
 Each approved spec entry supplies its SHA-256, full AC ID set and explicit allowed path prefixes. Candidates use `factory/spec-<id>/<description>` branches. Current implementation accepts one complete approved spec per PR. Bot release/dependency branches have no implicit exemption; registering those scopes is separate authority work. Authority paths, including renamed old paths, cannot merge autonomously. Never use an implementation PR to modify its own approval policy.
 
@@ -32,9 +34,11 @@ Each artifact ZIP contains `evidence.json` and, for observations, `artifacts/<sh
 
 The coordinator uses GitHub's [conditional head SHA merge](https://docs.github.com/en/rest/pulls/pulls#merge-a-pull-request) and queries [active rules applying to the target branch](https://docs.github.com/en/rest/repos/rules#get-rules-for-a-branch). It rechecks candidate and protection before merging. Default-branch dispatch, repository-wide serialization, pinned actions and no candidate checkout keep privileged code outside the implementation workspace.
 
-## Activation boundaries still pending
+## Current activation boundaries
 
-This package prepares merge authority; it does not yet close every factory package. Protected evidence producers, durable claims, receipt reconciliation, feedback contracts and adoption adapters are implemented. The 08:00 Australia/Sydney digest and approved encrypted Slack feedback intake are live. Claude review/security were restored on 2026-10-16 after the approved date/capacity conditions; genuine protected reviewer/verifier receipts, shadow eligibility and the separate merge-mode decision remain required. Oversized attachments remain disabled behind the existing uncertainty fence; Healthchecks stays disabled. No production environment or deployment target exists; autonomous production stays disabled until additional health, release and rollback gates are proven.
+The source pilot has genuine signed verification/review, authenticated shadow proof, a reviewed merge-mode revision, an actual conditional delivery/receipt and persistent authority readback. T180/T222 completion records are published. This does not approve arbitrary future scopes or certify another repository.
+
+Reporting and encrypted feedback mechanisms are implemented and have live evidence, but historical reporting catch-up and the next pilot digest/feedback-amendment cycle are still operational follow-ups. A successful reporting job can record incomplete checkpointed work; it is not proof of a current delivered cutoff. Optional oversized attachments and Healthchecks remain disabled. No source production target is configured; each adopter must prove deployment, health/SLO and rollback gates before autonomous production.
 
 A coordinator request is neither a merge receipt nor product acceptance. Rollback must name the recorded merge SHA and go through an approved rollback PR; local integration no longer reverts whichever commit happens to be HEAD or pushes main.
 
@@ -46,7 +50,7 @@ These are implementation checks; the actual GitHub candidate run, App identity a
 
 ## Published bootstrap candidate
 
-Bootstrap [PR #50](https://github.com/qyndex/claude-init/pull/50) merged as `148238ad8950681d352985cdb9c48ad0301e97d3` on 2026-10-09. Its publication milestone is complete; an open draft is no longer its final-state check. The original branch and initiative edits remain intact. Read-only observations are retained in `verify/2026-10-17/T-179/`. The authority environment is restricted to main and has the App ID variable and private-key secret name; metadata does not prove key validity or installation scope. The disabled bootstrap preflight remains not-ready. Authenticated current receipts, capability checks, shadow proof and the reviewed T180 authority cutover remain pending.
+Bootstrap [PR #50](https://github.com/qyndex/claude-init/pull/50) merged as `148238ad8950681d352985cdb9c48ad0301e97d3` on 2026-10-09. Its publication milestone is complete; an open draft is no longer its final-state check. The original branch and initiative edits remain intact. Read-only observations are retained in `verify/2026-10-17/T-179/`. The authority environment is restricted to main and has the App ID variable and private-key secret name; metadata does not prove key validity or installation scope. The disabled bootstrap preflight was not-ready at that historical stage. Later native receipts, capability proof, shadow and the reviewed T180 cutover are recorded in [current status](FACTORY-STATUS.md); do not use the bootstrap observation as the current readiness result.
 
 The legacy consumer now checks every touched spec, exact AC counts, successful runner/smoke status and passing tagged results instead of choosing one latest bundle. A captured original-gate regression demonstrates that a zero-AC bundle could previously hide a second missing spec. Bootstrap reports come from actual shell acceptance commands and the existing collector's smoke reruns. They explicitly record that they are local implementation evidence; final factory authority still requires authenticated external artifacts. Silent-failure lint annotations explain OS-parser probes and diagnostic assertions, while actual parse and mediation failures now surface explicitly. Coverage thresholds cannot be lowered through candidate environment variables.
 
