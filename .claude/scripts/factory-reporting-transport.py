@@ -50,6 +50,29 @@ def encode(value):
     return raw
 
 
+class ReportingAPIError(ValueError):
+    """Public category only; provider stderr and response bodies stay private."""
+    def __init__(self, stderr):
+        super().__init__('reporting API failed; reconcile authoritative state before retry')
+        match = re.search(rb'\(HTTP ([1-5][0-9]{2})\)', stderr[:2048])
+        self.http_status = int(match.group(1)) if match else None
+
+
+def safe_diagnostic(stage, error):
+    """Fixed categories only, never exception messages, paths or provider text."""
+    stages = {'startup', 'config', 'key-format', 'transport', 'protected-context', 'checkpoint-or-delivery'}
+    classes = {'ValueError', 'KeyError', 'TypeError', 'OSError', 'FileNotFoundError',
+               'TimeoutError', 'RuntimeError', 'Error', 'CalledProcessError',
+               'SubprocessError', 'ReportingAPIError'}
+    name = type(error).__name__
+    # Wrappers load this source independently; class identity can differ.
+    # The numeric category is untrusted diagnostic data, never retry/authority.
+    status = vars(error).get('http_status') if isinstance(error, ValueError) and name == 'ReportingAPIError' else None
+    return {'stage': stage if stage in stages else 'unknown',
+            'error_class': name if name in classes else 'Exception',
+            'http_status': status if type(status) is int and 100 <= status <= 599 else None}
+
+
 class Budget:
     def __init__(self):self.calls = self.bytes = 0
     def begin(self):
@@ -137,8 +160,12 @@ class RoutedAPI:
             if encoded is not None:source.write(encoded);source.seek(0);command += ['--input','-']
             result = process.run(command,env=env,cwd=Path.cwd(),timeout=60,limit=MAX_RESPONSE,
                                  aggregate_limit=MAX_RESPONSE,stdin=source if encoded is not None else None)
+        if result.returncode != 0:
+            # A failed provider may return no stdout. Calls remain charged; any
+            # returned bytes still consume the unchanged response/job bounds.
+            if result.stdout:self.budget.observe(len(result.stdout))
+            raise ReportingAPIError(result.stderr)
         self.budget.observe(len(result.stdout))
-        require(result.returncode==0, 'reporting API failed; reconcile authoritative state before retry')
         if raw:return result.stdout
         try:value = json.loads(result.stdout,object_pairs_hook=state.digest.coordinator.contract.no_duplicate_keys)
         except (ValueError,UnicodeError,RecursionError) as error:raise ValueError('reporting response JSON invalid') from error

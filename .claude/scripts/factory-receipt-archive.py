@@ -236,7 +236,7 @@ def _bootstrap_context(api, approval_path, *, now=None):
     return {'approval': approval, 'root': root, 'repo': repo, 'read': read, 'ref': ref}
 
 
-def _completed_origin(api, context):
+def _origin_publication(api, context, head):
     """Authenticate protected scanner publication; a blob/hash alone is not proof.
 
     The exclusive reviewed App writer is the existing origin authority. Its
@@ -244,12 +244,11 @@ def _completed_origin(api, context):
     comparison metadata only binds ancestry, never intermediate content.
     """
     from urllib.parse import quote
-    approval, root, read, ref = (context[key] for key in ('approval', 'root', 'read', 'ref'))
+    approval, root, read = (context[key] for key in ('approval', 'root', 'read'))
     class Reader:
         repo = api.repo
         request = staticmethod(read)
     item_at, blob_at = fixed_reader(Reader(), root)
-    head = ref['object']['sha']
     require(state_paths.valid_hash(head, 40), 'archive bootstrap ancestry invalid')
     current = read(root+'/git/commits/'+head)
     require(current['sha'] == head and state_paths.valid_hash(current['tree']['sha'], 40), 'origin current commit differs')
@@ -287,7 +286,28 @@ def _completed_origin(api, context):
     if progress['prior_verified'] is not None:
         _origin_ancestor(read, root, approval['bootstrap_sha'], progress['prior_verified'])
         _origin_ancestor(read, root, progress['prior_verified'], progress['frozen_head'])
-    return progress['frozen_head'] if progress['complete'] else None
+    return progress, parent['sha']
+
+
+def _completed_origin(api, context):
+    # An incomplete scan may reuse only an earlier authenticated COMPLETE
+    # publication, never the current partial flag or its asserted prior hash.
+    head = context['ref']['object']['sha']; expected = None; seen = set()
+    for _ in range(256):
+        require(head not in seen, 'prior completed origin cycle invalid'); seen.add(head)
+        item = _origin_publication(api, context, head)
+        if item is None:
+            require(expected is None, 'prior completed origin proof missing')
+            return None
+        progress, parent = item
+        if progress['complete']:
+            require(expected is None or progress['frozen_head'] == expected, 'prior completed origin proof differs')
+            return progress['frozen_head']
+        prior = progress['prior_verified']
+        require(expected is None or prior == expected, 'prior completed origin chain differs')
+        if prior is None:return None
+        expected = prior; head = parent
+    raise ValueError('prior completed origin traversal bound exceeded')
 
 
 def verify_bootstrap(api, approval_path, *, now=None):
