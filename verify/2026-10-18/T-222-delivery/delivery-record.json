@@ -1,0 +1,119 @@
+{
+  "recorded_at": "2026-10-18T02:47:05.143204+00:00",
+  "record_kind": "authenticated delivered task; local completion publication pending",
+  "task": "T-222",
+  "receipt": {
+    "base_sha": "5109d078f5aa2162a635ed0e90a2c439a597e406",
+    "eligible": true,
+    "head_sha": "92b810554a2e43362fc7cb00bad90b1b594456c4",
+    "merge_sha": "924c20b87222069a6d51ef9933772dd24f9f2891",
+    "merged": true,
+    "policy_sha256": "e931871e11121f140024eed2b6378e3d632354e8d6d25db1a184e42bdbcfd804",
+    "pull_request": 122,
+    "repository": "qyndex/claude-init",
+    "reviewer_run": 39086370412,
+    "schema_version": 1,
+    "spec": "048",
+    "spec_sha256": "b1d8c41cd3213f264237e3308244f561b43777a0630aa5dee98cb9891a7e9458",
+    "task_ids": [
+      "T-222"
+    ],
+    "verifier_run": 39086370441
+  },
+  "provenance": {
+    "artifact_digest": "sha256:03f2281810c1fda0930691668222215dfbd93bd87bae2d6a164686ff6d3d4723",
+    "artifact_id": 12122193638,
+    "attempt": 1,
+    "execution": {
+      "branch": "main",
+      "conclusion": "success",
+      "event": "workflow_dispatch",
+      "path": ".github/workflows/factory-merge.yml",
+      "repository": "qyndex/claude-init",
+      "repository_id": 1252326101,
+      "status": "completed"
+    },
+    "receipt": {
+      "base_sha": "5109d078f5aa2162a635ed0e90a2c439a597e406",
+      "eligible": true,
+      "head_sha": "92b810554a2e43362fc7cb00bad90b1b594456c4",
+      "merge_sha": "924c20b87222069a6d51ef9933772dd24f9f2891",
+      "merged": true,
+      "policy_sha256": "e931871e11121f140024eed2b6378e3d632354e8d6d25db1a184e42bdbcfd804",
+      "pull_request": 122,
+      "repository": "qyndex/claude-init",
+      "reviewer_run": 39086370412,
+      "schema_version": 1,
+      "spec": "048",
+      "spec_sha256": "b1d8c41cd3213f264237e3308244f561b43777a0630aa5dee98cb9891a7e9458",
+      "task_ids": [
+        "T-222"
+      ],
+      "verifier_run": 39086370441
+    },
+    "run_id": 39091116896,
+    "source_sha": "5109d078f5aa2162a635ed0e90a2c439a597e406",
+    "trust": {
+      "document_sha256": "eb91e6b0245d2fa31e9da9cd0fd32f8e05f084aacbc383aaed79b01a14b58414",
+      "mode": "profile",
+      "policy_sha256": "e931871e11121f140024eed2b6378e3d632354e8d6d25db1a184e42bdbcfd804",
+      "profile_id": "merge-main-20261018",
+      "runtime": {
+        ".claude/scripts/factory-bounded-process.py": "91d077e6badb7c606a31cf85d8fbb8315b91d9d211b4fe1ab8fb970693207f47",
+        ".claude/scripts/factory-coordinator.py": "2598e434b9058ff56ae8781b8337653655c8e99de43a71b346fff86cea36fa00",
+        ".claude/scripts/factory-policy-observation.py": "2fce0d7b6fda425dce97ee77cdccede155a16d93a2c2d4e588c7816e976a8dee",
+        ".claude/scripts/factory-preflight.py": "c3997120ee8d7064738b26fa1c30e318db02ebf411c46baa3aa67d521d1dad56",
+        ".claude/scripts/factory-provenance.py": "0b169e5fefa78ee683ecf3aaf13bfce975929b113ff3d1052a59a95cc3077b01",
+        ".claude/scripts/validate-candidate-evidence.py": "ad0be5042d8dce5e0372159bbcbdbb84bc39b96e57435865eb62e7e5d4d0b52c",
+        ".github/workflows/factory-merge.yml": "850c637ad6c2820eb64a7c432348d93fe85f90b134d2ea4601c4cca3e1c19f2d"
+      }
+    },
+    "workflow_id": 379732139
+  },
+  "merge_commit": {
+    "sha": "924c20b87222069a6d51ef9933772dd24f9f2891",
+    "parents": [
+      "5109d078f5aa2162a635ed0e90a2c439a597e406"
+    ],
+    "tree": "eeeb1ee5c85160f67bdff0ded3feed7e8595297d"
+  },
+  "eligibility": {
+    "check_id": 117567968713,
+    "app_id": 5251754,
+    "head_sha": "92b810554a2e43362fc7cb00bad90b1b594456c4",
+    "conclusion": "success",
+    "summary": "Exact candidate 92b810554a2e43362fc7cb00bad90b1b594456c4; spec 048; policy e931871e11121f140024eed2b6378e3d632354e8d6d25db1a184e42bdbcfd804"
+  },
+  "activation_separate": {
+    "task": "T-180",
+    "complete": false,
+    "authority_enabled": false,
+    "reason": "approved activation attempt recovered OFF because two extra born native runs were skipped with unstarted placeholder jobs; persistent activation not completed",
+    "reconciliation_error": "born coordinator effects unresolved; do not activate",
+    "off_readback": {
+      "verified_false": true,
+      "errors": []
+    },
+    "historical_observation": true
+  },
+  "source_evidence_sha256": {
+    "actual-authenticated-delivery.json": "be109dd841c4c6ca3cae4bfaade95781140328957f3f315088b2aa7f6f2c4157",
+    "actual-run-39091116896-receipt.zip": "03f2281810c1fda0930691668222215dfbd93bd87bae2d6a164686ff6d3d4723",
+    "actual-run-39091116896-receipt-artifact.json": "315c6ff1b2d71601e06f3b80ea2e643485012e301bbca57055c4447de63e10be",
+    "actual-app-checks-after.json": "16405b8c473a307eb630481f4c9d4aede22678d3f96586399d92b73e09f301e7",
+    "actual-recovery-reconciliation.json": "d31db7acafcd92c070165fdab5af832f3aef0b12688edc0040aa1c90e8a5c781",
+    "actual-off-readback.json": "77149d767484f44186c99b3d791f797594b85ee310793cf96855c65621b04c29"
+  },
+  "existing_strict_pair": {
+    "verify/2026-10-11/T-222/red.log": "68ac5ba6f6be6a639a045ec630fefb2843c397c7043559b97c7e94dda2fc9033",
+    "verify/2026-10-11/T-222/green.log": "f541bd73b8ac07f5a8c7ef400546ead45581d05f91a25d113122fab29a535856"
+  },
+  "spec048_sha256": "b1d8c41cd3213f264237e3308244f561b43777a0630aa5dee98cb9891a7e9458",
+  "publication": "Private local completion records only; unchanged spec048 nine-path factory policy does not authorize this bookkeeping diff.",
+  "activation_subsequent": {
+    "task": "T-180",
+    "authority_enabled": true,
+    "record": "verify/2026-10-18/T-180/activation-record.json",
+    "production_enablement_performed": false
+  }
+}

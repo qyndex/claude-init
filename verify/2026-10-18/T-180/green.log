@@ -1,0 +1,10 @@
+# TDD ledger — green — T-180
+ledger_format: 2
+timestamp: 2026-10-18T13:52:50+11:00
+command: python3 .claude/scripts/factory-preflight.py --policy factory/policy.json
+exit_code: 0
+---
+{
+  "ready": true,
+  "missing": []
+}

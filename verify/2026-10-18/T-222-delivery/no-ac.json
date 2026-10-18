@@ -1,0 +1,16 @@
+{
+  "kind": "docs-only",
+  "reason": "Completion bookkeeping only: lock-safe T-180/T-222 source markers, resolved blocker history, genuine native T180 readiness pair, and public-safe references to actual authenticated activation and PR122 delivery. No implementation, workflow, policy, spec or plan bytes change. No whole-spec AC/collector claim.",
+  "tasks": [
+    "T-180",
+    "T-222"
+  ],
+  "native_delivery": {
+    "pull_request": 122,
+    "merge_sha": "924c20b87222069a6d51ef9933772dd24f9f2891",
+    "coordinator_run": 39091116896,
+    "receipt_artifact": 12122193638,
+    "dedicated_app_check": 117567968713
+  },
+  "validation": "Exact task acceptance, canonical TDD ledger, structural validate, scoped Gitleaks and diff checks; full fresh required native checks remain mandatory for publication."
+}

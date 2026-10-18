@@ -1,0 +1,43 @@
+{
+  "recorded_at": "2026-10-18T02:52:51.511643+00:00",
+  "task": "T-180",
+  "repository": "qyndex/claude-init",
+  "source_sha": "924c20b87222069a6d51ef9933772dd24f9f2891",
+  "authority_enabled": true,
+  "production_enablement_performed": false,
+  "redispatch_performed": false,
+  "policy_sha256": "e931871e11121f140024eed2b6378e3d632354e8d6d25db1a184e42bdbcfd804",
+  "receipt_profile": "merge-main-20261018",
+  "dedicated_app_id": 5251754,
+  "eligibility_check_id": 117567968713,
+  "candidate_head": "92b810554a2e43362fc7cb00bad90b1b594456c4",
+  "coordinator_run_id": 39091116896,
+  "receipt_artifact_id": 12122193638,
+  "receipt_zip_sha256": "03f2281810c1fda0930691668222215dfbd93bd87bae2d6a164686ff6d3d4723",
+  "verifier_run_id": 39086370441,
+  "reviewer_run_id": 39086370412,
+  "classified_unstarted_skipped_runs": [
+    39091173478,
+    39091178711
+  ],
+  "readiness_acceptance": {
+    "command": "python3 .claude/scripts/factory-preflight.py --policy factory/policy.json",
+    "nonsecret_context": {
+      "FACTORY_APP_ID": "5251754",
+      "FACTORY_KEY_PRESENT": "true"
+    },
+    "context_basis": "Authenticated native dedicated-App eligibility check117567968713 and separately observed successful persistent authority resume. Presence declaration is not key authentication. No key bytes read.",
+    "red_sha256": "f8ba7c634b2aa3661a2e070062d0d448d2b0abeddc20e6816d1c648f08bc6073",
+    "green_sha256": "13e01c10054e8c979fe006bd96905fba7e50a52473187c9f1e1150d904dd7a9b",
+    "green_exit_code": 0
+  },
+  "prior_blocker": "Authenticated signed producer artifacts, genuine shadow proof and reviewed authority cutover; App setup completed",
+  "prior_activation_attempt": "Delivered PR122 successfully; recovered authority OFF while extra born skipped runs were unresolved. Later reviewed resume classified them and retained authority ON.",
+  "source_observation_sha256": {
+    "actual-resume-result.json": "4ace04306ac3e33ec0e7f977476ea8c6aa07bfc97a19d701951730f0a21a3aa6",
+    "actual-readonly-reconciliation.json": "083273fa3e51b8f062207229370fccc1299587579fd5798d8858243b23d29b2d",
+    "actual-resume-app-write.json": "8e883eb2f24fafa1459e0054d874273d6cbaffc6289c5ea898976b7a4d269a16",
+    "actual-resume-classified-skips.json": "0a32c4f381a3f0e9c9bdaf2dc37e8741f69c95d079f6f09bbebd80abec639bca"
+  },
+  "scope_note": "Persistent factory activation and delivered pilot only; reporting backlog, product acceptance, feedback and whole-plan/spec lifecycle completion are not claimed. At capture, source bookkeeping publication was pending as a separate step."
+}
