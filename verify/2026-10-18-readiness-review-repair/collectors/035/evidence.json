@@ -1,0 +1,1 @@
+{"spec":"035","commit":"45cddb512a0de6cab22e338a4540866f6b19e311","generated_at":"2026-10-18T18:56:11+11:00","results_file":"verify/2026-10-18-035-hosted-private-feedback/attempt-vdzIrZQQ/results.json","results_sha256":"","ac_total":4,"ac_proven":0,"ac_unproven":["AC-1","AC-2","AC-3","AC-4"],"smoke_exit_max":0,"runner_exit":0,"coverage":{"line":"?","branch":"?"},"verdict":"FAIL"}
