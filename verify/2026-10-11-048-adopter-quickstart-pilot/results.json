@@ -1,0 +1,24 @@
+{
+  "testResults": [
+    {
+      "name": "approved policy commands",
+      "assertionResults": [
+        {
+          "fullName": "AC-1 approved policy quickstart contract",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "AC-2 approved policy quickstart contract",
+          "status": "passed",
+          "failureMessages": []
+        },
+        {
+          "fullName": "AC-3 approved policy quickstart contract",
+          "status": "passed",
+          "failureMessages": []
+        }
+      ]
+    }
+  ]
+}
