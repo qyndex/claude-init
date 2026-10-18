@@ -1,0 +1,20 @@
+{
+  "scope": "Metadata-only mandatory trailer repair; each replacement commit has identical Git tree. Original local observations retain original source IDs; no new execution claimed.",
+  "mapping": [
+    {
+      "original": "82a2b85e34499b136c3ec6b53edd0dcd53202b9e",
+      "repaired": "f784dbbf6c59fb06f202695f13d5ea5ff6e8731e",
+      "identical_tree": "e95f847cc592746e997862659f8d4968219f5e51"
+    },
+    {
+      "original": "aaf9a93dbc542bcd7af4a6fe032b27a4976762c6",
+      "repaired": "01596e214174471405fd91fd3c58fe493377c42d",
+      "identical_tree": "56ec1b68915f11787bb9656284fbbe0ea33863fe"
+    },
+    {
+      "original": "0430b8cf11e26b75e17eebb47cc9f87ef7ef0c78",
+      "repaired": "69cecb5eea199ce68c17f703c0cfe220280a6a09",
+      "identical_tree": "7ac9b2ec5abf318c120cce9eadf31ca2cba56a20"
+    }
+  ]
+}

@@ -1,26 +1,8 @@
 name: Claude Security Review
 
-# Security audit on every PR — runs as a claude-code-action@v1 prompt so it
-# authenticates with the Claude subscription OAuth token (CLAUDE_CODE_OAUTH_TOKEN),
-# NOT a metered ANTHROPIC_API_KEY. This is the "OAuth everywhere" rework
-# (T-153): the previous design used anthropics/claude-code-security-review, which
-# has no OAuth input and runs Opus on every push — that combination cost ~$40 of
-# metered API in a single iterative session. OAuth = subscription = no per-call
-# metered spend.
-#
-# Tradeoff (recorded so it isn't lost): the dedicated scanner did diff-aware
-# finding dedup + SARIF/code-scanning annotations. The prompt approach is the
-# `security` agent told to audit the diff — structure is enforced by the prompt's
-# format contract + the format-lint step, not by the action. gitleaks and dependency-review retain their separately configured scopes.
-# This model job keeps the draft, dependency and release exemptions below;
-# its success cannot substitute for protected factory evidence.
-#
-# COST CONTROLS (T-153):
-#   - OAuth token, not API key → no metered spend.
-#   - Every updated eligible PR head receives a security check.
-#     Concurrency cancels superseded heads; quota failure blocks completion.
-#   - Sonnet 5.5 — operator-selected hosted review model.
-#   - concurrency cancels superseded runs.
+# Exact-head ordinary source review using pinned Sonnet 5.5 and subscription OAuth.
+# Tool-free, bounded stdin; structured artifacts are not protected factory receipts.
+# No Claude GitHub App integration, API fallback or comment posting.
 
 on:
   pull_request:
@@ -31,9 +13,6 @@ on:
 
 permissions:
   contents: read
-  pull-requests: write
-  security-events: write
-  id-token: write # OIDC -> Claude GitHub App token exchange (OAuth path)
 
 concurrency:
   group: claude-security-${{ github.event.pull_request.number || github.run_id }}
@@ -51,87 +30,65 @@ jobs:
     # version/changelog files (verified by release-please.yml before it arms
     # auto-merge) — skip; GitHub counts a skipped required check as satisfied.
     if: >-
+      github.event_name == 'pull_request' &&
       github.event.pull_request.draft == false && github.actor != 'dependabot[bot]' &&
       !(startsWith(github.head_ref, 'release-please--') &&
         github.event.pull_request.user.login == 'github-actions[bot]')
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - name: Preflight — Anthropic credential present (e2e-audit ci-gates-4)
-        env:
-          HAS_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
-          HAS_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
-        run: |
-          if [ "$HAS_KEY" != "true" ] && [ "$HAS_TOKEN" != "true" ]; then
-            echo "::error::No Anthropic credential — this GATING security review can never pass. Fix: gh secret set CLAUDE_CODE_OAUTH_TOKEN (from 'claude setup-token', Pro/Max subscription — FREE, no metered spend) or gh secret set ANTHROPIC_API_KEY (metered). setup.sh and harness-doctor both check this."
-            exit 1
-          fi
-
       - name: Checkout
         uses: actions/checkout@v7
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
+          persist-credentials: false
 
-      - name: Run Claude security review (OAuth — subscription, no metered spend)
-        uses: anthropics/claude-code-action@v1
+      - name: Prepare exact-head review context and validator
+        id: prepare_review
+        run: |
+          mkdir "$RUNNER_TEMP/ordinary-review-runtime"
+          cp .claude/scripts/run-claude-review.py .claude/scripts/retain-claude-review.py .claude/scripts/factory-bounded-process.py "$RUNNER_TEMP/ordinary-review-runtime/"
+          python3 -I .claude/scripts/prepare-claude-review.py
+
+      - name: Set up pinned Node runtime
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
-          # Subscription OAuth token first (free); API key only as a fallback if
-          # someone sets it. An empty secret resolves to unset.
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          # Sonnet, not Opus — diff-scoped SAST doesn't need Opus, and this keeps
-          # any future API-key fallback cheap. v1 takes model via claude_args.
-          # FINDING-32 (live-e2e 2026-06-14): --max-turns 15 was too tight — the
-          # multi-pass review (read diff → read surrounding code → form findings
-          # → re-verify each → post) exhausted the budget on a multi-file PR, and
-          # the action treats turn-exhaustion as exit 1, hard-failing the GATE on
-          # a non-finding. Raise to 40 so the agent can finish; still bounded so a
-          # runaway can't burn unbounded subscription turns.
-          claude_args: "--model claude-sonnet-5-5 --max-turns 40"
-          prompt: |
-            You are the security agent (.claude/agents/quality/security.md).
-            Perform a security audit of THIS PULL REQUEST'S DIFF ONLY — do not
-            flag pre-existing issues outside the changed lines.
+          node-version: '22'
 
-            Scope (OWASP LLM/web Top 10 + the constitution's guardrails):
-            injection (SQL/command/path/template), authn/authz gaps, secret or
-            credential exposure, SSRF, insecure deserialization, missing input
-            validation, unsafe shell (eval, curl|sh, command interpolation,
-            unquoted GitHub-expression interpolation into run: steps),
-            permission/sandbox regressions, dependency risk.
+      - name: Install pinned subscription reviewer
+        id: install_review
+        run: npm install --prefix "$RUNNER_TEMP/ordinary-review-cli" @anthropic-ai/claude-code@2.1.295
 
-            Multi-pass (re-verify to suppress false positives):
-            1. Read the diff.
-            2. Read the full surrounding code for each changed hunk.
-            3. Form findings, severity-tagged (critical/high/medium/low/info).
-            4. Re-verify each finding by re-reading the relevant path — drop
-               anything you cannot substantiate at a concrete path:line.
-            5. Post the surviving findings as inline PR review comments.
-
-            FORMAT CONTRACT (machine-checked): every finding MUST cite
-            `path:line`. End your summary with the exact line:
-            `Security: re-verified <N> findings, suppressed <M> false positives.`
-
-            Block the PR (--request-changes) if any critical or high remains.
-
-      - name: Lint security review format (citations + marker)
+      - name: Run and retain bounded tool-free review
+        id: claude_review
         if: always()
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          REVIEW_PREPARE_OUTCOME: ${{ steps.prepare_review.outcome }}
+          REVIEW_INSTALL_OUTCOME: ${{ steps.install_review.outcome }}
         run: |
-          reviews=$(gh pr view "$PR_NUMBER" --json reviews -q '.reviews[].body' 2>/dev/null || true)
-          [ -z "$reviews" ] && { echo "no review body yet — skipping format lint"; exit 0; }
-          if ! echo "$reviews" | grep -qE 'Security: re-verified [0-9]+ findings'; then
-            echo "::warning::Security review output lacks the re-verification marker — pass-2 not evidenced."
+          if [ ! -f "$RUNNER_TEMP/ordinary-review-runtime/run-claude-review.py" ]; then
+            mkdir "$RUNNER_TEMP/retained-security-review"
+            printf '%s\n' '{"schema_version":1,"role":"security","status":"blocked","reason":"runtime-unavailable"}' > "$RUNNER_TEMP/retained-security-review/review.json"
+            exit 1
           fi
-          if ! echo "$reviews" | grep -qE '[A-Za-z0-9_./-]+\.[a-z]+:[0-9]+'; then
-            echo "::warning::Security review findings carry no path:line citations."
-          fi
-          echo "security review format lint done"
+          if REVIEW_NODE="$(command -v node)"; then :; else REVIEW_NODE=""; fi
+          REVIEW_EXECUTABLE="$RUNNER_TEMP/ordinary-review-cli/node_modules/@anthropic-ai/claude-code/cli-wrapper.cjs"
+          export REVIEW_NODE REVIEW_EXECUTABLE
+          python3 -I "$RUNNER_TEMP/ordinary-review-runtime/run-claude-review.py" --role security --output "$RUNNER_TEMP/retained-security-review"
+
+      - name: Preserve security review evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: claude-security-review-${{ github.event.pull_request.number }}-${{ github.event.pull_request.head.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/retained-security-review/review.json
+          if-no-files-found: error
+          retention-days: 90
 
       - name: Gitleaks (CLI — no org licence; T-143)
+        if: always()
         env:
           GITLEAKS_VERSION: 8.30.1
         run: |
@@ -147,8 +104,33 @@ jobs:
       # dependency-review needs Dependency Graph (+ GHAS on private repos) — advisory
       # where the capability is absent (T-144); gitleaks + the LLM scan still gate.
       - name: Dependency review (advisory where Dependency Graph/GHAS is off; T-144)
-        if: github.event_name == 'pull_request'
+        if: always() && github.event_name == 'pull_request'
         continue-on-error: true
         uses: actions/dependency-review-action@v5
         with:
           fail-on-severity: high
+
+  manual-security-scan:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout selected source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Gitleaks (CLI — no org licence; T-143)
+        if: always()
+        env:
+          GITLEAKS_VERSION: 8.30.1
+        run: |
+          set -euo pipefail
+          url="https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          curl -sSfL "$url" -o /tmp/gitleaks.tgz
+          tar -xzf /tmp/gitleaks.tgz -C /tmp gitleaks
+          cfg=""; [ -f .gitleaks.toml ] && cfg="--config .gitleaks.toml"
+          # shellcheck disable=SC2086 # cfg is a controlled two-token flag or empty; intentional word-split
+          # Scan all candidate-reachable source history; reporting state refs are separate data.
+          /tmp/gitleaks git --redact --exit-code 1 --log-opts "--full-history HEAD" $cfg

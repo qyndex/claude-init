@@ -74,3 +74,13 @@ explicit-empty observation format. Its protected bootstrap metadata model and
 caller-field projection require separate reviewed integration and activation;
 never inject an actor list into a live API response. Existing reporting/feedback
 operation is not migrated by this source change.
+
+## Ordinary Claude review evidence
+
+The ordinary `Claude PR Review` and `Claude Security Review` jobs are separate from protected factory producers. They prepare the exact PR base/head diff and full changed-file context, bounded to 1 MiB and 300 files. Binary or oversized context blocks visibly. Short escaped records preserve original source line/part labels; gitlinks remain object metadata and are never fetched as external source.
+
+Both jobs install CLI 2.1.295 and invoke Sonnet 5.5 directly with subscription OAuth only. The complete prepared context travels through file-backed stdin, avoiding argv size and Read-tool truncation. Tools, project settings, MCP servers and session persistence are disabled. The child runs with neutral HOME/config/TMPDIR/cwd and an explicit environment excluding GitHub credentials, API keys and provider overrides. Execution has a 300-second deadline, three-turn limit and bounded output capture. There is no paid fallback, Claude GitHub App exchange or comment posting.
+
+A deterministic validator requires successful structured output, the exact observed model, bounded token usage, no permission denials, exact repository/PR/head/role binding and valid findings. Critical/high findings fail. The fresh report records context/prompt/execution hashes and run/attempt IDs; only selected report fields are retained, never raw transcripts or stderr. Reports upload for 90 days, including fixed-category blocked reports when setup or execution fails. These are inspectable ordinary source reviews, not authenticated factory receipts, acceptance results or merge permission.
+
+Manual security dispatch runs full-history Gitleaks without claiming a PR-bound model review. PR Gitleaks runs even when the model review fails. Protected producer, registration, acceptance and merge gates remain unchanged. The previous App-based native attempt was blocked by its workflow-validation rule and supplies no successful review evidence; direct CLI execution requires its own fresh native verification.

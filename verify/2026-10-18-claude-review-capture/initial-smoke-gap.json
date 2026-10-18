@@ -1,0 +1,9 @@
+{
+  "initial_source": "dc34062e1dfd2852bbf7b7d0718a55b9a7c6210e",
+  "initial_smoke_exit": 1,
+  "actual_failure": "acceptance base unavailable; fetch base history and pass --base",
+  "repair": "Fetched actual origin/main6399f35; no source or skip-gate exception",
+  "later_same_source_bytes_smoke": 0,
+  "current_final_smoke": 0,
+  "initial_failed_bundles_preserved": true
+}

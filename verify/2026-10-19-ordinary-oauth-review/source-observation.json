@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "source": "82a2b85e34499b136c3ec6b53edd0dcd53202b9e",
+  "base": "6399f35c6de9d67a2fb9cb1506945319d69c691e",
+  "approval": "User Option A: pinned tool-free subscription OAuth ordinary reviewers, no Claude App exchange/comment posting",
+  "source_files": [
+    {
+      "path": ".claude/scripts/retain-claude-review.py",
+      "sha256": "eff5bcdd407ea15657d1b598909c183a87b0da485c04e74aa16695e582ad7de5"
+    },
+    {
+      "path": ".claude/scripts/run-claude-review.py",
+      "sha256": "c331734b43e53f64ad769b861fbe18199fa088ec805fbf7e2bc8fb47dd833d65"
+    },
+    {
+      "path": ".claude/scripts/test/claude-review-evidence.sh",
+      "sha256": "f6a4138ec50912d9bf0081d7becba35f06d2499761bb1ef2d9a8404ebb244184"
+    },
+    {
+      "path": ".claude/scripts/test/claude-review-runner.py",
+      "sha256": "51ecf0f0404848e1b3e0faff30426e6e53bb3662d1d8b1dccdd6d7bb7c309c9f"
+    },
+    {
+      "path": ".claude/scripts/test/factory-review-model.sh",
+      "sha256": "6c4da1c36f1f12aa639de3866a9de4046bcf36b0cedfa7ad8669e84a1d6d73dd"
+    },
+    {
+      "path": ".github/workflows/claude-review.yml",
+      "sha256": "9111900e3e5495b9c94b0275b85b3f0d2d5a201bcbc4afac10f047a3d84683c8"
+    },
+    {
+      "path": ".github/workflows/claude-security.yml",
+      "sha256": "74db9dbcb96d3c1a370609abe1a21b2c0f6af8eaf06c4a70efec0ee39ccfab90"
+    },
+    {
+      "path": "docs/FACTORY-PRODUCERS.md",
+      "sha256": "fe422e750cff7ec3173c4b25ed0d84fa5ccbe2084d9ccf1a3d0132bfe44dee60"
+    }
+  ],
+  "local_focused_tests": "11 evidence + 3 runner tests pass; synthetic provider replies and actual bounded subprocess stdin/shell transport",
+  "regressions": "38 existing protected runtime/producer cases, routing/docs and full actionlint pass; structural passes with four existing warnings",
+  "independent_review": "Separate read-only agent reviewed exact source and ran focused suite; initial missing-setup-artifact finding fixed and re-reviewed with no actionable blocker",
+  "actual_model_review": "Pinned2.1.295 CLI Sonnet5.5 local source review succeeds in2turns with no findings; existing local auth and macOS Node24, not neutral OAuth GitHub Ubuntu Node22 execution",
+  "native_status": "Replacement CLI workflow has not run; PR126 remains draft. Historical App attempts39129745074/39129745151 failed closed with no review credit",
+  "authority": "No protected producer, merge App, protection policy, production or disabled-workflow change",
+  "acceptance": "Collector files preserve actual full unskipped smoke/AC verdicts; no whole-spec or native acceptance claim; no task completion change"
+}

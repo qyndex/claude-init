@@ -1,0 +1,8 @@
+# Actual unchanged workflow-step observations in baseline-reproduction.json. The assertion requires rejection.
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    import json,sys; rows=json.load(open(sys.argv[1])); assert all(row['exit']!=0 for row in rows), 'baseline accepts missing reviews instead of rejecting them'
+                                                               ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: baseline accepts missing reviews instead of rejecting them
+
+exit: 1
