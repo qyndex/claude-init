@@ -66,24 +66,58 @@ def validate(messages, expected):
 
 
 def validate_access(messages, context):
-    """AllowedTools is an additive permission, so audit actual accesses too."""
-    reads = 0
+    """Require actual, visible, byte-matching Read results covering every line."""
+    with context.open('rb') as source:
+        raw = source.read(1024 * 1024 + 1)
+    require(0 < len(raw) <= 1024 * 1024, 'prepared context unavailable or oversized')
+    lines = raw.decode('utf-8').split('\n')
+    require(all(len(line.encode()) <= 1600 for line in lines), 'overlong context line')
+    calls, complete, covered = {}, set(), set()
     for row in messages:
         message = row.get('message', {})
-        if row.get('type') != 'assistant' or not isinstance(message, dict):
+        if not isinstance(message, dict):
             continue
         content = message.get('content', [])
-        require(isinstance(content, list), 'assistant content malformed')
+        require(isinstance(content, list), 'message content malformed')
         for block in content:
-            if not isinstance(block, dict) or block.get('type') != 'tool_use':
+            if not isinstance(block, dict):
                 continue
-            if block.get('name') == 'StructuredOutput':
-                continue
-            require(block.get('name') == 'Read', 'unexpected reviewer tool')
-            args = block.get('input')
-            require(isinstance(args, dict) and isinstance(args.get('file_path'), str) and Path(args['file_path']).resolve(strict=True) == context.resolve(strict=True), 'read outside prepared context')
-            reads += 1
-    require(reads > 0, 'prepared context read not evidenced')
+            if row.get('type') == 'assistant' and block.get('type') == 'tool_use':
+                if block.get('name') == 'StructuredOutput':
+                    continue
+                require(block.get('name') == 'Read', 'unexpected reviewer tool')
+                args, identity = block.get('input'), block.get('id')
+                require(isinstance(identity, str) and identity and identity not in calls, 'read identity invalid')
+                require(isinstance(args, dict) and isinstance(args.get('file_path'), str) and Path(args['file_path']).resolve(strict=True) == context.resolve(strict=True), 'read outside prepared context')
+                offset, limit = args.get('offset', 1), args.get('limit')
+                require(type(offset) is int and 1 <= offset <= len(lines) and type(limit) is int and 1 <= limit <= 20, 'read page bounds invalid')
+                calls[identity] = (offset, limit)
+            if row.get('type') == 'user' and block.get('type') == 'tool_result' and block.get('tool_use_id') in calls:
+                identity = block['tool_use_id']
+                require(identity not in complete and not block.get('is_error', False), 'read result failed or duplicated')
+                meta = row.get('tool_use_result')
+                require(isinstance(meta, dict) and meta.get('type') == 'text' and isinstance(meta.get('file'), dict), 'read result metadata missing')
+                file = meta['file']
+                require(isinstance(file.get('filePath'), str) and Path(file['filePath']).resolve(strict=True) == context.resolve(strict=True), 'read result path mismatch')
+                start, limit = calls[identity]
+                count = min(limit, len(lines) - start + 1)
+                require(type(file.get('startLine')) is int and file['startLine'] == start and type(file.get('numLines')) is int and file['numLines'] == count and type(file.get('totalLines')) is int and file['totalLines'] == len(lines), 'read result range mismatch')
+                expected = '\n'.join(lines[start - 1:start - 1 + count])
+                require(file.get('content') == expected, 'read result content truncated or changed')
+                visible = block.get('content')
+                require(isinstance(visible, str), 'visible read text missing')
+                numbered = {}
+                for line in visible.split('\n'):
+                    match = re.match(r'^ *([1-9][0-9]*)(?:\t|→)(.*)$', line)
+                    if match:
+                        number = int(match[1])
+                        require(number not in numbered, 'visible read line duplicated')
+                        numbered[number] = match[2]
+                require(numbered == {n: lines[n - 1] for n in range(start, start + count)}, 'visible read content incomplete')
+                complete.add(identity)
+                covered.update(range(start, start + count))
+    require(calls and complete == set(calls) and covered == set(range(1, len(lines) + 1)), 'prepared context not fully read')
+    return {'context_lines': len(lines), 'covered_lines': len(covered), 'read_calls': len(calls)}
 
 
 def main():
@@ -107,7 +141,7 @@ def main():
         messages = load(execution)
         review = validate(messages, expected)
         context = temp / 'claude-review-input.txt'
-        validate_access(messages, context)
+        coverage = validate_access(messages, context)
         with context.open('rb') as source:
             context_raw = source.read(1024 * 1024 + 1)
         require(0 < len(context_raw) <= 1024 * 1024, 'prepared context unavailable or oversized')
@@ -117,7 +151,7 @@ def main():
             require(re.fullmatch('[1-9][0-9]*', os.environ.get(name, '')) is not None, 'workflow attempt binding missing')
         status.update(expected, status='changes-required' if blocked else 'reviewed', model=MODEL,
                       run_id=os.environ['GITHUB_RUN_ID'], run_attempt=os.environ['GITHUB_RUN_ATTEMPT'],
-                      execution_sha256=digest, context_sha256=hashlib.sha256(context_raw).hexdigest(), review=review)
+                      execution_sha256=digest, context_sha256=hashlib.sha256(context_raw).hexdigest(), coverage=coverage, review=review)
         exit_code = int(blocked)
     except (ValueError, KeyError, OSError, TypeError, RecursionError):
         # Never copy raw execution, exception strings, tokens or tool transcripts.

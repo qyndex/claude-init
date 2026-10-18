@@ -41,9 +41,10 @@ class Evidence(unittest.TestCase):
    event.write_text(json.dumps({'repository':{'full_name':binding['repository']},'pull_request':{'number':12,'head':{'sha':'a'*40}}}))
    env={**os.environ,'GITHUB_EVENT_PATH':str(event),'RUNNER_TEMP':str(root),'REVIEW_EXECUTION_FILE':str(execution),'REVIEW_ACTION_OUTCOME':'success','GITHUB_RUN_ID':'123','GITHUB_RUN_ATTEMPT':'2'}
    (root/'claude-review-input.txt').write_text('Fixture public context only')
-   access={'type':'assistant','message':{'content':[{'type':'tool_use','name':'Read','input':{'file_path':str(root/'claude-review-input.txt')}}]}}
+   access={'type':'assistant','message':{'content':[{'type':'tool_use','id':'fixture-read','name':'Read','input':{'file_path':str(root/'claude-review-input.txt'),'offset':1,'limit':20}}]}}
+   response={'type':'user','message':{'content':[{'type':'tool_result','tool_use_id':'fixture-read','content':'1\tFixture public context only'}]},'tool_use_result':{'type':'text','file':{'filePath':str(root/'claude-review-input.txt'),'startLine':1,'numLines':1,'totalLines':1,'content':'Fixture public context only'}}}
    def run(name,rows):
-    execution.write_text(json.dumps([access]+rows));dest=root/name
+    execution.write_text(json.dumps([access,response]+rows));dest=root/name
     process=subprocess.run([sys.executable,'-I',str(script),'--role','code','--output',str(dest)],env=env,capture_output=True,text=True)
     return process,json.loads((dest/'review.json').read_text())
    process,saved=run('good',[result]);self.assertEqual(process.returncode,0);self.assertEqual(saved['head'],'a'*40)
@@ -61,18 +62,29 @@ class Evidence(unittest.TestCase):
    execution.write_text('['*2000+'0'+']'*2000)
    process=subprocess.run([sys.executable,'-I',str(script),'--role','code','--output',str(root/'deep')],env=env,capture_output=True,text=True)
    self.assertEqual(process.returncode,1);self.assertEqual(json.loads((root/'deep/review.json').read_text())['status'],'blocked');self.assertNotIn('Traceback',process.stderr)
+ def test_access_requires_complete_untruncated_read_results(self):
+  with tempfile.TemporaryDirectory() as folder:
+   context=Path(folder)/'context.txt';context.write_text('first line\ncritical tail')
+   call={'type':'assistant','message':{'content':[{'type':'tool_use','id':'read1','name':'Read','input':{'file_path':str(context),'offset':1,'limit':20}}]}}
+   partial={'type':'user','message':{'content':[{'type':'tool_result','tool_use_id':'read1','content':'1\tfirst line'}]},'tool_use_result':{'type':'text','file':{'filePath':str(context),'startLine':1,'numLines':1,'totalLines':2,'content':'first line'}}}
+   for rows in [[call],[call,partial]]:
+    with self.assertRaises(ValueError):m.validate_access(rows,context)
+   complete=copy.deepcopy(partial);complete['message']['content'][0]['content']='1\tfirst line\n2\tcritical tail';complete['tool_use_result']['file'].update(numLines=2,content='first line\ncritical tail')
+   m.validate_access([call,complete],context)
+   truncated=copy.deepcopy(complete);truncated['message']['content'][0]['content']='1\tfirst line\n2\tcritical...'
+   with self.assertRaises(ValueError):m.validate_access([call,truncated],context)
  def test_prepared_context_binds_actual_git_objects_and_preserves_deletion(self):
   with tempfile.TemporaryDirectory() as folder:
    root=Path(folder);repo=root/'repo';repo.mkdir();temp=root/'temp';temp.mkdir()
    def git(*args):return subprocess.check_output(['git','-C',str(repo),*args],stderr=subprocess.DEVNULL,text=True).strip()
    git('init');git('config','user.name','Fixture');git('config','user.email','fixture@example.invalid')
    (repo/'file with spaces.py').write_text('old\n');git('add','.');git('commit','-m','initial');base=git('rev-parse','HEAD')
-   (repo/'file with spaces.py').unlink();(repo/'new.py').write_text('new complete context\n');git('add','-A');git('commit','-m','change');head=git('rev-parse','HEAD')
+   (repo/'file with spaces.py').unlink();(repo/'new.py').write_text('new complete context\n'+'x'*5000);git('add','-A');git('update-index','--add','--cacheinfo','160000,'+'b'*40+',external');git('commit','-m','change');head=git('rev-parse','HEAD')
    event=root/'event.json';event.write_text(json.dumps({'repository':{'full_name':'example/project'},'pull_request':{'number':12,'head':{'sha':head},'base':{'sha':base}}}))
    env={**os.environ,'GITHUB_EVENT_PATH':str(event),'RUNNER_TEMP':str(temp)}
    preparer=script.with_name('prepare-claude-review.py')
    process=subprocess.run([sys.executable,'-I',str(preparer)],cwd=repo,env=env,capture_output=True,text=True);self.assertEqual(process.returncode,0,process.stderr)
-   text=(temp/'claude-review-input.txt').read_text();self.assertIn('UNTRUSTED',text);self.assertIn(head,text);self.assertIn('old',text);self.assertIn('new complete context',text)
+   text=(temp/'claude-review-input.txt').read_text();self.assertIn('UNTRUSTED',text);self.assertIn(head,text);self.assertIn('old',text);self.assertIn('new complete context',text);self.assertIn('type=commit',text);self.assertTrue(all(len(line.encode())<=1600 for line in text.split('\n')))
    # Invalid revisions cannot become git options; stale context isn't published by this failed step.
    event.write_text(event.read_text().replace(head,'--help'));process=subprocess.run([sys.executable,'-I',str(preparer)],cwd=repo,env=env,capture_output=True);self.assertNotEqual(process.returncode,0)
    (repo/'huge.py').write_text('x'*(1024*1024+1));git('add','.');git('commit','-m','huge');huge=git('rev-parse','HEAD')
@@ -80,6 +92,15 @@ class Evidence(unittest.TestCase):
    (temp/'claude-review-input.txt').unlink()
    process=subprocess.run([sys.executable,'-I',str(preparer)],cwd=repo,env=env,capture_output=True,text=True)
    self.assertNotEqual(process.returncode,0);self.assertFalse((temp/'claude-review-input.txt').exists())
+ def test_manual_security_dispatch_is_explicit_scan_not_unbound_review(self):
+  text=Path('.github/workflows/claude-security.yml').read_text()
+  self.assertIn("github.event_name == 'pull_request' &&",text)
+  manual=text.split('  manual-security-scan:',1)[1]
+  self.assertIn("if: github.event_name == 'workflow_dispatch'",manual)
+  self.assertIn('contents: read',manual);self.assertNotIn('CLAUDE_CODE_OAUTH_TOKEN',manual)
+  self.assertIn('/tmp/gitleaks git --redact',manual)
+  review=text.split('  manual-security-scan:',1)[0]
+  self.assertIn('Gitleaks (CLI — no org licence; T-143)\n        if: always()',review)
  def test_workflows_require_retention_and_upload_on_failure(self):
   for name in ['claude-review.yml','claude-security.yml']:
    text=(Path('.github/workflows')/name).read_text()
