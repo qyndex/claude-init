@@ -1,0 +1,32 @@
+{
+  "source_commit": "2ac63e3bb0056ba039bccc19e431d769643ee064",
+  "base_commit": "edd33825d5191f3ad82fc8c9892cebff2dc69686",
+  "source_sha256": {
+    ".claude/scripts/factory-hosted-feedback.py": "965fef0736e551d303c2dd7461b31a510ee9a0b908795762e1f986dcb380aee7",
+    ".claude/scripts/factory-receipt-archive.py": "1979c6d63d2620727631e1e5dfdc53ecd344aa302e6a480050945226603d0115",
+    ".claude/scripts/factory-reporting-alerts.py": "0dcbb07d3e7b1c9d55455b40d7a6d065c70c6b806b09aaac73951dd575c3b154",
+    ".claude/scripts/factory-reporting-transport.py": "cd2d4f74f1345660c4cbb95016ed0d2cc89157e13efcd5ab9ce53d91487b3e80",
+    ".claude/scripts/test/factory-receipt-origin-prior.sh": "5f3e62eac7be8aa2a80a0e25320e181400279954a83aa46a7c582ba6a6f934b7",
+    ".claude/scripts/test/factory-reporting-safe-diagnostics.py": "c7517a6f1d90711aa3e7a52d06517b27b81d81e4517cf5f6946dba472bce730d",
+    ".claude/scripts/test/factory-reporting-safe-diagnostics.sh": "5cdb076412e982e8e59233b979baf3a152b4d2adb1df0b3010db51130e67ebef"
+  },
+  "collectors": {
+    "014": {
+      "exit": 1,
+      "smoke_exit": 0,
+      "verdict": "FAIL"
+    },
+    "029": {
+      "exit": 1,
+      "smoke_exit": 0,
+      "verdict": "FAIL"
+    },
+    "035": {
+      "exit": 1,
+      "smoke_exit": 0,
+      "verdict": "FAIL"
+    }
+  },
+  "native_acceptance": "pending; no activation or delivery claim",
+  "effects": 0
+}
