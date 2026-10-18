@@ -1,0 +1,14 @@
+# TDD ledger — red — T-180
+ledger_format: 2
+timestamp: 2026-10-18T12:33:29+11:00
+command: python3 .claude/scripts/factory-preflight.py --policy factory/policy.json
+exit_code: 1
+red_reason: assertion-failure
+---
+{
+  "ready": false,
+  "missing": [
+    "matching dedicated GitHub App ID",
+    "private key in protected factory-authority environment"
+  ]
+}

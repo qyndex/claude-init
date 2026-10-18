@@ -258,10 +258,10 @@ Append-only task ledger. The planner agent (`.claude/agents/core/planner.md`) po
   accept: gh pr view "${FACTORY_ACTIVATION_PR:-https://github.com/qyndex/claude-init/pull/50}" --json state,isDraft,mergeCommit | jq -e '.state == "MERGED" and .mergeCommit.oid == "148238ad8950681d352985cdb9c48ad0301e97d3"'
   owner: codex
 
-- [b] T-180  | spec:009  | phase:3  | priority: security  | created: 2026-10-09  | last_touched: 2026-10-09  | deps: T-179  | parallel: no  | est: 5m
+- [x] T-180  | spec:009  | phase:3  | priority: security  | created: 2026-10-09  | last_touched: 2026-10-09  | deps: T-179  | parallel: no  | est: 5m
   summary: Activate reviewed factory App policy after authenticated shadow proof
   accept: python3 .claude/scripts/factory-preflight.py --policy factory/policy.json
-  blocked_by: Authenticated signed producer artifacts, genuine shadow proof and reviewed authority cutover; App setup completed
+  progress: Persistent authority activation authenticated at 924c20b87222069a6d51ef9933772dd24f9f2891; prior blocker history and proof in verify/2026-10-18/T-180/activation-record.json
   owner: operator
 
 - [x] T-176  | spec:007  | phase:1  | priority: security  | created: 2026-10-09  | last_touched: 2026-10-09  | deps:  | parallel: no  | est: 5m
@@ -1427,7 +1427,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-pilot-sandbox.sh
   owner: codex
 
-- [ ] T-222  | spec:048  | phase:6  | priority: normal  | created: 2026-10-11  | last_touched: 2026-10-11  | deps: T-223  | parallel: no  | est: 30m
+- [x] T-222  | spec:048  | phase:6  | priority: normal  | created: 2026-10-11  | last_touched: 2026-10-11  | deps: T-223  | parallel: no  | est: 30m
   summary: Deliver approved adopter quickstart through independent verification, shadow and authenticated receipt
   files: docs/FACTORY-ADOPTER-QUICKSTART.md
   accept: python3 -c "from pathlib import Path; t=Path('docs/FACTORY-ADOPTER-QUICKSTART.md').read_text(); assert all(s in t for s in ['Prerequisites','Dry-run adoption','immutable','existing','python3 .claude/scripts/factory-adopt.py --from /path/to/reviewed-harness --into /path/to/target --dry-run']); assert not any(s in t for s in ['qyndex','C0C7T1Y29K5','5251754','T0B2VADDUG4']); print('AC-1 quickstart adoption contract passed'); from pathlib import Path; t=Path('docs/FACTORY-ADOPTER-QUICKSTART.md').read_text(); assert all(s in t for s in ['Protected readiness','factory-preflight.py --policy /path/to/protected-policy.json','block','merge authority','reporting','production','secrets']); print('AC-2 protected readiness contract passed'); from pathlib import Path; t=Path('docs/FACTORY-ADOPTER-QUICKSTART.md').read_text(); assert all(s in t for s in ['Delivery and acceptance','engineering verification','merged delivery','product acceptance','SLO','rollback','FACTORY-ADOPTER-SETUP.md','FACTORY-ACTIVATION.md']); print('AC-3 distinct delivery and acceptance contract passed')"
