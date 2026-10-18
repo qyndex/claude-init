@@ -1,0 +1,5 @@
+{
+  "checked_rendered_local_links": 67,
+  "missing": [],
+  "note": "HTML comments and fenced examples are not rendered links. Earlier raw-text check included the commented demo placeholder."
+}

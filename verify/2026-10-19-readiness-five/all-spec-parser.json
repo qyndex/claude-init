@@ -1,0 +1,608 @@
+[
+  {
+    "spec": "001-harness-hardening.md",
+    "exit": 0,
+    "criteria": [
+      "AC-1",
+      "AC-10",
+      "AC-11",
+      "AC-12",
+      "AC-13",
+      "AC-14",
+      "AC-15",
+      "AC-16",
+      "AC-17",
+      "AC-18",
+      "AC-19",
+      "AC-2",
+      "AC-20",
+      "AC-21",
+      "AC-22",
+      "AC-23",
+      "AC-24",
+      "AC-25",
+      "AC-26",
+      "AC-27",
+      "AC-3",
+      "AC-4",
+      "AC-5",
+      "AC-6",
+      "AC-7",
+      "AC-8",
+      "AC-9"
+    ]
+  },
+  {
+    "spec": "002-audit-remediation.md",
+    "exit": 0,
+    "criteria": [
+      "AC-1",
+      "AC-10",
+      "AC-11",
+      "AC-12",
+      "AC-13",
+      "AC-14",
+      "AC-15",
+      "AC-16",
+      "AC-17",
+      "AC-18",
+      "AC-19",
+      "AC-2",
+      "AC-20",
+      "AC-21",
+      "AC-22",
+      "AC-23",
+      "AC-24",
+      "AC-25",
+      "AC-26",
+      "AC-27",
+      "AC-28",
+      "AC-29",
+      "AC-3",
+      "AC-30",
+      "AC-31",
+      "AC-32",
+      "AC-33",
+      "AC-34",
+      "AC-35",
+      "AC-36",
+      "AC-37",
+      "AC-38",
+      "AC-39",
+      "AC-4",
+      "AC-40",
+      "AC-5",
+      "AC-6",
+      "AC-7",
+      "AC-8",
+      "AC-9"
+    ]
+  },
+  {
+    "spec": "003-audit-round2-remediation.md",
+    "exit": 0,
+    "criteria": [
+      "AC-1",
+      "AC-10",
+      "AC-11",
+      "AC-12",
+      "AC-13",
+      "AC-14",
+      "AC-15",
+      "AC-16",
+      "AC-17",
+      "AC-18",
+      "AC-19",
+      "AC-2",
+      "AC-20",
+      "AC-21",
+      "AC-3",
+      "AC-4",
+      "AC-5",
+      "AC-6",
+      "AC-7",
+      "AC-8",
+      "AC-9"
+    ]
+  },
+  {
+    "spec": "004-ci-gates-fail-own-code.md",
+    "exit": 0,
+    "criteria": [
+      "AC-1",
+      "AC-2",
+      "AC-3",
+      "AC-4",
+      "AC-5",
+      "AC-6"
+    ]
+  },
+  {
+    "spec": "005-traceability-and-decision-harvest.md",
+    "exit": 0,
+    "criteria": [
+      "AC-1",
+      "AC-2",
+      "AC-3",
+      "AC-4",
+      "AC-5",
+      "AC-6"
+    ]
+  },
+  {
+    "spec": "006-trustworthy-candidate-verification.md",
+    "exit": 0,
+    "criteria": [
+      "AC-1",
+      "AC-10",
+      "AC-11",
+      "AC-2",
+      "AC-3",
+      "AC-4",
+      "AC-5",
+      "AC-6",
+      "AC-7",
+      "AC-8",
+      "AC-9"
+    ]
+  },
+  {
+    "spec": "007-required-verification.md",
+    "exit": 0,
+    "criteria": [
+      "AC-1",
+      "AC-2",
+      "AC-3",
+      "AC-4"
+    ]
+  },
+  {
+    "spec": "008-candidate-evidence-contract.md",
+    "exit": 0,
+    "criteria": [
+      "AC-1",
+      "AC-2",
+      "AC-3",
+      "AC-4"
+    ]
+  },
+  {
+    "spec": "009-protected-factory-activation.md",
+    "exit": 0,
+    "criteria": [
+      "AC-1",
+      "AC-2",
+      "AC-3",
+      "AC-4",
+      "AC-5"
+    ]
+  },
+  {
+    "spec": "010-protected-proof-producers.md",
+    "exit": 0,
+    "criteria": [
+      "AC-1",
+      "AC-2",
+      "AC-3",
+      "AC-4",
+      "AC-5"
+    ]
+  },
+  {
+    "spec": "011-durable-runtime-state.md",
+    "exit": 0,
+    "criteria": [
+      "AC-1",
+      "AC-2",
+      "AC-3",
+      "AC-4"
+    ]
+  },
+  {
+    "spec": "012-supervised-local-workers.md",
+    "exit": 0,
+    "criteria": [
+      "AC-1",
+      "AC-2",
+      "AC-3",
+      "AC-4"
+    ]
+  },
+  {
+    "spec": "013-approved-ledger-runtime.md",
+    "exit": 0,
+    "criteria": [
+      "AC-1",
+      "AC-2",
+      "AC-3",
+      "AC-4"
+    ]
+  },
+  {
+    "spec": "014-authenticated-receipt-recovery.md",
+    "exit": 0,
+    "criteria": [
+      "AC-1",
+      "AC-2",
+      "AC-3",
+      "AC-4",
+      "AC-5",
+      "AC-6",
+      "AC-7",
+      "AC-8"
+    ]
+  },
+  {
+    "spec": "015-durable-delivery-digest.md",
+    "exit": 0,
+    "criteria": [
+      "AC-1",
+      "AC-2",
+      "AC-3",
+      "AC-4"
+    ]
+  },
+  {
+    "spec": "016-slack-digest-runner.md",
+    "exit": 0,
+    "criteria": [
+      "AC-1",
+      "AC-2",
+      "AC-3",
+      "AC-4"
+    ]
+  },
+  {
+    "spec": "017-digest-coverage-reconciliation.md",
+    "exit": 0,
+    "criteria": [
+      "AC-1",
+      "AC-2",
+      "AC-3",
+      "AC-4"
+    ]
+  },
+  {
+    "spec": "018-protected-reporting-actions.md",
+    "exit": 0,
+    "criteria": [
+      "AC-1",
+      "AC-2",
+      "AC-3",
+      "AC-4"
+    ]
+  },
+  {
+    "spec": "019-receipt-gated-feedback.md",
+    "exit": 0,
+    "criteria": [
+      "AC-1",
+      "AC-2",
+      "AC-3",
+      "AC-4"
+    ]
+  },
+  {
+    "spec": "020-strict-installer-source.md",
+    "exit": 0,
+    "criteria": [
+      "AC-1",
+      "AC-2",
+      "AC-3",
+      "AC-4"
+    ]
+  },
+  {
+    "spec": "021-hosted-reporting-checkpoints.md",
+    "exit": 0,
+    "criteria": [
+      "AC-1",
+      "AC-2",
+      "AC-3",
+      "AC-4"
+    ]
+  },
+  {
+    "spec": "022-reporting-policy-approval.md",
+    "exit": 0,
+    "criteria": [
+      "AC-1",
+      "AC-2",
+      "AC-3",
+      "AC-4"
+    ]
+  },
+  {
+    "spec": "023-slack-split-receipts.md",
+    "exit": 0,
+    "criteria": [
+      "AC-1",
+      "AC-2",
+      "AC-3",
+      "AC-4"
+    ]
+  },
+  {
+    "spec": "024-reporting-receipt-projection.md",
+    "exit": 0,
+    "criteria": [
+      "AC-1",
+      "AC-2",
+      "AC-3",
+      "AC-4"
+    ]
+  },
+  {
+    "spec": "025-verified-slack-attachments.md",
+    "exit": 0,
+    "criteria": [
+      "AC-1",
+      "AC-2",
+      "AC-3",
+      "AC-4"
+    ]
+  },
+  {
+    "spec": "026-independent-reporting-watchdog.md",
+    "exit": 0,
+    "criteria": [
+      "AC-1",
+      "AC-2",
+      "AC-3",
+      "AC-4"
+    ]
+  },
+  {
+    "spec": "027-slack-attachment-scope-preflight.md",
+    "exit": 0,
+    "criteria": [
+      "AC-1",
+      "AC-2",
+      "AC-3",
+      "AC-4"
+    ]
+  },
+  {
+    "spec": "028-slack-file-activation-canary.md",
+    "exit": 0,
+    "criteria": [
+      "AC-1",
+      "AC-2",
+      "AC-3",
+      "AC-4"
+    ]
+  },
+  {
+    "spec": "029-github-reporting-alerts.md",
+    "exit": 0,
+    "criteria": [
+      "AC-1",
+      "AC-2",
+      "AC-3",
+      "AC-4",
+      "AC-5",
+      "AC-6",
+      "AC-7",
+      "AC-8",
+      "AC-9"
+    ]
+  },
+  {
+    "spec": "030-authenticated-slack-feedback.md",
+    "exit": 0,
+    "criteria": [
+      "AC-1",
+      "AC-2",
+      "AC-3",
+      "AC-4"
+    ]
+  },
+  {
+    "spec": "031-authenticated-feedback-control.md",
+    "exit": 0,
+    "criteria": [
+      "AC-1",
+      "AC-2",
+      "AC-3",
+      "AC-4"
+    ]
+  },
+  {
+    "spec": "032-approved-legacy-feedback.md",
+    "exit": 0,
+    "criteria": [
+      "AC-1",
+      "AC-2",
+      "AC-3",
+      "AC-4"
+    ]
+  },
+  {
+    "spec": "033-transactional-harness-adoption.md",
+    "exit": 0,
+    "criteria": [
+      "AC-1",
+      "AC-2",
+      "AC-3",
+      "AC-4"
+    ]
+  },
+  {
+    "spec": "034-encrypted-feedback-checkpoints.md",
+    "exit": 0,
+    "criteria": [
+      "AC-1",
+      "AC-2",
+      "AC-3",
+      "AC-4"
+    ]
+  },
+  {
+    "spec": "035-hosted-private-feedback.md",
+    "exit": 0,
+    "criteria": [
+      "AC-1",
+      "AC-2",
+      "AC-3",
+      "AC-4"
+    ]
+  },
+  {
+    "spec": "036-worker-environment-boundary.md",
+    "exit": 0,
+    "criteria": [
+      "AC-1",
+      "AC-2",
+      "AC-3",
+      "AC-4"
+    ]
+  },
+  {
+    "spec": "037-protected-runtime-routing.md",
+    "exit": 0,
+    "criteria": [
+      "AC-1",
+      "AC-2",
+      "AC-3",
+      "AC-4"
+    ]
+  },
+  {
+    "spec": "038-durable-worker-effects.md",
+    "exit": 0,
+    "criteria": [
+      "AC-1",
+      "AC-2",
+      "AC-3",
+      "AC-4"
+    ]
+  },
+  {
+    "spec": "039-offline-worker-containers.md",
+    "exit": 0,
+    "criteria": [
+      "AC-1",
+      "AC-2",
+      "AC-3",
+      "AC-4"
+    ]
+  },
+  {
+    "spec": "040-neutral-factory-distribution.md",
+    "exit": 0,
+    "criteria": [
+      "AC-1",
+      "AC-2",
+      "AC-3",
+      "AC-4"
+    ]
+  },
+  {
+    "spec": "041-private-worker-artifacts.md",
+    "exit": 0,
+    "criteria": [
+      "AC-1",
+      "AC-2",
+      "AC-3",
+      "AC-4"
+    ]
+  },
+  {
+    "spec": "042-production-stub-fence.md",
+    "exit": 0,
+    "criteria": [
+      "AC-1",
+      "AC-2",
+      "AC-3"
+    ]
+  },
+  {
+    "spec": "043-protected-production-core.md",
+    "exit": 0,
+    "criteria": [
+      "AC-1",
+      "AC-2",
+      "AC-3",
+      "AC-4",
+      "AC-5"
+    ]
+  },
+  {
+    "spec": "044-workflow-baseline-lint.md",
+    "exit": 0,
+    "criteria": [
+      "AC-1",
+      "AC-2",
+      "AC-3",
+      "AC-4"
+    ]
+  },
+  {
+    "spec": "045-hosted-review-runtime.md",
+    "exit": 0,
+    "criteria": [
+      "AC-1",
+      "AC-2",
+      "AC-3",
+      "AC-4"
+    ]
+  },
+  {
+    "spec": "046-policy-bound-activation-planning.md",
+    "exit": 0,
+    "criteria": [
+      "AC-1",
+      "AC-2",
+      "AC-3",
+      "AC-4"
+    ]
+  },
+  {
+    "spec": "047-activation-review-package.md",
+    "exit": 0,
+    "criteria": [
+      "AC-1",
+      "AC-2",
+      "AC-3",
+      "AC-4"
+    ]
+  },
+  {
+    "spec": "048-adopter-quickstart-pilot.md",
+    "exit": 0,
+    "criteria": [
+      "AC-1",
+      "AC-2",
+      "AC-3"
+    ]
+  },
+  {
+    "spec": "049-pilot-sandbox-drill.md",
+    "exit": 0,
+    "criteria": [
+      "AC-1",
+      "AC-2",
+      "AC-3"
+    ]
+  },
+  {
+    "spec": "050-request-intake-router.md",
+    "exit": 0,
+    "criteria": [
+      "AC-1",
+      "AC-10",
+      "AC-11",
+      "AC-12",
+      "AC-13",
+      "AC-14",
+      "AC-2",
+      "AC-3",
+      "AC-4",
+      "AC-5",
+      "AC-6",
+      "AC-7",
+      "AC-8",
+      "AC-9"
+    ]
+  }
+]

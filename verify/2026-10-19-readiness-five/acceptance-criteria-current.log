@@ -1,0 +1,14 @@
+test_boundaries_and_nested_headings (__main__.Sections.test_boundaries_and_nested_headings) ... ok
+test_fences_do_not_create_headings_or_requirements (__main__.Sections.test_fences_do_not_create_headings_or_requirements) ... ok
+test_invalid_backtick_fence_cannot_hide_criteria (__main__.Sections.test_invalid_backtick_fence_cannot_hide_criteria) ... ok
+test_matcher_and_collector_use_same_section_and_keep_failure (__main__.Sections.test_matcher_and_collector_use_same_section_and_keep_failure) ... ok
+test_missing_empty_duplicate_and_malformed_sections_reject (__main__.Sections.test_missing_empty_duplicate_and_malformed_sections_reject) ... ok
+test_only_markdown_line_endings_form_headings (__main__.Sections.test_only_markdown_line_endings_form_headings) ... ok
+test_outside_definitions_reject_but_references_remain_valid (__main__.Sections.test_outside_definitions_reject_but_references_remain_valid) ... ok
+test_real_spec014_has_eight_criteria (__main__.Sections.test_real_spec014_has_eight_criteria) ... ok
+test_tab_heading_and_malformed_literal_heading (__main__.Sections.test_tab_heading_and_malformed_literal_heading) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.448s
+
+OK

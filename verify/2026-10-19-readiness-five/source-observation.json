@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "source": "c3b64a3f362618096a69e9192da98d286127932e",
+  "base": "6e89cc6f3d8e368fd078f5652c928225bec10f03",
+  "source_files": [
+    {
+      "path": ".claude/scripts/acceptance-criteria.py",
+      "sha256": "03d454168ed7a1aece98c6653eddfabd4de8ff37016ee70596dadabb440ecb48"
+    },
+    {
+      "path": ".claude/scripts/collect-evidence.sh",
+      "sha256": "86ee3fd190ef4854378a0ba6e528756676a837a9e77f00a500f8c7b1de353337"
+    },
+    {
+      "path": ".claude/scripts/factory-reporting-transport.py",
+      "sha256": "f4e6d270685ad88ddc513d4f796e619de887d8714d475ba0378876a7d0ca11ee"
+    },
+    {
+      "path": ".claude/scripts/spec-match.sh",
+      "sha256": "4204dac0f07d7ba1297064fe9ab00632b03c7782122c35081e425fc2af520543"
+    },
+    {
+      "path": ".claude/scripts/test/acceptance-criteria.sh",
+      "sha256": "fa31365d2088823ddf617dec10d8e3535373c8d0ec80ad872acda4a1598c501f"
+    },
+    {
+      "path": ".claude/scripts/test/evidence-finalization.sh",
+      "sha256": "2893cf7d3d4493a503db5a85a47330ea683163e6d17d061852dc30bdb7fc5c86"
+    },
+    {
+      "path": ".claude/scripts/test/evidence-proof-preservation.sh",
+      "sha256": "46ff95b91addad0bde17fbee922e336d9cb67a51a951eccd9464aaa3a6259e8f"
+    },
+    {
+      "path": ".claude/scripts/test/factory-reporting-safe-diagnostics.py",
+      "sha256": "ad8ed9d9ecf6c581b2b6141d33628ae72c700e0d3f57225f16ff68c18bc92139"
+    },
+    {
+      "path": ".claude/scripts/test/local-evidence-gate.sh",
+      "sha256": "f1c155987946d88429c4979dfe6f9ea2fc3816c2c1feab0b5c8f50f8082fe2e0"
+    },
+    {
+      "path": "README.md",
+      "sha256": "4ededb61baf072c4efb2360e1f5d195ef6937cccd26e3dee9e2cb6a5996dc3bb"
+    },
+    {
+      "path": "docs/FACTORY-ACTIVATION.md",
+      "sha256": "be9be57ee98f3e0da14baac6e2427bd9328868be94b465e70b3840e091d13553"
+    },
+    {
+      "path": "docs/FACTORY-ADOPTER-SETUP.md",
+      "sha256": "e8ba5e1dd427863a6e3155874c70215d871388c4de72220b8568dbfeae211d89"
+    },
+    {
+      "path": "docs/FACTORY-REQUEST-INTAKE.md",
+      "sha256": "19a57ea6ecd898b244e261bbd1c9521c7c4ee2a8862f4eb1dc28c610a88fcd10"
+    },
+    {
+      "path": "docs/FACTORY-STATUS.md",
+      "sha256": "4661aa451ff711c815a2bf4ff71802110d458e5c4515fcb3076ea6b0d3be28c1"
+    },
+    {
+      "path": "docs/OPERATOR-MANUAL.md",
+      "sha256": "f882e199f0f0a341b6dd11045b77ccf6c3888bbeea7f73c9b0205bc75a2886ca"
+    },
+    {
+      "path": "plans/AI-SOFTWARE-FACTORY.md",
+      "sha256": "3cfa5dd2be3d62d249082bcad3c70e43cba9445e4f41bff2a26d087020d52c28"
+    }
+  ],
+  "scope": "PR124 parser/diagnostic and readiness documentation update; no policy, permission, provider, budget, cursor, deployment or authority change",
+  "tests": "Parser9, diagnostics8, transport53, evidence21/5/6, candidate27 and reviewer11+3 pass. Structural0/four existing warnings; full actionlint0;50 active specs parse;67 rendered relative links resolve.",
+  "initial_failures": [
+    {
+      "suite": "diagnostics",
+      "cause": "Default host Python lacked required cryptography; two of eight groups failed before intended assertions. Bundled pinned50.0.2 interpreter rerun passes8."
+    },
+    {
+      "suite": "transport",
+      "cause": "Sandbox denied /bin/ps owned-child cleanup inspection. Same source rerun with host process permission passes53."
+    },
+    {
+      "check": "raw link scan",
+      "cause": "Included commented demo placeholder; rendered-link check excludes HTML comments and passes67."
+    }
+  ],
+  "independent_review": "Separate read-only review found no actionable docs/parser/diagnostic issue; local pinned Sonnet static review succeeds2turns no findings. Neither is native GitHub evidence.",
+  "whole_spec_acceptance": "All four unskipped smoke runs0; actual collectors003FAIL0/21,014FAIL0/8,029FAIL0/9,035FAIL0/4. No current AC-tagged results emitted; no no-AC exception.",
+  "readiness": {
+    "documentation": "Candidate until actual reviewed merge",
+    "reporting": "Observed completed39176027143 workflowSUCCESS but actualincomplete/review/job-deadline670seconds10invocations; scheduling journal105of201remaining is not delivery proof",
+    "feedback_cycle": "Await confirmed current report and genuine authenticated operator feedback/approval; no fabricated message or self-approval",
+    "twenty_deliveries": "Threshold20 consecutive useful authenticated eligible deliveries accumulated naturally. PR122 is one documented pilot; no full inventory/20-sample claim. Replay, tests, noops and maintenance merges excluded.",
+    "adopters": "User selected real applications; greenfield/brownfield URLs and target-specific production contracts are still pending. No target activation performed."
+  }
+}
