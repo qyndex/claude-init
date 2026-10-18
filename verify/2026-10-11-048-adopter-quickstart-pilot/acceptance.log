@@ -1,0 +1,237 @@
+{
+  "observed_at": "2026-10-18T01:17:32.057997+00:00",
+  "local_observed_date": "2026-10-18",
+  "base": "5109d078f5aa2162a635ed0e90a2c439a597e406",
+  "source_commit": "10bcd08545f8cadb18b179bd582a809f9646fe93",
+  "document_sha256": "184eaf11385185ed0c55ac24c1dd1ff550ee6584b8b2ed416dfce1a448f7210d",
+  "policy_sha256": "e931871e11121f140024eed2b6378e3d632354e8d6d25db1a184e42bdbcfd804",
+  "active_profile": "merge-main-20261018",
+  "task_acceptance": "python3 -c \"from pathlib import Path; t=Path('docs/FACTORY-ADOPTER-QUICKSTART.md').read_text(); assert all(s in t for s in ['Prerequisites','Dry-run adoption','immutable','existing','python3 .claude/scripts/factory-adopt.py --from /path/to/reviewed-harness --into /path/to/target --dry-run']); assert not any(s in t for s in ['qyndex','C0C7T1Y29K5','5251754','T0B2VADDUG4']); print('AC-1 quickstart adoption contract passed'); from pathlib import Path; t=Path('docs/FACTORY-ADOPTER-QUICKSTART.md').read_text(); assert all(s in t for s in ['Protected readiness','factory-preflight.py --policy /path/to/protected-policy.json','block','merge authority','reporting','production','secrets']); print('AC-2 protected readiness contract passed'); from pathlib import Path; t=Path('docs/FACTORY-ADOPTER-QUICKSTART.md').read_text(); assert all(s in t for s in ['Delivery and acceptance','engineering verification','merged delivery','product acceptance','SLO','rollback','FACTORY-ADOPTER-SETUP.md','FACTORY-ACTIVATION.md']); print('AC-3 distinct delivery and acceptance contract passed')\"",
+  "task_acceptance_sha256": "62147a05ce0efd4f2cba51bbcd23ca56cf3b18748a22ab396f6bdbd354035053",
+  "collector": {
+    "spec": "048",
+    "commit": "10bcd08545f8cadb18b179bd582a809f9646fe93",
+    "generated_at": "2026-10-18T12:17:32+11:00",
+    "results_file": "verify/2026-10-18-048-adopter-quickstart-pilot/attempt-dEj0nTDN/results.json",
+    "results_sha256": "7bfc007946a0c95bef2e97d5361334fe652f1629b6284ab3ca384eafbc4f816d",
+    "ac_total": 3,
+    "ac_proven": 3,
+    "ac_unproven": [],
+    "smoke_exit_max": 0,
+    "runner_exit": 0,
+    "coverage": {
+      "line": "?",
+      "branch": "?"
+    },
+    "verdict": "PASS"
+  },
+  "mapping": [
+    {
+      "original": "verify/2026-10-18-048-adopter-quickstart-pilot/results.json",
+      "retained": "verify/2026-10-11-048-adopter-quickstart-pilot/results.json",
+      "original_sha256": "7bfc007946a0c95bef2e97d5361334fe652f1629b6284ab3ca384eafbc4f816d",
+      "identical_copy_sha256": "7bfc007946a0c95bef2e97d5361334fe652f1629b6284ab3ca384eafbc4f816d"
+    },
+    {
+      "original": "verify/2026-10-18-048-adopter-quickstart-pilot/evidence.json",
+      "retained": "verify/2026-10-11-048-adopter-quickstart-pilot/evidence.json",
+      "original_sha256": "eacc0ee54f27b5e0273c2560f2172691b2a28302a27f8a2f2338cd78e4480446",
+      "identical_copy_sha256": "eacc0ee54f27b5e0273c2560f2172691b2a28302a27f8a2f2338cd78e4480446"
+    },
+    {
+      "original": "verify/2026-10-18-048-adopter-quickstart-pilot/pr-body.md",
+      "retained": "verify/2026-10-11-048-adopter-quickstart-pilot/pr-body.md",
+      "original_sha256": "c34dc98e6429d6123de66b0f3f9229fb7a0fcca19839230a14e6c14f2da25a68",
+      "identical_copy_sha256": "c34dc98e6429d6123de66b0f3f9229fb7a0fcca19839230a14e6c14f2da25a68"
+    },
+    {
+      "original": "verify/2026-10-18-048-adopter-quickstart-pilot/EVIDENCE.md",
+      "retained": "verify/2026-10-11-048-adopter-quickstart-pilot/EVIDENCE.md",
+      "original_sha256": "3ec3877786e24d71a5f181192ed4d5aa36a7ed2f96032c766bf08ad83f8a8897",
+      "identical_copy_sha256": "3ec3877786e24d71a5f181192ed4d5aa36a7ed2f96032c766bf08ad83f8a8897"
+    },
+    {
+      "original": "verify/2026-10-18-048-adopter-quickstart-pilot/smoke.log",
+      "retained": "verify/2026-10-11-048-adopter-quickstart-pilot/smoke.log",
+      "original_sha256": "62ddbb66944df652a81992d95932f718c1d3eb132a1f31e91bd7c8cb32e83715",
+      "identical_copy_sha256": "62ddbb66944df652a81992d95932f718c1d3eb132a1f31e91bd7c8cb32e83715"
+    },
+    {
+      "original": "verify/2026-10-18/T-222/red.log",
+      "retained": "verify/2026-10-11/T-222/red.log",
+      "original_sha256": "68ac5ba6f6be6a639a045ec630fefb2843c397c7043559b97c7e94dda2fc9033",
+      "identical_copy_sha256": "68ac5ba6f6be6a639a045ec630fefb2843c397c7043559b97c7e94dda2fc9033"
+    },
+    {
+      "original": "verify/2026-10-18/T-222/green.log",
+      "retained": "verify/2026-10-11/T-222/green.log",
+      "original_sha256": "93b9259709c9d6386a587c27c7b8e34fee117870c63320688717ddfb451b6051",
+      "identical_copy_sha256": "93b9259709c9d6386a587c27c7b8e34fee117870c63320688717ddfb451b6051"
+    }
+  ],
+  "commands": [
+    {
+      "label": "clone",
+      "argv": [
+        "git",
+        "clone",
+        "--no-hardlinks",
+        "--no-checkout",
+        "/private/tmp/factory-merge-cutover-20261018",
+        "/private/tmp/factory-t222-merge-mode-candidate-20261018"
+      ],
+      "started_at": "2026-10-18T01:16:54.941997+00:00",
+      "finished_at": "2026-10-18T01:16:54.988408+00:00",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "Cloning into '/private/tmp/factory-t222-merge-mode-candidate-20261018'...\ndone.\n"
+    },
+    {
+      "label": "remove-origin",
+      "argv": [
+        "git",
+        "remote",
+        "remove",
+        "origin"
+      ],
+      "started_at": "2026-10-18T01:16:54.988626+00:00",
+      "finished_at": "2026-10-18T01:16:54.994312+00:00",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "label": "checkout",
+      "argv": [
+        "git",
+        "checkout",
+        "-b",
+        "factory/spec-048/adopter-quickstart-current",
+        "5109d078f5aa2162a635ed0e90a2c439a597e406"
+      ],
+      "started_at": "2026-10-18T01:16:54.994508+00:00",
+      "finished_at": "2026-10-18T01:16:55.354678+00:00",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "Switched to a new branch 'factory/spec-048/adopter-quickstart-current'\n"
+    },
+    {
+      "label": "red",
+      "argv": [
+        "bash",
+        ".claude/scripts/tdd-ledger.sh",
+        "red",
+        "T-222",
+        "python3 -c \"from pathlib import Path; t=Path('docs/FACTORY-ADOPTER-QUICKSTART.md').read_text(); assert all(s in t for s in ['Prerequisites','Dry-run adoption','immutable','existing','python3 .claude/scripts/factory-adopt.py --from /path/to/reviewed-harness --into /path/to/target --dry-run']); assert not any(s in t for s in ['qyndex','C0C7T1Y29K5','5251754','T0B2VADDUG4']); print('AC-1 quickstart adoption contract passed'); from pathlib import Path; t=Path('docs/FACTORY-ADOPTER-QUICKSTART.md').read_text(); assert all(s in t for s in ['Protected readiness','factory-preflight.py --policy /path/to/protected-policy.json','block','merge authority','reporting','production','secrets']); print('AC-2 protected readiness contract passed'); from pathlib import Path; t=Path('docs/FACTORY-ADOPTER-QUICKSTART.md').read_text(); assert all(s in t for s in ['Delivery and acceptance','engineering verification','merged delivery','product acceptance','SLO','rollback','FACTORY-ADOPTER-SETUP.md','FACTORY-ACTIVATION.md']); print('AC-3 distinct delivery and acceptance contract passed')\""
+      ],
+      "started_at": "2026-10-18T01:16:55.468400+00:00",
+      "finished_at": "2026-10-18T01:16:55.504603+00:00",
+      "exit_code": 0,
+      "stdout": "\u2713 RED captured: verify/2026-10-18/T-222/red.log (exit 1 \u2014 correctly failing)\n",
+      "stderr": "\u26a0 tdd-ledger: no timeout/gtimeout found \u2014 accept command runs UNBOUNDED. brew install coreutils to fix.\n"
+    },
+    {
+      "label": "green",
+      "argv": [
+        "bash",
+        ".claude/scripts/tdd-ledger.sh",
+        "green",
+        "T-222",
+        "python3 -c \"from pathlib import Path; t=Path('docs/FACTORY-ADOPTER-QUICKSTART.md').read_text(); assert all(s in t for s in ['Prerequisites','Dry-run adoption','immutable','existing','python3 .claude/scripts/factory-adopt.py --from /path/to/reviewed-harness --into /path/to/target --dry-run']); assert not any(s in t for s in ['qyndex','C0C7T1Y29K5','5251754','T0B2VADDUG4']); print('AC-1 quickstart adoption contract passed'); from pathlib import Path; t=Path('docs/FACTORY-ADOPTER-QUICKSTART.md').read_text(); assert all(s in t for s in ['Protected readiness','factory-preflight.py --policy /path/to/protected-policy.json','block','merge authority','reporting','production','secrets']); print('AC-2 protected readiness contract passed'); from pathlib import Path; t=Path('docs/FACTORY-ADOPTER-QUICKSTART.md').read_text(); assert all(s in t for s in ['Delivery and acceptance','engineering verification','merged delivery','product acceptance','SLO','rollback','FACTORY-ADOPTER-SETUP.md','FACTORY-ACTIVATION.md']); print('AC-3 distinct delivery and acceptance contract passed')\""
+      ],
+      "started_at": "2026-10-18T01:16:55.505005+00:00",
+      "finished_at": "2026-10-18T01:16:55.529168+00:00",
+      "exit_code": 0,
+      "stdout": "\u2713 GREEN captured: verify/2026-10-18/T-222/green.log (exit 0 \u2014 passing)\n",
+      "stderr": "\u26a0 tdd-ledger: no timeout/gtimeout found \u2014 accept command runs UNBOUNDED. brew install coreutils to fix.\n"
+    },
+    {
+      "label": "source-commit-add",
+      "argv": [
+        "git",
+        "add",
+        "-f",
+        "--",
+        "docs/FACTORY-ADOPTER-QUICKSTART.md"
+      ],
+      "started_at": "2026-10-18T01:16:55.530676+00:00",
+      "finished_at": "2026-10-18T01:16:55.618405+00:00",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "label": "source-commit",
+      "argv": [
+        "git",
+        "-c",
+        "user.name=Codex",
+        "-c",
+        "user.email=codex@openai.com",
+        "commit",
+        "-m",
+        "docs(factory): add approved adopter quickstart pilot",
+        "-m",
+        "Constraint: Exact approved nine-path pilot scope only.\nRejected: Historical proofs | actual current observations required.\nDirective: Approved spec048 T-222 private refresh.\nConfidence: high\nScope-risk: localized\nNot-tested: Independent producer proof and genuine delivery pending.\nSpec: specs/active/048-adopter-quickstart-pilot.md\nPlan: plans/active/048-adopter-quickstart-pilot.md\nTask: T-222\nCo-Authored-By: Codex <noreply@openai.com>"
+      ],
+      "started_at": "2026-10-18T01:16:55.618799+00:00",
+      "finished_at": "2026-10-18T01:16:55.722263+00:00",
+      "exit_code": 0,
+      "stdout": "[factory/spec-048/adopter-quickstart-current 10bcd08] docs(factory): add approved adopter quickstart pilot\n 1 file changed, 39 insertions(+)\n create mode 100644 docs/FACTORY-ADOPTER-QUICKSTART.md\n",
+      "stderr": ""
+    },
+    {
+      "label": "AC-1",
+      "argv": [
+        "python3",
+        "-c",
+        "from pathlib import Path; t=Path('docs/FACTORY-ADOPTER-QUICKSTART.md').read_text(); assert all(s in t for s in ['Prerequisites','Dry-run adoption','immutable','existing','python3 .claude/scripts/factory-adopt.py --from /path/to/reviewed-harness --into /path/to/target --dry-run']); assert not any(s in t for s in ['qyndex','C0C7T1Y29K5','5251754','T0B2VADDUG4']); print('AC-1 quickstart adoption contract passed')"
+      ],
+      "started_at": "2026-10-18T01:16:55.726958+00:00",
+      "finished_at": "2026-10-18T01:16:55.740883+00:00",
+      "exit_code": 0,
+      "stdout": "AC-1 quickstart adoption contract passed\n",
+      "stderr": ""
+    },
+    {
+      "label": "AC-2",
+      "argv": [
+        "python3",
+        "-c",
+        "from pathlib import Path; t=Path('docs/FACTORY-ADOPTER-QUICKSTART.md').read_text(); assert all(s in t for s in ['Protected readiness','factory-preflight.py --policy /path/to/protected-policy.json','block','merge authority','reporting','production','secrets']); print('AC-2 protected readiness contract passed')"
+      ],
+      "started_at": "2026-10-18T01:16:55.741245+00:00",
+      "finished_at": "2026-10-18T01:16:55.754866+00:00",
+      "exit_code": 0,
+      "stdout": "AC-2 protected readiness contract passed\n",
+      "stderr": ""
+    },
+    {
+      "label": "AC-3",
+      "argv": [
+        "python3",
+        "-c",
+        "from pathlib import Path; t=Path('docs/FACTORY-ADOPTER-QUICKSTART.md').read_text(); assert all(s in t for s in ['Delivery and acceptance','engineering verification','merged delivery','product acceptance','SLO','rollback','FACTORY-ADOPTER-SETUP.md','FACTORY-ACTIVATION.md']); print('AC-3 distinct delivery and acceptance contract passed')"
+      ],
+      "started_at": "2026-10-18T01:16:55.755189+00:00",
+      "finished_at": "2026-10-18T01:16:55.768755+00:00",
+      "exit_code": 0,
+      "stdout": "AC-3 distinct delivery and acceptance contract passed\n",
+      "stderr": ""
+    },
+    {
+      "label": "collector",
+      "argv": [
+        "bash",
+        ".claude/scripts/collect-evidence.sh",
+        "048",
+        "--check-only"
+      ],
+      "started_at": "2026-10-18T01:16:55.769259+00:00",
+      "finished_at": "2026-10-18T01:17:32.055377+00:00",
+      "exit_code": 0,
+      "stdout": "\u2192 Collecting evidence for spec 048 (048-adopter-quickstart-pilot)\n\n\u2713 Evidence bundle: verify/2026-10-18-048-adopter-quickstart-pilot/\n  Verdict: PASS | ACs: 3/3 proven | smoke exit: 0\n  PR body: verify/2026-10-18-048-adopter-quickstart-pilot/pr-body.md\n",
+      "stderr": ""
+    }
+  ]
+}
