@@ -781,3 +781,11 @@ delivery proof remain later reviewed T289/operator gates.
 ## Approved operational-proof integration boundary — 2026-10-17
 
 Spec029 AC9 and its operator-approved amendment own T336–T339, supporting original T318's publication acceptance. Operational proof remains a distinct purpose/schema and opaque state role; it is never imported as delivery coverage or current-task/merge/production/readiness evidence. Reuse the existing native signing, bounded process and same-repository protected state mechanisms; no new root namespace or delivery receipt schema change is implied. Current live checker remains unchanged. The former native administrative observation is preserved with its actual source/time and cannot be relabelled a native attestation. Genuine protected-producer bootstrap and read-only consumer verification precede restoring publication closeout. This pointer does not close T180/T222 or any original remaining task.
+
+## T340: Reporting verification acknowledgment continuation repair
+
+An actual hosted fixture reproduced a liveness defect in the approved bounded-restart contract (AC7/8): verification intent survives interrupted origin work during acknowledgment, but a fresh reporting invocation previously discarded its valid selectors and rebuilt the same interval. Resume selectors after all existing fresh origin/policy/trust/journal validation, rerun actual current projection/coverage, and acknowledge only the exact checked selectors. Stored scheduling intent is never coverage authority.
+
+A separate actual late-source fixture protects the converse: newly visible source identities make the old campaign invalid, so failed current coverage must re-enter ordinary bounded maintenance/backfill without Slack delivery. Preserve revocation, CAS/lost-ack handling, immutable history and opaque encrypted siblings. No runtime profile, policy observation, permission, secret, live state reset or operator authorization is changed.
+
+Focused regressions: factory-reporting-maintenance-liveness.sh, hosted maintenance/CAS/lost-ack regression and rollover. Native main rollout and confirmed current digest remain separate unproven acceptance until reviewed source lands and genuine receipts exist.

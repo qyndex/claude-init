@@ -1,0 +1,11 @@
+# TDD ledger — red — T-335
+ledger_format: 2
+timestamp: 2026-10-19T14:58:28+11:00
+command: bash .claude/scripts/test/factory-reporting-maintenance-liveness.sh stale-source
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 78, in <module>
+  File "maintenance-actual-stale-source", line 156, in <module>
+AssertionError: actual changed-source coverage gap retained stale verify campaign
