@@ -2046,3 +2046,11 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   files: .claude/scripts/factory-reporting-queue.py, .claude/scripts/test/factory-reporting-queue-worker-diagnostics.sh
   accept: bash .claude/scripts/test/factory-reporting-queue-worker-diagnostics.sh
   owner: implementer
+
+## Spec003 smoke output ownership continuation
+
+- [x] T-343  | spec:003  | phase:9  | priority: normal  | created: 2026-10-19  | deps: T-131  | parallel: yes  | est: 15m
+  summary: Isolate collector smoke scratch per retained attempt so concurrent repositories cannot substitute smoke output
+  files: .claude/scripts/collect-evidence.sh, .claude/scripts/test/evidence-smoke-isolation.sh, plans/active/003-audit-round2-remediation.md
+  accept: bash .claude/scripts/test/evidence-smoke-isolation.sh
+  owner: implementer

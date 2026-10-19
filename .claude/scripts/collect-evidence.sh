@@ -125,13 +125,14 @@ fi
 
 # ─── 3. Smoke commands ──────────────────────────────────────────────────
 smoke_log="$date_dir/smoke.log"
+smoke_scratch="$attempt_dir/smoke.out"
 smoke_max_exit=0
 {
   echo "# Smoke test — $(date -Iseconds)"
   for cmd in "bash .claude/scripts/verify.sh"; do
     echo "\$ $cmd"
-    if eval "$cmd" >/tmp/smoke.out 2>&1; then ec=0; else ec=$?; fi
-    tail -5 /tmp/smoke.out
+    if eval "$cmd" >"$smoke_scratch" 2>&1; then ec=0; else ec=$?; fi
+    tail -5 "$smoke_scratch"
     echo "exit: $ec"
     echo "---"
     [ "$ec" -gt "$smoke_max_exit" ] && smoke_max_exit=$ec
