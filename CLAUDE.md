@@ -234,3 +234,5 @@ Every `eslint-disable`, `# noqa`, `# type: ignore` requires `JUSTIFICATION:` and
 - `.claude/CLAUDE.md` (the constitution) is intentionally blocked from Claude writes — enforced by `pre-edit-constitution-guard.sh` on Write/Edit/NotebookEdit. Do not circumvent this; amendments go through `/constitution` with human approval.
 - `validate.sh` checks `disableBypassPermissionsMode` and absence of `Bash(env)` / bare `Bash(claude:*)` in the allow list.
 - GitHub Issues are **write-only projections** of `tasks/TASKS.md`. Never read task state from `gh issue view` / `gh api .../issues` — `no-issue-authority.yml` fails the build if introduced.
+
+Queue-monitor diagnostics must expose only fixed allowlisted phase/category values. Never print exception text or traceback. Guard diagnostic generation itself with a fixed literal fallback so a failing serializer/helper cannot expose chained private errors; retain a fail-closed nonzero status and unchanged authority/retry behavior.

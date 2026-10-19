@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "<stdin>", line 58, in <module>
+  File "/private/tmp/factory-queue-diagnostics-20261019/.claude/scripts/factory-reporting-queue.py", line 522, in run_queue
+    require(observation['status'] != 'unknown', 'queue metadata unknown; no notification or recovery proof')
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-queue-diagnostics-20261019/.claude/scripts/factory-reporting-queue.py", line 17, in require
+    raise ValueError(message)
+ValueError: queue metadata unknown; no notification or recovery proof
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "<stdin>", line 61, in <module>
+AssertionError: {'phase': 'queue-reconcile', 'category': 'guard-failed'}
