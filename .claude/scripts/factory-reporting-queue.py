@@ -461,11 +461,21 @@ def run_queue(api, client, config, storage, reporting, now, *, drill_run=None):
     def worker():
         state = runtime.state
         key = hashlib.sha256(canonical([source.repo, config['destination'], config['branch']])).hexdigest()
-        current = state.GitState(source, storage['state_branch'], key, storage['bootstrap_sha'], storage['policy_approvals'], state_view=storage.get('state_view'))
-        require(current.bytes is not None, 'queue worker checkpoint missing')
-        body = json.loads(current.bytes, object_pairs_hook=state.digest.coordinator.contract.no_duplicate_keys)
-        state.validate(body, source.repo, key)
-        require(body['tables']['digest_origins'][0]['origin'] == state.digest.stamp(start_time), 'queue reporting origin differs from protected worker')
+        stage = 'load'
+        try:
+            current = state.GitState(source, storage['state_branch'], key, storage['bootstrap_sha'], storage['policy_approvals'], state_view=storage.get('state_view'))
+            require(current.bytes is not None, 'queue worker checkpoint missing')
+            stage = 'parse'
+            body = json.loads(current.bytes, object_pairs_hook=state.digest.coordinator.contract.no_duplicate_keys)
+            stage = 'schema'
+            state.validate(body, source.repo, key)
+            stage = 'origin'
+            require(body['tables']['digest_origins'][0]['origin'] == state.digest.stamp(start_time), 'queue reporting origin differs from protected worker')
+        except ValueError as error:
+            # Trusted stage only; retain original exception type, arguments and guards.
+            try:error._queue_worker_stage = stage
+            except Exception:pass  # Diagnostics must never replace the original failure.
+            raise
         return hashlib.sha256(current.bytes).hexdigest(), body
     def verified_worker():
         before, body = worker()
@@ -692,6 +702,10 @@ def failure_details(error):
         trace = trace.tb_next
     if checkpoint:phase = 'journal-checkpoint'
     category = 'guard-failed' if isinstance(error, ValueError) else 'unexpected'
+    if phase == 'worker-checkpoint' and isinstance(error, ValueError):
+        stage = getattr(error, '_queue_worker_stage', None)
+        if type(stage) is str and stage in {'load', 'parse', 'schema', 'origin'}:
+            category = 'worker-'+stage+'-invalid'
     if isinstance(error, (_QueueObservationError, _QueueBlocked)):
         safe = {'metadata-invalid', 'active-run-duplicate-or-capacity', 'clock-invalid',
                 'job-capacity', 'job-list-incomplete-or-capacity', 'metadata-clock-invalid',
