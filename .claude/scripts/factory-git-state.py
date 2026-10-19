@@ -560,6 +560,10 @@ def run(config, report_api, state_api, slack_client, path, now):
                          {'interval_end':target,'history_head':progress['history_head'],'campaign':progress['campaign']})
         if mode=='durable':
             if projection.get('coverage_complete') is not True:
+                # A stale source campaign needs fresh maintenance; interrupted
+                # acknowledgement alone keeps its selectors for validation retry.
+                maintenance.maintain(report_api,state_api,config['receipt_policy'],durable['trust_path'],
+                            durable['store'],durable['approval_path'],interval_end=target,trust_mode=durable['trust_mode'])
                 return dict(projection,status='incomplete',phase='projection-pending')
             acknowledgement=maintenance.acknowledge_reporting(report_api,state_api,config['receipt_policy'],
                         durable['trust_path'],durable['store'],durable['approval_path'],interval_end=target,

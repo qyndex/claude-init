@@ -52,17 +52,120 @@ if selected_case in ('all','campaign'):
  print('actual stage under rotated valid trust refuses wrong-campaign offset; matching stage recovers PASS',flush=True)
 '''
  exec(compile(base+adapter+cases,'maintenance-actual-campaign-rotation','exec'))
-if selected_case in ('all','quiet'):
+if selected_case=='stale-source':
+ hosted_case=Path('.claude/scripts/test/factory-reporting-hosted-maintenance.sh').read_text().split("cases=r'''\n",1)[1]
+ setup=hosted_case.split(' result=hosted.run(',1)[0]
+ delivery=' class Delivery:'+hosted_case.split(' class Delivery:',1)[1].split(' gap_seen=False',1)[0]
+ cases=r'''
+ delivery=Delivery();hosted.slack.transport=lambda client,configured,batch:delivery
+ for invocation in range(48):
+  result=hosted.run(config,Report(),CurrentState(),NoSlack(),root/('stale-'+str(invocation)+'.sqlite'),datetime.datetime(2026,10,16,0,tzinfo=datetime.timezone.utc))
+  if result.get('phase')=='projection-pending':break
+  assert result['status']=='incomplete',result
+ else:raise AssertionError('actual late source did not produce coverage gap')
+ assert visible['late'] and delivery.sends==0 and not ack_seen
+ before=json.loads(git('show',ref+':'+progress_leaf).stdout)
+ assert before['phase'] in ('verify','backfill')
+ if before['phase']=='verify':
+  # Complete only actual origin work, then exercise one actual hosted retry.
+  # This avoids spending96 repeated stale projection calls to demonstrate the bug.
+  for _ in range(16):
+   progress=a.advance_origin(PipelineState(),approval,commit_budget=16,tree_pages=4)
+   if progress['frozen_complete']:break
+  else:raise AssertionError('targeted stale-source origin did not finish')
+  result=hosted.run(config,Report(),CurrentState(),NoSlack(),root/'stale-retry.sqlite',datetime.datetime(2026,10,16,0,tzinfo=datetime.timezone.utc))
+  after=json.loads(git('show',ref+':'+progress_leaf).stdout)
+  assert result['status']=='incomplete' and result['phase']=='projection-pending' and delivery.sends==0
+ else:after=before
+ assert after['phase']=='backfill','actual changed-source coverage gap retained stale verify campaign'
+ assert git('show',ref+':'+oldpath).stdout==b'opaque existing encrypted feedback envelope'
+ print('AC-7 actual late-source identity gap starts bounded backfill without delivery PASS',flush=True)
+'''
+ exec(compile(base+adapter+setup+delivery+cases,'maintenance-actual-stale-source','exec'))
+if selected_case in ('all','quiet','ack-resume'):
  rollover=Path('.claude/scripts/test/factory-reporting-rollover.sh').read_text();assert "cases=r'''\n" in rollover
  setup=rollover.split("cases=r'''\n",1)[1].split(' first_now=',1)[0]
  setup=setup.replace("assert kwargs=={},kwargs","assert kwargs in ({},{'paginate':True}),kwargs").replace("query=parse_qs(urlparse(path).query);page=int(query['page'][0]);return self.rows[(page-1)*100:page*100]","if kwargs.get('paginate'):return [copy.deepcopy(self.rows)]\n    query=parse_qs(urlparse(path).query);page=int(query['page'][0]);size=int(query['per_page'][0]);return self.rows[(page-1)*size:page*size]").replace("'pr_discovery_mode':'resumable'","'pr_discovery_mode':'legacy'")
+ if selected_case=='ack-resume':
+  setup=setup.replace("'pr_discovery_mode':'legacy'","'pr_discovery_mode':'resumable'")
+  setup+=r'''
+ actual_spec=importlib.util.spec_from_file_location;blocked=[];refused=[];validated=[];ack_epoch=[]
+ def instrument(name,path,*args,**kwargs):
+  spec=actual_spec(name,path,*args,**kwargs)
+  if name=='report_maintenance':
+   loader=spec.loader
+   class Loader:
+    def create_module(self,spec):return loader.create_module(spec)
+    def exec_module(self,module):
+     loader.exec_module(module);actual_ack=module.acknowledge_reporting
+     def delayed_ack(*args,**kwargs):
+      if not blocked:
+       blocked.append(True);actual_origin=module.archive.advance_origin
+       module.archive.advance_origin=lambda *a,**k:{'frozen_complete':False}
+       try:result=actual_ack(*args,**kwargs)
+       finally:module.archive.advance_origin=actual_origin
+       assert result['phase']=='origin' and remote.sends==0
+       saved_head=out('rev-parse',ref);saved_raw=git('show',ref+':'+journal_path).stdout
+       assert json.loads(saved_raw)['phase']=='verify'
+       ack_epoch.append(json.loads(saved_raw)['source_epoch'])
+       wrong=dict(kwargs,campaign='f'*64)
+       try:actual_ack(*args,**wrong)
+       except ValueError as error:assert str(error)=='maintenance projection acknowledgement selector changed'
+       else:raise AssertionError('foreign selector acknowledged')
+       assert git('show',ref+':'+journal_path).stdout==saved_raw
+       # Disposable real-Git fixture branches are restored only after proving each
+       # changed current input resets scheduling, never returns retry selectors.
+       original_trust=trust.read_bytes()
+       for changed in ('trust','policy','ordinary'):
+        selected_policy=copy.deepcopy(policy)
+        if changed=='trust':trust.write_bytes(original_trust+b' ')
+        if changed=='policy':selected_policy['merge_enabled']=not selected_policy['merge_enabled']
+        try:
+         action=module.maintain if changed=='ordinary' else module.select_reporting
+         rejected=action(reports,PipelineState(),selected_policy,trust,{'repository':'org/repo','visibility':'public'},approval,interval_end=kwargs['interval_end'])
+         assert rejected['phase']=='backfill' and rejected['status']=='incomplete',changed
+         assert remote.sends==0
+        finally:
+         trust.write_bytes(original_trust)
+         git('update-ref',ref,saved_head,out('rev-parse',ref))
+       assert git('show',ref+':'+journal_path).stdout==saved_raw
+       return result
+      return actual_ack(*args,**kwargs)
+     module.acknowledge_reporting=delayed_ack
+   spec.loader=Loader()
+  if name=='report_receipts':
+   loader=spec.loader
+   class ReceiptLoader:
+    def create_module(self,spec):return loader.create_module(spec)
+    def exec_module(self,module):
+     loader.exec_module(module);actual_project=module.project
+     def refused_once(*args,**kwargs):
+      result=actual_project(*args,**kwargs);validated.append(result['coverage_complete'])
+      if not refused:
+       refused.append(True)
+       # Explicit synthetic consumer refusal AFTER actual fresh validation.
+       return dict(result,coverage_complete=False)
+      return result
+     module.project=refused_once
+   spec.loader=ReceiptLoader()
+  return spec
+ importlib.util.spec_from_file_location=instrument
+'''
  cases=r'''
  now=datetime(2026,10,14,22,5,tzinfo=timezone.utc);role=a.digest(a.canonical(['reporting-maintenance-v1','org/repo',branch]));journal_path='reports/'+role+'.json'
  def step(index):return h.run(config,reports,PipelineState(),None,root/('legacy-'+str(index)+'.sqlite'),now)
  for index in range(96):
   result=step(index)
+  if selected_case=='ack-resume' and result.get('phase')=='projection-pending':
+   assert remote.sends==0 and refused and not blocked
   if result['status']=='delivered':break
  else:raise AssertionError('actual legacy durable interval never delivered')
+ if selected_case=='ack-resume':
+  assert blocked and refused and len(validated)>=3 and all(validated),'retry skipped actual fresh projection'
+  saved=json.loads(git('show',ref+':'+journal_path).stdout)
+  assert saved['source_epoch']==ack_epoch[0],'acknowledgement retry rebuilt the same interval campaign'
+  assert saved['phase']=='ready' and remote.sends==1
+  print('AC-7 actual hosted retry after incomplete acknowledgement origin delivers without campaign rebuild PASS',flush=True)
  assert remote.sends==1;payloads=copy.deepcopy(remote.payloads);receipts=copy.deepcopy(remote.messages)
  before=git('show',ref+':'+journal_path).stdout;assert json.loads(before)['phase']=='ready'
  for repeat in range(2):
@@ -75,3 +178,7 @@ if selected_case in ('all','quiet'):
 '''
  exec(compile(base+adapter+setup+cases,'maintenance-actual-legacy-quiet','exec'))
 PY
+if [[ "${1:-all}" == all ]]; then
+  bash "$0" ack-resume
+  bash "$0" stale-source
+fi

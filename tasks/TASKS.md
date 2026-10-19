@@ -2022,3 +2022,11 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   files: .github/workflows/factory-hosted-digest.yml, .github/workflows/factory-reporting-alerts.yml, .github/workflows/factory-reporting-queue.yml, .github/workflows/factory-hosted-feedback.yml, .claude/scripts/factory-git-state.py, .claude/scripts/factory-reporting-alerts.py, .claude/scripts/factory-reporting-queue.py, .claude/scripts/factory-hosted-feedback.py, .claude/scripts/test/factory-receipt-reporting.sh, .claude/scripts/factory-reporting-watchdog.py, .claude/scripts/factory-reporting-queue-evidence.py, .claude/scripts/test/factory-reporting-cli-selection.sh, .claude/scripts/test/factory-hosted-digest-cli.sh, .claude/scripts/test/factory-reporting-driver-workflow.sh, .claude/scripts/test/factory-reporting-queue-evidence-source.sh, .claude/scripts/factory-digest.py, .claude/scripts/test/factory-digest-confirm.sh, .claude/scripts/test/factory-reporting-driver-public.py, .claude/scripts/test/factory-reporting-queue-actions.sh, .claude/scripts/test/factory-reporting-queue-context.sh, .claude/scripts/test/factory-reporting-queue-immutable.sh, .claude/scripts/test/factory-reporting-queue-scheduled.sh, .claude/scripts/test/factory-reporting-driver-quiet.py, .claude/scripts/test/factory-workflow-baseline.sh, .claude/scripts/test/factory-policy-approval.sh
   accept: bash .claude/scripts/test/factory-receipt-reporting.sh
   owner: implementer
+
+## Spec014 reporting restart regression
+
+- [x] T-340  | spec:014  | phase:4  | priority: security  | created: 2026-10-19  | deps: T-334  | parallel: yes  | est: 15m
+  summary: Resume checked reporting selectors after interrupted acknowledgment and rebuild truly stale source campaigns
+  files: .claude/scripts/factory-reporting-maintenance.py, .claude/scripts/factory-git-state.py, .claude/scripts/test/factory-reporting-maintenance-liveness.sh
+  accept: bash .claude/scripts/test/factory-reporting-maintenance-liveness.sh
+  owner: implementer

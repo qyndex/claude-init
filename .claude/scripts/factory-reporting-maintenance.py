@@ -172,9 +172,13 @@ def maintain(source_api, state_api, policy, trust_path, store, approval_path, *,
                 (journal['history_head'],journal['campaign'])==_operation[1:],
                 'maintenance projection acknowledgement selector changed')
         return dict(persist(dict(journal,phase='ready')),status='projection-acknowledged')
+    if journal['phase']=='verify' and (reporting or selecting):
+        # Retry selectors are scheduling only: the reporting consumer must rerun
+        # current coverage/projection before exact-selector acknowledgement.
+        return dict(result,status='projection-ready',history_head=journal['history_head'],
+                    campaign=journal['campaign'],interval_scoped=True)
     if journal['phase']=='verify':
-        # Verification intent is durable before returning selectors. An interrupted
-        # or unsuccessful consumer must observe a newer source epoch on restart.
+        # Ordinary maintenance revisits source history after abandoned verification.
         return persist(dict(journal,phase='backfill',remaining=0,review_blob=None,review_cursor=None,
                             history_head=None,campaign=None,page=1,offset=0))
     scope=archive.interval_scope(anchor,stream,end,True)

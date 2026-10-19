@@ -1,0 +1,5 @@
+actual stage under rotated valid trust refuses wrong-campaign offset; matching stage recovers PASS
+actual delivered legacy durable interval twice not-due, ready journal/receipt/payload unchanged PASS
+AC-7 actual hosted retry after incomplete acknowledgement origin delivers without campaign rebuild PASS
+actual delivered legacy durable interval twice not-due, ready journal/receipt/payload unchanged PASS
+AC-7 actual late-source identity gap starts bounded backfill without delivery PASS

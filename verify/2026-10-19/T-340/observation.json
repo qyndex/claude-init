@@ -1,0 +1,26 @@
+{
+  "base": "a76b258353c0c692a80c0e40ae0ccf4d2cb4c246",
+  "scope": "Spec014AC7/8 local reporting restart regression repair; no native/live readiness credit",
+  "source_files": {
+    ".claude/scripts/factory-reporting-maintenance.py": "ea64f83cbaa1b62116a5c07eb92d03e090ba1cfa473de1f258ba201e0366ab86",
+    ".claude/scripts/factory-git-state.py": "a56e99db7984c25f13b443d1298c0812817718be6d723629dca506710e2d5285",
+    ".claude/scripts/test/factory-reporting-maintenance-liveness.sh": "4b815e2a3c863c07c5af812726b9c0a935dd2871291aecc6b5c4a6def8c91ca9"
+  },
+  "accept_command": "bash .claude/scripts/test/factory-reporting-maintenance-liveness.sh",
+  "accept_exit": 0,
+  "hosted_maintenance_exit": 0,
+  "initial_ack_red_exit": 1,
+  "stale_source_red_exit": 1,
+  "stale_source_green_exit": 0,
+  "sonnet_model": [
+    "claude-sonnet-5-5"
+  ],
+  "sonnet_review_sha256": "68bf10c74757b1046b7eb884225fbc1e5d49e06640d927f27613858cbe0dbf25",
+  "native_ci": "pending",
+  "confirmed_current_digest": "pending",
+  "live_changes": false,
+  "profile_policy_permission_changes": false,
+  "collector": "FAIL0/8 fullspecACs, smokeexit0; no fullnativeacceptancecredit",
+  "verification_base": "a76b258353c0c692a80c0e40ae0ccf4d2cb4c246",
+  "initial_smoke_failure": "Local clone had no discoverable acceptance base; corrected by explicit pinned VERIFY_BASE without skipping any gate"
+}

@@ -1,0 +1,7 @@
+# TDD ledger — green — T-335
+ledger_format: 2
+timestamp: 2026-10-19T14:59:10+11:00
+command: bash .claude/scripts/test/factory-reporting-maintenance-liveness.sh stale-source
+exit_code: 0
+---
+AC-7 actual late-source identity gap starts bounded backfill without delivery PASS
