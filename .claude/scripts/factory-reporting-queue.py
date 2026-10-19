@@ -239,6 +239,12 @@ class _QueueObservationError(ValueError):
     pass
 
 
+class _QueueBlocked(ValueError):
+    def __init__(self, reason):
+        super().__init__('queue metadata unknown; no notification or recovery proof')
+        self.reason = reason
+
+
 def _observed(condition, category='metadata-invalid'):
     if not condition:
         raise _QueueObservationError(category)
@@ -519,7 +525,8 @@ def run_queue(api, client, config, storage, reporting, now, *, drill_run=None):
         pending = row('drill', drill_run, actual['run_attempt'])
     else:
         observation = observe_queue(source, config, storage, now)
-        require(observation['status'] != 'unknown', 'queue metadata unknown; no notification or recovery proof')
+        if observation['status'] == 'unknown':
+            raise _QueueBlocked(observation.get('reason'))
         recovered = {r['incident'] for r in document['events'] if r['kind'] == 'recovery'}
         active = [r for r in document['events'] if r['kind'] != 'recovery' and r['key'] not in recovered]
         if observation['status'] == 'stalled':
@@ -664,10 +671,51 @@ def main():
     print(json.dumps(result, sort_keys=True)); return 0
 
 
+def failure_details(error):
+    """Fixed diagnostics only; exception messages, inputs and paths stay private."""
+    from pathlib import Path
+    phases = {'build_config':'configuration', 'validate_config':'configuration',
+              'execution_context':'execution-context', 'protected_entry':'protected-metadata',
+              'repository_metadata':'repository-metadata', 'worker_health':'worker-health',
+              'runs':'run-metadata', 'run_fact':'run-metadata', 'jobs':'job-metadata',
+              'time':'metadata-clock', '_load':'journal-load', 'checkpoint':'journal-checkpoint',
+              'observe_queue':'queue-observation', 'run_queue':'queue-reconcile', 'emit':'queue-notification',
+              'worker':'worker-checkpoint', 'verified_worker':'worker-receipt',
+              'notice':'notification-context', 'persist':'journal-checkpoint'}
+    own_files = {__file__, str(Path(__file__).resolve()), '.claude/scripts/factory-reporting-queue.py'}
+    phase = 'entry'; checkpoint = False; trace = error.__traceback__
+    while trace is not None:
+        code = trace.tb_frame.f_code
+        if code.co_filename in own_files and code.co_name in phases:
+            phase = phases[code.co_name]
+            checkpoint |= phase == 'journal-checkpoint'
+        trace = trace.tb_next
+    if checkpoint:phase = 'journal-checkpoint'
+    category = 'guard-failed' if isinstance(error, ValueError) else 'unexpected'
+    if isinstance(error, (_QueueObservationError, _QueueBlocked)):
+        safe = {'metadata-invalid', 'active-run-duplicate-or-capacity', 'clock-invalid',
+                'job-capacity', 'job-list-incomplete-or-capacity', 'metadata-clock-invalid',
+                'metadata-observation-changed', 'observer-write-forbidden', 'protected-health-missing',
+                'protected-health-or-repository-changed', 'queue-probe-disabled', 'repository-invalid',
+                'run-list-capacity', 'run-list-incomplete-or-changed', 'run-list-invalid-or-saturated',
+                'workflow-ambiguous', 'workflow-invalid', 'protected-reporting-health-not-current',
+                'observation-unavailable-or-invalid'}
+        reason = error.reason if isinstance(error, _QueueBlocked) else error.args[0] if len(error.args)==1 else None
+        category = reason if type(reason) is str and reason in safe else 'metadata-unknown'
+    return {'phase':phase, 'category':category}
+
+
 if __name__ == '__main__':
     import sys
     try:
         sys.exit(main())
-    except Exception:
-        print('Queue monitor blocked; preserve intent and inspect protected run before retry.', file=sys.stderr)
+    except Exception as error:
+        try:
+            detail = json.dumps(failure_details(error), sort_keys=True, separators=(',', ':'))
+        except Exception:
+            detail = '{"category":"diagnostic-unavailable","phase":"entry"}'
+        try:
+            print('Queue monitor blocked: '+detail+'; preserve intent and inspect protected run before retry.', file=sys.stderr)
+        except Exception:
+            pass
         sys.exit(2)

@@ -1,0 +1,33 @@
+Traceback (most recent call last):
+  File "<stdin>", line 41, in <module>
+AssertionError: Traceback (most recent call last):
+  File "/private/tmp/factory-queue-diagnostics-20261019/.claude/scripts/factory-reporting-queue.py", line 698, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "/private/tmp/factory-queue-diagnostics-20261019/.claude/scripts/factory-reporting-queue.py", line 648, in main
+    require(writer_flag in ('true','false'),'reporting writer flag invalid')
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-queue-diagnostics-20261019/.claude/scripts/factory-reporting-queue.py", line 17, in require
+    raise ValueError(message)
+ValueError: reporting writer flag invalid
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "<stdin>", line 5, in <module>
+  File "<frozen runpy>", line 287, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "/private/tmp/factory-queue-diagnostics-20261019/.claude/scripts/factory-reporting-queue.py", line 704, in <module>
+    print('Queue monitor blocked: '+detail+'; preserve intent and inspect protected run before retry.', file=sys.stderr)
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/unittest/mock.py", line 1176, in __call__
+    return self._mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/unittest/mock.py", line 1180, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/unittest/mock.py", line 1241, in _execute_mock_call
+    raise effect
+RuntimeError: PRIVATE-CONTENT-/operator/private/file-and-token-value
+

@@ -1,0 +1,15 @@
+# Safe queue failure diagnostics — local implementation only
+
+Spec029AC5 explicit unknown and AC8 rollout diagnosis. Actual scheduled queue-monitor metadata shows failures at observation/reconciliation. Offline captured nonsecret configuration, exact public queue-journal schema and GET-only public workflow/run/job observation pass; these checks do not establish the protected cause.
+
+The actual CLI regression first failed against the generic diagnostic (red.log). Fixed phase/category output excludes exception text, file paths, traceback and arbitrary fields. Independent review then found that helper/serialization failure could expose a chained exception. Actual CLI failure injection reproduced that issue (diagnostic-fallback-red.log); final green.log covers both literal fallback cases and unknown private sentinel strings.
+
+Existing aggregate queue contracts, context, immutable-state and scheduled-entry regressions pass, alongside ShellCheck and diff checks. The initial aggregate sandbox run failed because /bin/ps was denied during a bounded-process cleanup fixture; aggregate-sandbox-limitation.log retains this separately. The normal approved rerun passed. No test was skipped or relabelled.
+
+No queue control flow, stored state, authority/profile, retry, budget, schema, credential or workflow permission changes. Entry still fails closed with exit2. This is no current-run diagnosis, live recovery, full Spec029 acceptance, extra protected-run approval or product/delivery acceptance. Real safe diagnostic output requires reviewed source publication/merge and a later genuine protected invocation.
+
+## Review corrections
+
+Sonnet5.5 static review identified lost safe observation reasons and nested checkpoint context. A genuine actual-run_queue regression (observation-reason-red.log) reproduced the discarded reason. The final diagnostic keeps the original ValueError message/failure location and unchanged head/post count, while carrying only allowlisted unknown reasons. It prioritizes checkpoint context over nested reads. An actual CLI broken-stderr canary also verifies exit2 with no chained traceback. The optional no-filesystem diagnostic optimization and finer exception-class taxonomy were not required for this bounded phase/category channel; resolution failure already has a tested safe literal fallback. Initial full static findings are retained rather than represented as clean. A final review must bind final source bytes.
+
+Final tool-free Sonnet5.5 review found no blocker. Full initial and final findings are retained in sonnet-review.md and bind source/test bytes in sonnet-source-hashes.json. Optional notes remain: category/phase granularity and future enum-drift checks, fixture coupling, and CPython shutdown may use exit120 for an actually broken stderr pipe despite the contained print exception. No healthy/success outcome is inferred from any nonzero status. Ordinary and injected generation/print failures exit2. No os._exit or global stderr redirection was added, avoiding unrelated cleanup/control changes.

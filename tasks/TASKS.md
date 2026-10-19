@@ -2030,3 +2030,11 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   files: .claude/scripts/factory-reporting-maintenance.py, .claude/scripts/factory-git-state.py, .claude/scripts/test/factory-reporting-maintenance-liveness.sh
   accept: bash .claude/scripts/test/factory-reporting-maintenance-liveness.sh
   owner: implementer
+
+## Spec029 bounded queue failure diagnostics
+
+- [x] T-341  | spec:029  | phase:4  | priority: security  | created: 2026-10-19  | deps: T-335  | parallel: yes  | est: 15m
+  summary: Emit only fixed failure phase/category codes for blocked queue monitoring without exposing exception text or changing authority
+  files: .claude/scripts/factory-reporting-queue.py, .claude/scripts/test/factory-reporting-queue-diagnostics.sh
+  accept: bash .claude/scripts/test/factory-reporting-queue-diagnostics.sh
+  owner: implementer
