@@ -1,0 +1,24 @@
+test_denials_missing_and_wrong_model_reject (__main__.Evidence.test_denials_missing_and_wrong_model_reject) ... ok
+test_each_binding_is_required_and_exact (__main__.Evidence.test_each_binding_is_required_and_exact) ... ok
+test_failed_or_exhausted_execution_rejects (__main__.Evidence.test_failed_or_exhausted_execution_rejects) ... ok
+test_findings_need_severity_safe_path_line_description (__main__.Evidence.test_findings_need_severity_safe_path_line_description) ... ok
+test_green_action_without_structured_review_is_not_review (__main__.Evidence.test_green_action_without_structured_review_is_not_review) ... ok
+test_manual_security_dispatch_is_explicit_scan_not_unbound_review (__main__.Evidence.test_manual_security_dispatch_is_explicit_scan_not_unbound_review) ... ok
+test_missing_negative_boolean_or_oversized_usage_rejects (__main__.Evidence.test_missing_negative_boolean_or_oversized_usage_rejects) ... ok
+test_missing_partial_duplicate_or_following_result_rejects (__main__.Evidence.test_missing_partial_duplicate_or_following_result_rejects) ... ok
+test_prepared_context_binds_actual_git_objects_and_preserves_deletion (__main__.Evidence.test_prepared_context_binds_actual_git_objects_and_preserves_deletion) ... ok
+test_workflows_require_retention_and_upload_on_failure (__main__.Evidence.test_workflows_require_retention_and_upload_on_failure) ... ok
+test_zero_finding_review_is_retained (__main__.Evidence.test_zero_finding_review_is_retained) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 0.199s
+
+OK
+test_cli_writes_fresh_blocked_report_without_credentials (__main__.Runner.test_cli_writes_fresh_blocked_report_without_credentials) ... ok
+test_transport_isolation_and_failure_contract (__main__.Runner.test_transport_isolation_and_failure_contract) ... ok
+test_workflow_missing_runtime_preserves_blocked_artifact (__main__.Runner.test_workflow_missing_runtime_preserves_blocked_artifact) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.069s
+
+OK

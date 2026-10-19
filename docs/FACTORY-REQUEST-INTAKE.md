@@ -1,6 +1,16 @@
 # Factory request intake: coverage and boundaries
 
-Spec [050](../specs/active/050-request-intake-router.md) is approved. This document records the implemented foundation and assembled worker fixture; it does not certify live native capability or activate intake. Installation remains neutral and disabled by default. Missing adopter identity, protected configuration or observed runtime prerequisites blocks governed work.
+Spec [050](../specs/active/050-request-intake-router.md) is approved. Its implementation tasks are marked complete. This document records the maintained controller, guarded console and assembled worker fixtures; it does not certify live native capability or activate intake. Installation remains neutral and disabled by default. Missing adopter identity, protected configuration or observed runtime prerequisites blocks governed work.
+
+## Start after protected setup
+
+Installation alone does not provision mandatory intake. Complete the per-adopter registry, private controller/profile and observed native capability prerequisites below first. Then launch the reviewed protected console with its pinned interpreter and this target's canonical root, for example:
+
+```sh
+/path/to/pinned/python3 /path/to/protected-harness/.claude/scripts/factory-intake-console.py --root /path/to/target
+```
+
+These are placeholders for independently reviewed paths, not files copied from a candidate checkout. Run the same command with `--help` for the actual CLI options. Submit messages through the console once it starts; approved continuation can dispatch a separate guarded worker when all prerequisites pass. Native general conversation delivery is unavailable, and a bare `claude` session is advisory. See [current readiness](FACTORY-STATUS.md) and [adopter setup](FACTORY-ADOPTER-SETUP.md).
 
 ## Current coverage inventory
 

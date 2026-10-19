@@ -52,10 +52,19 @@ def encode(value):
 
 class ReportingAPIError(ValueError):
     """Public category only; provider stderr and response bodies stay private."""
-    def __init__(self, stderr):
+    def __init__(self, stderr, *, credential_role=None):
         super().__init__('reporting API failed; reconcile authoritative state before retry')
         match = re.search(rb'\(HTTP ([1-5][0-9]{2})\)', stderr[:2048])
         self.http_status = int(match.group(1)) if match else None
+        text = stderr[:2048].lower()
+        self.credential_role = credential_role
+        self.api_failure_kind = None
+        if b'secondary rate limit' in text:
+            self.api_failure_kind = 'secondary_api_rate_limit'
+        elif b'api rate limit exceeded' in text:
+            self.api_failure_kind = 'primary_api_rate_limit'
+        elif b'resource not accessible by integration' in text:
+            self.api_failure_kind = 'integration_permission'
 
 
 def safe_diagnostic(stage, error):
@@ -68,9 +77,17 @@ def safe_diagnostic(stage, error):
     # Wrappers load this source independently; class identity can differ.
     # The numeric category is untrusted diagnostic data, never retry/authority.
     status = vars(error).get('http_status') if isinstance(error, ValueError) and name == 'ReportingAPIError' else None
-    return {'stage': stage if stage in stages else 'unknown',
+    record = {'stage': stage if stage in stages else 'unknown',
             'error_class': name if name in classes else 'Exception',
             'http_status': status if type(status) is int and 100 <= status <= 599 else None}
+    if isinstance(error, ValueError) and name == 'ReportingAPIError':
+        kind = vars(error).get('api_failure_kind')
+        role = vars(error).get('credential_role')
+        if type(kind) is str and kind in {'primary_api_rate_limit', 'secondary_api_rate_limit', 'integration_permission'}:
+            record['api_failure_kind'] = kind
+        if type(role) is str and role in {'source', 'state'}:
+            record['credential_role'] = role
+    return record
 
 
 class Budget:
@@ -164,7 +181,10 @@ class RoutedAPI:
             # A failed provider may return no stdout. Calls remain charged; any
             # returned bytes still consume the unchanged response/job bounds.
             if result.stdout:self.budget.observe(len(result.stdout))
-            raise ReportingAPIError(result.stderr)
+            # Fixed labels only; this duplicates no credential values in logs.
+            tail = path.partition('?')[0][len('repos/'+self.repo):]
+            source_role = tail == '/pulls' or tail.startswith(('/actions/', '/pulls/', '/contents/'))
+            raise ReportingAPIError(result.stderr, credential_role='source' if source_role else 'state')
         self.budget.observe(len(result.stdout))
         if raw:return result.stdout
         try:value = json.loads(result.stdout,object_pairs_hook=state.digest.coordinator.contract.no_duplicate_keys)

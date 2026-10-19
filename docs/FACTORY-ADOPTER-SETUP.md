@@ -2,6 +2,27 @@
 
 Installation distributes immutable process scripts, pinned encryption requirements and disabled neutral examples. Review and commit the resulting files. Each repository supplies its own approved specifications, tasks, protected policies, GitHub App installation, Slack identity, private runtime storage and deployment adapter. Examples are references, not enabled profiles. The distribution repository's pilot is a separate installation.
 
+Read [current source-pilot status](FACTORY-STATUS.md) for completed implementation and remaining rollout observations. Its active merge authority does not activate this adopter.
+
+## Greenfield and brownfield verification
+
+Choose an immutable reviewed harness SHA and keep that checkout outside the target. Use [the transactional quickstart](FACTORY-ADOPTER-QUICKSTART.md) for dry-run, conflict review and installation. Keep each target on its own adoption branch and commit its reviewed application baseline first.
+
+For a greenfield application, initialize its own Git repository and establish the product brief, approved initial specification, selected stack, runnable application, test commands and first meaningful acceptance journey. `/kickoff` helps draft the scope; it does not approve it. A repository with no application or acceptance journey cannot pass application readiness merely because the harness scripts installed successfully.
+
+For a brownfield application, inventory its existing architecture, conventions, instructions, tests, migrations, deployment and known failures before importing a backlog. Use `/adopt start` and preserve the existing source and private state. Review unmanaged/customized-file conflicts rather than overwriting them. Record baseline failures explicitly and prove that adoption does not introduce regressions; an existing failure is not a passing check or automatic waiver.
+
+For either target, retain these repository-specific observations before autonomous enablement:
+
+1. Exact repository identity, reviewed harness SHA, installation manifest and application baseline SHA; dry-run/upgrade conflict and interrupted-install recovery results.
+2. Actual stack lint/test/build and acceptance commands with observed exit codes, required tool availability and supported coverage. Missing adapters remain blockers.
+3. Protected environments and App installation scope, isolated implementation/verification identities, pinned producer/runtime/policy profiles and signed independent exact-head proof. Verify private-repository capabilities separately.
+4. Positive shadow eligibility plus stale-head, failed-check, forged-proof, out-of-scope and recovery negatives. Activate only separately approved paths and tasks.
+5. If enabled, a real report receipt and authenticated operator feedback/amendment/delivery cycle in that target's own destination and state store.
+6. Before production, the real deployment platform/environment, known-good baseline, service health endpoint/SLO, rollback command and durable deployment/rollback receipts. Keep production disabled until the actual target passes.
+
+The source pilot's twenty-delivery expansion threshold is counted from useful authenticated eligible deliveries, accumulated naturally under approved scope. Fixture runs, replay, repeated no-op changes and operator maintenance merges do not count. A new adopter starts its own evidence history; it does not inherit the pilot's sample. Real target URLs and protected configuration are required to execute this checklist, not inferred from examples.
+
 ## Pinned encryption dependencies
 
 Provision an isolated Python environment outside the candidate repository and implementation access. For example, on the trusted controller choose an owner-only private root and run:

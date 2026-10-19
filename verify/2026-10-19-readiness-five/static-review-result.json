@@ -1,0 +1,18 @@
+{
+  "source": "c3b64a3f362618096a69e9192da98d286127932e",
+  "scope": "Local pinned CLI static source review; existing local auth, not native GitHub OAuth or factory authority",
+  "exit": 0,
+  "prompt_sha256": "1b53da0f9afbf231e9bb87f16674a96884c1bc2230db2655be2d7fbb14608846",
+  "review": {
+    "repository": "qyndex/claude-init",
+    "pr": 124,
+    "head": "c3b64a3f362618096a69e9192da98d286127932e",
+    "role": "code",
+    "summary": "I found no substantiated correctness or security defects in the changed lines. I read the diff and the supplied full sources only, and ran nothing.\n\n- **acceptance-criteria.py**: it fails closed on size, encoding, fences, duplicate or missing sections, and definitions outside the section. The unpadded `AC-N` normalization matches what `spec-match.sh` and `collect-evidence.sh` compared before. Both scripts now call it as `python3 -I \"$ROOT/.claude/scripts/acceptance-criteria.py\"`, and `ROOT` is defined in each.\n- **spec-match.sh**: a spec with no AC section now exits 1 instead of 0. This looks intentional, and the new tests assert it.\n- **collect-evidence.sh**: it exits 1 when the parser fails, and the updated tests match that.\n- **factory-reporting-transport.py**: the new `credential_role` and `api_failure_kind` fields are limited to fixed enums. `safe_diagnostic` allowlists them, so provider text, tokens and paths are not exposed. The role split follows the same path prefixes `_route` uses.\n- **Test and fixture updates**: they copy `acceptance-criteria.py` where `spec-match.sh` or `collect-evidence.sh` is copied. I could not see other fixtures or installer manifests outside the diff that might also need the new file.\n- **Docs**: the changes are documentation only.\n\nI did not check that every existing spec in the repository uses a recognized `## Acceptance criteria` heading. The tests cover spec 014 only.",
+    "findings": [],
+    "suppressed": 0
+  },
+  "model": "claude-sonnet-5-5",
+  "num_turns": 2,
+  "status": "reviewed"
+}

@@ -4,7 +4,7 @@ set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
 tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
 mkdir -p "$tmp/.claude/scripts/lib" "$tmp/specs/active" "$tmp/bin"
-cp "$ROOT/.claude/scripts/collect-evidence.sh" "$ROOT/.claude/scripts/spec-match.sh" "$tmp/.claude/scripts/"
+cp "$ROOT/.claude/scripts/acceptance-criteria.py" "$ROOT/.claude/scripts/collect-evidence.sh" "$ROOT/.claude/scripts/spec-match.sh" "$tmp/.claude/scripts/"
 cp "$ROOT/.claude/scripts/lib/atomic-write.sh" "$tmp/.claude/scripts/lib/"
 printf '#!/bin/bash\nexit 0\n' > "$tmp/.claude/scripts/verify.sh"
 printf '#!/bin/bash\nexit 42\n' > "$tmp/bin/npx"; chmod +x "$tmp/bin/npx"; export PATH="$tmp/bin:$PATH"

@@ -45,10 +45,12 @@ rm -f "$date_dir/evidence.json" "$date_dir/pr-body.md" "$date_dir/EVIDENCE.md" |
 echo "→ Collecting evidence for spec $spec_id ($slug)"
 
 # ─── 1. Parse acceptance criteria ───────────────────────────────────────
-ac_block=$(awk '/^## Acceptance criteria/,/^## [^A]/' "$spec")
-# Normalized to unpadded AC-N (e2e-audit e2e-rig-3) — must match spec-match.sh's canonical form.
-ac_ids=$(echo "$ac_block" | grep -oE 'AC-[0-9]+' | sed 's/AC-0*\([0-9]\)/AC-\1/' | sort -u)
-# JUSTIFIED: the fallback yields a zero count when grep matches no AC lines (exit 1) — a spec with no acceptance criteria correctly reports zero rather than aborting under pipefail
+# Share the same bounded section parser as spec-match. Cross-spec references
+# outside this section are not additional acceptance definitions.
+if ! ac_ids=$(python3 -I "$ROOT/.claude/scripts/acceptance-criteria.py" "$spec"); then
+  exit 1
+fi
+# Count the already validated nonempty canonical identifier set.
 ac_count=$(printf '%s\n' "$ac_ids" | awk 'NF {n++} END {print n+0}')
 [ "$ac_count" -gt 0 ] || { echo "No AC identifiers: evidence cannot prove this spec" >&2; exit 1; }
 

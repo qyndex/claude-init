@@ -36,8 +36,9 @@ fi
 # 1. Extract AC ids from the spec (AC-1, AC-2, AC-01 …), normalized to
 #    unpadded AC-N — e2e-audit e2e-rig-3: specs write AC-01 while tests tag
 #    @AC-1; the comparison must happen in ONE canonical form.
-ac_ids=$(grep -oE '\*\*AC-[0-9]+\*\*|AC-[0-9]+' "$spec" | grep -oE 'AC-[0-9]+' | sed 's/AC-0*\([0-9]\)/AC-\1/' | sort -u)
-[ -z "$ac_ids" ] && { echo "No AC ids in $spec — nothing to match"; exit 0; }
+if ! ac_ids=$(python3 -I "$ROOT/.claude/scripts/acceptance-criteria.py" "$spec"); then
+  exit 1
+fi
 
 # 2. Extract tags from PASSING tests only — gap-audit G51 (critical): the old
 #    jq collected tags from every spec object regardless of status, and a

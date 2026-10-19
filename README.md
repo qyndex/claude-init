@@ -18,6 +18,16 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](CONTRIBUTING.md)
 
+## Factory readiness
+
+The approved factory implementation is complete: all **173 task entries for specs006–050** are done as of 2026-10-18. The source-repository pilot has delivered one independently verified candidate and activated merge authority under its narrow approved Spec048 policy. This is readiness for **controlled adoption**, not automatic certification of another repository or production deployment.
+
+Start with [Factory adopter quickstart](docs/FACTORY-ADOPTER-QUICKSTART.md), then [per-repository setup](docs/FACTORY-ADOPTER-SETUP.md). Installation leaves factory capabilities disabled and supplies no source-pilot credentials, workflows or approvals. Each adopter must prove its own protected configuration, independent evidence and shadow/merge sequence.
+
+For Scout-first requests, use the separately configured [guarded factory console](docs/FACTORY-REQUEST-INTAKE.md). Bare `claude` sessions and IDE edits remain advisory; installation does not establish universal prompt interception or a certified native worker.
+
+See [current status and remaining rollout evidence](docs/FACTORY-STATUS.md): reporting catch-up, the next pilot digest and feedback/amendment cycle, and the twenty-delivery expansion threshold remain distinct from completed implementation. Production, optional online workers and oversized Slack attachments require their own readiness decisions.
+
 ## Install in one line
 
 From the **root of the repo you want to harness**:
@@ -37,7 +47,7 @@ curl -fsSLO https://raw.githubusercontent.com/qyndex/claude-init/main/scripts/in
 less install.sh && bash install.sh
 ```
 
-**Then** finish the [Manual setup](#manual-setup-what-the-installer-cant-do) (GitHub ruleset,
+**Then** finish the [Manual setup](#manual-setup) (GitHub ruleset,
 Actions secret, optional deploy). See [full step-by-step](#step-by-step-adoption) below.
 
 <details>
@@ -67,6 +77,15 @@ A complete agentic harness for Claude Code that includes:
 - **MCP servers** — `.mcp.json` pre-wired with filesystem, git, github, chrome-devtools, playwright, context7, postgres, sentry
 - **CI/CD** — `.github/workflows/` with claude-code-action, claude-code-security-review, CI matrix, E2E on preview, auto-merge Dependabot, release-please
 - **Templates** — `specs/templates/`, `plans/templates/` (Spec Kit-style)
+
+## Greenfield and brownfield starting points
+
+| Repository | Start here | Required baseline |
+| --- | --- | --- |
+| Greenfield application | Create its own Git repository, then dry-run the pinned harness installation and use `/kickoff` to draft the product specification. | Approve the initial scope, choose the real stack/test commands, and establish application CI before enabling autonomous delivery. |
+| Brownfield application | Create an adoption branch in the existing repository, preserve its working baseline, then follow `/adopt start`. | Inventory architecture, tests, migrations and custom instructions; resolve ownership conflicts explicitly and record existing failures before implementation. |
+
+Both paths use [the adopter setup guide](docs/FACTORY-ADOPTER-SETUP.md#greenfield-and-brownfield-verification). Each target owns its App, approved specs, protection, secrets and reporting store. Run the protected preflight and genuine verifier/reviewer/shadow checks before enabling its merge authority. Production additionally needs that application's deployment, health and rollback proof. See [current readiness](docs/FACTORY-STATUS.md); installation is not an activation certificate.
 
 ## Step-by-step adoption
 
@@ -108,7 +127,9 @@ can't (and shouldn't) change:
 Full operator runbook: [docs/OPERATOR-MANUAL.md](docs/OPERATOR-MANUAL.md). Bringing in a legacy
 repo: [docs/ADOPTION.md](docs/ADOPTION.md) (`/adopt start`).
 
-### 4. Open Claude Code and go
+### 4. Choose the entry point
+
+For the interactive development workflow, open Claude Code below. This mode does not provide mandatory Scout intake. For governed request routing, first provision and validate the protected console installation described in [Factory request intake](docs/FACTORY-REQUEST-INTAKE.md).
 
 ```bash
 claude

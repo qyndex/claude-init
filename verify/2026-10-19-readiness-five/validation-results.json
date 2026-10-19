@@ -1,0 +1,42 @@
+[
+  {
+    "suite": "acceptance-criteria",
+    "exit": 0
+  },
+  {
+    "suite": "factory-reporting-safe-diagnostics",
+    "exit": 0
+  },
+  {
+    "suite": "factory-reporting-transport",
+    "exit": 1
+  },
+  {
+    "suite": "evidence-proof-preservation",
+    "exit": 0
+  },
+  {
+    "suite": "evidence-finalization",
+    "exit": 0
+  },
+  {
+    "suite": "local-evidence-gate",
+    "exit": 0
+  },
+  {
+    "suite": "candidate-evidence",
+    "exit": 0
+  },
+  {
+    "suite": "claude-review-evidence",
+    "exit": 0
+  },
+  {
+    "suite": "structural",
+    "exit": 0
+  },
+  {
+    "suite": "workflow-lint",
+    "exit": 0
+  }
+]

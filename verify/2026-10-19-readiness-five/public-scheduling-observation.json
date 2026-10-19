@@ -1,0 +1,27 @@
+{
+  "observed_at": "2026-10-18T23:33:51.311661+00:00",
+  "scope": "GET-only exact known public maintenance-journal metadata. No encrypted feedback, report payload, Slack message, secret, receipt authority or delivery proof.",
+  "head": "8692a863bf92cf537da0181e3bb9321c4eef5e98",
+  "blob": "739e9de0a176d1ff93a6288e0b020d5f32a57754",
+  "path": "reports/211f61c09d57cac9ca0f6065794439050e6fc881a73a12ad7094232f4217465c.json",
+  "progress": {
+    "phase": "review",
+    "remaining": 105,
+    "review_watch_count": 201,
+    "review_watch_segments": 3,
+    "review_cursor": {
+      "row": 96,
+      "segment": 0
+    },
+    "source_epoch": 13,
+    "page": 1,
+    "offset": 0,
+    "records_count": 0,
+    "interval_end": "2026-10-17T21:00:00+00:00",
+    "previous_interval_end": "2026-10-17T21:00:00+00:00"
+  },
+  "requests": [
+    "repos/qyndex/claude-init/git/ref/heads/factory-reporting-state",
+    "repos/qyndex/claude-init/contents/reports/211f61c09d57cac9ca0f6065794439050e6fc881a73a12ad7094232f4217465c.json?ref=8692a863bf92cf537da0181e3bb9321c4eef5e98"
+  ]
+}
