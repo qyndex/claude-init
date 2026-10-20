@@ -303,6 +303,16 @@ class _QueueReader:
         return {'run_id': run['id'], 'attempt': run['run_attempt'], 'workflow_id': workflow, 'status': status, 'head_sha': run['head_sha'], 'created': created, 'updated': updated, 'started': started}
 
     def runs(self):
+        # Retry only incomplete pagination, discarding the entire failed sweep.
+        # Reuse this reader/store so clocks and cumulative request bounds remain fixed.
+        for attempt in range(2):
+            try:
+                return self._runs_once()
+            except _QueueObservationError as error:
+                if type(error) is not _QueueObservationError or error.args != ('run-list-incomplete-or-changed',) or attempt == 1:
+                    raise
+
+    def _runs_once(self):
         from urllib.parse import quote
         approved = {}; found = {}
         for filename in _QUEUE_PATHS:

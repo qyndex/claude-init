@@ -1,0 +1,6 @@
+Historical scheduled reporting real-Git/RoutedAPI regression: PASS as originally observed.
+Full original bytes are preserved losslessly in scheduled.log.gzip-base64.json.
+Original bytes: 122379
+Original SHA-256: 78b3a5f3f36190a5f5be9228271ea67cfb66f9bdbbf41d5cfd9f617a2acc6a9a
+Decode base64 data, decompress gzip, and verify count/hash before use.
+No fresh native review, live queue recovery or full Spec029 acceptance is claimed.

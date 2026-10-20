@@ -238,3 +238,5 @@ Every `eslint-disable`, `# noqa`, `# type: ignore` requires `JUSTIFICATION:` and
 Queue-monitor diagnostics must expose only fixed allowlisted phase/category values. Never print exception text or traceback. Guard diagnostic generation itself with a fixed literal fallback so a failing serializer/helper cannot expose chained private errors; retain a fail-closed nonzero status and unchanged authority/retry behavior.
 
 Evidence collection scratch output belongs to its unique attempt directory. A process-global smoke file can pair one verifier's exit code with another repository's text; deterministic concurrent collector tests must check both marker ownership and exit/verdict binding.
+
+Queue-list retry lesson: retry only a complete discarded read sweep with the same captured clock and cumulative store budgets; accepting partial pages or rebuilding the budget owner would weaken completeness instead of repairing transient observation.

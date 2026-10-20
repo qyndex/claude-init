@@ -1,0 +1,50 @@
+{
+  "scope": "Local final source bytes; no native/live acceptance",
+  "observed_parent": "d99db50910b74692b00724cdc4bc2d7483b86fc5",
+  "sha256": {
+    ".claude/scripts/factory-reporting-queue.py": "b14de4aed0b58d8857451fe7b4c3895f148178019986129373a6847e0f583a71",
+    ".claude/scripts/test/factory-reporting-queue-list-retry.sh": "94a3e378cf6980595b9c2ed928f1e139d3f7bb70513716dc09e8d05f30d83e30"
+  },
+  "tests": {
+    "new_genuine_red": "assertion failure on unchanged base archive",
+    "new_green": 0,
+    "existing_observation": 0,
+    "delivery": 0,
+    "immutable": 0,
+    "scheduled": 0,
+    "context": 0,
+    "diagnostics": 0,
+    "worker_diagnostics": 0,
+    "shellcheck": 0
+  },
+  "full_collector": {
+    "initial": {
+      "verdict": "FAIL",
+      "ac_proven": 0,
+      "ac_total": 9,
+      "smoke_exit": 1,
+      "cause": "fresh local-only clone has no origin/main; explicit acceptance base not supplied",
+      "not_product_red": true
+    },
+    "final": {
+      "command": "VERIFY_BASE=d99db50910b74692b00724cdc4bc2d7483b86fc5 bash .claude/scripts/collect-evidence.sh 029",
+      "collector_exit": 1,
+      "verdict": "FAIL",
+      "ac_proven": 0,
+      "ac_total": 9,
+      "smoke_exit": 0,
+      "no_checks_skipped": true
+    }
+  },
+  "live_root_cause_identified": false,
+  "live_recovery_proven": false,
+  "reviewed_source_commit": "738526ec7c06f7ccbaa316eaffce5ec001134921",
+  "retry_bounds": {
+    "max_sweeps_per_runs_invocation": 2,
+    "runs_invocations_per_observation": 2,
+    "max_sweeps_per_observation": 4,
+    "shared_api_calls": 128,
+    "shared_bytes": 33554432,
+    "budget_exhaustion": "unknown; never resets/increases budget"
+  }
+}

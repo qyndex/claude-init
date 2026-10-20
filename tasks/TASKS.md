@@ -2054,3 +2054,11 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   files: .claude/scripts/collect-evidence.sh, .claude/scripts/test/evidence-smoke-isolation.sh, plans/active/003-audit-round2-remediation.md
   accept: bash .claude/scripts/test/evidence-smoke-isolation.sh
   owner: implementer
+
+## Spec029 bounded incomplete-list re-observation
+
+- [x] T-344  | spec:029  | phase:4  | priority: security  | created: 2026-10-20  | deps: T-342  | parallel: yes  | est: 30m
+  summary: Retry one incomplete run-list full sweep using unchanged clocks, request budgets and all observation guards
+  files: .claude/scripts/factory-reporting-queue.py, .claude/scripts/test/factory-reporting-queue-list-retry.sh
+  accept: bash .claude/scripts/test/factory-reporting-queue-list-retry.sh
+  owner: implementer
