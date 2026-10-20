@@ -2072,3 +2072,12 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   plan: plans/active/029-github-reporting-alerts.md
   continuation: docs/activation/2026-10-21/queue-read-time-clock-continuation.md
   owner: implementer
+
+## Spec033 bounded keep-local configuration ownership
+
+- [ ] T-349  | spec:033  | phase:4  | priority: security  | created: 2026-10-21  | deps: T-207  | parallel: yes  | est: 1h
+  summary: Preserve exact approved project-facing configuration through reviewed transactional ownership transfer without weakening other managed-file guards
+  files: .claude/scripts/factory-adopt.py, .claude/scripts/test/factory-adopt-keep-local.sh, docs/FACTORY-ADOPTION.md
+  accept: bash .claude/scripts/test/factory-adopt-keep-local.sh
+  plan: plans/active/033-transactional-harness-adoption.md
+  owner: implementer
