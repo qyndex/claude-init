@@ -2072,3 +2072,21 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   plan: plans/active/029-github-reporting-alerts.md
   continuation: docs/activation/2026-10-21/queue-read-time-clock-continuation.md
   owner: implementer
+
+## Protected native-build sandbox profile — approved local implementation
+
+- [x] T-345  | spec:010  | phase:4  | priority: security  | created: 2026-10-20  | deps: T-274  | parallel: yes  | est: 1h
+  summary: Add protected versioned per-spec native-build scratch execution while retaining strict default and every other isolation/resource/provenance bound
+  files: .claude/scripts/factory-producer.py, .claude/scripts/factory-preflight.py, .claude/scripts/test/factory-native-build-profile.sh
+  accept: bash .claude/scripts/test/factory-native-build-profile.sh
+  owner: implementer
+
+## Spec014 additive native-source receipt profile — approved local scope
+
+- [x] T-347  | spec:014  | phase:4  | priority: security  | created: 2026-10-21  | deps: T-345  | parallel: yes  | est: 30m
+  summary: Add the exact approved native receipt profile while preserving historical profiles, legacy revisions and revocation/current-task boundaries
+  files: factory/receipt-trust.json, .claude/scripts/test/factory-native-receipt-profile.sh, .claude/scripts/test/factory-native-receipt-campaign.sh
+  accept: bash .claude/scripts/test/factory-native-receipt-profile.sh
+  plan: plans/active/014-authenticated-receipt-recovery.md
+  continuation: docs/activation/2026-10-21/native-receipt-profile-continuation.md
+  owner: implementer

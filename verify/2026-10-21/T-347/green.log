@@ -1,0 +1,7 @@
+# TDD ledger — green — T347
+ledger_format: 2
+timestamp: 2026-10-21T00:04:38+11:00
+command: bash .claude/scripts/test/factory-native-receipt-profile.sh
+exit_code: 0
+---
+16 native additive profile source/history controls passed; no hosted proof

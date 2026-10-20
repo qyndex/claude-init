@@ -1,0 +1,11 @@
+Historical fixture attempt failed: failures=4, errors=10. This was not the valid TDD RED.
+Missing profile handling and fixture setup produced these original failures.
+Exact full raw diagnostic remains losslessly archived; see inventory below.
+{
+  "original_path": "verify/2026-10-20/T-345/initial-fixture-defect.log",
+  "original_bytes": 13958,
+  "original_sha256": "b99fcafc2ce7b2e304dbe59811ac86aa235b621c3c704e096e7efe94964804ba",
+  "archive": "verify/2026-10-20/T-345/initial-fixture-defect.log.gz.b64",
+  "encoding": "gzip-base64",
+  "archive_sha256": "fc63b37f0f6b23e0fdb547148b21d74825f91005449dc8cdca5187ff88bad051"
+}

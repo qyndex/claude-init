@@ -5,7 +5,7 @@ status: approved
 owner: "@codex"
 human_owner: "@operator"
 created: 2026-10-09
-updated: 2026-10-16
+updated: 2026-10-20
 complexity: L
 objective: KR-PLATFORM
 service_tier: T2
@@ -28,3 +28,11 @@ Implementation scope authorized by the operator's instruction to complete the fa
 ## Activation dependencies
 
 Default producers stay disabled until App installation, reviewed runtime/image/command/spec pins, working reviewer capacity, required check registration and live shadow proof are available. Keep merge_enabled false throughout shadow testing. The operator selected the existing subscription after its quota resets; API fallback is not authorized.
+
+## Approved native-build profile amendment — T345 — 2026-10-20
+
+The operator approved implementation and local verification of optionA in docs/activation/2026-10-20/native-build-profile-proposal.md. This refines AC2 without activating policy or changing its isolation/resource requirements. A registered protected-main per-spec sandbox_profile may select only strict-interpreted-v1 or native-build-v1. Omission remains strict-interpreted-v1 for existing policies. Unknown values, non-string settings or arbitrary Docker-option values fail before candidate execution. Candidate files, event metadata and environment variables cannot select a profile.
+
+Both profiles explicitly preserve networknone, read-only root, UID/GID65532, capdropALL, no-new-privileges, existing seccomp behavior, scratch-only nosuid/nodev,2GiBmemory/2CPU/pids256,1GiBscratch and a read-only candidate mount without host sockets, credentials or private state. Strict scratch remains noexec; only the separately protected native-build registration makes scratch exec. This removes only scratch-path defence in depth for explicitly registered work; strict noexec is not a guarantee against all native execution through the existing candidate bind or loader paths. The Docker container remains the candidate-code execution boundary. Image/command pins, source/provenance/policy-hash bindings and all existing gates remain unchanged.
+
+Local genuine execution/isolation probes and exact application commands establish only their observed outcomes. A later font-network, dependency, resource or build failure remains failed/pending rather than waived. No registry publication, workflow dispatch, merge, live profile/policy/trust activation, credentials, network fallback or budget increase is authorized by this amendment. Existing failed/unproven observations remain historical.
