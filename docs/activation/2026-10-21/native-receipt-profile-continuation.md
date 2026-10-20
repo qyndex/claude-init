@@ -16,3 +16,5 @@ Publication, merge, protection changes, profile activation and protected signing
 remain separately pending. The eventual cutover changes preflight, policy and
 receipt-trust pins; unchanged-runtime maintenance cannot restore this upgrade.
 No application profile, image, budget, provider or acceptance command is assigned.
+
+Canonical implementation plan: `plans/active/014-authenticated-receipt-recovery.md`.

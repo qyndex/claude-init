@@ -54,4 +54,4 @@ This continuation approves source implementation and local tests only. Native
 signing, retained replay, publication, merge and protected cutover remain pending
 separate reviewed authorization. Local source fixtures are not signed proof.
 
-Implementation plan: `plans/active/014-native-receipt-profile-continuation.md`.
+Implementation plan: `docs/activation/2026-10-21/native-receipt-profile-continuation.md`.

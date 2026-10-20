@@ -2077,4 +2077,6 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   summary: Add the exact approved native receipt profile while preserving historical profiles, legacy revisions and revocation/current-task boundaries
   files: factory/receipt-trust.json, .claude/scripts/test/factory-native-receipt-profile.sh, .claude/scripts/test/factory-native-receipt-campaign.sh
   accept: bash .claude/scripts/test/factory-native-receipt-profile.sh
+  plan: plans/active/014-authenticated-receipt-recovery.md
+  continuation: docs/activation/2026-10-21/native-receipt-profile-continuation.md
   owner: implementer
