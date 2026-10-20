@@ -37,5 +37,14 @@
     }
   },
   "live_root_cause_identified": false,
-  "live_recovery_proven": false
+  "live_recovery_proven": false,
+  "reviewed_source_commit": "738526ec7c06f7ccbaa316eaffce5ec001134921",
+  "retry_bounds": {
+    "max_sweeps_per_runs_invocation": 2,
+    "runs_invocations_per_observation": 2,
+    "max_sweeps_per_observation": 4,
+    "shared_api_calls": 128,
+    "shared_bytes": 33554432,
+    "budget_exhaustion": "unknown; never resets/increases budget"
+  }
 }
