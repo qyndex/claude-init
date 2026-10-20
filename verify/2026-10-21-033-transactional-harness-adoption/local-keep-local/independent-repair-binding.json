@@ -1,0 +1,44 @@
+{
+  "source": "8a54b5a",
+  "base": "d948cbe29aeaefd998770343245da4ca6f95a1b0",
+  "findings": [
+    "target HEAD could drift after plan preflight",
+    "reviewed upstream absence was not expressible"
+  ],
+  "red": {
+    "tests": 26,
+    "exit": 1,
+    "failures": 2,
+    "errors": 1
+  },
+  "green": {
+    "tests": 27,
+    "exit": 0
+  },
+  "regression_initial_failure": "unborn normal target HEAD was unavailable; changed identity helper supports unborn normal adoption and requires committed identity for resolution",
+  "legacy_adoption_final_exit": 0,
+  "installer_final_exit": 0,
+  "encoded_failures": {
+    "independent-repair-RED.log": {
+      "original_bytes": 7341,
+      "sha256": "46fa8e41468408c664d5cc2354524dc73e381af1596dea12ced43317e0a8cf4e",
+      "encoded_sha256": "6e70a1c5cf03a00b6719489762a3104203255f78109564fbb81e766a0d162f62"
+    },
+    "regression-adopt-repair.log": {
+      "original_bytes": 1849,
+      "sha256": "b2759421beaa0eca06c7aa9e11acd6fa4cb8047f4c57d8d1fbf10ab462404250",
+      "encoded_sha256": "fd9c9414517b0ae4a1c56ac0e6ceaa8cf7917e1193abbb6dd2eb9d552a2e3d26"
+    }
+  },
+  "full_acceptance": {
+    "exit": 1,
+    "commit": "8a54b5ae6f2457d037ec821463d705052b738ff8",
+    "proven": 0,
+    "total": 6,
+    "smoke": 0,
+    "runner": 0,
+    "verdict": "FAIL"
+  },
+  "native_receipt": false,
+  "actual_adopter_apply": false
+}
