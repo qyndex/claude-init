@@ -53,3 +53,5 @@ historical rendering never grants current runtime or merge credit.
 This continuation approves source implementation and local tests only. Native
 signing, retained replay, publication, merge and protected cutover remain pending
 separate reviewed authorization. Local source fixtures are not signed proof.
+
+Implementation plan: `plans/active/014-native-receipt-profile-continuation.md`.
