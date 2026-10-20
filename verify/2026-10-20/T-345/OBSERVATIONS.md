@@ -11,3 +11,9 @@ Raw probe logs and scripts are losslessly stored in native-probes/raw-observatio
 The local cutover package is proposal-only: no live profile registration, image publication, workflow dispatch, merge, source-policy activation, protected key/state read or budget change. Existing strict behavior was Docker's default; this change makes its noexec/nodev options explicit. Protected native-build selection removes only scratch noexec, not the container boundary. Full Spec010/native attestation remains unproven until actually observed in the approved protected producer chain.
 
 Required full unskipped010 collector at9c250cd returned FAIL0/5 with smoke0 after supplying the supported VERIFY_BASE=actualmerged9e60. The initial same command could not discover main in this isolated local clone and failed only task-base selection (0/5/smoke1); its complete metadata and exact raw smoke are retained, without treating that setup failure as application RED. raw-smoke-encoded.json reconstructs the original smoke.out by validated base64 decode plus SHA256. No gate was skipped. FullSpec010 and native cryptographic acceptance remain unproven.
+
+Later additive-profile packaging: the two historical encoded JSON containers
+now have readable pointers to deterministic gzip/base64 archives. Decode the
+outer archive and validate its original length/SHA before following the original
+inner instructions. Historical manifests continue to bind those exact original
+bytes. No source, finding, canonical collector block or TDD log was removed.

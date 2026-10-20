@@ -9,8 +9,10 @@ the preserved merge profile. Actual reporting source e095a23 is unavailable in
 local Git; its source replay remains pending. Its exact registry bytes and
 reporting annotations remain preserved, not reconstructed from hashes.
 
-New source fixtures are not hosted signatures. Generic Spec014 collector and
-full harness have not run on this candidate; no overall acceptance claim.
+New source fixtures are not hosted signatures. First full collectors ran at475cd0e:0100/5 and0140/8, smoke1 because
+TDD folder was namedT347 instead ofT-347. Original logs are retained.
+Folder correction preserves genuine RED/GREEN observations; collectors rerun.
+The full harness has not run on this candidate; no overall acceptance claim.
 Existing window checkpoints may rebind trust; staged reconstruction binds a
 campaign digest. An additive digest cannot relabel an old stage prefix.
 
