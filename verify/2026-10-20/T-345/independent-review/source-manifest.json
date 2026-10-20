@@ -1,0 +1,57 @@
+{
+  "base": "9e60a678b4cf7b6ccd8b9963bad0656fbea24ff3",
+  "head": "e3b76e2413286f8e0ee034909d67970aa3085cc9",
+  "files": [
+    {
+      "path": ".claude/scripts/factory-producer.py",
+      "sha256": "c40659e142a13cbe3daf4a7152c0b4b1d69a9e79696136f61e40f5031c1891c3"
+    },
+    {
+      "path": ".claude/scripts/factory-preflight.py",
+      "sha256": "7cda232eb703ab6b23588396b9db8a3bae9aded440513fb9ace394d01acd0780"
+    },
+    {
+      "path": ".claude/scripts/test/factory-native-build-profile.sh",
+      "sha256": "a05a785636c1d555fe3eee3aaeba0daeb6ab9db5661eb5e551b2f08ec4576ced"
+    },
+    {
+      "path": ".claude/scripts/test/factory-producers.sh",
+      "sha256": "a54f6f78aa244d341774d01a8c80543d291c1cbbe44f4b999db1f3c229976d19"
+    },
+    {
+      "path": "factory/policy.json",
+      "sha256": "451cfde2e6bd827afc3b40f48dbc459f4ecb2a85a0383ec6ed62de9063cc2330"
+    },
+    {
+      "path": "specs/active/010-protected-proof-producers.md",
+      "sha256": "a866d2f9ae8843ab01a999aa447cec2bd4e3958ed8218f24ecdd78dc59ebf8b4"
+    },
+    {
+      "path": "plans/active/010-protected-proof-producers.md",
+      "sha256": "1df85198c8c98baab9c016d085bbf85d8c8a06c24ee46ecadf4f932be6858035"
+    },
+    {
+      "path": "docs/FACTORY-PRODUCERS.md",
+      "sha256": "71cb7a051989cb179e2fe89be84be7444f9adbd5319f10eb542ea7bf071ae277"
+    },
+    {
+      "path": ".claude/scripts/factory-coordinator.py",
+      "sha256": "2598e434b9058ff56ae8781b8337653655c8e99de43a71b346fff86cea36fa00"
+    },
+    {
+      "path": ".claude/scripts/factory-provenance.py",
+      "sha256": "0b169e5fefa78ee683ecf3aaf13bfce975929b113ff3d1052a59a95cc3077b01"
+    },
+    {
+      "path": ".claude/scripts/validate-candidate-evidence.py",
+      "sha256": "ad0be5042d8dce5e0372159bbcbdbb84bc39b96e57435865eb62e7e5d4d0b52c"
+    },
+    {
+      "path": ".github/workflows/factory-verification.yml",
+      "sha256": "1ec9a5a9f2b3b30934814832b47a5da667782d529f1b504fe562141042de137c"
+    }
+  ],
+  "prompt_sha256": "5c3f4349211351a579a3d49376bed48a023187e4ac29f2abe8e7ef78b904b2ee",
+  "candidate_code_executed": false,
+  "native_acceptance": false
+}
