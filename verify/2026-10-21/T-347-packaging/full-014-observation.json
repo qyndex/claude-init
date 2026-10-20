@@ -1,0 +1,40 @@
+{
+  "source": "a3f1134962fb8a4a1c64e19536d0046d688abcc9",
+  "command": "bash .claude/scripts/collect-evidence.sh 014",
+  "exit": 1,
+  "node": "24.13.1",
+  "verify_base": "c7b13f0f15c535a0df9b4ae6d76d19db4e6a3838",
+  "evidence": {
+    "spec": "014",
+    "commit": "a3f1134962fb8a4a1c64e19536d0046d688abcc9",
+    "generated_at": "2026-10-21T01:23:31+11:00",
+    "results_file": "verify/2026-10-21-014-authenticated-receipt-recovery/attempt-senZtgAB/results.json",
+    "results_sha256": "",
+    "ac_total": 8,
+    "ac_proven": 0,
+    "ac_unproven": [
+      "AC-1",
+      "AC-2",
+      "AC-3",
+      "AC-4",
+      "AC-5",
+      "AC-6",
+      "AC-7",
+      "AC-8"
+    ],
+    "smoke_exit_max": 0,
+    "runner_exit": 0,
+    "coverage": {
+      "line": "?",
+      "branch": "?"
+    },
+    "verdict": "FAIL"
+  },
+  "raw_smoke_bytes": 21827,
+  "raw_smoke_sha256": "e85f4344b8a8d0cd72b1e05c1b75aa53cbd47ab101b3a06f7da8b675811c46d8",
+  "archive_encoding": "gzip-base64",
+  "archive_file_sha256": "23e3946cc07f838fb0bd93fc899d9feed62469ad032894dae6697306cc2150f1",
+  "verify_exit": 0,
+  "native_CI": "PENDING",
+  "rebase_onto_actual_clock_merge": "PENDING"
+}

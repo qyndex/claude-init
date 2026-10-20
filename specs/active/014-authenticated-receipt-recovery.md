@@ -39,3 +39,19 @@ does not approve live state-policy cutover, archive bootstrap or merge enabling.
 ## Approved operational-proof boundary — 2026-10-17
 
 The operator approved the Spec029 historical operational-proof amendment. Compact authenticated operational records may use each repository's existing protected state branch, with a distinct purpose/schema/namespace and native attestation. They are not delivery receipts or coverage facts and cannot grant current-task credit, merge/production authority or current readiness. Existing delivery receipt semantics and private-feedback isolation remain unchanged. Detailed requirements and verification are in Spec029 AC-9 and its approved amendment.
+
+### Approved native-source profile continuation (2026-10-21)
+
+The additive `merge-native-source-20261020` profile binds canonical policy
+`dbf0609bde476f00384b4ada98a7e08c71b33bb1d27f17c2e52262b0cf6b7ba0` and the
+exact seven-file receipt emitter closure. Preserve both original profiles and
+legacy revisions verbatim. A normal source upgrade does not revoke old history.
+Reject missing, mismatched, ambiguous or revoked profiles; a renamed active alias
+cannot override a matching revocation. Current spec/task checks remain required;
+historical rendering never grants current runtime or merge credit.
+
+This continuation approves source implementation and local tests only. Native
+signing, retained replay, publication, merge and protected cutover remain pending
+separate reviewed authorization. Local source fixtures are not signed proof.
+
+Implementation plan: `docs/activation/2026-10-21/native-receipt-profile-continuation.md`.

@@ -1,0 +1,42 @@
+{
+  "model_requested": "claude-sonnet-5-5",
+  "argv": [
+    "/Users/shravanjha/.local/bin/claude",
+    "--print",
+    "--model",
+    "claude-sonnet-5-5",
+    "--effort",
+    "medium",
+    "--tools",
+    "",
+    "--strict-mcp-config",
+    "--mcp-config",
+    "{\"mcpServers\":{}}",
+    "--setting-sources",
+    "",
+    "--disable-slash-commands",
+    "--no-session-persistence",
+    "--max-turns",
+    "1",
+    "--output-format",
+    "json"
+  ],
+  "prompt_sha256": "5c3f4349211351a579a3d49376bed48a023187e4ac29f2abe8e7ef78b904b2ee",
+  "environment_keys_allowed": [
+    "HOME",
+    "LANG",
+    "LC_ALL",
+    "LC_CTYPE",
+    "LOGNAME",
+    "PATH",
+    "SHELL",
+    "TERM",
+    "TMPDIR",
+    "USER"
+  ],
+  "credential_route": "existing local subscription session; no API key/fallback supplied",
+  "candidate_code_executed": false,
+  "native_acceptance": false,
+  "exit": 0,
+  "elapsed_seconds": 90.328
+}

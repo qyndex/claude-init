@@ -1,0 +1,19 @@
+# T345 bounded native-build implementation/local verification
+
+Seven local profile controls and42 producer regressions pass. The absent-profile verify path is strict; protected policy native selection, candidate/event/environment spoofing rejection, unknown inputs, retained observation/profile hashing and canonical policy-tamper binding are tested. Preflight's original stale producer-pin rejection is retained; only both exact producer hashes were refreshed locally and every other policy field remains unchanged. A new policy hash requires a separate concrete live cutover decision.
+
+Independent actual Linux execution used source d68e8df08925de178ff261a6695e6b8469ede489. Its producerSHA256 c40659e142a13cbe3daf4a7152c0b4b1d69a9e79696136f61e40f5031c1891c3 is unchanged in subsequent local source-pin/proof commits. Source-generated strict scratch denies copied ELF execution with EACCES13; native scratch executes it with exit0. Both retain UID/GID65532, readonly-root EROFS30, network ENETUNREACH101, rawsocket EPERM1, CapEff0, NoNewPrivs1, Seccomp2,2GiB memory/2CPU/pids256/1GiB tmpfs. Exact source-generated argv and outcomes are retained.
+
+The actual brownfield image freshly installed430 locked packages offline. Exact lint/typecheck/test:coverage passed (58unit tests,97.94line/94branch). Exact npmrunbuild failed1 on actual GoogleInter font fetch under networknone, not timeout/OOM/ENOSPC; browser was not run after build failed. No mockfonts, network fallback, resource increase or successful application/native factory acceptance is claimed. The initial driver duplicate-mkdir setup defect is retained separately and is not application RED. The implementation/isolation task is complete locally; brownfield protected build/acceptance remains blocked by the observed font dependency.
+
+Raw probe logs and scripts are losslessly stored in native-probes/raw-observations-encoded.json to preserve original whitespace. For each row, base64-decode with validation to an absent output directory using its path, then require SHA256 equals sha256. All18 actual originals and the independent manifest were checked. summary.json and README.md are readable verbatim views. No public upload is authorized here.
+
+The local cutover package is proposal-only: no live profile registration, image publication, workflow dispatch, merge, source-policy activation, protected key/state read or budget change. Existing strict behavior was Docker's default; this change makes its noexec/nodev options explicit. Protected native-build selection removes only scratch noexec, not the container boundary. Full Spec010/native attestation remains unproven until actually observed in the approved protected producer chain.
+
+Required full unskipped010 collector at9c250cd returned FAIL0/5 with smoke0 after supplying the supported VERIFY_BASE=actualmerged9e60. The initial same command could not discover main in this isolated local clone and failed only task-base selection (0/5/smoke1); its complete metadata and exact raw smoke are retained, without treating that setup failure as application RED. raw-smoke-encoded.json reconstructs the original smoke.out by validated base64 decode plus SHA256. No gate was skipped. FullSpec010 and native cryptographic acceptance remain unproven.
+
+Later additive-profile packaging: the two historical encoded JSON containers
+now have readable pointers to deterministic gzip/base64 archives. Decode the
+outer archive and validate its original length/SHA before following the original
+inner instructions. Historical manifests continue to bind those exact original
+bytes. No source, finding, canonical collector block or TDD log was removed.

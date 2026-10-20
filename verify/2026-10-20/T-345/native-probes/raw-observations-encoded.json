@@ -1,0 +1,12 @@
+{
+  "historical_lossless_archive": {
+    "original_path": "verify/2026-10-20/T-345/native-probes/raw-observations-encoded.json",
+    "original_bytes": 43130,
+    "original_sha256": "5a1e51694e87f9af867ba5a934ec5fe6d6cb7f6c62ad1f7e2fb1bf16ac831438",
+    "archive": "verify/2026-10-20/T-345/native-probes/raw-observations-encoded.json.gz.b64",
+    "encoding": "gzip-base64",
+    "archive_sha256": "bd374a79d912da5d78430af1426c14b8175a46fbde7cdbdce023a4d91493dec3",
+    "historical_source": "5fd4dd76801fe707278403132181c7a4e8c9492c"
+  },
+  "notice": "Decode archive, verify original length and SHA256, then parse original JSON. Historical manifests bind original decoded bytes, not this pointer. No observation was rerun or relabelled."
+}

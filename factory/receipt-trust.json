@@ -29,6 +29,20 @@
         ".claude/scripts/factory-bounded-process.py": "91d077e6badb7c606a31cf85d8fbb8315b91d9d211b4fe1ab8fb970693207f47",
         ".claude/scripts/factory-policy-observation.py": "2fce0d7b6fda425dce97ee77cdccede155a16d93a2c2d4e588c7816e976a8dee"
       }
+    },
+    {
+      "id": "merge-native-source-20261020",
+      "status": "active",
+      "policy_sha256": "dbf0609bde476f00384b4ada98a7e08c71b33bb1d27f17c2e52262b0cf6b7ba0",
+      "runtime": {
+        ".github/workflows/factory-merge.yml": "850c637ad6c2820eb64a7c432348d93fe85f90b134d2ea4601c4cca3e1c19f2d",
+        ".claude/scripts/factory-coordinator.py": "2598e434b9058ff56ae8781b8337653655c8e99de43a71b346fff86cea36fa00",
+        ".claude/scripts/factory-preflight.py": "7cda232eb703ab6b23588396b9db8a3bae9aded440513fb9ace394d01acd0780",
+        ".claude/scripts/validate-candidate-evidence.py": "ad0be5042d8dce5e0372159bbcbdbb84bc39b96e57435865eb62e7e5d4d0b52c",
+        ".claude/scripts/factory-provenance.py": "0b169e5fefa78ee683ecf3aaf13bfce975929b113ff3d1052a59a95cc3077b01",
+        ".claude/scripts/factory-bounded-process.py": "91d077e6badb7c606a31cf85d8fbb8315b91d9d211b4fe1ab8fb970693207f47",
+        ".claude/scripts/factory-policy-observation.py": "2fce0d7b6fda425dce97ee77cdccede155a16d93a2c2d4e588c7816e976a8dee"
+      }
     }
   ],
   "legacy_revisions": {}

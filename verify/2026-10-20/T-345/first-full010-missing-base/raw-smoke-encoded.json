@@ -1,0 +1,12 @@
+{
+  "historical_lossless_archive": {
+    "original_path": "verify/2026-10-20/T-345/first-full010-missing-base/raw-smoke-encoded.json",
+    "original_bytes": 27366,
+    "original_sha256": "a4e360317067fb9ce5d6d07e0784524309b36447c8b11c91d4759372c9b40349",
+    "archive": "verify/2026-10-20/T-345/first-full010-missing-base/raw-smoke-encoded.json.gz.b64",
+    "encoding": "gzip-base64",
+    "archive_sha256": "c676849f4d59db670d755a6c089e42a74318afae13aaf9f901d4675bbd50fee9",
+    "historical_source": "5fd4dd76801fe707278403132181c7a4e8c9492c"
+  },
+  "notice": "Decode archive, verify original length and SHA256, then parse original JSON. Historical manifests bind original decoded bytes, not this pointer. No observation was rerun or relabelled."
+}

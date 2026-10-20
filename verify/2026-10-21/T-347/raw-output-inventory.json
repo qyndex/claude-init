@@ -1,0 +1,60 @@
+[
+  {
+    "original_path": "verify/2026-10-20/T-345/native-probes/raw-observations-encoded.json",
+    "original_bytes": 43130,
+    "original_sha256": "5a1e51694e87f9af867ba5a934ec5fe6d6cb7f6c62ad1f7e2fb1bf16ac831438",
+    "archive": "verify/2026-10-20/T-345/native-probes/raw-observations-encoded.json.gz.b64",
+    "encoding": "gzip-base64",
+    "archive_sha256": "bd374a79d912da5d78430af1426c14b8175a46fbde7cdbdce023a4d91493dec3",
+    "historical_source": "5fd4dd76801fe707278403132181c7a4e8c9492c"
+  },
+  {
+    "original_path": "verify/2026-10-20/T-345/first-full010-missing-base/raw-smoke-encoded.json",
+    "original_bytes": 27366,
+    "original_sha256": "a4e360317067fb9ce5d6d07e0784524309b36447c8b11c91d4759372c9b40349",
+    "archive": "verify/2026-10-20/T-345/first-full010-missing-base/raw-smoke-encoded.json.gz.b64",
+    "encoding": "gzip-base64",
+    "archive_sha256": "c676849f4d59db670d755a6c089e42a74318afae13aaf9f901d4675bbd50fee9",
+    "historical_source": "5fd4dd76801fe707278403132181c7a4e8c9492c"
+  },
+  {
+    "original_path": "verify/2026-10-20/T-345/initial-fixture-defect.log",
+    "original_bytes": 13958,
+    "original_sha256": "b99fcafc2ce7b2e304dbe59811ac86aa235b621c3c704e096e7efe94964804ba",
+    "archive": "verify/2026-10-20/T-345/initial-fixture-defect.log.gz.b64",
+    "encoding": "gzip-base64",
+    "archive_sha256": "fc63b37f0f6b23e0fdb547148b21d74825f91005449dc8cdca5187ff88bad051"
+  },
+  {
+    "original_path": "verify/2026-10-21-010-protected-proof-producers/attempt-98gKaDrD/smoke.out",
+    "original_bytes": 21820,
+    "original_sha256": "747fe74b51376d958da7588f93ee5d651a92a41877783b6778870a7aa8678cbc",
+    "archive": "verify/2026-10-21/T-347/collector-raw-smokes.json.gz.b64",
+    "encoding": "gzip-base64 JSON rows with individually base64-encoded raw outputs",
+    "archive_sha256": "7f2d15018d3feb67094a22eacd890a9d888a37b9d711d1bf51d3181643df9715"
+  },
+  {
+    "original_path": "smoke.out",
+    "original_bytes": 21901,
+    "original_sha256": "efaae3e9e2065b5399197e9bea61c8b333297e8a667ac216d0f579ca4d30e3c9",
+    "archive": "verify/2026-10-21/T-347/collector-raw-smokes.json.gz.b64",
+    "encoding": "gzip-base64 JSON rows with individually base64-encoded raw outputs",
+    "archive_sha256": "7f2d15018d3feb67094a22eacd890a9d888a37b9d711d1bf51d3181643df9715"
+  },
+  {
+    "original_path": "verify/2026-10-21-014-authenticated-receipt-recovery/attempt-Im7iQnAS/smoke.out",
+    "original_bytes": 21820,
+    "original_sha256": "b5cd776c54a315b52baaf8523c3d76199c7bb97226f3adca1035942251a7d31c",
+    "archive": "verify/2026-10-21/T-347/collector-raw-smokes.json.gz.b64",
+    "encoding": "gzip-base64 JSON rows with individually base64-encoded raw outputs",
+    "archive_sha256": "7f2d15018d3feb67094a22eacd890a9d888a37b9d711d1bf51d3181643df9715"
+  },
+  {
+    "original_path": "smoke.out",
+    "original_bytes": 21901,
+    "original_sha256": "2a9665bcee380ad1f7fd82575f26951c15d009ba987050b67724ca19b6f8ecc5",
+    "archive": "verify/2026-10-21/T-347/collector-raw-smokes.json.gz.b64",
+    "encoding": "gzip-base64 JSON rows with individually base64-encoded raw outputs",
+    "archive_sha256": "7f2d15018d3feb67094a22eacd890a9d888a37b9d711d1bf51d3181643df9715"
+  }
+]
