@@ -98,7 +98,15 @@ def validate_manifest(document):
     overrides=document.get('local_overrides',{})
     require(isinstance(overrides,dict) and not set(overrides)&set(document['files']),'ownership override overlap')
     for path,value in overrides.items():
-        require(path in KEEP_LOCAL and isinstance(value,dict) and set(value)=={'original_owned','reviewed_local','reviewed_upstream','source_sha','plan_sha256'} and valid_fingerprint(value['original_owned']) and valid_fingerprint(value['reviewed_local'],True) and valid_fingerprint(value['reviewed_upstream']) and isinstance(value['source_sha'],str) and re.fullmatch(r'[a-f0-9]{40}',value['source_sha']) and isinstance(value['plan_sha256'],str) and re.fullmatch(r'[a-f0-9]{64}',value['plan_sha256']),'ownership override invalid')
+        require(path in KEEP_LOCAL and isinstance(value,dict) and set(value)=={'original_owned','reviewed_local','reviewed_upstream','source_sha','plan_sha256'} and valid_fingerprint(value['original_owned']) and valid_fingerprint(value['reviewed_local'],True) and (value['reviewed_upstream'] is None or valid_fingerprint(value['reviewed_upstream'])) and isinstance(value['source_sha'],str) and re.fullmatch(r'[a-f0-9]{40}',value['source_sha']) and isinstance(value['plan_sha256'],str) and re.fullmatch(r'[a-f0-9]{64}',value['plan_sha256']),'ownership override invalid')
+
+
+def repository_identity(target):
+    common=Path(subprocess.check_output(['git','-C',str(target),'rev-parse','--git-common-dir'],text=True).strip())
+    if not common.is_absolute():common=target/common
+    head=subprocess.run(['git','-C',str(target),'rev-parse','--verify','--quiet','HEAD'],text=True,capture_output=True)
+    require(head.returncode in {0,1},'target HEAD unavailable')
+    return {'git_common_dir':str(common.resolve()),'head_sha':head.stdout.strip() if head.returncode==0 else None}
 
 
 def resolution(source,target,revision,files,old,manifest_path,plan,approval,upgrade):
@@ -115,13 +123,12 @@ def resolution(source,target,revision,files,old,manifest_path,plan,approval,upgr
             require(key not in result,'duplicate resolution field');result[key]=value
         return result
     doc=json.loads(raw,object_pairs_hook=pairs)
-    common=Path(subprocess.check_output(['git','-C',str(target),'rev-parse','--git-common-dir'],text=True).strip())
-    if not common.is_absolute():common=target/common
-    identity={'git_common_dir':str(common.resolve()),'head_sha':subprocess.check_output(['git','-C',str(target),'rev-parse','HEAD'],text=True).strip()}
+    identity=repository_identity(target)
+    require(isinstance(identity['head_sha'],str) and re.fullmatch(r'[a-f0-9]{40}',identity['head_sha']),'resolution requires committed target identity')
     require(isinstance(doc,dict) and set(doc)=={'schema_version','source_sha','target','repository','manifest','entries'} and type(doc['schema_version']) is int and doc['schema_version']==1 and doc['source_sha']==revision and doc['target']==str(target) and doc['repository']==identity and doc['manifest']==fingerprint(image(manifest_path)) and valid_fingerprint(doc['manifest']) and isinstance(doc['entries'],dict) and 1<=len(doc['entries'])<=3,'stale or invalid resolution identity')
     for name,entry in doc['entries'].items():
         original=old['files'].get(name) or old.get('local_overrides',{}).get(name,{}).get('original_owned')
-        require(name in KEEP_LOCAL and isinstance(entry,dict) and set(entry)=={'action','owned','current','upstream'} and entry['action']=='keep-local' and original is not None and entry['owned']==original and valid_fingerprint(entry['owned']) and valid_fingerprint(entry['current'],True) and entry['current']==fingerprint(image(safe(target,name))) and valid_fingerprint(entry['upstream']) and entry['upstream']==fingerprint(files.get(name)),'stale or invalid resolution entry')
+        require(name in KEEP_LOCAL and isinstance(entry,dict) and set(entry)=={'action','owned','current','upstream'} and entry['action']=='keep-local' and original is not None and entry['owned']==original and valid_fingerprint(entry['owned']) and valid_fingerprint(entry['current'],True) and entry['current']==fingerprint(image(safe(target,name))) and (valid_fingerprint(entry['upstream']) or (entry['upstream'] is None and name in old.get('local_overrides',{}))) and entry['upstream']==fingerprint(files.get(name)),'stale or invalid resolution entry')
     return doc['entries']
 
 
@@ -171,6 +178,8 @@ def adopt(source,target,state_root,upgrade=False,dry=False,check_tools=False,fau
     require(target.is_absolute() and target.resolve()==target and source.is_absolute() and source.resolve()==source and source!=target,'adoption roots invalid')
     actual=Path(subprocess.check_output(['git','-C',str(target),'rev-parse','--show-toplevel'],text=True).strip()).resolve();require(actual==target,'target must be repository root')
     if check_tools:require(all(shutil.which(tool) for tool in ('git','python3','jq')),'required local tools unavailable')
+    repository=repository_identity(target)
+    def guard_repository():require(repository_identity(target)==repository,'target repository identity changed after approval')
     revision,files=package(source);manifest_path=safe(target,MANIFEST);old=load(manifest_path) if manifest_path.exists() else None
     if old is not None:validate_manifest(old)
     entries=resolution(source,target,revision,files,old,manifest_path,resolution_plan,plan_sha256,upgrade)
@@ -199,6 +208,7 @@ def adopt(source,target,state_root,upgrade=False,dry=False,check_tools=False,fau
     desired=json_image(document)
     if image(manifest_path)!=desired:changes[MANIFEST]={'before':image(manifest_path),'after':desired}
     if dry or not changes:return {'source_sha':revision,'changed_files':len(changes),'dry_run':dry,'activation_enabled':False,'kept_local_files':len(overrides)}
+    guard_repository()
     private_state(state_root,target)
     for path in state_root.glob('*.json'):
         existing=load(path)
@@ -213,13 +223,13 @@ def adopt(source,target,state_root,upgrade=False,dry=False,check_tools=False,fau
     if preserved:journal.update(schema_version=2,preserved_local=preserved)
     identity=uuid.uuid4().hex;path=state_root/(identity+'.json');persist(path,journal)
     try:
-        guard_local(target,preserved)
+        guard_repository();guard_local(target,preserved)
         for number,(name,pair) in enumerate(changes.items(),1):
-            guard_local(target,preserved)
+            guard_repository();guard_local(target,preserved)
             require(image(safe(target,name))==pair['before'],'target changed after preflight')
             write(safe(target,name),pair['after'])
             if fault is not None:fault(number)
-        guard_local(target,preserved)
+        guard_repository();guard_local(target,preserved)
         journal['status']='complete';persist(path,journal)
     except BaseException:
         journal['status']='pending';restore(target,journal,path);raise

@@ -77,7 +77,11 @@ writes. Old v1 updaters reject v2 manifests rather than overwriting them. V1
 manifests remain readable. Plans are one-shot: the resulting manifest fingerprint
 changes, so replaying a consumed plan rejects. Ordinary subsequent upgrades omit
 the plan and preserve local owner edits. If upstream changes or removes a reviewed
-configuration path, the upgrade blocks until a new exact plan is reviewed. Missing,
+configuration path, the upgrade blocks until a new exact plan is reviewed. For an
+already transferred path only, reviewed upstream absence is represented by JSON
+`null`; first-time transfers still require a real incoming source fingerprint.
+Reappearance also requires renewed exact review. Repository HEAD/common-directory
+identity is fenced again before target effects, each managed write and completion. Missing,
 unsafe or symlinked local paths always block. The installer never generates its
 own approval, automatically merges configuration, or hand-edits an existing
 ownership manifest.

@@ -204,6 +204,66 @@ class KeepLocal(unittest.TestCase):
         self.assertEqual(result['changed_files'], 0)
         self.assertEqual(m.image(f.target / '.mcp.json'), local)
 
+    def test_repository_head_drift_after_journal_blocks_before_effects(self):
+        f = self.fixture()
+        before = snapshot(f.target)
+        original = m.persist
+        changed = []
+        def persist(path, document):
+            original(path, document)
+            if document['status'] == 'pending' and not changed:
+                git(f.target, 'commit', '--allow-empty', '-m', 'foreign HEAD advance')
+                changed.append(True)
+        m.persist = persist
+        try:
+            with self.assertRaises(ValueError):
+                f.apply()
+        finally:
+            m.persist = original
+        self.assertEqual(snapshot(f.target), before)
+
+    def test_repository_head_drift_before_completion_rolls_back(self):
+        f = self.fixture()
+        before = snapshot(f.target)
+        final_write = f.apply(dry=True)['changed_files']
+        def fault(number):
+            if number == final_write:
+                git(f.target, 'commit', '--allow-empty', '-m', 'foreign HEAD advance')
+        with self.assertRaises(ValueError):
+            f.apply(fault=fault)
+        self.assertEqual(snapshot(f.target), before)
+
+    def test_first_transfer_cannot_approve_missing_upstream(self):
+        f = self.fixture()
+        (f.source / 'CLAUDE.md').unlink()
+        git(f.source, 'add', '-A')
+        git(f.source, 'commit', '-m', 'remove source before transfer')
+        f.document = f.make_plan(['CLAUDE.md'])
+        f.write_plan()
+        self.assert_blocked(f)
+
+    def test_reviewed_upstream_removal_and_reappearance_need_exact_renewal(self):
+        f = self.fixture()
+        f.apply()
+        (f.source / 'CLAUDE.md').unlink()
+        git(f.source, 'add', '-A')
+        git(f.source, 'commit', '-m', 'remove upstream project guidance')
+        self.assert_blocked(f, lambda: m.adopt(f.source, f.target, f.state, upgrade=True))
+        f.document = f.make_plan(['CLAUDE.md'])
+        f.write_plan()
+        f.apply()
+        f.preserved(self)
+        self.assertIsNone(m.load(f.target / m.MANIFEST)['local_overrides']['CLAUDE.md']['reviewed_upstream'])
+        self.assertEqual(m.adopt(f.source, f.target, f.state, upgrade=True)['changed_files'], 0)
+        put(f.source, 'CLAUDE.md', 'new upstream guidance after removal\n')
+        git(f.source, 'add', '.')
+        git(f.source, 'commit', '-m', 'restore upstream project guidance')
+        self.assert_blocked(f, lambda: m.adopt(f.source, f.target, f.state, upgrade=True))
+        f.document = f.make_plan(['CLAUDE.md'])
+        f.write_plan()
+        f.apply()
+        f.preserved(self)
+
     def test_consumed_resolution_plan_is_stale(self):
         f = self.fixture()
         f.apply()
