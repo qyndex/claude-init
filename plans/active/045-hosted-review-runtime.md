@@ -28,3 +28,9 @@ The official model identifier is documented at https://platform.claude.com/docs/
 The architecture agent table must mirror the explicit reviewer model. The documentation consistency parser currently only recognizes major version4 rows; T-273 extends that parser so major5 reviewer rows participate in drift detection. A fixture must prove both a matching5.5 routing pair and rejection of a conflicting5.5 pair while retaining other4.x rows, preventing an empty-map false pass.
 
 The /review skill also declares an Opus model override today. T-273 updates that invocation to the same explicit Sonnet5.5 pin, preserving the separately assigned security agent and other local roles. Acceptance checks both the reviewer definition and actual review skill selection.
+
+## T-346 approved local adapter implementation
+
+1. Add shared fail-closed registered-WOFF2 validator and immutable policy selection; test RED before implementation.
+2. Integrate ordinary complete-context and protected producer/receipt binding; retain unchanged caps and full text.
+3. Test exact real seven asset hashes without font execution, malformed/tampered/unknown assets, BASE/HEAD isolation, legacy text and capacity. Record local evidence and pending hosted qualification; do not activate/register/publish.

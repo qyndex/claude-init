@@ -2099,3 +2099,11 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   accept: bash .claude/scripts/test/factory-adopt-keep-local.sh
   plan: plans/active/033-transactional-harness-adoption.md
   owner: implementer
+
+## Bounded registered font review adapter
+
+- [ ] T-346  | spec:010  | phase:4  | priority: security  | created: 2026-10-20  | deps: T-345  | parallel: yes  | est: 1h
+  summary: Implement protected exact-asset WOFF2 review adapter without relaxing source completeness, review limits or native acceptance
+  files: .claude/scripts/factory-font-adapter.py, .claude/scripts/factory-producer.py, .claude/scripts/prepare-claude-review.py, .claude/scripts/test/factory-font-adapter.py
+  accept: python3 .claude/scripts/test/factory-font-adapter.py
+  owner: implementer

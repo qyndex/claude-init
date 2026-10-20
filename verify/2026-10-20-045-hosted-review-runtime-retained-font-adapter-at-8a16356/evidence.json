@@ -1,0 +1,1 @@
+{"spec":"045","commit":"8a1635644411f823ee7de0c537b807a64361e7fb","generated_at":"2026-10-20T22:41:13+11:00","results_file":"verify/2026-10-20-045-hosted-review-runtime/attempt-BiePn0nk/results.json","results_sha256":"","ac_total":4,"ac_proven":0,"ac_unproven":["AC-1","AC-2","AC-3","AC-4"],"smoke_exit_max":0,"runner_exit":0,"coverage":{"line":"?","branch":"?"},"verdict":"FAIL"}
