@@ -1,0 +1,67 @@
+[
+  {
+    "source_sha": "13ce96b4fd87a4391401a8eb82c817a996932880",
+    "spec": "010",
+    "exit_code": 1,
+    "command": "bash .claude/scripts/collect-evidence.sh 010",
+    "verify_base": "c7b13f0f15c535a0df9b4ae6d76d19db4e6a3838",
+    "node_path": "/Users/shravanjha/.nvm/versions/node/v24.13.1/bin",
+    "evidence": {
+      "spec": "010",
+      "commit": "13ce96b4fd87a4391401a8eb82c817a996932880",
+      "generated_at": "2026-10-21T00:11:32+11:00",
+      "results_file": "verify/2026-10-21-010-protected-proof-producers/attempt-98gKaDrD/results.json",
+      "results_sha256": "",
+      "ac_total": 5,
+      "ac_proven": 0,
+      "ac_unproven": [
+        "AC-1",
+        "AC-2",
+        "AC-3",
+        "AC-4",
+        "AC-5"
+      ],
+      "smoke_exit_max": 0,
+      "runner_exit": 0,
+      "coverage": {
+        "line": "?",
+        "branch": "?"
+      },
+      "verdict": "FAIL"
+    }
+  },
+  {
+    "source_sha": "13ce96b4fd87a4391401a8eb82c817a996932880",
+    "spec": "014",
+    "exit_code": 1,
+    "command": "bash .claude/scripts/collect-evidence.sh 014",
+    "verify_base": "c7b13f0f15c535a0df9b4ae6d76d19db4e6a3838",
+    "node_path": "/Users/shravanjha/.nvm/versions/node/v24.13.1/bin",
+    "evidence": {
+      "spec": "014",
+      "commit": "13ce96b4fd87a4391401a8eb82c817a996932880",
+      "generated_at": "2026-10-21T00:12:15+11:00",
+      "results_file": "verify/2026-10-21-014-authenticated-receipt-recovery/attempt-Im7iQnAS/results.json",
+      "results_sha256": "",
+      "ac_total": 8,
+      "ac_proven": 0,
+      "ac_unproven": [
+        "AC-1",
+        "AC-2",
+        "AC-3",
+        "AC-4",
+        "AC-5",
+        "AC-6",
+        "AC-7",
+        "AC-8"
+      ],
+      "smoke_exit_max": 0,
+      "runner_exit": 0,
+      "coverage": {
+        "line": "?",
+        "branch": "?"
+      },
+      "verdict": "FAIL"
+    }
+  }
+]

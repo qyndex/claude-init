@@ -1,0 +1,41 @@
+{
+  "base": "7977aca93b5050ea00c6a418bb65c2468dd40663",
+  "unchanged_critical_paths": [
+    {
+      "path": "factory/policy.json",
+      "sha256": "451cfde2e6bd827afc3b40f48dbc459f4ecb2a85a0383ec6ed62de9063cc2330",
+      "unchanged": true
+    },
+    {
+      "path": "factory/receipt-trust.json",
+      "sha256": "db49d87ca771d92556a4c4ccee30a603b020860245ed8504bb6828a253da5123",
+      "unchanged": true
+    },
+    {
+      "path": ".claude/scripts/factory-producer.py",
+      "sha256": "c40659e142a13cbe3daf4a7152c0b4b1d69a9e79696136f61e40f5031c1891c3",
+      "unchanged": true
+    },
+    {
+      "path": ".claude/scripts/factory-preflight.py",
+      "sha256": "7cda232eb703ab6b23588396b9db8a3bae9aded440513fb9ace394d01acd0780",
+      "unchanged": true
+    },
+    {
+      "path": ".claude/scripts/factory-reporting-queue.py",
+      "sha256": "b14de4aed0b58d8857451fe7b4c3895f148178019986129373a6847e0f583a71",
+      "unchanged": true
+    },
+    {
+      "path": "README.md",
+      "sha256": "4ededb61baf072c4efb2360e1f5d195ef6937cccd26e3dee9e2cb6a5996dc3bb",
+      "unchanged": true
+    },
+    {
+      "path": "plans/active/014-authenticated-receipt-recovery.md",
+      "sha256": "cc248098b67b82761a02b8677285fcb4b95a8ad729ccbe364a893e340d9798d0",
+      "unchanged": true
+    }
+  ],
+  "clock_readme_T348_excluded": true
+}

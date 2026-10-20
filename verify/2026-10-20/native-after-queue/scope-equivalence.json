@@ -1,0 +1,11 @@
+{
+  "historical_source_equivalence": "Original rebased-native production/test equivalence and full45-file hash inventory retained exactly in archive; no fresh CI credit or source relabeling. Current profile candidate additionally changes receipt-trust only in production.",
+  "archive": {
+    "original_path": "verify/2026-10-20/native-after-queue/scope-equivalence.json",
+    "original_bytes": 15202,
+    "original_sha256": "cb0952d3b7f34693ba08cc10f5b361f7a9372a87fd68c455e0bbdd89768cfb0c",
+    "archive": "verify/2026-10-20/native-after-queue/scope-equivalence.json.gz.b64",
+    "encoding": "gzip-base64",
+    "archive_sha256": "dd42981b79f22f37b6f1fd72625576746d71da0562e0e63720aca95d2aabb693"
+  }
+}

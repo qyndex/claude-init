@@ -1,0 +1,50 @@
+{
+  "observed_source": "e7e356cd6f95424cdeb6ccb41d5f14e84f5143eb",
+  "results": [
+    {
+      "name": "commitlint",
+      "argv": [
+        "/private/tmp/factory-commitlint-deps-20261017/node_modules/.bin/commitlint",
+        "--from",
+        "c7b13f0f15c535a0df9b4ae6d76d19db4e6a3838",
+        "--to",
+        "e7e356cd6f95424cdeb6ccb41d5f14e84f5143eb"
+      ],
+      "returncode": 0
+    },
+    {
+      "name": "trailers",
+      "argv": [
+        "bash",
+        ".claude/scripts/lint-trailers.sh",
+        "c7b13f0f15c535a0df9b4ae6d76d19db4e6a3838",
+        "e7e356cd6f95424cdeb6ccb41d5f14e84f5143eb"
+      ],
+      "returncode": 0
+    },
+    {
+      "name": "profile",
+      "argv": [
+        "bash",
+        ".claude/scripts/test/factory-native-build-profile.sh"
+      ],
+      "returncode": 0
+    },
+    {
+      "name": "producer",
+      "argv": [
+        "bash",
+        ".claude/scripts/test/factory-producers.sh"
+      ],
+      "returncode": 0
+    },
+    {
+      "name": "preflight",
+      "argv": [
+        "bash",
+        ".claude/scripts/test/factory-preflight.sh"
+      ],
+      "returncode": 0
+    }
+  ]
+}
