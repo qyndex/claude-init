@@ -130,6 +130,9 @@ def main():
         if not paths <= set(definition.get('trusted_files', {})):
             missing.append(f'{role} complete transitive runtime hashes')
     for sid, approved in policy.get('specs', {}).items():
+        profile = approved.get('sandbox_profile', 'strict-interpreted-v1')
+        if not isinstance(profile, str) or profile not in ('strict-interpreted-v1', 'native-build-v1'):
+            missing.append(f'spec {sid} supported sandbox profile')
         acs = approved.get('ac_ids', [])
         if not approved.get('path') or not acs or not approved.get('allowed_paths') or set(approved.get('acceptance_commands', {})) != set(acs):
             missing.append(f'spec {sid} bytes, scope and per-AC acceptance commands')

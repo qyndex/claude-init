@@ -1,0 +1,158 @@
+test_changed_profile_invalidates_existing_policy_binding (__main__.ProfileContract.test_changed_profile_invalidates_existing_policy_binding) ... ok
+test_existing_default_is_explicitly_strict_and_environment_cannot_override (__main__.ProfileContract.test_existing_default_is_explicitly_strict_and_environment_cannot_override) ... FAIL
+test_only_native_profile_changes_scratch_exec_and_nothing_else (__main__.ProfileContract.test_only_native_profile_changes_scratch_exec_and_nothing_else) ... ERROR
+test_preflight_reports_unknown_protected_registration (__main__.ProfileContract.test_preflight_reports_unknown_protected_registration) ... FAIL
+test_registered_profile_is_used_and_retained_in_hashed_observation (__main__.ProfileContract.test_registered_profile_is_used_and_retained_in_hashed_observation) ... 
+  test_registered_profile_is_used_and_retained_in_hashed_observation (__main__.ProfileContract.test_registered_profile_is_used_and_retained_in_hashed_observation) (profile='strict-interpreted-v1') ... FAIL
+  test_registered_profile_is_used_and_retained_in_hashed_observation (__main__.ProfileContract.test_registered_profile_is_used_and_retained_in_hashed_observation) (profile='native-build-v1') ... FAIL
+test_unknown_and_arbitrary_option_profiles_reject_before_runner (__main__.ProfileContract.test_unknown_and_arbitrary_option_profiles_reject_before_runner) ... 
+  test_unknown_and_arbitrary_option_profiles_reject_before_runner (__main__.ProfileContract.test_unknown_and_arbitrary_option_profiles_reject_before_runner) (profile='') ... ERROR
+  test_unknown_and_arbitrary_option_profiles_reject_before_runner (__main__.ProfileContract.test_unknown_and_arbitrary_option_profiles_reject_before_runner) (profile=None) ... ERROR
+  test_unknown_and_arbitrary_option_profiles_reject_before_runner (__main__.ProfileContract.test_unknown_and_arbitrary_option_profiles_reject_before_runner) (profile=False) ... ERROR
+  test_unknown_and_arbitrary_option_profiles_reject_before_runner (__main__.ProfileContract.test_unknown_and_arbitrary_option_profiles_reject_before_runner) (profile={}) ... ERROR
+  test_unknown_and_arbitrary_option_profiles_reject_before_runner (__main__.ProfileContract.test_unknown_and_arbitrary_option_profiles_reject_before_runner) (profile=[]) ... ERROR
+  test_unknown_and_arbitrary_option_profiles_reject_before_runner (__main__.ProfileContract.test_unknown_and_arbitrary_option_profiles_reject_before_runner) (profile={'tmpfs': 'exec'}) ... ERROR
+  test_unknown_and_arbitrary_option_profiles_reject_before_runner (__main__.ProfileContract.test_unknown_and_arbitrary_option_profiles_reject_before_runner) (profile='native-build-v2') ... ERROR
+  test_unknown_and_arbitrary_option_profiles_reject_before_runner (__main__.ProfileContract.test_unknown_and_arbitrary_option_profiles_reject_before_runner) (profile='native-build-v1 --privileged') ... ERROR
+  test_unknown_and_arbitrary_option_profiles_reject_before_runner (__main__.ProfileContract.test_unknown_and_arbitrary_option_profiles_reject_before_runner) (profile='--network=host') ... ERROR
+
+======================================================================
+ERROR: test_only_native_profile_changes_scratch_exec_and_nothing_else (__main__.ProfileContract.test_only_native_profile_changes_scratch_exec_and_nothing_else)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<stdin>", line 16, in test_only_native_profile_changes_scratch_exec_and_nothing_else
+  File "<stdin>", line 10, in command
+TypeError: sandbox_command() got an unexpected keyword argument 'profile'
+
+======================================================================
+ERROR: test_unknown_and_arbitrary_option_profiles_reject_before_runner (__main__.ProfileContract.test_unknown_and_arbitrary_option_profiles_reject_before_runner) (profile='')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<stdin>", line 27, in test_unknown_and_arbitrary_option_profiles_reject_before_runner
+  File "/private/tmp/factory-native-build-profile-20261020/.claude/scripts/factory-producer.py", line 134, in verify
+    return dict(binding, acceptance=observations, verification={'actor': actor, 'head_sha': binding['head_sha'],
+                                                                                            ~~~~~~~^^^^^^^^^^^^
+KeyError: 'head_sha'
+
+======================================================================
+ERROR: test_unknown_and_arbitrary_option_profiles_reject_before_runner (__main__.ProfileContract.test_unknown_and_arbitrary_option_profiles_reject_before_runner) (profile=None)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<stdin>", line 27, in test_unknown_and_arbitrary_option_profiles_reject_before_runner
+  File "/private/tmp/factory-native-build-profile-20261020/.claude/scripts/factory-producer.py", line 134, in verify
+    return dict(binding, acceptance=observations, verification={'actor': actor, 'head_sha': binding['head_sha'],
+                                                                                            ~~~~~~~^^^^^^^^^^^^
+KeyError: 'head_sha'
+
+======================================================================
+ERROR: test_unknown_and_arbitrary_option_profiles_reject_before_runner (__main__.ProfileContract.test_unknown_and_arbitrary_option_profiles_reject_before_runner) (profile=False)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<stdin>", line 27, in test_unknown_and_arbitrary_option_profiles_reject_before_runner
+  File "/private/tmp/factory-native-build-profile-20261020/.claude/scripts/factory-producer.py", line 134, in verify
+    return dict(binding, acceptance=observations, verification={'actor': actor, 'head_sha': binding['head_sha'],
+                                                                                            ~~~~~~~^^^^^^^^^^^^
+KeyError: 'head_sha'
+
+======================================================================
+ERROR: test_unknown_and_arbitrary_option_profiles_reject_before_runner (__main__.ProfileContract.test_unknown_and_arbitrary_option_profiles_reject_before_runner) (profile={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<stdin>", line 27, in test_unknown_and_arbitrary_option_profiles_reject_before_runner
+  File "/private/tmp/factory-native-build-profile-20261020/.claude/scripts/factory-producer.py", line 134, in verify
+    return dict(binding, acceptance=observations, verification={'actor': actor, 'head_sha': binding['head_sha'],
+                                                                                            ~~~~~~~^^^^^^^^^^^^
+KeyError: 'head_sha'
+
+======================================================================
+ERROR: test_unknown_and_arbitrary_option_profiles_reject_before_runner (__main__.ProfileContract.test_unknown_and_arbitrary_option_profiles_reject_before_runner) (profile=[])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<stdin>", line 27, in test_unknown_and_arbitrary_option_profiles_reject_before_runner
+  File "/private/tmp/factory-native-build-profile-20261020/.claude/scripts/factory-producer.py", line 134, in verify
+    return dict(binding, acceptance=observations, verification={'actor': actor, 'head_sha': binding['head_sha'],
+                                                                                            ~~~~~~~^^^^^^^^^^^^
+KeyError: 'head_sha'
+
+======================================================================
+ERROR: test_unknown_and_arbitrary_option_profiles_reject_before_runner (__main__.ProfileContract.test_unknown_and_arbitrary_option_profiles_reject_before_runner) (profile={'tmpfs': 'exec'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<stdin>", line 27, in test_unknown_and_arbitrary_option_profiles_reject_before_runner
+  File "/private/tmp/factory-native-build-profile-20261020/.claude/scripts/factory-producer.py", line 134, in verify
+    return dict(binding, acceptance=observations, verification={'actor': actor, 'head_sha': binding['head_sha'],
+                                                                                            ~~~~~~~^^^^^^^^^^^^
+KeyError: 'head_sha'
+
+======================================================================
+ERROR: test_unknown_and_arbitrary_option_profiles_reject_before_runner (__main__.ProfileContract.test_unknown_and_arbitrary_option_profiles_reject_before_runner) (profile='native-build-v2')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<stdin>", line 27, in test_unknown_and_arbitrary_option_profiles_reject_before_runner
+  File "/private/tmp/factory-native-build-profile-20261020/.claude/scripts/factory-producer.py", line 134, in verify
+    return dict(binding, acceptance=observations, verification={'actor': actor, 'head_sha': binding['head_sha'],
+                                                                                            ~~~~~~~^^^^^^^^^^^^
+KeyError: 'head_sha'
+
+======================================================================
+ERROR: test_unknown_and_arbitrary_option_profiles_reject_before_runner (__main__.ProfileContract.test_unknown_and_arbitrary_option_profiles_reject_before_runner) (profile='native-build-v1 --privileged')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<stdin>", line 27, in test_unknown_and_arbitrary_option_profiles_reject_before_runner
+  File "/private/tmp/factory-native-build-profile-20261020/.claude/scripts/factory-producer.py", line 134, in verify
+    return dict(binding, acceptance=observations, verification={'actor': actor, 'head_sha': binding['head_sha'],
+                                                                                            ~~~~~~~^^^^^^^^^^^^
+KeyError: 'head_sha'
+
+======================================================================
+ERROR: test_unknown_and_arbitrary_option_profiles_reject_before_runner (__main__.ProfileContract.test_unknown_and_arbitrary_option_profiles_reject_before_runner) (profile='--network=host')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<stdin>", line 27, in test_unknown_and_arbitrary_option_profiles_reject_before_runner
+  File "/private/tmp/factory-native-build-profile-20261020/.claude/scripts/factory-producer.py", line 134, in verify
+    return dict(binding, acceptance=observations, verification={'actor': actor, 'head_sha': binding['head_sha'],
+                                                                                            ~~~~~~~^^^^^^^^^^^^
+KeyError: 'head_sha'
+
+======================================================================
+FAIL: test_existing_default_is_explicitly_strict_and_environment_cannot_override (__main__.ProfileContract.test_existing_default_is_explicitly_strict_and_environment_cannot_override)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<stdin>", line 13, in test_existing_default_is_explicitly_strict_and_environment_cannot_override
+AssertionError: '/tmp:rw,nosuid,size=1g' != '/tmp:rw,nosuid,nodev,noexec,size=1g'
+- /tmp:rw,nosuid,size=1g
++ /tmp:rw,nosuid,nodev,noexec,size=1g
+?                +++++++++++++
+
+
+======================================================================
+FAIL: test_preflight_reports_unknown_protected_registration (__main__.ProfileContract.test_preflight_reports_unknown_protected_registration)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<stdin>", line 44, in test_preflight_reports_unknown_protected_registration
+AssertionError: 'spec 010 supported sandbox profile' not found in ['matching dedicated GitHub App ID', 'private key in protected factory-authority environment', 'spec 010 bytes, scope and per-AC acceptance commands', 'spec 010 digest-pinned verification runtime']
+
+======================================================================
+FAIL: test_registered_profile_is_used_and_retained_in_hashed_observation (__main__.ProfileContract.test_registered_profile_is_used_and_retained_in_hashed_observation) (profile='strict-interpreted-v1')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<stdin>", line 35, in test_registered_profile_is_used_and_retained_in_hashed_observation
+  File "/private/tmp/factory-native-build-profile-20261020/.claude/scripts/factory-producer.py", line 121, in verify
+    process = runner(command, stdout=log, stderr=subprocess.STDOUT, timeout=300)
+  File "<stdin>", line 34, in runner
+AssertionError: 'noexec' not found in '/tmp:rw,nosuid,size=1g'
+
+======================================================================
+FAIL: test_registered_profile_is_used_and_retained_in_hashed_observation (__main__.ProfileContract.test_registered_profile_is_used_and_retained_in_hashed_observation) (profile='native-build-v1')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<stdin>", line 35, in test_registered_profile_is_used_and_retained_in_hashed_observation
+  File "/private/tmp/factory-native-build-profile-20261020/.claude/scripts/factory-producer.py", line 121, in verify
+    process = runner(command, stdout=log, stderr=subprocess.STDOUT, timeout=300)
+  File "<stdin>", line 34, in runner
+AssertionError: ',exec,' not found in '/tmp:rw,nosuid,size=1g'
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.038s
+
+FAILED (failures=4, errors=10)

@@ -5,7 +5,7 @@ spec: specs/active/010-protected-proof-producers.md
 status: approved
 owner: "@codex"
 created: 2026-10-09
-updated: 2026-10-16
+updated: 2026-10-20
 ---
 
 # Protected proof producers
@@ -279,3 +279,11 @@ and cyclic inputs, original exception identity, normal and unexpected categories
 and existing ValueError CLI invalidation. Observation60 and coordinator63 cases
 also pass locally. Only the two coordinator runtime pins changed. This is local
 implementation evidence, not hosted App proof or rollout authorization.
+
+## T345 bounded native-build profile
+
+1. Preserve strict/noexec default and all current container/provenance/resource guards. Define only the two versioned protected-main per-spec profile names; policy SHA binds the selection.
+2. Write meaningful RED controls for absent/default/invalid settings, candidate/environment tampering, profile-hash binding and unchanged Docker isolation. Add no arbitrary flag interface.
+3. Select the profile from the existing registered approved spec before execution, emit its fixed mount semantics in retained observation bytes and report invalid registration in preflight. No live policy change.
+4. Independently run genuine Linux default-noexec/native execution and unchanged isolation/resource probes using exact frozen code and immutable image. Run actual brownfield lint/build, preserving their real success/failure rather than inferring later readiness.
+5. Rebase once onto independently verified actual PR131 main, retain source/evidence and review. Publication, merge and live cutover remain separate concrete decisions.
