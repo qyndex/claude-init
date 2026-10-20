@@ -56,3 +56,7 @@ Settings.json + constitution-class edits (Phase 2/3 permission/sandbox, CI workf
 ## T-131 current-proof preservation continuation
 
 For AC21, snapshot explicitly prepared check-only results into a retained unique attempt directory before validation and smoke. Consume the snapshot afterward; a smoke overwrite of the date-root file cannot replace valid, failing, missing or malformed original proof. Preserve normal journey attempt isolation and correct only the evidence-template filename/command guidance. Portable controlled-runner tests invoke the current production collector and actual spec-match script; they make no installed Playwright/browser execution claim.
+
+### T-343 cross-repository smoke scratch continuation
+
+The collector's process-global `/tmp/smoke.out` could still substitute another concurrent repository's smoke text while retaining the first verifier's exit code. Keep scratch output under the existing unique attempt directory, preserving full smoke bytes and the existing bundle tail/exit semantics. Two deterministic interleavings run actual collectors in distinct disposable fixture repositories: A writes then waits, B finishes, A resumes; both success/failure arrangements must retain their own marker and exit. Preserve any historical global scratch preimage privately during the regression's RED run. This fixes cross-repository scratch ownership only; simultaneous writers targeting the same canonical output directory remain outside this continuation. Whole-spec/native acceptance and publication are not claimed by targeted local proof.

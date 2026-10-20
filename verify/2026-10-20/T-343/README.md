@@ -1,0 +1,1 @@
+Rebased onto merged PR130 d99db50. The actual concurrency regression passes and the full unskipped Spec003 collector remains FAIL0/21 with smoke0. Collector and regression bytes match the previously reviewed c33124a source. Old source/proof tree equality is not claimed after integration. Native current-head verification and full acceptance remain pending.
