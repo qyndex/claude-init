@@ -1,0 +1,1 @@
+Actual queue list retry: transient/full-sweep discard, persistent two-bound, nonretryable identity/clock/jobs/outer drift and shared128call/32MiB budgets PASS; no state writes or receipt credit
