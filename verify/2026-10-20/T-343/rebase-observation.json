@@ -1,0 +1,16 @@
+{
+  "base": "d99db50910b74692b00724cdc4bc2d7483b86fc5",
+  "source_head": "ae0856e7c3f891d57677cb419f19ac51b4fe24d9",
+  "collector_and_regression_bytes_unchanged_from": "c33124ad84c682eddc5b6a7f170066c66abce121",
+  "task_conflict_resolution": "Retain both T342 and T343 with owners; no dropped main task",
+  "actual_regression_exit": 0,
+  "actual_full_unskipped_collector_exit": 1,
+  "actual_smoke_exit": 0,
+  "full_acceptance": "FAIL0/21",
+  "native_current_head": "pending",
+  "historical_review_scope": "collector/test bytes unchanged; no claim new head ran old tests",
+  "source_sha256": {
+    ".claude/scripts/collect-evidence.sh": "d7ea69f75a9362a20440d6e9fc7b9c1653d90decab7d452455d94897595f0841",
+    ".claude/scripts/test/evidence-smoke-isolation.sh": "0d3960c6e372b1aa14b3929ce35461c453e00a758cf359d33dec85444ecc010e"
+  }
+}
