@@ -789,3 +789,17 @@ An actual hosted fixture reproduced a liveness defect in the approved bounded-re
 A separate actual late-source fixture protects the converse: newly visible source identities make the old campaign invalid, so failed current coverage must re-enter ordinary bounded maintenance/backfill without Slack delivery. Preserve revocation, CAS/lost-ack handling, immutable history and opaque encrypted siblings. No runtime profile, policy observation, permission, secret, live state reset or operator authorization is changed.
 
 Focused regressions: factory-reporting-maintenance-liveness.sh, hosted maintenance/CAS/lost-ack regression and rollover. Native main rollout and confirmed current digest remain separate unproven acceptance until reviewed source lands and genuine receipts exist.
+
+### Approved additive native-source profile, 2026-10-21
+
+T-347 adds only `merge-native-source-20261020` to the protected source registry.
+The two existing profiles and empty legacy map remain unchanged. Local fixtures
+verify the current seven-file source closure and canonical policy, reject missing,
+wrong, ambiguous and revoked profiles, and preserve historical annotations.
+Existing receipt suites retain current-task, archive-origin, signature and
+checkpoint isolation checks. These fixture observations are not hosted signed proof.
+
+Publication, merge, protection changes, profile activation and protected signing
+remain separately pending. The eventual cutover changes preflight, policy and
+receipt-trust pins; unchanged-runtime maintenance cannot restore this upgrade.
+No application profile, image, budget, provider or acceptance command is assigned.

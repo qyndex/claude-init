@@ -1,0 +1,14 @@
+{
+  ".claude/scripts/factory-preflight.py": {
+    "before": "c3997120ee8d7064738b26fa1c30e318db02ebf411c46baa3aa67d521d1dad56",
+    "after": "7cda232eb703ab6b23588396b9db8a3bae9aded440513fb9ace394d01acd0780"
+  },
+  "factory/policy.json": {
+    "before": "2d1945832ac63f25c36d323f8be3f12b5734289a33a5d144432967f65f045ad6",
+    "after": "451cfde2e6bd827afc3b40f48dbc459f4ecb2a85a0383ec6ed62de9063cc2330"
+  },
+  "factory/receipt-trust.json": {
+    "before": "3c76d99ed38a43464da76e33ed9091936a7660dbe865ea3e52cb6b2a4553ff46",
+    "after": "db49d87ca771d92556a4c4ccee30a603b020860245ed8504bb6828a253da5123"
+  }
+}

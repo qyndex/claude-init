@@ -1,0 +1,32 @@
+[
+  {
+    "suite": "factory-native-receipt-profile",
+    "exit_code": 0,
+    "log_sha256": "4d42b67763fc1282645c703015ff8707fb4c5049eef4a51a05472a99acee4bca"
+  },
+  {
+    "suite": "factory-receipt-profiles",
+    "exit_code": 0,
+    "log_sha256": "e65ff2291637aeb6e876411c5bc3e33e68c5b2c44e5a0a3d22e11f7237c7c6bf"
+  },
+  {
+    "suite": "factory-receipt-revocation",
+    "exit_code": 0,
+    "log_sha256": "ef1303f15120192d0c555af672734a8eee95cfa82675207fd7d750d340a6febf"
+  },
+  {
+    "suite": "factory-receipt-retained-proof",
+    "exit_code": 0,
+    "log_sha256": "28e61aefbc8091efb135843d816685327690add191f3519639ad188ff49775ff"
+  },
+  {
+    "suite": "factory-receipt-projection-checkpoint",
+    "exit_code": 0,
+    "log_sha256": "6ee584f63943db174e90429ea08a6115732e9dd1d016b146be887a00048b486c"
+  },
+  {
+    "suite": "factory-receipt-projection",
+    "exit_code": 0,
+    "log_sha256": "2ada2dd4cb8452c96220120121823d8dd5af98f5a22ebbea2e4e995febe20c27"
+  }
+]
