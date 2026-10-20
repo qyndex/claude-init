@@ -1,0 +1,75 @@
+{
+  "scope": "Actual coherent source local verification; proof-only final commit does not claim to have run native checks",
+  "base": "9e60a678b4cf7b6ccd8b9963bad0656fbea24ff3",
+  "observed_source_commit": "3aea4db4de8e8ffff5bf89fa38831055c50c8999",
+  "historical_bundles": {
+    "010": {
+      "actual_evidence_commit": "9c250cd1006ce67bcd99c84da4a0585feef66aaf",
+      "evidence_json_sha256": "fd94e050397a36b57db5adb1ef0fbd6d2064be4cd43314d55589ea04ae439737",
+      "verdict": "FAIL",
+      "ac_proven": 0,
+      "ac_total": 5,
+      "smoke_exit": 0
+    },
+    "029": {
+      "actual_evidence_commit": "5c394c265953f4dfcf50c432af978371654162ba",
+      "evidence_json_sha256": "fecd6b876394f4b3953ae5e468d0a526527670a29952371a716248fa4e4680a7",
+      "verdict": "FAIL",
+      "ac_proven": 0,
+      "ac_total": 9,
+      "smoke_exit": 0
+    }
+  },
+  "source_sha256": {
+    ".claude/scripts/factory-producer.py": "c40659e142a13cbe3daf4a7152c0b4b1d69a9e79696136f61e40f5031c1891c3",
+    ".claude/scripts/factory-preflight.py": "7cda232eb703ab6b23588396b9db8a3bae9aded440513fb9ace394d01acd0780",
+    ".claude/scripts/factory-reporting-queue.py": "b14de4aed0b58d8857451fe7b4c3895f148178019986129373a6847e0f583a71",
+    ".claude/scripts/test/factory-native-build-profile.sh": "a05a785636c1d555fe3eee3aaeba0daeb6ab9db5661eb5e551b2f08ec4576ced",
+    ".claude/scripts/test/factory-reporting-queue-list-retry.sh": "94a3e378cf6980595b9c2ed928f1e139d3f7bb70513716dc09e8d05f30d83e30",
+    "factory/policy.json": "451cfde2e6bd827afc3b40f48dbc459f4ecb2a85a0383ec6ed62de9063cc2330"
+  },
+  "current_collectors": {
+    "010": {
+      "observed_source": "3aea4db4de8e8ffff5bf89fa38831055c50c8999",
+      "command": "VERIFY_BASE=9e60a678b4cf7b6ccd8b9963bad0656fbea24ff3 bash .claude/scripts/collect-evidence.sh 010",
+      "collector_exit": 1,
+      "verdict": "FAIL",
+      "proven": 0,
+      "total": 5,
+      "unskipped_smoke_exit": 0,
+      "evidence_sha256": "4c8817b6ea722843da7caeffe3a6c805499fef1f973d79e8ab08ae517ac61676"
+    },
+    "029": {
+      "observed_source": "3aea4db4de8e8ffff5bf89fa38831055c50c8999",
+      "command": "VERIFY_BASE=9e60a678b4cf7b6ccd8b9963bad0656fbea24ff3 bash .claude/scripts/collect-evidence.sh 029",
+      "collector_exit": 1,
+      "verdict": "FAIL",
+      "proven": 0,
+      "total": 9,
+      "unskipped_smoke_exit": 0,
+      "evidence_sha256": "1395ef8f5a4a930a8b46deb0d11db00f8999fd6770c1bfa925ccd78caec04d73"
+    }
+  },
+  "focused": {
+    "preflight": 0,
+    "native_profile_contracts": 0,
+    "producer_regressions": 0,
+    "queue_retry": 0
+  },
+  "native_execution_probes": {
+    "actual_source": "d68e8df08925de178ff261a6695e6b8469ede489",
+    "producer_bytes_equal_to_coherent_source": true,
+    "isolation": "local Linux passed",
+    "brownfield_lint_type_unit": "passed",
+    "brownfield_build": "failed on real offline Inter fetch; browser not run",
+    "signed_native_acceptance": false
+  },
+  "publication_or_activation": false,
+  "policy_binding": {
+    "before": "e931871e11121f140024eed2b6378e3d632354e8d6d25db1a184e42bdbcfd804",
+    "candidate": "dbf0609bde476f00384b4ada98a7e08c71b33bb1d27f17c2e52262b0cf6b7ba0",
+    "only_two_producer_pin_values_changed": true,
+    "new_profile_registered_or_flags_changed": false,
+    "live_cutover_authorized": false
+  }
+}

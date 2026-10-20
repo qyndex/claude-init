@@ -1,7 +1,7 @@
 ## Evidence Bundle — Spec 010 (010-protected-proof-producers)
-Spec: `specs/active/010-protected-proof-producers.md` · Commit: `9c250cd`
+Spec: `specs/active/010-protected-proof-producers.md` · Commit: `3aea4db`
 
-Retained results: [verify/2026-10-20-010-protected-proof-producers/attempt-Uqg2OIEY/results.json](verify/2026-10-20-010-protected-proof-producers/attempt-Uqg2OIEY/results.json)
+Retained results: [verify/2026-10-20-010-protected-proof-producers/attempt-hnOuT7cp/results.json](verify/2026-10-20-010-protected-proof-producers/attempt-hnOuT7cp/results.json)
 
 ### Acceptance criteria (0/5 proven)
 | AC | Proven by | Result |
@@ -14,7 +14,7 @@ Retained results: [verify/2026-10-20-010-protected-proof-producers/attempt-Uqg2O
 
 ### Smoke test (exit codes are load-bearing)
 ```
-# Smoke test — 2026-10-20T21:56:30+11:00
+# Smoke test — 2026-10-20T21:59:18+11:00
 $ bash .claude/scripts/verify.sh
 
 → Integration coverage gate
@@ -39,7 +39,6 @@ line ?% · branch ?% (gate: line≥90 branch≥85)
 ## Artifact index
 - verify/2026-10-20-010-protected-proof-producers/evidence.json
 - verify/2026-10-20-010-protected-proof-producers/pr-body.md
-- verify/2026-10-20-010-protected-proof-producers/attempt-n3hZT6EQ/smoke.out
 - verify/2026-10-20-010-protected-proof-producers/EVIDENCE.md
 - verify/2026-10-20-010-protected-proof-producers/smoke.log
-- verify/2026-10-20-010-protected-proof-producers/attempt-Uqg2OIEY/smoke.out
+- verify/2026-10-20-010-protected-proof-producers/attempt-hnOuT7cp/smoke.out
