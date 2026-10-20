@@ -29,32 +29,32 @@
     "original_path": "verify/2026-10-21-010-protected-proof-producers/attempt-98gKaDrD/smoke.out",
     "original_bytes": 21820,
     "original_sha256": "747fe74b51376d958da7588f93ee5d651a92a41877783b6778870a7aa8678cbc",
-    "archive": "verify/2026-10-21/T-347/full-010-smoke.out.gz.b64",
-    "encoding": "gzip-base64",
-    "archive_sha256": "fc1706a53324142bb832a93ef504467a782cfc209fd6b401681e07ba2f6d101a"
+    "archive": "verify/2026-10-21/T-347/collector-raw-smokes.json.gz.b64",
+    "encoding": "gzip-base64 JSON rows with individually base64-encoded raw outputs",
+    "archive_sha256": "7f2d15018d3feb67094a22eacd890a9d888a37b9d711d1bf51d3181643df9715"
   },
   {
     "original_path": "smoke.out",
     "original_bytes": 21901,
     "original_sha256": "efaae3e9e2065b5399197e9bea61c8b333297e8a667ac216d0f579ca4d30e3c9",
-    "archive": "verify/2026-10-21/T-347/first-full-010-smoke.out.gz.b64",
-    "encoding": "gzip-base64",
-    "archive_sha256": "0e397d1001e33500d2062f0524b838b333d28d96a933898a15c76b6a68d1dea6"
+    "archive": "verify/2026-10-21/T-347/collector-raw-smokes.json.gz.b64",
+    "encoding": "gzip-base64 JSON rows with individually base64-encoded raw outputs",
+    "archive_sha256": "7f2d15018d3feb67094a22eacd890a9d888a37b9d711d1bf51d3181643df9715"
   },
   {
     "original_path": "verify/2026-10-21-014-authenticated-receipt-recovery/attempt-Im7iQnAS/smoke.out",
     "original_bytes": 21820,
     "original_sha256": "b5cd776c54a315b52baaf8523c3d76199c7bb97226f3adca1035942251a7d31c",
-    "archive": "verify/2026-10-21/T-347/full-014-smoke.out.gz.b64",
-    "encoding": "gzip-base64",
-    "archive_sha256": "e9d084ecceb14a11cbf23d09188cd7b45459b555101d946767a59fa6f1f0385b"
+    "archive": "verify/2026-10-21/T-347/collector-raw-smokes.json.gz.b64",
+    "encoding": "gzip-base64 JSON rows with individually base64-encoded raw outputs",
+    "archive_sha256": "7f2d15018d3feb67094a22eacd890a9d888a37b9d711d1bf51d3181643df9715"
   },
   {
     "original_path": "smoke.out",
     "original_bytes": 21901,
     "original_sha256": "2a9665bcee380ad1f7fd82575f26951c15d009ba987050b67724ca19b6f8ecc5",
-    "archive": "verify/2026-10-21/T-347/first-full-014-smoke.out.gz.b64",
-    "encoding": "gzip-base64",
-    "archive_sha256": "4ad112f2bced975ff83987e606bcaa05ab19e85020a61ec130a022064a8f77ea"
+    "archive": "verify/2026-10-21/T-347/collector-raw-smokes.json.gz.b64",
+    "encoding": "gzip-base64 JSON rows with individually base64-encoded raw outputs",
+    "archive_sha256": "7f2d15018d3feb67094a22eacd890a9d888a37b9d711d1bf51d3181643df9715"
   }
 ]

@@ -24,5 +24,13 @@
     "archive": "verify/2026-10-20/T-345/initial-fixture-defect.log.gz.b64",
     "encoding": "gzip-base64",
     "archive_sha256": "fc63b37f0f6b23e0fdb547148b21d74825f91005449dc8cdca5187ff88bad051"
+  },
+  {
+    "original_path": "verify/2026-10-20/native-after-queue/scope-equivalence.json",
+    "original_bytes": 15202,
+    "original_sha256": "cb0952d3b7f34693ba08cc10f5b361f7a9372a87fd68c455e0bbdd89768cfb0c",
+    "archive": "verify/2026-10-20/native-after-queue/scope-equivalence.json.gz.b64",
+    "encoding": "gzip-base64",
+    "archive_sha256": "dd42981b79f22f37b6f1fd72625576746d71da0562e0e63720aca95d2aabb693"
   }
 ]
