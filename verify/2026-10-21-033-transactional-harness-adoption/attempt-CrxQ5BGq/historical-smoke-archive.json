@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "scope": "lossless historical8a smoke packaging only; new current smoke remains raw",
+  "original_path": "verify/2026-10-21-033-transactional-harness-adoption/attempt-CrxQ5BGq/smoke.out",
+  "original_mode": "100644",
+  "original_bytes": 20441,
+  "original_sha256": "ba1b14aad46c9deca54883ffcba97f146bf5ac268a9bfe9c817a8a47c725ea5f",
+  "observed_source_commit": "8a54b5ae6f2457d037ec821463d705052b738ff8",
+  "original_proof_commit": "dc61f9748025a8b7dcc08284d990fa53aea75f9e",
+  "preserved_ancestor": "dc61f9748025a8b7dcc08284d990fa53aea75f9e",
+  "actual_integration_base": "d411d600a03519fa1de06e5a7a54da7234ea27f4",
+  "archive_path": "verify/2026-10-21-033-transactional-harness-adoption/attempt-CrxQ5BGq/smoke.out.gz.base64",
+  "encoding": "gzip mtime=0; base64 ASCII76columns",
+  "gzip_bytes": 1913,
+  "encoded_bytes": 2586,
+  "encoded_sha256": "e33839a5edad10116e1aed56a564f1e3ff7ae506ee69c373b8e0658e33a8845b",
+  "decoded_byte_equality_verified": true
+}

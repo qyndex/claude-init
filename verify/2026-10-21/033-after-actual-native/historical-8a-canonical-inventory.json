@@ -1,0 +1,30 @@
+{
+  "scope": "old root canonical bytes preserved by exact ancestor, not current acceptance",
+  "observed_source": "8a54b5ae6f2457d037ec821463d705052b738ff8",
+  "files": {
+    "verify/2026-10-21-033-transactional-harness-adoption/EVIDENCE.md": {
+      "mode": "100644",
+      "bytes": 2874,
+      "sha256": "f132eed7b1c4f40984a899b56e18f591bb78cd530227d8819d7698262f14f3a7",
+      "exact_source": "dc61f9748025a8b7dcc08284d990fa53aea75f9e"
+    },
+    "verify/2026-10-21-033-transactional-harness-adoption/evidence.json": {
+      "mode": "100644",
+      "bytes": 404,
+      "sha256": "4837d9603901bc6efb0bc8cda1bf075d4e2fdac7da36eda8084c50fa2923e1c8",
+      "exact_source": "dc61f9748025a8b7dcc08284d990fa53aea75f9e"
+    },
+    "verify/2026-10-21-033-transactional-harness-adoption/pr-body.md": {
+      "mode": "100644",
+      "bytes": 1254,
+      "sha256": "18fc212813d8dd0f8a58db86e4cae75325b002db64bb00f16e6784f6abf668b9",
+      "exact_source": "dc61f9748025a8b7dcc08284d990fa53aea75f9e"
+    },
+    "verify/2026-10-21-033-transactional-harness-adoption/smoke.log": {
+      "mode": "100644",
+      "bytes": 183,
+      "sha256": "7de48172bf591cb94a84a4613946810c8ce5009547eecb4963909ca968451a47",
+      "exact_source": "dc61f9748025a8b7dcc08284d990fa53aea75f9e"
+    }
+  }
+}

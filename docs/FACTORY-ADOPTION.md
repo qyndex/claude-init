@@ -23,3 +23,71 @@ Completed revert requires all recorded after-images; pending recovery permits ea
 Spec 040 distributes pinned encryption requirements, disabled neutral examples and FACTORY-ADOPTER-SETUP.md through explicit version/hash/mode ownership. Configure protected routing using spec 037; no examples activate the factory. Remaining F-07 work includes bounded private evidence/retention and rollout metrics. Live independent proof and each target's activation remain separate.
 
 Reporting is optional per adopter. Configure its default-branch workflow, exclusive reporting runner policy, persistent private state and environment credentials using FACTORY-REPORTING-SETUP.md. The qyndex environment/channel/team record is an optional pilot record and must not become installer defaults. No target deployment or Slack send is performed by these installation fixtures. Production release support likewise requires each adopter’s separately proven service/metrics/rollback adapter; copying the harness never enables production autonomy.
+
+## Reviewed keep-local configuration upgrades
+
+Intentional adopter configuration can transfer to local ownership for exactly root
+`CLAUDE.md`, `.mcp.json` and `.claude/settings.json`. This is an explicit reviewed
+upgrade, not a force flag. `.claude/CLAUDE.md`, scripts, hooks and framework agents
+remain managed; every other customized managed file still blocks the transaction.
+
+Prepare a small private JSON resolution plan outside the target. Its exact bytes
+are the review payload; do not publish configuration values or private journals.
+The strict schema is:
+
+```json
+{
+  "schema_version": 1,
+  "source_sha": "<40 lowercase hex immutable clean source HEAD>",
+  "target": "<canonical absolute target repository root>",
+  "repository": {
+    "git_common_dir": "<canonical absolute Git common directory>",
+    "head_sha": "<40 lowercase hex target HEAD>"
+  },
+  "manifest": {"sha256": "<current manifest bytes SHA256>", "mode": 420},
+  "entries": {
+    "CLAUDE.md": {
+      "action": "keep-local",
+      "owned": {"sha256": "<original ownership SHA256>", "mode": 420},
+      "current": {"sha256": "<reviewed target bytes SHA256>", "mode": 420},
+      "upstream": {"sha256": "<incoming source bytes SHA256>", "mode": 420}
+    }
+  }
+}
+```
+
+Use one to three allowed entries. Fingerprints include decimal POSIX mode values:
+420 (0644) or 493 (0755); local configuration may also be 384 (0600). For an
+existing local override, `owned` remains its immutable `original_owned` value.
+Review source identity, target identity and every original/current/incoming
+fingerprint. The explicit approval argument is SHA256 of the complete plan file,
+including whitespace. Both arguments are required together and require `--upgrade`:
+
+```bash
+bash <trusted-pinned-clone>/.claude/scripts/reconcile-claude-dir.sh \
+  --from <trusted-pinned-clone> --into <repo> --state-root <private-directory> \
+  --upgrade --resolution-plan <private-plan.json> \
+  --approve-plan-sha256 <reviewed-exact-plan-sha256> --dry-run
+# After separately approving that exact target transaction, repeat without --dry-run.
+```
+
+The transfer preserves current bytes and modes, records original/local/upstream
+fingerprints in schema-v2 `local_overrides`, and excludes those paths from managed
+writes. Old v1 updaters reject v2 manifests rather than overwriting them. V1
+manifests remain readable. Plans are one-shot: the resulting manifest fingerprint
+changes, so replaying a consumed plan rejects. Ordinary subsequent upgrades omit
+the plan and preserve local owner edits. If upstream changes or removes a reviewed
+configuration path, the upgrade blocks until a new exact plan is reviewed. For an
+already transferred path only, reviewed upstream absence is represented by JSON
+`null`; first-time transfers still require a real incoming source fingerprint.
+Reappearance also requires renewed exact review. Repository HEAD/common-directory
+identity is fenced again before target effects, each managed write and completion. Missing,
+unsafe or symlinked local paths always block. The installer never generates its
+own approval, automatically merges configuration, or hand-edits an existing
+ownership manifest.
+
+Schema-v2 private journals also fingerprint preserved local paths. A later local
+change fences rollback/recovery before target restoration, leaving the pending
+journal for operator inspection. Recovery must use this version or a compatible
+newer trusted updater. These implementation fixtures do not approve migration of
+any live adopter or enable authority, reporting, providers or deployment.

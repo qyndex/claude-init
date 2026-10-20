@@ -1,0 +1,34 @@
+test_approval_hash_without_plan_rejects (__main__.KeepLocal.test_approval_hash_without_plan_rejects) ... ok
+test_brownfield_three_paths_preserve_bytes_modes_and_user_content (__main__.KeepLocal.test_brownfield_three_paths_preserve_bytes_modes_and_user_content) ... ok
+test_cli_serializes_competing_exact_plan_and_repeat_updates (__main__.KeepLocal.test_cli_serializes_competing_exact_plan_and_repeat_updates) ... ok
+test_completed_revert_preserves_config_and_restores_v1_ownership (__main__.KeepLocal.test_completed_revert_preserves_config_and_restores_v1_ownership) ... ok
+test_consumed_resolution_plan_is_stale (__main__.KeepLocal.test_consumed_resolution_plan_is_stale) ... ok
+test_dry_run_has_no_target_or_journal_effect (__main__.KeepLocal.test_dry_run_has_no_target_or_journal_effect) ... ok
+test_existing_no_plan_customization_block_is_unchanged (__main__.KeepLocal.test_existing_no_plan_customization_block_is_unchanged) ... ok
+test_fault_rollback_restores_exact_before_images_and_config (__main__.KeepLocal.test_fault_rollback_restores_exact_before_images_and_config) ... ok
+test_first_transfer_cannot_approve_missing_upstream (__main__.KeepLocal.test_first_transfer_cannot_approve_missing_upstream) ... ok
+test_foreign_config_change_fences_recovery_without_overwrite (__main__.KeepLocal.test_foreign_config_change_fences_recovery_without_overwrite) ... ok
+test_future_upstream_configuration_requires_review_and_renewal (__main__.KeepLocal.test_future_upstream_configuration_requires_review_and_renewal) ... ok
+test_greenfield_two_paths_do_not_release_settings (__main__.KeepLocal.test_greenfield_two_paths_do_not_release_settings) ... ok
+test_local_bytes_or_mode_drift_rejects (__main__.KeepLocal.test_local_bytes_or_mode_drift_rejects) ... ok
+test_manifest_bytes_drift_rejects (__main__.KeepLocal.test_manifest_bytes_drift_rejects) ... ok
+test_no_general_process_or_instruction_release (__main__.KeepLocal.test_no_general_process_or_instruction_release) ... ok
+test_no_plan_repeat_is_idempotent_and_preserves_later_local_edits (__main__.KeepLocal.test_no_plan_repeat_is_idempotent_and_preserves_later_local_edits) ... ok
+test_plan_requires_explicit_upgrade (__main__.KeepLocal.test_plan_requires_explicit_upgrade) ... ok
+test_repository_head_drift_after_journal_blocks_before_effects (__main__.KeepLocal.test_repository_head_drift_after_journal_blocks_before_effects) ... ok
+test_repository_head_drift_before_completion_rolls_back (__main__.KeepLocal.test_repository_head_drift_before_completion_rolls_back) ... ok
+test_resolution_action_extra_and_duplicate_fields_reject (__main__.KeepLocal.test_resolution_action_extra_and_duplicate_fields_reject) ... ok
+test_resolution_does_not_waive_unselected_owned_code_change (__main__.KeepLocal.test_resolution_does_not_waive_unselected_owned_code_change) ... ok
+test_reviewed_upstream_removal_and_reappearance_need_exact_renewal (__main__.KeepLocal.test_reviewed_upstream_removal_and_reappearance_need_exact_renewal) ... ok
+test_source_revision_drift_rejects (__main__.KeepLocal.test_source_revision_drift_rejects) ... ok
+test_stale_binding_fields_reject (__main__.KeepLocal.test_stale_binding_fields_reject) ... ok
+test_target_symlink_and_plan_symlink_reject (__main__.KeepLocal.test_target_symlink_and_plan_symlink_reject) ... ok
+test_v2_schema_rejects_unsafe_overlap_unknown_and_code_release (__main__.KeepLocal.test_v2_schema_rejects_unsafe_overlap_unknown_and_code_release) ... ok
+test_wrong_approval_hash_rejects_before_effects (__main__.KeepLocal.test_wrong_approval_hash_rejects_before_effects) ... ok
+
+----------------------------------------------------------------------
+Ran 27 tests in 10.891s
+
+OK
+AC-5: exact reviewed three-path keep-local ownership and upstream review guards PASS
+AC-6: real adopter-shaped preservation, private recovery and CLI serialization PASS

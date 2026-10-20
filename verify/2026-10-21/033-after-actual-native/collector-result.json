@@ -1,0 +1,14 @@
+{
+  "source": "da555b01416f5f21221eee5c5558760184e2a474",
+  "base": "d411d600a03519fa1de06e5a7a54da7234ea27f4",
+  "exit": 1,
+  "seconds": 24.637586708995514,
+  "no_skip": true,
+  "environment": {
+    "node": "24.13.1",
+    "npm_config_offline": "true",
+    "npm_config_yes": "false",
+    "VERIFY_BASE": "d411d600a03519fa1de06e5a7a54da7234ea27f4"
+  },
+  "scope": "one unchanged full033collector; local evidence not hosted acceptance"
+}

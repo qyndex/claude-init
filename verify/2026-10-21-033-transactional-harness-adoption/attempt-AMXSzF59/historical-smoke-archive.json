@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "scope": "lossless packaging of only historical110e smoke; no source/current canonical proof change",
+  "original_path": "verify/2026-10-21-033-transactional-harness-adoption/attempt-AMXSzF59/smoke.out",
+  "original_mode": "100644",
+  "original_bytes": 20441,
+  "original_sha256": "ba1b14aad46c9deca54883ffcba97f146bf5ac268a9bfe9c817a8a47c725ea5f",
+  "observed_source_commit": "110e1969f3fd52d0c7f0882d4767bfa01c176db3",
+  "original_proof_commit": "390ca7e546b7bfc59bf2c083b2d83c80d57a5f04",
+  "preserved_ancestor": "dc61f9748025a8b7dcc08284d990fa53aea75f9e",
+  "archive_path": "verify/2026-10-21-033-transactional-harness-adoption/attempt-AMXSzF59/smoke.out.gz.base64",
+  "encoding": "gzip mtime=0; base64 ASCII76columns",
+  "gzip_bytes": 1913,
+  "gzip_sha256": "d0e17972e955cd50fc03dfbaf9adba562edadb50fd7e891c19119f1c066f9fb7",
+  "encoded_bytes": 2586,
+  "encoded_sha256": "e33839a5edad10116e1aed56a564f1e3ff7ae506ee69c373b8e0658e33a8845b",
+  "decoded_byte_equality_verified": true,
+  "actual_integration_base": "d411d600a03519fa1de06e5a7a54da7234ea27f4",
+  "actual_history_merge_commit": "21bfce9b8060ea5a14a0f0f39587200efd4908a5",
+  "packaging_patch_origin": "f2e2da56ee69332b34187c2d020a4c18f9aecaa9 (patch only; forecast merge is not ancestry)",
+  "original_observation_preserved_ref": "refs/remotes/preserved-033/codex/keep-local-original-frozen-proof"
+}

@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "spec": "033",
+  "task": "T-349",
+  "base": "d948cbe29aeaefd998770343245da4ca6f95a1b0",
+  "frozen_collector_source": "110e1969f3fd52d0c7f0882d4767bfa01c176db3",
+  "metadata_only_repair_source": "9e0cd235cbb02d35bd0b77652e06c8a3ee174d66",
+  "trees": {
+    "110e1969f3fd52d0c7f0882d4767bfa01c176db3": "b10990c116c7db49709a26d5fcf9d2633fdeec0d",
+    "9e0cd235cbb02d35bd0b77652e06c8a3ee174d66": "b10990c116c7db49709a26d5fcf9d2633fdeec0d"
+  },
+  "same_source_tree": true,
+  "red": {
+    "exit": 1,
+    "tests": 23,
+    "failures": 1,
+    "errors": 33,
+    "reason": "missing required resolution API and CLI; no tool substitution"
+  },
+  "first_green": {
+    "exit": 1,
+    "tests": 23,
+    "errors": 1,
+    "reason": "result metadata omitted kept_local_files"
+  },
+  "green": {
+    "exit": 0,
+    "tests": 23
+  },
+  "regression_adopt_exit": 0,
+  "regression_installer_exit": 0,
+  "collector_exit": 1,
+  "acceptance_proven": 0,
+  "acceptance_total": 6,
+  "smoke_exit": 0,
+  "native_receipt": false,
+  "actual_adopter_apply": false,
+  "logs": {
+    "RED.log": {
+      "bytes": 46997,
+      "sha256": "e9e80ad15ce8475306e68400081af9a4216cbd6e659c9941895025268fbe6516"
+    },
+    "GREEN.log": {
+      "bytes": 3244,
+      "sha256": "7d414823db7c049972183c9a3f8a7aa886ee880b0573c05f32cbe1a5cf29940d"
+    },
+    "full033.log": {
+      "bytes": 669,
+      "sha256": "0e6387e222f6ad89e66a4c4e6f99dbbbd94a87218a87c10be9914c04deacb0c9"
+    },
+    "regression-adopt.log": {
+      "bytes": 614,
+      "sha256": "7678c7846b88b88e28eeeadd91dd9f17dcfc94b63634f834b3a353641fce1652"
+    },
+    "GREEN-first.log": {
+      "bytes": 3749,
+      "sha256": "853d176aca729937abc0a68d1110f1a4305a1906f17fdcd12d1f183f2c8e5d38"
+    },
+    "regression-installer.log": {
+      "bytes": 300,
+      "sha256": "df527720e08d7aa96550b513447780b0f86834b4b68a63b1a5e20dd658b5d425"
+    }
+  },
+  "encoded_logs": {
+    "RED.log.gz.base64": {
+      "original": "RED.log",
+      "encoding": "gzip mtime0, base64",
+      "encoded_sha256": "21b13c1b2379c35ef51dded7baae9398a609da659dd10be6f530515d395503c2"
+    },
+    "GREEN-first.log.gz.base64": {
+      "original": "GREEN-first.log",
+      "encoding": "gzip mtime0, base64",
+      "encoded_sha256": "a831bc4c5a3089c0eb302269a3ec5dfd52e9751b1d280a6ce73a7ea3332dd26e"
+    }
+  }
+}
