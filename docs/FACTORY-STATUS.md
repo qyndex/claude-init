@@ -1,12 +1,12 @@
 # Factory status and adoption readiness
 
-Snapshot: 2026-10-19. Published source: `6e89cc6f3d8e368fd078f5652c928225bec10f03`. This documentation refresh is a candidate until its PR is merged.
+Snapshot: 2026-10-21 (Australia/Sydney). Reviewed main baseline: `6859f476264b3d317eb1e5670d361a1ec8d520bb`. This documentation refresh is a candidate until its PR is merged.
 
-The approved factory implementation is complete, and the source repository has a working controlled merge pilot. The harness is ready to install and evaluate in a new or existing repository. Unattended operation in that repository requires its own activation evidence; production readiness is not inherited from this pilot.
+The original approved implementation baseline is recorded as complete, and the source repository has a controlled merge pilot. Subsequent readiness amendments and operational acceptance remain incomplete. The harness is ready to install and evaluate in a new or existing repository. Unattended operation in that repository requires its own activation evidence; production readiness is not inherited from this pilot.
 
 ## Implementation versus rollout acceptance
 
-The canonical [task ledger](../tasks/TASKS.md) contains 173 unique entries for specs006–050, all marked done, with no open or blocked entries in that range. This is an audit of published task state, not a claim that this documentation review reran every historical acceptance test. Across the whole ledger, 303 entries are done and 26 older entries are explicitly skipped; skipped historical work is not passing evidence.
+The historical baseline audit of the [task ledger](../tasks/TASKS.md) recorded 173 unique entries for specs006–050, all marked done, with no open or blocked entries in that audited range. This does not close later readiness amendment tasks. This is an audit of published task state, not a claim that this documentation review reran every historical acceptance test. Across the whole ledger, 303 entries are done and 26 older entries are explicitly skipped; skipped historical work is not passing evidence.
 
 The last four implementation tasks are closed:
 
@@ -35,7 +35,7 @@ These are dated observations. Recheck current source, configuration, producer ca
 
 | Area | Current boundary / next evidence |
 | --- | --- |
-| Reporting freshness | Latest completed observation checked here: [digest39174752936](https://github.com/qyndex/claude-init/actions/runs/39174752936) had workflow success but actual `incomplete`, phase `review`, reason `job-deadline`, after11 child invocations. That is not confirmed delivery or current cutoff. Preserve the cursor and intent; observe the next serialized continuation rather than duplicating sends. Earlier403 causes remain unestablished until protected diagnostics supply evidence. |
+| Reporting freshness | Latest bounded observation: [digest39504809521](https://github.com/qyndex/claude-init/actions/runs/39504809521) had workflow success but actual `incomplete`, phase `review`, reason `job-deadline`, after13 invocations and682.603 seconds. That is not confirmed delivery or current cutoff. Preserve the cursor and intent; observe the next serialized continuation rather than duplicating sends. That observation grants no current-health or delivered-receipt credit; it does not authorize another manual run or protected log read. |
 | Complete pilot loop | Observe the next due digest containing the genuine delivery, then authentic operator feedback and a separately approved amendment delivered through the same chain. Do not invent feedback or preapprove its scope. |
 | Broader autonomy | Accumulate twenty useful consecutive eligible deliveries with complete receipts and the planned recovery/reporting evidence before expanding policy. One pilot delivery is not that sample. |
 | Scout/native entry | Spec050's implementation and offline acceptance are complete. Mandatory intake needs a separately provisioned protected console/worker installation and actual native ordering/failure observations. Bare Claude/IDE paths remain advisory or unsupported; general native conversation delivery is unavailable. |
@@ -43,17 +43,17 @@ These are dated observations. Recheck current source, configuration, producer ca
 | Optional attachments / monitoring | Oversized Slack attachments remain disabled under the existing uncertainty boundary. Healthchecks remains disabled; independent monitoring is optional. GitHub-only alerts share GitHub and Slack availability limits. |
 | Production | The source pilot has no production target. Each adopter must configure and prove deployment, health/SLO and rollback adapters and separately enable releases. |
 
-There are **zero pending implementation entries in the approved factory ledger range**, but these rollout observations and adopter prerequisites are not all complete. Do not describe the system as universally production-certified or the full operating loop as accepted yet.
+The original baseline ledger audit is complete; later implementation and rollout acceptance are not all complete. Do not describe the system as universally production-certified or the full operating loop as accepted yet.
 
 ## Five readiness workstreams
 
 | Workstream | Completion evidence required | Current disposition |
 | --- | --- | --- |
-| Documentation/runtime follow-up | Reviewed PR124 source integrated with the repaired reviewer runtime, fresh native checks and actual merge. | Candidate preparation; PR126 is merged, PR124 remains separate. |
+| Documentation/runtime follow-up | Actual source integration and fresh native checks, followed by genuine protected qualification. | PR124 and the native-build profile PR139 are merged. PR140 merged as `6859f47`; all twelve protections and prior narrow authority were independently verified restored. Its Spec033 operational acceptance remains pending. |
 | Current reporting | Confirmed remote receipt and authenticated delivered cutoff covering the due Sydney digest; workflow success alone is insufficient. | Catch-up/continuation remains under verification. |
 | Feedback cycle | Genuine allowlisted operator feedback referring to a confirmed report, reviewed scope amendment, independent verification, actual delivery and authenticated acceptance. | Await a confirmed report and actual operator decision; no synthetic feedback or self-approval. |
 | Twenty-delivery expansion sample | Twenty useful consecutive eligible deliveries with complete authenticated receipts, no bypass/duplicate effects and the planned recovery/reporting proof. | Accumulate naturally under existing approved scope; one pilot delivery and maintenance merges cannot certify the sample. |
-| Real greenfield/brownfield adopters | Execute the repository-specific checklist, native proofs and any requested production health/rollback gates for named applications. | Target repository URLs/configuration are required; generic fixture success is not real target activation. |
+| Real greenfield/brownfield adopters | Execute the repository-specific checklist and genuine native proofs. | Greenfield: [qynise-platform](https://github.com/qyndex/qynise-platform), PR4 merged `1b200f9`, six protections restored. Brownfield: [nextjs-landing-page](https://github.com/qyndex/nextjs-landing-page), PR6 merged `8d9c634`, eleven protections restored. Both source contracts are integrated; publishing gates and all six factory enablement flags remain false. Hosted image, managed refresh, trusted review and shadow acceptance remain pending. Provider execution and production deployment remain deferred. |
 
 These rows are acceptance boundaries, not new completed task claims. See [the adopter checklist](FACTORY-ADOPTER-SETUP.md#greenfield-and-brownfield-verification). Keep each unproved capability disabled or within its existing approved scope.
 
