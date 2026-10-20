@@ -1,0 +1,7 @@
+→ Collecting evidence for spec 029 (029-github-reporting-alerts)
+  ⚠ No playwright.evidence.config.ts or e2e/029/ — run: bash .claude/scripts/rig-bootstrap.sh (web apps) or rely on the stack-runner AC proof below
+  ⚠ No results at verify/2026-10-20-029-github-reporting-alerts/attempt-nMhp3fC8/results.json — every AC will read UNPROVEN. Install the rig: bash .claude/scripts/rig-bootstrap.sh, or emit AC-tagged junit/jest output to that path.
+
+✓ Evidence bundle: verify/2026-10-20-029-github-reporting-alerts/
+  Verdict: FAIL | ACs: 0/9 proven | smoke exit: 0
+  PR body: verify/2026-10-20-029-github-reporting-alerts/pr-body.md

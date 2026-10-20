@@ -1,0 +1,31 @@
+{
+  "base": "9e60a678b4cf7b6ccd8b9963bad0656fbea24ff3",
+  "actual_source_head": "5c394c265953f4dfcf50c432af978371654162ba",
+  "original_reviewed_source": "738526ec7c06f7ccbaa316eaffce5ec001134921",
+  "original_proof_followup": "f3ec55df5b5308a0e963cf7f4753999966c420c9",
+  "replayed_queue_only_commits": [
+    "dc6f27b",
+    "5c394c2"
+  ],
+  "queue_source_test_sha256": {
+    ".claude/scripts/factory-reporting-queue.py": "b14de4aed0b58d8857451fe7b4c3895f148178019986129373a6847e0f583a71",
+    ".claude/scripts/test/factory-reporting-queue-list-retry.sh": "94a3e378cf6980595b9c2ed928f1e139d3f7bb70513716dc09e8d05f30d83e30"
+  },
+  "source_test_bytes_unchanged": true,
+  "conflict_resolution": "Retain both collector-isolation/queue lessons and T343/T344 entries with separate owner fields; no repeated collector/T343 change in diff against merged base",
+  "actual_queue_regression_exit": 0,
+  "actual_collector_isolation_exit": 0,
+  "full_unskipped_collector": {
+    "command": "VERIFY_BASE=9e60a678b4cf7b6ccd8b9963bad0656fbea24ff3 bash .claude/scripts/collect-evidence.sh 029",
+    "exit": 1,
+    "verdict": "FAIL",
+    "ac_proven": 0,
+    "ac_total": 9,
+    "smoke_exit": 0
+  },
+  "limits": [
+    "Historical source review applies to unchanged queue/test bytes only; no integrated-tree native review or protected receipt claim.",
+    "Current proof-only final commit has not run native CI; no public publication/ready/merge/authority action.",
+    "No live cause/retry/delivery/recovery claim."
+  ]
+}

@@ -1,7 +1,7 @@
 ## Evidence Bundle — Spec 029 (029-github-reporting-alerts)
-Spec: `specs/active/029-github-reporting-alerts.md` · Commit: `d99db50`
+Spec: `specs/active/029-github-reporting-alerts.md` · Commit: `5c394c2`
 
-Retained results: [verify/2026-10-20-029-github-reporting-alerts/attempt-wJaEvaxz/results.json](verify/2026-10-20-029-github-reporting-alerts/attempt-wJaEvaxz/results.json)
+Retained results: [verify/2026-10-20-029-github-reporting-alerts/attempt-nMhp3fC8/results.json](verify/2026-10-20-029-github-reporting-alerts/attempt-nMhp3fC8/results.json)
 
 ### Acceptance criteria (0/9 proven)
 | AC | Proven by | Result |
@@ -18,7 +18,7 @@ Retained results: [verify/2026-10-20-029-github-reporting-alerts/attempt-wJaEvax
 
 ### Smoke test (exit codes are load-bearing)
 ```
-# Smoke test — 2026-10-20T21:11:58+11:00
+# Smoke test — 2026-10-20T21:46:27+11:00
 $ bash .claude/scripts/verify.sh
 
 → Integration coverage gate
@@ -44,4 +44,5 @@ line ?% · branch ?% (gate: line≥90 branch≥85)
 - verify/2026-10-20-029-github-reporting-alerts/evidence.json
 - verify/2026-10-20-029-github-reporting-alerts/pr-body.md
 - verify/2026-10-20-029-github-reporting-alerts/EVIDENCE.md
+- verify/2026-10-20-029-github-reporting-alerts/attempt-nMhp3fC8/smoke.out
 - verify/2026-10-20-029-github-reporting-alerts/smoke.log
