@@ -1,0 +1,4 @@
+AC-1: requested SHA/tag and unknown source ref guards passed
+AC-2: dirty/staged/untracked target and strict boolean/root guards passed
+AC-3: linked worktrees and apostrophe paths preserve existing content
+AC-4: pinned local tool failure leaves no partial installation and setup scripts never execute
