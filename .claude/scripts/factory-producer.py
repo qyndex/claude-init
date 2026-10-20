@@ -38,6 +38,8 @@ def candidate(api, policy, number, run_id, role):
     require(match is not None, 'approved spec branch required')
     approved = policy['specs'].get(match[1])
     require(isinstance(approved, dict), 'spec not registered')
+    if role == 'verification':
+        sandbox_profile(approved)
     require(coordinator.contract.digest(pr['head']['sha'], 40) and coordinator.contract.digest(pr['base']['sha'], 40), 'invalid commits')
     run = api.get(f'repos/{repo}/actions/runs/{run_id}')
     producer = policy['producers'][role]
@@ -71,12 +73,22 @@ def candidate(api, policy, number, run_id, role):
     return pr, approved, files, content, binding, f'workflow:{run["workflow_id"]}/run:{run_id}'
 
 
-def sandbox_command(image, root, name, argv):
+def sandbox_profile(approved):
+    # Only the registered protected-main spec supplies this versioned enum.
+    profile = approved.get('sandbox_profile', 'strict-interpreted-v1')
+    require(isinstance(profile, str) and profile in ('strict-interpreted-v1', 'native-build-v1'),
+            'unsupported protected sandbox profile')
+    return profile
+
+
+def sandbox_command(image, root, name, argv, profile='strict-interpreted-v1'):
     require(re.fullmatch(r'[A-Za-z0-9./:_-]+@sha256:[0-9a-f]{64}', image) is not None, 'digest-pinned verification image required')
     require(isinstance(argv, list) and bool(argv) and all(isinstance(word, str) and word and '\x00' not in word for word in argv), 'approved argv required')
+    profile = sandbox_profile({'sandbox_profile': profile})
+    scratch = '/tmp:rw,nosuid,nodev,' + ('exec' if profile == 'native-build-v1' else 'noexec') + ',size=1g'
     return ['docker', 'run', '--rm', '--name', name, '--network', 'none', '--cap-drop', 'ALL',
             '--security-opt', 'no-new-privileges', '--pids-limit', '256', '--memory', '2g', '--cpus', '2',
-            '--read-only', '--user', '65532:65532', '--tmpfs', '/tmp:rw,nosuid,size=1g', '--mount', f'type=bind,src={root},dst=/candidate,readonly',
+            '--read-only', '--user', '65532:65532', '--tmpfs', scratch, '--mount', f'type=bind,src={root},dst=/candidate,readonly',
             '--entrypoint', '/bin/sh', image, '-c', 'mkdir /tmp/work && cp -R /candidate/. /tmp/work/ && cd /tmp/work && exec "$@"', 'acceptance', *argv]
 
 
@@ -112,10 +124,11 @@ def verify(approved, root, output, binding, actor, runner=bounded_acceptance):
     commands = approved.get('acceptance_commands')
     require(isinstance(commands, dict) and set(commands) == set(approved['ac_ids']), 'every approved AC needs a protected command')
     image = approved.get('verification_image', '')
+    profile = sandbox_profile(approved)
     observations = []
     for ac in approved['ac_ids']:
         name = 'factory-proof-' + uuid.uuid4().hex
-        command = sandbox_command(image, root, name, commands[ac])
+        command = sandbox_command(image, root, name, commands[ac], profile=profile)
         with tempfile.TemporaryFile() as log:
             try:
                 process = runner(command, stdout=log, stderr=subprocess.STDOUT, timeout=300)
@@ -125,7 +138,7 @@ def verify(approved, root, output, binding, actor, runner=bounded_acceptance):
             require(log.tell() <= 1_000_000, 'acceptance output exceeds retained proof limit')
             log.seek(0)
             raw = log.read()
-        raw = json.dumps({'ac': ac, 'argv': commands[ac], 'image': image, 'exit_code': process.returncode, 'output': raw.decode('utf-8', errors='replace')}, sort_keys=True).encode()
+        raw = json.dumps({'ac': ac, 'argv': commands[ac], 'image': image, 'sandbox_profile': profile, 'exit_code': process.returncode, 'output': raw.decode('utf-8', errors='replace')}, sort_keys=True).encode()
         require(sum(item.stat().st_size for item in (output / 'artifacts').iterdir()) + len(raw) <= 3_000_000, 'aggregate proof exceeds artifact limit')
         digest = hashlib.sha256(raw).hexdigest()
         (output / 'artifacts' / digest).write_bytes(raw)
