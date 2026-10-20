@@ -1,0 +1,24 @@
+{
+  "scope": "Uncommitted source bytes observed by local tests and full collector; no native or live acceptance",
+  "observed_parent": "69574d23988d1a98c2c6f6f27c08815449a59351",
+  "sha256": {
+    ".claude/scripts/factory-reporting-queue.py": "8644c6a5f0bf8c4416905d5de29990e6b79c8b1b18335a485499d1234971f911",
+    ".claude/scripts/test/factory-reporting-queue-worker-diagnostics.sh": "2e149d803878f5b47c78c61db9d7f0e444ff2fd50940efc518d8b57f89165ffa"
+  },
+  "targeted": {
+    "worker_diagnostics": "PASS",
+    "existing_diagnostics": "PASS",
+    "queue_delivery": "PASS",
+    "shellcheck": "PASS",
+    "diff_check": "PASS"
+  },
+  "full_spec029": {
+    "verdict": "FAIL",
+    "ac_proven": 0,
+    "ac_total": 9,
+    "smoke_exit_max": 0,
+    "collector_exit": 1
+  },
+  "live_root_cause_identified": false,
+  "live_root_cause_repaired": false
+}

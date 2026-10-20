@@ -2038,3 +2038,11 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   files: .claude/scripts/factory-reporting-queue.py, .claude/scripts/test/factory-reporting-queue-diagnostics.sh
   accept: bash .claude/scripts/test/factory-reporting-queue-diagnostics.sh
   owner: implementer
+
+## Spec029 private-safe worker checkpoint diagnosis
+
+- [x] T-342  | spec:029  | phase:4  | priority: security  | created: 2026-10-19  | deps: T-341  | parallel: yes  | est: 15m
+  summary: Distinguish fixed worker load/parse/schema/origin guard stages while retaining failures and excluding private checkpoint data
+  files: .claude/scripts/factory-reporting-queue.py, .claude/scripts/test/factory-reporting-queue-worker-diagnostics.sh
+  accept: bash .claude/scripts/test/factory-reporting-queue-worker-diagnostics.sh
+  owner: implementer

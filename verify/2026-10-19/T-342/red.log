@@ -1,0 +1,15 @@
+Traceback (most recent call last):
+  File "<stdin>", line 38, in <module>
+  File "/private/tmp/factory-queue-diagnostics-20261019/.claude/scripts/factory-reporting-queue.py", line 482, in run_queue
+    worker()  # Bind protected origin before initialization or any other effect.
+    ~~~~~~^^
+  File "/private/tmp/factory-queue-diagnostics-20261019/.claude/scripts/factory-reporting-queue.py", line 464, in worker
+    current = state.GitState(source, storage['state_branch'], key, storage['bootstrap_sha'], storage['policy_approvals'], state_view=storage.get('state_view'))
+  File "<stdin>", line 24, in fail
+ValueError: PRIVATE-worker-payload-/private/operator-token
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "<stdin>", line 41, in <module>
+AssertionError: ('load', {'phase': 'worker-checkpoint', 'category': 'guard-failed'})
