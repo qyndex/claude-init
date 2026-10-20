@@ -275,7 +275,8 @@ class _QueueReader:
         _observed(string(raw, r'[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]{1,6})?(?:Z|[+-][0-9]{2}:[0-9]{2})', 40), 'metadata-clock-invalid')
         _observed(raw.endswith('Z') or (int(raw[-5:-3]) < 24 and int(raw[-2:]) < 60), 'metadata-clock-invalid')
         value = datetime.fromisoformat(raw.replace('Z', '+00:00')).astimezone(timezone.utc)
-        _observed(value <= self.now, 'metadata-clock-invalid')
+        # Metadata can advance during IO; keep the entry clock for grace only.
+        _observed(value <= datetime.now(timezone.utc), 'metadata-clock-invalid')
         return value
 
     def worker_health(self):

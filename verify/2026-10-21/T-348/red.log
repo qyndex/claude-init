@@ -1,0 +1,10 @@
+# TDD ledger — red — T-348
+ledger_format: 2
+timestamp: 2026-10-21T00:35:50.061839+11:00
+command: bash .claude/scripts/test/factory-reporting-queue-clock.sh
+exit_code: 1
+red_reason: assertion-failure
+---
+Traceback (most recent call last):
+  File "<stdin>", line 17, in <module>
+AssertionError: {'status': 'unknown', 'scope': 'queue-metadata', 'coverage_complete': False, 'receipt_verified': False, 'recovery_eligible': False, 'deployment_context': 'unknown', 'stalled': [], 'reason': 'metadata-clock-invalid'}

@@ -1,0 +1,18 @@
+[
+  {
+    "suite": "factory-reporting-queue-clock",
+    "exit": 0
+  },
+  {
+    "suite": "factory-reporting-queue-observation",
+    "exit": 0
+  },
+  {
+    "suite": "factory-reporting-queue-list-retry",
+    "exit": 0
+  },
+  {
+    "suite": "factory-reporting-queue-diagnostics",
+    "exit": 0
+  }
+]

@@ -2062,3 +2062,13 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
   files: .claude/scripts/factory-reporting-queue.py, .claude/scripts/test/factory-reporting-queue-list-retry.sh
   accept: bash .claude/scripts/test/factory-reporting-queue-list-retry.sh
   owner: implementer
+
+## Spec029 bounded read-time queue clock repair
+
+- [x] T-348  | spec:029  | phase:4  | priority: normal  | created: 2026-10-21  | deps: T-344  | parallel: yes  | est: 30m
+  summary: Validate advancing metadata against actual read-time without granting grace or recovery credit
+  files: .claude/scripts/factory-reporting-queue.py, .claude/scripts/test/factory-reporting-queue-clock.sh
+  accept: bash .claude/scripts/test/factory-reporting-queue-clock.sh
+  plan: plans/active/029-github-reporting-alerts.md
+  continuation: docs/activation/2026-10-21/queue-read-time-clock-continuation.md
+  owner: implementer
