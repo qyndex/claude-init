@@ -1,0 +1,92 @@
+{
+  "kind": "registered-woff2-v1",
+  "repository": "qyndex/nextjs-landing-page",
+  "spec_sha256": "UNRESOLVED_PROTECTED_APPROVED_SPEC_SHA256",
+  "assets": {
+    "public/fonts/inter/inter-baseline-cyrillic-ext.woff2": {
+      "sha256": "fccca918fea40089dacadc7045861314d1a6bc91f1f323cc1eeb22ebcdb321b5",
+      "length": 25844,
+      "face": {
+        "family": "Inter",
+        "style": "normal",
+        "weight": "100 900",
+        "display": "swap",
+        "unicode_range": "U+460-52F,U+1C80-1C8A,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F"
+      }
+    },
+    "public/fonts/inter/inter-baseline-cyrillic.woff2": {
+      "sha256": "aebf2ab4a4ce6810d73c1ac7be7cafb4e5ec4cee2d6db5fb3e09691747ec4bd6",
+      "length": 18744,
+      "face": {
+        "family": "Inter",
+        "style": "normal",
+        "weight": "100 900",
+        "display": "swap",
+        "unicode_range": "U+301,U+400-45F,U+490-491,U+4B0-4B1,U+2116"
+      }
+    },
+    "public/fonts/inter/inter-baseline-greek-ext.woff2": {
+      "sha256": "a2e2c783ca6f9c20486e81e72a279203e86730bbf8f01ff6a5ee9dbd09e1c271",
+      "length": 11272,
+      "face": {
+        "family": "Inter",
+        "style": "normal",
+        "weight": "100 900",
+        "display": "swap",
+        "unicode_range": "U+1F??"
+      }
+    },
+    "public/fonts/inter/inter-baseline-greek.woff2": {
+      "sha256": "46dd4cdca58c26ae87cc6927657bf83b2e8abfc39ffd0ab176e301a8d28d22bf",
+      "length": 19044,
+      "face": {
+        "family": "Inter",
+        "style": "normal",
+        "weight": "100 900",
+        "display": "swap",
+        "unicode_range": "U+370-377,U+37A-37F,U+384-38A,U+38C,U+38E-3A1,U+3A3-3FF"
+      }
+    },
+    "public/fonts/inter/inter-baseline-vietnamese.woff2": {
+      "sha256": "8db00ff46c67b22cda8bed865acf7077651cac8d2841d5b40980556b48961931",
+      "length": 10280,
+      "face": {
+        "family": "Inter",
+        "style": "normal",
+        "weight": "100 900",
+        "display": "swap",
+        "unicode_range": "U+102-103,U+110-111,U+128-129,U+168-169,U+1A0-1A1,U+1AF-1B0,U+300-301,U+303-304,U+308-309,U+323,U+329,U+1EA0-1EF9,U+20AB"
+      }
+    },
+    "public/fonts/inter/inter-baseline-latin-ext.woff2": {
+      "sha256": "a28eb6d3ccb534ae0c94ca999371df024aab60b08c3c8a5720ee9e32fa0faaa2",
+      "length": 85272,
+      "face": {
+        "family": "Inter",
+        "style": "normal",
+        "weight": "100 900",
+        "display": "swap",
+        "unicode_range": "U+100-2BA,U+2BD-2C5,U+2C7-2CC,U+2CE-2D7,U+2DD-2FF,U+304,U+308,U+329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF"
+      }
+    },
+    "public/fonts/inter/inter-baseline-latin.woff2": {
+      "sha256": "c940764593d0fe5d596be327ca7558855e018039fb78509aa21921fd3644c3e4",
+      "length": 48432,
+      "face": {
+        "family": "Inter",
+        "style": "normal",
+        "weight": "100 900",
+        "display": "swap",
+        "unicode_range": "U+??,U+131,U+152-153,U+2BB-2BC,U+2C6,U+2DA,U+2DC,U+304,U+308,U+329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD"
+      }
+    }
+  },
+  "license": {
+    "path": "public/fonts/inter/OFL.txt",
+    "sha256": "5b9321a4298cfeb6b34354164a1c3afc3db114569984c502b9b35d988fd58c57"
+  },
+  "provenance": {
+    "path": "public/fonts/inter/SOURCE.json",
+    "sha256": "97fed51ff6640a04054edbcc6550e2693cbd6c0ba41e1ebcc9bf7827bfd06a6b"
+  }
+}

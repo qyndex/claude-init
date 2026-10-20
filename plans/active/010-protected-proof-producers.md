@@ -287,3 +287,9 @@ implementation evidence, not hosted App proof or rollout authorization.
 3. Select the profile from the existing registered approved spec before execution, emit its fixed mount semantics in retained observation bytes and report invalid registration in preflight. No live policy change.
 4. Independently run genuine Linux default-noexec/native execution and unchanged isolation/resource probes using exact frozen code and immutable image. Run actual brownfield lint/build, preserving their real success/failure rather than inferring later readiness.
 5. Rebase once onto independently verified actual PR131 main, retain source/evidence and review. Publication, merge and live cutover remain separate concrete decisions.
+
+## T-346 approved local adapter implementation
+
+1. Add shared fail-closed registered-WOFF2 validator and immutable policy selection; test RED before implementation.
+2. Integrate ordinary complete-context and protected producer/receipt binding; retain unchanged caps and full text.
+3. Test exact real seven asset hashes without font execution, malformed/tampered/unknown assets, BASE/HEAD isolation, legacy text and capacity. Record local evidence and pending hosted qualification; do not activate/register/publish.
