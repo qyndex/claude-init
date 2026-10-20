@@ -2065,7 +2065,7 @@ Move completed batches here when the plan ships. Keep the file < 2000 lines. Whe
 
 ## Protected native-build sandbox profile — approved local implementation
 
-- [ ] T-345  | spec:010  | phase:4  | priority: security  | created: 2026-10-20  | deps: T-274  | parallel: yes  | est: 1h
+- [x] T-345  | spec:010  | phase:4  | priority: security  | created: 2026-10-20  | deps: T-274  | parallel: yes  | est: 1h
   summary: Add protected versioned per-spec native-build scratch execution while retaining strict default and every other isolation/resource/provenance bound
   files: .claude/scripts/factory-producer.py, .claude/scripts/factory-preflight.py, .claude/scripts/test/factory-native-build-profile.sh
   accept: bash .claude/scripts/test/factory-native-build-profile.sh
