@@ -1,0 +1,23 @@
+{
+  "scope": "local public synthetic probes and retained local observations; no publication approval",
+  "files": {
+    "README.md": "b085ff4b16bdb3df027298053f840c61b4aafe843482f17c6f12b8a5fa7b14c9",
+    "build-probe-observation.json": "3cf03f947b79df97396c0d30ef8482642b355de580332f9e2696a3f8c2acaee6",
+    "build-probe.log": "3e818efa48a0d054290ed2d21303758c7131be67a38b6cfa2a74aba1a02e0ea4",
+    "initial-driver-portability-observation.json": "3e7e8712541e287ccb8b564333e49efb0c537a4615da4490b88f7ffc7ada44a7",
+    "initial-driver-portability.log": "04bc87d70f87c041778849d822502981e26065f6078af6b78cf90803358619c6",
+    "isolation-probe.py": "996f5094effcf922227253d99293bbda4874128c1bde4c1c0ed1690983e966f2",
+    "isolation-results.json": "1d0df6a170d116a219d80fb73a943d218e4a72b172079eb6b362945c85495944",
+    "native-build-v1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "native-build-v1.stdout": "f82de9033501dafff488907b6831107be06ed19b685c761f639a4afc699224f5",
+    "portability-observation.json": "2dc5f062368922aff133b389590668c5071ceb88babe4e1c852a7ff7fb64af99",
+    "portability.log": "98a245450b0924ca75656055cbd719f4030e2e58fc0b47b866a57fbe9a660ceb",
+    "public-probe/isolation-probe.py": "996f5094effcf922227253d99293bbda4874128c1bde4c1c0ed1690983e966f2",
+    "run-isolation.py": "96fd8c45778aa402b295888666a7eaa278af249fba9ed6a620e5dc50944f5518",
+    "run-native-build.py": "562a39b6f923e103d5b550e248c1613f7826ca55a1bbe3a029d216a100e24ad0",
+    "run-native-portability.py": "3ba6d659adbbfb93c126c7fd9dd4a6f7dad29f8027b7224c89aaa25abaf93b9b",
+    "strict-interpreted-v1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "strict-interpreted-v1.stdout": "4737ba98d12f98fa73da2d04a60af60d12da190a12b89063a745b0021730a3cd",
+    "summary.json": "71bd2777508b2ef471a30628a15ab9785f9926d633939b06aafd59c09bcfee3f"
+  }
+}

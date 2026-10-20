@@ -1,0 +1,56 @@
+{
+  "runtime_source": "d68e8df08925de178ff261a6695e6b8469ede489",
+  "application_source": "3fec77d07536659c290c4a240658a2021ed35ac5",
+  "scope": "local protected-profile implementation/isolation verification, no native signed acceptance or activation",
+  "isolation": "PASS both strict and native",
+  "strict_native_execution": "EACCES13",
+  "native_native_execution": "exit0",
+  "unchanged_guards": [
+    "uid65532",
+    "gid65532",
+    "readonly root EROFS30",
+    "networknone ENETUNREACH101",
+    "rawsocket EPERM1",
+    "CapEff0",
+    "NoNewPrivs1",
+    "Seccomp2",
+    "memory2147483648",
+    "cpu200000/100000",
+    "pids256",
+    "tmpfs1073741824"
+  ],
+  "portability": {
+    "exit": 0,
+    "seconds": 27.608,
+    "commands": [
+      "npm run lint",
+      "npm run typecheck",
+      "npm run test:coverage"
+    ],
+    "unit_tests": 58,
+    "coverage": {
+      "lines_pct": 97.94,
+      "branches_pct": 94
+    },
+    "tmpfs_free_kib": 245804
+  },
+  "build": {
+    "exit": 1,
+    "seconds": 16.604,
+    "command": "npm run build",
+    "failure": "actual networknone Google Inter font fetch failure",
+    "work_kib": 831072,
+    "tmpfs_free_kib": 214644,
+    "timeout": false,
+    "oom": false,
+    "enospc": false
+  },
+  "browser": "not run after build failed",
+  "fresh_live_audit": "not possible under networknone; no fallback",
+  "initial_driver_failure": "duplicate mkdir from wrapper; retained initial-driver-*; not app RED",
+  "execution_active": false,
+  "image_rebuilt": false,
+  "resources_relaxed": false,
+  "remote_mutations": false,
+  "native_acceptance": false
+}
