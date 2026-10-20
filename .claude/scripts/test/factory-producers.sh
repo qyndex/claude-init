@@ -66,7 +66,10 @@ native=copy.deepcopy(p);native['specs']['010']['sandbox_profile']='native-build-
 selected=m.candidate(API(),native,42,1,'verification')[1]
 assert m.sandbox_profile(selected)=='native-build-v1' and m.coordinator.policy_hash(native)!=m.coordinator.policy_hash(p);passed+=1
 bad=copy.deepcopy(p);bad['specs']['010']['sandbox_profile']='--privileged'
-rejects(lambda:m.candidate(API(),bad,42,1,'verification'))
+try:m.candidate(API(),bad,42,1,'verification')
+except ValueError as error:
+ assert str(error)=='unsupported protected sandbox profile';passed+=1
+else:raise AssertionError('unknown protected profile reached candidate authorization')
 a=API();a.files=[{'filename':'factory/policy.json','status':'modified'}]
 rejects(lambda:m.candidate(a,native,42,1,'verification'))
 approved=p['specs']['010'];binding=m.candidate(API(),p,42,1,'verification')[4];actor='workflow:10/run:1'
