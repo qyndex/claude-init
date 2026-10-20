@@ -1,4 +1,4 @@
-Verification root: /private/tmp/factory-keep-local-ownership-20261021
+Verification root: /private/tmp/factory-033-after-actual-native-20261021
 
 → Branch freshness
   ✓ branch fresh against main
@@ -320,11 +320,13 @@ assert-density: no test files to check
 ✓ T-343: red+green ledger present and content-valid
 ✓ T-344: red+green ledger present and content-valid
 ✓ T-348: red+green ledger present and content-valid
+✓ T-345: red+green ledger present and content-valid
+✓ T-347: red+green ledger present and content-valid
 tdd-ledger: 0 fail(s), 0 warn(s), 70 legacy-incomplete (pre-T-111, not enforced)
   ✓ TDD ledger gate clean
 
 → Rerun newly completed task acceptance
-acceptance: PASS (0 newly completed tasks; base=d948cbe29aeaefd998770343245da4ca6f95a1b0)
+acceptance: PASS (0 newly completed tasks; base=d411d600a03519fa1de06e5a7a54da7234ea27f4)
   ✓ task acceptance green
 
 → Story → E2E coverage gate

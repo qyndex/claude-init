@@ -1,0 +1,9 @@
+# Actual-main Spec033 integration
+
+Real merge21bfce9 preserves both dc61 and actual main d411 histories. The forecast merge0fab is not an ancestor. Six033 implementation/doc/spec/plan/test paths remain exact corrected8a bytes and modes; TASKS combines exact main bytes with only original033 appended block, without status changes. All12 native139 closure pins and entire receipt registry remain exact actualmain. No native authority/configuration/adopter transaction occurs.
+
+The reviewed three-path archive patch f2e was applied as a patch only, with actual ancestry provenance. Original110e smoke20441bytes decodes exactly to original390 proof and dc61 ancestor. Its observation source110e is preserved as a local ref, not falsely an ancestor. The older8a raw smoke is now also archived losslessly with exact dc61 provenance; fresh current attempt-XFe3Qdxz/smoke.out remains raw. All unique histories are retained.
+
+Actual27 Git/filesystem/lock/transaction compatibility fixtures PASS after merging the new native harness closure; GREEN27.log.gz.base64 preserves exact subprocess output. One genuine full033 unchanged collector ran on frozen da555b0, Node24/offline-no-install/exact actualbase/noSKIP. Fresh canonical output is FAIL0/6, smoke0, runner0, with no AC-tagged result set; none was fabricated. The root canonical block is current; old8a canonical bytes are recoverable exactly via historical-8a-canonical-inventory.json and ancestor dc61. Earlier110e proof remains historical.
+
+All fresh proof may support local implementation review only. No hosted/native receipt, publication/ready exception, main merge, live configuration, dispatch, image/asset work or actual adopter application is authorized by these results. T349 remains unchecked. No tooling budget is increased and no paths are omitted from capacity accounting.

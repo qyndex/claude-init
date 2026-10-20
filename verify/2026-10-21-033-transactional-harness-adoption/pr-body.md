@@ -1,7 +1,7 @@
 ## Evidence Bundle — Spec 033 (033-transactional-harness-adoption)
-Spec: `specs/active/033-transactional-harness-adoption.md` · Commit: `8a54b5a`
+Spec: `specs/active/033-transactional-harness-adoption.md` · Commit: `da555b0`
 
-Retained results: [verify/2026-10-21-033-transactional-harness-adoption/attempt-CrxQ5BGq/results.json](verify/2026-10-21-033-transactional-harness-adoption/attempt-CrxQ5BGq/results.json)
+Retained results: [verify/2026-10-21-033-transactional-harness-adoption/attempt-XFe3Qdxz/results.json](verify/2026-10-21-033-transactional-harness-adoption/attempt-XFe3Qdxz/results.json)
 
 ### Acceptance criteria (0/6 proven)
 | AC | Proven by | Result |
@@ -15,7 +15,7 @@ Retained results: [verify/2026-10-21-033-transactional-harness-adoption/attempt-
 
 ### Smoke test (exit codes are load-bearing)
 ```
-# Smoke test — 2026-10-21T03:52:19+11:00
+# Smoke test — 2026-10-21T08:16:29+11:00
 $ bash .claude/scripts/verify.sh
 
 → Integration coverage gate
