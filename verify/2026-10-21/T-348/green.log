@@ -1,0 +1,7 @@
+# TDD ledger — green — T-348
+ledger_format: 2
+timestamp: 2026-10-21T00:35:50.198421+11:00
+command: bash .claude/scripts/test/factory-reporting-queue-clock.sh
+exit_code: 0
+---
+3 captured-clock/read-time/future/chronology controls passed; no live observation

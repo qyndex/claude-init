@@ -1,0 +1,14 @@
+{
+  ".github/workflows/factory-merge.yml": "850c637ad6c2820eb64a7c432348d93fe85f90b134d2ea4601c4cca3e1c19f2d",
+  ".claude/scripts/factory-coordinator.py": "2598e434b9058ff56ae8781b8337653655c8e99de43a71b346fff86cea36fa00",
+  ".claude/scripts/factory-preflight.py": "c3997120ee8d7064738b26fa1c30e318db02ebf411c46baa3aa67d521d1dad56",
+  ".claude/scripts/validate-candidate-evidence.py": "ad0be5042d8dce5e0372159bbcbdbb84bc39b96e57435865eb62e7e5d4d0b52c",
+  ".claude/scripts/factory-provenance.py": "0b169e5fefa78ee683ecf3aaf13bfce975929b113ff3d1052a59a95cc3077b01",
+  ".claude/scripts/factory-bounded-process.py": "91d077e6badb7c606a31cf85d8fbb8315b91d9d211b4fe1ab8fb970693207f47",
+  ".claude/scripts/factory-policy-observation.py": "2fce0d7b6fda425dce97ee77cdccede155a16d93a2c2d4e588c7816e976a8dee",
+  ".claude/scripts/factory-receipts.py": "276573a80730be1fd246de4939e5fd8594d439724083f88037af96b8ce9e1255",
+  ".claude/scripts/factory-ledger.py": "d403fb95cd87e31bc009c9ac3b055b23ba18a4accf2c7ab08d4f8d41b40c22ef",
+  "factory/receipt-trust.json": "3c76d99ed38a43464da76e33ed9091936a7660dbe865ea3e52cb6b2a4553ff46",
+  "factory/policy.json": "2d1945832ac63f25c36d323f8be3f12b5734289a33a5d144432967f65f045ad6",
+  "specs/active/048-adopter-quickstart-pilot.md": "b1d8c41cd3213f264237e3308244f561b43777a0630aa5dee98cb9891a7e9458"
+}

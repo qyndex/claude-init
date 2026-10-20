@@ -20,13 +20,13 @@
 
 ## Factory readiness
 
-The approved factory implementation is complete: all **173 task entries for specs006–050** are done as of 2026-10-18. The source-repository pilot has delivered one independently verified candidate and activated merge authority under its narrow approved Spec048 policy. This is readiness for **controlled adoption**, not automatic certification of another repository or production deployment.
+The original **173-task baseline for specs006–050** was recorded complete on 2026-10-18. Additional runtime hardening and adopter qualification remain in progress; see the [2026-10-21 readiness update](docs/activation/2026-10-21/adopter-readiness.md). The source-repository pilot has delivered one independently verified candidate under its narrow approved Spec048 policy. This supports **controlled adoption**; it does not certify another repository or production deployment.
 
 Start with [Factory adopter quickstart](docs/FACTORY-ADOPTER-QUICKSTART.md), then [per-repository setup](docs/FACTORY-ADOPTER-SETUP.md). Installation leaves factory capabilities disabled and supplies no source-pilot credentials, workflows or approvals. Each adopter must prove its own protected configuration, independent evidence and shadow/merge sequence.
 
 For Scout-first requests, use the separately configured [guarded factory console](docs/FACTORY-REQUEST-INTAKE.md). Bare `claude` sessions and IDE edits remain advisory; installation does not establish universal prompt interception or a certified native worker.
 
-See [current status and remaining rollout evidence](docs/FACTORY-STATUS.md): reporting catch-up, the next pilot digest and feedback/amendment cycle, and the twenty-delivery expansion threshold remain distinct from completed implementation. Production, optional online workers and oversized Slack attachments require their own readiness decisions.
+See the [dated status and remaining rollout evidence](docs/FACTORY-STATUS.md): reporting catch-up, the next pilot digest and feedback/amendment cycle, and the twenty-delivery expansion threshold remain distinct from the recorded implementation baseline. Production, optional online workers and oversized Slack attachments require their own readiness decisions.
 
 ## Install in one line
 

@@ -1,0 +1,16 @@
+[
+  {
+    "file": "raw-smoke-1.gz.b64",
+    "source": "/private/tmp/factory-queue-clock-only-proof-20261021/verify.log",
+    "original_bytes": 20542,
+    "original_sha256": "1ada77d5350e7667e2c40646cb18c3ce2e9703006e4a054c81addc8dd1e728ad",
+    "archive_sha256": "3f3d147754b15c361dad6b1c501ffebcce336de44217dd417744aafed85e7f16"
+  },
+  {
+    "file": "raw-smoke-2.gz.b64",
+    "source": "/private/tmp/factory-queue-clock-only-proof-20261021/full-029/attempt-S8CODctN/smoke.out",
+    "original_bytes": 20542,
+    "original_sha256": "1ada77d5350e7667e2c40646cb18c3ce2e9703006e4a054c81addc8dd1e728ad",
+    "archive_sha256": "3f3d147754b15c361dad6b1c501ffebcce336de44217dd417744aafed85e7f16"
+  }
+]
