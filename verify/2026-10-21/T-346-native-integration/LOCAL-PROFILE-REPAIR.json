@@ -1,0 +1,23 @@
+{
+  "original_registry_sha256": "db49d87ca771d92556a4c4ccee30a603b020860245ed8504bb6828a253da5123",
+  "new_local_registry_sha256": "404ca10a2664ceaa55c032124dfb3676adae10d144f9c399180b6008b99841d7",
+  "historical_three_profiles_unchanged": true,
+  "legacy_revisions_unchanged": true,
+  "new_profile": {
+    "id": "merge-font-source-20261021",
+    "status": "active",
+    "policy_sha256": "15ac63265c32af1ae35ffd4b465b76b3397a347995e97b932ee5d451e6ec03eb",
+    "runtime": {
+      ".github/workflows/factory-merge.yml": "850c637ad6c2820eb64a7c432348d93fe85f90b134d2ea4601c4cca3e1c19f2d",
+      ".claude/scripts/factory-coordinator.py": "c8ff2a7b4d106896c5d1cb9e866ac725521d0081f48f56529269351746476574",
+      ".claude/scripts/factory-preflight.py": "b85220ed06905c453b79d4500dbcccdf3dfccac69e6fde36c1a42995136ace08",
+      ".claude/scripts/validate-candidate-evidence.py": "4e530033cc15cd51a9ba8eb75208e4ffdaa91e7a6394b8af88f51ecfe17b1b50",
+      ".claude/scripts/factory-provenance.py": "0b169e5fefa78ee683ecf3aaf13bfce975929b113ff3d1052a59a95cc3077b01",
+      ".claude/scripts/factory-bounded-process.py": "91d077e6badb7c606a31cf85d8fbb8315b91d9d211b4fe1ab8fb970693207f47",
+      ".claude/scripts/factory-policy-observation.py": "2fce0d7b6fda425dce97ee77cdccede155a16d93a2c2d4e588c7816e976a8dee"
+    }
+  },
+  "installed": false,
+  "publication_or_live_cutover_approved": false,
+  "candidate_asset_registration": false
+}

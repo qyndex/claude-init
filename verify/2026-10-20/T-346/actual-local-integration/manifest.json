@@ -1,0 +1,74 @@
+{
+  "scope": "independent actual Docker execution with local synthetic protected-style registration; not hosted authentication, signed proof, native acceptance or a model review",
+  "runtime_source": "8cba02a7154d719851e5024bd82a4050628147b2",
+  "application_source": "c2970fbc07c2fd4ffc53938d87121bce76404fb1",
+  "encoding": "base64; decode originals and verify SHA256/length",
+  "files": [
+    {
+      "original_path": "summary.json",
+      "encoded_path": "summary.json.base64",
+      "bytes": 791,
+      "sha256": "68b3837b5b695cb15139787a3df3e667d1f8eab7d1f690892dec776b6ce731dd"
+    },
+    {
+      "original_path": "fixture-policy.json",
+      "encoded_path": "fixture-policy.json.base64",
+      "bytes": 5061,
+      "sha256": "2a62069e35f8ff4a2df5d92b85638ecf3d0756789a8bb374dcc51e62ab97f816"
+    },
+    {
+      "original_path": "actual-producer-result.json",
+      "encoded_path": "actual-producer-result.json.base64",
+      "bytes": 986,
+      "sha256": "c644c8b1c6ad4d8c83cca08066ffc04304ecba05cb59491f54e17427ab3587c9"
+    },
+    {
+      "original_path": "actual-font-manifest.json",
+      "encoded_path": "actual-font-manifest.json.base64",
+      "bytes": 5655,
+      "sha256": "fa5232f08d676a916cc7684a9a77149906f2f2f55e92694aff3b4d39f8a2c897"
+    },
+    {
+      "original_path": "invocations.json",
+      "encoded_path": "invocations.json.base64",
+      "bytes": 2848,
+      "sha256": "1b1ac1a12eb970addecb255b944029eed9ea2df127b67bd6fcbc91975165fcec"
+    },
+    {
+      "original_path": "binding.json",
+      "encoded_path": "binding.json.base64",
+      "bytes": 634,
+      "sha256": "2ba31184623560e8826f36d7bbfc5fe9abf232f356e591aeb698bc4ad30a64e8"
+    },
+    {
+      "original_path": "fixture-spec.txt",
+      "encoded_path": "fixture-spec.txt.base64",
+      "bytes": 154,
+      "sha256": "ab88fe21ac32b5dcef311d1c026586c900cb3b5c5be5443995e5075ca22dbe14"
+    },
+    {
+      "original_path": "run-integration.py",
+      "encoded_path": "run-integration.py.base64",
+      "bytes": 4466,
+      "sha256": "5d79e5b65b63e8a00fb4a04432691169b63faee58a34d17e8b0738178cbc2728"
+    },
+    {
+      "original_path": "raw-command-output.log",
+      "encoded_path": "raw-command-output.log.base64",
+      "bytes": 9234,
+      "sha256": "200f31d4aa019ecff195bbad9870296f0f2e1d3b1a7ac5a1a66bf86cd923cac8"
+    },
+    {
+      "original_path": "producer-output/artifacts/4c320cbfcbba92f694ca0115409f0cdf768e6a5dd6299215e1b2207e50928aa9",
+      "encoded_path": "producer-output--artifacts--4c320cbfcbba92f694ca0115409f0cdf768e6a5dd6299215e1b2207e50928aa9.base64",
+      "bytes": 10974,
+      "sha256": "4c320cbfcbba92f694ca0115409f0cdf768e6a5dd6299215e1b2207e50928aa9"
+    },
+    {
+      "original_path": "artifacts-manifest.json",
+      "encoded_path": "artifacts-manifest.json.base64",
+      "bytes": 1337,
+      "sha256": "28f94362866f0099cb33c17b7d71a89bb85c7e95e13ffc389ea2d804d9d6057a"
+    }
+  ]
+}

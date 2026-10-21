@@ -1,0 +1,86 @@
+{
+  "scope": "local fixture/structural evidence only; no model call, installed registration, host font execution or hosted authority",
+  "source_commit": "8cba02a7154d719851e5024bd82a4050628147b2",
+  "source_base": "3f369f8e3628bc139630c92fbe098316ed8c9288",
+  "encoding": "base64; decode each file and verify SHA256/length before reading",
+  "observations": [
+    {
+      "path": "red.base64",
+      "original_filename": "font-adapter-red.log",
+      "sha256": "d14d0043fd3b14117774954aa4ad8cdf8fdd3ada9b4d22da68c430e51b1cf065",
+      "bytes": 1444
+    },
+    {
+      "path": "green.base64",
+      "original_filename": "font-adapter-green.log",
+      "sha256": "d1966887fa8a8780a32460913608bd3a21310b077417d0b73d73859d62a1c120",
+      "bytes": 1681
+    },
+    {
+      "path": "producers.base64",
+      "original_filename": "font-adapter-producers.log",
+      "sha256": "6ba1e562865cbaca90b5f157778c7339d581630f6e3f7cd5774382f6d96cb4e1",
+      "bytes": 22
+    },
+    {
+      "path": "profile.base64",
+      "original_filename": "font-adapter-profile.log",
+      "sha256": "ebbe6d0bc608c53bd37433729652a221c677501ebae41a227ef756eccf0075c2",
+      "bytes": 1200
+    },
+    {
+      "path": "preflight.base64",
+      "original_filename": "font-adapter-preflight.log",
+      "sha256": "ee81f2b8ca918d7fecde201f9400a4bac7da98ecfc761305ad2708866714b963",
+      "bytes": 268
+    },
+    {
+      "path": "provenance.base64",
+      "original_filename": "font-adapter-provenance.log",
+      "sha256": "f619e6ff063326d6569d5b2898f33c2dd951426890eb8a45ccc25def8da14d40",
+      "bytes": 141
+    },
+    {
+      "path": "evidence.base64",
+      "original_filename": "font-adapter-evidence.log",
+      "sha256": "021209226da5adec6b6ea91a21adf3cfca150d49de2113b890a312fbada15f0e",
+      "bytes": 22
+    },
+    {
+      "path": "coordinator.base64",
+      "original_filename": "font-adapter-coordinator.log",
+      "sha256": "b96bf98937043bbf2f029fd8e5b2d9e55374d2a5f91979cef83f41d187df38b0",
+      "bytes": 126
+    },
+    {
+      "path": "ordinary.base64",
+      "original_filename": "font-adapter-ordinary.log",
+      "sha256": "fb934126eca96f4046ecd27581bb74dcb1de99d7ee160f3fec4aa6c58b29cddc",
+      "bytes": 2057
+    },
+    {
+      "path": "receipts-initial-sandbox-failure.base64",
+      "original_filename": "font-adapter-receipts.log",
+      "sha256": "3203438e9bda76bf638b1bda11d8d26aeef0471ae520f4875c1df81b9de6dbc0",
+      "bytes": 160
+    },
+    {
+      "path": "receipts-local-process-permission.base64",
+      "original_filename": "font-adapter-receipts-local-process.log",
+      "sha256": "5c0ee568d507d1ab24341efa4068cfa10d5b4b645687e9f92206cf8e9eef5247",
+      "bytes": 463
+    },
+    {
+      "path": "seven-assets.base64",
+      "original_filename": "font-adapter-seven-assets.json",
+      "sha256": "63c11b35ada8c09ea94cced88012e6f72462526970b74baede8c47ccb60f95c0",
+      "bytes": 6075
+    },
+    {
+      "path": "source-gitleaks.base64",
+      "original_filename": "font-adapter-source-gitleaks.log",
+      "sha256": "1565b8f8fa4ac15afe7d20cc7aecd816b16e0350f34dc0d43a1033505686dbef",
+      "bytes": 197
+    }
+  ]
+}

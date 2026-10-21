@@ -88,6 +88,6 @@ for role in ['verification','review']:
  assert "if: steps.proof.outcome == 'success'" in workflow and 'producer-output/evidence.json' in workflow
  assert '[ "$SIGNATURE" = success ]' in workflow and '[ "$SIGNATURE_BUNDLE" = success ]' in workflow
  assert '.claude/scripts/factory-provenance.py' in c.runtime_paths(role)
- assert len(c.runtime_paths(role))==8 and '.claude/scripts/factory-policy-observation.py' in c.runtime_paths(role)
+ assert len(c.runtime_paths(role))==9 and '.claude/scripts/factory-policy-observation.py' in c.runtime_paths(role)
 print('provenance: PASS; assertions='+str(checks)+'; injected verified-certificate positive fixtures; nonzero verifier rejection; no live signing/hosted verdict')
 PY

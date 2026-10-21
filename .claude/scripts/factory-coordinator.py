@@ -67,7 +67,7 @@ def runtime_paths(role):
     return {f'.github/workflows/factory-{role}.yml', '.claude/scripts/factory-producer.py',
             '.claude/scripts/factory-producer-check.py', '.claude/scripts/factory-provenance.py', '.claude/scripts/factory-coordinator.py',
             '.claude/scripts/validate-candidate-evidence.py', '.claude/scripts/factory-bounded-process.py',
-                 '.claude/scripts/factory-policy-observation.py'}
+                 '.claude/scripts/factory-policy-observation.py', '.claude/scripts/factory-font-adapter.py'}
 
 
 def protection(api, root, branch, required, app_id, observations=None, audit=None):
@@ -205,10 +205,12 @@ def coordinate(api, policy, number, merge=False, *, observations=None, audit=Non
         selected_runs.append(run)
         attachments.update(blobs)
     verifier, reviewer = documents['verification'], documents['review']
-    contract.object_keys(verifier, contract.BINDING | {'generated_at', 'acceptance', 'verification'}, 'verifier artifact')
-    contract.object_keys(reviewer, contract.BINDING | {'generated_at', 'review'}, 'review artifact')
-    binding = {key: verifier[key] for key in contract.BINDING}
-    require(all(reviewer[key] == binding[key] for key in contract.BINDING), 'review/spec/policy candidate mismatch')
+    adapter = approved.get('review_adapter')
+    binding_keys = contract.BINDING | ({'review_adapter'} if adapter is not None else set())
+    contract.object_keys(verifier, binding_keys | {'generated_at', 'acceptance', 'verification'}, 'verifier artifact')
+    contract.object_keys(reviewer, binding_keys | {'generated_at', 'review'}, 'review artifact')
+    binding = {key: verifier[key] for key in binding_keys}
+    require(all(reviewer[key] == binding[key] for key in binding_keys), 'review/spec/policy candidate mismatch')
     evidence = dict(binding, generated_at=verifier['generated_at'], acceptance=verifier['acceptance'], checks=receipts,
                     verification=verifier['verification'], review=reviewer['review'])
     context = {'schema_version': 1, 'repository': repo, 'pull_request': number, 'head_sha': head, 'base_sha': base,
@@ -216,6 +218,12 @@ def coordinate(api, policy, number, merge=False, *, observations=None, audit=Non
                'implementer': pr['user']['login'], 'allowed_verifiers': [authorities['verification']],
                'allowed_reviewers': [authorities['review']], 'required_checks': policy['required_checks'],
                'window_start': min(run['created_at'] for run in selected_runs), 'window_end': max(run['updated_at'] for run in selected_runs)}
+    if adapter is not None:
+        canonical = lambda value: json.dumps(value, sort_keys=True, separators=(',', ':')).encode()
+        expected = {'kind':'registered-woff2-v1', 'registration_sha256':hashlib.sha256(canonical(adapter)).hexdigest(),
+                    'asset_manifest_sha256':hashlib.sha256(canonical({'head_sha':head,'assets':adapter['assets']})).hexdigest()}
+        require(binding.get('review_adapter') == expected, 'protected font adapter/asset binding differs')
+        context['review_adapter'] = expected
     contract.validate(context, evidence)
     require(contract.stamp(context['window_start']) <= contract.stamp(reviewer['generated_at']) <= contract.stamp(context['window_end']), 'review outside trusted run window')
     for observation in evidence['acceptance']:
@@ -238,6 +246,8 @@ def coordinate(api, policy, number, merge=False, *, observations=None, audit=Non
     result = {'schema_version': 1, 'repository': repo, 'pull_request': number, 'head_sha': head, 'base_sha': base,
               'spec': sid, 'spec_sha256': approved['sha256'], 'policy_sha256': context['policy_sha256'],
               'verifier_run': selected_runs[0]['id'], 'reviewer_run': selected_runs[1]['id'], 'eligible': True, 'merged': False}
+    if adapter is not None:
+        result['review_adapter'] = expected
     if merge:
         api.post(f'{root}/check-runs', {'name': 'factory-eligibility', 'head_sha': head, 'status': 'completed', 'conclusion': 'success',
                  'output': {'title': 'Factory eligibility passed', 'summary': f'Exact candidate {head}; spec {sid}; policy {context["policy_sha256"]}'}})

@@ -1,0 +1,10 @@
+{
+  "scope": "test-only portability; production unchanged from actual Docker8cba",
+  "clean_head": "9b49bc63cba01c0e6da5f6c29ae6b40501a3748e",
+  "is_shallow": "true",
+  "historical_object_exit": 128,
+  "tests": 11,
+  "passed": true,
+  "log_sha256": "f863f8dfed5a64ab32de5bef69a5c449a0b8b25abebc63ec48ee0fff3fd090fa",
+  "log_bytes": 1681
+}

@@ -148,6 +148,13 @@ def authenticate(api, policy, run_id, *, historical=False, trust_path=None, trus
     document, artifact = receipt_artifact(api, run)
     expected = {'schema_version', 'repository', 'pull_request', 'head_sha', 'base_sha', 'spec', 'spec_sha256',
                 'policy_sha256', 'verifier_run', 'reviewer_run', 'eligible', 'merged', 'merge_sha', 'task_ids'}
+    registration = source.get('specs', {}).get(document.get('spec'), {}).get('review_adapter')
+    if registration is not None:
+        expected.add('review_adapter')
+        canonical = lambda value: json.dumps(value, sort_keys=True, separators=(',', ':')).encode()
+        binding = {'kind':'registered-woff2-v1', 'registration_sha256':hashlib.sha256(canonical(registration)).hexdigest(),
+                   'asset_manifest_sha256':hashlib.sha256(canonical({'head_sha':document.get('head_sha'),'assets':registration['assets']})).hexdigest()}
+        require(document.get('review_adapter') == binding, 'receipt font adapter/asset binding differs')
     require(set(document) == expected and document['schema_version'] == 1, 'malformed delivery receipt')
     require(source.get('enabled') is True and source.get('merge_enabled') is True, 'receipt policy did not authorize merge')
     require(document['repository'] == repo == source['repository'] and document['eligible'] is True and document['merged'] is True, 'receipt is not a factory delivery')

@@ -51,16 +51,21 @@ def unique_map(values, key, label):
 
 
 def validate(context, evidence):
-    object_keys(context, BINDING | {'ac_ids', 'implementer', 'allowed_verifiers', 'allowed_reviewers',
+    binding = BINDING | ({'review_adapter'} if 'review_adapter' in context else set())
+    if 'review_adapter' in context:
+        adapter = context['review_adapter']
+        object_keys(adapter, {'kind','registration_sha256','asset_manifest_sha256'}, 'review adapter binding')
+        require(adapter['kind'] == 'registered-woff2-v1' and all(digest(adapter[key],64) for key in ('registration_sha256','asset_manifest_sha256')), 'invalid review adapter binding')
+    object_keys(context, binding | {'ac_ids', 'implementer', 'allowed_verifiers', 'allowed_reviewers',
                                    'required_checks', 'window_start', 'window_end'}, 'context')
-    object_keys(evidence, BINDING | {'generated_at', 'acceptance', 'checks', 'verification', 'review'}, 'evidence')
+    object_keys(evidence, binding | {'generated_at', 'acceptance', 'checks', 'verification', 'review'}, 'evidence')
     require(type(context['schema_version']) is int and context['schema_version'] == 1, 'unsupported schema version')
     require(identity(context['repository']) and integer(context['pull_request']), 'invalid repository or pull request')
     for key in ('head_sha', 'base_sha'):
         require(digest(context[key], 40), f'{key}: commit SHA required')
     for key in ('spec_sha256', 'policy_sha256'):
         require(digest(context[key], 64), f'{key}: SHA-256 required')
-    for key in BINDING:
+    for key in binding:
         require(type(evidence[key]) is type(context[key]) and evidence[key] == context[key], f'{key}: candidate binding mismatch')
     acs = context['ac_ids']
     require(isinstance(acs, list) and bool(acs) and all(isinstance(ac, str) and re.fullmatch(r'AC-\d+', ac) for ac in acs), 'nonempty AC set required')
