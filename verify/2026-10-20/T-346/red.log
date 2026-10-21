@@ -1,0 +1,19 @@
+test_registered_font_represented_without_decoding_or_execution (__main__.Adapter.test_registered_font_represented_without_decoding_or_execution) ... ERROR
+
+======================================================================
+ERROR: test_registered_font_represented_without_decoding_or_execution (__main__.Adapter.test_registered_font_represented_without_decoding_or_execution)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/factory-font-review-adapter-20261020/.claude/scripts/test/factory-font-adapter.py", line 32, in test_registered_font_represented_without_decoding_or_execution
+    prompt=producer.review_prompt(self.api,self.repo,self.approved,[{'filename':self.path,'status':'added'}],self.spec,self.binding)
+  File "/private/tmp/factory-font-review-adapter-20261020/.claude/scripts/factory-producer.py", line 160, in review_prompt
+    require(b'\x00' not in before + after, 'binary candidate needs an approved review adapter')
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/factory-font-review-adapter-20261020/.claude/scripts/validate-candidate-evidence.py", line 19, in require
+    raise ValueError(message)
+ValueError: binary candidate needs an approved review adapter
+
+----------------------------------------------------------------------
+Ran 1 test in 0.000s
+
+FAILED (errors=1)

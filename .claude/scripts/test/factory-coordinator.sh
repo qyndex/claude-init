@@ -55,6 +55,23 @@ def check(fake,p=policy,valid=False):
   call=[call for call in fake.calls if isinstance(call,tuple) and call[0].endswith('/merge')][0]
   assert call[1]['sha']==head and result['merge_sha']=='d'*40
 check(Fake(),valid=True)
+# Registered adapter receipts must bind the protected registration and candidate asset manifest.
+adapter_policy=copy.deepcopy(policy)
+adapter_policy['specs']['007']['review_adapter']={'kind':'registered-woff2-v1','assets':{'public/fonts/inter/inter-baseline-latin.woff2':{'sha256':'1'*64,'length':48}}}
+canonical=lambda v:json.dumps(v,sort_keys=True,separators=(',',':')).encode()
+registration=adapter_policy['specs']['007']['review_adapter']
+adapter_binding={'kind':'registered-woff2-v1','registration_sha256':hashlib.sha256(canonical(registration)).hexdigest(),'asset_manifest_sha256':hashlib.sha256(canonical({'head_sha':head,'assets':registration['assets']})).hexdigest()}
+def adapter_fake():
+ f=Fake()
+ for doc in f.docs.values():doc.update(policy_sha256=m.policy_hash(adapter_policy),review_adapter=copy.deepcopy(adapter_binding))
+ return f
+check(adapter_fake(),adapter_policy,valid=True)
+f=adapter_fake();f.docs[1]['review_adapter']['asset_manifest_sha256']='f'*64;check(f,adapter_policy)
+f=adapter_fake();f.docs[2]['review_adapter']['registration_sha256']='f'*64;check(f,adapter_policy)
+f=adapter_fake()
+for doc in f.docs.values():doc['review_adapter']['asset_manifest_sha256']='f'*64
+check(f,adapter_policy)
+f=adapter_fake();f.docs[2].pop('review_adapter');check(f,adapter_policy)
 mutations=[lambda f:f.pr['head'].update(ref='arbitrary'),lambda f:f.pr.update(draft=True),lambda f:f.files.append({'filename':'factory/policy.json'}),lambda f:f.files.append({'filename':'src/new','previous_filename':'.github/old'}),lambda f:f.files.append({'filename':'outside.py'}),lambda f:f.rules.clear(),lambda f:f.rules[1]['parameters']['required_status_checks'][0].update(integration_id=1),lambda f:f.checks[0].update(head_sha='f'*40),lambda f:f.checks[0]['app'].update(id=1),lambda f:f.checks[0].update(conclusion='skipped'),lambda f:f.runs[0].update(status='in_progress'),lambda f:f.runs[0].update(head_sha='f'*40),lambda f:f.runs[0].update(pull_requests=[]),lambda f:f.docs[1].update(base_sha='f'*40),lambda f:f.docs[2]['review'].update(unresolved_findings=['critical']),lambda f:setattr(f,'drift',True),lambda f:setattr(f,'bad_source',True),lambda f:setattr(f,'bad_artifact',True),lambda f:setattr(f,'fail',True),lambda f:setattr(f,'bypass',True)]
 for mutation in mutations:
  f=Fake();mutation(f);check(f)

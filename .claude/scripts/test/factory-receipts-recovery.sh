@@ -61,6 +61,18 @@ with tempfile.TemporaryDirectory() as tmp:
     revision=hashlib.sha256(b'approved spec').hexdigest()
     policy={'enabled':True,'merge_enabled':True,'repository':'org/repo','base_branch':'main','specs':{'001':{'path':'specs/active/001.md','sha256':revision,'task_ids':['T-1']}},'receipts':{'workflow_id':10,'trusted_revisions':{'a'*40:{p:hashlib.sha256(b'trusted').hexdigest() for p in r.RUNTIME_PATHS}}}}
     receipt={'schema_version':1,'repository':'org/repo','pull_request':7,'head_sha':'c'*40,'base_sha':'d'*40,'spec':'001','spec_sha256':revision,'policy_sha256':r.coordinator.policy_hash(policy),'verifier_run':21,'reviewer_run':22,'eligible':True,'merged':True,'merge_sha':'b'*40,'task_ids':['T-1']}
+    # New adapter binding is authenticated against the signed source policy; legacy receipts remain unchanged.
+    adapter_policy=copy.deepcopy(policy)
+    registration={'kind':'registered-woff2-v1','assets':{'public/fonts/inter/inter-baseline-latin.woff2':{'sha256':'1'*64,'length':48}}}
+    adapter_policy['specs']['001']['review_adapter']=registration
+    canonical=lambda value:json.dumps(value,sort_keys=True,separators=(',',':')).encode()
+    bound=copy.deepcopy(receipt);bound['policy_sha256']=r.coordinator.policy_hash(adapter_policy)
+    bound['review_adapter']={'kind':'registered-woff2-v1','registration_sha256':hashlib.sha256(canonical(registration)).hexdigest(),'asset_manifest_sha256':hashlib.sha256(canonical({'head_sha':bound['head_sha'],'assets':registration['assets']})).hexdigest()}
+    r.authenticate(API(adapter_policy,bound),adapter_policy,20)
+    for field in ('registration_sha256','asset_manifest_sha256'):
+        bad=copy.deepcopy(bound);bad['review_adapter'][field]='f'*64
+        rejects(lambda:r.authenticate(API(adapter_policy,bad),adapter_policy,20))
+    bad=copy.deepcopy(bound);bad.pop('review_adapter');rejects(lambda:r.authenticate(API(adapter_policy,bad),adapter_policy,20))
     store.enqueue('T-1',revision,[])
     api=API(policy,receipt)
     for field,value in [('workflow_id',11),('event','pull_request'),('head_branch','feature'),('conclusion','failure')]:

@@ -1,0 +1,29 @@
+{
+  "archival_upload_approved": false,
+  "remote_write_performed": false,
+  "proposed_original_adapter_head": "0efa7dca14d2b79050a1c37d925dc3cb489124e7",
+  "proposed_original_adapter_tree": "895c9cf88f390c89599c8ccac564cdda41a10e39",
+  "local_retention_ref": "refs/heads/codex/original-font-adapter-proof-history",
+  "proposed_public_archive_ref": "refs/heads/codex/archive-font-adapter-original-0efa7dc-20261021",
+  "source_history_commits_since_public_native": [
+    "8cba02a7154d719851e5024bd82a4050628147b2",
+    "67482b717dbef61632defe6f39697038506d4f47",
+    "7ae91d91007fe31ac7983cba4d4e27fb8622944c",
+    "6b5220d1dc4ac57baaad6c15dbcd276138bd1768",
+    "8a1635644411f823ee7de0c537b807a64361e7fb",
+    "9b49bc63cba01c0e6da5f6c29ae6b40501a3748e",
+    "0efa7dca14d2b79050a1c37d925dc3cb489124e7"
+  ],
+  "existing_public_native_head": "3f369f8e3628bc139630c92fbe098316ed8c9288",
+  "existing_public_native_tree": "37ba0cf3e8e2234b21f841a8dfe64c028ca5b466",
+  "existing_public_pr": 133,
+  "existing_public_pr_state": "closed",
+  "existing_public_pr_merged": false,
+  "existing_public_head_branch_name": "codex/native-profile-readiness-repair",
+  "public_commit_available": true,
+  "public_pr_reference_available": true,
+  "no_new_storage_feature": true,
+  "existing_public_native_branch_ref": "refs/heads/codex/native-profile-readiness-repair",
+  "existing_public_native_branch_head": "3f369f8e3628bc139630c92fbe098316ed8c9288",
+  "existing_public_native_branch_available": true
+}

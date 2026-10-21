@@ -1,0 +1,16 @@
+test_binding_validator_requires_exact_optional_adapter (__main__.Adapter.test_binding_validator_requires_exact_optional_adapter) ... ok
+test_legacy_text_capacity_context_is_byte_identical (__main__.Adapter.test_legacy_text_capacity_context_is_byte_identical) ... ok
+test_manifest_binding_changes_with_source_and_policy (__main__.Adapter.test_manifest_binding_changes_with_source_and_policy) ... ok
+test_ordinary_foreign_repo_ref_and_head_approval_cannot_authorize (__main__.Adapter.test_ordinary_foreign_repo_ref_and_head_approval_cannot_authorize) ... ok
+test_ordinary_uses_immutable_base_not_candidate_policy (__main__.Adapter.test_ordinary_uses_immutable_base_not_candidate_policy) ... ok
+test_registered_font_represented_without_decoding_or_execution (__main__.Adapter.test_registered_font_represented_without_decoding_or_execution) ... ok
+test_registered_paths_cannot_bypass_by_becoming_utf8 (__main__.Adapter.test_registered_paths_cannot_bypass_by_becoming_utf8) ... ok
+test_tamper_wrong_length_magic_metadata_license_and_provenance_reject (__main__.Adapter.test_tamper_wrong_length_magic_metadata_license_and_provenance_reject) ... ok
+test_text_only_legacy_complete_before_after_and_capacity (__main__.Adapter.test_text_only_legacy_complete_before_after_and_capacity) ... ok
+test_unknown_renamed_path_and_candidate_supplied_approval_reject (__main__.Adapter.test_unknown_renamed_path_and_candidate_supplied_approval_reject) ... ok
+test_verifier_rechecks_checked_out_bytes_before_acceptance (__main__.Adapter.test_verifier_rechecks_checked_out_bytes_before_acceptance) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 1.083s
+
+OK

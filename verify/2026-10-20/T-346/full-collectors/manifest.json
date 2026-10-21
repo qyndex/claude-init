@@ -1,0 +1,45 @@
+{
+  "source_commit": "8a1635644411f823ee7de0c537b807a64361e7fb",
+  "verify_base": "3f369f8e3628bc139630c92fbe098316ed8c9288",
+  "full_unskipped": true,
+  "node": "24.13.1",
+  "results": {
+    "010": {
+      "verdict": "FAIL",
+      "proven": 0,
+      "total": 5,
+      "smoke_exit": 0
+    },
+    "045": {
+      "verdict": "FAIL",
+      "proven": 0,
+      "total": 4,
+      "smoke_exit": 0
+    }
+  },
+  "encoding": "base64 lossless; verify SHA256/length after decode",
+  "files": [
+    {
+      "path": "full-010.log.base64",
+      "sha256": "900e68ba5caca4200430a68f231bc8748005b4f2750555bb45e090ee69055e69",
+      "bytes": 649
+    },
+    {
+      "path": "full-010-smoke.out.base64",
+      "original_path": "verify/2026-10-20-010-protected-proof-producers/attempt-USX6EdnN/smoke.out",
+      "sha256": "29a50d67caac1ca007027de86966f8696175ed46fbac21750aa12395d577910d",
+      "bytes": 22144
+    },
+    {
+      "path": "full-045.log.base64",
+      "sha256": "90e1ff76bfc07a44403fa8aa6750e824b6409435fd8a37b43ea03870b4a792ed",
+      "bytes": 633
+    },
+    {
+      "path": "full-045-smoke.out.base64",
+      "original_path": "verify/2026-10-20-045-hosted-review-runtime/attempt-BiePn0nk/smoke.out",
+      "sha256": "7c26e00be83da424788b449ec2b9b336be5f51339738db18b42829df8762279d",
+      "bytes": 22144
+    }
+  ]
+}

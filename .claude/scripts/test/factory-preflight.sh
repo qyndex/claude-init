@@ -18,7 +18,7 @@ with tempfile.TemporaryDirectory() as temp:
   selected=copy.deepcopy(policy);selected['merge_enabled']=merge_mode
   result=run(selected);assert result.returncode==0,(merge_mode,result.stdout)
  for role in ('verification','review'):
-  pins=policy['producers'][role]['trusted_files'];assert len(pins)==8 and helper in pins
+  pins=policy['producers'][role]['trusted_files'];assert len(pins)==9 and helper in pins
   for name,digest in pins.items():assert hashlib.sha256(Path(name).read_bytes()).hexdigest()==digest,name
  before=json.loads(subprocess.check_output(['git','show','6606a1b3392bc8f867b46e5b1e81bbf86be34d6e:factory/policy.json']))
  after=copy.deepcopy(policy)
@@ -29,5 +29,5 @@ with tempfile.TemporaryDirectory() as temp:
  assert before==after and after['receipts']['trusted_revisions']=={}
  s=importlib.util.spec_from_file_location('receipts','.claude/scripts/factory-receipts.py');m=importlib.util.module_from_spec(s);s.loader.exec_module(m)
  assert len(m.RUNTIME_PATHS)==7 and helper in m.RUNTIME_PATHS
-print('preflight: PASS; missing helper in either role blocks, current complete8-file pins match bytes; both boolean merge modes pass metadata readiness; historical mergefalse and unrelated policy preserved; emitter7 paths; fixture metadata only, no credential authentication')
+print('preflight: PASS; missing helper in either role blocks, current complete9-file pins match bytes; both boolean merge modes pass metadata readiness; historical mergefalse and unrelated policy preserved; emitter7 paths; fixture metadata only, no credential authentication')
 PY
