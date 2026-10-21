@@ -1,0 +1,12 @@
+test_changed_profile_invalidates_existing_policy_binding (__main__.ProfileContract.test_changed_profile_invalidates_existing_policy_binding) ... ok
+test_existing_default_is_explicitly_strict_and_environment_cannot_override (__main__.ProfileContract.test_existing_default_is_explicitly_strict_and_environment_cannot_override) ... ok
+test_only_native_profile_changes_scratch_exec_and_nothing_else (__main__.ProfileContract.test_only_native_profile_changes_scratch_exec_and_nothing_else) ... ok
+test_preflight_reports_unknown_protected_registration (__main__.ProfileContract.test_preflight_reports_unknown_protected_registration) ... ok
+test_registered_profile_is_used_and_retained_in_hashed_observation (__main__.ProfileContract.test_registered_profile_is_used_and_retained_in_hashed_observation) ... ok
+test_unknown_and_arbitrary_option_profiles_reject_before_runner (__main__.ProfileContract.test_unknown_and_arbitrary_option_profiles_reject_before_runner) ... ok
+test_verify_absent_profile_preserves_strict_default (__main__.ProfileContract.test_verify_absent_profile_preserves_strict_default) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.041s
+
+OK

@@ -40,6 +40,13 @@ with tempfile.TemporaryDirectory() as temp:
   if (result.returncode==0)!=expected:
    print(result.stdout+result.stderr);raise SystemExit('evidence contract assertion failed')
  check(evidence,True)
+ # Optional adapter binding is protected-context-bound; legacy shape remains exact.
+ adapter={'kind':'registered-woff2-v1','registration_sha256':'1'*64,'asset_manifest_sha256':'2'*64}
+ bound=copy.deepcopy(context);bound['review_adapter']=adapter;cp.write_text(json.dumps(bound))
+ payload=copy.deepcopy(evidence);payload['review_adapter']=copy.deepcopy(adapter);check(payload,True)
+ payload['review_adapter']['asset_manifest_sha256']='3'*64;check(payload,False)
+ payload=copy.deepcopy(evidence);check(payload,False)
+ cp.write_text(json.dumps(context));payload['review_adapter']=adapter;check(payload,False)
  for mutate in mutations:
   payload=copy.deepcopy(evidence);mutate(payload);check(payload,False)
  # Duplicate JSON keys and invalid authoritative configuration fail too.

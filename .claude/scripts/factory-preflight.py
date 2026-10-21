@@ -126,7 +126,7 @@ def main():
         paths = {f'.github/workflows/factory-{role}.yml', '.claude/scripts/factory-producer.py',
                  '.claude/scripts/factory-producer-check.py', '.claude/scripts/factory-coordinator.py', '.claude/scripts/factory-provenance.py',
                  '.claude/scripts/validate-candidate-evidence.py', '.claude/scripts/factory-bounded-process.py',
-                 '.claude/scripts/factory-policy-observation.py'}
+                 '.claude/scripts/factory-policy-observation.py', '.claude/scripts/factory-font-adapter.py'}
         if not paths <= set(definition.get('trusted_files', {})):
             missing.append(f'{role} complete transitive runtime hashes')
     for sid, approved in policy.get('specs', {}).items():
