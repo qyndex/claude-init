@@ -41,6 +41,23 @@ Use that interpreter for encrypted feedback adapters. Dependency provisioning is
 
 Copy reviewed example values into protected configuration outside the candidate checkout. Supply repository identity, private database/attempt paths, approved role/model/executable profile and resource contract. Do not enable incomplete examples. Offline container execution requires nonroot Linux, a reviewed immutable clean image and pinned Docker executable; it supplies no provider network access or subscription credentials. See FACTORY-RUNTIME.md.
 
+For an adopter using a GitHub-hosted GHCR image publisher, qualify that repository's
+image before selecting it in protected producer configuration. The order is:
+
+1. Review the adopter-specific image contract, publisher workflow and exact source.
+2. Separately review its main-only publishing environment, permissions and publishing
+   gate; installation alone does not provision or enable them.
+3. Perform the approved hosted publication and verify its exact digest and authenticated
+   provenance. Verify the required pull visibility (including anonymous pull where the
+   adopter's contract requires it) and native image qualification on that exact image.
+4. Review and pin the qualified image in the protected producer profile, then run the
+   repository-specific native verification and shadow gates before activation.
+
+Use the adopter's reviewed image specification and workflow for concrete commands;
+the generic installer does not distribute a universal live GHCR publisher. A local
+Docker run, successful build or ordinary CI check is not authenticated hosted image
+acceptance. No image publication or adopter activation is implied by this sequence.
+
 Reporting and feedback are optional. Supply this repository's own Slack team/channel, operator allowlist, intake boundary, state branch and exact bootstrap receipt. Provision secrets in main-only environments and independently validate branch/environment policy before activation. Public state may hold only approved public report facts and encrypted feedback; ciphertext size and update timing remain public. Never store tokens, keys or plaintext feedback in Git. See FACTORY-FEEDBACK.md.
 
 The installer omits source pilot policy, App manifest, live workflows and private state. Apply separately reviewed per-repository workflows, protection and authority definitions. Real native subscription auth/capacity, independent reviewer proof and shadow delivery remain required rollout gates. The existing subscription has no metered fallback. Installation does not certify production: each adopting service must configure and prove its deployment, SLO and rollback adapter before enabling autonomous releases.

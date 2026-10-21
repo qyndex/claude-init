@@ -1,0 +1,4 @@
+{
+  "kind": "docs-only",
+  "reason": "Correct adoption instructions and dated readiness observations only; no runtime, policy, specification or acceptance behavior changes."
+}

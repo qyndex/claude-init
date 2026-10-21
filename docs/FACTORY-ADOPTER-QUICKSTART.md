@@ -18,7 +18,15 @@ python3 .claude/scripts/factory-adopt.py --from /path/to/reviewed-harness --into
 
 Confirm the returned source SHA matches the immutable revision you reviewed, and review the proposed file count. The dry run does not apply target file changes. Adoption preserves existing repository content: conflicting unmanaged files block adoption rather than being overwritten. Resolve a conflict deliberately before proceeding; do not unpack the whole harness over an existing repository.
 
-After reviewing the proposal, follow [Factory adopter setup](FACTORY-ADOPTER-SETUP.md) for the transactional installation, protected configuration and repository-specific setup. Review and commit the resulting target changes. Installation alone does not activate a factory capability.
+After reviewing and approving that exact source/target proposal, apply using the same immutable clean source and an absolute private journal directory outside the target:
+
+```sh
+python3 /path/to/reviewed-harness/.claude/scripts/factory-adopt.py --from /path/to/reviewed-harness --into /path/to/target --state-root /private/path/adoption-journals --check-tools --dry-run
+# Review this final proposal and tool checks, then apply the same transaction:
+python3 /path/to/reviewed-harness/.claude/scripts/factory-adopt.py --from /path/to/reviewed-harness --into /path/to/target --state-root /private/path/adoption-journals --check-tools
+```
+
+The journal root must be canonical, private 0700 and outside the target; journals contain exact before/after bytes and must stay outside Git and CI artifacts. For existing owned installations, use the [reviewed upgrade and ownership rules](FACTORY-ADOPTION.md#reviewed-keep-local-configuration-upgrades), not an overwrite. Follow [Factory adopter setup](FACTORY-ADOPTER-SETUP.md) for protected configuration and repository-specific setup. Review and commit the resulting target changes. Installation alone does not activate a factory capability.
 
 ## Protected readiness
 

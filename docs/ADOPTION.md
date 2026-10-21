@@ -26,10 +26,10 @@ dependencies, code on obsolete tech you may need to migrate.
 
 ## Step 0 — Install the harness (without clobbering theirs)
 
-Use the pinned-source installer from the repository root, or a clean source Git checkout:
+Use a reviewed installer from the target repository root, explicitly selecting the same reviewed full bundle SHA. The installer defaults to main unless CLAUDE_INIT_REF is supplied; running its script from a pinned checkout alone does not select that checkout as the installed bundle. Alternatively use the direct reconciler from a clean immutable source checkout:
 
 ```bash
-bash <factory-clone>/scripts/install.sh
+CLAUDE_INIT_REF=<reviewed-full-40-character-commit-sha> bash <factory-clone>/scripts/install.sh
 # Or inspect before applying:
 bash <factory-clone>/.claude/scripts/reconcile-claude-dir.sh --from <factory-clone> --into . --dry-run
 bash <factory-clone>/.claude/scripts/reconcile-claude-dir.sh --from <factory-clone> --into . --check-tools

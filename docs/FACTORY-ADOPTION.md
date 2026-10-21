@@ -91,3 +91,16 @@ change fences rollback/recovery before target restoration, leaving the pending
 journal for operator inspection. Recovery must use this version or a compatible
 newer trusted updater. These implementation fixtures do not approve migration of
 any live adopter or enable authority, reporting, providers or deployment.
+
+### Whole-bundle updates with a separately trusted updater
+
+Review and bind both the updater checkout SHA and the clean whole-bundle source
+SHA selected by `--from`; they can differ. A trusted compatible updater may apply
+a separately reviewed older bundle as an intermediate stage. Invoke that trusted
+updater explicitly at every stage: an older installed updater must reject a v2
+manifest. Do not substitute partial bundles or hand-edit the manifest. Each stage
+needs its own exact source/target/manifest proposal and review; a keep-local plan
+also binds the incoming configuration fingerprints and its complete approval hash.
+Use the same private journal protections, inspect the resulting diff and commit a
+verified stage before proposing the next one. These instructions do not approve
+any particular live adopter update or assert that a pending revision is on main.

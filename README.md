@@ -28,12 +28,13 @@ For Scout-first requests, use the separately configured [guarded factory console
 
 See the [dated status and remaining rollout evidence](docs/FACTORY-STATUS.md): reporting catch-up, the next pilot digest and feedback/amendment cycle, and the twenty-delivery expansion threshold remain distinct from the recorded implementation baseline. Production, optional online workers and oversized Slack attachments require their own readiness decisions.
 
-## Install in one line
+## Install a reviewed revision
 
-From the **root of the repo you want to harness**:
+Choose and review a full immutable harness commit first. From the **root of the repo you want to harness**, set `REVIEWED_SHA` to that 40-character SHA (the placeholder below is not executable):
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/qyndex/claude-init/main/scripts/install.sh | bash
+REVIEWED_SHA=<reviewed-full-40-character-commit-sha>
+curl -fsSL "https://raw.githubusercontent.com/qyndex/claude-init/$REVIEWED_SHA/scripts/install.sh" | CLAUDE_INIT_REF="$REVIEWED_SHA" bash
 ```
 
 The installer clones the requested source to a temporary checkout and reconciles versioned
@@ -43,8 +44,9 @@ adopter-owned ledgers, preserves existing project data, excludes active source b
 and pilot workflows, and checks local tools without executing target setup. Prefer not to pipe to shell? Download and read it first:
 
 ```bash
-curl -fsSLO https://raw.githubusercontent.com/qyndex/claude-init/main/scripts/install.sh
-less install.sh && bash install.sh
+curl -fsSL "https://raw.githubusercontent.com/qyndex/claude-init/$REVIEWED_SHA/scripts/install.sh" -o /private/path/install.sh
+less /private/path/install.sh
+CLAUDE_INIT_REF="$REVIEWED_SHA" bash /private/path/install.sh
 ```
 
 **Then** finish the [Manual setup](#manual-setup) (GitHub ruleset,
@@ -89,12 +91,13 @@ Both paths use [the adopter setup guide](docs/FACTORY-ADOPTER-SETUP.md#greenfiel
 
 ## Step-by-step adoption
 
-### 1. Install (one line)
+### 1. Install a reviewed revision
 
-Run from the root of your repo (see [Install in one line](#install-in-one-line) for the safety details):
+Run from the root of your repo (see [Install a reviewed revision](#install-a-reviewed-revision) for the safety details):
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/qyndex/claude-init/main/scripts/install.sh | bash
+REVIEWED_SHA=<reviewed-full-40-character-commit-sha>
+curl -fsSL "https://raw.githubusercontent.com/qyndex/claude-init/$REVIEWED_SHA/scripts/install.sh" | CLAUDE_INIT_REF="$REVIEWED_SHA" bash
 ```
 
 **Prerequisites** (the installer checks these): `git`, `jq` (REQUIRED — the security hooks fail
@@ -272,22 +275,28 @@ See [docs/RESEARCH.md](docs/RESEARCH.md) for the full reference list with GitHub
 
 ## Adopt in an existing project
 
-Use the [one-line installer](#install-in-one-line) — it detects an existing `.claude/` and
+Use the [reviewed-revision installer](#install-a-reviewed-revision) — it detects an existing `.claude/` and
 checks version/hash/mode ownership and blocks conflicting files before changes. To upgrade an already-adopted repo to
 a newer factory:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/qyndex/claude-init/main/scripts/install.sh | UPGRADE=1 bash
+REVIEWED_SHA=<reviewed-full-40-character-commit-sha>
+curl -fsSL "https://raw.githubusercontent.com/qyndex/claude-init/$REVIEWED_SHA/scripts/install.sh" | CLAUDE_INIT_REF="$REVIEWED_SHA" UPGRADE=1 bash
 ```
 
 Deep dive: [docs/ONBOARDING.md](docs/ONBOARDING.md) and [docs/ADOPTION.md](docs/ADOPTION.md).
 
 ## Customize per project
 
-- Edit `.claude/CLAUDE.md` — tighten the constitution to your stack
-- Edit `.claude/settings.json` — adjust the `allow`/`ask`/`deny` lists
-- Edit `.mcp.json` — comment out servers you don't need, add ones you do
-- Edit `.claude/scripts/run.sh` — match your project's start command
+Use adopter-owned project guidance, memory and custom agents for project conventions.
+Managed files are not an unrestricted customization surface: editing the managed
+`.claude/CLAUDE.md`, scripts, hooks or framework agents blocks ordinary upgrades
+and requires a reviewed process-fork decision. For intentional root `CLAUDE.md`,
+`.mcp.json` or `.claude/settings.json` overrides, use the exact reviewed
+[keep-local ownership transaction](docs/FACTORY-ADOPTION.md#reviewed-keep-local-configuration-upgrades)
+with a compatible trusted updater. This does not release any other managed path.
+
+- Edit adopter-owned root guidance and local settings for your project
 - Edit `.github/CODEOWNERS` — your team's handles
 - Edit `.github/dependabot.yml` — your stacks
 

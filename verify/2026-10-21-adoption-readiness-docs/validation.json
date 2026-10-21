@@ -1,0 +1,24 @@
+{
+  "base": "6859f476264b3d317eb1e5670d361a1ec8d520bb",
+  "scope": "documentation-only",
+  "documentation_paths": [
+    "README.md",
+    "docs/ADOPTION.md",
+    "docs/FACTORY-ADOPTER-QUICKSTART.md",
+    "docs/FACTORY-ADOPTER-SETUP.md",
+    "docs/FACTORY-ADOPTION.md",
+    "docs/FACTORY-STATUS.md"
+  ],
+  "diff_check": "PASS",
+  "runtime_changes": false,
+  "examples_executed": false,
+  "native_acceptance_claimed": false,
+  "live_adopter_apply": false,
+  "added_local_link_targets": "PASS",
+  "existing_link_issue": "README demo.gif absent on baseline and candidate; unchanged",
+  "check_local_evidence": {
+    "exit": 1,
+    "result": "no local evidence bundles",
+    "interpretation": "No AC bundle for documentation-only change; existing evidence-gate docs-only policy applies. No acceptance PASS claimed."
+  }
+}
