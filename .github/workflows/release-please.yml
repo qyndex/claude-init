@@ -26,7 +26,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: actions/checkout@v4 # for assert-release-only-diff.sh
+      - uses: actions/checkout@v7 # for assert-release-only-diff.sh
 
       - name: Verify release PR scope and request factory
         env:

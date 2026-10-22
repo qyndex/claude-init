@@ -17,7 +17,7 @@ jobs:
   reverse-drift:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # Full history so ${{ github.event.before }}..HEAD resolves the merge.
           fetch-depth: 0
