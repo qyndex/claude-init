@@ -26,7 +26,7 @@ jobs:
         if: ${{ hashFiles('**/*.tf') != '' }}
       - run: tflint --recursive
         if: ${{ hashFiles('**/*.tf') != '' }}
-      - uses: bridgecrewio/checkov-action@7b972723c44fb3d256283fac96fae5d7c1894bb7 # master 2026-05-29
+      - uses: bridgecrewio/checkov-action@6f26dc90000b74feb589a906cdfae540f5119895 # master 2026-05-29
         if: ${{ hashFiles('**/*.tf') != '' }}
         with:
           framework: terraform
@@ -38,7 +38,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: hadolint/hadolint-action@v3.3.0
+      - uses: hadolint/hadolint-action@v3.5.0
         if: ${{ hashFiles('**/Dockerfile*') != '' }}
         with:
           dockerfile: Dockerfile
