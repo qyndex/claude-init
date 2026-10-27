@@ -1,5 +1,105 @@
 # Changelog
 
+## [2.2.0](https://github.com/qyndex/claude-init/compare/v2.1.0...v2.2.0) (2026-10-27)
+
+
+### Features
+
+* **adoption:** preserve reviewed local configuration ownership ([#140](https://github.com/qyndex/claude-init/issues/140)) ([6859f47](https://github.com/qyndex/claude-init/commit/6859f476264b3d317eb1e5670d361a1ec8d520bb))
+* **factory:** add bounded native-build and additive receipt profile ([#139](https://github.com/qyndex/claude-init/issues/139)) ([d411d60](https://github.com/qyndex/claude-init/commit/d411d600a03519fa1de06e5a7a54da7234ea27f4))
+* **factory:** add conservative Slack morning runner ([#58](https://github.com/qyndex/claude-init/issues/58)) ([55f9137](https://github.com/qyndex/claude-init/commit/55f9137979ac572e84069674bd7acdc49e8df735))
+* **factory:** add durable claims and reconciliation outbox ([#53](https://github.com/qyndex/claude-init/issues/53)) ([9d02c7b](https://github.com/qyndex/claude-init/commit/9d02c7b784c83fb53d89e120241d5656986cd809))
+* **factory:** add durable delivery digest core ([#57](https://github.com/qyndex/claude-init/issues/57)) ([28db5ca](https://github.com/qyndex/claude-init/commit/28db5cab9c9836718667c1d19c95717c9e16bd87))
+* **factory:** add guarded request intake and Scout routing ([f2e1411](https://github.com/qyndex/claude-init/commit/f2e14119001141748a410f86d2ffb7cb50f7be19)), closes [#104](https://github.com/qyndex/claude-init/issues/104)
+* **factory:** add isolated reporting queue monitor ([#112](https://github.com/qyndex/claude-init/issues/112)) ([9183908](https://github.com/qyndex/claude-init/commit/91839087a769bd45670df5b84cb96993bcb97d42))
+* **factory:** add protected candidate merge authority ([#50](https://github.com/qyndex/claude-init/issues/50)) ([148238a](https://github.com/qyndex/claude-init/commit/148238ad8950681d352985cdb9c48ad0301e97d3))
+* **factory:** add protected verification and independent review producers ([#52](https://github.com/qyndex/claude-init/issues/52)) ([50a8e93](https://github.com/qyndex/claude-init/commit/50a8e937f6a9fed696cdcb8c25c789cd42d6bd20))
+* **factory:** approved private legacy feedback migration ([#82](https://github.com/qyndex/claude-init/issues/82)) ([b03850f](https://github.com/qyndex/claude-init/commit/b03850f036cff00aed923d896f09dffd073dfad1))
+* **factory:** authenticate deliveries and recover orphaned workers ([#56](https://github.com/qyndex/claude-init/issues/56)) ([22391ea](https://github.com/qyndex/claude-init/commit/22391eaba01f2643d3891f7bce21a5e1f8135f37))
+* **factory:** authenticate hosted digest delivery evidence ([#73](https://github.com/qyndex/claude-init/issues/73)) ([41ffe89](https://github.com/qyndex/claude-init/commit/41ffe89d02e8725dba59750838323ca7ef86b32e))
+* **factory:** authenticated private Slack feedback ([#80](https://github.com/qyndex/claude-init/issues/80)) ([3e755cd](https://github.com/qyndex/claude-init/commit/3e755cd1d732fb146a2495ef889dcb815b2cdfca))
+* **factory:** authenticated versioned feedback decisions ([#81](https://github.com/qyndex/claude-init/issues/81)) ([c721a7b](https://github.com/qyndex/claude-init/commit/c721a7bc0d17d9636ad94e515e4a4f25fed1bf14))
+* **factory:** bind protected role routing to approved tasks ([#87](https://github.com/qyndex/claude-init/issues/87)) ([19c160c](https://github.com/qyndex/claude-init/commit/19c160cf59879bfaa0288e3935b6dc1c54978ab8))
+* **factory:** bound private worker output and guard artifact retention ([#91](https://github.com/qyndex/claude-init/issues/91)) ([99528e3](https://github.com/qyndex/claude-init/commit/99528e3b54ca9248613c46ba63b2f5d526bbfacc))
+* **factory:** capture encrypted hosted operator feedback ([#85](https://github.com/qyndex/claude-init/issues/85)) ([16e9d6c](https://github.com/qyndex/claude-init/commit/16e9d6cbc0bac0f486f43866fa756127e61d0c4d))
+* **factory:** complete neutral adopter dependency and configuration package ([#90](https://github.com/qyndex/claude-init/issues/90)) ([ae99ee3](https://github.com/qyndex/claude-init/commit/ae99ee3927f68af0e88914d2db9abeb4bd3624b6))
+* **factory:** deliver GitHub-only reporting alerts and verified recovery ([#79](https://github.com/qyndex/claude-init/issues/79)) ([2ad36ab](https://github.com/qyndex/claude-init/commit/2ad36ab055a2bd19488f89757af5b6f92e86f7c4))
+* **factory:** encrypt private feedback checkpoints ([#84](https://github.com/qyndex/claude-init/issues/84)) ([a886441](https://github.com/qyndex/claude-init/commit/a8864417db835841a27b2c401bbb681bcedf5170))
+* **factory:** fence unresolved external worker effects ([#88](https://github.com/qyndex/claude-init/issues/88)) ([8503762](https://github.com/qyndex/claude-init/commit/8503762a0ae4146c4e37f3afa12cf4593041d3dd))
+* **factory:** hosted digest with protected branch checkpoints ([#63](https://github.com/qyndex/claude-init/issues/63)) ([a896dc0](https://github.com/qyndex/claude-init/commit/a896dc065fa254950dc55f8aa81b751b9a202985))
+* **factory:** integrate approved ledger and isolated resources ([#55](https://github.com/qyndex/claude-init/issues/55)) ([45383d8](https://github.com/qyndex/claude-init/commit/45383d80e6923da6872f208f107744dcf0747f9f))
+* **factory:** isolate offline workers and fence daemon cleanup ([#89](https://github.com/qyndex/claude-init/issues/89)) ([d72ba16](https://github.com/qyndex/claude-init/commit/d72ba160c4daafdce445411586b1e00ef158c119))
+* **factory:** pin reviewer execution to Claude Sonnet 5.5 ([cf3b2ff](https://github.com/qyndex/claude-init/commit/cf3b2fff928169973494fc15eb86a0176aa2dd1f)), closes [#105](https://github.com/qyndex/claude-init/issues/105)
+* **factory:** prepare merge policy after authenticated shadow ([#120](https://github.com/qyndex/claude-init/issues/120)) ([5109d07](https://github.com/qyndex/claude-init/commit/5109d078f5aa2162a635ed0e90a2c439a597e406))
+* **factory:** protect progressive release and rollback recovery ([#93](https://github.com/qyndex/claude-init/issues/93)) ([f04b28d](https://github.com/qyndex/claude-init/commit/f04b28dad6189251c49b88605cd38300a8af25af))
+* **factory:** protected persistent reporting Actions ([#60](https://github.com/qyndex/claude-init/issues/60)) ([a64cd57](https://github.com/qyndex/claude-init/commit/a64cd571b4efff56dcdf903f2ae14bba93a01388))
+* **factory:** receipt-gated feedback and approved amendments ([#61](https://github.com/qyndex/claude-init/issues/61)) ([b33569c](https://github.com/qyndex/claude-init/commit/b33569c63b5183467ee0e0208f5d0ac6946aa0b2))
+* **factory:** register protected pilot proof and receipt profiles ([460b687](https://github.com/qyndex/claude-init/commit/460b687318b41f152761f3198dc31f8f6d5cafa6))
+* **factory:** supervise workers and coordinate shared writers ([#54](https://github.com/qyndex/claude-init/issues/54)) ([9e2d0aa](https://github.com/qyndex/claude-init/commit/9e2d0aa9f117258a311abd8c35ceac656b052929))
+* **factory:** transactional harness adoption and ownership ([#83](https://github.com/qyndex/claude-init/issues/83)) ([198accd](https://github.com/qyndex/claude-init/commit/198accd691981dc59687731f239839d5afee2d38))
+* **factory:** verify delivery for an independent reporting watchdog ([#75](https://github.com/qyndex/claude-init/issues/75)) ([1226117](https://github.com/qyndex/claude-init/commit/122611702f3c3c10620456a17c8599dfde00d16a))
+* **factory:** verify installed Slack file scopes before activation ([#76](https://github.com/qyndex/claude-init/issues/76)) ([277b7e3](https://github.com/qyndex/claude-init/commit/277b7e3b6ec1ceb9c432db39d809edfc0c2fe36e))
+* **factory:** verify oversized Slack report attachments ([#74](https://github.com/qyndex/claude-init/issues/74)) ([cf18593](https://github.com/qyndex/claude-init/commit/cf1859310a56fe8a8fb95e11011b90d39f694b2e))
+* **factory:** verify Slack files with an isolated activation canary ([#77](https://github.com/qyndex/claude-init/issues/77)) ([11a1381](https://github.com/qyndex/claude-init/commit/11a13811b091d33d7aedcbd5216bb63bb7d2867b))
+* **review:** add exact-font adapter with preserved receipt profiles ([#145](https://github.com/qyndex/claude-init/issues/145)) ([970268b](https://github.com/qyndex/claude-init/commit/970268b93771477e5432803e46062f1e18cbabd7))
+
+
+### Bug Fixes
+
+* **ci:** finish workflow lint and fail-closed file checks ([#94](https://github.com/qyndex/claude-init/issues/94)) ([d29e16c](https://github.com/qyndex/claude-init/commit/d29e16c344e611bf68db9137c52685b92dc65257))
+* **ci:** isolate main ruleset validation and record reporting bootstrap ([#64](https://github.com/qyndex/claude-init/issues/64)) ([26d5779](https://github.com/qyndex/claude-init/commit/26d5779e300f8874886249b0375c04e55141f67b))
+* **ci:** retain tool-free subscription review evidence ([#126](https://github.com/qyndex/claude-init/issues/126)) ([6e89cc6](https://github.com/qyndex/claude-init/commit/6e89cc6f3d8e368fd078f5652c928225bec10f03))
+* **evidence:** isolate smoke output per collection attempt ([#131](https://github.com/qyndex/claude-init/issues/131)) ([9e60a67](https://github.com/qyndex/claude-init/commit/9e60a678b4cf7b6ccd8b9963bad0656fbea24ff3))
+* **factory:** approve exact reporting rules without admin credentials ([#67](https://github.com/qyndex/claude-init/issues/67)) ([ccbe745](https://github.com/qyndex/claude-init/commit/ccbe745b802a87f8dfd083f6923a82cbb411dfaa))
+* **factory:** authenticate latest producer runs independently of check URLs ([#109](https://github.com/qyndex/claude-init/issues/109)) ([6606a1b](https://github.com/qyndex/claude-init/commit/6606a1b3392bc8f867b46e5b1e81bbf86be34d6e))
+* **factory:** authenticate signed producer execution provenance ([bc678f6](https://github.com/qyndex/claude-init/commit/bc678f611e7c2e05b1eb427e805654644c84dd67))
+* **factory:** bind activation planning to protected policy ([#96](https://github.com/qyndex/claude-init/issues/96)) ([60b93a3](https://github.com/qyndex/claude-init/commit/60b93a313f5a57760d2ad8602e0d88850b713b8c))
+* **factory:** bootstrap durable receipts and historical queue proof ([#115](https://github.com/qyndex/claude-init/issues/115)) ([1defb28](https://github.com/qyndex/claude-init/commit/1defb2898993c164929c1643aefcedfa55714966))
+* **factory:** bound and authenticate hosted reviewer execution ([#95](https://github.com/qyndex/claude-init/issues/95)) ([8374075](https://github.com/qyndex/claude-init/commit/8374075855cb7ded3b9465a34203ffc51ff525de))
+* **factory:** capture bounded historical job log framing ([1af8719](https://github.com/qyndex/claude-init/commit/1af871964f190a24105a51c6529111db1d560f5a))
+* **factory:** check Slack access before pilot delivery ([#65](https://github.com/qyndex/claude-init/issues/65)) ([dd7b0bc](https://github.com/qyndex/claude-init/commit/dd7b0bc37d655d532e8ea38aeb0b0c772dfdbb9f))
+* **factory:** diagnose blocked receipt reconciliation safely ([#68](https://github.com/qyndex/claude-init/issues/68)) ([9d1075d](https://github.com/qyndex/claude-init/commit/9d1075dd5382e81f43ab0fc433ac61b0696b5a9b))
+* **factory:** expose bounded file canary failure reasons ([#78](https://github.com/qyndex/claude-init/issues/78)) ([0267f79](https://github.com/qyndex/claude-init/commit/0267f79a3c8a83298060c7053abc179c8e799ecb))
+* **factory:** expose safe Slack failure codes ([#66](https://github.com/qyndex/claude-init/issues/66)) ([3a82cb4](https://github.com/qyndex/claude-init/commit/3a82cb40f461a36e45e7b95ea33ec583efe49abe))
+* **factory:** honor installer source and expose setup failures ([#62](https://github.com/qyndex/claude-init/issues/62)) ([4965c7f](https://github.com/qyndex/claude-init/commit/4965c7f9d2e8b577c53d96f0a7752d786cd07e0a))
+* **factory:** keep coordinator credentials out of worker environments ([#86](https://github.com/qyndex/claude-init/issues/86)) ([d4c9063](https://github.com/qyndex/claude-init/commit/d4c906334119b74c069a5fc13b7e0867bc93024b))
+* **factory:** preserve bounded native artifact transport ([94e40be](https://github.com/qyndex/claude-init/commit/94e40be14af35b11bbd81d355a723141c4383299))
+* **factory:** reconcile late-discovered digest coverage ([#59](https://github.com/qyndex/claude-init/issues/59)) ([e17289b](https://github.com/qyndex/claude-init/commit/e17289b3b436d42e2dc9bf5072c9247da0fce939))
+* **factory:** recover exact Slack split receipts without resending ([#71](https://github.com/qyndex/claude-init/issues/71)) ([f0826c9](https://github.com/qyndex/claude-init/commit/f0826c9afcc580cccaa96941b0f92c5e045a697a))
+* **factory:** refuse placeholder production deployment ([#92](https://github.com/qyndex/claude-init/issues/92)) ([18ef654](https://github.com/qyndex/claude-init/commit/18ef654dec222cedf9f5d3b7b2e2a61a6ea35ac5))
+* **factory:** retain authenticated origin prefixes and safe diagnostics ([#125](https://github.com/qyndex/claude-init/issues/125)) ([6399f35](https://github.com/qyndex/claude-init/commit/6399f35c6de9d67a2fb9cb1506945319d69c691e))
+* **factory:** stabilize policy timestamps and retain rejection diagnostics ([#111](https://github.com/qyndex/claude-init/issues/111)) ([2fd54db](https://github.com/qyndex/claude-init/commit/2fd54dbc6912af3f2ddfe445793152ba2b8b533e))
+* **factory:** verify adoption readiness and acceptance parsing ([a76b258](https://github.com/qyndex/claude-init/commit/a76b258353c0c692a80c0e40ae0ccf4d2cb4c246))
+* **factory:** verify adoption readiness and acceptance parsing ([#124](https://github.com/qyndex/claude-init/issues/124)) ([a76b258](https://github.com/qyndex/claude-init/commit/a76b258353c0c692a80c0e40ae0ccf4d2cb4c246))
+* **factory:** verify exact Slack link labels and diagnose private text ([#70](https://github.com/qyndex/claude-init/issues/70)) ([1425480](https://github.com/qyndex/claude-init/commit/1425480fbf2b5006817d074e04bf98a484fe7ceb))
+* **factory:** verify hidden bypass metadata without admin write ([#110](https://github.com/qyndex/claude-init/issues/110)) ([6a004bc](https://github.com/qyndex/claude-init/commit/6a004bc6d926e16f9b09efe949fbb8b50a843eac))
+* **factory:** verify Slack URL round trips before confirming receipts ([#69](https://github.com/qyndex/claude-init/issues/69)) ([94bf4eb](https://github.com/qyndex/claude-init/commit/94bf4eb1032a2f1467389750ee816bec0dc3af5b))
+* **harness:** preserve proof and enforce guarded security checks ([#113](https://github.com/qyndex/claude-init/issues/113)) ([b533a82](https://github.com/qyndex/claude-init/commit/b533a82f4b4b45712e26a33239ef269a6847aa92))
+* identify protected queue worker validation stage safely ([#130](https://github.com/qyndex/claude-init/issues/130)) ([d99db50](https://github.com/qyndex/claude-init/commit/d99db50910b74692b00724cdc4bc2d7483b86fc5))
+* **reporting:** expose bounded queue failure diagnostics ([#129](https://github.com/qyndex/claude-init/issues/129)) ([69574d2](https://github.com/qyndex/claude-init/commit/69574d23988d1a98c2c6f6f27c08815449a59351))
+* **reporting:** resume interrupted projection acknowledgments ([bd2142e](https://github.com/qyndex/claude-init/commit/bd2142e226baa7c3622977c5ea87b49a8d2c442a))
+* **reporting:** resume interrupted projection acknowledgments ([#128](https://github.com/qyndex/claude-init/issues/128)) ([bd2142e](https://github.com/qyndex/claude-init/commit/bd2142e226baa7c3622977c5ea87b49a8d2c442a))
+* **reporting:** retry bounded incomplete queue observations ([#134](https://github.com/qyndex/claude-init/issues/134)) ([c7b13f0](https://github.com/qyndex/claude-init/commit/c7b13f0f15c535a0df9b4ae6d76d19db4e6a3838))
+* **reporting:** validate metadata against the read-time clock ([#138](https://github.com/qyndex/claude-init/issues/138)) ([d948cbe](https://github.com/qyndex/claude-init/commit/d948cbe29aeaefd998770343245da4ca6f95a1b0))
+
+
+### Documentation
+
+* **adoption:** clarify pinned setup and current readiness ([#141](https://github.com/qyndex/claude-init/issues/141)) ([6617879](https://github.com/qyndex/claude-init/commit/66178795a7408d0219186938d0dad9b493fc27c7))
+* **factory:** deliver approved adopter quickstart pilot ([#122](https://github.com/qyndex/claude-init/issues/122)) ([924c20b](https://github.com/qyndex/claude-init/commit/924c20b87222069a6d51ef9933772dd24f9f2891))
+* **factory:** permit exact approved pilot proof paths ([#100](https://github.com/qyndex/claude-init/issues/100)) ([1002698](https://github.com/qyndex/claude-init/commit/10026982e8d9e6b46bcfa0c3ee65218a32b7df9e))
+* **factory:** prepare shadow activation decision package ([#97](https://github.com/qyndex/claude-init/issues/97)) ([1aefcbe](https://github.com/qyndex/claude-init/commit/1aefcbeda51e382bde8c76300fccbb46a968ba44))
+* **factory:** record live reporting activation and repeat proof ([#72](https://github.com/qyndex/claude-init/issues/72)) ([b85245a](https://github.com/qyndex/claude-init/commit/b85245aac449f220b5ddb55f5e8782e656360b2b))
+* **factory:** register approved pilot and shadow conditions ([#99](https://github.com/qyndex/claude-init/issues/99)) ([7e5815d](https://github.com/qyndex/claude-init/commit/7e5815da517d9db103c5283543d08318883e7e6a))
+* **review:** prepare exact-font adapter evidence and contract ([#143](https://github.com/qyndex/claude-init/issues/143)) ([a308cd6](https://github.com/qyndex/claude-init/commit/a308cd66ec8b1ea19b8b87bbc9a3edc4f62b8c3d))
+
+
+### Chores
+
+* **factory:** pin signed shadow producer runtime ([0fbacd2](https://github.com/qyndex/claude-init/commit/0fbacd25310d7e324e34bbbff8c99cbc877a272a))
+* **factory:** prepare shadow activation and restore security gates ([d036af6](https://github.com/qyndex/claude-init/commit/d036af6740cb8e4b9cf56a640ff796f617b191ee)), closes [#106](https://github.com/qyndex/claude-init/issues/106)
+* **factory:** record authenticated activation and pilot delivery ([#123](https://github.com/qyndex/claude-init/issues/123)) ([edd3382](https://github.com/qyndex/claude-init/commit/edd33825d5191f3ad82fc8c9892cebff2dc69686))
+
 ## [2.1.0](https://github.com/qyndex/claude-init/compare/v2.0.0...v2.1.0) (2026-07-26)
 
 
